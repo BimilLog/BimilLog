@@ -1,0 +1,335 @@
+package jaeik.growfarm.service;
+
+import jaeik.growfarm.global.config.KakaoKeyVO;
+import jaeik.growfarm.dto.user.KakaoInfoDTO;
+import jaeik.growfarm.dto.user.TokenDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import java.util.Map;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class KakaoService {
+    private final KakaoKeyVO kakaoKeyVO;
+    private final WebClient.Builder webClientBuilder;
+
+    // 토큰 받기
+    public TokenDTO getToken(String code) {
+        WebClient webClient = webClientBuilder.build();
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "authorization_code");
+        formData.add("client_id", kakaoKeyVO.getCLIENT_ID());
+        formData.add("redirect_uri", kakaoKeyVO.getREDIRECT_URI());
+        formData.add("code", code);
+        formData.add("client_secret", kakaoKeyVO.getCLIENT_SECRET());
+
+        Mono<TokenDTO> response = webClient.post()
+                .uri(kakaoKeyVO.getTOKEN_URL())
+                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> clientResponse.bodyToMono(String.class)
+                                .map(errorBody -> new RuntimeException("토큰 발급 실패: "
+                                        + clientResponse.statusCode() + " - "
+                                        + errorBody)))
+                .bodyToMono(TokenDTO.class);
+
+        TokenDTO tokenDTO = response.block();
+
+        if (tokenDTO == null) {
+            throw new RuntimeException("토큰 발급 실패");
+        }
+
+        log.info(tokenDTO.getKakaoAccessToken());
+        log.info(tokenDTO.getKakaoRefreshToken());
+        return tokenDTO;
+    }
+
+    // 로그아웃
+    public void logout(String kakaoAccessToken) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<String> response = webClient.post()
+                .uri(kakaoKeyVO.getLOGOUT_URL())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("로그아웃이 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        String result = response.block();
+        log.info(result);
+    }
+
+    // 카카오계정과 함께 로그아웃
+    public String logoutWithKakao(String kakaoAccessToken) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<String> response = webClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path(kakaoKeyVO.getLOGOUT_WITH_KAKAO_URL())
+                        .queryParam("client_id", kakaoKeyVO.getCLIENT_ID())
+                        .queryParam("logout_redirect_uri",
+                                kakaoKeyVO.getLOGOUT_WITH_REDIRECT_URL())
+                        .build())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("카카오계정과 함께 로그아웃이 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+
+    // 연결 끊기
+    public String unlink(String kakaoAccessToken) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<String> response = webClient.post()
+                .uri(kakaoKeyVO.getUNLINK_URL())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("연결 끊기가 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+
+    // 강제 연결 끊기
+    public String unlinkByAdmin(Long kakaoId) {
+        WebClient webClient = webClientBuilder.build();
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("target_id_type", "user_id");
+        formData.add("target_id", kakaoId.toString());
+
+        Mono<String> response = webClient.post()
+                .uri(kakaoKeyVO.getUNLINK_URL())
+                .header("Authorization", "KakaoAK " + kakaoKeyVO.getADMIN_KEY())
+                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("강제 연결 끊기가 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+
+    // 토큰 정보 보기
+    public TokenDTO getTokenInfo(String kakaoAccessToken) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<TokenDTO> response = webClient.get()
+                .uri(kakaoKeyVO.getTOKEN_INFO_URL())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("토큰 정보 조회가 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(TokenDTO.class);
+
+        return response.block();
+    }
+
+    // 토큰 갱신하기
+    public TokenDTO refreshToken(String refreshToken) {
+        WebClient webClient = webClientBuilder.build();
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "refresh_token");
+        formData.add("client_id", kakaoKeyVO.getCLIENT_ID());
+        formData.add("refresh_token", refreshToken);
+        formData.add("client_secret", kakaoKeyVO.getCLIENT_SECRET());
+
+        Mono<TokenDTO> response = webClient.post()
+                .uri(kakaoKeyVO.getREFRESH_TOKEN_URL())
+                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("토큰 갱신이 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(TokenDTO.class);
+
+        return response.block();
+    }
+
+    // 사용자 정보 가져오기
+    public KakaoInfoDTO getUserInfo(String kakaoAccessToken) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<Map<String, Object>> response = webClient.get()
+                .uri(kakaoKeyVO.getUSER_INFO_URL())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<>() {
+                });
+
+        Map<String, Object> responseMap = response.block();
+
+        if (responseMap == null) {
+            throw new RuntimeException("사용자 정보 가져오기 실패");
+        }
+
+        log.info("카카오 API 응답: {}", responseMap);
+
+        KakaoInfoDTO kakaoInfoDTO = new KakaoInfoDTO();
+        kakaoInfoDTO.setKakaoId(Long.parseLong(responseMap.get("id").toString()));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) responseMap.get("properties");
+        if (properties != null) {
+            kakaoInfoDTO.setKakaoNickname(properties.get("nickname").toString());
+            kakaoInfoDTO.setThumbnailImage(properties.get("thumbnail_image").toString());
+        }
+
+        return kakaoInfoDTO;
+    }
+
+    // 여러 사용자 정보 가져오기
+    public String getMultipleUserInfo(Long[] targetIds) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<String> response = webClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path(kakaoKeyVO.getMULTIPLE_USER_INFO_URL())
+                        .queryParam("target_ids", String.join(",",
+                                java.util.Arrays.stream(targetIds)
+                                        .map(String::valueOf)
+                                        .toArray(String[]::new)))
+                        .queryParam("target_id_type", "user_id")
+                        .build())
+                .header("Authorization", kakaoKeyVO.getADMIN_KEY())
+                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("여러 사용자 정보 가져오기가 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+
+    // 사용자 목록 가져오기
+    public String getUserList(Integer limit, Long from_id, String order) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<String> response = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(kakaoKeyVO.getUSER_LIST_URL())
+                        .queryParam("limit", limit)
+                        .queryParam("from_id", from_id)
+                        .queryParam("order", order)
+                        .build())
+                .header("Authorization", kakaoKeyVO.getADMIN_KEY())
+                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("사용자 목록 가져오기가 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+
+    // 사용자 정보 저장하기
+    public String saveUserInfo(String properties) {
+        WebClient webClient = webClientBuilder.build();
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("properties", properties);
+
+        Mono<String> response = webClient.post()
+                .uri(kakaoKeyVO.getSAVE_USER_INFO_URL())
+                .header("Authorization", kakaoKeyVO.getADMIN_KEY())
+                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("사용자 정보 저장이 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+
+    // 동의 내역 확인하기
+    public String checkConsent(String kakaoAccessToken, String[] scopes) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<String> response = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(kakaoKeyVO.getCHECK_CONSENT_URL())
+                        .queryParam("scopes", String.join(",", scopes))
+                        .build())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("동의 내역 확인이 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+
+    // 동의 철회하기
+    public String revokeConsent(String kakaoAccessToken, String[] scopes) {
+        WebClient webClient = webClientBuilder.build();
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("scopes", String.join(",", scopes));
+
+        Mono<String> response = webClient.post()
+                .uri(kakaoKeyVO.getREVOKE_CONSENT_URL())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("동의 철회가 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+}

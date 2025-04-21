@@ -1,0 +1,26 @@
+package jaeik.growfarm.dto.user;
+
+import jaeik.growfarm.entity.user.UserRole;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
+@Setter
+@Getter
+@RequiredArgsConstructor
+public class UserDTO {
+
+    private Long userId;
+
+    private Long kakaoId;
+
+    private Long tokenId;
+
+    private String kakaoNickname;
+
+    private String thumbnailImage;
+
+    private String farmName;
+
+    private UserRole role;
+}
