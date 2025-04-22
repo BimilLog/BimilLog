@@ -58,8 +58,7 @@ export default function Privacy() {
                   <ul className="ms-4">
                     <li>회원가입 및 관리 : 카카오톡 로그인 API</li>
                     <li>
-                      재화 또는 서비스 제공 : 서비스 이용 기록, 쿠키, 접속
-                      IP정보
+                      재화 또는 서비스 제공 : 서비스 이용 기록, 쿠키
                     </li>
                   </ul>
                 </section>

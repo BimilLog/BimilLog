@@ -88,7 +88,7 @@ const Navigation = () => {
               </Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" href="/about">
+              <Link className="nav-link" href="/farm">
                 내 농장 가기
               </Link>
             </li>
