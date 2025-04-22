@@ -3,10 +3,12 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { FarmNameRequestDTO } from "@/components/types/schema";
+import useAuthStore from "@/util/authStore";
 
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { checkAuth } = useAuthStore();
   const [tokenId, setTokenId] = useState<number | null>(null);
   const [farmName, setFarmName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -14,37 +16,41 @@ export default function SignupPage() {
   const [nameError, setNameError] = useState<string | null>(null);
 
   useEffect(() => {
+    // 토큰 ID 검증
     const tokenIdParam = searchParams.get("tokenId");
     if (!tokenIdParam) {
       setError("토큰 정보가 없습니다. 다시 로그인해주세요.");
-      router.replace("/");
+      setTimeout(() => router.replace("/"), 2000);
       return;
     }
     setTokenId(parseInt(tokenIdParam, 10));
-  }, [searchParams]);
+  }, [searchParams, router]);
 
+  // 농장 이름 유효성 검사
   const validateFarmName = (name: string): boolean => {
-    if (name.trim().length < 2) {
+    const trimmedName = name.trim();
+
+    if (trimmedName.length < 2) {
       setNameError("농장 이름은 2글자 이상이어야 합니다.");
       return false;
     }
-    if (name.trim().length > 8) {
+
+    if (trimmedName.length > 8) {
       setNameError("농장 이름은 8글자 이하여야 합니다.");
       return false;
     }
+
     setNameError(null);
     return true;
   };
 
+  // 폼 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateFarmName(farmName)) {
-      return;
-    }
-
-    if (!tokenId) {
-      setError("토큰 정보가 없습니다. 다시 로그인해주세요.");
+    // 유효성 검사
+    if (!validateFarmName(farmName) || !tokenId) {
+      if (!tokenId) setError("토큰 정보가 없습니다. 다시 로그인해주세요.");
       return;
     }
 
@@ -52,26 +58,23 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const farmNameRequestDTO: FarmNameRequestDTO = {
-        tokenId: tokenId,
-        farmName: farmName,
-      };
-
+      // 회원가입 요청 전송
       const response = await fetch("http://localhost:8080/auth/signUp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(farmNameRequestDTO),
+        body: JSON.stringify({ tokenId, farmName: farmName.trim() }),
         credentials: "include",
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || "농장 생성에 실패했습니다.");
       }
 
-      // 회원가입 성공 시 메인 페이지로 이동
+      // 회원가입 성공 시 인증 상태 업데이트 후 메인 페이지로 이동
+      await checkAuth();
       router.push("/");
     } catch (err) {
       console.error("농장 생성 오류:", err);

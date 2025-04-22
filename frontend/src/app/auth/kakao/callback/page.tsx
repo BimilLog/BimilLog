@@ -2,23 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import useAuthStore from "@/util/authStore";
 
 export default function KakaoCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<string>("처리 중...");
+  const { checkAuth } = useAuthStore();
 
   useEffect(() => {
     const processKakaoLogin = async () => {
+      // URL에서 코드 파라미터 추출
+      const code = searchParams.get("code");
+      if (!code) {
+        setStatus("인증 코드가 없습니다. 다시 로그인해주세요.");
+        return;
+      }
+
       try {
-        // URL에서 코드 파라미터 추출
-        const code = searchParams.get("code");
-
-        if (!code) {
-          setStatus("인증 코드가 없습니다. 다시 로그인해주세요.");
-          return;
-        }
-
         setStatus("카카오 로그인 정보를 처리 중입니다...");
 
         // 백엔드 서버로 코드 전송
@@ -34,14 +35,31 @@ export default function KakaoCallbackPage() {
           throw new Error("로그인 처리 중 오류가 발생했습니다.");
         }
 
-        const data = await response.json();
-        if (typeof data === "number") {
-          // 신규 회원 - 농장 이름 설정 페이지로 이동
-          router.push(`/auth/signup?tokenId=${data}`);
-        } else {
-          // 기존 회원 - 메인 페이지로 이동
-          setStatus("로그인 성공! 홈페이지로 이동합니다...");
-          router.push("/");
+        // 응답 처리
+        try {
+          // 응답에 내용이 있는지 확인
+          const text = await response.text();
+
+          // 응답이 비어있으면 기존 회원
+          if (!text) {
+            await handleExistingUser();
+            return;
+          }
+
+          // 응답이 있으면 JSON으로 파싱 시도
+          const data = text ? JSON.parse(text) : null;
+
+          if (typeof data === "number") {
+            // 신규 회원 - 농장 이름 설정 페이지로 이동
+            router.push(`/auth/signup?tokenId=${data}`);
+          } else {
+            // 예상치 못한 응답 형식이지만 로그인 처리
+            await handleExistingUser();
+          }
+        } catch (jsonError) {
+          // JSON 파싱 오류는 기존 회원으로 처리
+          console.error("응답 처리 오류, 기존 회원으로 처리:", jsonError);
+          await handleExistingUser();
         }
       } catch (error) {
         console.error("카카오 로그인 처리 오류:", error);
@@ -49,8 +67,15 @@ export default function KakaoCallbackPage() {
       }
     };
 
+    // 기존 회원 처리 함수
+    const handleExistingUser = async () => {
+      setStatus("로그인 성공! 홈페이지로 이동합니다...");
+      await checkAuth(); // 인증 상태 업데이트
+      router.push("/");
+    };
+
     processKakaoLogin();
-  }, [searchParams, router]);
+  }, [searchParams, router, checkAuth]);
 
   return (
     <main className="flex-shrink-0">
