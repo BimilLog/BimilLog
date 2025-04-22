@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function MyPage() {
   return (
     <main className="flex-shrink-0">
@@ -42,30 +44,42 @@ export default function MyPage() {
                 <div className="row mb-0">
                   <div className="col-md-6 mb-3">
                     <div className="d-grid">
-                      <button className="btn btn-primary py-3">
+                      <Link
+                        href="/mypage/mypost"
+                        className="btn btn-primary py-3"
+                      >
                         내가 쓴 글 보기
-                      </button>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-md-6 mb-3">
                     <div className="d-grid">
-                      <button className="btn btn-primary py-3">
+                      <Link
+                        href="/mypage/mycomment"
+                        className="btn btn-primary py-3"
+                      >
                         내가 쓴 댓글 보기
-                      </button>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-md-6 mb-3">
                     <div className="d-grid">
-                      <button className="btn btn-primary py-3">
+                      <Link
+                        href="/mypage/likepost"
+                        className="btn btn-primary py-3"
+                      >
                         추천한 글 보기
-                      </button>
+                      </Link>
                     </div>
                   </div>
                   <div className="col-md-6 mb-3">
                     <div className="d-grid">
-                      <button className="btn btn-primary py-3">
+                      <Link
+                        href="/mypage/likecomment"
+                        className="btn btn-primary py-3"
+                      >
                         추천한 댓글 보기
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

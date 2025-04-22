@@ -107,33 +107,6 @@ const Navigation = () => {
                 마이페이지
               </Link>
             </li>
-            <li className="nav-item dropdown">
-              <a
-                className="nav-link dropdown-toggle"
-                id="navbarDropdownBlog"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                예비 버튼
-              </a>
-              <ul
-                className="dropdown-menu dropdown-menu-end"
-                aria-labelledby="navbarDropdownBlog"
-              >
-                <li>
-                  <Link className="dropdown-item" href="/blog">
-                    블로그 홈
-                  </Link>
-                </li>
-                <li>
-                  <Link className="dropdown-item" href="/blog/post">
-                    블로그 포스트
-                  </Link>
-                </li>
-              </ul>
-            </li>
           </ul>
         </div>
       </div>
@@ -161,8 +134,8 @@ const Footer = () => {
               이용약관
             </Link>
             <span className="text-white mx-1">&middot;</span>
-            <Link className="link-light small" href="/contact">
-              개발자소개
+            <Link className="link-light small" href="https://www.notion.so/1d4a9f47800c80a1b12fc2aae7befd0e?pvs=4">
+              개발자
             </Link>
           </div>
         </div>
