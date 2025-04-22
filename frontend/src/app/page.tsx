@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="flex-shrink-0">
@@ -15,15 +17,18 @@ export default function Home() {
                   받아보세요!
                 </p>
                 <div className="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-xl-start">
-                  <a
+                  <Link
                     className="btn btn-primary btn-lg px-4 me-sm-3"
                     href="#features"
                   >
                     카카오 로그인
-                  </a>
-                  <a className="btn btn-outline-light btn-lg px-4" href="/manual">
+                  </Link>
+                  <Link
+                    className="btn btn-outline-light btn-lg px-4"
+                    href="/manual"
+                  >
                     농장 키우기 사용법
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

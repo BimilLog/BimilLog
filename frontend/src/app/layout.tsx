@@ -203,16 +203,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" className="h-100">
       <head>
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"
           rel="stylesheet"
         />
       </head>
-      <body>
+      <body className="d-flex flex-column h-100">
         <Navigation />
-        {children}
+        <div className="flex-grow-1 d-flex flex-column">{children}</div>
         <Footer />
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
       </body>
