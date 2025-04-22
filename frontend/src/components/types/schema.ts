@@ -76,7 +76,6 @@ export interface ReportDTO {
 export enum ReportType{
     POST = "POST",
     COMMENT = "COMMENT",
-    USE = "USE",
     BUG = "BUG",
     IMPROVEMENT = "IMPROVEMENT",
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "농장 키우기",
@@ -12,9 +13,9 @@ const Navigation = () => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container px-5">
         {/* 로고 */}
-        <a className="navbar-brand" href="/">
+        <Link className="navbar-brand" href="/">
           농장 키우기
-        </a>
+        </Link>
 
         {/* 햄버거 메뉴 (모바일) */}
         <button
@@ -82,29 +83,29 @@ const Navigation = () => {
           {/* 메뉴 아이템들 */}
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <a className="nav-link" href="/board">
+              <Link className="nav-link" href="/board">
                 자유게시판
-              </a>
+              </Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="/about">
+              <Link className="nav-link" href="/about">
                 내 농장 가기
-              </a>
+              </Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="/contact">
+              <Link className="nav-link" href="/ask">
                 문의하기
-              </a>
+              </Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="/pricing">
+              <Link className="nav-link" href="/pricing">
                 로그인
-              </a>
+              </Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="/faq">
-                로그아웃
-              </a>
+              <Link className="nav-link" href="/mypage">
+                마이페이지
+              </Link>
             </li>
             <li className="nav-item dropdown">
               <a
@@ -122,41 +123,14 @@ const Navigation = () => {
                 aria-labelledby="navbarDropdownBlog"
               >
                 <li>
-                  <a className="dropdown-item" href="/blog">
+                  <Link className="dropdown-item" href="/blog">
                     블로그 홈
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a className="dropdown-item" href="/blog/post">
+                  <Link className="dropdown-item" href="/blog/post">
                     블로그 포스트
-                  </a>
-                </li>
-              </ul>
-            </li>
-            <li className="nav-item dropdown">
-              <a
-                className="nav-link dropdown-toggle"
-                id="navbarDropdownPortfolio"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                예비 버튼
-              </a>
-              <ul
-                className="dropdown-menu dropdown-menu-end"
-                aria-labelledby="navbarDropdownPortfolio"
-              >
-                <li>
-                  <a className="dropdown-item" href="/portfolio">
-                    포트폴리오 개요
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" href="/portfolio/item">
-                    포트폴리오 항목
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -179,17 +153,17 @@ const Footer = () => {
             </div>
           </div>
           <div className="col-auto">
-            <a className="link-light small" href="/privacy">
+            <Link className="link-light small" href="/privacy">
               개인정보처리방침
-            </a>
+            </Link>
             <span className="text-white mx-1">&middot;</span>
-            <a className="link-light small" href="/terms">
+            <Link className="link-light small" href="/terms">
               이용약관
-            </a>
+            </Link>
             <span className="text-white mx-1">&middot;</span>
-            <a className="link-light small" href="/contact">
+            <Link className="link-light small" href="/contact">
               개발자소개
-            </a>
+            </Link>
           </div>
         </div>
       </div>
