@@ -34,9 +34,9 @@ const PostItem = ({ post }: { post: SimplePostDTO }) => (
         )}
       </Link>
     </td>
-    <td>{post.farmName}</td>
-    <td>{formatDateTime(post.createdAt).split(" ")[0]}</td>
     <td>{post.views}</td>
+    <td>{post.likes}</td>
+    <td>{formatDateTime(post.createdAt).split(" ")[0]}</td>
   </tr>
 );
 
@@ -57,7 +57,8 @@ export default function MyPostsPage() {
         const response = await fetch(
           `http://localhost:8080/user/mypage/posts?page=${
             currentPage - 1
-          }&size=${pageSize}`
+          }&size=${pageSize}`,
+          { credentials: "include" }
         );
         const data = await response.json();
 
@@ -128,9 +129,9 @@ export default function MyPostsPage() {
                     <thead className="bg-light">
                       <tr>
                         <th style={{ width: "60%" }}>제목</th>
-                        <th style={{ width: "15%" }}>농장</th>
-                        <th style={{ width: "15%" }}>작성일</th>
                         <th style={{ width: "10%" }}>조회수</th>
+                        <th style={{ width: "10%" }}>추천수</th>
+                        <th style={{ width: "20%" }}>작성일</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -143,7 +144,7 @@ export default function MyPostsPage() {
                       ) : posts.length === 0 ? (
                         <tr>
                           <td colSpan={4} className="text-center py-4">
-                            추천한 게시글이 없습니다.
+                            작성한 글이 없습니다.
                           </td>
                         </tr>
                       ) : (

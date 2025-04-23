@@ -33,9 +33,8 @@ const CommentItem = ({ comment }: { comment: CommentDTO }) => (
           : comment.content}
       </Link>
     </td>
-    <td>{comment.farmName}</td>
-    <td>{formatDateTime(comment.createdAt).split(" ")[0]}</td>
     <td>{comment.likes}</td>
+    <td>{formatDateTime(comment.createdAt).split(" ")[0]}</td>
   </tr>
 );
 
@@ -56,7 +55,8 @@ export default function LikedCommentsPage() {
         const response = await fetch(
           `http://localhost:8080/user/mypage/comments?page=${
             currentPage - 1
-          }&size=${pageSize}`
+          }&size=${pageSize}`,
+          { credentials: "include" }
         );
         const data = await response.json();
 
@@ -104,8 +104,7 @@ export default function LikedCommentsPage() {
           <div className="col-lg-12">
             {/* 필터 및 검색 영역 */}
             <div className="row mb-3">
-              <div className="col-md-6">
-              </div>
+              <div className="col-md-6"></div>
               <div className="col-md-6 text-end">
                 <select
                   className="form-select"
@@ -127,10 +126,9 @@ export default function LikedCommentsPage() {
                   <table className="table table-hover mb-0">
                     <thead className="bg-light">
                       <tr>
-                        <th style={{ width: "60%" }}>내용</th>
-                        <th style={{ width: "15%" }}>작성자</th>
-                        <th style={{ width: "15%" }}>작성일</th>
+                        <th style={{ width: "70%" }}>내용</th>
                         <th style={{ width: "10%" }}>추천수</th>
+                        <th style={{ width: "20%" }}>작성일</th>
                       </tr>
                     </thead>
                     <tbody>

@@ -35,8 +35,9 @@ const PostItem = ({ post }: { post: SimplePostDTO }) => (
       </Link>
     </td>
     <td>{post.farmName}</td>
-    <td>{formatDateTime(post.createdAt).split(" ")[0]}</td>
     <td>{post.views}</td>
+    <td>{post.likes}</td>
+    <td>{formatDateTime(post.createdAt).split(" ")[0]}</td>
   </tr>
 );
 
@@ -57,7 +58,8 @@ export default function LikedPostsPage() {
         const response = await fetch(
           `http://localhost:8080/user/mypage/likedposts?page=${
             currentPage - 1
-          }&size=${pageSize}`
+          }&size=${pageSize}`,
+          { credentials: "include" }
         );
         const data = await response.json();
 
@@ -127,10 +129,11 @@ export default function LikedPostsPage() {
                   <table className="table table-hover mb-0">
                     <thead className="bg-light">
                       <tr>
-                        <th style={{ width: "60%" }}>제목</th>
-                        <th style={{ width: "15%" }}>농장</th>
+                        <th style={{ width: "55%" }}>제목</th>
+                        <th style={{ width: "12%" }}>농장</th>
+                        <th style={{ width: "9%" }}>조회수</th>
+                        <th style={{ width: "9%" }}>추천수</th>
                         <th style={{ width: "15%" }}>작성일</th>
-                        <th style={{ width: "10%" }}>조회수</th>
                       </tr>
                     </thead>
                     <tbody>

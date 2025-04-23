@@ -62,3 +62,4 @@ hs_err_pid*
 replay_pid*
 /backend/src/main/generated
 /backend/src/main/resources/application-secret.yml
+/backend/src/main/generated/

@@ -75,7 +75,7 @@ public class JwtFilter extends OncePerRequestFilter {
                         response.addHeader("Set-Cookie", cookie.toString());
 
                         // 사용자 인증 정보 설정
-                        setAuthentication(userDTO);
+                        setAuthentication(newAccessToken);
                     } catch (Exception e) {
                         logger.error("Refresh Token 처리 중 오류 발생", e);
                     }
@@ -89,11 +89,6 @@ public class JwtFilter extends OncePerRequestFilter {
     // 인증 정보 설정 메서드 (토큰으로부터)
     private void setAuthentication(String token) {
         UserDTO userDTO = jwtTokenProvider.getUserDTOFromToken(token);
-        setAuthentication(userDTO);
-    }
-
-    // 인증 정보 설정 메서드 (UserDTO로부터)
-    private void setAuthentication(UserDTO userDTO) {
         CustomUserDetails customUserDetails = new CustomUserDetails(userDTO);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails,

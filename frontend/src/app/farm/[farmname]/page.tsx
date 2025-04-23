@@ -1,8 +1,6 @@
 "use client";
 
-import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useState } from "react";
 
 export default function FarmPage() {
   const params = useParams();

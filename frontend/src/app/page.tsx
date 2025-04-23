@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import useAuthStore from "@/util/authStore";
 
 export default function Home() {
+  const { user } = useAuthStore();
+
   const handleLogin = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_KAKAO_AUTH_URL}?response_type=code&client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}`;
   };
@@ -23,31 +26,33 @@ export default function Home() {
                   받아보세요!
                 </p>
                 <div className="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-xl-start">
-                  <div
-                    onClick={handleLogin}
-                    className="d-inline-block me-sm-3"
-                    style={{
-                      transition: "transform 0.2s ease-in-out",
-                      cursor: "pointer",
-                    }}
-                    onMouseOver={(e) =>
-                      (e.currentTarget.style.transform = "scale(1.05)")
-                    }
-                    onMouseOut={(e) =>
-                      (e.currentTarget.style.transform = "scale(1)")
-                    }
-                  >
-                    <img
-                      src="/kakao_login_large_narrow.png"
-                      alt="카카오 로그인"
-                      className="img-fluid"
+                  {!user && (
+                    <div
+                      onClick={handleLogin}
+                      className="d-inline-block me-sm-3"
                       style={{
-                        maxHeight: "50px",
-                        width: "auto",
-                        minWidth: "130px",
+                        transition: "transform 0.2s ease-in-out",
+                        cursor: "pointer",
                       }}
-                    />
-                  </div>
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.transform = "scale(1.05)")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.transform = "scale(1)")
+                      }
+                    >
+                      <img
+                        src="/kakao_login_large_narrow.png"
+                        alt="카카오 로그인"
+                        className="img-fluid"
+                        style={{
+                          maxHeight: "50px",
+                          width: "auto",
+                          minWidth: "130px",
+                        }}
+                      />
+                    </div>
+                  )}
                   <Link
                     className="btn btn-outline-light btn-lg px-15"
                     href="/manual"

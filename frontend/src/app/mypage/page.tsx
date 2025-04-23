@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import useAuthStore from "@/util/authStore";
 
 export default function MyPage() {
+  const { user } = useAuthStore();
+
   return (
     <main className="flex-shrink-0">
       <div className="container px-5 py-5">
@@ -11,15 +16,24 @@ export default function MyPage() {
               <div className="card-body text-center">
                 {/* 프로필 이미지 */}
                 <img
-                  src="https://dummyimage.com/150x150/6c757d/dee2e6.jpg"
+                  src={
+                    user?.thumbnailImage ||
+                    "https://dummyimage.com/150x150/6c757d/dee2e6.jpg"
+                  }
                   alt="프로필 이미지"
                   className="img-fluid rounded-circle mb-4 px-4"
                 />
 
                 {/* 사용자 정보 */}
-                <h5 className="fw-bold mb-1">사용자 닉네임</h5>
-                <p className="text-muted mb-1">카카오ID: kakao_12345678</p>
-                <p className="text-muted mb-3">농장 이름: 행복한농장</p>
+                <h5 className="fw-bold mb-1">
+                  {user?.farmName || "농장 이름 없음"}
+                </h5>
+                <p className="text-muted mb-1">
+                  카카오ID: {user?.kakaoId || "-"}
+                </p>
+                <p className="text-muted mb-3">
+                  카카오 닉네임: {user?.kakaoNickname || "-"}
+                </p>
 
                 {/* 프로필 관리 버튼 */}
                 <div className="d-grid gap-2 mb-2">
