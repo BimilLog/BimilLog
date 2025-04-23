@@ -58,12 +58,13 @@ public class PostController {
     // 게시글 진입
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Long userId,
             HttpServletRequest request,
             HttpServletResponse response) {
+
         postService.incrementViewCount(postId, request, response);
 
-        PostDTO postDTO = postService.getPost(postId, userDetails);
+        PostDTO postDTO = postService.getPost(postId, userId);
 
         return ResponseEntity.ok(postDTO);
     }
@@ -71,6 +72,7 @@ public class PostController {
     // 게시글 수정
     @PostMapping("/{postId}")
     public ResponseEntity<PostDTO> updatePost(@PathVariable Long postId,
+            @RequestParam Long userId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody PostDTO postDTO) {
         PostDTO updatedPostDTO = postService.updatePost(postId, userDetails, postDTO);

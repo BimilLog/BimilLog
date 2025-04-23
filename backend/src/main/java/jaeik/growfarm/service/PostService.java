@@ -87,15 +87,14 @@ public class PostService {
     }
 
     // 게시글 진입
-    public PostDTO getPost(Long postId, CustomUserDetails userDetails) {
+    public PostDTO getPost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        Long userId = userDetails != null ? userDetails.getUserDTO().getUserId() : null;
-
         boolean isLiked = userId != null && isPostLiked(postId, userId);
 
-        return boardUtil.postToDTO(post, getLikeCount(postId), getCommentList(postId, userDetails), isLiked);
+
+        return boardUtil.postToDTO(post, getLikeCount(postId), getCommentList(postId, userId), isLiked);
     }
 
     // 게시글 수정
@@ -104,12 +103,14 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        if (!post.getUser().getId().equals(userDetails.getUserDTO().getUserId())) {
+        Long userId = post.getUser().getId();
+
+        if (!userId.equals(userDetails.getUserDTO().getUserId())) {
             throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
         }
 
         post.updatePost(postDTO);
-        return boardUtil.postToDTO(post, getLikeCount(postId), getCommentList(postId, userDetails), isPostLiked(postId, userDetails.getUserDTO().getUserId()));
+        return boardUtil.postToDTO(post, getLikeCount(postId), getCommentList(postId, userId), isPostLiked(postId, userDetails.getUserDTO().getUserId()));
     }
 
     // 게시글 삭제
@@ -166,9 +167,7 @@ public class PostService {
     }
 
     // 해당 글의 댓글 조회
-    List<CommentDTO> getCommentList(Long postId, CustomUserDetails userDetails) {
-
-        Long userId = userDetails != null ? userDetails.getUserDTO().getUserId() : null;
+    List<CommentDTO> getCommentList(Long postId, Long userId) {
 
         return commentRepository.findByCommentList(postId)
                 .stream()

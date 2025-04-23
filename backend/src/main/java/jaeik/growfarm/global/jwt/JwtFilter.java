@@ -86,7 +86,7 @@ public class JwtFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // 인증 정보 설정 메서드 (토큰으로부터)
+    // 인증 정보 설정 메서드
     private void setAuthentication(String token) {
         UserDTO userDTO = jwtTokenProvider.getUserDTOFromToken(token);
         CustomUserDetails customUserDetails = new CustomUserDetails(userDTO);

@@ -1,18 +1,62 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { PostDTO } from "@/components/types/schema";
 
-export default function WritePage() {
+const API_BASE = "http://localhost:8080";
+
+export default function EditPage() {
+  const { postId } = useParams();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { user } = useAuthStore();
+
+  // 게시글 데이터 불러오기
+  useEffect(() => {
+    if (!postId || !user) return;
+
+    const fetchPost = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_BASE}/board/${postId}`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `게시글을 불러오는데 실패했습니다 (${response.status})`
+          );
+        }
+
+        const post: PostDTO = await response.json();
+
+        // 자신의 게시글인지 확인
+        if (post.userId !== user.userId) {
+          setError("본인의 게시글만 수정할 수 있습니다.");
+          return;
+        }
+
+        setTitle(post.title);
+        setContent(post.content);
+      } catch (err) {
+        console.error("게시글 불러오기 오류:", err);
+        setError(
+          "게시글을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [postId, user]);
 
   // 제목 변경 핸들러
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,7 +68,7 @@ export default function WritePage() {
     setContent(e.target.value);
   };
 
-  // 글 작성 완료 핸들러
+  // 글 수정 완료 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -50,39 +94,54 @@ export default function WritePage() {
 
     try {
       // API 요청 보내기
-      const response = await fetch("http://localhost:8080/board/write", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          userId: user.userId,
-          farmName: user.farmName,
-          title: title,
-          content: content,
-        }),
-      });
+      const response = await fetch(
+        `${API_BASE}/board/${postId}?userId=${user.userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            userId: user.userId,
+            farmName: user.farmName,
+            title: title,
+            content: content,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`게시글 작성에 실패했습니다 (${response.status})`);
+        throw new Error(`게시글 수정에 실패했습니다 (${response.status})`);
       }
 
       // 응답 데이터 파싱
-      const newPost: PostDTO = await response.json();
+      const updatedPost: PostDTO = await response.json();
 
       // 성공 메시지 표시
-      alert("게시글이 성공적으로 작성되었습니다.");
+      alert("게시글이 성공적으로 수정되었습니다.");
 
-      // 작성된 게시글 페이지로 이동
-      router.push(`/board/${newPost.postId}`);
+      // 수정된 게시글 페이지로 이동
+      router.push(`/board/${postId}`);
     } catch (err) {
-      console.error("게시글 작성 오류:", err);
-      setError("게시글 작성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      console.error("게시글 수정 오류:", err);
+      setError("게시글 수정에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <main className="flex-shrink-0">
+        <div className="container px-5 my-5 text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">로딩중...</span>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-shrink-0">
@@ -122,7 +181,10 @@ export default function WritePage() {
 
               {/* 버튼 영역 */}
               <div className="d-flex justify-content-end p-3">
-                <Link href="/board" className="btn btn-outline-secondary me-2">
+                <Link
+                  href={`/board/${postId}`}
+                  className="btn btn-outline-secondary me-2"
+                >
                   취소
                 </Link>
                 <button
@@ -130,7 +192,7 @@ export default function WritePage() {
                   className="btn btn-outline-primary"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "작성 중..." : "작성 완료"}
+                  {isSubmitting ? "수정 중..." : "수정 완료"}
                 </button>
               </div>
             </article>
