@@ -171,12 +171,12 @@ const Navigation = () => {
               <>
                 <li className="nav-item">
                   <Link className="nav-link" href={`/farm/${user?.farmName}`}>
-                    내 농장 가기
+                    내농장가기
                   </Link>
                 </li>
                 <li className="nav-item">
                   <Link className="nav-link" href="/ask">
-                    문의하기
+                    건의하기
                   </Link>
                 </li>
                 <li className="nav-item">

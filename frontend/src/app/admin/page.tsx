@@ -11,7 +11,7 @@ export default function AdminPage() {
   const [reports, setReports] = useState<ReportDTO[]>([]);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
-  const [reportType, setReportType] = useState<ReportType>(ReportType.POST);
+  const [reportType, setReportType] = useState<ReportType | "ALL">("ALL");
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [banUserId, setBanUserId] = useState<string>("");
@@ -20,8 +20,8 @@ export default function AdminPage() {
   // Admin 권한 체크
   useEffect(() => {
     if (user && user.role !== UserRole.ADMIN) {
-      alert("관리자만 접근할 수 있는 페이지입니다.");
-      router.push("/");
+      // 관리자가 아니면 404 페이지로 리다이렉트
+      router.push("/not-found");
     }
   }, [user, router]);
 
@@ -31,13 +31,16 @@ export default function AdminPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:8080/admin/report?page=${page}&size=${size}&reportType=${reportType}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+      // reportType이 ALL인 경우 파라미터에서 제외
+      const url =
+        reportType === "ALL"
+          ? `http://localhost:8080/admin/report?page=${page}&size=${size}`
+          : `http://localhost:8080/admin/report?page=${page}&size=${size}&reportType=${reportType}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -97,7 +100,7 @@ export default function AdminPage() {
 
   // 신고 유형 변경 핸들러
   const handleReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setReportType(e.target.value as ReportType);
+    setReportType(e.target.value as ReportType | "ALL");
     setPage(0); // 유형 변경 시 첫 페이지로 이동
   };
 
@@ -105,7 +108,13 @@ export default function AdminPage() {
   const Pagination = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    const startPage = Math.max(0, Math.min(page - Math.floor(maxVisiblePages / 2), totalPages - maxVisiblePages));
+    const startPage = Math.max(
+      0,
+      Math.min(
+        page - Math.floor(maxVisiblePages / 2),
+        totalPages - maxVisiblePages
+      )
+    );
     const endPage = Math.min(startPage + maxVisiblePages, totalPages);
 
     for (let i = startPage; i < endPage; i++) {
@@ -145,9 +154,7 @@ export default function AdminPage() {
           </li>
           {pages}
           <li
-            className={`page-item ${
-              page === totalPages - 1 ? "disabled" : ""
-            }`}
+            className={`page-item ${page === totalPages - 1 ? "disabled" : ""}`}
           >
             <button
               className="page-link"
@@ -158,9 +165,7 @@ export default function AdminPage() {
             </button>
           </li>
           <li
-            className={`page-item ${
-              page === totalPages - 1 ? "disabled" : ""
-            }`}
+            className={`page-item ${page === totalPages - 1 ? "disabled" : ""}`}
           >
             <button
               className="page-link"
@@ -175,6 +180,7 @@ export default function AdminPage() {
     );
   };
 
+  // 사용자 정보를 기다리는 동안 로딩 상태 표시
   if (!user) {
     return (
       <main className="flex-shrink-0">
@@ -187,6 +193,7 @@ export default function AdminPage() {
     );
   }
 
+  // 관리자가 아니면 아무것도 렌더링하지 않음
   if (user.role !== UserRole.ADMIN) {
     return null; // useEffect에서 리다이렉트 처리
   }
@@ -240,8 +247,10 @@ export default function AdminPage() {
               </div>
               <div className="card-body">
                 <p>총 신고 수: {reports.length}개</p>
-                <p>현재 페이지: {page + 1} / {totalPages}</p>
-                <p>현재 필터: {reportType}</p>
+                <p>
+                  현재 페이지: {page + 1} / {totalPages}
+                </p>
+                <p>현재 필터: {reportType === "ALL" ? "전체" : reportType}</p>
               </div>
             </div>
           </div>
@@ -262,6 +271,7 @@ export default function AdminPage() {
                 onChange={handleReportTypeChange}
                 disabled={isLoading}
               >
+                <option value="ALL">전체</option>
                 <option value={ReportType.POST}>게시글</option>
                 <option value={ReportType.COMMENT}>댓글</option>
                 <option value={ReportType.BUG}>버그</option>
