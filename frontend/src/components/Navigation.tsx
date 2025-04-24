@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import useAuthStore from "@/util/authStore";
+import { useRouter } from "next/navigation";
 
 /**
  * 네비게이션 컴포넌트
@@ -23,11 +24,51 @@ const handleLogin = () => {
 const Navigation = () => {
   const { user, logout } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
+  const [searchFarm, setSearchFarm] = useState(""); // 농장 검색어 상태
+  const [isSearching, setIsSearching] = useState(false); // 검색 중 상태
+  const router = useRouter();
 
   // 컴포넌트가 마운트된 후에만 클라이언트 사이드 코드가 실행되도록 함
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // 농장 검색 처리 함수
+  const handleFarmSearch = async (e: FormEvent) => {
+    e.preventDefault();
+
+    // 검색어가 비어있으면 처리하지 않음
+    if (!searchFarm.trim()) {
+      alert("농장 이름을 입력해주세요");
+      return;
+    }
+
+    setIsSearching(true);
+
+    try {
+      // 농장 존재 여부 확인을 위한 API 호출
+      const response = await fetch(
+        `http://localhost:8080/farm/${encodeURIComponent(searchFarm.trim())}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        // 농장이 존재하면 해당 농장 페이지로 이동
+        router.push(`/farm/${encodeURIComponent(searchFarm.trim())}`);
+      } else {
+        // 서버에서 오류 응답이 오면 존재하지 않는 농장
+        alert("존재하지 않는 농장입니다");
+      }
+    } catch (error) {
+      console.error("농장 검색 중 오류 발생:", error);
+      alert("농장 검색 중 오류가 발생했습니다");
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -62,7 +103,7 @@ const Navigation = () => {
             className="d-none d-lg-block mx-lg-3 flex-grow-1"
             style={{ maxWidth: "400px" }}
           >
-            <form className="d-flex" role="search">
+            <form className="d-flex" role="search" onSubmit={handleFarmSearch}>
               <div className="input-group input-group-sm">
                 <input
                   type="search"
@@ -70,6 +111,9 @@ const Navigation = () => {
                   placeholder="농장 이름을 입력하세요"
                   aria-label="농장 검색"
                   style={{ height: "31px" }}
+                  value={searchFarm}
+                  onChange={(e) => setSearchFarm(e.target.value)}
+                  disabled={isSearching}
                 />
                 <button
                   className="btn btn-secondary btn-sm d-flex align-items-center justify-content-center"
@@ -79,28 +123,37 @@ const Navigation = () => {
                     minWidth: "80px",
                     fontSize: "0.8rem",
                   }}
+                  disabled={isSearching}
                 >
-                  농장 가기
+                  {isSearching ? "검색 중..." : "농장 가기"}
                 </button>
               </div>
             </form>
           </div>
 
           {/* 모바일 검색바 */}
-          <form className="d-flex d-lg-none my-3 w-100" role="search">
+          <form
+            className="d-flex d-lg-none my-3 w-100"
+            role="search"
+            onSubmit={handleFarmSearch}
+          >
             <div className="input-group input-group-sm">
               <input
                 type="search"
                 className="form-control form-control-sm"
                 placeholder="농장 이름을 입력하세요"
                 aria-label="농장 검색"
+                value={searchFarm}
+                onChange={(e) => setSearchFarm(e.target.value)}
+                disabled={isSearching}
               />
               <button
                 className="btn btn-secondary btn-sm d-flex align-items-center justify-content-center"
                 type="submit"
                 style={{ minWidth: "80px", fontSize: "0.8rem" }}
+                disabled={isSearching}
               >
-                농장 가기
+                {isSearching ? "검색 중..." : "농장 가기"}
               </button>
             </div>
           </form>
@@ -117,7 +170,7 @@ const Navigation = () => {
             {user ? (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link" href="/farm">
+                  <Link className="nav-link" href={`/farm/${user?.farmName}`}>
                     내 농장 가기
                   </Link>
                 </li>
@@ -131,6 +184,14 @@ const Navigation = () => {
                     마이페이지
                   </Link>
                 </li>
+                {/* 관리자 메뉴 - 관리자 권한이 있는 경우에만 표시 */}
+                {user.role === "ADMIN" && (
+                  <li className="nav-item">
+                    <Link className="nav-link text-danger" href="/admin">
+                      관리자
+                    </Link>
+                  </li>
+                )}
                 <li className="nav-item">
                   <button
                     className="nav-link"

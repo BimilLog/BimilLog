@@ -9,6 +9,7 @@ import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.global.jwt.JwtTokenProvider;
 import jaeik.growfarm.repository.BlackListRepository;
 import jaeik.growfarm.repository.CropRepository;
+import jaeik.growfarm.repository.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.TokenRepository;
@@ -37,6 +38,7 @@ public class AuthService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final CropRepository cropRepository;
+    private final ReportRepository reportRepository;
 
     @Transactional
     public Object processKakaoLogin(String code) {
@@ -128,11 +130,11 @@ public class AuthService {
             Token token = tokenRepository.findById(tokenId)
                     .orElseThrow(() -> new IllegalArgumentException("토큰을 찾을 수 없습니다."));
 
-            // 카카오 서비스 연결 끊기
-            kakaoService.unlink(token.getKakaoAccessToken());
-
             // 사용자의 농작물 삭제
             cropRepository.deleteCropsByUserId(userId);
+
+            // 신고 내역 삭제
+            reportRepository.deleteReportByUserId(userId);
 
             // 1. 다른 사용자가 이 사용자의 게시글에 누른 좋아요 삭제
             postRepository.deletePostLikesByPostUserIds(userId);
@@ -154,6 +156,9 @@ public class AuthService {
 
             // 7. 이 사용자의 게시글 삭제
             postRepository.deletePostsByUserId(userId);
+
+            // 카카오 서비스 연결 끊기
+            kakaoService.unlink(token.getKakaoAccessToken());
 
             // 8. 이 사용자의 토큰, 유저 정보 삭제
             tokenRepository.delete(token);

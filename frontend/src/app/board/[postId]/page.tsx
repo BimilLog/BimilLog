@@ -1,11 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PostDTO, CommentDTO, ReportType } from "@/components/types/schema";
 import { formatDateTime } from "@/util/date";
 import useAuthStore from "@/util/authStore";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Script from "next/script";
+
+// Kakao SDK TypeScript declarations
+declare global {
+  interface Window {
+    Kakao: {
+      init: (apiKey: string) => void;
+      isInitialized: () => boolean;
+      Share: {
+        createDefaultButton: (settings: {
+          container: string | HTMLElement;
+          objectType: string;
+          templateId?: number;
+          templateArgs?: Record<string, any>;
+          installTalk?: boolean;
+          callback?: (response: any) => void;
+          serverCallbackArgs?: Record<string, any>;
+        }) => void;
+        sendDefault: (settings: {
+          objectType: string;
+          content: {
+            title: string;
+            description?: string;
+            imageUrl: string;
+            link: {
+              mobileWebUrl: string;
+              webUrl: string;
+            };
+          };
+          buttons?: Array<{
+            title: string;
+            link: {
+              mobileWebUrl: string;
+              webUrl: string;
+            };
+          }>;
+        }) => void;
+      };
+    };
+  }
+}
 
 // 로딩 스피너 컴포넌트
 const LoadingSpinner = () => (
@@ -57,7 +98,106 @@ export default function PostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
+  const [showShareOptions, setShowShareOptions] = useState(false);
+  const shareDropdownRef = useRef<HTMLDivElement>(null);
   const { user, isLoading, isInitialized, checkAuth } = useAuthStore();
+  const javaScriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY;
+
+  // Kakao SDK 초기화
+  const initKakao = () => {
+    if (!javaScriptKey) {
+      console.error("Kakao JavaScript Key is not defined.");
+      return;
+    }
+
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+      window.Kakao.init(javaScriptKey);
+      console.log("Kakao SDK initialized");
+    }
+  };
+
+  // 링크 복사 함수
+  const copyLinkToClipboard = () => {
+    const currentUrl = window.location.href;
+    navigator.clipboard
+      .writeText(currentUrl)
+      .then(() => {
+        alert("링크가 클립보드에 복사되었습니다.");
+        setShowShareOptions(false);
+      })
+      .catch((err) => {
+        console.error("링크 복사 실패:", err);
+        alert("링크 복사에 실패했습니다. 다시 시도해주세요.");
+      });
+  };
+
+  // 카카오톡 공유하기 함수
+  const shareToKakao = () => {
+    if (!post) return;
+
+    if (!window.Kakao || !window.Kakao.isInitialized()) {
+      console.error("Kakao SDK is not initialized");
+      alert(
+        "카카오톡 공유 기능을 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
+      return;
+    }
+
+    // 현재 URL
+    const currentUrl = window.location.href;
+
+    // 피드 템플릿 A형으로 메시지 보내기
+    window.Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title: post.title, // B영역: 글 제목
+        imageUrl:
+          "https://postfiles.pstatic.net/MjAyNTA0MThfNzcg/MDAxNzQ0OTc4MDY3NjU2.b2ZRY2ZhuqdeFe8R70IoJZ0gGm4XTFZgKrZqNqQYinkg.vorO6lPc33dEIhZqQ7PbrwjOH7qn9-RfkOJAEVA2I2cg.JPEG/farmImage.jpeg?type=w773", // A영역: 이미지 (명시적 URL 적용)
+        link: {
+          mobileWebUrl: currentUrl,
+          webUrl: currentUrl,
+        },
+      },
+      buttons: [
+        {
+          title: "웹으로 보기",
+          link: {
+            mobileWebUrl: currentUrl,
+            webUrl: currentUrl,
+          },
+        },
+      ],
+    });
+
+    setShowShareOptions(false);
+  };
+
+  // 공유 옵션 토글
+  const toggleShareOptions = () => {
+    setShowShareOptions((prev) => !prev);
+  };
+
+  // 외부 클릭 시 공유 옵션 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        shareDropdownRef.current &&
+        !shareDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowShareOptions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Kakao SDK 초기화
+  useEffect(() => {
+    initKakao();
+  }, []);
 
   // 신고 관련 상태
   const [reportingTarget, setReportingTarget] = useState<{
@@ -452,6 +592,14 @@ export default function PostPage() {
 
   return (
     <main className="container px-5 my-5">
+      {/* Kakao SDK 스크립트 */}
+      <Script
+        src="https://t1.kakaocdn.net/kakao_js_sdk/2.5.0/kakao.min.js"
+        integrity="sha384-kYPsUbBPlktXsY6/oNHSUDZoTX6+YI51f63jCPEIPFP09ttByAdxd2mEjKuhdqn4"
+        crossOrigin="anonymous"
+        onLoad={initKakao}
+      />
+
       <article className="card bg-white">
         <header className="mb-4 card bg-light">
           <h1 className="fw-bolder pt-4 pb-2 text-center">{post.title}</h1>
@@ -483,9 +631,39 @@ export default function PostPage() {
             ) : (
               <span className="text-muted">추천 ({post.likes})</span>
             )}
-            <button className="btn btn-outline-secondary">
-              <i className="bi bi-share"></i> 공유하기
-            </button>
+            <div className="position-relative" ref={shareDropdownRef}>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={toggleShareOptions}
+              >
+                <i className="bi bi-share"></i> 공유하기
+              </button>
+
+              {showShareOptions && (
+                <div
+                  className="position-absolute start-0 mt-1 bg-white border rounded shadow-sm"
+                  style={{ zIndex: 1000, minWidth: "200px" }}
+                >
+                  <ul className="list-group list-group-flush">
+                    <li
+                      className="list-group-item list-group-item-action"
+                      onClick={copyLinkToClipboard}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="bi bi-clipboard me-2"></i> 링크 복사
+                    </li>
+                    <li
+                      className="list-group-item list-group-item-action"
+                      onClick={shareToKakao}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="bi bi-chat-fill me-2 text-warning"></i>{" "}
+                      카카오톡 공유
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
             {user && user.userId !== post.userId && (
               <button
                 className="btn btn-outline-warning"

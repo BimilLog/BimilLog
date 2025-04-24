@@ -44,6 +44,7 @@ public class AdminService {
                     .reportId(report.getId())
                     .reportType(report.getReportType())
                     .userId(report.getUsers().getId())
+                    .content(report.getContent())
                     .targetId(report.getTargetId())
                     .build());
         }
@@ -55,6 +56,7 @@ public class AdminService {
                 .reportType(report.getReportType())
                 .userId(report.getUsers().getId())
                 .targetId(report.getTargetId())
+                .content(report.getContent())
                 .build());
     }
 
@@ -77,10 +79,12 @@ public class AdminService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
 
-        kakaoService.unlinkByAdmin(user.getKakaoId());
 
         // 사용자의 농작물 삭제
         cropRepository.deleteCropsByUserId(userId);
+
+        // 신고 내역 삭제
+        reportRepository.deleteReportByUserId(userId);
 
         // 1. 다른 사용자가 이 사용자의 게시글에 누른 좋아요 삭제
         postRepository.deletePostLikesByPostUserIds(userId);
@@ -102,6 +106,8 @@ public class AdminService {
 
         // 7. 이 사용자의 게시글 삭제
         postRepository.deletePostsByUserId(userId);
+
+        kakaoService.unlinkByAdmin(user.getKakaoId());
 
         // 블랙 리스트 등록
         BlackList blackList = BlackList.builder()

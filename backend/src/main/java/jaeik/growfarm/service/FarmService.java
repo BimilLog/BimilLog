@@ -3,7 +3,6 @@ package jaeik.growfarm.service;
 import jaeik.growfarm.dto.farm.CropDTO;
 import jaeik.growfarm.entity.crop.Crop;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.repository.CropRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.FarmUtil;
@@ -20,8 +19,8 @@ public class FarmService {
     private final UserRepository userRepository;
     private final FarmUtil farmUtil;
 
-    public List<CropDTO> myFarm(CustomUserDetails userDetails) {
-        List<Crop> crops = cropRepository.findByUsersId(userDetails.getUserDTO().getUserId());
+    public List<CropDTO> myFarm(Long userId) {
+        List<Crop> crops = cropRepository.findByUsersId(userId);
 
         return crops.stream().map(farmUtil::convertToCropDTO).toList();
     }

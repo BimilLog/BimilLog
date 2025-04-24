@@ -19,15 +19,15 @@ public class AdminController {
     // 신고 목록 조회
     @GetMapping("/report")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam int page, @RequestParam int size, @RequestParam ReportType reportType) {
+    public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam int page, @RequestParam int size, @RequestParam(required = false) ReportType reportType) {
         Page<ReportDTO> reportList = adminService.getReportList(page, size, reportType);
         return ResponseEntity.ok(reportList);
     }
 
     // 신고 상세 보기
-    @GetMapping("/report/reportId")
+    @GetMapping("/report/{reportId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ReportDTO> getReportDetail(@RequestParam Long reportId) {
+    public ResponseEntity<ReportDTO> getReportDetail(@PathVariable Long reportId) {
         ReportDTO reportDetail = adminService.getReportDetail(reportId);
         return ResponseEntity.ok(reportDetail);
     }
