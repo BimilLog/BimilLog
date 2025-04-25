@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { PostDTO, CommentDTO, ReportType } from "@/components/types/schema";
 import { formatDateTime } from "@/util/date";
 import useAuthStore from "@/util/authStore";
@@ -19,10 +19,10 @@ declare global {
           container: string | HTMLElement;
           objectType: string;
           templateId?: number;
-          templateArgs?: Record<string, any>;
+          templateArgs?: Record<string, unknown>;
           installTalk?: boolean;
-          callback?: (response: any) => void;
-          serverCallbackArgs?: Record<string, any>;
+          callback?: (response: unknown) => void;
+          serverCallbackArgs?: Record<string, unknown>;
         }) => void;
         sendDefault: (settings: {
           objectType: string;
@@ -57,33 +57,6 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// 댓글 컴포넌트
-const Comment = ({
-  comment,
-  isLoggedIn,
-}: {
-  comment: CommentDTO;
-  isLoggedIn: boolean;
-}) => (
-  <div className="d-flex mb-4">
-    <div className="ms-3 w-100">
-      <div className="d-flex justify-content-between">
-        <div className="fw-bold">{comment.farmName}</div>
-        <small className="text-muted">
-          {formatDateTime(comment.createdAt)}
-        </small>
-      </div>
-      <p>{comment.content}</p>
-      {isLoggedIn && (
-        <div className="d-flex justify-content-between align-items-center">
-          <button className="btn btn-sm btn-outline-primary">
-            <i className="bi bi-hand-thumbs-up"></i> 추천 ({comment.likes})
-          </button>
-        </div>
-      )}
-    </div>
-  </div>
-);
 
 // API 경로
 const API_BASE = "http://localhost:8080";
@@ -100,11 +73,11 @@ export default function PostPage() {
   const [editingCommentContent, setEditingCommentContent] = useState("");
   const [showShareOptions, setShowShareOptions] = useState(false);
   const shareDropdownRef = useRef<HTMLDivElement>(null);
-  const { user, isLoading, isInitialized, checkAuth } = useAuthStore();
+  const { user, isInitialized, checkAuth } = useAuthStore();
   const javaScriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY;
 
   // Kakao SDK 초기화
-  const initKakao = () => {
+  const initKakao = useCallback(() => {
     if (!javaScriptKey) {
       console.error("Kakao JavaScript Key is not defined.");
       return;
@@ -114,7 +87,7 @@ export default function PostPage() {
       window.Kakao.init(javaScriptKey);
       console.log("Kakao SDK initialized");
     }
-  };
+  }, [javaScriptKey]);
 
   // 링크 복사 함수
   const copyLinkToClipboard = () => {
@@ -197,7 +170,7 @@ export default function PostPage() {
   // Kakao SDK 초기화
   useEffect(() => {
     initKakao();
-  }, []);
+  }, [initKakao]);
 
   // 신고 관련 상태
   const [reportingTarget, setReportingTarget] = useState<{

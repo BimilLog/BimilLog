@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 
-export default function KakaoCallbackPage() {
+// 실제 콘텐츠 분리 - Suspense로 감싸기 위한 컴포넌트
+function KakaoCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<string>("처리 중...");
@@ -78,19 +79,43 @@ export default function KakaoCallbackPage() {
   }, [searchParams, router, checkAuth]);
 
   return (
+    <div className="card p-4 text-center">
+      <h3 className="mb-4">카카오 로그인</h3>
+      <div className="d-flex justify-content-center mb-3">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">로딩중...</span>
+        </div>
+      </div>
+      <p className="mb-0">{status}</p>
+    </div>
+  );
+}
+
+// 로딩 중 컴포넌트
+function LoadingCard() {
+  return (
+    <div className="card p-4 text-center">
+      <h3 className="mb-4">카카오 로그인</h3>
+      <div className="d-flex justify-content-center mb-3">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">초기화 중...</span>
+        </div>
+      </div>
+      <p className="mb-0">준비 중...</p>
+    </div>
+  );
+}
+
+// 메인 페이지 컴포넌트
+export default function KakaoCallbackPage() {
+  return (
     <main className="flex-shrink-0">
       <div className="container px-5 py-5">
         <div className="row justify-content-center">
           <div className="col-lg-6">
-            <div className="card p-4 text-center">
-              <h3 className="mb-4">카카오 로그인</h3>
-              <div className="d-flex justify-content-center mb-3">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">로딩중...</span>
-                </div>
-              </div>
-              <p className="mb-0">{status}</p>
-            </div>
+            <Suspense fallback={<LoadingCard />}>
+              <KakaoCallbackContent />
+            </Suspense>
           </div>
         </div>
       </div>

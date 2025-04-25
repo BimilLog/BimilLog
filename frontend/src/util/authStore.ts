@@ -2,7 +2,7 @@
 // 인증 관련 유틸리티 함수와 전역 상태 통합 관리
 
 import { create } from 'zustand';
-import { UserDTO, UserRole } from '@/components/types/schema';
+import { UserDTO } from '@/components/types/schema';
 
 // API 엔드포인트 상수
 const API_BASE_URL = 'http://localhost:8080';

@@ -115,8 +115,8 @@ export default function EditPage() {
         throw new Error(`게시글 수정에 실패했습니다 (${response.status})`);
       }
 
-      // 응답 데이터 파싱
-      const updatedPost: PostDTO = await response.json();
+      // 응답 데이터 확인 (사용하지 않음)
+      await response.json();
 
       // 성공 메시지 표시
       alert("게시글이 성공적으로 수정되었습니다.");

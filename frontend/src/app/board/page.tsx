@@ -226,7 +226,7 @@ export default function BoardPage() {
             {isSearchMode && (
               <div className="mb-3">
                 <div className="alert alert-light">
-                  <strong>"{searchKeyword}"</strong>에 대한 검색 결과입니다.
+                  <strong>&ldquo;{searchKeyword}&rdquo;</strong>에 대한 검색 결과입니다.
                 </div>
               </div>
             )}

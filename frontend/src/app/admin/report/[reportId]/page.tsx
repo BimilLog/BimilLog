@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { ReportDTO, UserRole } from "@/components/types/schema";
 import Link from "next/link";
@@ -219,15 +219,16 @@ function ReportDetailContent({ reportId }: { reportId: string }) {
 }
 
 // 외부 페이지 컴포넌트 - URL에서 reportId 직접 추출
-export default function ReportDetailPage({
-  params,
-}: {
-  params: { reportId: string };
-}) {
-  // URL에서 reportId 추출
-  const pathname = usePathname();
-  const pathSegments = pathname.split("/");
-  const reportIdFromUrl = pathSegments[pathSegments.length - 1];
+// Next.js 15.3.1에서는 PageProps 타입이 변경되어 필요
+type Props = {
+  params: Promise<{
+    reportId: string;
+  }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-  return <ReportDetailContent reportId={reportIdFromUrl} />;
+export default function ReportDetailPage({ params }: Props) {
+  // params에서 reportId 사용 (Promise 해결)
+  const resolvedParams = use(params);
+  return <ReportDetailContent reportId={resolvedParams.reportId} />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { ReportDTO, ReportType, UserRole } from "@/components/types/schema";
@@ -10,7 +10,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [reports, setReports] = useState<ReportDTO[]>([]);
   const [page, setPage] = useState(0);
-  const [size, setSize] = useState(10);
+  const [size] = useState(10);
   const [reportType, setReportType] = useState<ReportType | "ALL">("ALL");
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function AdminPage() {
   }, [user, router]);
 
   // 신고 목록 불러오기
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     if (!user || user.role !== UserRole.ADMIN) return;
 
     setIsLoading(true);
@@ -54,7 +54,7 @@ export default function AdminPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, reportType, page, size]);
 
   // 유저 차단 처리
   const handleBanUser = async (e: React.FormEvent) => {
@@ -96,7 +96,7 @@ export default function AdminPage() {
   // 페이지 변경 시 신고 목록 다시 불러오기
   useEffect(() => {
     fetchReports();
-  }, [page, size, reportType, user]);
+  }, [page, size, reportType, user, fetchReports]);
 
   // 신고 유형 변경 핸들러
   const handleReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

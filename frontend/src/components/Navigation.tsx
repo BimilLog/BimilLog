@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
 
@@ -23,15 +23,9 @@ const handleLogin = () => {
 
 const Navigation = () => {
   const { user, logout } = useAuthStore();
-  const [isMounted, setIsMounted] = useState(false);
   const [searchFarm, setSearchFarm] = useState(""); // 농장 검색어 상태
   const [isSearching, setIsSearching] = useState(false); // 검색 중 상태
   const router = useRouter();
-
-  // 컴포넌트가 마운트된 후에만 클라이언트 사이드 코드가 실행되도록 함
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // 농장 검색 처리 함수
   const handleFarmSearch = async (e: FormEvent) => {

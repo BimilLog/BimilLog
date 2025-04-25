@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import useAuthStore from "@/util/authStore";
 import { CropDTO, CropType } from "@/components/types/schema";
 import Script from "next/script";
@@ -17,10 +17,10 @@ declare global {
           container: string | HTMLElement;
           objectType: string;
           templateId?: number;
-          templateArgs?: Record<string, any>;
+          templateArgs?: Record<string, unknown>;
           installTalk?: boolean;
-          callback?: (response: any) => void;
-          serverCallbackArgs?: Record<string, any>;
+          callback?: (response: unknown) => void;
+          serverCallbackArgs?: Record<string, unknown>;
         }) => void;
         sendDefault: (settings: {
           objectType: string;
@@ -124,7 +124,7 @@ export default function FarmPage() {
   // Kakao SDK 초기화
   const javaScriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY;
 
-  const initKakao = () => {
+  const initKakao = useCallback(() => {
     if (!javaScriptKey) {
       console.error("Kakao JavaScript Key is not defined.");
       return;
@@ -134,7 +134,7 @@ export default function FarmPage() {
       window.Kakao.init(javaScriptKey);
       console.log("Kakao SDK initialized");
     }
-  };
+  }, [javaScriptKey]);
 
   // 링크 복사 함수
   const copyLinkToClipboard = () => {
@@ -215,7 +215,7 @@ export default function FarmPage() {
   // Kakao SDK 초기화
   useEffect(() => {
     initKakao();
-  }, []);
+  }, [initKakao]);
 
   // 농장 데이터 로드
   useEffect(() => {
@@ -281,9 +281,14 @@ export default function FarmPage() {
     const crop = getCropAtPosition(x, y);
 
     if (crop) {
-      // 이미 작물이 있는 경우 정보 표시
-      setSelectedCrop(crop);
-      setSelectedPosition(null);
+      // 자신의 농장일 경우에만 작물 정보 표시
+      if (isMyFarm) {
+        setSelectedCrop(crop);
+      } else {
+        // 타인 농장에서 작물 클릭 시 정보를 표시하지 않음
+        // 대신 간단한 알림을 표시하거나 무시할 수 있음
+        setSelectedPosition(null);
+      }
     } else if (!isMyFarm) {
       // 타인 농장이고 작물이 없는 경우 작물 심기 위해 좌표 선택
       setSelectedPosition({ x, y });
@@ -472,116 +477,132 @@ export default function FarmPage() {
                 position: "relative",
               }}
             >
-              <img
-                src="/farmImage.jpeg"
-                alt="농장 이미지"
-                className="img-fluid rounded"
-                style={{ width: "100%", height: "auto", objectFit: "cover" }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  top: "7px",
-                  left: "7px",
-                  right: "7px",
-                  bottom: "7px",
-                  display: "grid",
-                  gridTemplateColumns: "repeat(10, 1fr)",
-                  gridTemplateRows: "repeat(5, 1fr)",
-                  pointerEvents: "none", // 이미지 클릭 이벤트 통과
-                }}
-              >
-                {Array.from({ length: 50 }).map((_, index) => {
-                  const x = index % 10; // 0-9 (가로)
-                  const y = Math.floor(index / 10); // 0-4 (세로)
-                  const crop = getCropAtPosition(x, y);
-                  const isSelected =
-                    selectedPosition?.x === x && selectedPosition?.y === y;
+              {isLoading ? (
+                <div className="d-flex justify-content-center align-items-center min-vh-100">
+                  <div className="spinner-border" role="status">
+                    <span className="visually-hidden">
+                      농장 데이터를 불러오는 중...
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <img
+                    src="/farmImage.jpeg"
+                    alt="농장 이미지"
+                    className="img-fluid rounded"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "7px",
+                      left: "7px",
+                      right: "7px",
+                      bottom: "7px",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(10, 1fr)",
+                      gridTemplateRows: "repeat(5, 1fr)",
+                      pointerEvents: "none", // 이미지 클릭 이벤트 통과
+                    }}
+                  >
+                    {Array.from({ length: 50 }).map((_, index) => {
+                      const x = index % 10; // 0-9 (가로)
+                      const y = Math.floor(index / 10); // 0-4 (세로)
+                      const crop = getCropAtPosition(x, y);
+                      const isSelected =
+                        selectedPosition?.x === x && selectedPosition?.y === y;
 
-                  return (
+                      return (
+                        <div
+                          key={index}
+                          className={`grid-cell d-flex align-items-center justify-content-center ${
+                            isSelected ? "selected-cell" : ""
+                          }`}
+                          style={{
+                            border: isSelected
+                              ? "2px solid rgba(255, 255, 255, 0.8)"
+                              : "0.5px solid rgba(255, 255, 255, 0)",
+                            borderRadius: "4px",
+                            backgroundColor: isSelected
+                              ? "rgba(255, 255, 255, 0.3)"
+                              : "rgba(0, 0, 0, 0.1)",
+                            pointerEvents: "auto", // 개별 셀은 클릭 가능
+                            transition: "all 0.2s ease-in-out",
+                            fontSize: "1.5rem", // 이모티콘 크기 조정
+                          }}
+                          onClick={() => handlePositionClick(x, y)}
+                        >
+                          {crop && (
+                            <span title={`${crop.nickname}의 ${crop.cropType}`}>
+                              {cropTypeToEmoji[crop.cropType] ||
+                                cropTypeToEmoji.DEFAULT}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* 농작물 정보 팝업 */}
+                  {selectedCrop && (
                     <div
-                      key={index}
-                      className={`grid-cell d-flex align-items-center justify-content-center ${
-                        isSelected ? "selected-cell" : ""
-                      }`}
+                      className="position-fixed top-50 start-50 translate-middle bg-white p-4 rounded shadow"
                       style={{
-                        border: isSelected
-                          ? "2px solid rgba(255, 255, 255, 0.8)"
-                          : "0.5px solid rgba(255, 255, 255, 0)",
-                        borderRadius: "4px",
-                        backgroundColor: isSelected
-                          ? "rgba(255, 255, 255, 0.3)"
-                          : "rgba(0, 0, 0, 0.1)",
-                        pointerEvents: "auto", // 개별 셀은 클릭 가능
-                        transition: "all 0.2s ease-in-out",
-                        fontSize: "1.5rem", // 이모티콘 크기 조정
+                        zIndex: 1050,
+                        maxWidth: "90%",
+                        width: "400px",
                       }}
-                      onClick={() => handlePositionClick(x, y)}
                     >
-                      {crop && (
-                        <span title={`${crop.nickname}의 ${crop.cropType}`}>
-                          {cropTypeToEmoji[crop.cropType] ||
-                            cropTypeToEmoji.DEFAULT}
-                        </span>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h5 className="mb-0">
+                          {cropTypeToEmoji[selectedCrop.cropType] ||
+                            cropTypeToEmoji.DEFAULT}{" "}
+                          {selectedCrop.nickname}님의 작물
+                        </h5>
+                        <button
+                          className="btn-close"
+                          onClick={closePopup}
+                          aria-label="Close"
+                        ></button>
+                      </div>
+                      <div className="p-3 bg-light rounded mb-3">
+                        <p className="mb-0">{selectedCrop.message}</p>
+                      </div>
+
+                      {/* 삭제 버튼 (자신의 농장인 경우에만 표시) */}
+                      {isMyFarm && (
+                        <div className="d-grid">
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => handleDeleteCrop(selectedCrop.id)}
+                          >
+                            <i className="bi bi-trash me-2"></i>농작물 삭제
+                          </button>
+                        </div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* 농작물 정보 팝업 */}
-              {selectedCrop && (
-                <div
-                  className="position-fixed top-50 start-50 translate-middle bg-white p-4 rounded shadow"
-                  style={{
-                    zIndex: 1050,
-                    maxWidth: "90%",
-                    width: "400px",
-                  }}
-                >
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0">
-                      {cropTypeToEmoji[selectedCrop.cropType] ||
-                        cropTypeToEmoji.DEFAULT}{" "}
-                      {selectedCrop.nickname}님의 작물
-                    </h5>
-                    <button
-                      className="btn-close"
-                      onClick={closePopup}
-                      aria-label="Close"
-                    ></button>
-                  </div>
-                  <div className="p-3 bg-light rounded mb-3">
-                    <p className="mb-0">{selectedCrop.message}</p>
-                  </div>
-
-                  {/* 삭제 버튼 (자신의 농장인 경우에만 표시) */}
-                  {isMyFarm && (
-                    <div className="d-grid">
-                      <button
-                        className="btn btn-danger"
-                        onClick={() => handleDeleteCrop(selectedCrop.id)}
-                      >
-                        <i className="bi bi-trash me-2"></i>농작물 삭제
-                      </button>
-                    </div>
                   )}
-                </div>
-              )}
 
-              {/* 배경 오버레이 (팝업 표시 시) */}
-              {(selectedCrop || showPlantModal) && (
-                <div
-                  className="position-fixed top-0 start-0 w-100 h-100"
-                  style={{
-                    backgroundColor: "rgba(0,0,0,0.5)",
-                    zIndex: 1040,
-                  }}
-                  onClick={() => {
-                    closePopup();
-                    if (!isPlanting) closePlantModal();
-                  }}
-                ></div>
+                  {/* 배경 오버레이 (팝업 표시 시) */}
+                  {(selectedCrop || showPlantModal) && (
+                    <div
+                      className="position-fixed top-0 start-0 w-100 h-100"
+                      style={{
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        zIndex: 1040,
+                      }}
+                      onClick={() => {
+                        closePopup();
+                        if (!isPlanting) closePlantModal();
+                      }}
+                    ></div>
+                  )}
+                </>
               )}
             </div>
 

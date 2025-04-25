@@ -83,4 +83,10 @@ public class AuthController {
 
         return ResponseEntity.ok(userDTO);
     }
+
+    //AWS 로드 밸런서 상태 검사
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("OK");
+    }
 }

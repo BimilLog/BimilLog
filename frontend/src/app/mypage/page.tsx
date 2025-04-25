@@ -3,7 +3,6 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
-import { useRouter } from "next/navigation";
 
 export default function MyPage() {
   const { user, setUser, logout } = useAuthStore();
@@ -11,7 +10,6 @@ export default function MyPage() {
   const [newFarmName, setNewFarmName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
-  const router = useRouter();
 
   const handleFarmNameChange = async (e: FormEvent) => {
     e.preventDefault();
@@ -39,7 +37,7 @@ export default function MyPage() {
         }
       );
 
-      const responseData = await response.text();
+      await response.text();
 
       if (response.ok) {
         setUser({ ...user, farmName: trimmedFarmName });
@@ -54,11 +52,11 @@ export default function MyPage() {
           `농장 이름 변경에 실패했습니다: ${response.status} ${response.statusText}`
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("농장 이름 변경 중 오류 발생:", error);
       alert(
         `농장 이름 변경 중 오류가 발생했습니다: ${
-          error.message || "알 수 없는 오류"
+          error instanceof Error ? error.message : "알 수 없는 오류"
         }`
       );
     } finally {
@@ -92,11 +90,11 @@ export default function MyPage() {
         );
         console.error("회원 탈퇴 실패:", errorText);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("회원 탈퇴 중 오류 발생:", error);
       alert(
         `회원 탈퇴 중 오류가 발생했습니다: ${
-          error.message || "알 수 없는 오류"
+          error instanceof Error ? error.message : "알 수 없는 오류"
         }`
       );
     } finally {
