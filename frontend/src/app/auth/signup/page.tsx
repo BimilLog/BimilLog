@@ -59,7 +59,7 @@ function SignupContent() {
 
     try {
       // 회원가입 요청 전송
-      const response = await fetch("http://localhost:8080/auth/signUp", {
+      const response = await fetch("https://grow-farm.com/api/auth/signUp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

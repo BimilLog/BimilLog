@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/board")
+@RequestMapping("/api/board")
 public class PostController {
 
     private final PostService postService;

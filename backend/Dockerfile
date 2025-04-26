@@ -35,7 +35,7 @@ EXPOSE 8080
 
 # 컨테이너 상태 확인을 위한 Health Check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
-    CMD curl -f http://localhost:8080/auth/health || exit 1
+    CMD curl -f https://grow-farm.com/api/auth/health || exit 1
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "app.jar"]

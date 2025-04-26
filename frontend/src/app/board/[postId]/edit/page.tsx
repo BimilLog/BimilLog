@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { PostDTO } from "@/components/types/schema";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 export default function EditPage() {
   const { postId } = useParams();

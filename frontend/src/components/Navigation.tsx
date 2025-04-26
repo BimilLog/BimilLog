@@ -42,7 +42,7 @@ const Navigation = () => {
     try {
       // 농장 존재 여부 확인을 위한 API 호출
       const response = await fetch(
-        `http://localhost:8080/farm/${encodeURIComponent(searchFarm.trim())}`,
+        `https://grow-farm.com/api/farm/${encodeURIComponent(searchFarm.trim())}`,
         {
           method: "GET",
           credentials: "include",

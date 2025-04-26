@@ -34,8 +34,8 @@ export default function AdminPage() {
       // reportType이 ALL인 경우 파라미터에서 제외
       const url =
         reportType === "ALL"
-          ? `http://localhost:8080/admin/report?page=${page}&size=${size}`
-          : `http://localhost:8080/admin/report?page=${page}&size=${size}&reportType=${reportType}`;
+          ? `https://grow-farm.com/api/admin/report?page=${page}&size=${size}`
+          : `https://grow-farm.com/api/admin/report?page=${page}&size=${size}&reportType=${reportType}`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -72,7 +72,7 @@ export default function AdminPage() {
     setIsBanning(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/admin/user/ban?userId=${banUserId}`,
+        `https://grow-farm.com/api/admin/user/ban?userId=${banUserId}`,
         {
           method: "POST",
           credentials: "include",

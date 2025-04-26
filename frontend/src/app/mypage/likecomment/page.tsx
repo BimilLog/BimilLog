@@ -54,7 +54,7 @@ export default function LikedCommentsPage() {
       try {
         // 실제 API 호출
         const response = await fetch(
-          `http://localhost:8080/user/mypage/likedcomments?page=${
+          `https://grow-farm.com/api/user/mypage/likedcomments?page=${
             currentPage - 1
           }&size=${pageSize}`,
           { credentials: "include" }

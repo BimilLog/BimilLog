@@ -33,7 +33,7 @@ function ReportDetailContent({ reportId }: { reportId: string }) {
 
       try {
         const response = await fetch(
-          `http://localhost:8080/admin/report/${reportId}`,
+          `https://grow-farm.com/api/admin/report/${reportId}`,
           {
             method: "GET",
             credentials: "include",
@@ -70,7 +70,7 @@ function ReportDetailContent({ reportId }: { reportId: string }) {
     setIsBanning(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/admin/user/ban?userId=${report.userId}`,
+        `https://grow-farm.com/api/admin/user/ban?userId=${report.userId}`,
         {
           method: "POST",
           credentials: "include",
