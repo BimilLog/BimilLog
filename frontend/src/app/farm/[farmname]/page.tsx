@@ -337,10 +337,6 @@ export default function FarmPage() {
   const handlePlantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      alert("로그인이 필요합니다.");
-      return;
-    }
 
     setIsPlanting(true);
 
