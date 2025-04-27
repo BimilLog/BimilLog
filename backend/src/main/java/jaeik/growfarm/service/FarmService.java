@@ -1,6 +1,7 @@
 package jaeik.growfarm.service;
 
 import jaeik.growfarm.dto.farm.CropDTO;
+import jaeik.growfarm.dto.farm.VisitCropDTO;
 import jaeik.growfarm.entity.crop.Crop;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.CropRepository;
@@ -25,7 +26,7 @@ public class FarmService {
         return crops.stream().map(farmUtil::convertToCropDTO).toList();
     }
 
-    public List<CropDTO> visitFarm(String farmName) {
+    public List<VisitCropDTO> visitFarm(String farmName) {
         Users user = userRepository.findByFarmName(farmName);
 
         if (user == null) {
@@ -33,7 +34,7 @@ public class FarmService {
         }
 
         List<Crop> crops = cropRepository.findByUsersId(user.getId());
-        return crops.stream().map(farmUtil::convertToCropDTO).toList();
+        return crops.stream().map(farmUtil::convertToVisitFarmDTO).toList();
     }
 
     public void plantCrop(String farmName, CropDTO cropDTO) {

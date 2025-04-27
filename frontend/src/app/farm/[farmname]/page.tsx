@@ -232,9 +232,9 @@ export default function FarmPage() {
           queryParams.append("userId", user.userId.toString());
 
           response = await fetch(
-            `http://localhost:8080/farm/myFarm?${queryParams.toString()}`,
+            `http://localhost:8080/farm/myFarm`,
             {
-              method: "GET",
+              method: "POST",
               credentials: "include",
             }
           );
