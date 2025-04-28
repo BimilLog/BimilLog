@@ -91,7 +91,6 @@ public class AuthController {
     설명 : 자체 서비스와 카카오 모두 회원탈퇴 한다. 쿠키를 삭제한다.
     수정일 : 2025-04-28
      */
-
     @GetMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         try {
