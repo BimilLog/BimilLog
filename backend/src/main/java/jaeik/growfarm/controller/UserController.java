@@ -3,6 +3,7 @@ package jaeik.growfarm.controller;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -69,5 +70,11 @@ public class UserController {
     public ResponseEntity<String> suggestion(@RequestBody ReportDTO reportDTO) {
         userService.suggestion(reportDTO);
         return ResponseEntity.ok("건의가 완료되었습니다.");
+    }
+
+    // 카카오 친구 목록 가져 오기
+    @PostMapping("/friendlist")
+    public ResponseEntity<KakaoFriendListDTO> getFriendList(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam int offset) {
+        return ResponseEntity.ok(userService.getFriendList(userDetails, offset));
     }
 }

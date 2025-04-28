@@ -2,12 +2,31 @@
 
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
+import { useState } from "react";
+import { KakaoFriendDTO, KakaoFriendListDTO } from "@/components/types/schema";
 
 export default function Home() {
   const { user } = useAuthStore();
+  const [friends, setFriends] = useState<KakaoFriendDTO[]>([]);
+  const [showModal, setShowModal] = useState(false);
 
   const handleLogin = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_KAKAO_AUTH_URL}?response_type=code&client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}`;
+  };
+
+  const handleFetchFriends = async () => {
+    setShowModal(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8080/user/friendlist?offset=0`,
+        { method: "POST", credentials: "include" }
+      );
+      if (!response.ok) throw new Error("친구 목록 불러오기 실패");
+      const data: KakaoFriendListDTO = await response.json();
+      setFriends(data.elements);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -59,6 +78,14 @@ export default function Home() {
                   >
                     농장 키우기 사용법
                   </Link>
+                  {user && (
+                    <button
+                      onClick={handleFetchFriends}
+                      className="btn btn-outline-light btn-lg px-15"
+                    >
+                      카카오톡 친구 불러오기
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -110,6 +137,55 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {showModal && (
+        <div className="modal show d-block" tabIndex={-1}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">카카오톡 친구 목록</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {friends.length > 0 ? (
+                  <ul className="list-group">
+                    {friends.map((friend) => (
+                      <li
+                        key={friend.id}
+                        className="list-group-item d-flex align-items-center"
+                      >
+                        <img
+                          src={friend.profileThumbnailImage}
+                          alt={friend.profileNickname}
+                          width={40}
+                          height={40}
+                          className="rounded-circle me-2"
+                        />
+                        {friend.profileNickname}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>친구 목록이 없습니다.</p>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

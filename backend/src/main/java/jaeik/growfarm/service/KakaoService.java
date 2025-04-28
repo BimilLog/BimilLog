@@ -1,8 +1,9 @@
 package jaeik.growfarm.service;
 
-import jaeik.growfarm.global.config.KakaoKeyVO;
-import jaeik.growfarm.dto.user.KakaoInfoDTO;
+import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
+import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
+import jaeik.growfarm.global.config.KakaoKeyVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -215,6 +216,27 @@ public class KakaoService {
         }
 
         return kakaoInfoDTO;
+    }
+
+    // 친구 목록 가져오기
+    public KakaoFriendListDTO getFriendList(String kakaoAccessToken, int offset) {
+        WebClient webClient = webClientBuilder.build();
+
+        Mono<KakaoFriendListDTO> response = webClient.get()
+                .uri(kakaoKeyVO.getGET_FRIEND_LIST_URL() + "?offset=" + offset + "&limit=" + 20)
+                .header("Authorization", "Bearer " + kakaoAccessToken.trim())
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> Mono
+                                .error(new RuntimeException("친구 목록 가져오기가 실패 했습니다.: "
+                                        + clientResponse.statusCode())))
+                .bodyToMono(KakaoFriendListDTO.class);
+
+        return response.block();
+
+
+
     }
 
     // 여러 사용자 정보 가져오기

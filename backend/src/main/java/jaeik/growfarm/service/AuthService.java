@@ -1,6 +1,6 @@
 package jaeik.growfarm.service;
 
-import jaeik.growfarm.dto.user.KakaoInfoDTO;
+import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.UserRole;

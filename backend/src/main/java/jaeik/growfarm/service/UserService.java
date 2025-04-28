@@ -3,6 +3,7 @@ package jaeik.growfarm.service;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.entity.board.Comment;
 import jaeik.growfarm.entity.board.Post;
 import jaeik.growfarm.entity.report.Report;
@@ -11,6 +12,7 @@ import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.repository.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostRepository;
+import jaeik.growfarm.repository.user.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.BoardUtil;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,8 @@ public class UserService {
     private final CommentService commentService;
     private final PostService postService;
     private final ReportRepository reportRepository;
+    private final KakaoService kakaoService;
+    private final TokenRepository tokenRepository;
 
     // 해당 유저의 작성 글 목록 반환
     public Page<SimplePostDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
@@ -110,5 +114,12 @@ public class UserService {
                 .build();
 
         reportRepository.save(report);
+    }
+
+    public KakaoFriendListDTO getFriendList(CustomUserDetails userDetails, int offset) {
+        Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        return kakaoService.getFriendList(user.getToken().getKakaoAccessToken(),offset);
     }
 }

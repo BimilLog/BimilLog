@@ -1,4 +1,4 @@
-package jaeik.growfarm.dto.user;
+package jaeik.growfarm.dto.kakao;
 
 import lombok.Getter;
 import lombok.Setter;
