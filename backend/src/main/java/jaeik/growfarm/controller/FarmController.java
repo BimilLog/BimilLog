@@ -1,9 +1,12 @@
 package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.farm.CropDTO;
+import jaeik.growfarm.dto.farm.VisitCropDTO;
+import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.service.FarmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,9 +19,9 @@ public class FarmController {
     private final FarmService farmService;
 
     // 내 농장 확인
-    @GetMapping("/myFarm")
-    public ResponseEntity<List<CropDTO>> myFarm(@RequestParam Long userId) {
-        List<CropDTO> crops = farmService.myFarm(userId);
+    @PostMapping("/myFarm")
+    public ResponseEntity<List<CropDTO>> myFarm(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<CropDTO> crops = farmService.myFarm(userDetails.getUserDTO().getUserId());
         return ResponseEntity.ok(crops);
     }
 
@@ -32,8 +35,8 @@ public class FarmController {
 
     // 다른 농장 들리기
     @GetMapping("{farmName}")
-    public ResponseEntity<List<CropDTO>> visitFarm(@PathVariable String farmName) {
-        List<CropDTO> crops = farmService.visitFarm(farmName);
+    public ResponseEntity<List<VisitCropDTO>> visitFarm(@PathVariable String farmName) {
+        List<VisitCropDTO> crops = farmService.visitFarm(farmName);
         return ResponseEntity.ok(crops);
     }
 

@@ -54,6 +54,14 @@ export interface CropDTO {
     height: number;
 }
 
+export interface VisitCropDTO {
+    id: number;
+    farmName: string;
+    cropType: CropType;
+    width: number;
+    height: number;
+}
+
 export const enum CropType {
     POTATO = "POTATO",
     CARROT = "CARROT",

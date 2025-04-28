@@ -232,9 +232,9 @@ export default function FarmPage() {
           queryParams.append("userId", user.userId.toString());
 
           response = await fetch(
-            `https://grow-farm.com/api/farm/myFarm?${queryParams.toString()}`,
+            `https://grow-farm.com/api/farm/myFarm`,
             {
-              method: "GET",
+              method: "POST",
               credentials: "include",
             }
           );
@@ -336,6 +336,7 @@ export default function FarmPage() {
   // 작물 심기 제출 처리
   const handlePlantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
 
     setIsPlanting(true);
 
