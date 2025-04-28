@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+// 어드민 컨트롤러
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin")

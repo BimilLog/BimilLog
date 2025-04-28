@@ -24,29 +24,40 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.hibernate.validator:hibernate-validator'
-    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
-    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
-    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'org.json:json:20231013'
+    // ==== Spring Boot 기본 스타터 ====
+    implementation 'org.springframework.boot:spring-boot-starter-web' // 웹 어플리케이션 개발 (MVC)
+    implementation 'org.springframework.boot:spring-boot-starter-webflux' // 비동기 WebFlux 지원
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // JPA를 통한 DB 연동
+    implementation 'org.springframework.boot:spring-boot-starter-security' // Spring Security 보안
 
+    // ==== 데이터베이스 관련 ====
+    runtimeOnly 'com.mysql:mysql-connector-j' // MySQL JDBC 드라이버
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta' // QueryDSL JPA 지원
+    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta' // QueryDSL 코드 생성용
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api' // Jakarta 어노테이션 지원
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api' // Jakarta Persistence API 지원
 
+    // ==== JWT (토큰 인증) 관련 ====
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // JWT API
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5' // JWT 구현체
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JWT JSON 변환 지원 (Jackson)
+
+    // ==== 유효성 검사 및 JSON 처리 ====
+    implementation 'org.hibernate.validator:hibernate-validator' // Bean Validation (유효성 검사)
+    implementation 'com.fasterxml.jackson.core:jackson-databind' // Jackson Object Mapper (JSON 변환)
+    implementation 'org.json:json:20231013' // org.json 라이브러리 (JSON 파싱)
+
+    // ==== Lombok (코드 자동 생성) ====
+    compileOnly 'org.projectlombok:lombok' // 컴파일 타임에만 필요한 Lombok
+    annotationProcessor 'org.projectlombok:lombok' // Lombok 어노테이션 프로세서
+
+    // ==== 개발 편의 기능 ====
+    developmentOnly 'org.springframework.boot:spring-boot-devtools' // 개발 시 자동 재시작 지원
+
+    // ==== 테스트 관련 ====
+    testImplementation 'org.springframework.boot:spring-boot-starter-test' // 테스트용 스타터
+    testImplementation 'org.springframework.security:spring-security-test' // Spring Security 테스트 지원
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // JUnit Platform 런처
 }
 
 tasks.named('test') {

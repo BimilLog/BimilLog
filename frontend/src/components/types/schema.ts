@@ -32,6 +32,17 @@ export interface FarmNameRequestDTO {
     farmName: string;
 }
 
+export interface KakaoFriendDTO {
+    id: number;
+    uuid: string;
+    profileNickname: string;
+    profileThumbnailImage: string;
+}
+
+export interface KakaoFriendListDTO {
+    elements: KakaoFriendDTO[];
+    totalCount: number;
+}
 
 export interface CropDTO {
     id: number;
