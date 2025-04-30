@@ -6,9 +6,11 @@ import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.BlackList;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.admin.BlackListRepository;
-import jaeik.growfarm.repository.farm.CropRepository;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.farm.CropRepository;
+import jaeik.growfarm.repository.notification.EmitterRepository;
+import jaeik.growfarm.repository.notification.NotificationRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -32,6 +34,8 @@ public class AdminService {
     private final CropRepository cropRepository;
     private final TokenRepository tokenRepository;
     private final BlackListRepository blackListRepository;
+    private final EmitterRepository emitterRepository;
+    private final NotificationRepository notificationRepository;
 
 
     // 신고 목록 반환
@@ -106,6 +110,12 @@ public class AdminService {
 
         // 7. 이 사용자의 게시글 삭제
         postRepository.deletePostsByUserId(userId);
+
+        // 8. 이 사용자의 SSE 구독 삭제
+        emitterRepository.deleteAllEmitterByUserId(userId);
+
+        // 9. 이 사용자의 알림 삭제
+        notificationRepository.deleteNotificationsByUserId(userId);
 
         kakaoService.unlinkByAdmin(user.getKakaoId());
 
