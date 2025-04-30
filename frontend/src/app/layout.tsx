@@ -52,8 +52,16 @@ export default function RootLayout({
     <html lang="ko" className="h-100">
       <head>
         <link
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
           rel="stylesheet"
+        />
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+          rel="stylesheet"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+          async
         />
       </head>
       <body className="d-flex flex-column h-100">
@@ -62,10 +70,6 @@ export default function RootLayout({
           <div className="flex-grow-1 d-flex flex-column">{children}</div>
           <Footer />
         </AuthCheck>
-        <Script
-          src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );

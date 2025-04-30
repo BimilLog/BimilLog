@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository;
+package jaeik.growfarm.repository.farm;
 
 import jaeik.growfarm.entity.crop.Crop;
 import org.springframework.data.jpa.repository.JpaRepository;

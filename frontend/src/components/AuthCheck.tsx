@@ -21,6 +21,7 @@ const AuthCheck = ({ children }: { children: React.ReactNode }) => {
     };
 
     initialize();
+    // checkAuth와 isInitialized를 의존성으로 사용
   }, [checkAuth, isInitialized]);
 
   return <>{children}</>;

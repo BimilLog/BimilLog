@@ -4,22 +4,28 @@ import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.entity.board.Comment;
 import jaeik.growfarm.entity.board.CommentLike;
 import jaeik.growfarm.entity.board.Post;
+import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
-import jaeik.growfarm.repository.ReportRepository;
+import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.BoardUtil;
+import jaeik.growfarm.util.NotificationUtil;
 import jaeik.growfarm.util.UserUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +38,9 @@ public class CommentService {
     private final ReportRepository reportRepository;
     private final BoardUtil boardUtil;
     private final UserUtil userUtil;
+    private final NotificationService notificationService;
+    private final NotificationUtil notificationUtil;
+
 
     // 댓글 작성
     public void writeComment(Long postId, CommentDTO commentDTO) {
@@ -41,7 +50,10 @@ public class CommentService {
         Users user = userRepository.findById(commentDTO.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + commentDTO.getUserId()));
 
+        Long postUserId = post.getUser().getId();
+
         commentRepository.save(boardUtil.commentDTOToComment(commentDTO, post, user));
+        notificationService.send(postUserId,notificationUtil.createEventDTO(NotificationType.COMMENT, user.getFarmName() + "님이 댓글을 남겼습니다!", "http://localhost:3000/board/" + postId));
     }
 
     // 댓글 수정
@@ -117,5 +129,47 @@ public class CommentService {
 
         reportRepository.save(report);
 
+
     }
+    @Transactional
+    @Scheduled(fixedRate = 1000 * 60 * 5) // 5분마다 실행
+    public void updateFeaturedComments() {
+        // Step 1: 기존 인기 댓글 초기화
+        commentRepository.resetAllCommentFeaturedFlags();
+
+        // Step 2: 추천 수 3개 이상인 댓글 전부 불러오기
+        List<Comment> popularComments = commentRepository.findPopularComments();
+
+        // Step 3: 게시글별 상위 3개만 선정
+        Map<Long, List<Comment>> topCommentsByPost = popularComments.stream()
+                .collect(Collectors.groupingBy(
+                        c -> c.getPost().getId(),
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                list -> list.stream().limit(3).toList()
+                        )
+                ));
+
+        // Step 4: 인기 댓글 지정 및 알림 전송
+        topCommentsByPost.values().stream()
+                .flatMap(List::stream)
+                .forEach(comment -> {
+                    comment.setIsFeatured(true); // 인기 댓글 지정
+
+                    // 알림 전송
+                    Long userId = comment.getUser().getId();
+                    Long postId = comment.getPost().getId();
+
+                    notificationService.send(
+                            userId,
+                            notificationUtil.createEventDTO(
+                                    NotificationType.COMMENT_FEATURED,
+                                    "🎉 당신의 댓글이 인기 댓글로 선정되었습니다!",
+                                    "http://localhost:3000/board/" + postId
+                            )
+                    );
+                });
+    }
+
+
 }

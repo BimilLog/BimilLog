@@ -146,4 +146,31 @@ export interface CommentDTO {
     userLike: boolean;
 }
 
+export enum NotificationType {
+    ADMIN = "ADMIN",
+    FARM = "FARM",
+    COMMENT = "COMMENT",
+    POST_FEATURED = "POST_FEATURED",
+    COMMENT_FEATURED = "COMMENT_FEATURED",
+    INITIATE = "INITIATE"
+}
 
+export interface EventDTO {
+    type: NotificationType;
+    data: string;
+    url: string;
+}
+
+export interface NotificationDTO {
+    id: number;
+    data: string;
+    url: string;
+    type: NotificationType;
+    isRead: boolean;
+    createdAt: string;
+}
+
+export interface UpdateNotificationDTO {
+    readIds: number[];
+    deletedIds: number[];
+}

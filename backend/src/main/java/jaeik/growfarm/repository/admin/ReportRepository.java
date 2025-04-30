@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository;
+package jaeik.growfarm.repository.admin;
 
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;

@@ -9,7 +9,7 @@ import jaeik.growfarm.entity.board.Post;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
-import jaeik.growfarm.repository.ReportRepository;
+import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.TokenRepository;

@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository;
+package jaeik.growfarm.repository.admin;
 
 import jaeik.growfarm.entity.user.BlackList;
 import org.springframework.data.jpa.repository.JpaRepository;

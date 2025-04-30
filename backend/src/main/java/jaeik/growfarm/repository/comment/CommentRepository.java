@@ -39,4 +39,17 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(nativeQuery = true, value = "DELETE FROM comment WHERE user_id = :userId")
     void deleteCommentsByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("UPDATE Comment c SET c.isFeatured = false")
+    void resetAllCommentFeaturedFlags();
+
+    @Query("""
+    SELECT c
+    FROM Comment c
+    WHERE (SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment = c) >= 3
+    ORDER BY c.post.id, (SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment = c) DESC
+""")
+    List<Comment> findPopularComments();
+
 }
