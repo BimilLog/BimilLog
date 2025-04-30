@@ -102,14 +102,18 @@ const Navigation = () => {
         return notifications;
       }
 
-      // 삭제된 알림 필터링 및 읽음 상태 적용
-      return notifications
-        .filter((notification) => !storedDeletedIds.includes(notification.id))
-        .map((notification) => ({
-          ...notification,
-          isRead:
-            notification.isRead || storedReadIds.includes(notification.id),
-        }));
+      // 먼저 INITIATE 타입과 이미 삭제된 알림 제외
+      const filteredNotifications = notifications
+        .filter(
+          (notification) => notification.type !== NotificationType.INITIATE
+        )
+        .filter((notification) => !storedDeletedIds.includes(notification.id));
+
+      // 그 다음 읽음 상태 적용
+      return filteredNotifications.map((notification) => ({
+        ...notification,
+        isRead: notification.isRead || storedReadIds.includes(notification.id),
+      }));
     },
     []
   );
@@ -145,20 +149,43 @@ const Navigation = () => {
       if (response.ok) {
         const data = (await response.json()) as NotificationDTO[];
 
-        // 새로 구현한 함수로 로컬 스토리지 상태 적용 (삭제/읽음 처리)
-        const processedNotifications = applyLocalStorageState(data)
-          // INITIATE 타입 알림 제외
-          .filter(
-            (notification) => notification.type !== NotificationType.INITIATE
-          );
+        // 로컬 스토리지 상태 적용 (삭제/읽음 처리)
+        const processedNotifications = applyLocalStorageState(data);
 
+        // 알림 목록 업데이트
         setNotifications(processedNotifications);
 
-        // 안 읽은 알림 개수 계산
+        // 안 읽은 알림 개수 계산 및 업데이트
         const unread = processedNotifications.filter(
           (notification) => !notification.isRead
         ).length;
         setUnreadCount(unread);
+
+        // 받아온 알림 중 로컬 스토리지에 이미 읽음/삭제 처리된 항목들을 확인
+        const storedReadIds = [];
+        const storedDeletedIds = [];
+        try {
+          const readIdsStr = localStorage.getItem(READ_NOTIFICATIONS_KEY);
+          if (readIdsStr) storedReadIds.push(...JSON.parse(readIdsStr));
+
+          const deletedIdsStr = localStorage.getItem(DELETED_NOTIFICATIONS_KEY);
+          if (deletedIdsStr)
+            storedDeletedIds.push(...JSON.parse(deletedIdsStr));
+        } catch (error) {
+          console.error("로컬 스토리지 로드 오류:", error);
+        }
+
+        // 서버에서 가져온 데이터 중 새로운 읽음/삭제 상태가 있는지 확인
+        const serverReadIds = data
+          .filter((notification) => notification.isRead)
+          .map((notification) => notification.id);
+
+        // 서버에서는 읽음 처리되었지만 로컬에서는 아직 안된 ID들을 배치 처리 대상에서 제외
+        if (serverReadIds.length > 0) {
+          setReadIds((prev) =>
+            prev.filter((id) => !serverReadIds.includes(id))
+          );
+        }
       } else {
         console.error("알림 목록 가져오기 실패");
       }
@@ -171,6 +198,13 @@ const Navigation = () => {
   const performBatchUpdate = useCallback(async () => {
     // 처리할 ID가 없으면 API 호출하지 않음
     if (readIds.length === 0 && deletedIds.length === 0) return;
+
+    console.log(
+      "배치 처리 실행 - 읽음:",
+      readIds.length,
+      "삭제:",
+      deletedIds.length
+    );
 
     // 현재 상태를 복사하고 상태 초기화
     const currentReadIds = [...readIds];
@@ -208,6 +242,41 @@ const Navigation = () => {
           readIds: currentReadIds,
           deletedIds: currentDeletedIds,
         });
+
+        // 성공적으로 서버에 상태가 반영되었으므로 이제 로컬 스토리지에서도 삭제 처리된 알림을 제거
+        try {
+          // 로컬 스토리지의 deletedIds 목록 갱신
+          const storedDeletedIdsStr = localStorage.getItem(
+            DELETED_NOTIFICATIONS_KEY
+          );
+          if (storedDeletedIdsStr) {
+            // 현재 로컬 스토리지에 저장된 삭제된 ID 목록에서 방금 서버에 전송한 항목들 제거
+            const storedDeletedIds = JSON.parse(storedDeletedIdsStr);
+            const newDeletedIds = storedDeletedIds.filter(
+              (id: number) => !currentDeletedIds.includes(id)
+            );
+            localStorage.setItem(
+              DELETED_NOTIFICATIONS_KEY,
+              JSON.stringify(newDeletedIds)
+            );
+          }
+
+          // 로컬 스토리지의 readIds 목록 갱신
+          const storedReadIdsStr = localStorage.getItem(READ_NOTIFICATIONS_KEY);
+          if (storedReadIdsStr) {
+            // 현재 로컬 스토리지에 저장된 읽은 ID 목록에서 방금 서버에 전송한 항목들 제거
+            const storedReadIds = JSON.parse(storedReadIdsStr);
+            const newReadIds = storedReadIds.filter(
+              (id: number) => !currentReadIds.includes(id)
+            );
+            localStorage.setItem(
+              READ_NOTIFICATIONS_KEY,
+              JSON.stringify(newReadIds)
+            );
+          }
+        } catch (error) {
+          console.error("로컬 스토리지 업데이트 오류:", error);
+        }
       }
     } catch (error) {
       console.error("배치 처리 오류:", error);
@@ -366,7 +435,7 @@ const Navigation = () => {
     }
   }, [user, setupSSEConnection, fetchNotifications]);
 
-  // 알림 읽음 처리
+  // 단일 알림 읽음 처리 - 일반 케이스 (배치 처리)
   const handleMarkAsRead = (notification: NotificationDTO) => {
     if (notification.isRead) return; // 이미 읽은 알림은 처리하지 않음
 
@@ -383,7 +452,7 @@ const Navigation = () => {
     setReadIds((prev) => [...prev, notification.id]);
   };
 
-  // 알림 삭제 처리
+  // 단일 알림 삭제 처리 - 일반 케이스 (배치 처리)
   const handleDeleteNotification = (notificationId: number) => {
     // 상태 업데이트 (사용자에게 즉시 반영)
     setNotifications((prevNotifications) =>
@@ -432,7 +501,16 @@ const Navigation = () => {
 
     // 배치 처리를 위해 ID 저장
     const unreadIds = unreadNotifications.map((n) => n.id);
-    setReadIds((prev) => [...prev, ...unreadIds]);
+    setReadIds((prev) => {
+      const newReadIds = [...prev, ...unreadIds];
+
+      // 모두 읽음 처리 후 즉시 배치 처리 실행 (비동기)
+      setTimeout(() => {
+        performBatchUpdate();
+      }, 0);
+
+      return newReadIds;
+    });
   };
 
   // 드롭다운 외부 클릭 감지
@@ -597,6 +675,27 @@ const Navigation = () => {
                     마이페이지
                   </Link>
                 </li>
+                {/* 관리자 메뉴 - 관리자 권한이 있는 경우에만 표시 */}
+                {user.role === "ADMIN" && (
+                  <li className="nav-item">
+                    <Link className="nav-link text-danger" href="/admin">
+                      관리자
+                    </Link>
+                  </li>
+                )}
+                <li className="nav-item">
+                  <button
+                    className="nav-link"
+                    onClick={handleLogout}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    로그아웃
+                  </button>
+                </li>
                 {/* 알림 아이콘 */}
                 <li className="nav-item dropdown" ref={notificationRef}>
                   <button
@@ -710,7 +809,59 @@ const Navigation = () => {
                         <div className="list-group-item bg-light p-2 d-flex justify-content-between">
                           <button
                             className="btn btn-sm btn-outline-secondary"
-                            onClick={handleMarkAllAsRead}
+                            onClick={() => {
+                              const unreadNotifications = notifications.filter(
+                                (n) => !n.isRead
+                              );
+                              if (unreadNotifications.length === 0) return;
+
+                              // 상태 업데이트 (사용자에게 즉시 반영)
+                              setNotifications((prevNotifications) =>
+                                prevNotifications.map((n) => ({
+                                  ...n,
+                                  isRead: true,
+                                }))
+                              );
+                              setUnreadCount(0);
+
+                              // 읽음 처리할 ID 목록 추출
+                              const unreadIds = unreadNotifications.map(
+                                (n) => n.id
+                              );
+
+                              // 서버에 즉시 전송 (일괄 처리는 UX 상 즉시 반영이 필요함)
+                              fetch(
+                                "http://localhost:8080/notification/batch-update",
+                                {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  credentials: "include",
+                                  body: JSON.stringify({
+                                    readIds: unreadIds,
+                                    deletedIds: [],
+                                  } as UpdateNotificationDTO),
+                                }
+                              )
+                                .then((response) => {
+                                  if (response.ok) {
+                                    console.log("모두 읽음 처리 성공");
+                                  } else {
+                                    console.error("모두 읽음 처리 실패");
+                                    // 실패 시에도 UI는 이미 변경되었으므로 배치 처리를 위해 ID 저장
+                                    setReadIds((prev) => [
+                                      ...prev,
+                                      ...unreadIds,
+                                    ]);
+                                  }
+                                })
+                                .catch((error) => {
+                                  console.error("모두 읽음 처리 오류:", error);
+                                  // 오류 시 배치 처리를 위해 ID 저장
+                                  setReadIds((prev) => [...prev, ...unreadIds]);
+                                });
+                            }}
                             disabled={unreadCount === 0}
                           >
                             모두 읽음 표시
@@ -718,16 +869,46 @@ const Navigation = () => {
                           <button
                             className="btn btn-sm btn-outline-danger"
                             onClick={() => {
-                              // 모든 알림 삭제
+                              // 모든 알림의 ID 목록 추출
                               const allIds = notifications.map((n) => n.id);
-                              setDeletedIds((prev) => [...prev, ...allIds]);
+                              if (allIds.length === 0) return;
+
+                              // 상태 업데이트 (사용자에게 즉시 반영)
                               setNotifications([]);
                               setUnreadCount(0);
 
-                              // 읽음 처리 대기 중인 알림 ID 제거
-                              setReadIds((prev) =>
-                                prev.filter((id) => !allIds.includes(id))
-                              );
+                              // 서버에 즉시 전송 (일괄 처리는 UX 상 즉시 반영이 필요함)
+                              fetch(
+                                "http://localhost:8080/notification/batch-update",
+                                {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  credentials: "include",
+                                  body: JSON.stringify({
+                                    readIds: [],
+                                    deletedIds: allIds,
+                                  } as UpdateNotificationDTO),
+                                }
+                              )
+                                .then((response) => {
+                                  if (response.ok) {
+                                    console.log("모두 삭제 처리 성공");
+                                  } else {
+                                    console.error("모두 삭제 처리 실패");
+                                    // 실패 시에도 UI는 이미 변경되었으므로 배치 처리를 위해 ID 저장
+                                    setDeletedIds((prev) => [
+                                      ...prev,
+                                      ...allIds,
+                                    ]);
+                                  }
+                                })
+                                .catch((error) => {
+                                  console.error("모두 삭제 처리 오류:", error);
+                                  // 오류 시 배치 처리를 위해 ID 저장
+                                  setDeletedIds((prev) => [...prev, ...allIds]);
+                                });
                             }}
                             disabled={notifications.length === 0}
                           >
@@ -737,27 +918,6 @@ const Navigation = () => {
                       </div>
                     </div>
                   )}
-                </li>
-                {/* 관리자 메뉴 - 관리자 권한이 있는 경우에만 표시 */}
-                {user.role === "ADMIN" && (
-                  <li className="nav-item">
-                    <Link className="nav-link text-danger" href="/admin">
-                      관리자
-                    </Link>
-                  </li>
-                )}
-                <li className="nav-item">
-                  <button
-                    className="nav-link"
-                    onClick={handleLogout}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    로그아웃
-                  </button>
                 </li>
               </>
             ) : (
