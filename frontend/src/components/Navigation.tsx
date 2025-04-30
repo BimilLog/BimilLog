@@ -142,7 +142,7 @@ const Navigation = () => {
     if (!user) return;
 
     try {
-      const response = await fetch("http://localhost:8080/notification/list", {
+      const response = await fetch("https://grom-farm.com/api/notification/list", {
         credentials: "include",
       });
 
@@ -217,7 +217,7 @@ const Navigation = () => {
     try {
       // API 호출
       const response = await fetch(
-        "http://localhost:8080/notification/batch-update",
+        "https://grom-farm.com/api/notification/batch-update",
         {
           method: "POST",
           headers: {
@@ -299,7 +299,7 @@ const Navigation = () => {
 
     // SSE 연결 설정
     const eventSource = new EventSource(
-      "http://localhost:8080/notification/subscribe",
+      "https://grom-farm.com/api/notification/subscribe",
       {
         withCredentials: true,
       }
@@ -831,7 +831,7 @@ const Navigation = () => {
 
                               // 서버에 즉시 전송 (일괄 처리는 UX 상 즉시 반영이 필요함)
                               fetch(
-                                "http://localhost:8080/notification/batch-update",
+                                "https://grom-farm.com/api/notification/batch-update",
                                 {
                                   method: "POST",
                                   headers: {
@@ -879,7 +879,7 @@ const Navigation = () => {
 
                               // 서버에 즉시 전송 (일괄 처리는 UX 상 즉시 반영이 필요함)
                               fetch(
-                                "http://localhost:8080/notification/batch-update",
+                                "https://grom-farm.com/api/notification/batch-update",
                                 {
                                   method: "POST",
                                   headers: {
