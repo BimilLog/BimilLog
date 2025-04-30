@@ -50,7 +50,7 @@ export default function WritePage() {
 
     try {
       // API 요청 보내기
-      const response = await fetch("http://localhost:8080/board/write", {
+      const response = await fetch("https://grow-farm.com/api/board/write", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

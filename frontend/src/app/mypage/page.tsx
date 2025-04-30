@@ -30,7 +30,7 @@ export default function MyPage() {
       }).toString();
 
       const response = await fetch(
-        `http://localhost:8080/user/mypage/updatefarm?${queryString}`,
+        `https://grow-farm.com/api/user/mypage/updatefarm?${queryString}`,
         {
           method: "GET",
           credentials: "include",
@@ -75,7 +75,7 @@ export default function MyPage() {
 
     setIsWithdrawing(true);
     try {
-      const response = await fetch("http://localhost:8080/auth/withdraw", {
+      const response = await fetch("https://grow-farm.com/api/auth/withdraw", {
         method: "GET",
         credentials: "include",
       });

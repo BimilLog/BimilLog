@@ -68,14 +68,16 @@ public class JwtTokenProvider {
                 .path("/")
                 .maxAge(maxAge)
                 .httpOnly(true)
-                .sameSite("Lax")
+                .sameSite("Strict")
+                .secure(true)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(JwtTokenProvider.REFRESH_TOKEN_COOKIE, jwtRefreshToken)
                 .path("/")
                 .maxAge(maxAge * 30L)
                 .httpOnly(true)
-                .sameSite("Lax")
+                .sameSite("Strict")
+                .secure(true)
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);
@@ -86,14 +88,16 @@ public class JwtTokenProvider {
                 .path("/")
                 .maxAge(0)
                 .httpOnly(true)
-                .sameSite("Lax")
+                .sameSite("Strict")
+                .secure(true)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(JwtTokenProvider.REFRESH_TOKEN_COOKIE, "")
                 .path("/")
                 .maxAge(0)
                 .httpOnly(true)
-                .sameSite("Lax")
+                .sameSite("Strict")
+                .secure(true)
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);

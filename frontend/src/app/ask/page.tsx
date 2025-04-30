@@ -53,7 +53,7 @@ export default function AskPage() {
         content: formData.content,
       };
 
-      const response = await fetch("http://localhost:8080/user/suggestion", {
+      const response = await fetch("https://grow-farm.com/api/user/suggestion", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

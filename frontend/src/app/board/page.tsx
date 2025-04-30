@@ -59,7 +59,7 @@ const PopularPostItem = ({ post }: { post: SimplePostDTO }) => (
 );
 
 // API 기본 URL
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 export default function BoardPage() {
   // 페이지 상태관리

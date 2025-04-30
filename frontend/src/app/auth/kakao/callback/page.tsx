@@ -25,7 +25,7 @@ function KakaoCallbackContent() {
 
         // 백엔드 서버로 코드 전송
         const response = await fetch(
-          `http://localhost:8080/auth/login?code=${code}`,
+          `https://grow-farm.com/api/auth/login?code=${code}`,
           {
             method: "GET",
             credentials: "include", // 쿠키를 포함하여 요청

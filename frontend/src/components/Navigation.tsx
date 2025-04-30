@@ -1,25 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, FormEvent, useEffect, useRef, useCallback } from "react";
+import { useState, FormEvent } from "react";
 import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
-import {
-  EventDTO,
-  NotificationDTO,
-  NotificationType,
-  UpdateNotificationDTO,
-} from "./types/schema";
 
 /**
  * 네비게이션 컴포넌트
  * 로그인 상태에 따라 다른 메뉴를 보여줍니다.
  */
-
-// 로컬 스토리지 키
-const DELETED_NOTIFICATIONS_KEY = "deleted_notifications";
-const READ_NOTIFICATIONS_KEY = "read_notifications";
-const SSE_CONNECTED_KEY = "sse_connected";
 
 // 카카오 로그인 처리 함수
 const handleLogin = () => {
@@ -38,449 +27,41 @@ const Navigation = () => {
   const [isSearching, setIsSearching] = useState(false); // 검색 중 상태
   const router = useRouter();
 
-  // 알림 관련 상태
-  const [notifications, setNotifications] = useState<NotificationDTO[]>([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const notificationRef = useRef<HTMLLIElement>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const isConnectedRef = useRef<boolean>(false);
-
-  // 배치 처리용 상태
-  const [readIds, setReadIds] = useState<number[]>([]);
-  const [deletedIds, setDeletedIds] = useState<number[]>([]);
-  const batchIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // 로컬 스토리지에서 상태 로드
-  const loadStateFromLocalStorage = useCallback(() => {
-    if (typeof window === "undefined") return; // SSR 환경에서는 실행하지 않음
-
-    try {
-      // 삭제된 알림 ID 로드
-      const deletedIdsStr = localStorage.getItem(DELETED_NOTIFICATIONS_KEY);
-      if (deletedIdsStr) {
-        const deletedIdsFromStorage = JSON.parse(deletedIdsStr);
-        setDeletedIds(deletedIdsFromStorage);
-      }
-
-      // 읽은 알림 ID 로드
-      const readIdsStr = localStorage.getItem(READ_NOTIFICATIONS_KEY);
-      if (readIdsStr) {
-        const readIdsFromStorage = JSON.parse(readIdsStr);
-        setReadIds(readIdsFromStorage);
-      }
-
-      // 연결 상태 확인
-      const connectedStr = localStorage.getItem(SSE_CONNECTED_KEY);
-      if (connectedStr) {
-        isConnectedRef.current = JSON.parse(connectedStr);
-      }
-    } catch (error) {
-      console.error("로컬 스토리지에서 상태 로드 오류:", error);
-    }
-  }, []);
-
-  // 로컬 스토리지의 상태를 알림 목록에 적용
-  const applyLocalStorageState = useCallback(
-    (notifications: NotificationDTO[]) => {
-      // 로컬 스토리지에서 읽음/삭제 상태 가져오기
-      let storedReadIds: number[] = [];
-      let storedDeletedIds: number[] = [];
-
-      try {
-        const readIdsStr = localStorage.getItem(READ_NOTIFICATIONS_KEY);
-        if (readIdsStr) {
-          storedReadIds = JSON.parse(readIdsStr);
-        }
-
-        const deletedIdsStr = localStorage.getItem(DELETED_NOTIFICATIONS_KEY);
-        if (deletedIdsStr) {
-          storedDeletedIds = JSON.parse(deletedIdsStr);
-        }
-      } catch (error) {
-        console.error("로컬 스토리지에서 상태 로드 오류:", error);
-        return notifications;
-      }
-
-      // 삭제된 알림 필터링 및 읽음 상태 적용
-      return notifications
-        .filter((notification) => !storedDeletedIds.includes(notification.id))
-        .map((notification) => ({
-          ...notification,
-          isRead:
-            notification.isRead || storedReadIds.includes(notification.id),
-        }));
-    },
-    []
-  );
-
-  // 로컬 스토리지에 상태 저장
-  const saveStateToLocalStorage = useCallback(() => {
-    if (typeof window === "undefined") return; // SSR 환경에서는 실행하지 않음
-
-    try {
-      localStorage.setItem(
-        DELETED_NOTIFICATIONS_KEY,
-        JSON.stringify(deletedIds)
-      );
-      localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify(readIds));
-      localStorage.setItem(
-        SSE_CONNECTED_KEY,
-        JSON.stringify(isConnectedRef.current)
-      );
-    } catch (error) {
-      console.error("로컬 스토리지에 상태 저장 오류:", error);
-    }
-  }, [deletedIds, readIds]);
-
-  // 알림 목록 가져오기
-  const fetchNotifications = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const response = await fetch("http://localhost:8080/notification/list", {
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const data = (await response.json()) as NotificationDTO[];
-
-        // 새로 구현한 함수로 로컬 스토리지 상태 적용 (삭제/읽음 처리)
-        const processedNotifications = applyLocalStorageState(data)
-          // INITIATE 타입 알림 제외
-          .filter(
-            (notification) => notification.type !== NotificationType.INITIATE
-          );
-
-        setNotifications(processedNotifications);
-
-        // 안 읽은 알림 개수 계산
-        const unread = processedNotifications.filter(
-          (notification) => !notification.isRead
-        ).length;
-        setUnreadCount(unread);
-      } else {
-        console.error("알림 목록 가져오기 실패");
-      }
-    } catch (error) {
-      console.error("알림 목록 가져오기 오류:", error);
-    }
-  }, [user, applyLocalStorageState]);
-
-  // 배치 처리 함수 - 5분마다 호출
-  const performBatchUpdate = useCallback(async () => {
-    // 처리할 ID가 없으면 API 호출하지 않음
-    if (readIds.length === 0 && deletedIds.length === 0) return;
-
-    // 현재 상태를 복사하고 상태 초기화
-    const currentReadIds = [...readIds];
-    const currentDeletedIds = [...deletedIds];
-
-    // 상태 초기화
-    setReadIds([]);
-    setDeletedIds([]);
-
-    try {
-      // API 호출
-      const response = await fetch(
-        "http://localhost:8080/notification/batch-update",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            readIds: currentReadIds,
-            deletedIds: currentDeletedIds,
-          } as UpdateNotificationDTO),
-        }
-      );
-
-      if (!response.ok) {
-        console.error("배치 처리 실패:", await response.text());
-
-        // 실패 시 상태 복원 (다음 배치에서 다시 시도)
-        setReadIds((prev) => [...prev, ...currentReadIds]);
-        setDeletedIds((prev) => [...prev, ...currentDeletedIds]);
-      } else {
-        console.log("배치 처리 성공:", {
-          readIds: currentReadIds,
-          deletedIds: currentDeletedIds,
-        });
-      }
-    } catch (error) {
-      console.error("배치 처리 오류:", error);
-
-      // 오류 시 상태 복원 (다음 배치에서 다시 시도)
-      setReadIds((prev) => [...prev, ...currentReadIds]);
-      setDeletedIds((prev) => [...prev, ...currentDeletedIds]);
-    }
-  }, [readIds, deletedIds]);
-
-  // SSE 연결 설정 함수
-  const setupSSEConnection = useCallback(() => {
-    // 이미 연결되어 있으면 중복 연결하지 않음
-    if (isConnectedRef.current || eventSourceRef.current) {
-      console.log("SSE 이미 연결됨, 중복 연결 방지");
-      return; // 중복 연결 시 함수 종료
-    }
-
-    console.log("SSE 연결 시작");
-
-    // SSE 연결 설정
-    const eventSource = new EventSource(
-      "http://localhost:8080/notification/subscribe",
-      {
-        withCredentials: true,
-      }
-    );
-
-    eventSource.onmessage = (event) => {
-      console.log("기본 메시지 수신:", event.data);
-    };
-
-    // 이벤트 리스너 등록 - INITIATE는 화면에 표시하지 않음
-    eventSource.addEventListener("INITIATE", (event) => {
-      console.log("초기화 이벤트:", event.data);
-      // INITIATE 이벤트는 화면에 알림으로 표시하지 않음
-
-      // 첫 연결 성공 시 연결 상태 저장
-      isConnectedRef.current = true;
-      localStorage.setItem(SSE_CONNECTED_KEY, JSON.stringify(true));
-
-      // 알림 목록 가져오기
-      fetchNotifications();
-    });
-
-    // 각 NotificationType에 대한 이벤트 리스너 등록 (INITIATE 제외)
-    Object.values(NotificationType)
-      .filter((type) => type !== NotificationType.INITIATE)
-      .forEach((type) => {
-        eventSource.addEventListener(type, (event) => {
-          try {
-            const data = JSON.parse(event.data);
-
-            // 필드명을 NotificationDTO에 맞게 조정
-            const newNotification: NotificationDTO = {
-              id: Date.now(), // 임시 ID
-              data: data.message,
-              url: data.url,
-              type: type as NotificationType,
-              isRead: false,
-              createdAt: new Date().toISOString(),
-            };
-
-            // 이미 삭제 목록에 있는 ID는 무시
-            const storedDeletedIds = JSON.parse(
-              localStorage.getItem(DELETED_NOTIFICATIONS_KEY) || "[]"
-            );
-            if (!storedDeletedIds.includes(newNotification.id)) {
-              setNotifications((prev) => [newNotification, ...prev]);
-              setUnreadCount((prev) => prev + 1);
-            }
-          } catch (error) {
-            console.error("알림 처리 중 오류:", error);
-          }
-        });
-      });
-
-    eventSource.onerror = (error) => {
-      console.error("SSE 연결 오류:", error);
-      // 연결 재시도 로직 대신, 에러 발생 시 연결을 닫고 상태를 초기화합니다.
-      eventSource.close();
-      eventSourceRef.current = null;
-
-      // 연결 상태 초기화
-      isConnectedRef.current = false;
-      localStorage.setItem(SSE_CONNECTED_KEY, JSON.stringify(false));
-    };
-
-    eventSourceRef.current = eventSource;
-
-    // 배치 처리 인터벌 설정 (5분)
-    if (batchIntervalRef.current) {
-      clearInterval(batchIntervalRef.current);
-    }
-
-    batchIntervalRef.current = setInterval(performBatchUpdate, 5 * 60 * 1000);
-
-    return () => {
-      // 마지막으로 한 번 더 배치 처리 실행
-      performBatchUpdate();
-
-      // 인터벌 정리
-      if (batchIntervalRef.current) {
-        clearInterval(batchIntervalRef.current);
-      }
-
-      // SSE 연결 정리
-      eventSource.close();
-      eventSourceRef.current = null;
-
-      // 컴포넌트 언마운트 시 연결 상태 초기화
-      isConnectedRef.current = false;
-      localStorage.setItem(SSE_CONNECTED_KEY, JSON.stringify(false));
-    };
-  }, [fetchNotifications, performBatchUpdate]);
-
-  // 페이지 로드 시 로컬 스토리지에서 상태 로드
-  useEffect(() => {
-    loadStateFromLocalStorage();
-  }, [loadStateFromLocalStorage]);
-
-  // deletedIds 또는 readIds가 변경될 때마다 로컬 스토리지에 저장
-  useEffect(() => {
-    saveStateToLocalStorage();
-  }, [deletedIds, readIds, saveStateToLocalStorage]);
-
-  // 유저 상태 변경 시 SSE 연결 및 알림 관리
-  useEffect(() => {
-    if (user && !isConnectedRef.current && !eventSourceRef.current) {
-      // 최초 로그인 시 또는 새로고침 후 SSE 연결이 없을 때 연결 설정
-      const cleanup = setupSSEConnection();
-      fetchNotifications(); // 연결 후 알림 가져오기
-      return cleanup; // 언마운트 시 정리 함수 반환
-    } else if (!user) {
-      // 로그아웃 시
-      setNotifications([]);
-      setUnreadCount(0);
-
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
-
-      isConnectedRef.current = false;
-      localStorage.setItem(SSE_CONNECTED_KEY, JSON.stringify(false));
-
-      if (batchIntervalRef.current) {
-        clearInterval(batchIntervalRef.current);
-        batchIntervalRef.current = null;
-      }
-    } else if (user && !eventSourceRef.current && isConnectedRef.current) {
-      // 로그인 상태지만 SSE 연결이 끊어진 경우 (페이지 새로고침 등)
-      // 로컬 스토리지에 연결 정보는 있으나 실제 연결(eventSourceRef)이 없는 경우
-      // 알림 목록만 다시 가져오고, SSE 재연결은 setupSSEConnection 내부 로직에 맡김
-      fetchNotifications();
-    }
-  }, [user, setupSSEConnection, fetchNotifications]);
-
-  // 알림 읽음 처리
-  const handleMarkAsRead = (notification: NotificationDTO) => {
-    if (notification.isRead) return; // 이미 읽은 알림은 처리하지 않음
-
-    // 상태 업데이트 (사용자에게 즉시 반영)
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((n) =>
-        n.id === notification.id ? { ...n, isRead: true } : n
-      )
-    );
-
-    setUnreadCount((prev) => Math.max(0, prev - 1));
-
-    // 배치 처리를 위해 ID 저장
-    setReadIds((prev) => [...prev, notification.id]);
-  };
-
-  // 알림 삭제 처리
-  const handleDeleteNotification = (notificationId: number) => {
-    // 상태 업데이트 (사용자에게 즉시 반영)
-    setNotifications((prevNotifications) =>
-      prevNotifications.filter((n) => n.id !== notificationId)
-    );
-
-    // 읽지 않은 알림이 삭제된 경우 카운트 업데이트
-    const wasUnread = notifications.find(
-      (n) => n.id === notificationId && !n.isRead
-    );
-    if (wasUnread) {
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    }
-
-    // 배치 처리를 위해 ID 저장
-    setDeletedIds((prev) => [...prev, notificationId]);
-
-    // 이미 읽음 처리 대기 중인 알림이면 읽음 목록에서 제거
-    setReadIds((prev) => prev.filter((id) => id !== notificationId));
-  };
-
-  // 알림 클릭 처리
-  const handleNotificationClick = (notification: NotificationDTO) => {
-    // 읽음 처리
-    handleMarkAsRead(notification);
-
-    // 해당 URL로 이동
-    if (notification.url) {
-      router.push(notification.url);
-    }
-
-    // 알림 목록 닫기
-    setShowNotifications(false);
-  };
-
-  // 모든 알림 읽음 처리
-  const handleMarkAllAsRead = () => {
-    const unreadNotifications = notifications.filter((n) => !n.isRead);
-    if (unreadNotifications.length === 0) return;
-
-    // 상태 업데이트 (사용자에게 즉시 반영)
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((n) => ({ ...n, isRead: true }))
-    );
-    setUnreadCount(0);
-
-    // 배치 처리를 위해 ID 저장
-    const unreadIds = unreadNotifications.map((n) => n.id);
-    setReadIds((prev) => [...prev, ...unreadIds]);
-  };
-
-  // 드롭다운 외부 클릭 감지
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        notificationRef.current &&
-        !notificationRef.current.contains(event.target as Node)
-      ) {
-        setShowNotifications(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // 로그아웃 처리
-  const handleLogout = () => {
-    // SSE 연결 정리
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
-    }
-
-    // 연결 상태 초기화
-    isConnectedRef.current = false;
-    localStorage.setItem(SSE_CONNECTED_KEY, JSON.stringify(false));
-
-    // 인터벌 정리
-    if (batchIntervalRef.current) {
-      clearInterval(batchIntervalRef.current);
-      batchIntervalRef.current = null;
-    }
-
-    // 원래 로그아웃 함수 호출
-    logout();
-  };
-
-  const handleFarmSearch = (e: FormEvent) => {
+  // 농장 검색 처리 함수
+  const handleFarmSearch = async (e: FormEvent) => {
     e.preventDefault();
-    if (!searchFarm.trim()) return;
+
+    // 검색어가 비어있으면 처리하지 않음
+    if (!searchFarm.trim()) {
+      alert("농장 이름을 입력해주세요");
+      return;
+    }
 
     setIsSearching(true);
-    router.push(`/farm/${searchFarm}`);
-    setIsSearching(false);
+
+    try {
+      // 농장 존재 여부 확인을 위한 API 호출
+      const response = await fetch(
+        `https://grow-farm.com/api/farm/${encodeURIComponent(searchFarm.trim())}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        // 농장이 존재하면 해당 농장 페이지로 이동
+        router.push(`/farm/${encodeURIComponent(searchFarm.trim())}`);
+      } else {
+        // 서버에서 오류 응답이 오면 존재하지 않는 농장
+        alert("존재하지 않는 농장입니다");
+      }
+    } catch (error) {
+      console.error("농장 검색 중 오류 발생:", error);
+      alert("농장 검색 중 오류가 발생했습니다");
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -597,147 +178,6 @@ const Navigation = () => {
                     마이페이지
                   </Link>
                 </li>
-                {/* 알림 아이콘 */}
-                <li className="nav-item dropdown" ref={notificationRef}>
-                  <button
-                    className="nav-link position-relative"
-                    onClick={() => setShowNotifications(!showNotifications)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <i className="bi bi-bell-fill fs-5"></i>
-                    {unreadCount > 0 && (
-                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {unreadCount > 99 ? "99+" : unreadCount}
-                      </span>
-                    )}
-                  </button>
-
-                  {/* 알림 드롭다운 */}
-                  {showNotifications && (
-                    <div
-                      className="dropdown-menu dropdown-menu-end show p-0"
-                      style={{
-                        width: "300px",
-                        maxHeight: "350px",
-                        overflowY: "auto",
-                      }}
-                    >
-                      <div className="list-group">
-                        <div className="list-group-item bg-light d-flex justify-content-between align-items-center">
-                          <h6 className="mb-0">알림</h6>
-                          {unreadCount > 0 && (
-                            <span className="badge bg-primary rounded-pill">
-                              {unreadCount}개 안 읽음
-                            </span>
-                          )}
-                        </div>
-
-                        {notifications.length === 0 ? (
-                          <div className="list-group-item text-center py-3">
-                            <p className="text-muted mb-0">알림이 없습니다</p>
-                          </div>
-                        ) : (
-                          notifications.map((notification) => (
-                            <div
-                              key={notification.id}
-                              className={`list-group-item ${
-                                !notification.isRead ? "bg-light" : ""
-                              }`}
-                            >
-                              <div className="d-flex justify-content-between align-items-center mb-1">
-                                <small className="text-muted">
-                                  {new Date(
-                                    notification.createdAt
-                                  ).toLocaleString("ko-KR", {
-                                    month: "numeric",
-                                    day: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </small>
-                                <div>
-                                  {!notification.isRead && (
-                                    <span className="badge bg-primary rounded-pill me-1">
-                                      New
-                                    </span>
-                                  )}
-                                  {(notification.type ===
-                                    NotificationType.COMMENT ||
-                                    notification.type ===
-                                      NotificationType.POST_FEATURED) && (
-                                    <span className="badge bg-danger rounded-pill me-1">
-                                      중요
-                                    </span>
-                                  )}
-                                  <button
-                                    className="btn btn-sm text-danger p-0 px-1"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteNotification(notification.id);
-                                    }}
-                                    title="삭제"
-                                  >
-                                    <i className="bi bi-x"></i>
-                                  </button>
-                                </div>
-                              </div>
-                              <p
-                                className="mb-1 text-truncate"
-                                style={{ cursor: "pointer" }}
-                                onClick={() =>
-                                  handleNotificationClick(notification)
-                                }
-                              >
-                                {notification.data}
-                              </p>
-                              {notification.url && (
-                                <small
-                                  className="text-primary"
-                                  style={{ cursor: "pointer" }}
-                                  onClick={() =>
-                                    handleNotificationClick(notification)
-                                  }
-                                ></small>
-                              )}
-                            </div>
-                          ))
-                        )}
-
-                        <div className="list-group-item bg-light p-2 d-flex justify-content-between">
-                          <button
-                            className="btn btn-sm btn-outline-secondary"
-                            onClick={handleMarkAllAsRead}
-                            disabled={unreadCount === 0}
-                          >
-                            모두 읽음 표시
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => {
-                              // 모든 알림 삭제
-                              const allIds = notifications.map((n) => n.id);
-                              setDeletedIds((prev) => [...prev, ...allIds]);
-                              setNotifications([]);
-                              setUnreadCount(0);
-
-                              // 읽음 처리 대기 중인 알림 ID 제거
-                              setReadIds((prev) =>
-                                prev.filter((id) => !allIds.includes(id))
-                              );
-                            }}
-                            disabled={notifications.length === 0}
-                          >
-                            모두 삭제
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </li>
                 {/* 관리자 메뉴 - 관리자 권한이 있는 경우에만 표시 */}
                 {user.role === "ADMIN" && (
                   <li className="nav-item">
@@ -749,7 +189,7 @@ const Navigation = () => {
                 <li className="nav-item">
                   <button
                     className="nav-link"
-                    onClick={handleLogout}
+                    onClick={logout}
                     style={{
                       background: "none",
                       border: "none",
