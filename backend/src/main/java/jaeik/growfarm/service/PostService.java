@@ -184,7 +184,7 @@ public class PostService {
             Long postUserId = post.getUser().getId();
             Long postId = post.getId();
 
-            notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.POST_FEATURED, "🎉 글이 인기글로 선정되었습니다!", "http://localhost:3000/board/" + postId));
+            notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.POST_FEATURED, "🎉 글이 인기글로 선정되었습니다!", "https://grow-farm.com/board/" + postId));
         }
 
     }
