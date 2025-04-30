@@ -18,7 +18,7 @@ export default function Home() {
     setShowModal(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/user/friendlist?offset=0`,
+        `https://grow-farm.com/api/user/friendlist?offset=0`,
         { method: "POST", credentials: "include" }
       );
       if (!response.ok) throw new Error("친구 목록 불러오기 실패");
