@@ -64,3 +64,4 @@ replay_pid*
 /backend/src/main/resources/application-secret.yml
 /backend/src/main/generated/
 /backend/src/main/resources/application-prod.yml
+/backend/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-7d4ebe98d2.json
