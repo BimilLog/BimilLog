@@ -2,17 +2,20 @@ package jaeik.growfarm.service;
 
 import jaeik.growfarm.dto.farm.CropDTO;
 import jaeik.growfarm.dto.farm.VisitCropDTO;
+import jaeik.growfarm.dto.notification.FcmSendDTO;
 import jaeik.growfarm.entity.crop.Crop;
+import jaeik.growfarm.entity.notification.FcmToken;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.farm.CropRepository;
-import jaeik.growfarm.repository.notification.NotificationRepository;
+import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.FarmUtil;
 import jaeik.growfarm.util.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -23,8 +26,8 @@ public class FarmService {
     private final UserRepository userRepository;
     private final FarmUtil farmUtil;
     private final NotificationService notificationService;
-    private final NotificationRepository notificationRepository;
     private final NotificationUtil notificationUtil;
+    private final FcmTokenRepository fcmTokenRepository;
 
     public List<CropDTO> myFarm(Long userId) {
         List<Crop> crops = cropRepository.findByUsersId(userId);
@@ -43,7 +46,7 @@ public class FarmService {
         return crops.stream().map(farmUtil::convertToVisitFarmDTO).toList();
     }
 
-    public void plantCrop(String farmName, CropDTO cropDTO) {
+    public void plantCrop(String farmName, CropDTO cropDTO) throws IOException {
         Users user = userRepository.findByFarmName(farmName);
 
         if (user == null) {
@@ -53,7 +56,18 @@ public class FarmService {
         Crop crop = farmUtil.convertToCrop(cropDTO, user);
         cropRepository.save(crop);
 
-        notificationService.send(user.getId(),notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
+        // farmName으로 유저의 fcmToken을 가져와서 알림 전송
+        List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
+
+        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
+        for (FcmToken fcmToken : fcmTokens) {
+            notificationService.sendMessageTo(FcmSendDTO.builder()
+                    .token(fcmToken.getFcmRegistrationToken())
+                    .title("누군가가 농장에 농작물을 심었습니다!")
+                    .body("지금 확인해보세요!")
+                    .build()
+            );
+        }
     }
 
     public void deleteCrop(Long cropId) {
