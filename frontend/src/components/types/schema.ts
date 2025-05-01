@@ -174,3 +174,9 @@ export interface UpdateNotificationDTO {
     readIds: number[];
     deletedIds: number[];
 }
+
+export enum DeviceType {
+    MOBILE = "MOBILE",
+    TABLET = "TABLET",
+}
+

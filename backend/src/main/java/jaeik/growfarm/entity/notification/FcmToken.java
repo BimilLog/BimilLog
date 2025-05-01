@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Getter
 @SuperBuilder
 @NoArgsConstructor
-public class Notification extends BaseEntity {
+@Getter
+public class FcmToken extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // PK 번호
-    @Column(name = "notification_id")
+    @Column(name = "fcm_token_id")
     private Long id;
 
     @NotNull
@@ -24,22 +24,17 @@ public class Notification extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private Users users;
 
+    @NotNull
+    @Column(nullable = false)
+    private String fcmRegistrationToken;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private NotificationType notificationType;
+    private DeviceType deviceType;
 
-    @NotNull
-    @Column(nullable = false)
-    private String data;
-
-    private String url;
-
-    @NotNull
-    @Column(nullable = false)
-    private boolean isRead;
-
-
-    public void markAsRead(){
-        isRead=true;
+    public void updateToken(String token) {
+        this.fcmRegistrationToken = token;
     }
+
 }
