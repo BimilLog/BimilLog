@@ -16,7 +16,7 @@ public class Notification extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // PK 번호
-    @Column(name = "report_id")
+    @Column(name = "notification_id")
     private Long id;
 
     @NotNull
