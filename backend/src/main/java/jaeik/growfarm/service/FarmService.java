@@ -59,7 +59,7 @@ public class FarmService {
         // farmName으로 유저의 fcmToken을 가져와서 알림 전송
         List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
 
-        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
+        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "https://grow-farm.com/farm/" + farmName));
         for (FcmToken fcmToken : fcmTokens) {
             notificationService.sendMessageTo(FcmSendDTO.builder()
                     .token(fcmToken.getFcmRegistrationToken())

@@ -88,7 +88,7 @@ function KakaoCallbackContent() {
       if (token) {
         console.log(`토큰을 서버로 전송: 기기타입=${deviceType}`);
         await fetch(
-          `http://localhost:8080/notification/fcm/token?deviceType=${deviceType}`,
+          `https://grow-farm.com/api/notification/fcm/token?deviceType=${deviceType}`,
           {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
