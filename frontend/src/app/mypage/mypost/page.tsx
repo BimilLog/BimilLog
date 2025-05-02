@@ -5,20 +5,7 @@ import { SimplePostDTO } from "@/components/types/schema";
 import Pagination from "@/components/Pagination";
 import { formatDateTime } from "@/util/date";
 import Link from "next/link";
-
-// 로딩 스피너 컴포넌트
-const LoadingSpinner = ({ small = false }: { small?: boolean }) => (
-  <div className={`text-center py-${small ? 3 : 4}`}>
-    <div
-      className={`spinner-border ${
-        small ? "spinner-border-sm" : ""
-      } text-primary`}
-      role="status"
-    >
-      <span className="visually-hidden">로딩중...</span>
-    </div>
-  </div>
-);
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // 게시글 목록 아이템 컴포넌트
 const PostItem = ({ post }: { post: SimplePostDTO }) => (
@@ -138,7 +125,7 @@ export default function MyPostsPage() {
                       {loading ? (
                         <tr>
                           <td colSpan={4} className="text-center">
-                            <LoadingSpinner />
+                            <LoadingSpinner width={100} height={100} />
                           </td>
                         </tr>
                       ) : posts.length === 0 ? (

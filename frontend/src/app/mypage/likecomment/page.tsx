@@ -5,20 +5,7 @@ import { CommentDTO } from "@/components/types/schema";
 import Pagination from "@/components/Pagination";
 import { formatDateTime } from "@/util/date";
 import Link from "next/link";
-
-// 로딩 스피너 컴포넌트
-const LoadingSpinner = ({ small = false }: { small?: boolean }) => (
-  <div className={`text-center py-${small ? 3 : 4}`}>
-    <div
-      className={`spinner-border ${
-        small ? "spinner-border-sm" : ""
-      } text-primary`}
-      role="status"
-    >
-      <span className="visually-hidden">로딩중...</span>
-    </div>
-  </div>
-);
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // 댓글 아이템 컴포넌트
 const CommentItem = ({ comment }: { comment: CommentDTO }) => (
@@ -137,7 +124,7 @@ export default function LikedCommentsPage() {
                       {loading ? (
                         <tr>
                           <td colSpan={4} className="text-center">
-                            <LoadingSpinner />
+                            <LoadingSpinner width={100} height={100} />
                           </td>
                         </tr>
                       ) : comments.length === 0 ? (

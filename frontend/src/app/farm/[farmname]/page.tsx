@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import useAuthStore from "@/util/authStore";
 import { CropDTO, CropType } from "@/components/types/schema";
 import Script from "next/script";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Kakao SDK TypeScript declarations
 declare global {
@@ -231,18 +232,15 @@ export default function FarmPage() {
           const queryParams = new URLSearchParams();
           queryParams.append("userId", user.userId.toString());
 
-          response = await fetch(
-            `https://grow-farm.com/api/farm/myFarm`,
-            {
-              method: "POST",
-              credentials: "include",
-            }
-          );
+          response = await fetch(`http://localhost:8080/farm/myFarm`, {
+            method: "POST",
+            credentials: "include",
+          });
         }
         // 타인 농장인 경우
         else {
           response = await fetch(
-            `https://grow-farm.com/api/farm/${encodeURIComponent(farmName)}`,
+            `http://localhost:8080/farm/${encodeURIComponent(farmName)}`,
             {
               method: "GET",
               credentials: "include",
@@ -337,7 +335,6 @@ export default function FarmPage() {
   const handlePlantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-
     setIsPlanting(true);
 
     try {
@@ -353,7 +350,7 @@ export default function FarmPage() {
 
       // 작물 심기 API 호출
       const response = await fetch(
-        `https://grow-farm.com/api/farm/${encodeURIComponent(farmName)}`,
+        `http://localhost:8080/farm/${encodeURIComponent(farmName)}`,
         {
           method: "POST",
           headers: {
@@ -376,7 +373,7 @@ export default function FarmPage() {
         // 작물 목록 갱신
         // 서버에서 id가 생성되므로 간단하게 전체 목록을 다시 불러오는 방법 사용
         const refreshResponse = await fetch(
-          `https://grow-farm.com/api/farm/${encodeURIComponent(farmName)}`,
+          `http://localhost:8080/farm/${encodeURIComponent(farmName)}`,
           {
             method: "GET",
             credentials: "include",
@@ -417,7 +414,7 @@ export default function FarmPage() {
 
     try {
       const response = await fetch(
-        `https://grow-farm.com/api/farm/myFarm/${cropId}`,
+        `http://localhost:8080/farm/myFarm/${cropId}`,
         {
           method: "POST",
           credentials: "include",
@@ -458,11 +455,6 @@ export default function FarmPage() {
             <div className="py-3 bg-light">
               <div className="text-center">
                 <h2 className="fw-bolder">{farmName} 농장</h2>
-                {isMyFarm ? (
-                  <p className="text-muted mb-0">내 농장</p>
-                ) : (
-                  <p className="text-muted mb-0">다른 사용자의 농장</p>
-                )}
               </div>
             </div>
             <div
@@ -474,12 +466,8 @@ export default function FarmPage() {
               }}
             >
               {isLoading ? (
-                <div className="d-flex justify-content-center align-items-center min-vh-100">
-                  <div className="spinner-border" role="status">
-                    <span className="visually-hidden">
-                      농장 데이터를 불러오는 중...
-                    </span>
-                  </div>
+                <div className="d-flex justify-content-center p-5">
+                  <LoadingSpinner width={150} height={150} />
                 </div>
               ) : (
                 <>

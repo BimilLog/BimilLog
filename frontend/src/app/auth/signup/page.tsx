@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import useAuthStore from "@/util/authStore";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // 실제 컨텐츠 컴포넌트
 function SignupContent() {
@@ -128,11 +129,17 @@ function SignupContent() {
               >
                 {isLoading ? (
                   <>
-                    <span
-                      className="spinner-border spinner-border-sm me-2"
-                      role="status"
-                      aria-hidden="true"
-                    ></span>
+                    <div
+                      style={{
+                        display: "inline-block",
+                        width: "20px",
+                        height: "20px",
+                        marginRight: "8px",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      <LoadingSpinner width={20} height={20} />
+                    </div>
                     처리 중...
                   </>
                 ) : (
@@ -151,9 +158,7 @@ function SignupContent() {
 function LoadingContent() {
   return (
     <div className="bg-light rounded-3 py-5 px-4 px-md-5 mb-5 text-center">
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">로딩 중...</span>
-      </div>
+      <LoadingSpinner width={80} height={80} />
       <p className="mt-3">페이지를 준비하는 중입니다...</p>
     </div>
   );

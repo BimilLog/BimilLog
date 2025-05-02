@@ -6,20 +6,7 @@ import Pagination from "@/components/Pagination";
 import { formatDateTime } from "@/util/date";
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
-
-// 로딩 스피너 컴포넌트
-const LoadingSpinner = ({ small = false }: { small?: boolean }) => (
-  <div className={`text-center py-${small ? 3 : 4}`}>
-    <div
-      className={`spinner-border ${
-        small ? "spinner-border-sm" : ""
-      } text-primary`}
-      role="status"
-    >
-      <span className="visually-hidden">로딩중...</span>
-    </div>
-  </div>
-);
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // 게시글 목록 아이템 컴포넌트
 const PostItem = ({ post }: { post: SimplePostDTO }) => (
@@ -226,7 +213,8 @@ export default function BoardPage() {
             {isSearchMode && (
               <div className="mb-3">
                 <div className="alert alert-light">
-                  <strong>&ldquo;{searchKeyword}&rdquo;</strong>에 대한 검색 결과입니다.
+                  <strong>&ldquo;{searchKeyword}&rdquo;</strong>에 대한 검색
+                  결과입니다.
                 </div>
               </div>
             )}
@@ -248,7 +236,7 @@ export default function BoardPage() {
                       {loading ? (
                         <tr>
                           <td colSpan={4} className="text-center">
-                            <LoadingSpinner />
+                            <LoadingSpinner width={100} height={100} />
                           </td>
                         </tr>
                       ) : posts.length === 0 ? (
@@ -299,7 +287,7 @@ export default function BoardPage() {
               <div className="card-body">
                 <ul className="list-unstyled mb-0">
                   {loading ? (
-                    <LoadingSpinner small />
+                    <LoadingSpinner width={50} height={50} />
                   ) : featuredPosts.length === 0 ? (
                     <li className="text-center py-3">
                       인기 게시글이 없습니다.
