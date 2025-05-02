@@ -118,11 +118,10 @@ public class AuthService {
 
         // Principal이 String 타입인지 CustomUserDetails 타입인지 확인
         Object principal = authentication.getPrincipal();
-        if (!(principal instanceof CustomUserDetails)) {
+        if (!(principal instanceof CustomUserDetails customUserDetails)) {
             throw new RuntimeException("유효하지 않은 인증 정보입니다. Principal 타입: " + principal.getClass().getName());
         }
 
-        CustomUserDetails customUserDetails = (CustomUserDetails) principal;
         UserDTO userDTO = customUserDetails.getUserDTO();
         Users user = userRepository.findById(userDTO.getUserId())
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));

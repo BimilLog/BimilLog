@@ -5,7 +5,6 @@ import { useState, FormEvent, useEffect, useRef, useCallback } from "react";
 import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
 import {
-  EventDTO,
   NotificationDTO,
   NotificationType,
   UpdateNotificationDTO,
@@ -486,31 +485,6 @@ const Navigation = () => {
 
     // 알림 목록 닫기
     setShowNotifications(false);
-  };
-
-  // 모든 알림 읽음 처리
-  const handleMarkAllAsRead = () => {
-    const unreadNotifications = notifications.filter((n) => !n.isRead);
-    if (unreadNotifications.length === 0) return;
-
-    // 상태 업데이트 (사용자에게 즉시 반영)
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((n) => ({ ...n, isRead: true }))
-    );
-    setUnreadCount(0);
-
-    // 배치 처리를 위해 ID 저장
-    const unreadIds = unreadNotifications.map((n) => n.id);
-    setReadIds((prev) => {
-      const newReadIds = [...prev, ...unreadIds];
-
-      // 모두 읽음 처리 후 즉시 배치 처리 실행 (비동기)
-      setTimeout(() => {
-        performBatchUpdate();
-      }, 0);
-
-      return newReadIds;
-    });
   };
 
   // 드롭다운 외부 클릭 감지
