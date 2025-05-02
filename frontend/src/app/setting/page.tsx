@@ -151,7 +151,7 @@ const SettingPage = () => {
       console.log("서버에 전송할 설정 데이터:", settingData);
 
       const response = await fetch(
-        "http://localhost:8080/user/setting/update",
+        "http://localhost:8080/user/setting",
         {
           method: "POST",
           headers: {
