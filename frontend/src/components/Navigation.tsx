@@ -919,6 +919,12 @@ const Navigation = () => {
                     </div>
                   )}
                 </li>
+                {/* 설정 아이콘 */}
+                <li className="nav-item">
+                  <Link className="nav-link" href="/setting">
+                    <i className="bi bi-gear-fill fs-5"></i>
+                  </Link>
+                </li>
               </>
             ) : (
               <li className="nav-item">

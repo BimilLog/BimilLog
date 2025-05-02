@@ -14,9 +14,9 @@ import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostRepository;
-import jaeik.growfarm.repository.user.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.BoardUtil;
+import jaeik.growfarm.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,7 +37,7 @@ public class UserService {
     private final PostService postService;
     private final ReportRepository reportRepository;
     private final KakaoService kakaoService;
-    private final TokenRepository tokenRepository;
+    private final UserUtil userUtil;
 
     // 해당 유저의 작성 글 목록 반환
     public Page<SimplePostDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
@@ -122,7 +122,7 @@ public class UserService {
         Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        return kakaoService.getFriendList(user.getToken().getKakaoAccessToken(),offset);
+        return kakaoService.getFriendList(user.getToken().getKakaoAccessToken(), offset);
     }
 
     @Transactional
@@ -132,8 +132,17 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Setting setting = user.getSetting();
-        setting.updateSetting(settingDTO.isAllNotification(), settingDTO.isFarmNotification(),
-                settingDTO.isCommentNotification(), settingDTO.isPostFeaturedNotification(), settingDTO.isCommentFeaturedNotification());
+        setting.updateSetting(settingDTO.isFarmNotification(),
+                settingDTO.isCommentNotification(),
+                settingDTO.isPostFeaturedNotification(),
+                settingDTO.isCommentFeaturedNotification());
 
+    }
+
+    public SettingDTO getSetting(Long userId) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        return userUtil.settingToSettingDTO(user.getSetting());
     }
 }

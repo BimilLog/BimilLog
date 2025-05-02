@@ -44,6 +44,7 @@ public class JwtTokenProvider {
                 .claim("thumbnailImage", userDTO.getThumbnailImage())
                 .claim("tokenId", userDTO.getTokenId())
                 .claim("kakaoId", userDTO.getKakaoId())
+                .claim("settingId", userDTO.getSettingId())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -131,6 +132,7 @@ public class JwtTokenProvider {
         userDTO.setRole(claims.get("role", String.class).equals("USER") ? UserRole.USER : UserRole.ADMIN);
         userDTO.setTokenId(claims.get("tokenId", Long.class));
         userDTO.setKakaoId(claims.get("kakaoId", Long.class));
+        userDTO.setSettingId(claims.get("settingId", Long.class));
         return userDTO;
     }
 

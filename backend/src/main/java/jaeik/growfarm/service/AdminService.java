@@ -4,6 +4,7 @@ import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.BlackList;
+import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.admin.BlackListRepository;
 import jaeik.growfarm.repository.admin.ReportRepository;
@@ -87,6 +88,8 @@ public class AdminService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
 
+        Setting setting = user.getSetting();
+
 
         // 사용자의 농작물 삭제
         cropRepository.deleteCropsByUserId(userId);
@@ -124,9 +127,6 @@ public class AdminService {
         // 10. 이 사용자의 FCM 토큰 삭제
         fcmTokenRepository.deleteFcmTokenByUserId(userId);
 
-        // 11. 이 사용자의 설정 삭제
-        settingRepository.deleteSettingByUserId(userId);
-
         kakaoService.unlinkByAdmin(user.getKakaoId());
 
         // 블랙 리스트 등록
@@ -138,9 +138,13 @@ public class AdminService {
 
         if (user.getToken() == null) {
             userRepository.deleteById(userId);
+            settingRepository.delete(setting);
+
         } else {
-            tokenRepository.delete(user.getToken());
             userRepository.deleteById(userId);
+            tokenRepository.delete(user.getToken());
+            settingRepository.delete(setting);
+
         }
     }
 }

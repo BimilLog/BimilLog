@@ -79,7 +79,6 @@ public class AuthService {
         KakaoInfoDTO kakaoInfoDTO = kakaoService.getUserInfo(kakaoAccessToken);
 
         Setting setting = Setting.builder()
-                .isAllNotification(true)
                 .isFarmNotification(true)
                 .isCommentNotification(true)
                 .isPostFeaturedNotification(true)
@@ -136,8 +135,9 @@ public class AuthService {
         fcmTokenRepository.deleteFcmTokenByUserId(userDTO.getUserId());
 
         kakaoService.logout(token.getKakaoAccessToken());
-        tokenRepository.delete(token);
         user.deleteTokenId();
+        userRepository.save(user);
+        tokenRepository.delete(token);
         SecurityContextHolder.clearContext();
         return jwtTokenProvider.getLogoutCookies();
     }
@@ -153,8 +153,12 @@ public class AuthService {
 
             Long userId = userDetails.getUserDTO().getUserId();
             Long tokenId = userDetails.getUserDTO().getTokenId();
+            Long settingId = userDetails.getUserDTO().getSettingId();
             Token token = tokenRepository.findById(tokenId)
                     .orElseThrow(() -> new IllegalArgumentException("토큰을 찾을 수 없습니다."));
+
+            Setting setting = settingRepository.findById(settingId)
+                    .orElseThrow(() -> new IllegalArgumentException("설정을 찾을 수 없습니다."));
 
             // 사용자의 농작물 삭제
             cropRepository.deleteCropsByUserId(userId);
@@ -192,15 +196,14 @@ public class AuthService {
             // 10. 이 사용자의 FCM 토큰 삭제
             fcmTokenRepository.deleteFcmTokenByUserId(userId);
 
-            // 11. 이 사용자의 설정 삭제
-            settingRepository.deleteSettingByUserId(userId);
-
             // 10. 카카오 서비스 연결 끊기
             kakaoService.unlink(token.getKakaoAccessToken());
 
             // 11. 이 사용자의 토큰, 유저 정보 삭제
-            tokenRepository.delete(token);
             userRepository.deleteById(userId);
+            tokenRepository.delete(token);
+            settingRepository.delete(setting);
+
 
             SecurityContextHolder.clearContext();
             return jwtTokenProvider.getLogoutCookies();

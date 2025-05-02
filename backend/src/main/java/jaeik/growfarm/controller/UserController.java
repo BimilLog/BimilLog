@@ -79,13 +79,21 @@ public class UserController {
         return ResponseEntity.ok(userService.getFriendList(userDetails, offset));
     }
 
+    //설정 가져오기
+    @GetMapping("/setting")
+    public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUserDTO().getUserId();
+        SettingDTO settingDTO = userService.getSetting(userId);
+        return ResponseEntity.ok(settingDTO);
+    }
+
     // 설정 변경하기
-    @PostMapping("/setting")
-    public ResponseEntity<String> updateSetting(@RequestBody SettingDTO settingDTO,
+    @PostMapping("/setting/update")
+    public ResponseEntity<SettingDTO> updateSetting(@RequestBody SettingDTO settingDTO,
                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserDTO().getUserId();
         userService.updateSetting(settingDTO, userId);
-        return ResponseEntity.ok("설정이 변경되었습니다.");
+        SettingDTO newSettingDTO = userService.getSetting(userId);
+        return ResponseEntity.ok(newSettingDTO);
     }
-
 }

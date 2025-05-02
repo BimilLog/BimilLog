@@ -181,9 +181,9 @@ export enum DeviceType {
 }
 
 export interface SettingDTO {
-    isAllNotification: boolean;
-    isFarmNotification: boolean;
-    isCommentNotification: boolean;
-    isPostIsFeaturedNotification: boolean;
+    FarmNotification: boolean;
+    CommentNotification: boolean;
+    PostFeaturedNotification: boolean;
+    CommentFeaturedNotification: boolean;
 }
 

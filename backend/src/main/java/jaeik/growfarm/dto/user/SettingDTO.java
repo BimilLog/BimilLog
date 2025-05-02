@@ -7,13 +7,11 @@ import lombok.Setter;
 @Setter
 public class SettingDTO {
 
-    private boolean isAllNotification;
+    private boolean FarmNotification;
 
-    private boolean isFarmNotification;
+    private boolean CommentNotification;
 
-    private boolean isCommentNotification;
+    private boolean PostFeaturedNotification;
 
-    private boolean isPostFeaturedNotification;
-
-    private boolean isCommentFeaturedNotification;
+    private boolean CommentFeaturedNotification;
 }

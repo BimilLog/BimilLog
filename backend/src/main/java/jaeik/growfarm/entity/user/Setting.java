@@ -16,24 +16,20 @@ public class Setting {
     @Column(name = "setting_id")
     private Long id;
 
-    @Column(nullable = false)
-    private boolean isAllNotification = true;
-
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean isFarmNotification = true;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean isCommentNotification = true;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean isPostFeaturedNotification = true;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean isCommentFeaturedNotification = true;
 
 
-    public void updateSetting(boolean isAllNotification, boolean isFarmNotification, boolean isCommentNotification, boolean isPostIsFeaturedNotification, boolean isCommentFeaturedNotification) {
-        this.isAllNotification = isAllNotification;
+    public void updateSetting(boolean isFarmNotification, boolean isCommentNotification, boolean isPostIsFeaturedNotification, boolean isCommentFeaturedNotification) {
         this.isFarmNotification = isFarmNotification;
         this.isCommentNotification = isCommentNotification;
         this.isPostFeaturedNotification = isPostIsFeaturedNotification;
