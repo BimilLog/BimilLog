@@ -180,3 +180,10 @@ export enum DeviceType {
     TABLET = "TABLET",
 }
 
+export interface SettingDTO {
+    isAllNotification: boolean;
+    isFarmNotification: boolean;
+    isCommentNotification: boolean;
+    isPostIsFeaturedNotification: boolean;
+}
+

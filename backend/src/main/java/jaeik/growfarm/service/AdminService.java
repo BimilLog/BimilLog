@@ -10,8 +10,10 @@ import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.farm.CropRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
+import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.notification.NotificationRepository;
 import jaeik.growfarm.repository.post.PostRepository;
+import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,8 @@ public class AdminService {
     private final BlackListRepository blackListRepository;
     private final EmitterRepository emitterRepository;
     private final NotificationRepository notificationRepository;
+    private final FcmTokenRepository fcmTokenRepository;
+    private final SettingRepository settingRepository;
 
 
     // 신고 목록 반환
@@ -116,6 +120,12 @@ public class AdminService {
 
         // 9. 이 사용자의 알림 삭제
         notificationRepository.deleteNotificationsByUserId(userId);
+
+        // 10. 이 사용자의 FCM 토큰 삭제
+        fcmTokenRepository.deleteFcmTokenByUserId(userId);
+
+        // 11. 이 사용자의 설정 삭제
+        settingRepository.deleteSettingByUserId(userId);
 
         kakaoService.unlinkByAdmin(user.getKakaoId());
 

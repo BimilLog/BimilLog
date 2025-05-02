@@ -42,6 +42,7 @@ public class UserUtil {
         userDTO.setKakaoNickname(user.getKakaoNickname());
         userDTO.setThumbnailImage(user.getThumbnailImage());
         userDTO.setTokenId(user.getToken().getId());
+        userDTO.setSettingId(user.getSetting().getId());
         return userDTO;
     }
 
