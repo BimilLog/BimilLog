@@ -1,7 +1,9 @@
 package jaeik.growfarm.util;
 
+import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.dto.user.UserDTO;
+import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -44,6 +46,16 @@ public class UserUtil {
         userDTO.setTokenId(user.getToken().getId());
         userDTO.setSettingId(user.getSetting().getId());
         return userDTO;
+    }
+
+    // Setting -> SettingDTO
+    public SettingDTO settingToSettingDTO(Setting setting) {
+        SettingDTO settingDTO = new SettingDTO();
+        settingDTO.setCommentNotification(setting.isCommentNotification());
+        settingDTO.setFarmNotification(setting.isFarmNotification());
+        settingDTO.setPostFeaturedNotification(setting.isPostFeaturedNotification());
+        settingDTO.setCommentFeaturedNotification(setting.isCommentFeaturedNotification());
+        return settingDTO;
     }
 
     public UserDTO getUserDTOByTokenId(Long tokenId) {
