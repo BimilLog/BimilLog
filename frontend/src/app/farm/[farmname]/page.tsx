@@ -72,12 +72,63 @@ const cropTypeToEmoji: Record<string, string> = {
   DEFAULT: "🌱",
 };
 
+// 농작물 타입에 따른 한글 이름 매핑
+const cropTypeToKorean: Record<string, string> = {
+  POTATO: "감자",
+  CARROT: "당근",
+  CABBAGE: "양배추",
+  TOMATO: "토마토",
+  STRAWBERRY: "딸기",
+  WATERMELON: "수박",
+  PUMPKIN: "호박",
+  APPLE: "사과",
+  GRAPE: "포도",
+  BANANA: "바나나",
+  GOBLIN: "고블린",
+  SLIME: "슬라임",
+  ORC: "오크",
+  DRAGON: "드래곤",
+  PHOENIX: "피닉스",
+  WEREWOLF: "늑대인간",
+  ZOMBIE: "좀비",
+  KRAKEN: "크라켄",
+  CYCLOPS: "사이클롭스",
+  // 기본값
+  DEFAULT: "작물",
+};
+
+// 농작물 타입에 따른 이미지 경로 매핑
+const cropTypeToImage: Record<string, string> = {
+  POTATO: "/crops/potato.png",
+  CARROT: "/crops/carrot.png",
+  CABBAGE: "/crops/cabbage.png",
+  TOMATO: "/crops/tomato.png",
+  STRAWBERRY: "/crops/strawberry.png",
+  WATERMELON: "/crops/watermelon.png",
+  PUMPKIN: "/crops/pumpkin.png",
+  APPLE: "/crops/apple.png",
+  GRAPE: "/crops/grape.png",
+  BANANA: "/crops/banana.png",
+  GOBLIN: "/crops/goblin.png",
+  SLIME: "/crops/slime.png",
+  ORC: "/crops/orc.png",
+  DRAGON: "/crops/dragon.png",
+  PHOENIX: "/crops/phoenix.png",
+  WEREWOLF: "/crops/werewolf.png",
+  ZOMBIE: "/crops/zombie.png",
+  KRAKEN: "/crops/kraken.png",
+  CYCLOPS: "/crops/cyclops.png",
+  // 기본값
+  DEFAULT: "/crops/potato.png",
+};
+
 // CropType을 배열로 변환하여 선택 가능하게 함
 const cropTypeOptions = Object.keys(cropTypeToEmoji)
   .filter((key) => key !== "DEFAULT")
   .map((key) => ({
     value: key,
-    label: `${cropTypeToEmoji[key]} ${key}`,
+    label: `${cropTypeToEmoji[key]} ${cropTypeToKorean[key]}`,
+    image: cropTypeToImage[key],
   }));
 
 export default function FarmPage() {
@@ -491,7 +542,8 @@ export default function FarmPage() {
                       display: "grid",
                       gridTemplateColumns: "repeat(10, 1fr)",
                       gridTemplateRows: "repeat(5, 1fr)",
-                      pointerEvents: "none", // 이미지 클릭 이벤트 통과
+                      paddingTop: "9vw", // 최소 8px, 보통 2vw, 최대 24px
+                      pointerEvents: "none",
                     }}
                   >
                     {Array.from({ length: 50 }).map((_, index) => {
@@ -514,18 +566,41 @@ export default function FarmPage() {
                             borderRadius: "4px",
                             backgroundColor: isSelected
                               ? "rgba(255, 255, 255, 0.3)"
-                              : "rgba(0, 0, 0, 0.1)",
+                              : "rgba(0, 0, 0, 0)",
                             pointerEvents: "auto", // 개별 셀은 클릭 가능
                             transition: "all 0.2s ease-in-out",
-                            fontSize: "1.5rem", // 이모티콘 크기 조정
+                            padding: "2px",
+                            overflow: "hidden",
+                            position: "relative",
                           }}
                           onClick={() => handlePositionClick(x, y)}
                         >
                           {crop && (
-                            <span title={`${crop.nickname}의 ${crop.cropType}`}>
-                              {cropTypeToEmoji[crop.cropType] ||
-                                cropTypeToEmoji.DEFAULT}
-                            </span>
+                            <div
+                              title={`${crop.nickname}의 ${crop.cropType}`}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <img
+                                src={
+                                  cropTypeToImage[crop.cropType] ||
+                                  cropTypeToImage.DEFAULT
+                                }
+                                alt={crop.cropType}
+                                style={{
+                                  width: "auto",
+                                  height: "auto",
+                                  maxWidth: "95%",
+                                  maxHeight: "95%",
+                                  objectFit: "contain",
+                                }}
+                              />
+                            </div>
                           )}
                         </div>
                       );
@@ -544,8 +619,19 @@ export default function FarmPage() {
                     >
                       <div className="d-flex justify-content-between align-items-center mb-3">
                         <h5 className="mb-0">
-                          {cropTypeToEmoji[selectedCrop.cropType] ||
-                            cropTypeToEmoji.DEFAULT}{" "}
+                          <img
+                            src={
+                              cropTypeToImage[selectedCrop.cropType] ||
+                              cropTypeToImage.DEFAULT
+                            }
+                            alt={selectedCrop.cropType}
+                            style={{
+                              width: "30px",
+                              height: "30px",
+                              marginRight: "8px",
+                              verticalAlign: "middle",
+                            }}
+                          />{" "}
                           {selectedCrop.nickname}님의 작물
                         </h5>
                         <button
@@ -677,6 +763,25 @@ export default function FarmPage() {
                     <label htmlFor="cropType" className="form-label">
                       작물 종류
                     </label>
+                    <div className="d-flex align-items-center mb-2">
+                      <img
+                        src={
+                          cropTypeToImage[plantForm.cropType] ||
+                          cropTypeToImage.DEFAULT
+                        }
+                        alt={plantForm.cropType}
+                        style={{
+                          width: "30px",
+                          height: "30px",
+                          marginRight: "10px",
+                        }}
+                      />
+                      <span>
+                        선택한 작물:{" "}
+                        {cropTypeToKorean[plantForm.cropType] ||
+                          plantForm.cropType}
+                      </span>
+                    </div>
                     <select
                       id="cropType"
                       name="cropType"
@@ -751,9 +856,9 @@ export default function FarmPage() {
 
       <style jsx>{`
         .grid-cell:hover {
-          background-color: rgba(255, 255, 255, 0.3) !important;
+          background-color: rgba(255, 255, 255, 0.5) !important;
           transform: scale(1.05);
-          border: 0.5px solid rgba(255, 255, 255, 0.5) !important;
+          border: 0.5px solid rgba(255, 255, 255, 0.8) !important;
           box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
           z-index: 10;
           cursor: pointer;
@@ -762,6 +867,8 @@ export default function FarmPage() {
         .selected-cell {
           transform: scale(1.05);
           box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+          background-color: rgba(255, 255, 255, 0.5) !important;
+
           z-index: 5;
         }
       `}</style>
