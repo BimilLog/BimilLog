@@ -2,18 +2,21 @@ package jaeik.growfarm.service;
 
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.UserDTO;
+import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.global.jwt.JwtTokenProvider;
 import jaeik.growfarm.repository.admin.BlackListRepository;
-import jaeik.growfarm.repository.farm.CropRepository;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.farm.CropRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
+import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.notification.NotificationRepository;
 import jaeik.growfarm.repository.post.PostRepository;
+import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.UserUtil;
@@ -43,6 +46,8 @@ public class AuthService {
     private final ReportRepository reportRepository;
     private final NotificationRepository notificationRepository;
     private final EmitterRepository emitterRepository;
+    private final SettingRepository settingRepository;
+    private final FcmTokenRepository fcmTokenRepository;
 
     @Transactional
     public Object processKakaoLogin(String code) {
@@ -73,6 +78,16 @@ public class AuthService {
         String kakaoAccessToken = token.getKakaoAccessToken();
         KakaoInfoDTO kakaoInfoDTO = kakaoService.getUserInfo(kakaoAccessToken);
 
+        Setting setting = Setting.builder()
+                .isAllNotification(true)
+                .isFarmNotification(true)
+                .isCommentNotification(true)
+                .isPostFeaturedNotification(true)
+                .isCommentFeaturedNotification(true)
+                .build();
+        settingRepository.save(setting);
+
+
         Users user = Users.builder()
                 .kakaoId(kakaoInfoDTO.getKakaoId())
                 .kakaoNickname(kakaoInfoDTO.getKakaoNickname())
@@ -80,9 +95,11 @@ public class AuthService {
                 .farmName(farmName)
                 .role(UserRole.USER)
                 .token(token)
+                .setting(setting)
                 .build();
 
         userRepository.save(user); // 유저 저장
+
         UserDTO userDTO = userUtil.UserToDTO(user);
 
         String jwtAccessToken = jwtTokenProvider.generateAccessToken(userDTO);
@@ -115,6 +132,8 @@ public class AuthService {
 
         // 이 사용자의 SSE 구독 삭제
         emitterRepository.deleteAllEmitterByUserId(userDTO.getUserId());
+        // 이 사용자의 FCM 토큰 삭제
+        fcmTokenRepository.deleteFcmTokenByUserId(userDTO.getUserId());
 
         kakaoService.logout(token.getKakaoAccessToken());
         tokenRepository.delete(token);
@@ -169,6 +188,12 @@ public class AuthService {
 
             // 9. 이 사용자의 알림 삭제
             notificationRepository.deleteNotificationsByUserId(userId);
+
+            // 10. 이 사용자의 FCM 토큰 삭제
+            fcmTokenRepository.deleteFcmTokenByUserId(userId);
+
+            // 11. 이 사용자의 설정 삭제
+            settingRepository.deleteSettingByUserId(userId);
 
             // 10. 카카오 서비스 연결 끊기
             kakaoService.unlink(token.getKakaoAccessToken());

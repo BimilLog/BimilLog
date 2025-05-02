@@ -23,6 +23,11 @@ public class Users extends BaseEntity {
     private Token token;
 
     @NotNull
+    @OneToOne
+    @JoinColumn(name = "setting_id", unique = true, nullable = false)
+    private Setting setting;
+
+    @NotNull
     @Column(name = "kakao_id", unique = true, nullable = false) // 카카오 회원 번호
     private Long kakaoId;
 

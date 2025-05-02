@@ -4,6 +4,7 @@ import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
+import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -77,4 +78,14 @@ public class UserController {
     public ResponseEntity<KakaoFriendListDTO> getFriendList(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam int offset) {
         return ResponseEntity.ok(userService.getFriendList(userDetails, offset));
     }
+
+    // 설정 변경하기
+    @PostMapping("/setting")
+    public ResponseEntity<String> updateSetting(@RequestBody SettingDTO settingDTO,
+                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUserDTO().getUserId();
+        userService.updateSetting(settingDTO, userId);
+        return ResponseEntity.ok("설정이 변경되었습니다.");
+    }
+
 }

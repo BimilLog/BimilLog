@@ -6,8 +6,10 @@ import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.dto.notification.FcmSendDTO;
 import jaeik.growfarm.entity.board.Post;
 import jaeik.growfarm.entity.board.PostLike;
+import jaeik.growfarm.entity.notification.FcmToken;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
@@ -15,6 +17,7 @@ import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -35,6 +38,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,6 +57,7 @@ public class PostService {
     private final ReportRepository reportRepository;
     private final NotificationService notificationService;
     private final NotificationUtil notificationUtil;
+    private final FcmTokenRepository fcmTokenRepository;
 
     // 게시판 진입
     public Page<SimplePostDTO> getBoard(int page, int size) {
@@ -169,7 +174,7 @@ public class PostService {
     // 1개월 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개
     @Transactional
     @Scheduled(fixedRate = 60000 * 60)
-    public void isPostFeatured() {
+    public void isPostFeatured() throws IOException {
         postRepository.resetFeaturedPosts();
         List<Post> featuredPosts = postRepository.findFeaturedPosts();
 
@@ -184,9 +189,15 @@ public class PostService {
             Long postUserId = post.getUser().getId();
             Long postId = post.getId();
 
-            notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.POST_FEATURED, "🎉 글이 인기글로 선정되었습니다!", "https://grow-farm.com/board/" + postId));
-        }
+            notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.POST_FEATURED, "🎉 글이 인기글로 선정되었습니다!", "http://localhost:3000/board/" + postId));
 
+            if (post.getUser().getSetting().isPostFeaturedNotification()) {
+                List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
+                for (FcmToken fcmToken : fcmTokens) {
+                    notificationService.sendMessageTo(FcmSendDTO.builder().token(fcmToken.getFcmRegistrationToken()).title("글이 인기글로 선정되었습니다!").body("지금 확인해보세요!").build());
+                }
+            }
+        }
     }
 
     // 조회수 증가

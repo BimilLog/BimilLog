@@ -16,6 +16,8 @@ public class UserDTO {
 
     private Long tokenId;
 
+    private Long settingId;
+
     private String kakaoNickname;
 
     private String thumbnailImage;

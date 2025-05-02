@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 /*
 댓글 관련 API
 - 댓글 작성
@@ -28,10 +30,10 @@ public class CommentController {
     param Long postId: 게시글 ID
     param CommentDTO commentDTO: 댓글 DTO
     return: ResponseEntity<String> 댓글 작성 완료 메시지
-    수정일 : 2025-04-28
+    수정일 : 2025-05-02
      */
     @PostMapping("/{postId}/comment")
-    public ResponseEntity<String> writeComment(@PathVariable Long postId, @RequestBody CommentDTO commentDTO) {
+    public ResponseEntity<String> writeComment(@PathVariable Long postId, @RequestBody CommentDTO commentDTO) throws IOException {
         commentService.writeComment(postId, commentDTO);
         return ResponseEntity.ok("댓글 작성 완료");
     }

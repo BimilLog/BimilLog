@@ -4,9 +4,11 @@ import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
+import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.entity.board.Comment;
 import jaeik.growfarm.entity.board.Post;
 import jaeik.growfarm.entity.report.Report;
+import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
@@ -121,5 +123,17 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         return kakaoService.getFriendList(user.getToken().getKakaoAccessToken(),offset);
+    }
+
+    @Transactional
+    public void updateSetting(SettingDTO settingDTO, Long userId) {
+
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Setting setting = user.getSetting();
+        setting.updateSetting(settingDTO.isAllNotification(), settingDTO.isFarmNotification(),
+                settingDTO.isCommentNotification(), settingDTO.isPostFeaturedNotification(), settingDTO.isCommentFeaturedNotification());
+
     }
 }

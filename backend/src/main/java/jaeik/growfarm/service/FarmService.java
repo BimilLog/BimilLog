@@ -56,17 +56,20 @@ public class FarmService {
         Crop crop = farmUtil.convertToCrop(cropDTO, user);
         cropRepository.save(crop);
 
-        // farmName으로 유저의 fcmToken을 가져와서 알림 전송
-        List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
+        if (user.getSetting().isFarmNotification()) {
 
-        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "https://grow-farm.com/farm/" + farmName));
-        for (FcmToken fcmToken : fcmTokens) {
-            notificationService.sendMessageTo(FcmSendDTO.builder()
-                    .token(fcmToken.getFcmRegistrationToken())
-                    .title("누군가가 농장에 농작물을 심었습니다!")
-                    .body("지금 확인해보세요!")
-                    .build()
-            );
+            // farmName으로 유저의 fcmToken을 가져와서 알림 전송
+            List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
+
+            notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
+            for (FcmToken fcmToken : fcmTokens) {
+                notificationService.sendMessageTo(FcmSendDTO.builder()
+                        .token(fcmToken.getFcmRegistrationToken())
+                        .title("누군가가 농장에 농작물을 심었습니다!")
+                        .body("지금 확인해보세요!")
+                        .build()
+                );
+            }
         }
     }
 

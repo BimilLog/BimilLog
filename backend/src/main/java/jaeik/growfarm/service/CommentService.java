@@ -1,9 +1,11 @@
 package jaeik.growfarm.service;
 
 import jaeik.growfarm.dto.board.CommentDTO;
+import jaeik.growfarm.dto.notification.FcmSendDTO;
 import jaeik.growfarm.entity.board.Comment;
 import jaeik.growfarm.entity.board.CommentLike;
 import jaeik.growfarm.entity.board.Post;
+import jaeik.growfarm.entity.notification.FcmToken;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
@@ -12,6 +14,7 @@ import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.BoardUtil;
@@ -22,6 +25,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,10 +44,11 @@ public class CommentService {
     private final UserUtil userUtil;
     private final NotificationService notificationService;
     private final NotificationUtil notificationUtil;
+    private final FcmTokenRepository fcmTokenRepository;
 
 
     // 댓글 작성
-    public void writeComment(Long postId, CommentDTO commentDTO) {
+    public void writeComment(Long postId, CommentDTO commentDTO) throws IOException {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
@@ -53,7 +58,19 @@ public class CommentService {
         Long postUserId = post.getUser().getId();
 
         commentRepository.save(boardUtil.commentDTOToComment(commentDTO, post, user));
-        notificationService.send(postUserId,notificationUtil.createEventDTO(NotificationType.COMMENT, user.getFarmName() + "님이 댓글을 남겼습니다!", "https://grow-farm.com/board/" + postId));
+        notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.COMMENT, user.getFarmName() + "님이 댓글을 남겼습니다!", "http://localhost:3000/board/" + postId));
+
+        if (post.getUser().getSetting().isCommentNotification()) {
+            List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
+            for (FcmToken fcmToken : fcmTokens) {
+                notificationService.sendMessageTo(FcmSendDTO.builder()
+                        .token(fcmToken.getFcmRegistrationToken())
+                        .title(user.getFarmName() + "님이 댓글을 남겼습니다!")
+                        .body("지금 확인해보세요!")
+                        .build()
+                );
+            }
+        }
     }
 
     // 댓글 수정
@@ -131,6 +148,7 @@ public class CommentService {
 
 
     }
+
     @Transactional
     @Scheduled(fixedRate = 1000 * 60 * 5) // 5분마다 실행
     public void updateFeaturedComments() {
@@ -156,20 +174,36 @@ public class CommentService {
                 .forEach(comment -> {
                     comment.setIsFeatured(true); // 인기 댓글 지정
 
-                    // 알림 전송
                     Long userId = comment.getUser().getId();
                     Long postId = comment.getPost().getId();
 
+                    // 알림 설정 확인 및 FCM 전송
+                    if (comment.getUser().getSetting().isCommentNotification()) {
+                        List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(comment.getUser());
+                        for (FcmToken fcmToken : fcmTokens) {
+                            try {
+                                notificationService.sendMessageTo(FcmSendDTO.builder()
+                                        .token(fcmToken.getFcmRegistrationToken())
+                                        .title("🎉 당신의 댓글이 인기 댓글로 선정되었습니다!")
+                                        .body("지금 확인해보세요!")
+                                        .build()
+                                );
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+
+                    // 일반 알림 전송 (웹용 등)
                     notificationService.send(
                             userId,
                             notificationUtil.createEventDTO(
                                     NotificationType.COMMENT_FEATURED,
                                     "🎉 당신의 댓글이 인기 댓글로 선정되었습니다!",
-                                    "https://grow-farm.com/board/" + postId
+                                    "http://localhost:3000/board/" + postId
                             )
                     );
                 });
     }
-
 
 }
