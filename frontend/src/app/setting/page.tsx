@@ -37,7 +37,7 @@ const SettingPage = () => {
 
     const fetchSettings = async () => {
       try {
-        const response = await fetch("http://localhost:8080/user/setting", {
+        const response = await fetch("https://grow-farm.com/api/user/setting", {
           credentials: "include",
         });
 
@@ -151,7 +151,7 @@ const SettingPage = () => {
       console.log("서버에 전송할 설정 데이터:", settingData);
 
       const response = await fetch(
-        "http://localhost:8080/user/setting/update",
+        "https://grow-farm.com/api/user/setting/update",
         {
           method: "POST",
           headers: {

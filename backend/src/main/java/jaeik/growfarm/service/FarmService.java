@@ -56,7 +56,7 @@ public class FarmService {
         Crop crop = farmUtil.convertToCrop(cropDTO, user);
         cropRepository.save(crop);
 
-        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
+        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "https://grow-farm.com/farm/" + farmName));
 
 
         if (user.getSetting().isFarmNotification()) {
