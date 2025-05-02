@@ -88,7 +88,7 @@ public class UserController {
     }
 
     // 설정 변경하기
-    @PostMapping("/setting/update")
+    @PostMapping("/setting")
     public ResponseEntity<SettingDTO> updateSetting(@RequestBody SettingDTO settingDTO,
                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserDTO().getUserId();
