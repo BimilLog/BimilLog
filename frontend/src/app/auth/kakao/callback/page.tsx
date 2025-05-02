@@ -6,6 +6,7 @@ import useAuthStore from "@/util/authStore";
 import { getMessaging, getToken } from "firebase/messaging";
 import { initializeApp } from "firebase/app";
 import { DeviceType } from "@/components/types/schema";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Firebase 설정
 const firebaseConfig = {
@@ -178,12 +179,10 @@ function KakaoCallbackContent() {
   }, [searchParams, router, checkAuth]);
 
   return (
-    <div className="card p-4 text-center">
+    <div className="text-center">
       <h3 className="mb-4">카카오 로그인</h3>
       <div className="d-flex justify-content-center mb-3">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">로딩중...</span>
-        </div>
+        <LoadingSpinner />
       </div>
       <p className="mb-0">{status}</p>
     </div>
@@ -193,12 +192,10 @@ function KakaoCallbackContent() {
 // 로딩 중 컴포넌트
 function LoadingCard() {
   return (
-    <div className="card p-4 text-center">
+    <div className="text-center">
       <h3 className="mb-4">카카오 로그인</h3>
       <div className="d-flex justify-content-center mb-3">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">초기화 중...</span>
-        </div>
+        <LoadingSpinner />
       </div>
       <p className="mb-0">준비 중...</p>
     </div>

@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import useAuthStore from "@/util/authStore";
 import { CropDTO, CropType } from "@/components/types/schema";
 import Script from "next/script";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Kakao SDK TypeScript declarations
 declare global {
@@ -231,13 +232,10 @@ export default function FarmPage() {
           const queryParams = new URLSearchParams();
           queryParams.append("userId", user.userId.toString());
 
-          response = await fetch(
-            `http://localhost:8080/farm/myFarm`,
-            {
-              method: "POST",
-              credentials: "include",
-            }
-          );
+          response = await fetch(`http://localhost:8080/farm/myFarm`, {
+            method: "POST",
+            credentials: "include",
+          });
         }
         // 타인 농장인 경우
         else {
@@ -336,7 +334,6 @@ export default function FarmPage() {
   // 작물 심기 제출 처리
   const handlePlantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
 
     setIsPlanting(true);
 
@@ -458,11 +455,6 @@ export default function FarmPage() {
             <div className="py-3 bg-light">
               <div className="text-center">
                 <h2 className="fw-bolder">{farmName} 농장</h2>
-                {isMyFarm ? (
-                  <p className="text-muted mb-0">내 농장</p>
-                ) : (
-                  <p className="text-muted mb-0">다른 사용자의 농장</p>
-                )}
               </div>
             </div>
             <div
@@ -474,12 +466,8 @@ export default function FarmPage() {
               }}
             >
               {isLoading ? (
-                <div className="d-flex justify-content-center align-items-center min-vh-100">
-                  <div className="spinner-border" role="status">
-                    <span className="visually-hidden">
-                      농장 데이터를 불러오는 중...
-                    </span>
-                  </div>
+                <div className="d-flex justify-content-center p-5">
+                  <LoadingSpinner width={150} height={150} />
                 </div>
               ) : (
                 <>
