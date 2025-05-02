@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
-import { SettingDTO } from "@/components/types/schema";
 
 // UI용 확장 타입 (DTO와 UI 전용 필드 분리)
 interface SettingUIState {
