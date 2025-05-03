@@ -618,30 +618,46 @@ export default function FarmPage() {
                       }}
                     >
                       <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h5 className="mb-0">
-                          <img
-                            src={
-                              cropTypeToImage[selectedCrop.cropType] ||
-                              cropTypeToImage.DEFAULT
-                            }
-                            alt={selectedCrop.cropType}
-                            style={{
-                              width: "30px",
-                              height: "30px",
-                              marginRight: "8px",
-                              verticalAlign: "middle",
-                            }}
-                          />{" "}
-                          {selectedCrop.nickname}님의 작물
-                        </h5>
+                        <div className="d-flex align-items-center">
+                          <h5 className="mb-0">쪽지보기</h5>
+                          <span className="ms-3">
+                            <img
+                              src={
+                                cropTypeToImage[selectedCrop.cropType] ||
+                                cropTypeToImage.DEFAULT
+                              }
+                              alt={selectedCrop.cropType}
+                              style={{
+                                width: "24px",
+                                height: "24px",
+                                marginRight: "4px",
+                                verticalAlign: "middle",
+                              }}
+                            />
+                            <span>
+                              {cropTypeToKorean[selectedCrop.cropType] ||
+                                selectedCrop.cropType}
+                            </span>
+                          </span>
+                        </div>
+
                         <button
                           className="btn-close"
                           onClick={closePopup}
                           aria-label="Close"
                         ></button>
                       </div>
+
                       <div className="p-3 bg-light rounded mb-3">
-                        <p className="mb-0">{selectedCrop.message}</p>
+                        <p className="mb-0">
+                          <strong>작성자:</strong> {selectedCrop.nickname}
+                        </p>
+                      </div>
+
+                      <div className="p-3 bg-light rounded mb-3">
+                        <p className="mb-0">
+                          <strong>내용:</strong> {selectedCrop.message}
+                        </p>
                       </div>
 
                       {/* 삭제 버튼 (자신의 농장인 경우에만 표시) */}
