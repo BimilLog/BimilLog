@@ -18,6 +18,11 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+/*
+ * FarmService 클래스
+ * 농장 관련 서비스 클래스
+ * 수정일 : 2025-05-03
+ */
 @Service
 @RequiredArgsConstructor
 public class FarmService {

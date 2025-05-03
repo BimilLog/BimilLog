@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+// 카카오 친구 DTO
 @Getter
 @Setter
 public class KakaoFriendDTO {

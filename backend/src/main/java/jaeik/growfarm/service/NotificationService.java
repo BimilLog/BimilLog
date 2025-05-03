@@ -34,6 +34,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/*
+ * NotificationService 클래스
+ * 알림 관련 서비스 클래스
+ * 수정일 : 2025-05-03
+ */
 @Service
 @RequiredArgsConstructor
 public class NotificationService {

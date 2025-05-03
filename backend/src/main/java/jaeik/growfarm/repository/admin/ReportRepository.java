@@ -10,6 +10,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/*
+ * 신고 Repository
+ * 신고 관련 데이터베이스 작업을 수행하는 Repository
+ * 수정일 : 2025-05-03
+ */
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
@@ -19,4 +24,3 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     @Query(nativeQuery = true, value = "DELETE FROM report WHERE user_id = :userId")
     void deleteReportByUserId(@Param("userId") Long userId);
 }
-

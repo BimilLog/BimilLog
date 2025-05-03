@@ -11,6 +11,11 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+/*
+ * 커스텀 댓글 Repository 구현체
+ * 댓글 관련 데이터베이스 작업을 수행하는 Repository 구현체
+ * 수정일 : 2025-05-03
+ */
 public class CommentCustomRepositoryImpl implements CommentCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory;

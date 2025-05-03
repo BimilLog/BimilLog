@@ -42,6 +42,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/*
+ * PostService 클래스
+ * 게시판 관련 서비스 클래스
+ * 수정일 : 2025-05-03
+ */
 @Service
 @RequiredArgsConstructor
 public class PostService {

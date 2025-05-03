@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+// 신고 DTO
 @Getter @Setter
 @Builder
 public class ReportDTO {

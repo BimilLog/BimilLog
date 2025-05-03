@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+// 댓글 DTO
 @Getter @Setter
 public class CommentDTO {
 

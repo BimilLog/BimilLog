@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+// 토큰 엔티티
 @Entity
 @SuperBuilder
 @NoArgsConstructor

@@ -25,6 +25,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/*
+ * UserService 클래스
+ * 사용자 관련 서비스 클래스
+ * 수정일 : 2025-05-03
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {

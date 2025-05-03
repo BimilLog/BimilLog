@@ -31,6 +31,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/*
+ * 댓글 서비스
+ * 댓글 작성, 수정, 삭제, 추천, 신고 기능을 제공하는 서비스 클래스
+ * 수정일 : 2025-05-03
+ */
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -108,8 +113,7 @@ public class CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
 
         Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
-                .orElseThrow(
-                        () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
 
         Optional<CommentLike> existingLike = commentLikeRepository.findByCommentIdAndUserId(commentId,
                 userDetails.getUserDTO().getUserId());

@@ -1,5 +1,6 @@
 package jaeik.growfarm.entity.notification;
 
+// 알림 종류
 public enum NotificationType {
     ADMIN, // 관리자에게 받은 알림
     FARM, // 농장 관련 알림

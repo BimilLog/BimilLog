@@ -25,6 +25,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/*
+ * 관리자 전용 서비스
+ * 신고 목록 조회
+ * 신고 상세 조회
+ * 유저 차단 및 블랙 리스트 등록
+ */
 @Service
 @RequiredArgsConstructor
 public class AdminService {

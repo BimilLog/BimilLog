@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+// FCM 토큰을 저장하는 Entity
 @Entity
 @SuperBuilder
 @NoArgsConstructor

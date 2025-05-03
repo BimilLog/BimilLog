@@ -20,6 +20,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/*
+ * JWT 필터
+ * JWT 토큰을 검증하고 인증 정보를 설정하는 필터
+ * 수정일 : 2025-05-03
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {

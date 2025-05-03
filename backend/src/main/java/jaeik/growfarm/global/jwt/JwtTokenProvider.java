@@ -15,6 +15,11 @@ import java.security.Key;
 import java.util.Date;
 import java.util.List;
 
+/*
+ * JWT 토큰 생성 및 검증을 위한 클래스
+ * JWT 토큰을 생성하고 검증하는 기능을 제공
+ * 수정일 : 2025-05-03
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {

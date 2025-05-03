@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /*
-인증 관련 API
-- 카카오 로그인 처리
-- 회원가입 처리
-- 로그아웃 처리
-- 회원 탈퇴 처리
-- 현재 로그인한 유저 정보 조회
-- AWS 로드 밸런서 상태 검사
-*/
+ * 인증 관련 API
+ * 카카오 로그인 처리
+ * 회원가입 처리
+ * 로그아웃 처리
+ * 회원 탈퇴 처리
+ * 현재 로그인한 유저 정보 조회
+ * AWS 로드 밸런서 상태 검사
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -29,11 +29,11 @@ public class AuthController {
     private final AuthService authService;
 
     /*
-    카카오 로그인 API
-    param String code: 프론트에서 반환된 카카오 인가 코드
-    return: ResponseEntity<Object> 쿠키 또는 토큰 ID (토큰 테이블의 PK)
-    설명 : 기존 회원은 쿠키를 반환하고, 신규 회원은 토큰 ID를 반환한다.
-    수정일 : 2025-04-28
+     * 카카오 로그인 API
+     * param String code: 프론트에서 반환된 카카오 인가 코드
+     * return: ResponseEntity<Object> 쿠키 또는 토큰 ID (토큰 테이블의 PK)
+     * 기존 회원은 쿠키를 반환하고, 신규 회원은 토큰 ID를 반환한다.
+     * 수정일 : 2025-04-28
      */
     @GetMapping("/login")
     public ResponseEntity<Object> loginKakao(@RequestParam String code) {
@@ -51,11 +51,12 @@ public class AuthController {
     }
 
     /*
-    자체 서비스 회원 가입 API
-    param FarmNameReqDTO request: farmName, tokenId (사용자가 입력한 농장 이름, 카카오 로그인 후 반환된 토큰 ID)
-    return: ResponseEntity<Void> 쿠키
-    설명 : 카카오 로그인 후 신규 회원가입 시 farmName과 tokenId를 받아서 쿠키를 반환한다.
-    수정일 : 2025-04-28
+     * 자체 서비스 회원 가입 API
+     * param FarmNameReqDTO request: farmName, tokenId (사용자가 입력한 농장 이름, 카카오 로그인 후
+     * 반환된 토큰 ID)
+     * return: ResponseEntity<Void> 쿠키
+     * 카카오 로그인 후 신규 회원가입 시 farmName과 tokenId를 받아서 쿠키를 반환한다.
+     * 수정일 : 2025-04-28
      */
     @PostMapping("/signUp")
     public ResponseEntity<Void> SignUp(@RequestBody FarmNameReqDTO request) {
@@ -68,11 +69,11 @@ public class AuthController {
     }
 
     /*
-    로그아웃 API
-    param: 없음
-    return: ResponseEntity<String> 로그아웃 완료 메시지
-    설명 : 자체 서비스와 카카오 모두 로그아웃 한다. 쿠키를 삭제한다.
-    수정일 : 2025-04-28
+     * 로그아웃 API
+     * param: 없음
+     * return: ResponseEntity<String> 로그아웃 완료 메시지
+     * 자체 서비스와 카카오 모두 로그아웃 한다. 쿠키를 삭제한다.
+     * 수정일 : 2025-04-28
      */
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
@@ -85,11 +86,11 @@ public class AuthController {
     }
 
     /*
-    회원 탈퇴 API
-    param: CustomUserDetails userDetails (인증된 사용자 정보)
-    return: ResponseEntity<String> 회원탈퇴 완료 메시지
-    설명 : 자체 서비스와 카카오 모두 회원탈퇴 한다. 쿠키를 삭제한다.
-    수정일 : 2025-04-28
+     * 회원 탈퇴 API
+     * param: CustomUserDetails userDetails (인증된 사용자 정보)
+     * return: ResponseEntity<String> 회원탈퇴 완료 메시지
+     * 자체 서비스와 카카오 모두 회원탈퇴 한다. 쿠키를 삭제한다.
+     * 수정일 : 2025-04-28
      */
     @GetMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -110,11 +111,11 @@ public class AuthController {
     }
 
     /*
-    현재 로그인한 사용자 정보 조회 API
-    param: 없음
-    return: ResponseEntity<UserDTO> 현재 로그인한 사용자 정보
-    설명 : 현재 로그인한 사용자의 정보를 조회하여 프론트에 반환한다.
-    수정일 : 2025-04-28
+     * 현재 로그인한 사용자 정보 조회 API
+     * param: 없음
+     * return: ResponseEntity<UserDTO> 현재 로그인한 사용자 정보
+     * 현재 로그인한 사용자의 정보를 조회하여 프론트에 반환한다.
+     * 수정일 : 2025-04-28
      */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
@@ -128,11 +129,11 @@ public class AuthController {
     }
 
     /*
-    AWS ALB 상태 검사 API
-    param: 없음
-    return: ResponseEntity<String> 상태 검사 결과
-    설명 : AWS ALB에서 상태 검사를 위해 사용한다.
-    수정일 : 2025-04-28
+     * AWS ALB 상태 검사 API
+     * param: 없음
+     * return: ResponseEntity<String> 상태 검사 결과
+     * AWS ALB에서 상태 검사를 위해 사용한다.
+     * 수정일 : 2025-04-28
      */
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {

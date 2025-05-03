@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+// 토큰 DTO
 @Getter @Setter
 public class TokenDTO {
 

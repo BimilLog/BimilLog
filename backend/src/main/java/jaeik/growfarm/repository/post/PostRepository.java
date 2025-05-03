@@ -12,6 +12,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/*
+ * 게시글 Repository
+ * 게시글 관련 데이터베이스 작업을 수행하는 Repository
+ * 커스텀 게시글 저장소를 상속 받음
+ * 수정일 : 2025-05-03
+ */
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRepository {
 

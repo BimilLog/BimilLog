@@ -2,6 +2,7 @@ package jaeik.growfarm.dto.notification;
 
 import lombok.*;
 
+// FCM 메시지 생성용 DTO
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
