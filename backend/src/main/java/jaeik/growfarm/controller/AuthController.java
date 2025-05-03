@@ -1,7 +1,6 @@
 package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.user.FarmNameReqDTO;
-import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -52,8 +51,7 @@ public class AuthController {
 
     /*
      * 자체 서비스 회원 가입 API
-     * param FarmNameReqDTO request: farmName, tokenId (사용자가 입력한 농장 이름, 카카오 로그인 후
-     * 반환된 토큰 ID)
+     * param FarmNameReqDTO request: farmName, tokenId (사용자가 입력한 농장 이름, 카카오 로그인 후 반환된 토큰 ID)
      * return: ResponseEntity<Void> 쿠키
      * 카카오 로그인 후 신규 회원가입 시 farmName과 tokenId를 받아서 쿠키를 반환한다.
      * 수정일 : 2025-04-28
@@ -61,7 +59,6 @@ public class AuthController {
     @PostMapping("/signUp")
     public ResponseEntity<Void> SignUp(@RequestBody FarmNameReqDTO request) {
         List<ResponseCookie> cookies = authService.signUp(request.getTokenId(), request.getFarmName());
-
         return ResponseEntity.ok()
                 .header("Set-Cookie", cookies.get(0).toString())
                 .header("Set-Cookie", cookies.get(1).toString())
@@ -73,12 +70,11 @@ public class AuthController {
      * param: 없음
      * return: ResponseEntity<String> 로그아웃 완료 메시지
      * 자체 서비스와 카카오 모두 로그아웃 한다. 쿠키를 삭제한다.
-     * 수정일 : 2025-04-28
+     * 수정일 : 2025-05-03
      */
     @PostMapping("/logout")
-    public ResponseEntity<String> logout() {
-        List<ResponseCookie> cookies = authService.logout();
-
+    public ResponseEntity<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<ResponseCookie> cookies = authService.logout(userDetails);
         return ResponseEntity.ok()
                 .header("Set-Cookie", cookies.get(0).toString())
                 .header("Set-Cookie", cookies.get(1).toString())
@@ -90,42 +86,30 @@ public class AuthController {
      * param: CustomUserDetails userDetails (인증된 사용자 정보)
      * return: ResponseEntity<String> 회원탈퇴 완료 메시지
      * 자체 서비스와 카카오 모두 회원탈퇴 한다. 쿠키를 삭제한다.
-     * 수정일 : 2025-04-28
+     * 수정일 : 2025-05-03
      */
     @GetMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        try {
-            if (userDetails == null) {
-                return ResponseEntity.badRequest().body("인증 정보가 없습니다. 다시 로그인해주세요.");
-            }
-
             List<ResponseCookie> cookies = authService.withdraw(userDetails);
-
             return ResponseEntity.ok()
                     .header("Set-Cookie", cookies.get(0).toString())
                     .header("Set-Cookie", cookies.get(1).toString())
                     .body("회원탈퇴 완료");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("회원탈퇴 중 오류가 발생했습니다: " + e.getMessage());
-        }
     }
 
     /*
      * 현재 로그인한 사용자 정보 조회 API
-     * param: 없음
+     * param: CustomUserDetails userDetails (인증된 사용자 정보)
      * return: ResponseEntity<UserDTO> 현재 로그인한 사용자 정보
      * 현재 로그인한 사용자의 정보를 조회하여 프론트에 반환한다.
-     * 수정일 : 2025-04-28
+     * 수정일 : 2025-05-03
      */
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser() {
-        UserDTO userDTO = authService.getCurrentUser();
-
-        if (userDTO == null) {
+    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다");
         }
-
-        return ResponseEntity.ok(userDTO);
+        return ResponseEntity.ok(userDetails.getUserDTO());
     }
 
     /*

@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,7 +50,18 @@ public class AdminService {
     private final SettingRepository settingRepository;
 
 
-    // 신고 목록 반환
+    /*
+     * 신고 목록 조회
+     * param int page: 페이지 번호
+     * param int size: 페이지 사이즈
+     * param ReportType reportType: 신고 타입 (null이면 전체 조회)
+     * return: Page<ReportDTO>
+     *
+     * 신고 목록을 조회하는 메서드
+     * 신고 타입에 따라 필터링하여 페이지네이션된 결과를 반환한다.
+     * 신고 목록은 최신 순으로 정렬된다.
+     * 수정일 : 2025-05-23
+     */
     public Page<ReportDTO> getReportList(int page, int size, ReportType reportType) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -75,7 +87,15 @@ public class AdminService {
                 .build());
     }
 
-    // 신고 상세 보기
+    /*
+     * 신고 상세 조회
+     * param Long reportId: 신고 ID
+     * return: ReportDTO
+     *
+     * 신고 상세 정보를 조회하는 메서드
+     * 신고 ID에 해당하는 신고 정보를 반환한다.
+     * 수정일 : 2025-05-23
+     */
     public ReportDTO getReportDetail(Long reportId) {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new IllegalArgumentException("신고를 찾을 수 없습니다: " + reportId));
@@ -89,6 +109,14 @@ public class AdminService {
                 .build();
     }
 
+    /*
+     * 유저 차단 및 블랙 리스트 등록
+     * param Long userId: 유저 ID
+     * return: ResponseEntity<String>
+     *
+     * 유저를 차단하고 블랙 리스트에 등록하는 메서드
+     * 수정일 : 2025-05-23
+     */
     @Transactional
     public void banUser(Long userId) {
         Users user = userRepository.findById(userId)
@@ -145,11 +173,13 @@ public class AdminService {
         if (user.getToken() == null) {
             userRepository.deleteById(userId);
             settingRepository.delete(setting);
+            SecurityContextHolder.clearContext();
 
         } else {
             userRepository.deleteById(userId);
             tokenRepository.delete(user.getToken());
             settingRepository.delete(setting);
+            SecurityContextHolder.clearContext();
 
         }
     }
