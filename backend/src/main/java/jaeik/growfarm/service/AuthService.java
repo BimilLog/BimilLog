@@ -23,7 +23,6 @@ import jaeik.growfarm.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +52,22 @@ public class AuthService {
     private final SettingRepository settingRepository;
     private final FcmTokenRepository fcmTokenRepository;
 
+    /*
+     * 카카오 로그인 처리
+     * @param code 카카오 인가 코드
+     * @return ResponseCookie 쿠키 또는 토큰 ID (신규 유저)
+     *
+     * 카카오 로그인 담당 메서드
+     *
+     * 1. 인가 코드를 통해 카카오 토큰을 발급받아 토큰 DB에 저장.
+     * 2. 카카오 API를 통해 사용자 정보를 가져옴.
+     * 3. 블랙리스트에 등록된 사용자면 가입 불가.
+     * 4. 가져온 사용자 정보가 기존 DB에 있으면 기존유저로 판단 후 프로필 업데이트 하여 DB 저장.
+     * 4-1 . JWT 엑세스 토큰과 리프레시 토큰을 생성하여 쿠키에 담아 반환.
+     * 5. 신규 유저면 NPE 발생하여 신규 유저로 판단 후 토큰 ID를 반환.
+     *
+     * 수정일 : 2025-05-03
+     */
     @Transactional
     public Object processKakaoLogin(String code) {
         Token token = tokenRepository.save(userUtil.DTOToToken(kakaoService.getToken(code)));
@@ -76,6 +91,22 @@ public class AuthService {
         }
     }
 
+    /*
+     * 카카오 로그인 후 자체 서비스 회원가입 처리
+     * @param tokenId 카카오 로그인 후 반환된 토큰 ID
+     * @param farmName 사용자가 입력한 농장 이름
+     * @return ResponseCookie 쿠키
+     *
+     * 카카오 로그인 후 회원가입 처리 메서드
+     *
+     * 1. 토큰 ID를 통해 카카오 액세스 토큰을 가져옴.
+     * 2. 토큰을 이용해 사용자 정보를 가져옴.
+     * 3. 기본 설정값을 설정하여 DB에 저장.
+     * 4. 사용자 정보를 DB에 저장.
+     * 5. JWT 엑세스 토큰과 리프레시 토큰을 생성하여 쿠키에 담아 반환.
+     *
+     * 수정일 : 2025-05-03
+     */
     @Transactional
     public List<ResponseCookie> signUp(Long tokenId, String farmName) {
         Token token = tokenRepository.findById(tokenId).orElseThrow();
@@ -112,30 +143,44 @@ public class AuthService {
         return jwtTokenProvider.getResponseCookies(jwtAccessToken, jwtRefreshToken, 86400);
     }
 
+    /*
+     * 로그아웃 처리
+     * @param userDetails 인증된 사용자 정보
+     * @return ResponseCookie 쿠키
+     *
+     * 로그아웃 처리 메서드
+     *
+     * 1. 인증 정보를 가져옴.
+     * 2. 인증 정보에서 사용자 정보를 가져옴.
+     * 3. 이 사용자의 SSE 구독 삭제.
+     * 4. 이 사용자의 FCM 토큰 삭제.
+     * 5. 카카오 서비스 로그아웃.
+     * 6. 사용자 정보에서 토큰 ID 삭제.
+     * 7. 사용자 정보를 DB에 저장.
+     * 8. 토큰을 DB에서 삭제.
+     * 9. SecurityContext를 초기화.
+     * 10. 기존 쿠키에 토큰을 삭제하여 반환.
+     *
+     * 수정일 : 2025-05-03
+     */
     @Transactional
-    public List<ResponseCookie> logout() throws JSONException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public List<ResponseCookie> logout(CustomUserDetails userDetails) throws JSONException {
 
-        if (authentication == null) {
-            throw new RuntimeException("인증된 사용자가 없습니다.");
+        if (userDetails == null || userDetails.getUserDTO() == null) {
+            throw new RuntimeException("유효하지 않은 인증 정보입니다.");
         }
 
-        // Principal이 String 타입인지 CustomUserDetails 타입인지 확인
-        Object principal = authentication.getPrincipal();
-        if (!(principal instanceof CustomUserDetails customUserDetails)) {
-            throw new RuntimeException("유효하지 않은 인증 정보입니다. Principal 타입: " + principal.getClass().getName());
-        }
+        Long userId = userDetails.getUserId();
 
-        UserDTO userDTO = customUserDetails.getUserDTO();
-        Users user = userRepository.findById(userDTO.getUserId())
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
-        Token token = tokenRepository.findById(userDTO.getTokenId())
+        Token token = tokenRepository.findById(userDetails.getTokenId())
                 .orElseThrow(() -> new RuntimeException("토큰을 찾을 수 없습니다."));
 
         // 이 사용자의 SSE 구독 삭제
-        emitterRepository.deleteAllEmitterByUserId(userDTO.getUserId());
+        emitterRepository.deleteAllEmitterByUserId(userId);
         // 이 사용자의 FCM 토큰 삭제
-        fcmTokenRepository.deleteFcmTokenByUserId(userDTO.getUserId());
+        fcmTokenRepository.deleteFcmTokenByUserId(userId);
 
         kakaoService.logout(token.getKakaoAccessToken());
         user.deleteTokenId();
@@ -145,7 +190,32 @@ public class AuthService {
         return jwtTokenProvider.getLogoutCookies();
     }
 
-    // 회원 탈퇴
+    /*
+     * 회원 탈퇴 처리
+     * @param userDetails 인증된 사용자 정보
+     * @return ResponseCookie 쿠키
+     *
+     * 회원 탈퇴 처리 메서드
+     *
+     * 1. 인증 정보를 가져옴.
+     * 2. 인증 정보에서 사용자 정보를 가져옴.
+     * 3. 사용자의 농작물 삭제.
+     * 4. 신고 내역 삭제.
+     * 5. 사용자의 게시글에 달린 댓글 삭제.
+     * 6. 사용자가 작성한 댓글 삭제.
+     * 7. 사용자의 게시글 삭제.
+     * 8. 사용자의 SSE 구독 삭제.
+     * 9. 사용자의 알림 삭제.
+     * 10. 사용자의 FCM 토큰 삭제.
+     * 11. 카카오 서비스 연결 끊기.
+     * 12. 사용자 정보에서 토큰 ID 삭제.
+     * 13. 사용자 정보를 DB에 저장.
+     * 14. 토큰을 DB에서 삭제.
+     * 15. SecurityContext를 초기화.
+     * 16. 기존 쿠키에 토큰을 삭제하여 반환.
+     *
+     * 수정일 : 2025-05-03
+     */
     @Transactional
     public List<ResponseCookie> withdraw(CustomUserDetails userDetails) {
         try {
@@ -215,19 +285,5 @@ public class AuthService {
             e.printStackTrace();
             throw e;
         }
-    }
-
-    /**
-     * 현재 인증된 사용자 정보를 반환합니다.
-     * JwtFilter에서 이미 토큰 검증 및 갱신을 처리하므로 SecurityContext에서 바로 정보를 가져옵니다.
-     */
-    public UserDTO getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getUserDTO();
-        }
-
-        return null;
     }
 }
