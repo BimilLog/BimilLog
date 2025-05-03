@@ -46,8 +46,8 @@ export default function Manual() {
             <div className="col-lg-6 order-first order-lg-last">
               <img
                 className="img-fluid rounded mb-5 mb-lg-0"
-                src="https://dummyimage.com/600x400/343a40/6c757d"
-                alt="..."
+                src="/farmimage3.jpg"
+                alt="쪽지 보기 이미지"
               />
             </div>
             <div className="col-lg-6">
@@ -70,8 +70,8 @@ export default function Manual() {
             <div className="col-lg-6">
               <img
                 className="img-fluid rounded mb-5 mb-lg-0"
-                src="https://dummyimage.com/600x400/343a40/6c757d"
-                alt="..."
+                src="/farmimage4.jpg"
+                alt="게시판 이미지"
               />
             </div>
             <div className="col-lg-6">

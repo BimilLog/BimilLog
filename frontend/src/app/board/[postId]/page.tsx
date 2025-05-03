@@ -57,7 +57,6 @@ const LoadingSpinner = () => (
   </div>
 );
 
-
 // API 경로
 const API_BASE = "http://localhost:8080";
 
@@ -576,9 +575,12 @@ export default function PostPage() {
       <article className="card bg-white">
         <header className="mb-4 card bg-light">
           <h1 className="fw-bolder pt-4 pb-2 text-center">{post.title}</h1>
-          <div className="fw-bold text-xl-end mx-3">{post.farmName}</div>
-          <div className="text-muted fst-italic mb-2 text-xl-end mx-3">
-            {formatDateTime(post.createdAt)}
+          <div className="fw-bold text-xl-end mx-3">
+            작성농장 : {post.farmName}
+          </div>
+          <div className="text-muted fw-bold mb-2 d-flex justify-content-end gap-4 mx-3">
+            <div>조회: {post.views}</div>
+            <div>작성일: {formatDateTime(post.createdAt)}</div>
           </div>
         </header>
 
@@ -602,7 +604,9 @@ export default function PostPage() {
                 <i className="bi bi-hand-thumbs-up"></i> 추천 ({post.likes})
               </button>
             ) : (
-              <span className="text-muted">추천 ({post.likes})</span>
+              <button className="btn btn-outline-primary" disabled={true}>
+                <i className="bi bi-hand-thumbs-up"></i> 추천 ({post.likes})
+              </button>
             )}
             <div className="position-relative" ref={shareDropdownRef}>
               <button
@@ -790,62 +794,72 @@ export default function PostPage() {
                       </div>
                     </div>
                   ) : (
-                    <p>{comment.content}</p>
-                  )}
-
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      {user && user.userId !== comment.userId && (
-                        <>
-                          <button
-                            className={`btn btn-sm ${
-                              comment.userLike
-                                ? "btn-danger"
-                                : "btn-outline-primary"
-                            }`}
-                            onClick={() => handleLikeComment(comment)}
-                            disabled={isSubmitting}
-                          >
-                            <i className="bi bi-hand-thumbs-up"></i> 추천 (
-                            {comment.likes})
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-warning ms-2"
-                            onClick={() =>
-                              handleStartReport(comment.id, ReportType.COMMENT)
-                            }
-                            disabled={isSubmitting}
-                          >
-                            <i className="bi bi-exclamation-triangle"></i> 신고
-                          </button>
-                        </>
-                      )}
-                      {user === null && (
-                        <span className="text-muted small">
-                          추천 ({comment.likes})
-                        </span>
-                      )}
-                      {user &&
-                        user.userId === comment.userId &&
-                        editingCommentId !== comment.id && (
-                          <>
+                    <>
+                      <div className="d-flex justify-content-between align-items-center mt-2">
+                        <p className="mb-0 me-2" style={{ flex: "1" }}>
+                          {comment.content}
+                        </p>
+                        <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                          {user && user.userId !== comment.userId ? (
                             <button
-                              className="btn btn-sm btn-outline-secondary ms-2"
-                              onClick={() => handleEditComment(comment)}
-                            >
-                              <i className="bi bi-pencil"></i> 수정
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger ms-2"
-                              onClick={() => handleDeleteComment(comment.id)}
+                              className={`btn btn-sm ${
+                                comment.userLike
+                                  ? "btn-danger"
+                                  : "btn-outline-primary"
+                              }`}
+                              onClick={() => handleLikeComment(comment)}
                               disabled={isSubmitting}
                             >
-                              <i className="bi bi-trash"></i> 삭제
+                              <i className="bi bi-hand-thumbs-up"></i> 추천 (
+                              {comment.likes})
                             </button>
-                          </>
-                        )}
-                    </div>
-                  </div>
+                          ) : (
+                            <button
+                              className="btn btn-sm btn-outline-primary"
+                              disabled={true}
+                            >
+                              <i className="bi bi-hand-thumbs-up"></i> 추천 (
+                              {comment.likes})
+                            </button>
+                          )}
+
+                          {user && user.userId !== comment.userId && (
+                            <button
+                              className="btn btn-sm btn-outline-warning"
+                              onClick={() =>
+                                handleStartReport(
+                                  comment.id,
+                                  ReportType.COMMENT
+                                )
+                              }
+                              disabled={isSubmitting}
+                            >
+                              <i className="bi bi-exclamation-triangle"></i>{" "}
+                              신고
+                            </button>
+                          )}
+
+                          {user && user.userId === comment.userId && (
+                            <>
+                              <button
+                                className="btn btn-sm btn-outline-secondary"
+                                onClick={() => handleEditComment(comment)}
+                              >
+                                <i className="bi bi-pencil"></i> 수정
+                              </button>
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => handleDeleteComment(comment.id)}
+                                disabled={isSubmitting}
+                              >
+                                <i className="bi bi-trash"></i> 삭제
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {/* 댓글 신고 폼 */}
                   {reportingTarget &&

@@ -11,7 +11,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 // 게시글 목록 아이템 컴포넌트
 const PostItem = ({ post }: { post: SimplePostDTO }) => (
   <tr>
-    <td>
+    <td className="text-center">
       <Link
         href={`/board/${post.postId}`}
         className="text-decoration-none text-dark"
@@ -22,9 +22,12 @@ const PostItem = ({ post }: { post: SimplePostDTO }) => (
         )}
       </Link>
     </td>
-    <td>{post.farmName}</td>
-    <td>{formatDateTime(post.createdAt).split(" ")[0]}</td>
-    <td>{post.views}</td>
+    <td className="text-center">👍 {post.likes}</td>
+    <td className="text-center">{post.views}</td>
+    <td className="text-center">{post.farmName}</td>
+    <td className="text-center">
+      {formatDateTime(post.createdAt).split(" ")[0]}
+    </td>
   </tr>
 );
 
@@ -38,8 +41,11 @@ const PopularPostItem = ({ post }: { post: SimplePostDTO }) => (
       <div className="d-flex justify-content-between align-items-center">
         <span className="text-truncate" style={{ maxWidth: "250px" }}>
           {post.title}
+          {post.commentCount > 0 && (
+            <span className="text-primary ms-1">[{post.commentCount}]</span>
+          )}
         </span>
-        <span className="badge bg-light text-dark">{post.views}</span>
+        <span className="badge bg-light text-dark">👍 {post.likes}</span>
       </div>
     </Link>
   </li>
@@ -226,10 +232,21 @@ export default function BoardPage() {
                   <table className="table table-hover mb-0">
                     <thead className="bg-light">
                       <tr>
-                        <th style={{ width: "60%" }}>제목</th>
-                        <th style={{ width: "15%" }}>농장</th>
-                        <th style={{ width: "15%" }}>작성일</th>
-                        <th style={{ width: "10%" }}>조회수</th>
+                        <th className="text-center" style={{ width: "45%" }}>
+                          제목
+                        </th>
+                        <th className="text-center" style={{ width: "10%" }}>
+                          추천
+                        </th>
+                        <th className="text-center" style={{ width: "15%" }}>
+                          조회수
+                        </th>
+                        <th className="text-center" style={{ width: "15%" }}>
+                          작성 농장
+                        </th>
+                        <th className="text-center" style={{ width: "15%" }}>
+                          작성일
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -283,14 +300,50 @@ export default function BoardPage() {
           <div className="col-lg-4">
             {/* 인기 게시글 */}
             <div className="card mb-4">
-              <div className="card-header">인기 게시글</div>
+              <div className="card-header">실시간 인기글</div>
               <div className="card-body">
                 <ul className="list-unstyled mb-0">
                   {loading ? (
                     <LoadingSpinner width={50} height={50} />
                   ) : featuredPosts.length === 0 ? (
                     <li className="text-center py-3">
-                      인기 게시글이 없습니다.
+                      실시간 인기글이 없습니다.
+                    </li>
+                  ) : (
+                    featuredPosts.map((post) => (
+                      <PopularPostItem key={post.postId} post={post} />
+                    ))
+                  )}
+                </ul>
+              </div>
+            </div>
+            <div className="card mb-4">
+              <div className="card-header">주간 인기글</div>
+              <div className="card-body">
+                <ul className="list-unstyled mb-0">
+                  {loading ? (
+                    <LoadingSpinner width={50} height={50} />
+                  ) : featuredPosts.length === 0 ? (
+                    <li className="text-center py-3">
+                      주간 인기글이 없습니다.
+                    </li>
+                  ) : (
+                    featuredPosts.map((post) => (
+                      <PopularPostItem key={post.postId} post={post} />
+                    ))
+                  )}
+                </ul>
+              </div>
+            </div>
+            <div className="card mb-4">
+              <div className="card-header">명예의 전당</div>
+              <div className="card-body">
+                <ul className="list-unstyled mb-0">
+                  {loading ? (
+                    <LoadingSpinner width={50} height={50} />
+                  ) : featuredPosts.length === 0 ? (
+                    <li className="text-center py-3">
+                      명예의 전당이 비었습니다.
                     </li>
                   ) : (
                     featuredPosts.map((post) => (
