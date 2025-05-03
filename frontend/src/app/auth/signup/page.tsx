@@ -5,6 +5,8 @@ import { useState, useEffect, Suspense } from "react";
 import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
+const API_BASE = "http://localhost:8080";
+
 // 실제 컨텐츠 컴포넌트
 function SignupContent() {
   const router = useRouter();
@@ -60,7 +62,7 @@ function SignupContent() {
 
     try {
       // 회원가입 요청 전송
-      const response = await fetch("https://grow-farm.com/api/auth/signUp", {
+      const response = await fetch(`${API_BASE}/auth/signUp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

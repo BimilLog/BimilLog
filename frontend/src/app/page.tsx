@@ -5,6 +5,8 @@ import useAuthStore from "@/util/authStore";
 import { useState } from "react";
 import { KakaoFriendDTO, KakaoFriendListDTO } from "@/components/types/schema";
 
+const API_BASE = "http://localhost:8080";
+
 export default function Home() {
   const { user } = useAuthStore();
   const [friends, setFriends] = useState<KakaoFriendDTO[]>([]);
@@ -17,10 +19,10 @@ export default function Home() {
   const handleFetchFriends = async () => {
     setShowModal(true);
     try {
-      const response = await fetch(
-        `https://grow-farm.com/api/user/friendlist?offset=0`,
-        { method: "POST", credentials: "include" }
-      );
+      const response = await fetch(`${API_BASE}/user/friendlist?offset=0`, {
+        method: "POST",
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("친구 목록 불러오기 실패");
       const data: KakaoFriendListDTO = await response.json();
       setFriends(data.elements);

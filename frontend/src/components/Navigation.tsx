@@ -10,6 +10,8 @@ import {
   UpdateNotificationDTO,
 } from "./types/schema";
 
+const API_BASE = "http://localhost:8080";
+
 /**
  * 네비게이션 컴포넌트
  * 로그인 상태에 따라 다른 메뉴를 보여줍니다.
@@ -141,7 +143,7 @@ const Navigation = () => {
     if (!user) return;
 
     try {
-      const response = await fetch("https://grom-farm.com/api/notification/list", {
+      const response = await fetch(`${API_BASE}/notification/list`, {
         credentials: "include",
       });
 
@@ -215,20 +217,17 @@ const Navigation = () => {
 
     try {
       // API 호출
-      const response = await fetch(
-        "https://grom-farm.com/api/notification/batch-update",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            readIds: currentReadIds,
-            deletedIds: currentDeletedIds,
-          } as UpdateNotificationDTO),
-        }
-      );
+      const response = await fetch(`${API_BASE}/notification/batch-update`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          readIds: currentReadIds,
+          deletedIds: currentDeletedIds,
+        } as UpdateNotificationDTO),
+      });
 
       if (!response.ok) {
         console.error("배치 처리 실패:", await response.text());
@@ -298,7 +297,7 @@ const Navigation = () => {
 
     // SSE 연결 설정
     const eventSource = new EventSource(
-      "https://grom-farm.com/api/notification/subscribe",
+      "http://localhost:8080/notification/subscribe",
       {
         withCredentials: true,
       }
@@ -804,20 +803,17 @@ const Navigation = () => {
                               );
 
                               // 서버에 즉시 전송 (일괄 처리는 UX 상 즉시 반영이 필요함)
-                              fetch(
-                                "https://grom-farm.com/api/notification/batch-update",
-                                {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                  },
-                                  credentials: "include",
-                                  body: JSON.stringify({
-                                    readIds: unreadIds,
-                                    deletedIds: [],
-                                  } as UpdateNotificationDTO),
-                                }
-                              )
+                              fetch(`${API_BASE}/notification/batch-update`, {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                credentials: "include",
+                                body: JSON.stringify({
+                                  readIds: unreadIds,
+                                  deletedIds: [],
+                                } as UpdateNotificationDTO),
+                              })
                                 .then((response) => {
                                   if (response.ok) {
                                     console.log("모두 읽음 처리 성공");
@@ -852,20 +848,17 @@ const Navigation = () => {
                               setUnreadCount(0);
 
                               // 서버에 즉시 전송 (일괄 처리는 UX 상 즉시 반영이 필요함)
-                              fetch(
-                                "https://grom-farm.com/api/notification/batch-update",
-                                {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                  },
-                                  credentials: "include",
-                                  body: JSON.stringify({
-                                    readIds: [],
-                                    deletedIds: allIds,
-                                  } as UpdateNotificationDTO),
-                                }
-                              )
+                              fetch(`${API_BASE}/notification/batch-update`, {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                credentials: "include",
+                                body: JSON.stringify({
+                                  readIds: [],
+                                  deletedIds: allIds,
+                                } as UpdateNotificationDTO),
+                              })
                                 .then((response) => {
                                   if (response.ok) {
                                     console.log("모두 삭제 처리 성공");

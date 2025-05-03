@@ -7,6 +7,8 @@ import { CropDTO, CropType } from "@/components/types/schema";
 import Script from "next/script";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
+const API_BASE = "http://localhost:8080";
+
 // Kakao SDK TypeScript declarations
 declare global {
   interface Window {
@@ -283,7 +285,7 @@ export default function FarmPage() {
           const queryParams = new URLSearchParams();
           queryParams.append("userId", user.userId.toString());
 
-          response = await fetch(`http://localhost:8080/farm/myFarm`, {
+          response = await fetch(`${API_BASE}/farm/myFarm`, {
             method: "POST",
             credentials: "include",
           });
@@ -291,7 +293,7 @@ export default function FarmPage() {
         // 타인 농장인 경우
         else {
           response = await fetch(
-            `http://localhost:8080/farm/${encodeURIComponent(farmName)}`,
+            `${API_BASE}/farm/${encodeURIComponent(farmName)}`,
             {
               method: "GET",
               credentials: "include",
@@ -401,7 +403,7 @@ export default function FarmPage() {
 
       // 작물 심기 API 호출
       const response = await fetch(
-        `http://localhost:8080/farm/${encodeURIComponent(farmName)}`,
+        `${API_BASE}/farm/${encodeURIComponent(farmName)}`,
         {
           method: "POST",
           headers: {
@@ -424,7 +426,7 @@ export default function FarmPage() {
         // 작물 목록 갱신
         // 서버에서 id가 생성되므로 간단하게 전체 목록을 다시 불러오는 방법 사용
         const refreshResponse = await fetch(
-          `http://localhost:8080/farm/${encodeURIComponent(farmName)}`,
+          `${API_BASE}/farm/${encodeURIComponent(farmName)}`,
           {
             method: "GET",
             credentials: "include",
@@ -464,13 +466,10 @@ export default function FarmPage() {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/farm/myFarm/${cropId}`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${API_BASE}/farm/myFarm/${cropId}`, {
+        method: "POST",
+        credentials: "include",
+      });
 
       if (response.ok) {
         // 성공적으로 삭제됨

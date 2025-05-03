@@ -8,6 +8,8 @@ import { initializeApp } from "firebase/app";
 import { DeviceType } from "@/components/types/schema";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
+const API_BASE = "http://localhost:8080";
+
 // Firebase 설정
 const firebaseConfig = {
   apiKey: "AIzaSyDQHWI_zhIjqp_SJz0Fdv7xtG6mIZfwBhU",
@@ -89,7 +91,7 @@ function KakaoCallbackContent() {
       if (token) {
         console.log(`토큰을 서버로 전송: 기기타입=${deviceType}`);
         await fetch(
-          `https://grow-farm.com/api/notification/fcm/token?deviceType=${deviceType}`,
+          `${API_BASE}/notification/fcm/token?deviceType=${deviceType}`,
           {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
@@ -118,13 +120,10 @@ function KakaoCallbackContent() {
         setStatus("카카오 로그인 정보를 처리 중입니다...");
 
         // 백엔드 서버로 코드 전송
-        const response = await fetch(
-          `https://grow-farm.com/api/auth/login?code=${code}`,
-          {
-            method: "GET",
-            credentials: "include", // 쿠키를 포함하여 요청
-          }
-        );
+        const response = await fetch(`${API_BASE}/auth/login?code=${code}`, {
+          method: "GET",
+          credentials: "include", // 쿠키를 포함하여 요청
+        });
 
         if (!response.ok) {
           throw new Error("로그인 처리 중 오류가 발생했습니다.");

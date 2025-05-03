@@ -1,4 +1,3 @@
-
 export interface UserDTO {
     userId: number;
     kakaoId: number;
@@ -12,24 +11,6 @@ export interface UserDTO {
 export enum UserRole {
     USER = "USER",
     ADMIN = "ADMIN"
-}
-
-export interface TokenDTO {
-    kakaoAccessToken: string;
-    kakaoRefreshToken: string;
-    jwtAccessToken: string;
-    jwtRefreshToken: string;
-}
-
-export interface KakaoInfoDTO {
-    kakaoId: number;
-    kakaoNickname: string;
-    thumbnailImage: string;
-}
-
-export interface FarmNameRequestDTO {
-    tokenId: number;
-    farmName: string;
 }
 
 export interface KakaoFriendDTO {
@@ -50,14 +31,6 @@ export interface CropDTO {
     cropType: CropType;
     nickname: string;
     message: string;
-    width: number;
-    height: number;
-}
-
-export interface VisitCropDTO {
-    id: number;
-    farmName: string;
-    cropType: CropType;
     width: number;
     height: number;
 }
@@ -127,13 +100,6 @@ export interface SimplePostDTO {
     createdAt: string;
 }
 
-export interface PostReqDTO {
-    userId: number;
-    farmName: string;
-    title: string;
-    content: string;
-}
-
 export interface CommentDTO {
     id: number;
     postId: number;
@@ -155,12 +121,6 @@ export enum NotificationType {
     INITIATE = "INITIATE"
 }
 
-export interface EventDTO {
-    type: NotificationType;
-    data: string;
-    url: string;
-}
-
 export interface NotificationDTO {
     id: number;
     data: string;
@@ -178,12 +138,5 @@ export interface UpdateNotificationDTO {
 export enum DeviceType {
     MOBILE = "MOBILE",
     TABLET = "TABLET",
-}
-
-export interface SettingDTO {
-    FarmNotification: boolean;
-    CommentNotification: boolean;
-    PostFeaturedNotification: boolean;
-    CommentFeaturedNotification: boolean;
 }
 
