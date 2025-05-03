@@ -10,7 +10,7 @@ import {
   UpdateNotificationDTO,
 } from "./types/schema";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 /**
  * 네비게이션 컴포넌트
@@ -297,7 +297,7 @@ const Navigation = () => {
 
     // SSE 연결 설정
     const eventSource = new EventSource(
-      "http://localhost:8080/notification/subscribe",
+        `${API_BASE}/notification/subscribe`,
       {
         withCredentials: true,
       }

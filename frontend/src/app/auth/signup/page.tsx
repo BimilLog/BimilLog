@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 // 실제 컨텐츠 컴포넌트
 function SignupContent() {

@@ -5,7 +5,7 @@ import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 // UI용 확장 타입 (DTO와 UI 전용 필드 분리)
 interface SettingUIState {

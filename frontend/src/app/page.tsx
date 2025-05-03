@@ -5,7 +5,7 @@ import useAuthStore from "@/util/authStore";
 import { useState } from "react";
 import { KakaoFriendDTO, KakaoFriendListDTO } from "@/components/types/schema";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 export default function Home() {
   const { user } = useAuthStore();

@@ -8,7 +8,7 @@ import { initializeApp } from "firebase/app";
 import { DeviceType } from "@/components/types/schema";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 // Firebase 설정
 const firebaseConfig = {

@@ -7,7 +7,7 @@ import { CropDTO, CropType } from "@/components/types/schema";
 import Script from "next/script";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 // Kakao SDK TypeScript declarations
 declare global {

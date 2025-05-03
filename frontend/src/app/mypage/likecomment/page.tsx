@@ -9,7 +9,7 @@ import Pagination from "@/components/Pagination";
 import { formatDateTime } from "@/util/date";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 // 댓글 아이템 컴포넌트
 const CommentItem = ({ comment }: { comment: CommentDTO }) => (

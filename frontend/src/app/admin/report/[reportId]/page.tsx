@@ -6,7 +6,7 @@ import useAuthStore from "@/util/authStore";
 import { ReportDTO, UserRole } from "@/components/types/schema";
 import Link from "next/link";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 // 내부 클라이언트 컴포넌트 - reportId를 props로 직접 받음
 function ReportDetailContent({ reportId }: { reportId: string }) {

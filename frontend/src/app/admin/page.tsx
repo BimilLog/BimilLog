@@ -6,7 +6,7 @@ import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { ReportDTO, ReportType, UserRole } from "@/components/types/schema";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 export default function AdminPage() {
   const { user } = useAuthStore();

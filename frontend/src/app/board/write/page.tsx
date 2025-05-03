@@ -7,7 +7,7 @@ import useAuthStore from "@/util/authStore";
 import { PostDTO } from "@/components/types/schema";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 export default function WritePage() {
   const [title, setTitle] = useState("");
