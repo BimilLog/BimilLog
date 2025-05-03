@@ -4,6 +4,8 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
 
+const API_BASE = "http://localhost:8080";
+
 export default function MyPage() {
   const { user, setUser, logout } = useAuthStore();
   const [isEditingFarmName, setIsEditingFarmName] = useState(false);
@@ -22,6 +24,10 @@ export default function MyPage() {
 
     if (!user) return;
 
+    if (!confirm("농장이름을 바꾸면 다시 로그인해야합니다.")) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -30,7 +36,7 @@ export default function MyPage() {
       }).toString();
 
       const response = await fetch(
-        `http://localhost:8080/user/mypage/updatefarm?${queryString}`,
+        `${API_BASE}/user/mypage/updatefarm?${queryString}`,
         {
           method: "GET",
           credentials: "include",
@@ -43,10 +49,7 @@ export default function MyPage() {
         setUser({ ...user, farmName: trimmedFarmName });
         setIsEditingFarmName(false);
         setNewFarmName("");
-
-        if (confirm("농장이름을 바꾸면 다시 로그인해야합니다.")) {
-          logout();
-        }
+        await logout();
       } else {
         alert(
           `농장 이름 변경에 실패했습니다: ${response.status} ${response.statusText}`
@@ -75,7 +78,7 @@ export default function MyPage() {
 
     setIsWithdrawing(true);
     try {
-      const response = await fetch("http://localhost:8080/auth/withdraw", {
+      const response = await fetch(`${API_BASE}/auth/withdraw`, {
         method: "GET",
         credentials: "include",
       });

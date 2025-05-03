@@ -4,6 +4,9 @@ import { useState } from "react";
 import { ReportType } from "@/components/types/schema";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
+import LoadingSpinner from "@/components/LoadingSpinner";
+
+const API_BASE = "http://localhost:8080";
 
 export default function AskPage() {
   const { user } = useAuthStore();
@@ -15,6 +18,9 @@ export default function AskPage() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const router = useRouter();
+  const [title, setTitle] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>
@@ -29,20 +35,31 @@ export default function AskPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      alert("로그인이 필요합니다.");
-      router.push("/");
+    if (!title.trim()) {
+      setError("제목을 입력해주세요.");
       return;
     }
 
     if (!formData.content.trim()) {
-      alert("내용을 입력해주세요.");
+      setError("내용을 입력해주세요.");
       return;
     }
 
-    setIsSubmitting(true);
+    if (!user) {
+      if (
+        confirm(
+          "로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?"
+        )
+      ) {
+        router.push("/");
+      }
+      return;
+    }
+
+    setIsLoading(true);
     setSubmitError(false);
     setSubmitSuccess(false);
+    setError(null);
 
     try {
       const reportDTO = {
@@ -53,12 +70,12 @@ export default function AskPage() {
         content: formData.content,
       };
 
-      const response = await fetch("http://localhost:8080/user/suggestion", {
+      const response = await fetch(`${API_BASE}/user/suggestion`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // 쿠키 포함
+        credentials: "include",
         body: JSON.stringify(reportDTO),
       });
 
@@ -68,14 +85,22 @@ export default function AskPage() {
           reportType: ReportType.BUG,
           content: "",
         });
+        setTitle("");
+        setError("문의가 성공적으로 제출되었습니다.");
       } else {
-        setSubmitError(true);
+        const errorText = await response.text();
+        throw new Error(errorText || "문의 제출 중 오류가 발생했습니다.");
       }
     } catch (error) {
-      console.error("제출 중 오류 발생:", error);
+      console.error("문의 제출 오류:", error);
       setSubmitError(true);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "문의 제출 중 오류가 발생했습니다."
+      );
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -130,14 +155,20 @@ export default function AskPage() {
                     </div>
                   )}
 
+                  {error && (
+                    <div className="alert alert-danger mb-3" role="alert">
+                      {error}
+                    </div>
+                  )}
+
                   {/* Submit Button*/}
                   <div className="d-grid">
                     <button
                       className="btn btn-primary btn-lg"
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isLoading}
                     >
-                      {isSubmitting ? "제출 중..." : "제출"}
+                      {isLoading ? <LoadingSpinner /> : "제출"}
                     </button>
                   </div>
                 </form>

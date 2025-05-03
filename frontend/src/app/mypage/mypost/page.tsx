@@ -6,6 +6,10 @@ import Pagination from "@/components/Pagination";
 import { formatDateTime } from "@/util/date";
 import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { useRouter } from "next/navigation";
+import useAuthStore from "@/util/authStore";
+
+const API_BASE = "http://localhost:8080";
 
 // 게시글 목록 아이템 컴포넌트
 const PostItem = ({ post }: { post: SimplePostDTO }) => (
@@ -28,6 +32,8 @@ const PostItem = ({ post }: { post: SimplePostDTO }) => (
 );
 
 export default function MyPostsPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
   // 페이지 상태관리
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(5);
@@ -38,32 +44,39 @@ export default function MyPostsPage() {
   // 게시글 데이터 불러오기 (페이지별)
   useEffect(() => {
     const fetchPosts = async () => {
+      if (!user) {
+        router.push("/");
+        return;
+      }
+
       setLoading(true);
       try {
-        // 실제 API 호출
         const response = await fetch(
-          `http://localhost:8080/user/mypage/posts?page=${
+          `${API_BASE}/user/mypage/posts?page=${
             currentPage - 1
           }&size=${pageSize}`,
           { credentials: "include" }
         );
-        const data = await response.json();
 
-        // 게시글 및 페이지 정보 설정
-        setPosts(data.content);
-        setTotalPages(data.totalPages);
-        setLoading(false);
+        if (response.ok) {
+          const data = await response.json();
+          setPosts(data.content);
+          setTotalPages(data.totalPages);
+        } else {
+          console.error(
+            "내 게시글을 불러오는데 실패했습니다:",
+            response.status
+          );
+        }
       } catch (error) {
-        console.error("게시글 불러오기 오류:", error);
+        console.error("내 게시글 불러오기 오류:", error);
+      } finally {
         setLoading(false);
-
-        // 오류 메시지 표시
-        alert("게시글을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
       }
     };
 
     fetchPosts();
-  }, [currentPage, pageSize]); // currentPage 또는 pageSize가 변경될 때마다 실행
+  }, [user, router, currentPage, pageSize]);
 
   // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {

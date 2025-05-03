@@ -17,7 +17,9 @@ public class KakaoKeyVO {
     @Value("${spring.kakao.admin-key}")
     private String ADMIN_KEY; // 앱 어드민 키
 
-    private final String REDIRECT_URI = "http://localhost:3000/auth/kakao/callback"; // 리다이렉트 URL
+    @Value("${spring.kakao.redirect-uri}")
+    private String REDIRECT_URI; // 리다이렉트 URL
+
     private final String AUTHORIZE_URL = "https://kauth.kakao.com/oauth/authorize"; // 인가코드 받기 URL
     private final String TOKEN_URL = "https://kauth.kakao.com/oauth/token"; // 토큰 받기 URL
 

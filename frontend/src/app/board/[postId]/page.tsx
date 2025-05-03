@@ -8,46 +8,6 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 
-// Kakao SDK TypeScript declarations
-declare global {
-  interface Window {
-    Kakao: {
-      init: (apiKey: string) => void;
-      isInitialized: () => boolean;
-      Share: {
-        createDefaultButton: (settings: {
-          container: string | HTMLElement;
-          objectType: string;
-          templateId?: number;
-          templateArgs?: Record<string, unknown>;
-          installTalk?: boolean;
-          callback?: (response: unknown) => void;
-          serverCallbackArgs?: Record<string, unknown>;
-        }) => void;
-        sendDefault: (settings: {
-          objectType: string;
-          content: {
-            title: string;
-            description?: string;
-            imageUrl: string;
-            link: {
-              mobileWebUrl: string;
-              webUrl: string;
-            };
-          };
-          buttons?: Array<{
-            title: string;
-            link: {
-              mobileWebUrl: string;
-              webUrl: string;
-            };
-          }>;
-        }) => void;
-      };
-    };
-  }
-}
-
 // 로딩 스피너 컴포넌트
 const LoadingSpinner = () => (
   <div className="text-center py-4">

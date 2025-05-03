@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/LoadingSpinner";
+
+const API_BASE = "http://localhost:8080";
 
 // UI용 확장 타입 (DTO와 UI 전용 필드 분리)
 interface SettingUIState {
@@ -22,7 +25,7 @@ const defaultSettings: SettingUIState = {
 };
 
 const SettingPage = () => {
-  const { user } = useAuthStore();
+  const { user, checkAuth } = useAuthStore();
   const router = useRouter();
   const [settings, setSettings] = useState<SettingUIState>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,8 +39,11 @@ const SettingPage = () => {
     }
 
     const fetchSettings = async () => {
+      setIsLoading(true);
+
       try {
-        const response = await fetch("http://localhost:8080/user/setting", {
+        const response = await fetch(`${API_BASE}/user/setting`, {
+          method: "GET",
           credentials: "include",
         });
 
@@ -150,17 +156,14 @@ const SettingPage = () => {
 
       console.log("서버에 전송할 설정 데이터:", settingData);
 
-      const response = await fetch(
-        "http://localhost:8080/user/setting",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(settingData),
-        }
-      );
+      const response = await fetch(`${API_BASE}/user/setting`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(settingData),
+      });
 
       if (response.ok) {
         const data = await response.json();

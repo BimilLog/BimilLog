@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { ReportDTO, ReportType, UserRole } from "@/components/types/schema";
+
+const API_BASE = "http://localhost:8080";
 
 export default function AdminPage() {
   const { user } = useAuthStore();
@@ -11,11 +14,13 @@ export default function AdminPage() {
   const [reports, setReports] = useState<ReportDTO[]>([]);
   const [page, setPage] = useState(0);
   const [size] = useState(10);
-  const [reportType, setReportType] = useState<ReportType | "ALL">("ALL");
+  const [reportType, setReportType] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [banUserId, setBanUserId] = useState<string>("");
-  const [isBanning, setIsBanning] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [banUserId, setBanUserId] = useState<number | null>(null);
+  const [showBanModal, setShowBanModal] = useState(false);
+  const [banReason, setBanReason] = useState("");
+  const [isBanSubmitting, setIsBanSubmitting] = useState(false);
 
   // Admin 권한 체크
   useEffect(() => {
@@ -31,11 +36,9 @@ export default function AdminPage() {
 
     setIsLoading(true);
     try {
-      // reportType이 ALL인 경우 파라미터에서 제외
-      const url =
-        reportType === "ALL"
-          ? `http://localhost:8080/admin/report?page=${page}&size=${size}`
-          : `http://localhost:8080/admin/report?page=${page}&size=${size}&reportType=${reportType}`;
+      const url = reportType
+        ? `${API_BASE}/admin/report?page=${page}&size=${size}&reportType=${reportType}`
+        : `${API_BASE}/admin/report?page=${page}&size=${size}`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -47,60 +50,74 @@ export default function AdminPage() {
         setReports(data.content);
         setTotalPages(data.totalPages);
       } else {
-        console.error("신고 목록 불러오기 실패:", response.statusText);
+        console.error("신고 목록을 불러오는데 실패했습니다:", response.status);
       }
     } catch (error) {
-      console.error("신고 목록 불러오기 중 오류 발생:", error);
+      console.error("신고 목록 불러오기 오류:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [user, reportType, page, size]);
+  }, [user, page, size, reportType]);
 
-  // 유저 차단 처리
-  const handleBanUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!banUserId.trim()) {
-      alert("차단할 유저 ID를 입력해주세요.");
+  // 초기 데이터 로드
+  useEffect(() => {
+    if (!user) {
+      router.push("/");
       return;
     }
 
-    if (!confirm(`정말 ID가 ${banUserId}인 유저를 차단하시겠습니까?`)) {
+    if (user.role !== UserRole.ADMIN) {
+      alert("관리자만 접근할 수 있는 페이지입니다.");
+      router.push("/");
       return;
     }
 
-    setIsBanning(true);
+    fetchReports();
+  }, [user, router, fetchReports]);
+
+  // 사용자 차단 모달 열기
+  const openBanModal = (userId: number) => {
+    setBanUserId(userId);
+    setShowBanModal(true);
+  };
+
+  // 사용자 차단 처리
+  const handleBanUser = async () => {
+    if (!banUserId || !banReason.trim()) return;
+
+    setIsBanSubmitting(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/admin/user/ban?userId=${banUserId}`,
+        `${API_BASE}/admin/user/ban?userId=${banUserId}`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           credentials: "include",
+          body: JSON.stringify({ reason: banReason.trim() }),
         }
       );
 
       if (response.ok) {
-        alert("유저가 성공적으로 차단되었습니다.");
-        setBanUserId("");
+        alert("사용자가 차단되었습니다.");
+        setShowBanModal(false);
+        fetchReports(); // 목록 새로고침
       } else {
-        alert(`유저 차단에 실패했습니다: ${response.statusText}`);
+        const errorText = await response.text();
+        alert(`사용자 차단 실패: ${errorText}`);
       }
     } catch (error) {
-      console.error("유저 차단 중 오류 발생:", error);
-      alert("유저 차단 중 오류가 발생했습니다.");
+      console.error("사용자 차단 중 오류:", error);
+      alert("사용자 차단 중 오류가 발생했습니다.");
     } finally {
-      setIsBanning(false);
+      setIsBanSubmitting(false);
     }
   };
 
-  // 페이지 변경 시 신고 목록 다시 불러오기
-  useEffect(() => {
-    fetchReports();
-  }, [page, size, reportType, user, fetchReports]);
-
   // 신고 유형 변경 핸들러
   const handleReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setReportType(e.target.value as ReportType | "ALL");
+    setReportType(e.target.value as string | null);
     setPage(0); // 유형 변경 시 첫 페이지로 이동
   };
 
@@ -220,19 +237,37 @@ export default function AdminPage() {
                       type="number"
                       className="form-control"
                       id="banUserId"
-                      value={banUserId}
-                      onChange={(e) => setBanUserId(e.target.value)}
+                      value={banUserId || ""}
+                      onChange={(e) =>
+                        setBanUserId(Number(e.target.value) || null)
+                      }
                       placeholder="차단할 유저의 ID를 입력하세요"
                       required
-                      disabled={isBanning}
+                      disabled={isBanSubmitting}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="banReason" className="form-label">
+                      차단 사유
+                    </label>
+                    <textarea
+                      className="form-control"
+                      id="banReason"
+                      value={banReason}
+                      onChange={(e) => setBanReason(e.target.value)}
+                      placeholder="차단 사유를 입력하세요"
+                      required
+                      disabled={isBanSubmitting}
                     />
                   </div>
                   <button
                     type="submit"
                     className="btn btn-danger"
-                    disabled={isBanning || !banUserId.trim()}
+                    disabled={
+                      isBanSubmitting || !banUserId || !banReason.trim()
+                    }
                   >
-                    {isBanning ? "처리 중..." : "유저 차단"}
+                    {isBanSubmitting ? "처리 중..." : "유저 차단"}
                   </button>
                 </form>
               </div>
@@ -250,7 +285,7 @@ export default function AdminPage() {
                 <p>
                   현재 페이지: {page + 1} / {totalPages}
                 </p>
-                <p>현재 필터: {reportType === "ALL" ? "전체" : reportType}</p>
+                <p>현재 필터: {reportType === null ? "전체" : reportType}</p>
               </div>
             </div>
           </div>
@@ -267,10 +302,11 @@ export default function AdminPage() {
               <select
                 id="reportType"
                 className="form-select"
-                value={reportType}
+                value={reportType || ""}
                 onChange={handleReportTypeChange}
                 disabled={isLoading}
               >
+                <option value="">전체</option>
                 <option value="ALL">전체</option>
                 <option value={ReportType.POST}>게시글</option>
                 <option value={ReportType.COMMENT}>댓글</option>

@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import useAuthStore from "@/util/authStore";
 import { CommentDTO } from "@/components/types/schema";
 import Pagination from "@/components/Pagination";
 import { formatDateTime } from "@/util/date";
-import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
+
+const API_BASE = "http://localhost:8080";
 
 // 댓글 아이템 컴포넌트
 const CommentItem = ({ comment }: { comment: CommentDTO }) => (
@@ -27,7 +31,8 @@ const CommentItem = ({ comment }: { comment: CommentDTO }) => (
 );
 
 export default function LikedCommentsPage() {
-  // 페이지 상태관리
+  const router = useRouter();
+  const { user } = useAuthStore();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(5);
   const [loading, setLoading] = useState<boolean>(false);
@@ -37,32 +42,42 @@ export default function LikedCommentsPage() {
   // 댓글 데이터 불러오기 (페이지별)
   useEffect(() => {
     const fetchComments = async () => {
+      if (!user) {
+        router.push("/");
+        return;
+      }
+
       setLoading(true);
       try {
-        // 실제 API 호출
         const response = await fetch(
-          `http://localhost:8080/user/mypage/likedcomments?page=${
+          `${API_BASE}/user/mypage/likedcomments?page=${
             currentPage - 1
           }&size=${pageSize}`,
-          { credentials: "include" }
+          {
+            method: "GET",
+            credentials: "include",
+          }
         );
-        const data = await response.json();
 
-        // 댓글 및 페이지 정보 설정
-        setComments(data.content);
-        setTotalPages(data.totalPages);
-        setLoading(false);
+        if (response.ok) {
+          const data = await response.json();
+          setComments(data.content);
+          setTotalPages(data.totalPages);
+        } else {
+          console.error(
+            "좋아요한 댓글을 불러오는데 실패했습니다:",
+            response.status
+          );
+        }
       } catch (error) {
-        console.error("댓글 불러오기 오류:", error);
+        console.error("좋아요한 댓글 불러오기 오류:", error);
+      } finally {
         setLoading(false);
-
-        // 오류 메시지 표시
-        alert("댓글을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
       }
     };
 
     fetchComments();
-  }, [currentPage, pageSize]); // currentPage 또는 pageSize가 변경될 때마다 실행
+  }, [user, router, currentPage, pageSize]);
 
   // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {
