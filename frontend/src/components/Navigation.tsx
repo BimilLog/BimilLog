@@ -297,7 +297,7 @@ const Navigation = () => {
 
     // SSE 연결 설정
     const eventSource = new EventSource(
-      "http://localhost:8080/notification/subscribe",
+        `${API_BASE}/notification/subscribe`,
       {
         withCredentials: true,
       }
