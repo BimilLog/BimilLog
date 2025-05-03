@@ -11,6 +11,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/*
+ * 댓글 Repository
+ * 댓글 관련 데이터베이스 작업을 수행하는 Repository
+ * 커스텀 댓글 저장소를 상속받음
+ * 수정일 : 2025-05-03
+ */
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long>, CommentCustomRepository {
 
@@ -45,11 +51,11 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
     void resetAllCommentFeaturedFlags();
 
     @Query("""
-    SELECT c
-    FROM Comment c
-    WHERE (SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment = c) >= 3
-    ORDER BY c.post.id, (SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment = c) DESC
-""")
+                SELECT c
+                FROM Comment c
+                WHERE (SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment = c) >= 3
+                ORDER BY c.post.id, (SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment = c) DESC
+            """)
     List<Comment> findPopularComments();
 
 }

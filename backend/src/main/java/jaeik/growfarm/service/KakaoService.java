@@ -16,6 +16,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+/*
+ * 카카오 API 서비스
+ * 카카오 API와의 통신을 처리하는 서비스 클래스
+ * 수정일 : 2025-05-03
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

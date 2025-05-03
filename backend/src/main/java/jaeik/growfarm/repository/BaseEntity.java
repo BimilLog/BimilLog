@@ -12,6 +12,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+/*
+ * 전역 엔티티 클래스
+ * 전역 엔티티 클래스로, 생성일자와 수정일자를 관리하는 필드를 포함
+ * 수정일 : 2025-05-03
+ */
 @Getter
 @SuperBuilder
 @MappedSuperclass

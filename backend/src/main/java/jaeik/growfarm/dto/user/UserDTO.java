@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+// 사용자 정보 DTO
 @Setter
 @Getter
 @RequiredArgsConstructor

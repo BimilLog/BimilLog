@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+// 알림 DTO
 @Getter
 @Builder
 @NoArgsConstructor

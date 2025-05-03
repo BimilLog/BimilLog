@@ -7,6 +7,11 @@ import jaeik.growfarm.entity.user.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/*
+ * FarmUtil 클래스
+ * 농장 관련 유틸리티 클래스
+ * 수정일 : 2025-05-03
+ */
 @Component
 @RequiredArgsConstructor
 public class FarmUtil {

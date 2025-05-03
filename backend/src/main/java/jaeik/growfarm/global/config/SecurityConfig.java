@@ -20,6 +20,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+ * 시큐리티 설정 클래스
+ * 수정일 : 2025-05-03
+ */
 @Getter
 @Configuration
 @EnableWebSecurity

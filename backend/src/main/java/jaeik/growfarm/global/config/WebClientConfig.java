@@ -11,6 +11,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/*
+ * WebClient 설정
+ * WebClient를 사용하여 외부 API와 통신할 때 요청 및 응답을 로깅하는 기능을 제공
+ * 수정일 : 2025-05-03
+ */
 @Slf4j
 @Configuration
 public class WebClientConfig {

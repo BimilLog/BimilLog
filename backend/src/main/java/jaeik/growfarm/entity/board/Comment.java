@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+// 댓글 엔티티
 @Getter
 @Entity
 @SuperBuilder

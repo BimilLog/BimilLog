@@ -1,7 +1,7 @@
 package jaeik.growfarm.entity.crop;
 
+// 농작물 종류
 public enum CropType {
-    // 기존 작물
     POTATO,
     CARROT,
     CABBAGE,
@@ -13,7 +13,6 @@ public enum CropType {
     GRAPE,
     BANANA,
 
-    // 이상한 작물
     GOBLIN,      // 고블린
     SLIME,       // 슬라임
     ORC,          // 오크

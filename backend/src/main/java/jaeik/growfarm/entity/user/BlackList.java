@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+// 블랙리스트 엔티티
 @Entity
 @Getter
 @SuperBuilder

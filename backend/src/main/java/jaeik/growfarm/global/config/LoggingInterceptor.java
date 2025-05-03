@@ -12,6 +12,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/*
+ * 로깅 인터셉터
+ * 요청과 응답을 로깅하는 인터셉터입니다.
+ * 수정일 : 2025-05-03
+ */
 @Slf4j
 public class LoggingInterceptor implements HandlerInterceptor {
 

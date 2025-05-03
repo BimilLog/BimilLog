@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-
+// FCM 서버에 메시지 요청용 DTO
 @Getter
 @Builder
 public class FcmMessageDto {

@@ -11,6 +11,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/*
+ * CustomUserDetails 클래스
+ * UserDetails 인터페이스를 구현하여 Spring Security에서 사용자 정보를 처리하는 클래스
+ * UserDTO 객체를 사용하여 사용자 정보를 저장하고, 권한을 설정하는 기능을 제공
+ * 수정일 : 2025-05-03
+ */
 @Getter
 public class CustomUserDetails implements UserDetails {
 

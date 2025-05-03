@@ -13,6 +13,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/*
+ * BoardUtil 클래스
+ * 게시판 관련 유틸리티 클래스
+ * 수정일 : 2025-05-03
+ */
 @Component
 @RequiredArgsConstructor
 public class BoardUtil {

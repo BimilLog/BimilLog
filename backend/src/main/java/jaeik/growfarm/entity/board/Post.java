@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+// 게시글 엔티티
 @Entity
 @Getter
 @NoArgsConstructor

@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.util.List;
 
+// 카카오 친구 목록 DTO
 @Getter
 @Setter
 public class KakaoFriendListDTO {

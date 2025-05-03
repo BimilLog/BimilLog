@@ -5,6 +5,11 @@ import jaeik.growfarm.entity.notification.NotificationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/*
+ * NotificationUtil 클래스
+ * 알림 관련 유틸리티 클래스
+ * 수정일 : 2025-05-03
+ */
 @Component
 @RequiredArgsConstructor
 public class NotificationUtil {

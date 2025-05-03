@@ -4,6 +4,7 @@ import jaeik.growfarm.entity.crop.CropType;
 import lombok.Getter;
 import lombok.Setter;
 
+// 농작물 DTO
 @Getter
 @Setter
 public class CropDTO {

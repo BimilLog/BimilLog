@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/*
+ * SseEmitter Repository 구현체
+ * SseEmitter 관련 메모리 작업을 구현하는 클래스
+ * 수정일 : 2025-05-03
+ */
 @Repository
 public class EmitterRepositoryImpl implements EmitterRepository {
     // 사용자 별 emitterId와 sseEmitter 객체를 저장하는 map

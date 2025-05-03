@@ -12,6 +12,11 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/*
+ * 커스텀 게시글 Repository 구현체
+ * 게시글 관련 데이터베이스 작업을 수행하는 Repository 구현체
+ * 수정일 : 2025-05-03
+ */
 @Repository
 public class PostCustomRepositoryImpl implements PostCustomRepository {
 

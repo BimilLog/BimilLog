@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+// 댓글 좋아요 엔티티
 @Entity
 @Getter
 @Builder

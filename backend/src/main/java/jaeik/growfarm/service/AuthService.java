@@ -30,6 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/*
+ * AuthService 클래스
+ * 인증 관련 서비스 클래스
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
