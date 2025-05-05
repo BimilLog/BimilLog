@@ -16,6 +16,7 @@ import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
+import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
@@ -28,8 +29,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -55,29 +54,60 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
-    private final CommentService commentService;
     private final BoardUtil boardUtil;
-    private static final Logger log = LoggerFactory.getLogger(PostService.class);
     private final UserUtil userUtil;
     private final ReportRepository reportRepository;
     private final NotificationService notificationService;
     private final NotificationUtil notificationUtil;
     private final FcmTokenRepository fcmTokenRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
-    // 게시판 진입
+    /*
+     * 게시판 조회 메서드
+     * param int page: 페이지 번호
+     * param int size: 페이지 사이즈
+     * return convertToSimplePostDTOPage() Post를 SimplePostDTO로 만드는 메서드
+     * 설명 : 최신순으로 페이징
+     *
+     * 수정일 : 2025-05-05
+     */
     public Page<SimplePostDTO> getBoard(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Post> posts = postRepository.findAll(pageable);
-        return posts.map(post -> boardUtil.postToSimpleDTO(post, getCommentCount(post.getId()), getLikeCount(post.getId())));
+        return convertToSimplePostDTOPage(posts);
     }
 
-    // 인기글 목록 가져오기
-    public List<SimplePostDTO> getFeaturedPosts() {
-        List<Post> featuredPosts = postRepository.findByIsFeaturedIsTrue();
-        return featuredPosts.stream().map(post -> boardUtil.postToSimpleDTO(post, getCommentCount(post.getId()), getLikeCount(post.getId()))).collect(Collectors.toList());
+    /*
+     * 실시간 인기글 목록 조회 메서드
+     * return List<SimplePostDTO> 실시간 인기글 목록
+     *
+     * 설명 :
+     * 1. 실시간 인기글 컬럼이 true인 게시글을 DB에서 가져옴
+     * 2. 각 게시글 마다 게시글 객체, 글의 댓글 수, 글의 추천 수를 매개변수로 boardUtil의 postToSimpleDTO() 메서드 실행
+     * 3. 받아온 SimplePostDTO를 List로 만들어 반환
+     *
+     * 수정일 : 2025-05-05
+     */
+    public List<SimplePostDTO> getRealtimePopularPosts() {
+        List<Post> realtimePopularPosts = postRepository.findByIsRealtimePopularTrue();
+        return realtimePopularPosts.stream()
+                .map(post -> boardUtil.postToSimpleDTO(post,
+                        commentRepository.countByPostId(post.getId()),
+                        postLikeRepository.countByPostId(post.getId())))
+                .collect(Collectors.toList());
     }
 
-    // 게시글 검색
+    /*
+     * 게시글 검색 메서드
+     * param String type 검색 유형
+     * param String query 검색어
+     * param int page 페이지 번호
+     * param int size 페이지 사이즈
+     * return convertToSimplePostDTOPage() Post를 SimplePostDTO로 만드는 메서드
+     * 설명 : 최신순으로 페이징
+     *
+     * 수정일 : 2025-05-05
+     */
     public Page<SimplePostDTO> searchPost(String type, String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Post> posts;
@@ -87,29 +117,38 @@ public class PostService {
             case "작성자" -> posts = postRepository.findByUser_farmNameContaining(query, pageable);
             default -> throw new IllegalArgumentException("잘못된 검색 타입입니다: " + type);
         }
-        return posts.map(post -> boardUtil.postToSimpleDTO(post, getCommentCount(post.getId()), getLikeCount(post.getId())));
+        return convertToSimplePostDTOPage(posts);
     }
 
+
     // 게시글 쓰기
-    public PostDTO writePost(PostReqDTO postReqDTO) {
-        Post post = postRepository.save(boardUtil.postReqDTOToPost(postReqDTO));
-        return boardUtil.postToDTO(post, getLikeCount(post.getId()), null, false);
+    public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
+
+        if (userDetails == null) {
+            throw new IllegalArgumentException("로그인 후 작성해주세요.");
+        }
+
+        Post post = postRepository
+                .save(boardUtil.postReqDTOToPost(userUtil.DTOToUser(userDetails.getUserDTO()), postReqDTO));
+        return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), null, false);
     }
 
     // 게시글 진입
     public PostDTO getPost(Long postId, Long userId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        boolean isLiked = userId != null && isPostLiked(postId, userId);
+        boolean isLiked = userId != null && postLikeRepository.existsByPostIdAndUserId(postId, userId);
+        ;
 
-
-        return boardUtil.postToDTO(post, getLikeCount(postId), getCommentList(postId, userId), isLiked);
+        return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), getCommentList(postId, userId), isLiked);
     }
 
     // 게시글 수정
     @Transactional
     public PostDTO updatePost(Long postId, CustomUserDetails userDetails, PostDTO postDTO) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
         Long userId = post.getUser().getId();
 
@@ -118,13 +157,15 @@ public class PostService {
         }
 
         post.updatePost(postDTO);
-        return boardUtil.postToDTO(post, getLikeCount(postId), getCommentList(postId, userId), isPostLiked(postId, userDetails.getUserDTO().getUserId()));
+        return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), getCommentList(postId, userId),
+                postLikeRepository.existsByPostIdAndUserId(postId, userDetails.getUserId()));
     }
 
     // 게시글 삭제
     @Transactional
     public void deletePost(Long postId, CustomUserDetails userDetails) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
         if (!post.getUser().getId().equals(userDetails.getUserDTO().getUserId())) {
             throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
@@ -136,11 +177,14 @@ public class PostService {
 
     // 게시글 추천, 추천 취소
     public void likePost(Long postId, CustomUserDetails userDetails) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        Users user = userRepository.findById(userDetails.getUserDTO().getUserId()).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
+        Users user = userRepository.findById(userDetails.getUserDTO().getUserId()).orElseThrow(
+                () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
 
-        Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId, userDetails.getUserDTO().getUserId());
+        Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId,
+                userDetails.getUserDTO().getUserId());
 
         if (existingLike.isPresent()) {
             postLikeRepository.delete(existingLike.get());
@@ -151,59 +195,69 @@ public class PostService {
         }
     }
 
-    // 유저의 해당 글 추천 여부 확인
-    public boolean isPostLiked(Long postId, Long userId) {
-        return postLikeRepository.existsByPostIdAndUserId(postId, userId);
-    }
-
-    // 해당 글의 댓글 수 조회
-    public int getCommentCount(Long postId) {
-        return commentRepository.countByPostId(postId);
-    }
-
-    // 해당 글의 추천 수 조회
-    public int getLikeCount(Long postId) {
-        return postLikeRepository.countByPostId(postId);
+    private Page<SimplePostDTO> convertToSimplePostDTOPage(Page<Post> posts) {
+        return posts.map(post -> boardUtil.postToSimpleDTO(
+                post,
+                commentRepository.countByPostId(post.getId()),
+                postLikeRepository.countByPostId(post.getId())));
     }
 
     // 해당 글의 댓글 조회
-    List<CommentDTO> getCommentList(Long postId, Long userId) {
+    private List<CommentDTO> getCommentList(Long postId, Long userId) {
 
         return commentRepository.findByCommentList(postId).stream().map(comment -> {
-            boolean userLike = userId != null && commentService.isCommentLiked(comment.getId(), userId);
-            return boardUtil.commentToDTO(comment, commentService.getCommentLikeCount(comment.getId()), userLike);
+            boolean userLike = userId != null && commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), userId);
+            return boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()), userLike);
         }).toList();
     }
 
-    // 인기글 등록
-    // 1개월 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개
+    // 실시간 인기글 등록
+    // 1일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개
+    // 30분 스케줄러
     @Transactional
-    @Scheduled(fixedRate = 60000 * 60)
+    @Scheduled(fixedRate = 60000 * 30)
     public void isPostFeatured() throws IOException {
-        postRepository.resetFeaturedPosts();
-        List<Post> featuredPosts = postRepository.findFeaturedPosts();
+        List<Post> existedPosts = postRepository.findByIsRealtimePopularTrue();
+        List<Post> updatedPosts = postRepository.updateRealtimePopularPosts();
 
-        if (featuredPosts.isEmpty()) {
-            return;
-        }
+        // ID 기준으로 비교
+        Set<Long> existedIds = existedPosts.stream()
+                .map(Post::getId)
+                .collect(Collectors.toSet());
 
-        List<Long> featuredPostIds = featuredPosts.stream().map(Post::getId).toList();
-        postRepository.updateFeaturedStatus(featuredPostIds);
+        // 새롭게 추가된 인기글 ID만 추출 (updated에는 있는데 existed에는 없는 것)
+        Set<Long> newlyFeaturedIds = updatedPosts.stream()
+                .map(Post::getId).collect(Collectors.toSet());
+        newlyFeaturedIds.removeAll(existedIds);
 
-        for (Post post : featuredPosts) {
+        // 해당 ID에 해당하는 Post 객체 필터링
+        List<Post> newlyFeaturedPosts = updatedPosts.stream()
+                .filter(post -> newlyFeaturedIds.contains(post.getId()))
+                .toList();
+
+        for (Post post : newlyFeaturedPosts) {
             Long postUserId = post.getUser().getId();
             Long postId = post.getId();
 
-            notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.POST_FEATURED, "🎉 글이 인기글로 선정되었습니다!", "https://grow-farm.com/board/" + postId));
+            notificationService.send(postUserId, notificationUtil.createEventDTO(
+                    NotificationType.POST_FEATURED,
+                    "🎉 글이 인기글로 선정되었습니다!",
+                    "http://localhost:3000/board/" + postId
+            ));
 
             if (post.getUser().getSetting().isPostFeaturedNotification()) {
                 List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
                 for (FcmToken fcmToken : fcmTokens) {
-                    notificationService.sendMessageTo(FcmSendDTO.builder().token(fcmToken.getFcmRegistrationToken()).title("글이 인기글로 선정되었습니다!").body("지금 확인해보세요!").build());
+                    notificationService.sendMessageTo(FcmSendDTO.builder()
+                            .token(fcmToken.getFcmRegistrationToken())
+                            .title("글이 인기글로 선정되었습니다!")
+                            .body("지금 확인해보세요!")
+                            .build());
                 }
             }
         }
     }
+
 
     // 조회수 증가
     @Transactional
@@ -229,7 +283,8 @@ public class PostService {
             List<Long> viewedPostIds = new ArrayList<>();
 
             if (cookies != null) {
-                Optional<Cookie> existingCookie = Arrays.stream(cookies).filter(cookie -> "post_views".equals(cookie.getName())).findFirst();
+                Optional<Cookie> existingCookie = Arrays.stream(cookies)
+                        .filter(cookie -> "post_views".equals(cookie.getName())).findFirst();
 
                 if (existingCookie.isPresent()) {
                     try {
@@ -237,10 +292,8 @@ public class PostService {
                         String jsonValue = new String(Base64.getDecoder().decode(existingCookie.get().getValue()));
                         viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<List<Long>>() {
                         });
-                        log.info("기존 쿠키에서 읽은 조회 이력: {}", viewedPostIds);
                     } catch (Exception e) {
                         // 기존 쿠키 값이 유효하지 않은 경우 빈 리스트로 시작
-                        log.error("쿠키 값 파싱 실패: {}", e.getMessage(), e);
                         viewedPostIds = new ArrayList<>();
                     }
                 }
@@ -249,7 +302,6 @@ public class PostService {
             // 이미 본 게시글이면 추가하지 않음
             if (!viewedPostIds.contains(postId)) {
                 viewedPostIds.add(postId);
-                log.info("조회 이력에 추가: {}", postId);
 
                 // 최대 100개까지만 유지
                 if (viewedPostIds.size() > 100) {
@@ -265,18 +317,14 @@ public class PostService {
                 viewCookie.setPath("/");
                 viewCookie.setHttpOnly(true);
                 response.addCookie(viewCookie);
-                log.info("쿠키 업데이트 완료: {}", viewedPostIds);
-            } else {
-                log.info("이미 조회한 게시글: {}", postId);
             }
-        } catch (Exception e) {
-            // 쿠키 설정 실패 시 로그만 남기고 계속 진행
-            log.error("Failed to update view cookie: {}", e.getMessage(), e);
+        } catch (Exception ignored) {
         }
     }
 
     private boolean hasViewedPost(Cookie[] cookies, Long postId) {
-        if (cookies == null) return false;
+        if (cookies == null)
+            return false;
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -286,22 +334,19 @@ public class PostService {
                     String jsonValue = new String(Base64.getDecoder().decode(cookie.getValue()));
                     List<Long> viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<List<Long>>() {
                     });
-                    boolean contains = viewedPostIds.contains(postId);
-                    log.info("쿠키 확인: postId={}, 조회이력={}, 포함여부={}", postId, viewedPostIds, contains);
-                    return contains;
+                    return viewedPostIds.contains(postId);
                 } catch (Exception e) {
-                    log.error("쿠키 파싱 실패", e);
                     return false;
                 }
             });
         } catch (Exception e) {
-            log.error("Failed to check viewed posts", e);
             return false;
         }
     }
 
     public void reportPost(Long postId, CustomUserDetails userDetails, String content) {
-        Report report = Report.builder().users(userUtil.DTOToUser(userDetails.getUserDTO())).reportType(ReportType.POST).targetId(postId).content(content).build();
+        Report report = Report.builder().users(userUtil.DTOToUser(userDetails.getUserDTO())).reportType(ReportType.POST)
+                .targetId(postId).content(content).build();
 
         reportRepository.save(report);
     }

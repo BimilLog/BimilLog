@@ -13,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /*
  * 게시판 관련 API
@@ -39,19 +37,24 @@ public class PostController {
      * 게시판 조회 API
      * param int page: 페이지 번호
      * param int size: 페이지 사이즈
-     * return: ResponseEntity<Map<String, Object>> 게시글 리스트와 추천 게시글 리스트
-     * 수정일 : 2025-05-03
+     * return: ResponseEntity<Page<SimplePostDTO>> 게시글 리스트
+     * 수정일 : 2025-05-05
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getBoard(@RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<Page<SimplePostDTO>> getBoard(@RequestParam int page, @RequestParam int size) {
         Page<SimplePostDTO> postList = postService.getBoard(page, size);
-        List<SimplePostDTO> featuredPosts = postService.getFeaturedPosts();
+        return ResponseEntity.ok(postList);
+    }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("posts", postList);
-        response.put("featuredPosts", featuredPosts);
-
-        return ResponseEntity.ok(response);
+    /*
+     * 실시간 인기글 목록 조회 API
+     * return : ResponseEntity<List<SimplePostDTO>> 실시간 인기글 목록
+     * 수정일 : 2025-05-05
+     */
+    @GetMapping("/realtime")
+    public ResponseEntity<List<SimplePostDTO>> getRealtimeBoard() {
+        List<SimplePostDTO> realtimePopularPostList = postService.getRealtimePopularPosts();
+        return ResponseEntity.ok(realtimePopularPostList);
     }
 
     /*
@@ -74,18 +77,6 @@ public class PostController {
     }
 
     /*
-     * 게시글 작성 API
-     * param PostReqDTO postReqDTO: 게시글 작성 DTO
-     * return: ResponseEntity<PostDTO> 작성된 게시글 DTO
-     * 수정일 : 2025-05-03
-     */
-    @PostMapping("/write")
-    public ResponseEntity<PostDTO> writePost(@RequestBody PostReqDTO postReqDTO) {
-        PostDTO postDTO = postService.writePost(postReqDTO);
-        return ResponseEntity.ok(postDTO);
-    }
-
-    /*
      * 게시글 조회 API
      * param Long postId: 게시글 ID
      * param Long userId: 유저 ID (optional)
@@ -95,14 +86,27 @@ public class PostController {
      */
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long postId,
-            @RequestParam(required = false) Long userId,
-            HttpServletRequest request,
-            HttpServletResponse response) {
+                                           @RequestParam(required = false) Long userId,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response) {
 
         postService.incrementViewCount(postId, request, response);
 
         PostDTO postDTO = postService.getPost(postId, userId);
 
+        return ResponseEntity.ok(postDTO);
+    }
+
+    /*
+     * 게시글 작성 API
+     * param PostReqDTO postReqDTO: 게시글 작성 DTO
+     * return: ResponseEntity<PostDTO> 작성된 게시글 DTO
+     * 수정일 : 2025-05-03
+     */
+    @PostMapping("/write")
+    public ResponseEntity<PostDTO> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                             @RequestBody PostReqDTO postReqDTO) {
+        PostDTO postDTO = postService.writePost(userDetails, postReqDTO);
         return ResponseEntity.ok(postDTO);
     }
 

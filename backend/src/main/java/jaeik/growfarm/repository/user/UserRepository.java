@@ -5,6 +5,8 @@ import jaeik.growfarm.entity.user.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /*
  * 유저 Repository
  * 유저 관련 데이터베이스 작업을 수행하는 Repository
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<Users, Long> {
 
-    Users findByKakaoId(Long kakaoId);
+    Optional<Users> findByKakaoId(Long kakaoId);
 
     Users findByTokenId(Long tokenId);
 

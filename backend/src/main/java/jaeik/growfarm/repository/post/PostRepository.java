@@ -20,28 +20,24 @@ import java.util.List;
  */
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRepository {
-
+    // 전체 검색
     Page<Post> findAll(Pageable pageable);
-
+    // 제목 검색
     Page<Post> findByTitleContaining(@NotNull String query, Pageable pageable);
-
-    Page<Post> findByTitleContainingOrContentContaining(@NotNull String titleQuery, @NotNull String contentQuery,
-            Pageable pageable);
-
+    // 제목 내용 검색
+    Page<Post> findByTitleContainingOrContentContaining(@NotNull String titleQuery, @NotNull String contentQuery, Pageable pageable);
+    // 작성 농장 검색
     Page<Post> findByUser_farmNameContaining(@NotNull String query, Pageable pageable);
+    // PostCustomRepository 상속 실시간 인기글에 등록
+    List<Post> updateRealtimePopularPosts();
+    // 실시간 인기글 검색
+    List<Post> findByIsRealtimePopularTrue();
+    // 주간 인기글 검색
+    List<Post> findByIsWeeklyPopularTrue();
+    // 명예의 전당 검색
+    List<Post> findByIsHallOfFameTrue();
 
-    List<Post> findFeaturedPosts();
-
-    List<Post> findByIsFeaturedIsTrue();
-
-    @Modifying
-    @Query(nativeQuery = true, value = "UPDATE post SET is_featured = false")
-    void resetFeaturedPosts();
-
-    @Modifying
-    @Query(nativeQuery = true, value = "UPDATE post SET is_Featured = true WHERE post_id IN :postIds")
-    void updateFeaturedStatus(@Param("postIds") List<Long> list);
-
+    // 조회수 증가
     @Modifying
     @Query(nativeQuery = true, value = "UPDATE post SET views = views + 1 WHERE post_id = :postId")
     void incrementViews(@Param("postId") Long postId);
@@ -52,15 +48,4 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
     // 해당 유저가 추천 누른 글 목록 반환
     Page<Post> findByLikedPosts(Long userId, Pageable pageable);
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(nativeQuery = true, value = "DELETE FROM post_like WHERE post_id IN (SELECT post_id FROM post WHERE user_id = :userId)")
-    void deletePostLikesByPostUserIds(@Param("userId") Long userId);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(nativeQuery = true, value = "DELETE FROM post_like WHERE user_id = :userId")
-    void deletePostLikesByUserId(@Param("userId") Long userId);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(nativeQuery = true, value = "DELETE FROM post WHERE user_id = :userId")
-    void deletePostsByUserId(@Param("userId") Long userId);
 }
