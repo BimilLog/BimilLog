@@ -26,7 +26,11 @@ public class PostDTO {
 
     private boolean is_notice;
 
-    private boolean is_featured;
+    private boolean is_RealtimePopular;
+
+    private boolean is_WeeklyPopular;
+
+    private boolean is_HallOfFame;
 
     private LocalDateTime createdAt;
 
@@ -34,9 +38,7 @@ public class PostDTO {
 
     private boolean userLike;
 
-    public PostDTO(Long postId, Long userId, String farmName, String title, String content, int views, int likes,
-            boolean is_notice, boolean is_featured, LocalDateTime createdAt, List<CommentDTO> comments,
-            boolean userLike) {
+    public PostDTO(Long postId, Long userId, String farmName, String title, String content, int views, int likes, boolean is_notice, boolean is_RealtimePopular, boolean is_WeeklyPopular, boolean is_HallOfFame, LocalDateTime createdAt, List<CommentDTO> comments, boolean userLike) {
         this.postId = postId;
         this.userId = userId;
         this.farmName = farmName;
@@ -45,7 +47,9 @@ public class PostDTO {
         this.views = views;
         this.likes = likes;
         this.is_notice = is_notice;
-        this.is_featured = is_featured;
+        this.is_RealtimePopular = is_RealtimePopular;
+        this.is_WeeklyPopular = is_WeeklyPopular;
+        this.is_HallOfFame = is_HallOfFame;
         this.createdAt = createdAt;
         this.comments = comments;
         this.userLike = userLike;

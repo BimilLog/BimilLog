@@ -130,16 +130,6 @@ public class CommentService {
         }
     }
 
-    // 유저의 해당 댓글 추천 여부 확인
-    public boolean isCommentLiked(Long commentId, Long userId) {
-        return commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
-    }
-
-    // 해당 댓글의 추천 수 조회
-    public int getCommentLikeCount(Long commentId) {
-        return commentLikeRepository.countByCommentId(commentId);
-    }
-
     public void reportComment(Long postId, Long commentId, CustomUserDetails userDetails, String content) {
         Report report = Report.builder()
                 .users(userUtil.DTOToUser(userDetails.getUserDTO()))
@@ -149,8 +139,6 @@ public class CommentService {
                 .build();
 
         reportRepository.save(report);
-
-
     }
 
     @Transactional

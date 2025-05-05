@@ -7,7 +7,6 @@ import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.entity.board.Comment;
 import jaeik.growfarm.entity.board.Post;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BoardUtil {
 
-    private final UserRepository userRepository;
 
     // 게시글 목록 보기 시 사용하는 변환 로직
     public SimplePostDTO postToSimpleDTO(Post post, int commentCount, int likes) {
@@ -35,19 +33,23 @@ public class BoardUtil {
                 likes,
                 post.getViews(),
                 post.getCreatedAt(),
-                post.isFeatured(),
-                post.isNotice()
+                post.isNotice(),
+                post.isRealtimePopular(),
+                post.isWeeklyPopular(),
+                post.isHallOfFame()
         );
     }
 
-    public Post postReqDTOToPost(PostReqDTO postReqDTO) {
+    public Post postReqDTOToPost(Users user, PostReqDTO postReqDTO) {
         return Post.builder()
-                .user(getUserByPostReqDTO(postReqDTO))
+                .user(user)
                 .title(postReqDTO.getTitle())
                 .content(postReqDTO.getContent())
                 .views(0)
                 .isNotice(false)
-                .isFeatured(false)
+                .isRealtimePopular(false)
+                .isWeeklyPopular(false)
+                .isWeeklyPopular(false)
                 .build();
     }
 
@@ -61,7 +63,9 @@ public class BoardUtil {
                 post.getViews(),
                 likes,
                 post.isNotice(),
-                post.isFeatured(),
+                post.isRealtimePopular(),
+                post.isWeeklyPopular(),
+                post.isHallOfFame(),
                 post.getCreatedAt(),
                 comments,
                 userLike
@@ -90,11 +94,5 @@ public class BoardUtil {
                 .content(commentDTO.getContent())
                 .isFeatured(commentDTO.is_featured())
                 .build();
-    }
-
-
-    private Users getUserByPostReqDTO(PostReqDTO postReqDTO) {
-        return userRepository.findById(postReqDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + postReqDTO.getUserId()));
     }
 }

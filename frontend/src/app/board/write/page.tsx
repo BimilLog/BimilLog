@@ -58,7 +58,6 @@ export default function WritePage() {
     setError(null);
 
     try {
-      // API 호출
       const response = await fetch(`${API_BASE}/board/write`, {
         method: "POST",
         headers: {
@@ -72,8 +71,8 @@ export default function WritePage() {
       });
 
       if (response.ok) {
-        const postId = await response.text();
-        // 작성 완료 후 해당 게시글로 이동
+        const data = await response.json();
+        const postId = data.postId;
         router.push(`/board/${postId}`);
       } else {
         const errorText = await response.text();
@@ -82,9 +81,9 @@ export default function WritePage() {
     } catch (error) {
       console.error("게시글 작성 오류:", error);
       setError(
-        error instanceof Error
-          ? error.message
-          : "게시글 작성 중 오류가 발생했습니다."
+          error instanceof Error
+              ? error.message
+              : "게시글 작성 중 오류가 발생했습니다."
       );
     } finally {
       setIsLoading(false);

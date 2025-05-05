@@ -12,7 +12,9 @@ import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.jwt.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
+import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.BoardUtil;
@@ -39,8 +41,9 @@ public class UserService {
     private final CommentRepository commentRepository;
     private final BoardUtil boardUtil;
     private final CommentService commentService;
-    private final PostService postService;
     private final ReportRepository reportRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final CommentLikeRepository commentLikeRepository;
     private final KakaoService kakaoService;
     private final UserUtil userUtil;
 
@@ -51,8 +54,8 @@ public class UserService {
         Page<Post> posts = postRepository.findByUserId(userDetails.getUserDTO().getUserId(), pageable);
 
         return posts.map(
-                post -> boardUtil.postToSimpleDTO(post, postService.getCommentCount(post.getId()),
-                        postService.getLikeCount(post.getId())));
+                post -> boardUtil.postToSimpleDTO(post, commentRepository.countByPostId(post.getId()),
+                        postLikeRepository.countByPostId(post.getId())));
     }
 
     // 해당 유저의 작성 댓글 목록 반환
@@ -62,7 +65,7 @@ public class UserService {
         Page<Comment> comments = commentRepository.findByUserId(userDetails.getUserDTO().getUserId(), pageable);
 
         return comments.map(
-                comment -> boardUtil.commentToDTO(comment, commentService.getCommentLikeCount(comment.getId()), false));
+                comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()), false));
     }
 
     // 농장이름 변경
@@ -86,8 +89,8 @@ public class UserService {
         Page<Post> posts = postRepository.findByLikedPosts(userDetails.getUserDTO().getUserId(), pageable);
 
         return posts.map(
-                post -> boardUtil.postToSimpleDTO(post, postService.getCommentCount(post.getId()),
-                        postService.getLikeCount(post.getId())));
+                post -> boardUtil.postToSimpleDTO(post, commentRepository.countByPostId(post.getId()),
+                        postLikeRepository.countByPostId(post.getId())));
     }
 
     public Page<CommentDTO> getLikedComments(int page, int size, CustomUserDetails userDetails) {
@@ -95,7 +98,7 @@ public class UserService {
         Page<Comment> comments = commentRepository.findByLikedComments(userDetails.getUserDTO().getUserId(), pageable);
 
         return comments.map(
-                comment -> boardUtil.commentToDTO(comment, commentService.getCommentLikeCount(comment.getId()), true));
+                comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()), true));
     }
 
     public void suggestion(ReportDTO reportDTO) {

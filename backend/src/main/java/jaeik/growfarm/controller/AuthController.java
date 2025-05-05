@@ -88,7 +88,7 @@ public class AuthController {
      * 자체 서비스와 카카오 모두 회원탈퇴 한다. 쿠키를 삭제한다.
      * 수정일 : 2025-05-03
      */
-    @GetMapping("/withdraw")
+    @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
             List<ResponseCookie> cookies = authService.withdraw(userDetails);
             return ResponseEntity.ok()
@@ -104,7 +104,7 @@ public class AuthController {
      * 현재 로그인한 사용자의 정보를 조회하여 프론트에 반환한다.
      * 수정일 : 2025-05-03
      */
-    @GetMapping("/me")
+    @PostMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다");

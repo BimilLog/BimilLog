@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 /*
@@ -26,20 +27,40 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
-    // 1개월 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개
+    // 1일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개를 실시간 인기글로 등록
     @Override
-    public List<Post> findFeaturedPosts() {
+    public List<Post> updateRealtimePopularPosts() {
         QPost post = QPost.post;
         QPostLike postLike = QPostLike.postLike;
 
-        return jpaQueryFactory
-                .selectFrom(post)
-                .where(post.createdAt.after(LocalDateTime.now().minusMonths(1)))
-                .leftJoin(postLike)
-                .on(post.id.eq(postLike.post.id))
+        jpaQueryFactory.update(post)
+                .set(post.isRealtimePopular, false)
+                .execute();
+
+        List<Long> popularPostIds = jpaQueryFactory
+                .select(post.id)
+                .from(post)
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .where(post.createdAt.after(LocalDateTime.now().minusDays(1)))
                 .groupBy(post.id)
                 .orderBy(postLike.count().desc())
                 .limit(5)
+                .fetch();
+
+        if (!popularPostIds.isEmpty()) {
+            jpaQueryFactory.update(post)
+                    .set(post.isRealtimePopular, true)
+                    .where(post.id.in(popularPostIds))
+                    .execute();
+        }
+
+        if (popularPostIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return jpaQueryFactory
+                .selectFrom(post)
+                .where(post.id.in(popularPostIds))
                 .fetch();
     }
 

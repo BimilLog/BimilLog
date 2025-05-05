@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -29,22 +28,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
 
     // 해당 유저가 추천 누른 댓글 목록 반환
     Page<Comment> findByLikedComments(Long userId, Pageable pageable);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(nativeQuery = true, value = "DELETE FROM comment_like WHERE comment_id IN (SELECT comment_id FROM comment WHERE user_id = :userId)")
-    void deleteCommentLikesByCommentUserIds(@Param("userId") Long userId);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(nativeQuery = true, value = "DELETE FROM comment_like WHERE user_id = :userId")
-    void deleteCommentLikesByUserId(@Param("userId") Long userId);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(nativeQuery = true, value = "DELETE FROM comment WHERE post_id IN (SELECT post_id FROM post WHERE user_id = :userId)")
-    void deleteCommentsByPostUserIds(@Param("userId") Long userId);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(nativeQuery = true, value = "DELETE FROM comment WHERE user_id = :userId")
-    void deleteCommentsByUserId(@Param("userId") Long userId);
 
     @Modifying
     @Query("UPDATE Comment c SET c.isFeatured = false")

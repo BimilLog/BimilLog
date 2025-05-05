@@ -79,7 +79,7 @@ export default function MyPage() {
     setIsWithdrawing(true);
     try {
       const response = await fetch(`${API_BASE}/auth/withdraw`, {
-        method: "GET",
+        method: "POST",
         credentials: "include",
       });
 

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 // 게시글 엔티티
 @Entity
@@ -22,6 +24,7 @@ public class Post extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id")
     private Users user;
 
@@ -39,11 +42,20 @@ public class Post extends BaseEntity {
 
     @NotNull
     @Column(nullable = false)
-    private boolean isFeatured;
+    private boolean isNotice;
 
     @NotNull
     @Column(nullable = false)
-    private boolean isNotice;
+    private boolean isRealtimePopular;
+
+    @NotNull
+    @Column(nullable = false)
+    private boolean isWeeklyPopular;
+
+    @NotNull
+    @Column(nullable = false)
+    private boolean isHallOfFame;
+
 
     // 게시글 수정
     public void updatePost(PostDTO postDTO) {

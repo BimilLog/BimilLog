@@ -16,7 +16,5 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
 
     Optional<Token> findById(Long tokenId);
 
-    Token findByKakaoAccessToken(String kakaoAccessToken);
-
     Token findByJwtRefreshToken(String jwtRefreshToken);
 }

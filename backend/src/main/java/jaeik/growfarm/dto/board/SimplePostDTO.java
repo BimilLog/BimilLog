@@ -25,12 +25,15 @@ public class SimplePostDTO {
 
     private LocalDateTime createdAt;
 
-    private boolean is_featured;
-
     private boolean is_notice;
 
+    private boolean is_RealtimePopular;
 
-    public SimplePostDTO(Long postId, Long userId, String farmName, String title, int commentCount, int likes, int views, LocalDateTime createdAt, boolean is_featured, boolean is_notice) {
+    private boolean is_WeeklyPopular;
+
+    private boolean is_HallOfFame;
+
+    public SimplePostDTO(Long postId, Long userId, String farmName, String title, int commentCount, int likes, int views, LocalDateTime createdAt, boolean is_notice, boolean isRealtimePopular, boolean isWeeklyPopular, boolean isHallOfFame) {
         this.postId = postId;
         this.userId = userId;
         this.farmName = farmName;
@@ -39,7 +42,9 @@ public class SimplePostDTO {
         this.likes = likes;
         this.views = views;
         this.createdAt = createdAt;
-        this.is_featured = is_featured;
         this.is_notice = is_notice;
+        this.is_RealtimePopular = isRealtimePopular;
+        this.is_WeeklyPopular = isWeeklyPopular;
+        this.is_HallOfFame = isHallOfFame;
     }
 }

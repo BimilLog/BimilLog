@@ -65,7 +65,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
     
     try {
       const response = await fetch(API_ENDPOINTS.ME, {
-        method: 'GET',
+        method: 'POST',
         credentials: 'include',
       });
   

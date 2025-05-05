@@ -19,12 +19,12 @@ public class Users extends BaseEntity {
     @Column(name = "user_id")
     private Long id;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "token_id", unique = true)
     private Token token;
 
     @NotNull
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "setting_id", unique = true, nullable = false)
     private Setting setting;
 
