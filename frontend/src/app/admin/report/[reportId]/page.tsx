@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { ReportDTO, UserRole } from "@/components/types/schema";
 import Link from "next/link";
+import { notFound } from 'next/navigation';
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -21,8 +22,7 @@ function ReportDetailContent({ reportId }: { reportId: string }) {
   // Admin 권한 체크
   useEffect(() => {
     if (user && user.role !== UserRole.ADMIN) {
-      alert("관리자만 접근할 수 있는 페이지입니다.");
-      router.push("/");
+        notFound();
     }
   }, [user, router]);
 

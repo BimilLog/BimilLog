@@ -2,8 +2,4 @@ spring:
   application:
     name: growfarm
   profiles:
-    include: prod
-
-logging:
-  level:
-    jaeik.growfarm: DEBUG
+    include: secret

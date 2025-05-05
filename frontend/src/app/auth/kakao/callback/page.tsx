@@ -54,42 +54,34 @@ function KakaoCallbackContent() {
 
       // 알림 권한 확인
       if (!("Notification" in window)) {
-        console.log("이 브라우저는 알림을 지원하지 않습니다.");
         return;
       }
 
       // 권한 요청
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        console.log("알림 권한이 거부되었습니다.");
         return;
       }
 
-      console.log("알림 권한이 허용되었습니다. Firebase 초기화 중...");
 
       // 간소화된 구조로 토큰 요청 시도
       const app = initializeApp(firebaseConfig);
       const messaging = getMessaging(app);
 
       // 서비스 워커 등록
-      console.log("서비스 워커 등록 시도...");
       const swRegistration = await navigator.serviceWorker.register(
         "/firebase-messaging-sw.js"
       );
-      console.log("서비스 워커 등록 성공:", swRegistration);
 
       // FCM 토큰 요청 (VAPID 키에 문제가 있을 수 있음)
-      console.log("FCM 토큰 요청 시작...");
       const token = await getToken(messaging, {
         serviceWorkerRegistration: swRegistration,
         // VAPID 키를 일시적으로 제거하고 테스트
       });
 
-      console.log("FCM 토큰 획득 성공:", token);
 
       // 서버로 전송
       if (token) {
-        console.log(`토큰을 서버로 전송: 기기타입=${deviceType}`);
         await fetch(
           `${API_BASE}/notification/fcm/token?deviceType=${deviceType}`,
           {
@@ -99,7 +91,6 @@ function KakaoCallbackContent() {
             credentials: "include",
           }
         );
-        console.log("FCM 토큰 서버 전송 완료");
       }
     } catch (error) {
       // 오류 발생해도 로그인 진행에 영향 없음

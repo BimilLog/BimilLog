@@ -2,7 +2,7 @@ package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.farm.CropDTO;
 import jaeik.growfarm.dto.farm.VisitCropDTO;
-import jaeik.growfarm.global.jwt.CustomUserDetails;
+import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.FarmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

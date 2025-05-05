@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import { notFound } from 'next/navigation';
 import { ReportDTO, ReportType, UserRole } from "@/components/types/schema";
 
 const API_BASE = "https://grow-farm.com/api";
@@ -21,6 +21,7 @@ export default function AdminPage() {
   const [showBanModal, setShowBanModal] = useState(false);
   const [banReason, setBanReason] = useState("");
   const [isBanSubmitting, setIsBanSubmitting] = useState(false);
+
 
   // Admin 권한 체크
   useEffect(() => {
@@ -67,8 +68,7 @@ export default function AdminPage() {
     }
 
     if (user.role !== UserRole.ADMIN) {
-      alert("관리자만 접근할 수 있는 페이지입니다.");
-      router.push("/");
+      notFound();
       return;
     }
 

@@ -10,7 +10,7 @@ import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.global.jwt.CustomUserDetails;
+import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;

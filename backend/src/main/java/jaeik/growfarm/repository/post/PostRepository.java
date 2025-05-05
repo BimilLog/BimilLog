@@ -29,7 +29,11 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
     // 작성 농장 검색
     Page<Post> findByUser_farmNameContaining(@NotNull String query, Pageable pageable);
     // PostCustomRepository 상속 실시간 인기글에 등록
-    List<Post> updateRealtimePopularPosts();
+    void updateRealtimePopularPosts();
+    // PostCustomRepository 상속 주간 인기글에 등록
+    List<Post> updateWeeklyPopularPosts();
+    // PostCustomRepository 상속 명예의 전당에 등록
+    List<Post> updateHallOfFamePosts();
     // 실시간 인기글 검색
     List<Post> findByIsRealtimePopularTrue();
     // 주간 인기글 검색

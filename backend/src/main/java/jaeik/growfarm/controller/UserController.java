@@ -5,7 +5,7 @@ import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
-import jaeik.growfarm.global.jwt.CustomUserDetails;
+import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

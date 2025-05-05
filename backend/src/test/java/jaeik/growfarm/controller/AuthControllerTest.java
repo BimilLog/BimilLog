@@ -1,7 +1,7 @@
 package jaeik.growfarm.controller;
 
 
-import jaeik.growfarm.global.jwt.JwtTokenProvider;
+import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.repository.user.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.UserUtil;
