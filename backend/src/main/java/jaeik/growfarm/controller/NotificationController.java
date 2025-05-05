@@ -3,7 +3,7 @@ package jaeik.growfarm.controller;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
 import jaeik.growfarm.entity.notification.DeviceType;
-import jaeik.growfarm.global.jwt.CustomUserDetails;
+import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

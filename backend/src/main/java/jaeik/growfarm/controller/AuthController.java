@@ -1,7 +1,7 @@
 package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.user.FarmNameReqDTO;
-import jaeik.growfarm.global.jwt.CustomUserDetails;
+import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

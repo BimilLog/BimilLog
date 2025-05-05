@@ -3,7 +3,7 @@ package jaeik.growfarm.controller;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
-import jaeik.growfarm.global.jwt.CustomUserDetails;
+import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -53,8 +53,30 @@ public class PostController {
      */
     @GetMapping("/realtime")
     public ResponseEntity<List<SimplePostDTO>> getRealtimeBoard() {
-        List<SimplePostDTO> realtimePopularPostList = postService.getRealtimePopularPosts();
-        return ResponseEntity.ok(realtimePopularPostList);
+        List<SimplePostDTO> realtimePopularPosts = postService.getRealtimePopularPosts();
+        return ResponseEntity.ok(realtimePopularPosts);
+    }
+
+    /*
+     * 주간 인기글 목록 조회 API
+     * return : ResponseEntity<List<SimplePostDTO>> 주간 인기글 목록
+     * 수정일 : 2025-05-05
+     */
+    @GetMapping("/weekly")
+    public ResponseEntity<List<SimplePostDTO>> getWeeklyBoard() {
+        List<SimplePostDTO> weeklyPopularPosts = postService.getWeeklyPopularPosts();
+        return ResponseEntity.ok(weeklyPopularPosts);
+    }
+
+    /*
+     * 명예의 전당 목록 조회 API
+     * return : ResponseEntity<List<SimplePostDTO>> 명예의 전당 목록
+     * 수정일 : 2025-05-05
+     */
+    @GetMapping("/fame")
+    public ResponseEntity<List<SimplePostDTO>> getHallOfFameBoard() {
+        List<SimplePostDTO> hallOfFamePosts = postService.getHallOfFamePosts();
+        return ResponseEntity.ok(hallOfFamePosts);
     }
 
     /*

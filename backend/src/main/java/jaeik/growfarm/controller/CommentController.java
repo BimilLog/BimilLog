@@ -1,7 +1,7 @@
 package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.board.CommentDTO;
-import jaeik.growfarm.global.jwt.CustomUserDetails;
+import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

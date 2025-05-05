@@ -200,13 +200,6 @@ const Navigation = () => {
     // 처리할 ID가 없으면 API 호출하지 않음
     if (readIds.length === 0 && deletedIds.length === 0) return;
 
-    console.log(
-      "배치 처리 실행 - 읽음:",
-      readIds.length,
-      "삭제:",
-      deletedIds.length
-    );
-
     // 현재 상태를 복사하고 상태 초기화
     const currentReadIds = [...readIds];
     const currentDeletedIds = [...deletedIds];
@@ -236,10 +229,6 @@ const Navigation = () => {
         setReadIds((prev) => [...prev, ...currentReadIds]);
         setDeletedIds((prev) => [...prev, ...currentDeletedIds]);
       } else {
-        console.log("배치 처리 성공:", {
-          readIds: currentReadIds,
-          deletedIds: currentDeletedIds,
-        });
 
         // 성공적으로 서버에 상태가 반영되었으므로 이제 로컬 스토리지에서도 삭제 처리된 알림을 제거
         try {
@@ -289,11 +278,9 @@ const Navigation = () => {
   const setupSSEConnection = useCallback(() => {
     // 이미 연결되어 있으면 중복 연결하지 않음
     if (isConnectedRef.current || eventSourceRef.current) {
-      console.log("SSE 이미 연결됨, 중복 연결 방지");
       return; // 중복 연결 시 함수 종료
     }
 
-    console.log("SSE 연결 시작");
 
     // SSE 연결 설정
     const eventSource = new EventSource(
@@ -304,12 +291,10 @@ const Navigation = () => {
     );
 
     eventSource.onmessage = (event) => {
-      console.log("기본 메시지 수신:", event.data);
     };
 
     // 이벤트 리스너 등록 - INITIATE는 화면에 표시하지 않음
     eventSource.addEventListener("INITIATE", (event) => {
-      console.log("초기화 이벤트:", event.data);
       // INITIATE 이벤트는 화면에 알림으로 표시하지 않음
 
       // 첫 연결 성공 시 연결 상태 저장
@@ -816,9 +801,7 @@ const Navigation = () => {
                               })
                                 .then((response) => {
                                   if (response.ok) {
-                                    console.log("모두 읽음 처리 성공");
                                   } else {
-                                    console.error("모두 읽음 처리 실패");
                                     // 실패 시에도 UI는 이미 변경되었으므로 배치 처리를 위해 ID 저장
                                     setReadIds((prev) => [
                                       ...prev,

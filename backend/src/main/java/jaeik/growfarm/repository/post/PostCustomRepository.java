@@ -13,7 +13,11 @@ import java.util.List;
  */
 public interface PostCustomRepository {
 
-    List<Post> updateRealtimePopularPosts();
+    void updateRealtimePopularPosts();
+
+    List<Post> updateWeeklyPopularPosts();
+
+    List<Post> updateHallOfFamePosts();
 
     Page<Post> findByLikedPosts(Long userId, Pageable pageable);
 

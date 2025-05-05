@@ -3,7 +3,7 @@ package jaeik.growfarm.service;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.global.config.KakaoKeyVO;
+import jaeik.growfarm.global.auth.KakaoKeyVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -58,8 +58,6 @@ public class KakaoService {
             throw new RuntimeException("토큰 발급 실패");
         }
 
-        log.info(tokenDTO.getKakaoAccessToken());
-        log.info(tokenDTO.getKakaoRefreshToken());
         return tokenDTO;
     }
 
@@ -79,7 +77,6 @@ public class KakaoService {
                 .bodyToMono(String.class);
 
         String result = response.block();
-        log.info(result);
     }
 
     // 카카오계정과 함께 로그아웃
@@ -207,8 +204,6 @@ public class KakaoService {
         if (responseMap == null) {
             throw new RuntimeException("사용자 정보 가져오기 실패");
         }
-
-        log.info("카카오 API 응답: {}", responseMap);
 
         KakaoInfoDTO kakaoInfoDTO = new KakaoInfoDTO();
         kakaoInfoDTO.setKakaoId(Long.parseLong(responseMap.get("id").toString()));

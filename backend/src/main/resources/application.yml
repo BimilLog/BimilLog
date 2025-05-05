@@ -3,7 +3,3 @@ spring:
     name: growfarm
   profiles:
     include: secret
-
-logging:
-  level:
-    jaeik.growfarm: DEBUG

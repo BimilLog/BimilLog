@@ -1,7 +1,9 @@
-package jaeik.growfarm.global.jwt;
+package jaeik.growfarm.global.filter;
 
 import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.entity.user.Token;
+import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.repository.user.TokenRepository;
 import jaeik.growfarm.service.KakaoService;
 import jaeik.growfarm.util.UserUtil;
@@ -35,8 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final KakaoService kakaoService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         // accessToken 추출 및 검증
         String accessToken = extractTokenFromCookie(request, JwtTokenProvider.ACCESS_TOKEN_COOKIE);
