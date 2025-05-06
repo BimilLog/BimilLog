@@ -1,5 +1,6 @@
 package jaeik.growfarm.dto.board;
 
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,8 +14,10 @@ public class SimplePostDTO {
 
     private Long userId;
 
+    @Size(max = 8, message = "농장 이름은 최대 8글자 까지 입력 가능합니다.")
     private String farmName;
 
+    @Size(max = 30, message = "글 내용은 최대 30자 까지 입력 가능합니다.")
     private String title;
 
     private int commentCount;

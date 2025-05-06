@@ -3,6 +3,7 @@ package jaeik.growfarm.controller;
 import jaeik.growfarm.dto.user.FarmNameReqDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -57,7 +58,7 @@ public class AuthController {
      * 수정일 : 2025-04-28
      */
     @PostMapping("/signUp")
-    public ResponseEntity<Void> SignUp(@RequestBody FarmNameReqDTO request) {
+    public ResponseEntity<Void> SignUp(@RequestBody @Valid FarmNameReqDTO request) {
         List<ResponseCookie> cookies = authService.signUp(request.getTokenId(), request.getFarmName());
         return ResponseEntity.ok()
                 .header("Set-Cookie", cookies.get(0).toString())

@@ -384,6 +384,17 @@ export default function FarmPage() {
   const handlePlantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 유효성 검사
+    if (plantForm.nickname.trim().length > 8) {
+      alert("작성자 이름은 8글자 이하여야 합니다.");
+      return;
+    }
+
+    if (plantForm.message.length > 255) {
+      alert("메시지는 255자 이내로 작성해주세요.");
+      return;
+    }
+
     setIsPlanting(true);
 
     try {
@@ -817,9 +828,12 @@ export default function FarmPage() {
                       value={plantForm.nickname}
                       onChange={handlePlantFormChange}
                       disabled={isPlanting}
-                      maxLength={15}
+                      maxLength={8}
                       required
                     />
+                    <div className="form-text">
+                      작성자 이름은 8글자 이내로 입력해주세요.
+                    </div>
                   </div>
 
                   <div className="mb-3">
@@ -835,11 +849,11 @@ export default function FarmPage() {
                       value={plantForm.message}
                       onChange={handlePlantFormChange}
                       disabled={isPlanting}
-                      maxLength={200}
+                      maxLength={255}
                       required
                     />
                     <div className="form-text">
-                      {plantForm.message.length}/200자
+                      {plantForm.message.length}/255자
                     </div>
                   </div>
 

@@ -45,6 +45,11 @@ export default function AskPage() {
       return;
     }
 
+    if (formData.content.length > 500) {
+      alert("내용은 500자 이내로 작성해주세요.");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(false);
 
@@ -120,8 +125,12 @@ export default function AskPage() {
                       placeholder="내용을 입력하세요"
                       style={{ height: "10rem" }}
                       required
+                      maxLength={500}
                     ></textarea>
                     <label htmlFor="content">내용</label>
+                    <div className="form-text text-end">
+                      {formData.content.length}/500자
+                    </div>
                   </div>
 
                   {submitSuccess && (

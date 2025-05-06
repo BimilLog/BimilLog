@@ -36,12 +36,12 @@ public class Crop extends BaseEntity {
     private CropType cropType;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(nullable = false, length = 8) // 익명 닉네임 8자 까지 허용
     private String nickname;
 
     @NotNull
     @Column(nullable = false)
-    private String message;
+    private String message; // 익명 메시지 255자 까지 허용
 
     @NotNull
     @Column(nullable = false)

@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
 import fetchClient from "@/util/fetchClient";
+import { FarmNameReqDTO } from "@/components/types/schema";
 
 const API_BASE = "http://localhost:8080";
 
@@ -23,6 +24,11 @@ export default function MyPage() {
       return;
     }
 
+    if (trimmedFarmName.length > 8) {
+      alert("농장 이름은 8글자 이하여야 합니다.");
+      return;
+    }
+
     if (!user) return;
 
     if (!confirm("농장이름을 바꾸면 다시 로그인해야합니다.")) {
@@ -32,13 +38,14 @@ export default function MyPage() {
     setIsLoading(true);
 
     try {
-      const queryString = new URLSearchParams({
+      const requestBody: Partial<FarmNameReqDTO> = {
         farmName: trimmedFarmName,
-      }).toString();
-
-      const response = await fetchClient(
-        `${API_BASE}/user/mypage/updatefarm?${queryString}`
-      );
+      };
+      const response = await fetchClient(`${API_BASE}/user/mypage/updatefarm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
 
       await response.text();
 
@@ -153,7 +160,11 @@ export default function MyPage() {
                         onChange={(e) => setNewFarmName(e.target.value)}
                         required
                         disabled={isLoading || isWithdrawing}
+                        maxLength={8}
                       />
+                      <div className="form-text">
+                        농장 이름은 8글자 이내로 입력해주세요.
+                      </div>
                       <div className="hstack gap-2">
                         <button
                           type="submit"

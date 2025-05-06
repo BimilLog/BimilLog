@@ -7,6 +7,7 @@ import jaeik.growfarm.entity.crop.Crop;
 import jaeik.growfarm.entity.notification.FcmToken;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.farm.CropRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -80,9 +81,18 @@ public class FarmService {
         }
     }
 
-    public void deleteCrop(Long cropId) {
+    public void deleteCrop(CustomUserDetails userDetails, Long cropId) {
+        if (userDetails == null) {
+            throw new RuntimeException("다시 로그인 해 주세요.");
+        }
+
         Crop crop = cropRepository.findById(cropId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 농작물을 찾을 수 없습니다."));
+
+        if (!crop.getUsers().getId().equals(userDetails.getUserDTO().getUserId())) {
+            throw new RuntimeException("본인 농장의 농작물만 삭제할 수 있습니다.");
+        }
+
         cropRepository.delete(crop);
     }
 }

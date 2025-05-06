@@ -4,9 +4,11 @@ import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
+import jaeik.growfarm.dto.user.FarmNameReqDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -100,15 +102,15 @@ public class UserController {
 
     /*
      * 농장 이름 변경 API
-     * param String farmName: 변경할 농장 이름
+     * param FarmNameReqDTO farmNameReqDTO: 농장 이름 DTO
      * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
      * return: ResponseEntity<String> 농장 이름 변경 완료 메시지
-     * 수정일 : 2025-05-03
+     * 수정일 : 2025-05-05
      */
-    @GetMapping("/mypage/updatefarm")
-    public ResponseEntity<String> updateFarmName(@RequestParam String farmName,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        userService.updateFarmName(farmName, userDetails);
+    @PostMapping("/mypage/updatefarm")
+    public ResponseEntity<String> updateFarmName(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                 @RequestBody @Valid FarmNameReqDTO farmNameReqDTO) {
+        userService.updateFarmName(farmNameReqDTO.getFarmName(), userDetails);
         return ResponseEntity.ok("농장 이름이 변경되었습니다.");
     }
 
@@ -116,11 +118,12 @@ public class UserController {
      * 건의하기 API
      * param ReportDTO reportDTO: 건의 내용 DTO
      * return: ResponseEntity<String> 건의 완료 메시지
-     * 수정일 : 2025-05-03
+     * 수정일 : 2025-05-06
      */
     @PostMapping("/suggestion")
-    public ResponseEntity<String> suggestion(@RequestBody ReportDTO reportDTO) {
-        userService.suggestion(reportDTO);
+    public ResponseEntity<String> suggestion(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                             @RequestBody ReportDTO reportDTO) {
+        userService.suggestion(userDetails, reportDTO);
         return ResponseEntity.ok("건의가 완료되었습니다.");
     }
 

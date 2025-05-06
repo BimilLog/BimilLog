@@ -35,6 +35,11 @@ export interface CropDTO {
     height: number;
 }
 
+export interface FarmNameReqDTO {
+    tokenId : number;
+    farmName: string;
+}
+
 export const enum CropType {
     POTATO = "POTATO",
     CARROT = "CARROT",
@@ -143,4 +148,6 @@ export enum DeviceType {
     MOBILE = "MOBILE",
     TABLET = "TABLET",
 }
+
+
 

@@ -2,6 +2,7 @@ package jaeik.growfarm.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
@@ -423,9 +424,9 @@ public class PostService {
         }
     }
 
-    public void reportPost(Long postId, CustomUserDetails userDetails, String content) {
+    public void reportPost(Long postId, CustomUserDetails userDetails, ReportDTO reportDTO) {
         Report report = Report.builder().users(userUtil.DTOToUser(userDetails.getUserDTO())).reportType(ReportType.POST)
-                .targetId(postId).content(content).build();
+                .targetId(postId).content(reportDTO.getContent()).build();
 
         reportRepository.save(report);
     }
