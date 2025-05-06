@@ -49,11 +49,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/board/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/auth/login", "/auth/signUp", "/auth/health").permitAll()
-                        .requestMatchers("/farm/{farmName}").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "api/board/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/auth/login", "/api/auth/signUp", "/api/auth/health").permitAll()
+                        .requestMatchers("/api/farm/{farmName}").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(headerCheckFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -65,7 +64,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3000/"));
+        configuration.setAllowedOrigins(List.of("https://grow-farm.com", "https://grow-farm.com/"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Set-Cookie"));

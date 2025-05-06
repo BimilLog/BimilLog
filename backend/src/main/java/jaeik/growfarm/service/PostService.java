@@ -275,7 +275,7 @@ public class PostService {
             notificationService.send(postUserId, notificationUtil.createEventDTO(
                     NotificationType.POST_FEATURED,
                     "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
-                    "http://localhost:3000/board/" + postId
+                    "https://grow-farm.com/board/" + postId
             ));
 
             if (post.getUser().getSetting().isPostFeaturedNotification()) {
@@ -322,7 +322,7 @@ public class PostService {
             notificationService.send(postUserId, notificationUtil.createEventDTO(
                     NotificationType.POST_FEATURED,
                     "🎉 회원님의 글이 명예의 전당에 등록 되었습니다!",
-                    "http://localhost:3000/board/" + postId
+                    "https://grow-farm.com/board/" + postId
             ));
 
             if (post.getUser().getSetting().isPostFeaturedNotification()) {
