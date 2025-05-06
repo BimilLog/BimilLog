@@ -29,7 +29,6 @@ const PopularPostItem = ({ post }: { post: SimplePostDTO }) => (
         </span>
         <span className="badge bg-light text-dark">👍 {post.likes}</span>
       </div>
-      <small className="text-muted">{post.farmName}</small>
     </Link>
   </div>
 );

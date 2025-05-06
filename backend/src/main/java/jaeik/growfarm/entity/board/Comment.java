@@ -33,7 +33,7 @@ public class Comment extends BaseEntity {
     private Users user;
 
     @NotNull
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(nullable = false) // 255자 허용
     private String content;
 
     @NotNull

@@ -4,6 +4,7 @@ import jaeik.growfarm.dto.farm.CropDTO;
 import jaeik.growfarm.dto.farm.VisitCropDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.FarmService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -57,8 +58,8 @@ public class FarmController {
      * 수정일 : 2025-05-03
      */
     @PostMapping("/myFarm/{cropId}")
-    public ResponseEntity<String> deleteCrop(@PathVariable Long cropId) {
-        farmService.deleteCrop(cropId);
+    public ResponseEntity<String> deleteCrop(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long cropId) {
+        farmService.deleteCrop(userDetails, cropId);
         return ResponseEntity.ok("농작물이 삭제되었습니다.");
     }
 
@@ -70,8 +71,9 @@ public class FarmController {
      * 수정일 : 2025-05-03
      */
     @PostMapping("{farmName}")
-    public ResponseEntity<String> plantCrop(@PathVariable String farmName,
-            @RequestBody CropDTO cropDTO) throws IOException {
+    public ResponseEntity<String> plantCrop(
+            @PathVariable String farmName,
+            @RequestBody @Valid CropDTO cropDTO) throws IOException {
         farmService.plantCrop(farmName, cropDTO);
         return ResponseEntity.ok("농작물이 심어졌습니다.");
     }

@@ -36,6 +36,6 @@ public class Report extends BaseEntity {
     private Long targetId;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false) // 신고 내용 500자 허용
     private String content;
 }

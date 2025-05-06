@@ -1,5 +1,6 @@
 package jaeik.growfarm.controller;
 
+import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
@@ -7,6 +8,7 @@ import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -185,15 +187,15 @@ public class PostController {
      * 게시글 신고 API
      * param Long postId: 게시글 ID
      * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param String content: 신고 사유
+     * param ReportDTO reportDTO: 신고 DTO
      * return: ResponseEntity<String> 게시글 신고 완료 메시지
      * 수정일 : 2025-05-03
      */
     @PostMapping("/{postId}/report")
     public ResponseEntity<String> reportPost(@PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody String content) {
-        postService.reportPost(postId, userDetails, content);
+                                             @AuthenticationPrincipal CustomUserDetails userDetails,
+                                             @RequestBody @Valid ReportDTO reportDTO) {
+        postService.reportPost(postId, userDetails, reportDTO);
         return ResponseEntity.ok("게시글 신고 완료");
     }
 

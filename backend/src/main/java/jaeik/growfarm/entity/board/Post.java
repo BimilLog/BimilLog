@@ -29,11 +29,11 @@ public class Post extends BaseEntity {
     private Users user;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(nullable = false, length = 30) // 제목 30자 허용
     private String title;
 
     @NotNull
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false) // 내용 1000자 허용
     private String content;
 
     @NotNull

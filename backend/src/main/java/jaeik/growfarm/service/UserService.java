@@ -101,7 +101,12 @@ public class UserService {
                 comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()), true));
     }
 
-    public void suggestion(ReportDTO reportDTO) {
+    public void suggestion(CustomUserDetails userDetails, ReportDTO reportDTO) {
+
+        if (userDetails == null) {
+            throw new RuntimeException("다시 로그인 해 주세요.");
+        }
+
         // 신고 내용이 비어있지 않은지 확인
         if (reportDTO.getContent() == null || reportDTO.getContent().isEmpty()) {
             throw new IllegalArgumentException("신고 내용을 입력해주세요.");

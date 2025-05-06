@@ -41,7 +41,7 @@ public class Users extends BaseEntity {
     private String thumbnailImage;
 
     @NotNull
-    @Column(unique = true, nullable = false) // 농장 이름
+    @Column(unique = true, nullable = false, length = 8) // 농장 이름 8글자 까지 허용
     private String farmName;
 
     @NotNull
@@ -49,18 +49,17 @@ public class Users extends BaseEntity {
     @Column(nullable = false)
     private UserRole role;
 
-    public void deleteTokenId() {
-        this.token = null;
-    }
-
     public void updateUserInfo(Token token, String kakaoNickname, String thumbnailImage) {
         this.token = token;
         this.kakaoNickname = kakaoNickname;
         this.thumbnailImage = thumbnailImage;
     }
 
-    // 농장 이름 변경
     public void updateFarmName(String farmName) {
         this.farmName = farmName;
+    }
+
+    public void deleteTokenId() {
+        this.token = null;
     }
 }

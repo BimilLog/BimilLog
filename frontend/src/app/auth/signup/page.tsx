@@ -34,11 +34,6 @@ function SignupContent() {
   const validateFarmName = (name: string): boolean => {
     const trimmedName = name.trim();
 
-    if (trimmedName.length < 2) {
-      setNameError("농장 이름은 2글자 이상이어야 합니다.");
-      return false;
-    }
-
     if (trimmedName.length > 8) {
       setNameError("농장 이름은 8글자 이하여야 합니다.");
       return false;
@@ -117,9 +112,13 @@ function SignupContent() {
                 value={farmName}
                 onChange={(e) => setFarmName(e.target.value)}
                 required
+                maxLength={8}
               />
               <label htmlFor="farmName">농장 이름</label>
               {nameError && <div className="invalid-feedback">{nameError}</div>}
+              <div className="form-text">
+                농장 이름은 8글자 이내로 입력해주세요.
+              </div>
             </div>
 
             {/* 제출 버튼 */}

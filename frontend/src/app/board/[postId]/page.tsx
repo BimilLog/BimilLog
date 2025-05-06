@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { PostDTO, CommentDTO, ReportType } from "@/components/types/schema";
+import {
+  PostDTO,
+  CommentDTO,
+  ReportType,
+  ReportDTO,
+} from "@/components/types/schema";
 import { formatDateTime } from "@/util/date";
 import useAuthStore from "@/util/authStore";
 import { useParams, useRouter } from "next/navigation";
@@ -181,6 +186,11 @@ export default function PostPage() {
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentContent.trim() || !user || isSubmitting) return;
+
+    if (commentContent.length > 255) {
+      alert("댓글은 255자 이내로 작성해주세요.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -447,6 +457,11 @@ export default function PostPage() {
     if (!user || !reportingTarget || !reportContent.trim() || isSubmitting)
       return;
 
+    if (reportContent.length > 500) {
+      alert("신고 내용은 500자 이내로 작성해주세요.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       let response;
@@ -454,19 +469,35 @@ export default function PostPage() {
       // 게시글 신고와 댓글 신고에 따라 다른 엔드포인트 사용
       if (reportingTarget.type === ReportType.POST) {
         // 게시글 신고
+        const reportDTO: ReportDTO = {
+          reportId: 0,
+          reportType: ReportType.POST,
+          userId: user.userId,
+          targetId: Number(postId),
+          content: reportContent,
+        };
+
         response = await fetchClient(`${API_BASE}/board/${postId}/report`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(reportContent),
+          body: JSON.stringify(reportDTO),
         });
       } else if (reportingTarget.type === ReportType.COMMENT) {
         // 댓글 신고
+        const reportDTO: ReportDTO = {
+          reportId: 0,
+          reportType: ReportType.COMMENT,
+          userId: user.userId,
+          targetId: reportingTarget.id,
+          content: reportContent,
+        };
+
         response = await fetchClient(
-          `${API_BASE}/board/${postId}/${reportingTarget.id}/report`,
+          `${API_BASE}/board/${postId}/comment/report`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(reportContent),
+            body: JSON.stringify(reportDTO),
           }
         );
       } else {
@@ -653,7 +684,11 @@ export default function PostPage() {
                       value={reportContent}
                       onChange={(e) => setReportContent(e.target.value)}
                       required
+                      maxLength={500}
                     />
+                    <div className="form-text text-end">
+                      {reportContent.length}/500자
+                    </div>
                   </div>
                   <div className="d-flex justify-content-end gap-2">
                     <button
@@ -691,8 +726,10 @@ export default function PostPage() {
                 placeholder="댓글을 입력하세요..."
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
+                maxLength={255}
               />
-              <div className="d-flex justify-content-end mt-2">
+              <div className="d-flex justify-content-between mt-2">
+                <div className="form-text">{commentContent.length}/255자</div>
                 <button
                   type="submit"
                   className="btn btn-outline-secondary"
@@ -732,24 +769,30 @@ export default function PostPage() {
                           setEditingCommentContent(e.target.value)
                         }
                         rows={3}
+                        maxLength={255}
                       />
-                      <div className="d-flex justify-content-end mt-2 gap-2">
-                        <button
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={handleCancelEdit}
-                          disabled={isSubmitting}
-                        >
-                          취소
-                        </button>
-                        <button
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => handleSaveComment(comment.id)}
-                          disabled={
-                            isSubmitting || !editingCommentContent.trim()
-                          }
-                        >
-                          저장
-                        </button>
+                      <div className="d-flex justify-content-between mt-2">
+                        <div className="form-text">
+                          {editingCommentContent.length}/255자
+                        </div>
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={handleCancelEdit}
+                            disabled={isSubmitting}
+                          >
+                            취소
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleSaveComment(comment.id)}
+                            disabled={
+                              isSubmitting || !editingCommentContent.trim()
+                            }
+                          >
+                            저장
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -848,7 +891,11 @@ export default function PostPage() {
                                     setReportContent(e.target.value)
                                   }
                                   required
+                                  maxLength={500}
                                 />
+                                <div className="form-text text-end">
+                                  {reportContent.length}/500자
+                                </div>
                               </div>
                               <div className="d-flex justify-content-end gap-2">
                                 <button

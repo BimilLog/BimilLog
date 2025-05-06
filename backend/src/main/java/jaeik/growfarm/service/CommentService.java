@@ -1,5 +1,6 @@
 package jaeik.growfarm.service;
 
+import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.notification.FcmSendDTO;
 import jaeik.growfarm.entity.board.Comment;
@@ -145,12 +146,12 @@ public class CommentService {
         }
     }
 
-    public void reportComment(Long postId, Long commentId, CustomUserDetails userDetails, String content) {
+    public void reportComment(Long postId, CustomUserDetails userDetails, ReportDTO reportDTO) {
         Report report = Report.builder()
                 .users(userUtil.DTOToUser(userDetails.getUserDTO()))
                 .reportType(ReportType.COMMENT)
-                .targetId(commentId)
-                .content(content)
+                .targetId(reportDTO.getTargetId())
+                .content(reportDTO.getContent())
                 .build();
 
         reportRepository.save(report);

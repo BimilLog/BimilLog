@@ -83,8 +83,18 @@ export default function EditPage() {
       return;
     }
 
+    if (title.trim().length > 30) {
+      alert("제목은 30자 이내로 작성해주세요.");
+      return;
+    }
+
     if (content.trim() === "") {
       setError("내용을 입력해주세요.");
+      return;
+    }
+
+    if (content.trim().length > 1000) {
+      alert("내용은 1000자 이내로 작성해주세요.");
       return;
     }
 
@@ -162,7 +172,11 @@ export default function EditPage() {
                     value={title}
                     onChange={handleTitleChange}
                     required
+                    maxLength={30}
                   />
+                  <div className="form-text">
+                    제목은 30자 이내로 입력해주세요.
+                  </div>
                 </div>
               </header>
               {/* 내용 텍스트 에어리어 */}
@@ -174,7 +188,11 @@ export default function EditPage() {
                   value={content}
                   onChange={handleContentChange}
                   required
+                  maxLength={1000}
                 ></textarea>
+                <div className="form-text text-end">
+                  {content.length}/1000자
+                </div>
               </section>
 
               {/* 버튼 영역 */}
