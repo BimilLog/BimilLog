@@ -51,7 +51,7 @@ public class LogFilter extends OncePerRequestFilter {
             String kakaoNickname = userDetails.getUserDTO().getKakaoNickname();
             log.info("IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
         } else {
-            log.warn("미 인증자 서버 직접 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
+            log.error("미 인증자 서버 직접 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
         }
 
         filterChain.doFilter(request, response);
