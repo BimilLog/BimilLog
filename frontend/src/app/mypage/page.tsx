@@ -5,6 +5,7 @@ import Link from "next/link";
 import useAuthStore from "@/util/authStore";
 import fetchClient from "@/util/fetchClient";
 import { FarmNameReqDTO } from "@/components/types/schema";
+import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 
 const API_BASE = "http://localhost:8080";
 
@@ -29,6 +30,11 @@ export default function MyPage() {
       return;
     }
 
+    if (!validateNoXSS(trimmedFarmName)) {
+      alert("특수문자(<, >, &, \", ')는 사용이 불가능합니다.");
+      return;
+    }
+
     if (!user) return;
 
     if (!confirm("농장이름을 바꾸면 다시 로그인해야합니다.")) {
@@ -39,7 +45,7 @@ export default function MyPage() {
 
     try {
       const requestBody: Partial<FarmNameReqDTO> = {
-        farmName: trimmedFarmName,
+        farmName: escapeHTML(trimmedFarmName),
       };
       const response = await fetchClient(`${API_BASE}/user/mypage/updatefarm`, {
         method: "POST",
@@ -157,7 +163,15 @@ export default function MyPage() {
                         className="form-control"
                         placeholder="새 농장 이름 입력"
                         value={newFarmName}
-                        onChange={(e) => setNewFarmName(e.target.value)}
+                        onChange={(e) => {
+                          if (!validateNoXSS(e.target.value)) {
+                            alert(
+                              "특수문자(<, >, &, \", ')는 사용이 불가능합니다."
+                            );
+                            return;
+                          }
+                          setNewFarmName(e.target.value);
+                        }}
                         required
                         disabled={isLoading || isWithdrawing}
                         maxLength={8}

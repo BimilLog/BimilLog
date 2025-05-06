@@ -8,6 +8,7 @@ import Link from "next/link";
 import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
+import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 
 // 게시글 목록 아이템 컴포넌트
 const PostItem = ({ post }: { post: SimplePostDTO }) => (
@@ -234,15 +235,13 @@ export default function BoardPage() {
 
   // 검색 실행 핸들러
   const handleSearch = () => {
-    const trimmed = searchKeyword.trim();
-    if (trimmed) {
-      setIsSearchMode(true);
-      setCurrentPage(1);
-      fetchSearch(1); // 검색 버튼 클릭 시 직접 API 호출
-    } else {
-      setIsSearchMode(false);
-      fetchPosts(1);
+    if (!validateNoXSS(searchKeyword)) {
+      alert("특수문자(<, >, &, \", ')는 사용이 불가능합니다.");
+      return;
     }
+    const safeKeyword = escapeHTML(searchKeyword);
+    setSearchKeyword(safeKeyword);
+    setCurrentPage(1);
   };
 
   // 플레이스홀더 텍스트 반환
@@ -284,7 +283,15 @@ export default function BoardPage() {
                     className="form-control"
                     placeholder={getPlaceholderText()}
                     value={searchKeyword}
-                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onChange={(e) => {
+                      if (!validateNoXSS(e.target.value)) {
+                        alert(
+                          "특수문자(<, >, &, \", ')는 사용이 불가능합니다."
+                        );
+                        return;
+                      }
+                      setSearchKeyword(e.target.value);
+                    }}
                     onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                   />
                   <button

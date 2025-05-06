@@ -13,6 +13,9 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 import fetchClient from "@/util/fetchClient";
+import SafeHTML from "@/components/SafeHTML";
+import { sanitizeHtml } from "@/util/sanitize";
+import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 
 // 로딩 스피너 컴포넌트
 const LoadingSpinner = () => (
@@ -564,7 +567,9 @@ export default function PostPage() {
 
       <article className="card bg-white">
         <header className="mb-4 card bg-light">
-          <h1 className="fw-bolder pt-4 pb-2 text-center">{post.title}</h1>
+          <h1 className="fw-bolder pt-4 pb-2 text-center">
+            <SafeHTML html={sanitizeHtml(post.title)} />
+          </h1>
           <div className="fw-bold text-xl-end mx-3">
             작성농장 : {post.farmName}
           </div>
@@ -577,7 +582,7 @@ export default function PostPage() {
         <section className="mb-3 px-4">
           <div
             className="fs-5 mb-4"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
           />
         </section>
 
@@ -725,7 +730,11 @@ export default function PostPage() {
                 rows={3}
                 placeholder="댓글을 입력하세요..."
                 value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
+                onChange={(e) => {
+                  if (validateNoXSS(e.target.value)) {
+                    setCommentContent(e.target.value);
+                  }
+                }}
                 maxLength={255}
               />
               <div className="d-flex justify-content-between mt-2">
@@ -799,7 +808,7 @@ export default function PostPage() {
                     <>
                       <div className="d-flex justify-content-between align-items-center mt-2">
                         <p className="mb-0 me-2" style={{ flex: "1" }}>
-                          {comment.content}
+                          <SafeHTML html={sanitizeHtml(comment.content)} />
                         </p>
                         <div className="d-flex align-items-center gap-2 flex-shrink-0">
                           {user && user.userId !== comment.userId ? (

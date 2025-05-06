@@ -6,6 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { PostDTO } from "@/components/types/schema";
 import fetchClient from "@/util/fetchClient";
+import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
+import { validatePostTitle, validatePostContent } from "@/util/boardValidation";
 
 const API_BASE = "http://localhost:8080";
 
@@ -77,24 +79,23 @@ export default function EditPage() {
       return;
     }
 
-    // 유효성 검사
-    if (title.trim() === "") {
-      setError("제목을 입력해주세요.");
+    // 유효성 검사 - 제목
+    const [isTitleValid, titleError] = validatePostTitle(title);
+    if (!isTitleValid) {
+      setError(titleError);
+      if (titleError) {
+        alert(titleError);
+      }
       return;
     }
 
-    if (title.trim().length > 30) {
-      alert("제목은 30자 이내로 작성해주세요.");
-      return;
-    }
-
-    if (content.trim() === "") {
-      setError("내용을 입력해주세요.");
-      return;
-    }
-
-    if (content.trim().length > 1000) {
-      alert("내용은 1000자 이내로 작성해주세요.");
+    // 유효성 검사 - 내용
+    const [isContentValid, contentError] = validatePostContent(content);
+    if (!isContentValid) {
+      setError(contentError);
+      if (contentError) {
+        alert(contentError);
+      }
       return;
     }
 
@@ -113,8 +114,8 @@ export default function EditPage() {
           body: JSON.stringify({
             userId: user.userId,
             farmName: user.farmName,
-            title: title,
-            content: content,
+            title: escapeHTML(title),
+            content: escapeHTML(content),
           }),
         }
       );

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
+import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 
 const API_BASE = "http://localhost:8080";
 
@@ -50,6 +51,11 @@ export default function AskPage() {
       return;
     }
 
+    if (!validateNoXSS(formData.content)) {
+      alert("특수문자(<, >, &, \", ', \\)는 사용이 불가능합니다.");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(false);
 
@@ -62,7 +68,7 @@ export default function AskPage() {
         body: JSON.stringify({
           reportType: formData.reportType,
           userId: user.userId,
-          content: formData.content,
+          content: escapeHTML(formData.content),
         }),
       });
 
