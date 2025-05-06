@@ -7,6 +7,7 @@ import { getMessaging, getToken } from "firebase/messaging";
 import { initializeApp } from "firebase/app";
 import { DeviceType } from "@/components/types/schema";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -48,6 +49,12 @@ function KakaoCallbackContent() {
   const requestAndSendFcmToken = async () => {
     const deviceType = getDeviceType();
 
+    // 데스크톱(deviceType이 null)인 경우 토큰 요청 및 전송 중단
+    if (deviceType === null) {
+      console.log("데스크톱 환경에서는 FCM 토큰을 요청하지 않습니다.");
+      return;
+    }
+
     try {
       // FCM 토큰 처리는 오류가 발생해도 로그인 과정에 영향을 주지 않아야 함
       if (typeof window === "undefined") return;
@@ -62,7 +69,6 @@ function KakaoCallbackContent() {
       if (permission !== "granted") {
         return;
       }
-
 
       // 간소화된 구조로 토큰 요청 시도
       const app = initializeApp(firebaseConfig);
@@ -79,16 +85,14 @@ function KakaoCallbackContent() {
         // VAPID 키를 일시적으로 제거하고 테스트
       });
 
-
       // 서버로 전송
-      if (token) {
-        await fetch(
+      if (token != null) {
+        await fetchClient(
           `${API_BASE}/notification/fcm/token?deviceType=${deviceType}`,
           {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
             body: token,
-            credentials: "include",
           }
         );
       }
@@ -111,10 +115,9 @@ function KakaoCallbackContent() {
         setStatus("카카오 로그인 정보를 처리 중입니다...");
 
         // 백엔드 서버로 코드 전송
-        const response = await fetch(`${API_BASE}/auth/login?code=${code}`, {
-          method: "GET",
-          credentials: "include", // 쿠키를 포함하여 요청
-        });
+        const response = await fetchClient(
+          `${API_BASE}/auth/login?code=${code}`
+        );
 
         if (!response.ok) {
           throw new Error("로그인 처리 중 오류가 발생했습니다.");

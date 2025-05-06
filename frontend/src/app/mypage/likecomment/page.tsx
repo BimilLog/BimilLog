@@ -8,6 +8,7 @@ import { CommentDTO } from "@/components/types/schema";
 import Pagination from "@/components/Pagination";
 import { formatDateTime } from "@/util/date";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -49,14 +50,10 @@ export default function LikedCommentsPage() {
 
       setLoading(true);
       try {
-        const response = await fetch(
+        const response = await fetchClient(
           `${API_BASE}/user/mypage/likedcomments?page=${
             currentPage - 1
-          }&size=${pageSize}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
+          }&size=${pageSize}`
         );
 
         if (response.ok) {

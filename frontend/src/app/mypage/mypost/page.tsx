@@ -8,6 +8,7 @@ import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -51,17 +52,16 @@ export default function MyPostsPage() {
 
       setLoading(true);
       try {
-        const response = await fetch(
+        const response = await fetchClient(
           `${API_BASE}/user/mypage/posts?page=${
             currentPage - 1
-          }&size=${pageSize}`,
-          { credentials: "include" }
+          }&size=${pageSize}`
         );
 
         if (response.ok) {
           const data = await response.json();
-          setPosts(data.content);
-          setTotalPages(data.totalPages);
+          setPosts(data?.content || []);
+          setTotalPages(data?.totalPages || 1);
         } else {
           console.error(
             "내 게시글을 불러오는데 실패했습니다:",

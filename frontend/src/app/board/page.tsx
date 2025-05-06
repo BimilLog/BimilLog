@@ -7,6 +7,7 @@ import { formatDateTime } from "@/util/date";
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import fetchClient from "@/util/fetchClient";
 
 // 게시글 목록 아이템 컴포넌트
 const PostItem = ({ post }: { post: SimplePostDTO }) => (
@@ -60,12 +61,19 @@ export default function BoardPage() {
   const [totalPages, setTotalPages] = useState<number>(5);
   const [loading, setLoading] = useState<boolean>(false);
   const [posts, setPosts] = useState<SimplePostDTO[]>([]);
-  const [featuredPosts, setFeaturedPosts] = useState<SimplePostDTO[]>([]);
   const [pageSize, setPageSize] = useState<number>(10);
   const [searchType, setSearchType] = useState<string>("제목");
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
   const { user } = useAuthStore();
+
+  // 인기글 상태관리 (각 섹션별로 분리)
+  const [realtimePosts, setRealtimePosts] = useState<SimplePostDTO[]>([]);
+  const [weeklyPosts, setWeeklyPosts] = useState<SimplePostDTO[]>([]);
+  const [famePosts, setFamePosts] = useState<SimplePostDTO[]>([]);
+  const [realtimeLoading, setRealtimeLoading] = useState<boolean>(false);
+  const [weeklyLoading, setWeeklyLoading] = useState<boolean>(false);
+  const [fameLoading, setFameLoading] = useState<boolean>(false);
 
   // 일반 게시글 목록 불러오기
   const fetchPosts = async (page = currentPage) => {
@@ -73,7 +81,7 @@ export default function BoardPage() {
     try {
       const url = `${API_BASE}/board?page=${page - 1}&size=${pageSize}`;
 
-      const response = await fetch(url);
+      const response = await fetchClient(url);
       if (!response.ok) {
         throw new Error(
           `게시글을 불러오는데 실패했습니다 (${response.status})`
@@ -81,14 +89,67 @@ export default function BoardPage() {
       }
 
       const data = await response.json();
-      setPosts(data.posts.content);
-      setTotalPages(data.posts.totalPages);
-      setFeaturedPosts(data.featuredPosts);
+      setPosts(data?.content || []);
+      setTotalPages(data?.totalPages || 1);
     } catch (error) {
       console.error("게시글 불러오기 오류:", error);
       alert("게시글을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 실시간 인기글 불러오기
+  const fetchRealtimePosts = async () => {
+    setRealtimeLoading(true);
+    try {
+      const response = await fetchClient(`${API_BASE}/board/realtime`);
+      if (!response.ok) {
+        throw new Error("실시간 인기글을 불러오는데 실패했습니다.");
+      }
+      const data = await response.json();
+      setRealtimePosts(data?.content || []);
+    } catch (error) {
+      console.error("실시간 인기글 불러오기 오류:", error);
+      setRealtimePosts([]);
+    } finally {
+      setRealtimeLoading(false);
+    }
+  };
+
+  // 주간 인기글 불러오기
+  const fetchWeeklyPosts = async () => {
+    setWeeklyLoading(true);
+    try {
+      const response = await fetchClient(`${API_BASE}/board/weekly`);
+      if (!response.ok) {
+        throw new Error("주간 인기글을 불러오는데 실패했습니다.");
+      }
+      const data = await response.json();
+      setWeeklyPosts(data?.content || []);
+    } catch (error) {
+      console.error("주간 인기글 불러오기 오류:", error);
+      setWeeklyPosts([]);
+    } finally {
+      setWeeklyLoading(false);
+    }
+  };
+
+  // 명예의 전당 불러오기
+  const fetchFamePosts = async () => {
+    setFameLoading(true);
+    try {
+      const response = await fetchClient(`${API_BASE}/board/fame`);
+      if (!response.ok) {
+        throw new Error("명예의 전당을 불러오는데 실패했습니다.");
+      }
+      const data = await response.json();
+      setFamePosts(data?.content || []);
+    } catch (error) {
+      console.error("명예의 전당 불러오기 오류:", error);
+      setFamePosts([]);
+    } finally {
+      setFameLoading(false);
     }
   };
 
@@ -100,14 +161,14 @@ export default function BoardPage() {
         searchKeyword
       )}&page=${page - 1}&size=${pageSize}`;
 
-      const response = await fetch(url);
+      const response = await fetchClient(url);
       if (!response.ok) {
         throw new Error(`검색에 실패했습니다 (${response.status})`);
       }
 
       const data = await response.json();
-      setPosts(data.content);
-      setTotalPages(data.totalPages);
+      setPosts(data?.content || []);
+      setTotalPages(data?.totalPages || 1);
     } catch (error) {
       console.error("검색 오류:", error);
       alert("검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
@@ -125,6 +186,13 @@ export default function BoardPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize, isSearchMode]);
+
+  // 초기 페이지 로드 시 모든 인기글 섹션 데이터 가져오기
+  useEffect(() => {
+    fetchRealtimePosts();
+    fetchWeeklyPosts();
+    fetchFamePosts();
+  }, []);
 
   // 핸들러 함수들
   const handlePageChange = (page: number) => {
@@ -252,13 +320,13 @@ export default function BoardPage() {
                     <tbody>
                       {loading ? (
                         <tr>
-                          <td colSpan={4} className="text-center">
+                          <td colSpan={5} className="text-center">
                             <LoadingSpinner width={100} height={100} />
                           </td>
                         </tr>
                       ) : posts.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="text-center py-4">
+                          <td colSpan={5} className="text-center py-4">
                             게시글이 없습니다.
                           </td>
                         </tr>
@@ -298,55 +366,59 @@ export default function BoardPage() {
 
           {/* 사이드바 */}
           <div className="col-lg-4">
-            {/* 인기 게시글 */}
+            {/* 실시간 인기글 */}
             <div className="card mb-4">
               <div className="card-header">실시간 인기글</div>
               <div className="card-body">
                 <ul className="list-unstyled mb-0">
-                  {loading ? (
+                  {realtimeLoading ? (
                     <LoadingSpinner width={50} height={50} />
-                  ) : featuredPosts.length === 0 ? (
+                  ) : realtimePosts.length === 0 ? (
                     <li className="text-center py-3">
                       실시간 인기글이 없습니다.
                     </li>
                   ) : (
-                    featuredPosts.map((post) => (
+                    realtimePosts.map((post) => (
                       <PopularPostItem key={post.postId} post={post} />
                     ))
                   )}
                 </ul>
               </div>
             </div>
+
+            {/* 주간 인기글 */}
             <div className="card mb-4">
               <div className="card-header">주간 인기글</div>
               <div className="card-body">
                 <ul className="list-unstyled mb-0">
-                  {loading ? (
+                  {weeklyLoading ? (
                     <LoadingSpinner width={50} height={50} />
-                  ) : featuredPosts.length === 0 ? (
+                  ) : weeklyPosts.length === 0 ? (
                     <li className="text-center py-3">
                       주간 인기글이 없습니다.
                     </li>
                   ) : (
-                    featuredPosts.map((post) => (
+                    weeklyPosts.map((post) => (
                       <PopularPostItem key={post.postId} post={post} />
                     ))
                   )}
                 </ul>
               </div>
             </div>
+
+            {/* 명예의 전당 */}
             <div className="card mb-4">
               <div className="card-header">명예의 전당</div>
               <div className="card-body">
                 <ul className="list-unstyled mb-0">
-                  {loading ? (
+                  {fameLoading ? (
                     <LoadingSpinner width={50} height={50} />
-                  ) : featuredPosts.length === 0 ? (
+                  ) : famePosts.length === 0 ? (
                     <li className="text-center py-3">
                       명예의 전당이 비었습니다.
                     </li>
                   ) : (
-                    featuredPosts.map((post) => (
+                    famePosts.map((post) => (
                       <PopularPostItem key={post.postId} post={post} />
                     ))
                   )}

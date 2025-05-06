@@ -27,15 +27,16 @@ public class CommentController {
 
     /*
      * 댓글 작성 API
+     * CustomUserDetails userDetails: 현재 로그인한 유저 정보
      * param Long postId: 게시글 ID
      * param CommentDTO commentDTO: 댓글 DTO
      * return: ResponseEntity<String> 댓글 작성 완료 메시지
-     * 수정일 : 2025-05-02
+     * 수정일 : 2025-05-06
      */
     @PostMapping("/{postId}/comment")
-    public ResponseEntity<String> writeComment(@PathVariable Long postId, @RequestBody CommentDTO commentDTO)
-            throws IOException {
-        commentService.writeComment(postId, commentDTO);
+    public ResponseEntity<String> writeComment(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                               @PathVariable Long postId, @RequestBody CommentDTO commentDTO) throws IOException {
+        commentService.writeComment(userDetails, postId, commentDTO);
         return ResponseEntity.ok("댓글 작성 완료");
     }
 

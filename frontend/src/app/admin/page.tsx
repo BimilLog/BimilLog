@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
-import { notFound } from 'next/navigation';
+import { notFound } from "next/navigation";
 import { ReportDTO, ReportType, UserRole } from "@/components/types/schema";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -21,7 +22,6 @@ export default function AdminPage() {
   const [showBanModal, setShowBanModal] = useState(false);
   const [banReason, setBanReason] = useState("");
   const [isBanSubmitting, setIsBanSubmitting] = useState(false);
-
 
   // Admin 권한 체크
   useEffect(() => {
@@ -41,10 +41,7 @@ export default function AdminPage() {
         ? `${API_BASE}/admin/report?page=${page}&size=${size}&reportType=${reportType}`
         : `${API_BASE}/admin/report?page=${page}&size=${size}`;
 
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetchClient(url);
 
       if (response.ok) {
         const data = await response.json();
@@ -87,14 +84,13 @@ export default function AdminPage() {
 
     setIsBanSubmitting(true);
     try {
-      const response = await fetch(
+      const response = await fetchClient(
         `${API_BASE}/admin/user/ban?userId=${banUserId}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
           body: JSON.stringify({ reason: banReason.trim() }),
         }
       );

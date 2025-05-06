@@ -6,6 +6,7 @@ import useAuthStore from "@/util/authStore";
 import { CropDTO, CropType } from "@/components/types/schema";
 import Script from "next/script";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -285,19 +286,14 @@ export default function FarmPage() {
           const queryParams = new URLSearchParams();
           queryParams.append("userId", user.userId.toString());
 
-          response = await fetch(`${API_BASE}/farm/myFarm`, {
+          response = await fetchClient(`${API_BASE}/farm/myFarm`, {
             method: "POST",
-            credentials: "include",
           });
         }
         // 타인 농장인 경우
         else {
-          response = await fetch(
-            `${API_BASE}/farm/${encodeURIComponent(farmName)}`,
-            {
-              method: "GET",
-              credentials: "include",
-            }
+          response = await fetchClient(
+            `${API_BASE}/farm/${encodeURIComponent(farmName)}`
           );
         }
 
@@ -402,14 +398,13 @@ export default function FarmPage() {
       };
 
       // 작물 심기 API 호출
-      const response = await fetch(
+      const response = await fetchClient(
         `${API_BASE}/farm/${encodeURIComponent(farmName)}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
           body: JSON.stringify(cropData),
         }
       );
@@ -425,12 +420,8 @@ export default function FarmPage() {
 
         // 작물 목록 갱신
         // 서버에서 id가 생성되므로 간단하게 전체 목록을 다시 불러오는 방법 사용
-        const refreshResponse = await fetch(
-          `${API_BASE}/farm/${encodeURIComponent(farmName)}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
+        const refreshResponse = await fetchClient(
+          `${API_BASE}/farm/${encodeURIComponent(farmName)}`
         );
 
         if (refreshResponse.ok) {
@@ -466,9 +457,8 @@ export default function FarmPage() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/farm/myFarm/${cropId}`, {
+      const response = await fetchClient(`${API_BASE}/farm/myFarm/${cropId}`, {
         method: "POST",
-        credentials: "include",
       });
 
       if (response.ok) {

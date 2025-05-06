@@ -3,6 +3,7 @@
 
 import { create } from 'zustand';
 import { UserDTO } from '@/components/types/schema';
+import fetchClient from './fetchClient';
 
 // API 엔드포인트 상수
 const API_BASE_URL = 'https://grow-farm.com/api';
@@ -38,9 +39,8 @@ const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     try {
       set({ isLoading: true });
-      const response = await fetch(API_ENDPOINTS.LOGOUT, {
+      const response = await fetchClient(API_ENDPOINTS.LOGOUT, {
         method: 'POST',
-        credentials: 'include',
       });
       
       if (response.ok) {
@@ -64,9 +64,8 @@ const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     
     try {
-      const response = await fetch(API_ENDPOINTS.ME, {
+      const response = await fetchClient(API_ENDPOINTS.ME, {
         method: 'POST',
-        credentials: 'include',
       });
   
       if (!response.ok) {

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class HeaderCheckFilter extends OncePerRequestFilter {
@@ -25,13 +26,21 @@ public class HeaderCheckFilter extends OncePerRequestFilter {
     @Value("${secret-Identifier}")
     private String secretIdentifier;
 
+    private static final List<String> WHITELIST = List.of("/notification/subscribe");
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String headerValue = request.getHeader(TRUSTED_HEADER_NAME);
 
+        String uri = request.getRequestURI();
+
+        if (WHITELIST.contains(uri)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (!secretIdentifier.equals(headerValue)) {
-            String uri = request.getRequestURI();
             String ip = getClientIp(request);
             String method = request.getMethod();
             String referer = request.getHeader("Referer");

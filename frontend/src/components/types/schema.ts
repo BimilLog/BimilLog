@@ -81,7 +81,9 @@ export interface PostDTO {
     views: number;
     likes: number;
     is_notice: boolean;
-    is_featured: boolean;
+    is_RealtimePopular: boolean;
+    is_WeeklyPopular: boolean;
+    is_HallOfFame: boolean;
     createdAt: string;
     comments: CommentDTO[];
     userLike: boolean;
@@ -95,8 +97,10 @@ export interface SimplePostDTO {
     commentCount: number;
     likes: number;
     views: number;
-    is_featured: boolean;
     is_notice: boolean;
+    is_RealtimePopular: boolean;
+    is_WeeklyPopular: boolean;
+    is_HallOfFame: boolean;
     createdAt: string;
 }
 
