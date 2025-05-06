@@ -7,6 +7,7 @@ import { CropDTO, CropType } from "@/components/types/schema";
 import Script from "next/script";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
+import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -826,7 +827,15 @@ export default function FarmPage() {
                       className="form-control"
                       placeholder="원하는 이름을 입력하세요."
                       value={plantForm.nickname}
-                      onChange={handlePlantFormChange}
+                      onChange={(e) => {
+                        if (!validateNoXSS(e.target.value)) {
+                          alert(
+                            "특수문자(<, >, &, \", ')는 사용이 불가능합니다."
+                          );
+                          return;
+                        }
+                        handlePlantFormChange(e);
+                      }}
                       disabled={isPlanting}
                       maxLength={8}
                       required
@@ -847,7 +856,15 @@ export default function FarmPage() {
                       rows={3}
                       placeholder="친구에게 남길 메시지를 입력하세요"
                       value={plantForm.message}
-                      onChange={handlePlantFormChange}
+                      onChange={(e) => {
+                        if (!validateNoXSS(e.target.value)) {
+                          alert(
+                            "특수문자(<, >, &, \", ')는 사용이 불가능합니다."
+                          );
+                          return;
+                        }
+                        handlePlantFormChange(e);
+                      }}
                       disabled={isPlanting}
                       maxLength={255}
                       required

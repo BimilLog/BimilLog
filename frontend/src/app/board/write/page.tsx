@@ -7,6 +7,9 @@ import useAuthStore from "@/util/authStore";
 import { PostDTO } from "@/components/types/schema";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
+import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
+import { validatePostTitle, validatePostContent } from "@/util/boardValidation";
+import SafeHTML from "@/components/SafeHTML";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -20,36 +23,39 @@ export default function WritePage() {
 
   // 제목 변경 핸들러
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
+    if (validateNoXSS(e.target.value)) {
+      setTitle(e.target.value);
+    }
   };
 
   // 내용 변경 핸들러
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
+    if (validateNoXSS(e.target.value)) {
+      setContent(e.target.value);
+    }
   };
 
   // 게시글 작성 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 유효성 검사
-    if (!title.trim()) {
-      setError("제목을 입력해주세요.");
+    // 유효성 검사 - 제목
+    const [isTitleValid, titleError] = validatePostTitle(title);
+    if (!isTitleValid) {
+      setError(titleError);
+      if (titleError && titleError.includes("30자")) {
+        alert(titleError);
+      }
       return;
     }
 
-    if (title.trim().length > 30) {
-      alert("제목은 30자 이내로 작성해주세요.");
-      return;
-    }
-
-    if (!content.trim()) {
-      setError("내용을 입력해주세요.");
-      return;
-    }
-
-    if (content.trim().length > 1000) {
-      alert("내용은 1000자 이내로 작성해주세요.");
+    // 유효성 검사 - 내용
+    const [isContentValid, contentError] = validatePostContent(content);
+    if (!isContentValid) {
+      setError(contentError);
+      if (contentError && contentError.includes("1000자")) {
+        alert(contentError);
+      }
       return;
     }
 
@@ -75,8 +81,8 @@ export default function WritePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          title: title.trim(),
-          content: content.trim(),
+          title: escapeHTML(title),
+          content: escapeHTML(content),
         }),
       });
 

@@ -5,6 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
+import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -39,6 +40,11 @@ function SignupContent() {
       return false;
     }
 
+    if (!validateNoXSS(trimmedName)) {
+      setNameError("특수문자(<, >, &, \", ')는 사용이 불가능합니다.");
+      return false;
+    }
+
     setNameError(null);
     return true;
   };
@@ -63,7 +69,10 @@ function SignupContent() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tokenId, farmName: farmName.trim() }),
+        body: JSON.stringify({
+          tokenId,
+          farmName: escapeHTML(farmName.trim()),
+        }),
       });
 
       if (!response.ok) {
@@ -110,7 +119,10 @@ function SignupContent() {
                 type="text"
                 placeholder="농장 이름을 입력하세요"
                 value={farmName}
-                onChange={(e) => setFarmName(e.target.value)}
+                onChange={(e) => {
+                  setNameError(null);
+                  setFarmName(e.target.value);
+                }}
                 required
                 maxLength={8}
               />

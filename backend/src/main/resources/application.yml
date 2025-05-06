@@ -3,6 +3,10 @@ spring:
     name: growfarm
   profiles:
     include: secret
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
 
 logging:
   level:
