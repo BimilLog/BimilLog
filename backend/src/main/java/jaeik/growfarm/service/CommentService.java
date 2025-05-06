@@ -52,13 +52,28 @@ public class CommentService {
     private final FcmTokenRepository fcmTokenRepository;
 
 
-    // 댓글 작성
-    public void writeComment(Long postId, CommentDTO commentDTO) throws IOException {
+    /*
+     * 댓글 작성 메소드
+     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
+     * param Long postId: 게시글 ID
+     * param CommentDTO commentDTO: 댓글 DTO
+     * return void
+     *
+     * 설명 : 댓글을 DB에 저장하고 글 작성자에게 실시간 알림과 푸시 메시지를 발송한다.
+     * 수정일 : 2025-05-06
+     *
+     *
+     */
+    public void writeComment(CustomUserDetails userDetails, Long postId, CommentDTO commentDTO) throws IOException {
+        if (userDetails == null) {
+            throw new RuntimeException("다시 로그인 해 주세요.");
+        }
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        Users user = userRepository.findById(commentDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + commentDTO.getUserId()));
+        Users user = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserId()));
 
         Long postUserId = post.getUser().getId();
 

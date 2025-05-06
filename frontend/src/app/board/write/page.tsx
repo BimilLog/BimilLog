@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { PostDTO } from "@/components/types/schema";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -58,12 +59,11 @@ export default function WritePage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE}/board/write`, {
+      const response = await fetchClient(`${API_BASE}/board/write`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify({
           title: title.trim(),
           content: content.trim(),
@@ -81,9 +81,9 @@ export default function WritePage() {
     } catch (error) {
       console.error("게시글 작성 오류:", error);
       setError(
-          error instanceof Error
-              ? error.message
-              : "게시글 작성 중 오류가 발생했습니다."
+        error instanceof Error
+          ? error.message
+          : "게시글 작성 중 오류가 발생했습니다."
       );
     } finally {
       setIsLoading(false);

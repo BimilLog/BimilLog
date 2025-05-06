@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -62,13 +63,12 @@ function SignupContent() {
 
     try {
       // 회원가입 요청 전송
-      const response = await fetch(`${API_BASE}/auth/signUp`, {
+      const response = await fetchClient(`${API_BASE}/auth/signUp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ tokenId, farmName: farmName.trim() }),
-        credentials: "include",
       });
 
       if (!response.ok) {

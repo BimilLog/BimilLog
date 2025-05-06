@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -42,10 +43,7 @@ const SettingPage = () => {
       setIsLoading(true);
 
       try {
-        const response = await fetch(`${API_BASE}/user/setting`, {
-          method: "GET",
-          credentials: "include",
-        });
+        const response = await fetchClient(`${API_BASE}/user/setting`);
 
         if (response.ok) {
           const data = await response.json();
@@ -156,40 +154,44 @@ const SettingPage = () => {
 
       console.log("서버에 전송할 설정 데이터:", settingData);
 
-      const response = await fetch(`${API_BASE}/user/setting`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(settingData),
-      });
+      try {
+        const response = await fetchClient(`${API_BASE}/user/setting`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(settingData),
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("서버 저장 응답:", data);
+        if (response.ok) {
+          const data = await response.json();
+          console.log("서버 저장 응답:", data);
 
-        // 서버에서 받은 데이터를 UI 상태로 변환
-        const uiSettings: SettingUIState = {
-          FarmNotification: Boolean(data.farmNotification),
-          CommentNotification: Boolean(data.commentNotification),
-          PostFeaturedNotification: Boolean(data.postFeaturedNotification),
-          CommentFeaturedNotification: Boolean(
-            data.commentFeaturedNotification
-          ),
-          // 모든 알림이 켜져있는지 확인하여 알림전체 상태 설정
-          AllNotification:
-            Boolean(data.farmNotification) &&
-            Boolean(data.commentNotification) &&
-            Boolean(data.postFeaturedNotification) &&
-            Boolean(data.commentFeaturedNotification),
-        };
+          // 서버에서 받은 데이터를 UI 상태로 변환
+          const uiSettings: SettingUIState = {
+            FarmNotification: Boolean(data.farmNotification),
+            CommentNotification: Boolean(data.commentNotification),
+            PostFeaturedNotification: Boolean(data.postFeaturedNotification),
+            CommentFeaturedNotification: Boolean(
+              data.commentFeaturedNotification
+            ),
+            // 모든 알림이 켜져있는지 확인하여 알림전체 상태 설정
+            AllNotification:
+              Boolean(data.farmNotification) &&
+              Boolean(data.commentNotification) &&
+              Boolean(data.postFeaturedNotification) &&
+              Boolean(data.commentFeaturedNotification),
+          };
 
-        setSettings(uiSettings);
-        alert("설정이 저장되었습니다.");
-      } else {
-        console.error("설정 저장 실패");
-        alert("설정 저장에 실패했습니다. 다시 시도해주세요.");
+          setSettings(uiSettings);
+          alert("설정이 저장되었습니다.");
+        } else {
+          console.error("설정 저장 실패");
+          alert("설정 저장에 실패했습니다. 다시 시도해주세요.");
+        }
+      } catch (fetchError) {
+        console.error("서버 통신 오류:", fetchError);
+        alert("서버 연결에 실패했습니다. 네트워크 상태를 확인해주세요.");
       }
     } catch (error) {
       console.error("설정 저장 오류:", error);

@@ -8,6 +8,7 @@ import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -50,14 +51,10 @@ export default function MyCommentsPage() {
       setLoading(true);
       try {
         // 실제 API 호출
-        const response = await fetch(
+        const response = await fetchClient(
           `${API_BASE}/user/mypage/comments?page=${
             currentPage - 1
-          }&size=${pageSize}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
+          }&size=${pageSize}`
         );
 
         if (response.ok) {

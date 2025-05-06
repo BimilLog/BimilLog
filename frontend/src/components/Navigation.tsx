@@ -9,6 +9,7 @@ import {
   NotificationType,
   UpdateNotificationDTO,
 } from "./types/schema";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -143,9 +144,7 @@ const Navigation = () => {
     if (!user) return;
 
     try {
-      const response = await fetch(`${API_BASE}/notification/list`, {
-        credentials: "include",
-      });
+      const response = await fetchClient(`${API_BASE}/notification/list`);
 
       if (response.ok) {
         const data = (await response.json()) as NotificationDTO[];
@@ -210,17 +209,19 @@ const Navigation = () => {
 
     try {
       // API 호출
-      const response = await fetch(`${API_BASE}/notification/batch-update`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          readIds: currentReadIds,
-          deletedIds: currentDeletedIds,
-        } as UpdateNotificationDTO),
-      });
+      const response = await fetchClient(
+        `${API_BASE}/notification/batch-update`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            readIds: currentReadIds,
+            deletedIds: currentDeletedIds,
+          } as UpdateNotificationDTO),
+        }
+      );
 
       if (!response.ok) {
         console.error("배치 처리 실패:", await response.text());
@@ -229,7 +230,6 @@ const Navigation = () => {
         setReadIds((prev) => [...prev, ...currentReadIds]);
         setDeletedIds((prev) => [...prev, ...currentDeletedIds]);
       } else {
-
         // 성공적으로 서버에 상태가 반영되었으므로 이제 로컬 스토리지에서도 삭제 처리된 알림을 제거
         try {
           // 로컬 스토리지의 deletedIds 목록 갱신
@@ -281,17 +281,12 @@ const Navigation = () => {
       return; // 중복 연결 시 함수 종료
     }
 
-
     // SSE 연결 설정
-    const eventSource = new EventSource(
-        `${API_BASE}/notification/subscribe`,
-      {
-        withCredentials: true,
-      }
-    );
+    const eventSource = new EventSource(`${API_BASE}/notification/subscribe`, {
+      withCredentials: true,
+    });
 
-    eventSource.onmessage = (event) => {
-    };
+    eventSource.onmessage = (event) => {};
 
     // 이벤트 리스너 등록 - INITIATE는 화면에 표시하지 않음
     eventSource.addEventListener("INITIATE", (event) => {
@@ -788,17 +783,19 @@ const Navigation = () => {
                               );
 
                               // 서버에 즉시 전송 (일괄 처리는 UX 상 즉시 반영이 필요함)
-                              fetch(`${API_BASE}/notification/batch-update`, {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                credentials: "include",
-                                body: JSON.stringify({
-                                  readIds: unreadIds,
-                                  deletedIds: [],
-                                } as UpdateNotificationDTO),
-                              })
+                              fetchClient(
+                                `${API_BASE}/notification/batch-update`,
+                                {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({
+                                    readIds: unreadIds,
+                                    deletedIds: [],
+                                  } as UpdateNotificationDTO),
+                                }
+                              )
                                 .then((response) => {
                                   if (response.ok) {
                                   } else {
@@ -831,17 +828,19 @@ const Navigation = () => {
                               setUnreadCount(0);
 
                               // 서버에 즉시 전송 (일괄 처리는 UX 상 즉시 반영이 필요함)
-                              fetch(`${API_BASE}/notification/batch-update`, {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                credentials: "include",
-                                body: JSON.stringify({
-                                  readIds: [],
-                                  deletedIds: allIds,
-                                } as UpdateNotificationDTO),
-                              })
+                              fetchClient(
+                                `${API_BASE}/notification/batch-update`,
+                                {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({
+                                    readIds: [],
+                                    deletedIds: allIds,
+                                  } as UpdateNotificationDTO),
+                                }
+                              )
                                 .then((response) => {
                                   if (response.ok) {
                                     console.log("모두 삭제 처리 성공");

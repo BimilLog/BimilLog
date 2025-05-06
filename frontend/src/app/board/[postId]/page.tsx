@@ -7,6 +7,7 @@ import useAuthStore from "@/util/authStore";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
+import fetchClient from "@/util/fetchClient";
 
 // 로딩 스피너 컴포넌트
 const LoadingSpinner = () => (
@@ -151,9 +152,8 @@ export default function PostPage() {
       setLoading(true);
       try {
         const userIdParam = user ? `?userId=${user.userId}` : "";
-        const response = await fetch(
-          `${API_BASE}/board/${postId}${userIdParam}`,
-          { credentials: "include" }
+        const response = await fetchClient(
+          `${API_BASE}/board/${postId}${userIdParam}`
         );
 
         if (!response.ok) {
@@ -192,19 +192,21 @@ export default function PostPage() {
         content: commentContent,
       };
 
-      const response = await fetch(`${API_BASE}/board/${postId}/comment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(commentDTO),
-      });
+      const response = await fetchClient(
+        `${API_BASE}/board/${postId}/comment`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(commentDTO),
+        }
+      );
 
       if (!response.ok) throw new Error("댓글 작성에 실패했습니다.");
 
       // 댓글 작성 후 게시글 다시 불러오기
-      const updatedPost = await fetch(`${API_BASE}/board/${postId}`, {
-        credentials: "include",
-      }).then((res) => res.json());
+      const updatedPost = await fetchClient(`${API_BASE}/board/${postId}`).then(
+        (res) => res.json()
+      );
 
       setPost(updatedPost);
       setCommentContent("");
@@ -243,19 +245,21 @@ export default function PostPage() {
         content: editingCommentContent,
       };
 
-      const response = await fetch(`${API_BASE}/board/${postId}/${commentId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(commentDTO),
-      });
+      const response = await fetchClient(
+        `${API_BASE}/board/${postId}/${commentId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(commentDTO),
+        }
+      );
 
       if (!response.ok) throw new Error("댓글 수정에 실패했습니다.");
 
       // 댓글 수정 후 게시글 다시 불러오기
-      const updatedPost = await fetch(`${API_BASE}/board/${postId}`, {
-        credentials: "include",
-      }).then((res) => res.json());
+      const updatedPost = await fetchClient(`${API_BASE}/board/${postId}`).then(
+        (res) => res.json()
+      );
 
       setPost(updatedPost);
       setEditingCommentId(null);
@@ -277,11 +281,10 @@ export default function PostPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(
+      const response = await fetchClient(
         `${API_BASE}/board/${postId}/${commentId}/delete`,
         {
           method: "POST",
-          credentials: "include",
         }
       );
 
@@ -290,9 +293,9 @@ export default function PostPage() {
       }
 
       // 댓글 삭제 후 게시글 다시 불러오기
-      const updatedPost = await fetch(`${API_BASE}/board/${postId}`, {
-        credentials: "include",
-      }).then((res) => res.json());
+      const updatedPost = await fetchClient(`${API_BASE}/board/${postId}`).then(
+        (res) => res.json()
+      );
 
       setPost(updatedPost);
     } catch (err) {
@@ -333,9 +336,9 @@ export default function PostPage() {
     });
 
     try {
-      const response = await fetch(
+      const response = await fetchClient(
         `${API_BASE}/board/${postId}/${comment.id}/like`,
-        { method: "POST", credentials: "include" }
+        { method: "POST" }
       );
 
       if (!response.ok) {
@@ -377,9 +380,9 @@ export default function PostPage() {
     });
 
     try {
-      const response = await fetch(
+      const response = await fetchClient(
         `${API_BASE}/board/${postId}/like?userId=${user.userId}`,
-        { method: "POST", credentials: "include" }
+        { method: "POST" }
       );
 
       if (!response.ok) {
@@ -408,9 +411,8 @@ export default function PostPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE}/board/${postId}/delete`, {
+      const response = await fetchClient(`${API_BASE}/board/${postId}/delete`, {
         method: "POST",
-        credentials: "include",
       });
 
       if (!response.ok) {
@@ -452,29 +454,26 @@ export default function PostPage() {
       // 게시글 신고와 댓글 신고에 따라 다른 엔드포인트 사용
       if (reportingTarget.type === ReportType.POST) {
         // 게시글 신고
-        response = await fetch(`${API_BASE}/board/${postId}/report`, {
+        response = await fetchClient(`${API_BASE}/board/${postId}/report`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify(reportContent),
         });
       } else if (reportingTarget.type === ReportType.COMMENT) {
         // 댓글 신고
-        response = await fetch(
+        response = await fetchClient(
           `${API_BASE}/board/${postId}/${reportingTarget.id}/report`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            credentials: "include",
             body: JSON.stringify(reportContent),
           }
         );
       } else {
         // 기타 유형의 신고
-        response = await fetch(`${API_BASE}/report`, {
+        response = await fetchClient(`${API_BASE}/report`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({
             reportType: reportingTarget.type,
             userId: user.userId,

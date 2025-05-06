@@ -5,7 +5,8 @@ import { useRouter, useParams } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { ReportDTO, UserRole } from "@/components/types/schema";
 import Link from "next/link";
-import { notFound } from 'next/navigation';
+import { notFound } from "next/navigation";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -22,7 +23,7 @@ function ReportDetailContent({ reportId }: { reportId: string }) {
   // Admin 권한 체크
   useEffect(() => {
     if (user && user.role !== UserRole.ADMIN) {
-        notFound();
+      notFound();
     }
   }, [user, router]);
 
@@ -35,10 +36,9 @@ function ReportDetailContent({ reportId }: { reportId: string }) {
       setError(null);
 
       try {
-        const response = await fetch(`${API_BASE}/admin/report/${reportId}`, {
-          method: "GET",
-          credentials: "include",
-        });
+        const response = await fetchClient(
+          `${API_BASE}/admin/report/${reportId}`
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -71,14 +71,13 @@ function ReportDetailContent({ reportId }: { reportId: string }) {
 
     setIsBanning(true);
     try {
-      const response = await fetch(
+      const response = await fetchClient(
         `${API_BASE}/admin/user/ban?userId=${report.userId}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
           body: JSON.stringify({ reason: banReason.trim() }),
         }
       );

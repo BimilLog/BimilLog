@@ -2,15 +2,50 @@
 
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
-import { useState } from "react";
-import { KakaoFriendDTO, KakaoFriendListDTO } from "@/components/types/schema";
+import { useState, useEffect } from "react";
+import {
+  KakaoFriendDTO,
+  KakaoFriendListDTO,
+  SimplePostDTO,
+} from "@/components/types/schema";
+import fetchClient from "@/util/fetchClient";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const API_BASE = "http://localhost:8080";
+
+// 인기 게시글 아이템 컴포넌트
+const PopularPostItem = ({ post }: { post: SimplePostDTO }) => (
+  <div className="mb-3">
+    <Link
+      href={`/board/${post.postId}`}
+      className="text-decoration-none text-dark"
+    >
+      <div className="d-flex justify-content-between align-items-center">
+        <span className="text-truncate" style={{ maxWidth: "250px" }}>
+          {post.title}
+          {post.commentCount > 0 && (
+            <span className="text-primary ms-1">[{post.commentCount}]</span>
+          )}
+        </span>
+        <span className="badge bg-light text-dark">👍 {post.likes}</span>
+      </div>
+      <small className="text-muted">{post.farmName}</small>
+    </Link>
+  </div>
+);
 
 export default function Home() {
   const { user } = useAuthStore();
   const [friends, setFriends] = useState<KakaoFriendDTO[]>([]);
   const [showModal, setShowModal] = useState(false);
+
+  // 인기글 상태관리
+  const [realtimePosts, setRealtimePosts] = useState<SimplePostDTO[]>([]);
+  const [weeklyPosts, setWeeklyPosts] = useState<SimplePostDTO[]>([]);
+  const [famePosts, setFamePosts] = useState<SimplePostDTO[]>([]);
+  const [realtimeLoading, setRealtimeLoading] = useState<boolean>(false);
+  const [weeklyLoading, setWeeklyLoading] = useState<boolean>(false);
+  const [fameLoading, setFameLoading] = useState<boolean>(false);
 
   const handleLogin = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_KAKAO_AUTH_URL}?response_type=code&client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}`;
@@ -19,10 +54,12 @@ export default function Home() {
   const handleFetchFriends = async () => {
     setShowModal(true);
     try {
-      const response = await fetch(`${API_BASE}/user/friendlist?offset=0`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const response = await fetchClient(
+        `${API_BASE}/user/friendlist?offset=0`,
+        {
+          method: "POST",
+        }
+      );
       if (!response.ok) throw new Error("친구 목록 불러오기 실패");
       const data: KakaoFriendListDTO = await response.json();
       setFriends(data.elements);
@@ -30,6 +67,67 @@ export default function Home() {
       console.error(error);
     }
   };
+
+  // 실시간 인기글 불러오기
+  const fetchRealtimePosts = async () => {
+    setRealtimeLoading(true);
+    try {
+      const response = await fetchClient(`${API_BASE}/board/realtime`);
+      if (!response.ok) {
+        throw new Error("실시간 인기글을 불러오는데 실패했습니다.");
+      }
+      const data = await response.json();
+      setRealtimePosts(data?.content || []);
+    } catch (error) {
+      console.error("실시간 인기글 불러오기 오류:", error);
+      setRealtimePosts([]);
+    } finally {
+      setRealtimeLoading(false);
+    }
+  };
+
+  // 주간 인기글 불러오기
+  const fetchWeeklyPosts = async () => {
+    setWeeklyLoading(true);
+    try {
+      const response = await fetchClient(`${API_BASE}/board/weekly`);
+      if (!response.ok) {
+        throw new Error("주간 인기글을 불러오는데 실패했습니다.");
+      }
+      const data = await response.json();
+      setWeeklyPosts(data?.content || []);
+    } catch (error) {
+      console.error("주간 인기글 불러오기 오류:", error);
+      setWeeklyPosts([]);
+    } finally {
+      setWeeklyLoading(false);
+    }
+  };
+
+  // 명예의 전당 불러오기
+  const fetchFamePosts = async () => {
+    setFameLoading(true);
+    try {
+      const response = await fetchClient(`${API_BASE}/board/fame`);
+      if (!response.ok) {
+        throw new Error("명예의 전당을 불러오는데 실패했습니다.");
+      }
+      const data = await response.json();
+      setFamePosts(data?.content || []);
+    } catch (error) {
+      console.error("명예의 전당 불러오기 오류:", error);
+      setFamePosts([]);
+    } finally {
+      setFameLoading(false);
+    }
+  };
+
+  // 페이지 로드 시 인기글 데이터 불러오기
+  useEffect(() => {
+    fetchRealtimePosts();
+    fetchWeeklyPosts();
+    fetchFamePosts();
+  }, []);
 
   return (
     <main className="flex-shrink-0">
@@ -119,6 +217,29 @@ export default function Home() {
               <div className="card h-100 shadow border-0">
                 <div className="card-body p-4">
                   <h5 className="card-title mb-3">실시간 인기글</h5>
+                  {realtimeLoading ? (
+                    <div className="text-center py-4">
+                      <LoadingSpinner width={50} height={50} />
+                    </div>
+                  ) : realtimePosts.length === 0 ? (
+                    <p className="text-center text-muted py-3">
+                      실시간 인기글이 없습니다.
+                    </p>
+                  ) : (
+                    <div>
+                      {realtimePosts.slice(0, 5).map((post) => (
+                        <PopularPostItem key={post.postId} post={post} />
+                      ))}
+                      <div className="text-end mt-3">
+                        <Link
+                          href="/board"
+                          className="btn btn-sm btn-outline-primary"
+                        >
+                          더 보기
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -126,6 +247,29 @@ export default function Home() {
               <div className="card h-100 shadow border-0">
                 <div className="card-body p-4">
                   <h5 className="card-title mb-3">주간 인기글</h5>
+                  {weeklyLoading ? (
+                    <div className="text-center py-4">
+                      <LoadingSpinner width={50} height={50} />
+                    </div>
+                  ) : weeklyPosts.length === 0 ? (
+                    <p className="text-center text-muted py-3">
+                      주간 인기글이 없습니다.
+                    </p>
+                  ) : (
+                    <div>
+                      {weeklyPosts.slice(0, 5).map((post) => (
+                        <PopularPostItem key={post.postId} post={post} />
+                      ))}
+                      <div className="text-end mt-3">
+                        <Link
+                          href="/board"
+                          className="btn btn-sm btn-outline-primary"
+                        >
+                          더 보기
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -133,6 +277,29 @@ export default function Home() {
               <div className="card h-100 shadow border-0">
                 <div className="card-body p-4">
                   <h5 className="card-title mb-3">명예의 전당</h5>
+                  {fameLoading ? (
+                    <div className="text-center py-4">
+                      <LoadingSpinner width={50} height={50} />
+                    </div>
+                  ) : famePosts.length === 0 ? (
+                    <p className="text-center text-muted py-3">
+                      명예의 전당이 비었습니다.
+                    </p>
+                  ) : (
+                    <div>
+                      {famePosts.slice(0, 5).map((post) => (
+                        <PopularPostItem key={post.postId} post={post} />
+                      ))}
+                      <div className="text-end mt-3">
+                        <Link
+                          href="/board"
+                          className="btn btn-sm btn-outline-primary"
+                        >
+                          더 보기
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

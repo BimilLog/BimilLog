@@ -5,6 +5,7 @@ import { ReportType } from "@/components/types/schema";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -18,7 +19,6 @@ export default function AskPage() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const router = useRouter();
-  const [title, setTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,49 +34,31 @@ export default function AskPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!title.trim()) {
-      setError("제목을 입력해주세요.");
+    if (!user) {
+      alert("신고/건의를 작성하려면 로그인이 필요합니다.");
+      router.push("/");
       return;
     }
 
     if (!formData.content.trim()) {
-      setError("내용을 입력해주세요.");
+      alert("내용을 입력해주세요.");
       return;
     }
 
-    if (!user) {
-      if (
-        confirm(
-          "로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?"
-        )
-      ) {
-        router.push("/");
-      }
-      return;
-    }
-
-    setIsLoading(true);
+    setIsSubmitting(true);
     setSubmitError(false);
-    setSubmitSuccess(false);
-    setError(null);
 
     try {
-      const reportDTO = {
-        reportId: null, // 빈 칸
-        reportType: formData.reportType,
-        userId: user.userId,
-        targetId: null, // 빈 칸
-        content: formData.content,
-      };
-
-      const response = await fetch(`${API_BASE}/user/suggestion`, {
+      const response = await fetchClient(`${API_BASE}/user/suggestion`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
-        body: JSON.stringify(reportDTO),
+        body: JSON.stringify({
+          reportType: formData.reportType,
+          userId: user.userId,
+          content: formData.content,
+        }),
       });
 
       if (response.ok) {
@@ -85,7 +67,6 @@ export default function AskPage() {
           reportType: ReportType.BUG,
           content: "",
         });
-        setTitle("");
         setError("문의가 성공적으로 제출되었습니다.");
       } else {
         const errorText = await response.text();
@@ -100,7 +81,7 @@ export default function AskPage() {
           : "문의 제출 중 오류가 발생했습니다."
       );
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 

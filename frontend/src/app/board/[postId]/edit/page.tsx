@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import { PostDTO } from "@/components/types/schema";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -25,9 +26,7 @@ export default function EditPage() {
     const fetchPost = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_BASE}/board/${postId}`, {
-          credentials: "include",
-        });
+        const response = await fetchClient(`${API_BASE}/board/${postId}`);
 
         if (!response.ok) {
           throw new Error(
@@ -94,14 +93,13 @@ export default function EditPage() {
 
     try {
       // API 요청 보내기
-      const response = await fetch(
+      const response = await fetchClient(
         `${API_BASE}/board/${postId}?userId=${user.userId}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
           body: JSON.stringify({
             userId: user.userId,
             farmName: user.farmName,

@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
+import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
 
@@ -35,12 +36,8 @@ export default function MyPage() {
         farmName: trimmedFarmName,
       }).toString();
 
-      const response = await fetch(
-        `${API_BASE}/user/mypage/updatefarm?${queryString}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
+      const response = await fetchClient(
+        `${API_BASE}/user/mypage/updatefarm?${queryString}`
       );
 
       await response.text();
@@ -78,9 +75,8 @@ export default function MyPage() {
 
     setIsWithdrawing(true);
     try {
-      const response = await fetch(`${API_BASE}/auth/withdraw`, {
+      const response = await fetchClient(`${API_BASE}/auth/withdraw`, {
         method: "POST",
-        credentials: "include",
       });
 
       if (response.ok) {
