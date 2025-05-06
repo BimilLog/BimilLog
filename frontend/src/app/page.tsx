@@ -76,7 +76,16 @@ export default function Home() {
         throw new Error("실시간 인기글을 불러오는데 실패했습니다.");
       }
       const data = await response.json();
-      setRealtimePosts(data?.content || []);
+      // _RealtimePopular 플래그가 true인 게시글만 필터링
+      const filteredPosts = Array.isArray(data)
+        ? data.filter((post: any) => post._RealtimePopular === true)
+        : Array.isArray(data?.content)
+        ? data.content.filter(
+            (post: any) =>
+              post.is_RealtimePopular === true || post._RealtimePopular === true
+          )
+        : [];
+      setRealtimePosts(filteredPosts);
     } catch (error) {
       console.error("실시간 인기글 불러오기 오류:", error);
       setRealtimePosts([]);
@@ -94,7 +103,16 @@ export default function Home() {
         throw new Error("주간 인기글을 불러오는데 실패했습니다.");
       }
       const data = await response.json();
-      setWeeklyPosts(data?.content || []);
+      // _WeeklyPopular 플래그가 true인 게시글만 필터링
+      const filteredPosts = Array.isArray(data)
+        ? data.filter((post: any) => post._WeeklyPopular === true)
+        : Array.isArray(data?.content)
+        ? data.content.filter(
+            (post: any) =>
+              post.is_WeeklyPopular === true || post._WeeklyPopular === true
+          )
+        : [];
+      setWeeklyPosts(filteredPosts);
     } catch (error) {
       console.error("주간 인기글 불러오기 오류:", error);
       setWeeklyPosts([]);
@@ -112,7 +130,16 @@ export default function Home() {
         throw new Error("명예의 전당을 불러오는데 실패했습니다.");
       }
       const data = await response.json();
-      setFamePosts(data?.content || []);
+      // _HallOfFame 플래그가 true인 게시글만 필터링
+      const filteredPosts = Array.isArray(data)
+        ? data.filter((post: any) => post._HallOfFame === true)
+        : Array.isArray(data?.content)
+        ? data.content.filter(
+            (post: any) =>
+              post.is_HallOfFame === true || post._HallOfFame === true
+          )
+        : [];
+      setFamePosts(filteredPosts);
     } catch (error) {
       console.error("명예의 전당 불러오기 오류:", error);
       setFamePosts([]);
@@ -229,14 +256,6 @@ export default function Home() {
                       {realtimePosts.slice(0, 5).map((post) => (
                         <PopularPostItem key={post.postId} post={post} />
                       ))}
-                      <div className="text-end mt-3">
-                        <Link
-                          href="/board"
-                          className="btn btn-sm btn-outline-primary"
-                        >
-                          더 보기
-                        </Link>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -259,14 +278,6 @@ export default function Home() {
                       {weeklyPosts.slice(0, 5).map((post) => (
                         <PopularPostItem key={post.postId} post={post} />
                       ))}
-                      <div className="text-end mt-3">
-                        <Link
-                          href="/board"
-                          className="btn btn-sm btn-outline-primary"
-                        >
-                          더 보기
-                        </Link>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -289,14 +300,6 @@ export default function Home() {
                       {famePosts.slice(0, 5).map((post) => (
                         <PopularPostItem key={post.postId} post={post} />
                       ))}
-                      <div className="text-end mt-3">
-                        <Link
-                          href="/board"
-                          className="btn btn-sm btn-outline-primary"
-                        >
-                          더 보기
-                        </Link>
-                      </div>
                     </div>
                   )}
                 </div>

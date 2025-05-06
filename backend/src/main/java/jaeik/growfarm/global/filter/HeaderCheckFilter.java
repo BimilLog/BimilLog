@@ -51,9 +51,9 @@ public class HeaderCheckFilter extends OncePerRequestFilter {
                 Long userId = userDetails.getUserDTO().getUserId();
                 Long kakaoId = userDetails.getUserDTO().getKakaoId();
                 String kakaoNickname = userDetails.getUserDTO().getKakaoNickname();
-                log.warn("비정상적인 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
+                log.error("비정상적인 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
             } else {
-                log.warn("비정상적인 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {},Method: {}", ip, referer, uri, method);
+                log.error("비정상적인 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {},Method: {}", ip, referer, uri, method);
             }
 
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "비정상 접근 차단");
