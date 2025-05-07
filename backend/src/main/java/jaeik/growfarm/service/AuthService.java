@@ -8,6 +8,8 @@ import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.BlackListRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
@@ -65,7 +67,7 @@ public class AuthService {
         KakaoInfoDTO kakaoInfoDTO = kakaoService.getUserInfo(token.getKakaoAccessToken());
 
         if (blackListRepository.existsByKakaoId(kakaoInfoDTO.getKakaoId())) {
-            return "차단된 회원은 가입이 불가능 합니다.";
+            throw new CustomException(ErrorCode.BLACKLIST_USER);
         }
 
         Optional<Users> optionalUsers = userRepository.findByKakaoId(kakaoInfoDTO.getKakaoId());
@@ -157,25 +159,31 @@ public class AuthService {
      */
     @Transactional
     public List<ResponseCookie> logout(CustomUserDetails userDetails) throws JSONException {
-        if (userDetails == null) {
-            throw new RuntimeException("다시 로그인 해 주세요.");
+        try {
+            if (userDetails == null) {
+                throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
+            }
+
+            Long userId = userDetails.getUserId();
+
+            Users user = userRepository.findById(userId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_MATCH_USER));
+            Token token = tokenRepository.findById(userDetails.getTokenId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
+
+            emitterRepository.deleteAllEmitterByUserId(userId);
+            fcmTokenRepository.deleteFcmTokenByUserId(userId);
+            kakaoService.logout(token.getKakaoAccessToken());
+            user.deleteTokenId();
+            userRepository.save(user);
+            SecurityContextHolder.clearContext();
+
+            return jwtTokenProvider.getLogoutCookies();
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
         }
-
-        Long userId = userDetails.getUserId();
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
-        Token token = tokenRepository.findById(userDetails.getTokenId())
-                .orElseThrow(() -> new RuntimeException("토큰을 찾을 수 없습니다. 다시 로그인 해주세요."));
-
-        emitterRepository.deleteAllEmitterByUserId(userId);
-        fcmTokenRepository.deleteFcmTokenByUserId(userId);
-        kakaoService.logout(token.getKakaoAccessToken());
-        user.deleteTokenId();
-        userRepository.save(user);
-        SecurityContextHolder.clearContext();
-
-        return jwtTokenProvider.getLogoutCookies();
     }
 
     /*
@@ -197,21 +205,28 @@ public class AuthService {
      */
     @Transactional
     public List<ResponseCookie> withdraw(CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new RuntimeException("다시 로그인 해 주세요.");
+        try {
+
+            if (userDetails == null) {
+                throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
+            }
+
+            Long userId = userDetails.getUserDTO().getUserId();
+
+            Token token = tokenRepository.findById(userDetails.getTokenId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
+
+
+            emitterRepository.deleteAllEmitterByUserId(userId);
+            kakaoService.unlink(token.getKakaoAccessToken());
+            userRepository.deleteById(userId); // 유저 삭제 시 CasCade로 유저와 연관된 모든 엔티티 삭제
+
+            SecurityContextHolder.clearContext();
+            return jwtTokenProvider.getLogoutCookies();
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.WITHDRAW_FAIL, e);
         }
-
-        Long userId = userDetails.getUserDTO().getUserId();
-
-        Token token = tokenRepository.findById(userDetails.getTokenId())
-                .orElseThrow(() -> new IllegalArgumentException("토큰을 찾을 수 없습니다."));
-
-
-        emitterRepository.deleteAllEmitterByUserId(userId);
-        kakaoService.unlink(token.getKakaoAccessToken());
-        userRepository.deleteById(userId); // 유저 삭제 시 CasCade로 유저와 연관된 모든 엔티티 삭제
-
-        SecurityContextHolder.clearContext();
-        return jwtTokenProvider.getLogoutCookies();
     }
 }

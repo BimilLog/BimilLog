@@ -4,9 +4,12 @@ import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.global.auth.KakaoKeyVO;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -47,18 +50,13 @@ public class KakaoService {
                 .onStatus(
                         status -> status.is4xxClientError() || status.is5xxServerError(),
                         clientResponse -> clientResponse.bodyToMono(String.class)
-                                .map(errorBody -> new RuntimeException("토큰 발급 실패: "
-                                        + clientResponse.statusCode() + " - "
-                                        + errorBody)))
+                                .flatMap(errorBody -> Mono.error(new CustomException(
+                                        (HttpStatus) clientResponse.statusCode(),
+                                        "카카오 토큰 발급 실패: " + errorBody
+                                ))))
                 .bodyToMono(TokenDTO.class);
 
-        TokenDTO tokenDTO = response.block();
-
-        if (tokenDTO == null) {
-            throw new RuntimeException("토큰 발급 실패");
-        }
-
-        return tokenDTO;
+        return response.block();
     }
 
     // 로그아웃
@@ -202,7 +200,7 @@ public class KakaoService {
         Map<String, Object> responseMap = response.block();
 
         if (responseMap == null) {
-            throw new RuntimeException("사용자 정보 가져오기 실패");
+            throw new CustomException(ErrorCode.KAKAO_GET_USERINFO_FAIL);
         }
 
         KakaoInfoDTO kakaoInfoDTO = new KakaoInfoDTO();
@@ -228,8 +226,7 @@ public class KakaoService {
                 .retrieve()
                 .onStatus(
                         status -> status.is4xxClientError() || status.is5xxServerError(),
-                        clientResponse -> Mono
-                                .error(new RuntimeException("친구 목록 가져오기가 실패 했습니다.: "
+                        clientResponse -> Mono.error(new RuntimeException("친구 목록 가져오기가 실패 했습니다.: "
                                         + clientResponse.statusCode())))
                 .bodyToMono(KakaoFriendListDTO.class);
 
