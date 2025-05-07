@@ -23,7 +23,6 @@ public class LogFilter extends OncePerRequestFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
-
     private static final List<String> WHITELIST = List.of("/", "/board/", "/board/realtime", "/board/weekly",
             "/board/fame", "/board/search", "/board/{postId}", "/farm/{farmName}", "/auth/login", "/auth/signUp", "/auth/me", "/auth/health");
 
@@ -49,8 +48,15 @@ public class LogFilter extends OncePerRequestFilter {
             Long userId = userDetails.getUserDTO().getUserId();
             Long kakaoId = userDetails.getUserDTO().getKakaoId();
             String kakaoNickname = userDetails.getUserDTO().getKakaoNickname();
+
+            if (uri.startsWith("/admin")) {
+                log.error("관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
+            }
             log.info("IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
         } else {
+            if (uri.startsWith("/admin")) {
+                log.error("관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
+            }
             log.error("미 인증자 서버 직접 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
         }
 
