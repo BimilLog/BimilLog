@@ -20,7 +20,7 @@ const SafeHTML: React.FC<SafeHTMLProps> = ({ html, className }) => {
   const sanitizedHtml = sanitizeHtml(html);
 
   return (
-    <div
+    <span
       className={className}
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />

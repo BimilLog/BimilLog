@@ -8,6 +8,7 @@ import Script from "next/script";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
 import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
+import { useRouter } from "next/navigation";
 
 const API_BASE = "https://grow-farm.com/api";
 
@@ -274,6 +275,7 @@ export default function FarmPage() {
   }, [initKakao]);
 
   // 농장 데이터 로드
+  const router = useRouter();
   useEffect(() => {
     const fetchCrops = async () => {
       setIsLoading(true);
@@ -282,11 +284,7 @@ export default function FarmPage() {
         let response;
 
         // 본인 농장인 경우
-        if (isMyFarm && user?.userId) {
-          // userId를 쿼리 파라미터로 추가
-          const queryParams = new URLSearchParams();
-          queryParams.append("userId", user.userId.toString());
-
+        if (isMyFarm) {
           response = await fetchClient(`${API_BASE}/farm/myFarm`, {
             method: "POST",
           });
@@ -306,9 +304,15 @@ export default function FarmPage() {
             "농작물 데이터를 가져오는데 실패했습니다:",
             await response.text()
           );
+          // 농장 존재 여부 확인 실패 시 홈으로 리다이렉트
+          alert("존재하지 않는 농장이거나 접근할 수 없는 농장입니다.");
+          router.push("/");
         }
       } catch (error) {
         console.error("API 호출 중 오류 발생:", error);
+        // 오류 발생 시 홈으로 리다이렉트
+        alert("농장 정보를 가져오는 중 오류가 발생했습니다.");
+        router.push("/");
       } finally {
         setIsLoading(false);
       }
@@ -317,7 +321,7 @@ export default function FarmPage() {
     if (farmName) {
       fetchCrops();
     }
-  }, [farmName, isMyFarm, user]);
+  }, [farmName, isMyFarm, router]);
 
   // 특정 좌표에 있는 농작물 찾기
   const getCropAtPosition = (x: number, y: number) => {
