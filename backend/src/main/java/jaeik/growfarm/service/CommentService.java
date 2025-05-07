@@ -12,6 +12,8 @@ import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
@@ -67,14 +69,14 @@ public class CommentService {
      */
     public void writeComment(CustomUserDetails userDetails, Long postId, CommentDTO commentDTO) throws IOException {
         if (userDetails == null) {
-            throw new RuntimeException("다시 로그인 해 주세요.");
+            throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_POST));
 
         Users user = userRepository.findById(userDetails.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserId()));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_MATCH_USER));
 
         Long postUserId = post.getUser().getId();
 
