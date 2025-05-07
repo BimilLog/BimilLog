@@ -505,13 +505,62 @@ const Navigation = () => {
     logout();
   };
 
-  const handleFarmSearch = (e: FormEvent) => {
+  const handleFarmSearch = async (e: FormEvent) => {
     e.preventDefault();
     if (!searchFarm.trim()) return;
 
     setIsSearching(true);
-    router.push(`/farm/${searchFarm}`);
-    setIsSearching(false);
+
+    try {
+      let response;
+
+      // 로그인 상태이고 검색한 농장 이름이 내 농장인 경우
+      if (user && user.farmName === searchFarm) {
+        response = await fetchClient(`${API_BASE}/farm/myFarm`, {
+          method: "POST",
+        });
+      } else {
+        // 타인 농장 요청
+        response = await fetchClient(
+          `${API_BASE}/farm/${encodeURIComponent(searchFarm)}`
+        );
+      }
+
+      if (response.ok) {
+        // 농장이 존재하는 경우 페이지 이동
+        router.push(`/farm/${searchFarm}`);
+      } else {
+        // 농장이 존재하지 않는 경우 알림
+        alert("존재하지 않는 농장입니다.");
+      }
+    } catch (error) {
+      console.error("농장 검색 중 오류 발생:", error);
+      alert("농장 정보를 가져오는 중 오류가 발생했습니다.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // 내 농장 가기 이벤트 핸들러 추가
+  const handleMyFarmClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    if (!user || !user.farmName) return;
+
+    try {
+      const response = await fetchClient(`${API_BASE}/farm/myFarm`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        router.push(`/farm/${user.farmName}`);
+      } else {
+        alert("농장 정보를 가져오는데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("내 농장 접근 중 오류 발생:", error);
+      alert("농장 정보를 가져오는 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -614,9 +663,9 @@ const Navigation = () => {
             {user ? (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link" href={`/farm/${user?.farmName}`}>
+                  <a className="nav-link" href="#" onClick={handleMyFarmClick}>
                     내농장가기
-                  </Link>
+                  </a>
                 </li>
                 <li className="nav-item">
                   <Link className="nav-link" href="/ask">
