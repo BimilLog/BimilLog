@@ -20,7 +20,6 @@ export default function AskPage() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (
@@ -58,6 +57,7 @@ export default function AskPage() {
 
     setIsSubmitting(true);
     setSubmitError(false);
+    setError(null);
 
     try {
       const response = await fetchClient(`${API_BASE}/user/suggestion`, {
@@ -114,6 +114,7 @@ export default function AskPage() {
                       value={formData.reportType}
                       onChange={handleInputChange}
                       aria-label="신고 유형 선택"
+                      disabled={isSubmitting}
                     >
                       <option value={ReportType.BUG}>버그 신고</option>
                       <option value={ReportType.IMPROVEMENT}>개선 사항</option>
@@ -132,6 +133,7 @@ export default function AskPage() {
                       style={{ height: "10rem" }}
                       required
                       maxLength={500}
+                      disabled={isSubmitting}
                     ></textarea>
                     <label htmlFor="content">내용</label>
                     <div className="form-text text-end">
@@ -152,7 +154,7 @@ export default function AskPage() {
                   )}
 
                   {error && (
-                    <div className="alert alert-danger mb-3" role="alert">
+                    <div className="alert alert-info mb-3" role="alert">
                       {error}
                     </div>
                   )}
@@ -162,9 +164,9 @@ export default function AskPage() {
                     <button
                       className="btn btn-primary btn-lg"
                       type="submit"
-                      disabled={isLoading}
+                      disabled={isSubmitting}
                     >
-                      {isLoading ? <LoadingSpinner /> : "제출"}
+                      {isSubmitting ? <LoadingSpinner /> : "제출"}
                     </button>
                   </div>
                 </form>

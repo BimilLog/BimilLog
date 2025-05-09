@@ -247,23 +247,22 @@ export default function PostPage() {
   const handleSaveComment = async (commentId: number) => {
     if (!user || isSubmitting || !editingCommentContent.trim()) return;
 
+    if (!validateNoXSS(editingCommentContent)) {
+      alert("특수문자(<, >, &, \", ')는 사용이 불가능합니다.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // CommentDTO 형식에 맞게 데이터 구성
-      const commentDTO = {
-        id: commentId,
-        postId: Number(postId),
-        userId: user.userId,
-        farmName: user.farmName,
-        content: editingCommentContent,
-      };
-
       const response = await fetchClient(
-        `${API_BASE}/board/${postId}/${commentId}`,
+        `${API_BASE}/board/comment/${commentId}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(commentDTO),
+          body: JSON.stringify({
+            content: escapeHTML(editingCommentContent),
+            userId: user.userId,
+          }),
         }
       );
 

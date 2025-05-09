@@ -3,16 +3,31 @@
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
 import { useState, useEffect } from "react";
-import {
-  KakaoFriendDTO,
-  KakaoFriendListDTO,
-  SimplePostDTO,
-} from "@/components/types/schema";
+import { KakaoFriendDTO, SimplePostDTO } from "@/components/types/schema";
 import fetchClient from "@/util/fetchClient";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Pagination from "@/components/Pagination";
 
 const API_BASE = "https://grow-farm.com/api";
+
+// 게시글 타입 정의
+interface PostType {
+  _RealtimePopular?: boolean;
+  is_RealtimePopular?: boolean;
+  _WeeklyPopular?: boolean;
+  is_WeeklyPopular?: boolean;
+  _HallOfFame?: boolean;
+  is_HallOfFame?: boolean;
+  postId?: number;
+  title?: string;
+  content?: string;
+  farmName?: string;
+  createdAt?: string;
+  likes?: number;
+  views?: number;
+  commentCount?: number;
+  userId?: number;
+}
 
 // 인기 게시글 아이템 컴포넌트
 const PopularPostItem = ({ post }: { post: SimplePostDTO }) => (
@@ -156,10 +171,10 @@ export default function Home() {
       const data = await response.json();
       // _RealtimePopular 플래그가 true인 게시글만 필터링
       const filteredPosts = Array.isArray(data)
-        ? data.filter((post: any) => post._RealtimePopular === true)
+        ? data.filter((post: PostType) => post._RealtimePopular === true)
         : Array.isArray(data?.content)
         ? data.content.filter(
-            (post: any) =>
+            (post: PostType) =>
               post.is_RealtimePopular === true || post._RealtimePopular === true
           )
         : [];
@@ -183,10 +198,10 @@ export default function Home() {
       const data = await response.json();
       // _WeeklyPopular 플래그가 true인 게시글만 필터링
       const filteredPosts = Array.isArray(data)
-        ? data.filter((post: any) => post._WeeklyPopular === true)
+        ? data.filter((post: PostType) => post._WeeklyPopular === true)
         : Array.isArray(data?.content)
         ? data.content.filter(
-            (post: any) =>
+            (post: PostType) =>
               post.is_WeeklyPopular === true || post._WeeklyPopular === true
           )
         : [];
@@ -210,10 +225,10 @@ export default function Home() {
       const data = await response.json();
       // _HallOfFame 플래그가 true인 게시글만 필터링
       const filteredPosts = Array.isArray(data)
-        ? data.filter((post: any) => post._HallOfFame === true)
+        ? data.filter((post: PostType) => post._HallOfFame === true)
         : Array.isArray(data?.content)
         ? data.content.filter(
-            (post: any) =>
+            (post: PostType) =>
               post.is_HallOfFame === true || post._HallOfFame === true
           )
         : [];

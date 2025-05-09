@@ -286,10 +286,12 @@ const Navigation = () => {
       withCredentials: true,
     });
 
-    eventSource.onmessage = (event) => {};
+    eventSource.onmessage = () => {
+      // 기본 메시지 핸들러 (사용하지 않음)
+    };
 
     // 이벤트 리스너 등록 - INITIATE는 화면에 표시하지 않음
-    eventSource.addEventListener("INITIATE", (event) => {
+    eventSource.addEventListener("INITIATE", () => {
       // INITIATE 이벤트는 화면에 알림으로 표시하지 않음
 
       // 첫 연결 성공 시 연결 상태 저장
@@ -306,7 +308,10 @@ const Navigation = () => {
       .forEach((type) => {
         eventSource.addEventListener(type, (event) => {
           try {
-            const data = JSON.parse(event.data);
+            const eventData = event.data;
+            if (!eventData) return;
+
+            const data = JSON.parse(eventData);
 
             // 필드명을 NotificationDTO에 맞게 조정
             const newNotification: NotificationDTO = {

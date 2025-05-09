@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
-import { PostDTO } from "@/components/types/schema";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
 import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 import { validatePostTitle, validatePostContent } from "@/util/boardValidation";
-import SafeHTML from "@/components/SafeHTML";
 
 const API_BASE = "https://grow-farm.com/api";
 

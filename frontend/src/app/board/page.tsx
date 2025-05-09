@@ -56,6 +56,24 @@ const PopularPostItem = ({ post }: { post: SimplePostDTO }) => (
 // API 기본 URL
 const API_BASE = "https://grow-farm.com/api";
 
+// 게시글 타입 정의
+interface PostType {
+  _RealtimePopular?: boolean;
+  is_RealtimePopular?: boolean;
+  _WeeklyPopular?: boolean;
+  is_WeeklyPopular?: boolean;
+  _HallOfFame?: boolean;
+  is_HallOfFame?: boolean;
+  postId?: number;
+  title?: string;
+  content?: string;
+  farmName?: string;
+  createdAt?: string;
+  likes?: number;
+  views?: number;
+  commentCount?: number;
+}
+
 export default function BoardPage() {
   // 페이지 상태관리
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -111,10 +129,10 @@ export default function BoardPage() {
       const data = await response.json();
       // _RealtimePopular 플래그가 true인 게시글만 필터링
       const filteredPosts = Array.isArray(data)
-        ? data.filter((post: any) => post._RealtimePopular === true)
+        ? data.filter((post: PostType) => post._RealtimePopular === true)
         : Array.isArray(data?.content)
         ? data.content.filter(
-            (post: any) =>
+            (post: PostType) =>
               post.is_RealtimePopular === true || post._RealtimePopular === true
           )
         : [];
@@ -138,10 +156,10 @@ export default function BoardPage() {
       const data = await response.json();
       // _WeeklyPopular 플래그가 true인 게시글만 필터링
       const filteredPosts = Array.isArray(data)
-        ? data.filter((post: any) => post._WeeklyPopular === true)
+        ? data.filter((post: PostType) => post._WeeklyPopular === true)
         : Array.isArray(data?.content)
         ? data.content.filter(
-            (post: any) =>
+            (post: PostType) =>
               post.is_WeeklyPopular === true || post._WeeklyPopular === true
           )
         : [];
@@ -165,10 +183,10 @@ export default function BoardPage() {
       const data = await response.json();
       // _HallOfFame 플래그가 true인 게시글만 필터링
       const filteredPosts = Array.isArray(data)
-        ? data.filter((post: any) => post._HallOfFame === true)
+        ? data.filter((post: PostType) => post._HallOfFame === true)
         : Array.isArray(data?.content)
         ? data.content.filter(
-            (post: any) =>
+            (post: PostType) =>
               post.is_HallOfFame === true || post._HallOfFame === true
           )
         : [];
@@ -242,6 +260,16 @@ export default function BoardPage() {
     const safeKeyword = escapeHTML(searchKeyword);
     setSearchKeyword(safeKeyword);
     setCurrentPage(1);
+    setIsSearchMode(true);
+    fetchSearch(1);
+  };
+
+  // 검색 모드 해제 및 일반 게시글 목록으로 복귀
+  const handleResetSearch = () => {
+    setSearchKeyword("");
+    setIsSearchMode(false);
+    setCurrentPage(1);
+    fetchPosts(1);
   };
 
   // 플레이스홀더 텍스트 반환
@@ -320,9 +348,17 @@ export default function BoardPage() {
             {/* 검색 결과 표시 */}
             {isSearchMode && (
               <div className="mb-3">
-                <div className="alert alert-light">
-                  <strong>&ldquo;{searchKeyword}&rdquo;</strong>에 대한 검색
-                  결과입니다.
+                <div className="alert alert-light d-flex justify-content-between align-items-center">
+                  <span>
+                    <strong>&ldquo;{searchKeyword}&rdquo;</strong>에 대한 검색
+                    결과입니다.
+                  </span>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={handleResetSearch}
+                  >
+                    전체 목록으로
+                  </button>
                 </div>
               </div>
             )}

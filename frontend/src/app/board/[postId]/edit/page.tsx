@@ -61,11 +61,19 @@ export default function EditPage() {
 
   // 제목 변경 핸들러
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!validateNoXSS(e.target.value)) {
+      alert("특수문자(<, >, &, \", ')는 사용이 불가능합니다.");
+      return;
+    }
     setTitle(e.target.value);
   };
 
   // 내용 변경 핸들러
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!validateNoXSS(e.target.value)) {
+      alert("특수문자(<, >, &, \", ')는 사용이 불가능합니다.");
+      return;
+    }
     setContent(e.target.value);
   };
 
