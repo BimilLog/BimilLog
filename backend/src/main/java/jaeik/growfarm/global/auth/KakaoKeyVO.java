@@ -41,8 +41,8 @@ public class KakaoKeyVO {
     private final String USER_LIST_URL = "https://kapi.kakao.com/v1/user/ids"; // 사용자 목록 가져오기 URL
     private final String SAVE_USER_INFO_URL = "https://kapi.kakao.com/v1/user/update_profile"; // 사용자 정보 저장하기 URL
 
-    private final String CHECK_CONSENT_URL = "https://kapi.kakao.com/v2/user/scopes	"; // 동의 내역확인하기 URL
-    private final String REVOKE_CONSENT_URL = "https://kapi.kakao.com/v2/user/revoke/scopes	"; // 동의 철회하기 URL
+    private final String CHECK_CONSENT_URL = "https://kapi.kakao.com/v2/user/scopes"; // 동의 내역 확인하기 URL
+    private final String REVOKE_CONSENT_URL = "https://kapi.kakao.com/v2/user/revoke/scopes"; // 동의 철회하기 URL
 
     private final String GET_FRIEND_LIST_URL = "https://kapi.kakao.com/v1/api/talk/friends"; // 친구 목록 가져오기 URL
 

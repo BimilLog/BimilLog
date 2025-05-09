@@ -71,7 +71,37 @@ export default function Home() {
           method: "POST",
         }
       );
-      if (!response.ok) throw new Error("친구 목록 불러오기 실패");
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.log("에러 데이터:", errorData);
+
+        // KAKAO_FRIEND_CONSENT_FAIL 오류 처리
+        if (
+          errorData?.errorCode === "KAKAO_FRIEND_CONSENT_FAIL" ||
+          (errorData?.status === 401 &&
+            errorData?.message?.includes("카카오 친구 추가 동의을 해야 합니다"))
+        ) {
+          const confirm = window.confirm(
+            "카카오톡 친구 목록 제공 동의를 하지 않았습니다. 친구 목록 제공 동의를 하시겠습니까?"
+          );
+
+          if (confirm) {
+            const authUrl = process.env.NEXT_PUBLIC_KAKAO_AUTH_URL;
+            const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
+            const redirectUri = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
+
+            window.location.href = `${authUrl}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=friends`;
+            return;
+          } else {
+            setShowModal(false);
+            return;
+          }
+        }
+
+        throw new Error("친구 목록 불러오기 실패");
+      }
+
       const data = await response.json();
 
       console.log("받은 데이터:", data);
