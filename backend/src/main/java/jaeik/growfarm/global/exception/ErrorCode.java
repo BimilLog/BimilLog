@@ -15,6 +15,7 @@ public enum ErrorCode {
     LOGOUT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "로그아웃 실패"),
     WITHDRAW_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "회원탈퇴 실패"),
     NOT_FIND_KAKAO_FRIEND_FARM(HttpStatus.FORBIDDEN, "해당 카카오 친구의 농장을 찾을 수 없습니다."),
+    KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의을 해야 합니다."),
 
     // 게시판 관련
     NOT_FIND_POST(HttpStatus.FORBIDDEN, "해당 게시글이 존재하지 않습니다.");

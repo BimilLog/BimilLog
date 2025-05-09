@@ -1,5 +1,6 @@
 package jaeik.growfarm.service;
 
+import jaeik.growfarm.dto.kakao.KakaoCheckConsentDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
@@ -51,9 +52,9 @@ public class KakaoService {
                         status -> status.is4xxClientError() || status.is5xxServerError(),
                         clientResponse -> clientResponse.bodyToMono(String.class)
                                 .flatMap(errorBody -> Mono.error(new CustomException(
-                                        (HttpStatus) clientResponse.statusCode(),
-                                        "카카오 토큰 발급 실패: " + errorBody
-                                ))))
+                                        (HttpStatus) clientResponse
+                                                .statusCode(),
+                                        "카카오 토큰 발급 실패: " + errorBody))))
                 .bodyToMono(TokenDTO.class);
 
         return response.block();
@@ -226,12 +227,41 @@ public class KakaoService {
                 .retrieve()
                 .onStatus(
                         status -> status.is4xxClientError() || status.is5xxServerError(),
-                        clientResponse -> Mono.error(new RuntimeException("친구 목록 가져오기가 실패 했습니다.: "
+                        clientResponse -> Mono
+                                .error(new RuntimeException("친구 목록 가져오기가 실패 했습니다.: "
                                         + clientResponse.statusCode())))
                 .bodyToMono(KakaoFriendListDTO.class);
 
         return response.block();
     }
+
+    // 동의 내역 확인하기
+    public KakaoCheckConsentDTO checkConsent(String kakaoAccessToken) {
+        WebClient webClient = webClientBuilder.build();
+
+        String scopesJson = "[\"friends\"]";  // JSON 배열 문자열로 직접 설정
+
+        Mono<KakaoCheckConsentDTO> response = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("kapi.kakao.com")
+                        .path("/v2/user/scopes")
+                        .queryParam("scopes", scopesJson)
+                        .build())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> clientResponse.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    log.error("카카오 동의 조회 실패 응답: {}", body);
+                                    return Mono.error(new RuntimeException("동의 내역 확인 실패: " + body));
+                                }))
+                .bodyToMono(KakaoCheckConsentDTO.class);
+
+        return response.block();
+    }
+
 
     // 여러 사용자 정보 가져오기
     public String getMultipleUserInfo(Long[] targetIds) {
@@ -300,27 +330,6 @@ public class KakaoService {
                         status -> status.is4xxClientError() || status.is5xxServerError(),
                         clientResponse -> Mono
                                 .error(new RuntimeException("사용자 정보 저장이 실패 했습니다.: "
-                                        + clientResponse.statusCode())))
-                .bodyToMono(String.class);
-
-        return response.block();
-    }
-
-    // 동의 내역 확인하기
-    public String checkConsent(String kakaoAccessToken, String[] scopes) {
-        WebClient webClient = webClientBuilder.build();
-
-        Mono<String> response = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(kakaoKeyVO.getCHECK_CONSENT_URL())
-                        .queryParam("scopes", String.join(",", scopes))
-                        .build())
-                .header("Authorization", "Bearer " + kakaoAccessToken)
-                .retrieve()
-                .onStatus(
-                        status -> status.is4xxClientError() || status.is5xxServerError(),
-                        clientResponse -> Mono
-                                .error(new RuntimeException("동의 내역 확인이 실패 했습니다.: "
                                         + clientResponse.statusCode())))
                 .bodyToMono(String.class);
 

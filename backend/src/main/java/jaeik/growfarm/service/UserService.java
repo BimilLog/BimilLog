@@ -3,6 +3,7 @@ package jaeik.growfarm.service;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.dto.kakao.KakaoCheckConsentDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
@@ -12,6 +13,8 @@ import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
@@ -28,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -68,7 +72,8 @@ public class UserService {
         Page<Comment> comments = commentRepository.findByUserId(userDetails.getUserDTO().getUserId(), pageable);
 
         return comments.map(
-                comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()), false));
+                comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()),
+                        false));
     }
 
     // 농장이름 변경
@@ -101,7 +106,8 @@ public class UserService {
         Page<Comment> comments = commentRepository.findByLikedComments(userDetails.getUserDTO().getUserId(), pageable);
 
         return comments.map(
-                comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()), true));
+                comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()),
+                        true));
     }
 
     public void suggestion(CustomUserDetails userDetails, ReportDTO reportDTO) {
@@ -138,7 +144,16 @@ public class UserService {
         Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        KakaoFriendListDTO kakaoFriendListDTO = kakaoService.getFriendList(user.getToken().getKakaoAccessToken(), offset);
+        KakaoCheckConsentDTO kakaoCheckConsentDTO = kakaoService.checkConsent(user.getToken().getKakaoAccessToken());
+        boolean hasNotAgreed = Arrays.stream(kakaoCheckConsentDTO.getScopes())
+                .anyMatch(scope -> !scope.isAgreed());
+
+        if (hasNotAgreed) {
+            throw new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
+        }
+
+        KakaoFriendListDTO kakaoFriendListDTO = kakaoService.getFriendList(user.getToken().getKakaoAccessToken(),
+                offset);
         List<KakaoFriendDTO> friendList = kakaoFriendListDTO.getElements();
         List<Long> friendIds = friendList.stream()
                 .map(KakaoFriendDTO::getId)
