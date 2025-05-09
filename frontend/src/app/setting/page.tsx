@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
 
 const API_BASE = "http://localhost:8080";
@@ -26,7 +25,7 @@ const defaultSettings: SettingUIState = {
 };
 
 const SettingPage = () => {
-  const { user, checkAuth } = useAuthStore();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [settings, setSettings] = useState<SettingUIState>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
@@ -201,191 +200,179 @@ const SettingPage = () => {
     }
   };
 
-  if (!user) {
-    return null;
-  }
-
   return (
-    <div className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-8 col-lg-6">
-          <div className="card shadow">
-            <div className="card-header bg-primary text-white">
-              <h4 className="mb-0">알림 설정</h4>
-            </div>
+    <main className="flex-shrink-0">
+      <div className="container px-5 py-5">
+        <h1 className="fw-bold mb-4">설정</h1>
 
-            <div className="card-body">
-              {isLoading ? (
-                <div className="text-center py-4">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">로딩 중...</span>
-                  </div>
-                  <p className="mt-2">설정을 불러오는 중입니다...</p>
-                </div>
-              ) : (
-                <div className="list-group list-group-flush">
-                  {/* 모바일 푸시알림 전체 - UI 전용 */}
-                  <div className="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="mb-1">모바일 푸시알림 전체</h5>
-                      <p className="text-muted mb-0">
-                        모든 알림을 한 번에 켜거나 끕니다
-                      </p>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        role="switch"
-                        id="AllNotification"
-                        checked={settings.AllNotification}
-                        onChange={(e) =>
-                          handleAllNotificationToggle(e.target.checked)
-                        }
-                        style={{ width: "3em", height: "1.5em" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* 농작물 알림 */}
-                  <div className="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="mb-1">농작물 알림</h5>
-                      <p className="text-muted mb-0">
-                        누군가가 농장에 농작물을 심었을 때 알림을 받습니다
-                      </p>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        role="switch"
-                        id="FarmNotification"
-                        checked={settings.FarmNotification}
-                        onChange={(e) =>
-                          handleToggleChange(
-                            "FarmNotification",
-                            e.target.checked
-                          )
-                        }
-                        style={{ width: "3em", height: "1.5em" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* 댓글 알림 */}
-                  <div className="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="mb-1">댓글 알림</h5>
-                      <p className="text-muted mb-0">
-                        내 게시글에 댓글이 달리면 알림을 받습니다
-                      </p>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        role="switch"
-                        id="CommentNotification"
-                        checked={settings.CommentNotification}
-                        onChange={(e) =>
-                          handleToggleChange(
-                            "CommentNotification",
-                            e.target.checked
-                          )
-                        }
-                        style={{ width: "3em", height: "1.5em" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* 인기글 등극 알림 */}
-                  <div className="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="mb-1">인기글 등극 알림</h5>
-                      <p className="text-muted mb-0">
-                        내 게시글이 인기글이 되면 알림을 받습니다
-                      </p>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        role="switch"
-                        id="PostFeaturedNotification"
-                        checked={settings.PostFeaturedNotification}
-                        onChange={(e) =>
-                          handleToggleChange(
-                            "PostFeaturedNotification",
-                            e.target.checked
-                          )
-                        }
-                        style={{ width: "3em", height: "1.5em" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* 인기댓글 등극 알림 */}
-                  <div className="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="mb-1">인기댓글 등극 알림</h5>
-                      <p className="text-muted mb-0">
-                        내 댓글이 인기댓글이 되면 알림을 받습니다
-                      </p>
-                    </div>
-                    <div className="form-check form-switch">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        role="switch"
-                        id="CommentFeaturedNotification"
-                        checked={settings.CommentFeaturedNotification}
-                        onChange={(e) =>
-                          handleToggleChange(
-                            "CommentFeaturedNotification",
-                            e.target.checked
-                          )
-                        }
-                        style={{ width: "3em", height: "1.5em" }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="card-footer">
-              <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button
-                  className="btn btn-secondary me-md-2"
-                  onClick={() => router.back()}
-                >
-                  취소
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleSaveSettings}
-                  disabled={isSaving || isLoading}
-                >
-                  {isSaving ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      저장 중...
-                    </>
-                  ) : (
-                    "저장"
-                  )}
-                </button>
-              </div>
+        {isLoading ? (
+          <div className="text-center my-5">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">로딩 중...</span>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="card shadow-sm">
+            <div className="card-header bg-light">
+              <h5 className="mb-0">모바일 알림 설정</h5>
+            </div>
+            <div className="card-body">
+              {/* 알림 설정 항목들 */}
+              <div className="list-group list-group-flush">
+                {/* 전체 알림 */}
+                <div className="list-group-item px-0">
+                  <div className="form-check form-switch">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="AllNotification"
+                      checked={settings.AllNotification}
+                      onChange={(e) =>
+                        handleAllNotificationToggle(e.target.checked)
+                      }
+                    />
+                    <label
+                      className="form-check-label fw-bold"
+                      htmlFor="AllNotification"
+                    >
+                      알림 전체
+                    </label>
+                  </div>
+                  <p className="text-muted mb-0">
+                    모든 알림을 한번에 켜거나 끕니다.
+                  </p>
+                </div>
+
+                {/* 농장 알림 */}
+                <div className="list-group-item px-0">
+                  <div className="form-check form-switch">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="FarmNotification"
+                      checked={settings.FarmNotification}
+                      onChange={(e) =>
+                        handleToggleChange("FarmNotification", e.target.checked)
+                      }
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="FarmNotification"
+                    >
+                      농장 활동 알림
+                    </label>
+                  </div>
+                  <p className="text-muted mb-0">
+                    누군가 내 농장에 농작물을 심었을 때 알림을 받습니다.
+                  </p>
+                </div>
+
+                {/* 댓글 알림 */}
+                <div className="list-group-item px-0">
+                  <div className="form-check form-switch">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="CommentNotification"
+                      checked={settings.CommentNotification}
+                      onChange={(e) =>
+                        handleToggleChange(
+                          "CommentNotification",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="CommentNotification"
+                    >
+                      댓글 알림
+                    </label>
+                  </div>
+                  <p className="text-muted mb-0">
+                    내 글에 댓글이 달렸을 때 알림을 받습니다.
+                  </p>
+                </div>
+
+                {/* 인기글 알림 */}
+                <div className="list-group-item px-0">
+                  <div className="form-check form-switch">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="PostFeaturedNotification"
+                      checked={settings.PostFeaturedNotification}
+                      onChange={(e) =>
+                        handleToggleChange(
+                          "PostFeaturedNotification",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="PostFeaturedNotification"
+                    >
+                      인기글 알림
+                    </label>
+                  </div>
+                  <p className="text-muted mb-0">
+                    내 글이 인기글로 선정되었을 때 알림을 받습니다.
+                  </p>
+                </div>
+
+                {/* 인기 댓글 알림 */}
+                <div className="list-group-item px-0">
+                  <div className="form-check form-switch">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="CommentFeaturedNotification"
+                      checked={settings.CommentFeaturedNotification}
+                      onChange={(e) =>
+                        handleToggleChange(
+                          "CommentFeaturedNotification",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="CommentFeaturedNotification"
+                    >
+                      인기 댓글 알림
+                    </label>
+                  </div>
+                  <p className="text-muted mb-0">
+                    내 댓글이 인기 댓글로 선정되었을 때 알림을 받습니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="card-footer">
+              <button
+                className="btn btn-primary"
+                onClick={handleSaveSettings}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    저장 중...
+                  </>
+                ) : (
+                  "설정 저장"
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </main>
   );
 };
 

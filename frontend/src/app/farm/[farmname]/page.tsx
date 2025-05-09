@@ -276,52 +276,54 @@ export default function FarmPage() {
 
   // 농장 데이터 로드
   const router = useRouter();
-  useEffect(() => {
-    const fetchCrops = async () => {
-      setIsLoading(true);
 
-      try {
-        let response;
+  // fetchCrops 함수를 useCallback으로 정의
+  const fetchCrops = useCallback(async () => {
+    setIsLoading(true);
 
-        // 본인 농장인 경우
-        if (isMyFarm) {
-          response = await fetchClient(`${API_BASE}/farm/myFarm`, {
-            method: "POST",
-          });
-        }
-        // 타인 농장인 경우
-        else {
-          response = await fetchClient(
-            `${API_BASE}/farm/${encodeURIComponent(farmName)}`
-          );
-        }
+    try {
+      let response;
 
-        if (response.ok) {
-          const cropsData: CropDTO[] = await response.json();
-          setCrops(cropsData);
-        } else {
-          console.error(
-            "농작물 데이터를 가져오는데 실패했습니다:",
-            await response.text()
-          );
-          // 농장 존재 여부 확인 실패 시 홈으로 리다이렉트
-          alert("존재하지 않는 농장이거나 접근할 수 없는 농장입니다.");
-          router.push("/");
-        }
-      } catch (error) {
-        console.error("API 호출 중 오류 발생:", error);
-        // 오류 발생 시 홈으로 리다이렉트
-        alert("농장 정보를 가져오는 중 오류가 발생했습니다.");
-        router.push("/");
-      } finally {
-        setIsLoading(false);
+      // 본인 농장인 경우
+      if (isMyFarm) {
+        response = await fetchClient(`${API_BASE}/farm/myFarm`, {
+          method: "POST",
+        });
       }
-    };
+      // 타인 농장인 경우
+      else {
+        response = await fetchClient(
+          `${API_BASE}/farm/${encodeURIComponent(farmName)}`
+        );
+      }
 
+      if (response.ok) {
+        const cropsData: CropDTO[] = await response.json();
+        setCrops(cropsData);
+      } else {
+        console.error(
+          "농작물 데이터를 가져오는데 실패했습니다:",
+          await response.text()
+        );
+        // 농장 존재 여부 확인 실패 시 홈으로 리다이렉트
+        alert("존재하지 않는 농장이거나 접근할 수 없는 농장입니다.");
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("API 호출 중 오류 발생:", error);
+      // 오류 발생 시 홈으로 리다이렉트
+      alert("농장 정보를 가져오는 중 오류가 발생했습니다.");
+      router.push("/");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [farmName, isMyFarm, router]);
+
+  useEffect(() => {
     if (farmName) {
       fetchCrops();
     }
-  }, [farmName, isMyFarm, router]);
+  }, [farmName, fetchCrops]);
 
   // 특정 좌표에 있는 농작물 찾기
   const getCropAtPosition = (x: number, y: number) => {
@@ -389,77 +391,68 @@ export default function FarmPage() {
   const handlePlantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 유효성 검사
-    if (plantForm.nickname.trim().length > 8) {
-      alert("작성자 이름은 8글자 이하여야 합니다.");
+    // 메시지 및 닉네임 검증
+    if (
+      !validateNoXSS(plantForm.message) ||
+      !validateNoXSS(plantForm.nickname)
+    ) {
+      alert("특수문자(<, >, &, \", ')는 사용이 불가능합니다.");
       return;
     }
 
-    if (plantForm.message.length > 255) {
-      alert("메시지는 255자 이내로 작성해주세요.");
+    if (!user) {
+      alert("로그인이 필요한 기능입니다.");
+      return;
+    }
+
+    if (plantForm.nickname.length > 10) {
+      alert("닉네임은 10자 이내로 입력해주세요.");
+      return;
+    }
+
+    if (plantForm.message.length > 100) {
+      alert("메시지는 100자 이내로 입력해주세요.");
       return;
     }
 
     setIsPlanting(true);
 
     try {
-      // 작물 데이터 준비
-      const cropData: Partial<CropDTO> = {
-        farmName: farmName,
-        cropType: plantForm.cropType as CropType,
-        message: plantForm.message,
-        width: plantForm.x,
-        height: plantForm.y,
-        nickname: plantForm.nickname || "익명",
-      };
-
-      // 작물 심기 API 호출
-      const response = await fetchClient(
-        `${API_BASE}/farm/${encodeURIComponent(farmName)}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(cropData),
-        }
-      );
+      const response = await fetchClient(`${API_BASE}/farm/${farmName}/plant`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          x: plantForm.x,
+          y: plantForm.y,
+          cropType: plantForm.cropType,
+          message: escapeHTML(plantForm.message),
+          nickname: escapeHTML(plantForm.nickname),
+        }),
+      });
 
       if (response.ok) {
-        // 성공적으로 작물을 심었을 때
-        const responseText = await response.text();
-        alert(responseText || "농작물이 심어졌습니다.");
+        // 작물 심기 성공
+        const data = await response.json();
+        console.log("작물 심기 성공:", data);
+        alert("작물이 성공적으로 심어졌습니다!");
 
-        // 모달 닫고 상태 초기화
-        setShowPlantModal(false);
-        setSelectedPosition(null);
-
-        // 작물 목록 갱신
-        // 서버에서 id가 생성되므로 간단하게 전체 목록을 다시 불러오는 방법 사용
-        const refreshResponse = await fetchClient(
-          `${API_BASE}/farm/${encodeURIComponent(farmName)}`
-        );
-
-        if (refreshResponse.ok) {
-          const refreshedCrops: CropDTO[] = await refreshResponse.json();
-          setCrops(refreshedCrops);
-        }
-
-        // 폼 초기화
-        setPlantForm({
-          x: 0,
-          y: 0,
-          message: "",
-          cropType: "POTATO" as CropType,
-          nickname: "",
-        });
+        // 작물 목록 새로고침
+        fetchCrops();
+        // 모달 닫기 및 폼 초기화
+        closePlantModal();
       } else {
         const errorText = await response.text();
-        alert(`작물 심기에 실패했습니다: ${errorText}`);
+        throw new Error(errorText || "작물 심기에 실패했습니다.");
       }
     } catch (error) {
-      console.error("작물 심기 중 오류 발생:", error);
-      alert("작물 심기 중 오류가 발생했습니다.");
+      console.error("작물 심기 오류:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "작물 심기 중 오류가 발생했습니다."
+      );
     } finally {
       setIsPlanting(false);
     }
@@ -711,9 +704,7 @@ export default function FarmPage() {
                 </button>
                 {selectedPosition && (
                   <p className="text-muted text-center mb-0">
-                    <small>
-                      다른 위치를 선택하려면 빈 칸을 클릭하세요
-                    </small>
+                    <small>다른 위치를 선택하려면 빈 칸을 클릭하세요</small>
                   </p>
                 )}
               </div>
@@ -874,10 +865,8 @@ export default function FarmPage() {
                       required
                     />
                     <div className="form-text">
-                      {plantForm.message.length}/255자
-                      메시지는 암호화 되어 저장됩니다!
-
-
+                      {plantForm.message.length}/255자 메시지는 암호화 되어
+                      저장됩니다!
                     </div>
                   </div>
 

@@ -78,6 +78,13 @@ export default function AdminPage() {
     setShowBanModal(true);
   };
 
+  // 사용자 차단 모달 닫기
+  const closeBanModal = () => {
+    setBanUserId(null);
+    setBanReason("");
+    setShowBanModal(false);
+  };
+
   // 사용자 차단 처리
   const handleBanUser = async () => {
     if (!banUserId || !banReason.trim()) return;
@@ -329,6 +336,7 @@ export default function AdminPage() {
                       <th>대상 ID</th>
                       <th>내용</th>
                       <th>상세</th>
+                      <th>차단</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -353,6 +361,14 @@ export default function AdminPage() {
                             상세보기
                           </button>
                         </td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => openBanModal(report.userId)}
+                          >
+                            차단
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -369,6 +385,56 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* 사용자 차단 모달 */}
+      {showBanModal && (
+        <div className="modal show d-block" tabIndex={-1} role="dialog">
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">사용자 차단</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={closeBanModal}
+                  aria-label="Close"
+                />
+              </div>
+              <div className="modal-body">
+                <div className="form-group mb-3">
+                  <label htmlFor="banReason">차단 사유</label>
+                  <textarea
+                    className="form-control mt-2"
+                    id="banReason"
+                    value={banReason}
+                    onChange={(e) => setBanReason(e.target.value)}
+                    rows={3}
+                    placeholder="차단 사유를 입력하세요"
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={closeBanModal}
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleBanUser}
+                  disabled={isBanSubmitting || !banReason.trim()}
+                >
+                  {isBanSubmitting ? "처리 중..." : "차단하기"}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </div>
+      )}
     </main>
   );
 }
