@@ -3,6 +3,7 @@ package jaeik.growfarm.service;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.dto.kakao.KakaoFriendDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.entity.board.Comment;
@@ -26,6 +27,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /*
  * UserService 클래스
@@ -135,7 +138,19 @@ public class UserService {
         Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        return kakaoService.getFriendList(user.getToken().getKakaoAccessToken(), offset);
+        KakaoFriendListDTO kakaoFriendListDTO = kakaoService.getFriendList(user.getToken().getKakaoAccessToken(), offset);
+        List<KakaoFriendDTO> friendList = kakaoFriendListDTO.getElements();
+        List<Long> friendIds = friendList.stream()
+                .map(KakaoFriendDTO::getId)
+                .toList();
+
+        List<String> farmNames = userRepository.findFarmNamesInOrder(friendIds);
+
+        for (int i = 0; i < friendList.size(); i++) {
+            friendList.get(i).setFarmName(farmNames.get(i));
+        }
+
+        return kakaoFriendListDTO;
     }
 
     @Transactional
