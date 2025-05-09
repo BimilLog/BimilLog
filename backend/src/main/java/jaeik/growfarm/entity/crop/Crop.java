@@ -1,6 +1,7 @@
 package jaeik.growfarm.entity.crop;
 
 import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.global.security.MessageEncryptConverter;
 import jaeik.growfarm.repository.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -40,8 +41,9 @@ public class Crop extends BaseEntity {
     private String nickname;
 
     @NotNull
-    @Column(nullable = false)
-    private String message; // 익명 메시지 255자 까지 허용
+    @Column(columnDefinition = "TEXT", nullable = false)
+    @Convert(converter = MessageEncryptConverter.class)
+    private String message; // 익명 메시지 255자 까지 지만 암호화 때문에 TEXT로 설정
 
     @NotNull
     @Column(nullable = false)
