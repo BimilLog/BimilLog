@@ -32,7 +32,7 @@ export default function Manual() {
               <p className="lead fw-normal text-muted mb-0">
                 로그인을 하지 않아도 농장 이름으로 친구의 농장에 찾아갈 수
                 있어요. 익명의 쪽지를 원하는 농작물로 감싸서 친구의 농장에
-                심어보세요!
+                심어보세요! 쪽지 내용은 암호화 되어 저장됩니다!
               </p>
             </div>
           </div>

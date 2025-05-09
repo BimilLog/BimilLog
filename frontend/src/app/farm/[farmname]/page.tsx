@@ -712,7 +712,7 @@ export default function FarmPage() {
                 {selectedPosition && (
                   <p className="text-muted text-center mb-0">
                     <small>
-                      다른 위치를 선택하려면 그리드에서 빈 칸을 클릭하세요
+                      다른 위치를 선택하려면 빈 칸을 클릭하세요
                     </small>
                   </p>
                 )}
@@ -875,6 +875,9 @@ export default function FarmPage() {
                     />
                     <div className="form-text">
                       {plantForm.message.length}/255자
+                      메시지는 암호화 되어 저장됩니다!
+
+
                     </div>
                   </div>
 

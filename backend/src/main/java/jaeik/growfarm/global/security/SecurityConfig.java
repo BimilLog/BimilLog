@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.config;
+package jaeik.growfarm.global.security;
 
 import jaeik.growfarm.global.filter.HeaderCheckFilter;
 import jaeik.growfarm.global.filter.JwtFilter;
