@@ -1,5 +1,6 @@
 package jaeik.growfarm.global.filter;
 
+import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.global.auth.CustomUserDetails;
@@ -60,8 +61,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (token != null) {
                     try {
                         // 카카오 토큰 갱신 로직
-                        tokenRepository.save(userUtil.DTOToToken(kakaoService.refreshToken(token.getKakaoAccessToken())));
-
+                        TokenDTO tokenDTO = kakaoService.refreshToken(token.getKakaoRefreshToken());
+                        token.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
                         Long tokenId = jwtTokenProvider.getClaimsFromToken(refreshToken).get("tokenId", Long.class);
 
                         // tokenId로 완전한 사용자 정보 조회

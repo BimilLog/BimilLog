@@ -231,9 +231,6 @@ public class KakaoService {
                 .bodyToMono(KakaoFriendListDTO.class);
 
         return response.block();
-
-
-
     }
 
     // 여러 사용자 정보 가져오기

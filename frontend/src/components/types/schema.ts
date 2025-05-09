@@ -16,13 +16,14 @@ export enum UserRole {
 export interface KakaoFriendDTO {
     id: number;
     uuid: string;
-    profileNickname: string;
-    profileThumbnailImage: string;
+    profile_nickname: string;
+    profile_thumbnail_image: string;
+    farmName: string;
 }
 
 export interface KakaoFriendListDTO {
     elements: KakaoFriendDTO[];
-    totalCount: number;
+    total_count: number;
 }
 
 export interface CropDTO {
