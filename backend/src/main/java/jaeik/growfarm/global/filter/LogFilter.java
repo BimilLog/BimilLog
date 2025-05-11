@@ -23,8 +23,8 @@ public class LogFilter extends OncePerRequestFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
-    private static final List<String> WHITELIST = List.of("/", "/api/board/", "/api/board/realtime", "/api/board/weekly",
-            "/api/board/fame", "/api/board/search", "/api/board/{postId}", "/api/farm/{farmName}", "/api/auth/login", "/api/auth/signUp", "/api/auth/me", "/api/auth/health");
+    private static final List<String> WHITELIST = List.of("/", "/board/", "/board/realtime", "/board/weekly",
+            "/board/fame", "/board/search", "/board/{postId}", "/farm/{farmName}", "/auth/login", "/auth/signUp", "/auth/me", "/auth/health");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
