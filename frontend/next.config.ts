@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               // 스크립트 소스 허용
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.kakao.com https://*.kakao.sdk.io https://t1.kakaocdn.net https://postfiles.pstatic.net https://dapi.kakao.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.kakao.com https://*.kakao.sdk.io https://t1.kakaocdn.net https://postfiles.pstatic.net https://dapi.kakao.com https://www.gstatic.com https://www.gstatic.com/firebasejs/",
               // 스타일시트 허용
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
               // 이미지 소스 허용

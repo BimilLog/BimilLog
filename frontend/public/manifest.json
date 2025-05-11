@@ -1,7 +1,7 @@
 {
   "name": "농장 키우기",
   "short_name": "농장 키우기",
-  "description": "카카오 친구들과 함께 익명 메시지로 마음을 담아 농장을 꾸며보세요.",
+  "description": "익명 메시지를 카톡 친구들 에게 남겨보세요!!.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
