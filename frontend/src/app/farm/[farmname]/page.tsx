@@ -157,8 +157,8 @@ export default function FarmPage() {
   const [showPlantModal, setShowPlantModal] = useState(false);
   // 작물 심기 폼 상태
   const [plantForm, setPlantForm] = useState({
-    x: 0,
-    y: 0,
+    width: 0,
+    height: 0,
     message: "",
     cropType: "POTATO" as CropType,
     nickname: "",
@@ -346,7 +346,7 @@ export default function FarmPage() {
     } else if (!isMyFarm) {
       // 타인 농장이고 작물이 없는 경우 작물 심기 위해 좌표 선택
       setSelectedPosition({ x, y });
-      setPlantForm((prev) => ({ ...prev, x, y }));
+      setPlantForm((prev) => ({ ...prev, width: x, height: y }));
       setSelectedCrop(null);
     } else {
       // 본인 농장이고 작물이 없는 좌표 클릭 시 선택 해제
@@ -424,8 +424,8 @@ export default function FarmPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          x: plantForm.x,
-          y: plantForm.y,
+          width: plantForm.width,
+          height: plantForm.height,
           cropType: plantForm.cropType,
           message: escapeHTML(plantForm.message),
           nickname: escapeHTML(plantForm.nickname),
@@ -434,9 +434,7 @@ export default function FarmPage() {
 
       if (response.ok) {
         // 작물 심기 성공
-        const data = await response.json();
-        console.log("작물 심기 성공:", data);
-        alert("작물이 성공적으로 심어졌습니다!");
+        alert("농작물을 성공적으로 심었습니다!");
 
         // 작물 목록 새로고침
         fetchCrops();
@@ -444,15 +442,11 @@ export default function FarmPage() {
         closePlantModal();
       } else {
         const errorText = await response.text();
-        throw new Error(errorText || "작물 심기에 실패했습니다.");
+        throw new Error("농작물 심는데 실패했습니다!");
       }
     } catch (error) {
       console.error("작물 심기 오류:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "작물 심기 중 오류가 발생했습니다."
-      );
+      alert("농작물 심는데 실패했습니다!");
     } finally {
       setIsPlanting(false);
     }
