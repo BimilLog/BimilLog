@@ -418,7 +418,7 @@ export default function FarmPage() {
     setIsPlanting(true);
 
     try {
-      const response = await fetchClient(`${API_BASE}/farm/${farmName}/plant`, {
+      const response = await fetchClient(`${API_BASE}/farm/${farmName}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
