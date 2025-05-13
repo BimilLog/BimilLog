@@ -295,7 +295,7 @@ export default function Home() {
                     className="btn btn-outline-light btn-lg px-15"
                     href="/manual"
                   >
-                    농장 키우기 사용법
+                    네 마음을 심어줘 사용법
                   </Link>
                   {user && (
                     <button

@@ -13,7 +13,7 @@ export default function Privacy() {
                 <section className="mb-4">
                   <h2 className="mb-3">[1. 총 칙]</h2>
                   <p>
-                    &apos;농장 키우기&apos;(이하 &ldquo;회사&rdquo;라 합니다)는
+                    &apos;네 마음을 심어줘&apos;(이하 &ldquo;회사&rdquo;라 합니다)는
                     이용자가 회사의 서비스를 이용함과 동시에 온라인상에서 회사에
                     제공한 개인정보가 보호 받을 수 있도록 최선을 다하고
                     있습니다. 이에 회사는 정보통신망 이용촉진 및 정보보호 등에
@@ -199,7 +199,7 @@ export default function Privacy() {
                     사항]
                   </h2>
                   <p>
-                    ① 이용자는 언제든지 농장 키우기
+                    ① 이용자는 언제든지 네 마음을 심어줘
                     홈페이지(https://grow-farm.com)에 로그인하셔서
                     회원정보변경에서 이용자의 개인정보를 열람하시거나 정정하실
                     수 있으며 회사 홈페이지(https://grow-farm.co)의
@@ -353,7 +353,7 @@ export default function Privacy() {
                   </p>
                   [개인정보 보호 책임 및 담당자]
                   <ul className="list-unstyled">
-                    <li>담당자 : 농장 키우기 개발자</li>
+                    <li>담당자 : 네 마음을 심어줘 개발자</li>
                     <li>e-mail : wodlr1207@naver.com</li>
                   </ul>
                 </section>

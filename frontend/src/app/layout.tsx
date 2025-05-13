@@ -11,20 +11,20 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "농장 키우기 - 카카오 친구들과 함께하는 가상 농장",
+  title: "네 마음을 심어줘 - 익명으로 친구의 농장을 꾸며보세요",
   description:
-    "카카오 친구들과 함께 익명 메시지로 마음을 담아 농장을 꾸며보세요. 친구의 농장을 방문하고 소통할 수 있는 농장 키우기 서비스입니다.",
+    "마음을 담은 메시지로 친구의 농장을 가꿔보세요!. 친구의 농장을 방문하고 소통할 수 있는 익명 롤링페이퍼 서비스입니다!",
   keywords: [
     "농장",
     "카카오",
     "메시지",
     "익명",
-    "소통",
-    "친구",
-    "가상 농장",
-    "농장 키우기",
+    "마음",
+    "롤링 페이퍼",
+    "유행",
+    "네 마음을 심어줘",
   ],
-  authors: [{ name: "농장 키우기 팀" }],
+  authors: [{ name: "네 마음을 심어줘 개발자" }],
   robots: "index, follow",
   metadataBase: new URL("https://grow-farm.com"), // 실제 도메인으로 수정하세요
   alternates: {
@@ -34,25 +34,25 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     url: "https://grow-farm.com", // 실제 도메인으로 수정하세요
-    title: "농장 키우기 - 카카오 친구들과 함께하는 가상 농장",
+    title: "네 마음을 심어줘 - 익명으로 친구의 농장을 꾸며보세요",
     description:
-      "카카오 친구들과 함께 익명 메시지로 마음을 담아 농장을 꾸며보세요. 친구의 농장을 방문하고 소통할 수 있는 농장 키우기 서비스입니다.",
-    siteName: "농장 키우기",
+        "마음을 담은 메시지로 친구의 농장을 가꿔보세요!. 친구의 농장을 방문하고 소통할 수 있는 익명 롤링페이퍼 서비스입니다!",
+    siteName: "네 마음을 심어줘",
     images: [
       {
-        url: "/farmImage.jpeg", // 대표 이미지 경로
+        url: "/app_icon.jpg", // 대표 이미지 경로
         width: 1200,
         height: 630,
-        alt: "농장 키우기 대표 이미지",
+        alt: "네 마음을 심어줘 대표 이미지",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "농장 키우기 - 카카오 친구들과 함께하는 가상 농장",
+    title: "네 마음을 심어줘 - 익명으로 친구의 농장을 꾸며보세요",
     description:
-      "카카오 친구들과 함께 익명 메시지로 마음을 담아 농장을 꾸며보세요. 친구의 농장을 방문하고 소통할 수 있는 농장 키우기 서비스입니다.",
-    images: ["/farmImage.jpeg"],
+        "마음을 담은 메시지로 친구의 농장을 가꿔보세요!. 친구의 농장을 방문하고 소통할 수 있는 익명 롤링페이퍼 서비스입니다!",
+    images: ["/app_icon.jpg"],
     creator: "",
   },
   icons: {
@@ -71,7 +71,7 @@ const Footer = () => {
         <div className="row align-items-center justify-content-between flex-column flex-sm-row">
           <div className="col-auto">
             <div className="small m-0 text-white">
-              Copyright &copy; 농장 키우기 {new Date().getFullYear()}
+              Copyright &copy; 네 마음을 심어줘 {new Date().getFullYear()}
             </div>
           </div>
           <div className="col-auto">

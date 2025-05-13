@@ -24,7 +24,7 @@ public class LogFilter extends OncePerRequestFilter {
 
 
     private static final List<String> WHITELIST = List.of("/", "/board/", "/board/realtime", "/board/weekly",
-            "/board/fame", "/board/search", "/board/{postId}", "/farm/{farmName}", "/auth/login", "/auth/signUp", "/auth/me", "/auth/health");
+            "/board/fame", "/board/search", "/board/{postId}", "/farm/{farmName}", "/auth/login", "/auth/signUp", "/auth/me", "/d fauth/health");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
