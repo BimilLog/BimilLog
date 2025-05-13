@@ -11,7 +11,7 @@ export default function Terms() {
                 <h1 className="mb-4 text-center">이용약관</h1>
 
                 <p className="mb-4">
-                  본 약관은 익명 메시지 서비스 &ldquo;농장 키우기&rdquo;(이하
+                  본 약관은 익명 메시지 서비스 &ldquo;네 마음을 심어줘&rdquo;(이하
                   &ldquo;서비스&rdquo;)의 이용과 관련하여 회사와 이용자 간의
                   권리, 의무 및 책임사항 등을 규정함을 목적으로 합니다.
                 </p>
@@ -21,7 +21,7 @@ export default function Terms() {
                 <section className="mb-4">
                   <h2 className="mb-3">제1조 (목적)</h2>
                   <p>
-                    이 약관은 &ldquo;농장 키우기&rdquo; 서비스를 이용함에 있어
+                    이 약관은 &ldquo;네 마음을 심어줘&rdquo; 서비스를 이용함에 있어
                     회사와 이용자 간의 권리·의무 및 기타 필요한 사항을 규정함을
                     목적으로 합니다.
                   </p>

@@ -573,7 +573,7 @@ const Navigation = () => {
       <div className="container px-5">
         {/* 로고 */}
         <Link className="navbar-brand" href="/">
-          농장 키우기
+          네 마음을 심어줘
         </Link>
 
         {/* 햄버거 메뉴 (모바일) */}
