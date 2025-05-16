@@ -9,11 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-/*
- * 관리자 전용 API
- * 신고 목록 조회
- * 신고 상세 조회
- * 유저 차단 및 블랙 리스트 등록
+/**
+ * <h2>관리자 전용 API</h2>
+ * <p>신고 목록 조회</p>
+ * <p>신고 상세 조회</p>
+ * <p>유저 차단 및 블랙 리스트 등록</p>
  */
 @RestController
 @RequiredArgsConstructor
@@ -22,13 +22,13 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    /*
-     * 신고 목록 조회 API
-     * param int page: 페이지 번호
-     * param int size: 페이지 사이즈
-     * param ReportType reportType: 신고 타입 (null이면 전체 조회)
-     * return: Page<ReportDTO>
-     * 수정일 : 2025-04-28
+    /**
+     * <h3>신고 목록 조회 API</h3>
+     * @param page 페이지 번호,
+     * @param size 페이지 사이즈
+     * @param reportType 신고 타입 (null이면 전체 조회)
+     * @return 페이징 된 신고 목록
+     * @since 2025-04-28
      */
     @GetMapping("/report")
     @PreAuthorize("hasRole('ADMIN')")
@@ -37,11 +37,11 @@ public class AdminController {
         return ResponseEntity.ok(reportList);
     }
 
-    /*
-     * 신고 상세 조회 API
-     * param Long reportId: 신고 ID
-     * return: ReportDTO
-     * 수정일 : 2025-04-28
+    /**
+     * <h2>신고 상세 조회 API</h2>
+     * @param reportId 신고 ID
+     * @return 신고 상세 정보
+     * @since 2025-04-28
      */
     @GetMapping("/report/{reportId}")
     @PreAuthorize("hasRole('ADMIN')")
