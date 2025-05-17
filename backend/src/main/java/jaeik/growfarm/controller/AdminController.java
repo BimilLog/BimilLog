@@ -58,7 +58,7 @@ public class AdminController {
      * <h3>유저 차단 및 블랙 리스트 등록 API</h3>
      *
      * @param userId 유저 ID
-     * @return 200 OK 응답
+     * @return 차단 완료 메시지
      * @since 2025-04-28
      */
     @PostMapping("/user/ban")

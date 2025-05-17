@@ -17,7 +17,6 @@ import jaeik.growfarm.util.UserUtil;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,13 +31,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 /**
- * <h2>FarmController의 통합 테스트</h2>
- * 이 테스트는 실제 데이터베이스와 서비스를 사용하여 FarmController의 전체 로직을 테스트합니다.
+ * <h2>FarmController 통합 테스트</h2>
+ * 실제 데이터베이스와 서비스를 사용하여 FarmController의 전체 API를 테스트합니다.
  *
  * @since 2025.05.17
  */
 @SpringBootTest
-@Import(IntegrationTestConfig.class)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(PER_CLASS)
