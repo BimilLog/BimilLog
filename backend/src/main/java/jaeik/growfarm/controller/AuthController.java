@@ -92,8 +92,8 @@ public class AuthController {
      * @param userDetails 인증된 사용자 정보
      * @return 회원탈퇴 완료 메시지
      * <p>쿠키를 삭제하고 관련 데이터를 삭제하여 자체 서비스 로그아웃</p>
-     * <p></p>카카오 서버와 통신하여 카카오 연결끊기 처리</p>
-     * 수정일 : 2025-05-03
+     * <p>카카오 서버와 통신하여 카카오 연결끊기</p>
+     * @since 2025-05-03
      */
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
