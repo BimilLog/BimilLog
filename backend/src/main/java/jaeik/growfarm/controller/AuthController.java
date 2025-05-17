@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/*
- * 인증 관련 API
- * 카카오 로그인 처리
- * 회원가입 처리
- * 로그아웃 처리
- * 회원 탈퇴 처리
- * 현재 로그인한 유저 정보 조회
- * AWS 로드 밸런서 상태 검사
+/**
+ * <h2>인증 관련 컨트롤러</h2>
+ * <p>카카오 로그인 처리</p>
+ * <p>회원가입 처리</p>
+ * <p>로그아웃 처리</p>
+ * <p>회원 탈퇴 처리</p>
+ * <p>현재 로그인한 유저 정보 조회</p>
+ * <p>AWS 로드 밸런서 상태 검사</p>
  */
 @RestController
 @RequiredArgsConstructor

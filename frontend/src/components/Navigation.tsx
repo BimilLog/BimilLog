@@ -663,6 +663,12 @@ const Navigation = () => {
                 자유게시판
               </Link>
             </li>
+            <li className="nav-item">
+              <Link className="nav-link" href="/manual">
+                사용법
+              </Link>
+            </li>
+
 
             {/* 로그인 상태에 따른 메뉴 분기 */}
             {user ? (
