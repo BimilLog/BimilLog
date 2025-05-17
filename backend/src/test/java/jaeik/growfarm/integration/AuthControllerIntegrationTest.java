@@ -55,7 +55,6 @@ public class AuthControllerIntegrationTest {
         this.userUtil = userUtil;
     }
 
-
     /**
      * <h3>테스트 데이터 초기화</h3>
      * 사용자 데이터 생성

@@ -177,6 +177,8 @@ public class FarmControllerIntegrationTest {
         assertEquals(CropType.TOMATO, visitCrop.getCropType());
         assertEquals(1, visitCrop.getWidth());
         assertEquals(2, visitCrop.getHeight());
+        assertEquals("testCrop", visitCrop.getNickname());
+        assertEquals("testMessage", visitCrop.getMessage());
     }
 
     /**
