@@ -26,7 +26,7 @@ public class HeaderCheckFilter extends OncePerRequestFilter {
     @Value("${secret-Identifier}")
     private String secretIdentifier;
 
-    private static final List<String> WHITELIST = List.of("api/notification/subscribe", "/api/auth/health");
+    private static final List<String> WHITELIST = List.of("notification/subscribe", "/auth/health");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

@@ -5,7 +5,7 @@ import useAuthStore from "@/util/authStore";
 import { useRouter } from "next/navigation";
 import fetchClient from "@/util/fetchClient";
 
-const API_BASE = "https://grow-farm.com/api";
+const API_BASE = "http://localhost:8080";
 
 // UI용 확장 타입 (DTO와 UI 전용 필드 분리)
 interface SettingUIState {

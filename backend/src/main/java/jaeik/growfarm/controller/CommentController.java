@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-/*
- * 댓글 관련 API
- * 댓글 작성
- * 댓글 수정
- * 댓글 삭제
- * 댓글 추천 / 추천 취소
- * 댓글 신고
+/**
+ * <h2>댓글 관련 컨트롤러</h2>
+ * <p>댓글 작성</p>
+ * <p>댓글 수정</p>
+ * <p>댓글 삭제</p>
+ * <p>댓글 추천 / 추천 취소</p>
+ * <p>댓글 신고</p>
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/board")
+@RequestMapping("/board")
 public class CommentController {
 
     private final CommentService commentService;

@@ -2,7 +2,7 @@ spring:
   application:
     name: growfarm
   profiles:
-    include: prod
+    include: secret
   mvc:
     hiddenmethod:
       filter:

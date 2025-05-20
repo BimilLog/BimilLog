@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { ReportDTO, ReportType, UserRole } from "@/components/types/schema";
 import fetchClient from "@/util/fetchClient";
 
-const API_BASE = "https://grow-farm.com/api";
+const API_BASE = "http://localhost:8080";
 
 export default function AdminPage() {
   const { user } = useAuthStore();

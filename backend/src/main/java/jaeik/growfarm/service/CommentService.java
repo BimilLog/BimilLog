@@ -81,7 +81,7 @@ public class CommentService {
         Long postUserId = post.getUser().getId();
 
         commentRepository.save(boardUtil.commentDTOToComment(commentDTO, post, user));
-        notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.COMMENT, user.getFarmName() + "님이 댓글을 남겼습니다!", "https://grow-farm.com/board/" + postId));
+        notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.COMMENT, user.getFarmName() + "님이 댓글을 남겼습니다!", "http://localhost:3000/board/" + postId));
 
         if (post.getUser().getSetting().isCommentNotification()) {
             List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
@@ -210,7 +210,7 @@ public class CommentService {
                             notificationUtil.createEventDTO(
                                     NotificationType.COMMENT_FEATURED,
                                     "🎉 당신의 댓글이 인기 댓글로 선정되었습니다!",
-                                    "https://grow-farm.com/board" + postId
+                                    "http://localhost:3000/board/" + postId
                             )
                     );
                 });
