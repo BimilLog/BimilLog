@@ -30,7 +30,7 @@ public class KakaoKeyVO {
 
     private final String LOGOUT_URL = "https://kapi.kakao.com/v1/user/logout"; // 로그아웃 URL
     private final String LOGOUT_WITH_KAKAO_URL = "https://kauth.kakao.com/oauth/logout"; // 카카오계정과 함께 로그아웃 URL
-    private final String LOGOUT_WITH_REDIRECT_URL = "http://localhost:3000/auth/kakao/logout"; // 로그아웃 리다이렉트 URL
+    private final String LOGOUT_WITH_REDIRECT_URL = "https://grow-farm.com/auth/kakao/logout"; // 로그아웃 리다이렉트 URL
     private final String UNLINK_URL = "https://kapi.kakao.com/v1/user/unlink"; // 연결 끊기 URL
 
     private final String TOKEN_INFO_URL = "https://kapi.kakao.com/v1/user/access_token_info"; // 토큰 정보 보기 URL

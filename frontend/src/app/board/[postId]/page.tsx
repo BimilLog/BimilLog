@@ -27,7 +27,7 @@ const LoadingSpinner = () => (
 );
 
 // API 경로
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
 
 export default function PostPage() {
   const { postId } = useParams();

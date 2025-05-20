@@ -54,7 +54,25 @@ const PopularPostItem = ({ post }: { post: SimplePostDTO }) => (
 );
 
 // API 기본 URL
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
+
+// 게시글 타입 정의
+interface PostType {
+  _RealtimePopular?: boolean;
+  is_RealtimePopular?: boolean;
+  _WeeklyPopular?: boolean;
+  is_WeeklyPopular?: boolean;
+  _HallOfFame?: boolean;
+  is_HallOfFame?: boolean;
+  postId?: number;
+  title?: string;
+  content?: string;
+  farmName?: string;
+  createdAt?: string;
+  likes?: number;
+  views?: number;
+  commentCount?: number;
+}
 
 // 게시글 타입 정의
 interface PostType {
