@@ -74,6 +74,24 @@ interface PostType {
   commentCount?: number;
 }
 
+// 게시글 타입 정의
+interface PostType {
+  _RealtimePopular?: boolean;
+  is_RealtimePopular?: boolean;
+  _WeeklyPopular?: boolean;
+  is_WeeklyPopular?: boolean;
+  _HallOfFame?: boolean;
+  is_HallOfFame?: boolean;
+  postId?: number;
+  title?: string;
+  content?: string;
+  farmName?: string;
+  createdAt?: string;
+  likes?: number;
+  views?: number;
+  commentCount?: number;
+}
+
 export default function BoardPage() {
   // 페이지 상태관리
   const [currentPage, setCurrentPage] = useState<number>(1);
