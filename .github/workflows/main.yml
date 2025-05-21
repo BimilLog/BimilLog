@@ -1,0 +1,72 @@
+name: CI/CD via SSM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-northeast-2
+      ECR_URI: 644592328385.dkr.ecr.ap-northeast-2.amazonaws.com/farmservice/images
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and push backend image
+      run: |
+        docker build -t backend ./backend
+        docker tag backend:latest $ECR_URI:backend
+        docker push $ECR_URI:backend
+
+    - name: Build and push frontend image
+      run: |
+        docker build -t frontend ./frontend
+        docker tag frontend:latest $ECR_URI:frontend
+        docker push $ECR_URI:frontend
+
+    - name: Deploy Backend via SSM
+      run: |
+        aws ssm send-command \
+          --document-name "AWS-RunShellScript" \
+          --targets "Key=tag:Name,Values=growfarm-backend-server" \
+          --comment "Deploy backend container" \
+          --parameters 'commands=[
+            "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI",
+            "docker pull $ECR_URI:backend",
+            "docker stop backend || true",
+            "docker rm backend || true",
+            "docker run -d --name backend -p 8080:8080 $ECR_URI:backend"
+          ]' \
+          --region $AWS_REGION
+
+    - name: Deploy Frontend via SSM
+      run: |
+        aws ssm send-command \
+          --document-name "AWS-RunShellScript" \
+          --targets "Key=tag:Name,Values=growfarm-frontend-server" \
+          --comment "Deploy frontend container" \
+          --parameters 'commands=[
+            "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI",
+            "docker pull $ECR_URI:frontend",
+            "docker stop frontend || true",
+            "docker rm frontend || true",
+            "docker run -d --name frontend -p 3000:3000 $ECR_URI:frontend"
+          ]' \
+          --region $AWS_REGION
