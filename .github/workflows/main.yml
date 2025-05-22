@@ -31,7 +31,7 @@ jobs:
       - name: Restore firebase-adminsdk json
         run: |
           mkdir -p backend/src/main/resources/firebase
-          echo "${{ secrets.FIREBASE_ADMIN_JSON }}" > backend/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-7d4ebe98d2.json
+          echo "${{ secrets.FIREBASE_ADMIN_JSON }}" | base64 -d > backend/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-7d4ebe98d2.json
 
       - name: Check application-prod.yml
         run: cat backend/src/main/resources/application-prod.yml
