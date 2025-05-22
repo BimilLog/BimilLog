@@ -22,7 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/farm")
+@RequestMapping("/farm")
 public class FarmController {
 
     private final FarmService farmService;
