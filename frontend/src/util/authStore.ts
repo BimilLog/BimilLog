@@ -6,7 +6,7 @@ import { UserDTO } from '@/components/types/schema';
 import fetchClient from './fetchClient';
 
 // API 엔드포인트 상수
-const API_BASE_URL = 'https://grow-farm.com/api';
+const API_BASE_URL = 'http://localhost:8080';
 const API_ENDPOINTS = {
   ME: `${API_BASE_URL}/auth/me`,
   LOGOUT: `${API_BASE_URL}/auth/logout`,

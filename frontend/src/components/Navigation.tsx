@@ -11,7 +11,7 @@ import {
 } from "./types/schema";
 import fetchClient from "@/util/fetchClient";
 
-const API_BASE = "https://grow-farm.com/api";
+const API_BASE = "http://localhost:8080";
 
 /**
  * 네비게이션 컴포넌트
@@ -663,6 +663,12 @@ const Navigation = () => {
                 자유게시판
               </Link>
             </li>
+            <li className="nav-item">
+              <Link className="nav-link" href="/manual">
+                사용법
+              </Link>
+            </li>
+
 
             {/* 로그인 상태에 따른 메뉴 분기 */}
             {user ? (

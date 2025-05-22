@@ -9,7 +9,7 @@ import { DeviceType } from "@/components/types/schema";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import fetchClient from "@/util/fetchClient";
 
-const API_BASE = "https://grow-farm.com/api";
+const API_BASE = "http://localhost:8080";
 
 // Firebase 설정
 const firebaseConfig = {
