@@ -400,11 +400,6 @@ export default function FarmPage() {
       return;
     }
 
-    if (!user) {
-      alert("로그인이 필요한 기능입니다.");
-      return;
-    }
-
     if (plantForm.nickname.length > 10) {
       alert("닉네임은 10자 이내로 입력해주세요.");
       return;
@@ -441,8 +436,7 @@ export default function FarmPage() {
         // 모달 닫기 및 폼 초기화
         closePlantModal();
       } else {
-        const errorText = await response.text();
-        throw new Error("농작물 심는데 실패했습니다!");
+        alert("농작물 심는데 실패했습니다!")
       }
     } catch (error) {
       console.error("작물 심기 오류:", error);
