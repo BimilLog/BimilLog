@@ -21,7 +21,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Restore application-secret.yml
-        run: | 
+        run: |
           mkdir -p backend/src/main/resources echo "${{ secrets.SPRING_PROD_YML }}" > backend/src/main/resources/application-prod.yml
 
       - name: Restore .env
@@ -43,32 +43,34 @@ jobs:
           docker tag frontend:latest $IMAGE_REPO:frontend
           docker push $IMAGE_REPO:frontend
 
-      - name: Deploy Backend via SSM
-        run: |
-          aws ssm send-command \
-            --document-name "AWS-RunShellScript" \
-            --targets "Key=tag:Name,Values=growfarm-backend-server" \
-            --comment "Deploy backend container" \
-            --parameters 'commands=[
-              "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}",
-              "docker pull $IMAGE_REPO:backend",
-              "docker stop backend || true",
-              "docker rm backend || true",
-              "docker run -d --name backend -p 8080:8080 $IMAGE_REPO:backend"
-            ]' \
-            --region ap-northeast-2
+      - name: Deploy Backend via Bastion Host
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BASTION_HOST }}
+          username: ${{ secrets.BASTION_USER }}
+          key: ${{ secrets.BASTION_SSH_KEY }}
+          script: |
+            ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
+              docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+              docker pull $IMAGE_REPO:backend
+              docker stop backend || true
+              docker rm backend || true
+              docker run -d --name backend -p 8080:8080 $IMAGE_REPO:backend
+            ENDSSH
 
-      - name: Deploy Frontend via SSM
-        run: |
-          aws ssm send-command \
-            --document-name "AWS-RunShellScript" \
-            --targets "Key=tag:Name,Values=growfarm-frontend-server" \
-            --comment "Deploy frontend container" \
-            --parameters 'commands=[
-              "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}",
-              "docker pull $IMAGE_REPO:frontend",
-              "docker stop frontend || true",
-              "docker rm frontend || true",
-              "docker run -d --name frontend -p 3000:3000 $IMAGE_REPO:frontend"
-            ]' \
-            --region ap-northeast-2
+      - name: Deploy Frontend via Bastion Host
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BASTION_HOST }}
+          username: ${{ secrets.BASTION_USER }}
+          key: ${{ secrets.BASTION_SSH_KEY }}
+          script: |
+            ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
+              docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+              docker pull $IMAGE_REPO:frontend
+              docker stop frontend || true
+              docker rm frontend || true
+              docker run -d --name frontend -p 3000:3000 $IMAGE_REPO:frontend
+            ENDSSH
+
+
