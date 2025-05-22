@@ -52,7 +52,7 @@ jobs:
           script: |
             ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
               docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-              docker pull $IMAGE_REPO:backend
+              docker pull jaeikjeong/growfarm:backend
               docker stop backend || true
               docker rm backend || true
               docker run -d --name backend -p 8080:8080 $IMAGE_REPO:backend
@@ -67,7 +67,7 @@ jobs:
           script: |
             ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
               docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-              docker pull $IMAGE_REPO:frontend
+              docker pull jaeikjeong/growfarm:frontend
               docker stop frontend || true
               docker rm frontend || true
               docker run -d --name frontend -p 3000:3000 $IMAGE_REPO:frontend
