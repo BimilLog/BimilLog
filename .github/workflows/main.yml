@@ -55,7 +55,7 @@ jobs:
               docker pull jaeikjeong/growfarm:backend
               docker stop backend || true
               docker rm backend || true
-              docker run -d --name backend -p 8080:8080 $IMAGE_REPO:backend
+              docker run -d --name backend -p 8080:8080 ***/growfarm:backend
             ENDSSH
 
       - name: Deploy Frontend via Bastion Host
@@ -70,7 +70,7 @@ jobs:
               docker pull jaeikjeong/growfarm:frontend
               docker stop frontend || true
               docker rm frontend || true
-              docker run -d --name frontend -p 3000:3000 $IMAGE_REPO:frontend
+              docker run -d --name frontend -p 3000:3000 ***/growfarm:frontend
             ENDSSH
 
 
