@@ -23,7 +23,7 @@ jobs:
       - name: Restore application-prod.yml
         run: |
           mkdir -p backend/src/main/resources
-          echo "${{ secrets.SPRING_PROD_YML }}" > backend/src/main/resources/application-prod.yml
+          echo "${{ secrets.SPRING_PROD_YML }}" | base64 -d > backend/src/main/resources/application-prod.yml
 
       - name: Restore firebase-adminsdk json
         run: |
@@ -32,7 +32,7 @@ jobs:
 
       - name: Restore .env
         run: |
-          echo "${{ secrets.FRONTEND_ENV }}" > frontend/.env
+          echo "${{ secrets.FRONTEND_ENV }}" | base64 -d > frontend/.env
 
       - name: Log in to Docker Hub
         run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
