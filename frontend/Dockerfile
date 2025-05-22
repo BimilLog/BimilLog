@@ -6,6 +6,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+COPY .env .env
 RUN npm run build
 
 # 2. 실행 단계 (Node.js 기반)
