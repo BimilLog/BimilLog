@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/board")
+@RequestMapping("/api/board")
 public class CommentController {
 
     private final CommentService commentService;

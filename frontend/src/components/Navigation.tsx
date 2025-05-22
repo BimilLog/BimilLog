@@ -11,7 +11,9 @@ import {
 } from "./types/schema";
 import fetchClient from "@/util/fetchClient";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
+
+
 
 /**
  * 네비게이션 컴포넌트

@@ -54,7 +54,9 @@ const PopularPostItem = ({ post }: { post: SimplePostDTO }) => (
 );
 
 // API 기본 URL
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
+
+
 
 // 게시글 타입 정의
 interface PostType {

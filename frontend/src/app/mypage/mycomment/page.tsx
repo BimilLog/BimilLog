@@ -10,7 +10,9 @@ import { useRouter } from "next/navigation";
 import useAuthStore from "@/util/authStore";
 import fetchClient from "@/util/fetchClient";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
+
+
 
 // 댓글 아이템 컴포넌트
 const CommentItem = ({ comment }: { comment: CommentDTO }) => (

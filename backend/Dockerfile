@@ -30,7 +30,5 @@ COPY --from=builder /app/build/libs/growfarm-1.0.0-RC1.jar app.jar
 # 운영 환경 프로파일 활성화 (필요시 외부에서 변경 가능)
 ENV SPRING_PROFILES_ACTIVE=prod
 
-EXPOSE 8080
-
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "app.jar"]
