@@ -1,4 +1,4 @@
-name: CI/CD via SSM
+name: Bastion host를 통한 CI/CD
 
 on:
   push:
