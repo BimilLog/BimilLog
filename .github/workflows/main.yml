@@ -28,6 +28,20 @@ jobs:
         run: |
           echo "${{ secrets.FRONTEND_ENV }}" > frontend/.env
 
+      - name: Restore firebase-adminsdk json
+        run: |
+          mkdir -p backend/src/main/resources/firebase
+          echo "${{ secrets.FIREBASE_ADMIN_JSON }}" > backend/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-7d4ebe98d2.json
+
+      - name: Check application-prod.yml
+        run: cat backend/src/main/resources/application-prod.yml
+
+      - name: Check .env
+        run: cat frontend/.env
+
+      - name: Check firebase-adminsdk json
+        run: cat backend/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-7d4ebe98d2.json
+
       - name: Log in to Docker Hub
         run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
 
