@@ -18,3 +18,12 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   threshold:
     file: error
+
+server:
+  tomcat:
+    threads:
+      max: 1000
+      min-spare: 10
+
+    connection-timeout: 20000
+
