@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 @Component
 @RequiredArgsConstructor
-public class JwtFilter extends OncePerRequestFilter {
+public class jwtFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenRepository tokenRepository;
@@ -77,8 +77,8 @@ public class JwtFilter extends OncePerRequestFilter {
                                 .path("/")
                                 .maxAge(86400)
                                 .httpOnly(true)
-                                .sameSite("Strict")
-                                .secure(true)
+                                .sameSite("Lax")
+                                .secure(false)
                                 .build();
                         response.addHeader("Set-Cookie", cookie.toString());
 

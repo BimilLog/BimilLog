@@ -1,11 +1,10 @@
 package jaeik.growfarm.controller;
 
-import jaeik.growfarm.dto.user.FarmNameReqDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.service.AuthService;
-import jakarta.validation.Valid;
+import jaeik.growfarm.service.auth.AuthService;
+import jaeik.growfarm.util.LoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -32,50 +31,66 @@ public class AuthController {
     /**
      * <h3>카카오 로그인 API</h3>
      *
+     * <p>
+     * 기존 회원은 JWT를 담은 쿠키를 반환하고, 신규 회원은 UUID가 있는 임시 쿠키를 반환한다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
      * @param code 프론트에서 반환된 카카오 인가 코드
-     * @return JWT가 삽입된 쿠키 또는 토큰 ID
-     * <p>기존 회원은 쿠키를 반환하고, 신규 회원은 토큰 ID를 반환한다.</p>
-     * @since : 2025-04-28
+     * @return Jwt가 삽입된 쿠키 또는 임시 쿠키
      */
     @GetMapping("/login")
-    public ResponseEntity<Object> loginKakao(@RequestParam String code) {
-        Object result = authService.processKakaoLogin(code);
+    public ResponseEntity<?> loginKakao(@RequestParam String code) {
+        LoginResponse<?> result = authService.processKakaoLogin(code);
 
-        if (result instanceof List<?> listResult) { // 반환값이 쿠키면 쿠키 반환 (기존 유저)
-            List<ResponseCookie> cookies = (List<ResponseCookie>) listResult;
+        if (result.getType() == LoginResponse.LoginType.EXISTING_USER) {
+            List<ResponseCookie> cookies = (List<ResponseCookie>) result.getData();
             return ResponseEntity.ok()
                     .header("Set-Cookie", cookies.get(0).toString())
                     .header("Set-Cookie", cookies.get(1).toString())
-                    .build();
+                    .body("로그인 성공");
         } else {
-            return ResponseEntity.ok(result); // 아니면 토큰 ID 반환 (신규 유저)
+            ResponseCookie tempCookie = (ResponseCookie) result.getData();
+            return ResponseEntity.ok()
+                    .header("Set-Cookie", tempCookie.toString())
+                    .body("임시 쿠키 발급 완료");
         }
     }
 
     /**
      * <h3>자체 서비스 회원 가입 API</h3>
      *
-     * @param request 농장 등록 요청 DTO
-     * @return JWT가 삽입된 쿠키
      * <p>카카오 로그인 후 신규 회원일 경우 작동되며 farmName과 tokenId를 받아서 쿠키를 반환한다.</p>
-     * @since 2025-04-28
+     *
+     * @param farmName
+     * @param request  농장 등록 요청 DTO
+     * @return JWT가 삽입된 쿠키
+     * @author Jaeik
+     * @since 1.0.0
      */
-    @PostMapping("/signUp")
-    public ResponseEntity<Void> SignUp(@RequestBody @Valid FarmNameReqDTO request) {
-        List<ResponseCookie> cookies = authService.signUp(request.getTokenId(), request.getFarmName());
+    @GetMapping("/signUp")
+    public ResponseEntity<String> SignUp(@RequestParam String farmName,
+                                         @CookieValue(value = "temp") String uuid) {
+
+        List<ResponseCookie> cookies = authService.signUp(farmName, uuid);
+
         return ResponseEntity.ok()
                 .header("Set-Cookie", cookies.get(0).toString())
                 .header("Set-Cookie", cookies.get(1).toString())
-                .build();
+                .body("회원 가입 완료 - JWT 쿠키 발급됨");
     }
 
     /**
      * <h3>로그아웃 API</h3>
      *
-     * @return 로그아웃 완료 메시지
      * <p>쿠키를 삭제하여 자체 서비스 로그아웃</p>
      * <p>카카오 서버와 통신하여 카카오 로그아웃</p>
-     * @since 2025-05-03
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDetails 인증된 사용자 정보
+     * @return 로그아웃 완료 메시지
      */
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -88,12 +103,13 @@ public class AuthController {
 
     /**
      * <h3>회원 탈퇴 API</h3>
-     *
-     * @param userDetails 인증된 사용자 정보
-     * @return 회원탈퇴 완료 메시지
      * <p>쿠키를 삭제하고 관련 데이터를 삭제하여 자체 서비스 로그아웃</p>
      * <p>카카오 서버와 통신하여 카카오 연결끊기</p>
-     * @since 2025-05-03
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDetails 인증된 사용자 정보
+     * @return 회원탈퇴 완료 메시지
      */
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -107,10 +123,12 @@ public class AuthController {
     /**
      * <h3>현재 로그인한 사용자 정보 조회 API</h3>
      *
+     * <p>현재 로그인한 사용자의 정보를 조회하여 반환한다.</p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
      * @param userDetails 인증된 사용자 정보
      * @return 현재 로그인한 사용자 정보
-     * <p>현재 로그인한 사용자의 정보를 조회하여 반환한다.</p>
-     * @since 2025-05-03
      */
     @PostMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -123,8 +141,9 @@ public class AuthController {
     /**
      * <h3>서버 상태 검사 API</h3>
      *
-     * @return 상태 검사 완료 메시지
      * @since 2025-04-28
+     * @author Jaeik
+     * @return 상태 검사 완료 메시지
      */
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {

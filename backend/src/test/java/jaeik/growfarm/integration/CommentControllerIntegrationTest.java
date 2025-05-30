@@ -3,8 +3,6 @@ package jaeik.growfarm.integration;
 import jaeik.growfarm.controller.CommentController;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
-import jaeik.growfarm.dto.board.PostDTO;
-import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.entity.board.Comment;
 import jaeik.growfarm.entity.board.Post;
 import jaeik.growfarm.entity.user.Setting;
@@ -29,10 +27,9 @@ import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.TestConstructor;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 /**
@@ -148,7 +145,7 @@ public class CommentControllerIntegrationTest {
     void testWriteComment() throws IOException {
         // Given
         CommentDTO commentDTO = new CommentDTO(null, testPost.getId(), testUser.getId(), 
-                testUser.getFarmName(), "New Test Comment", 0, LocalDateTime.now(), false, false);
+                testUser.getFarmName(), "New Test Comment", 0, Instant.now(), false, false);
 
         // 인증 설정
         CustomUserDetails userDetails = new CustomUserDetails(userUtil.UserToDTO(testUser));
@@ -172,7 +169,7 @@ public class CommentControllerIntegrationTest {
     void testUpdateComment() {
         // Given
         CommentDTO commentDTO = new CommentDTO(testComment.getId(), testPost.getId(), testUser.getId(), 
-                testUser.getFarmName(), "Updated Test Comment", 0, LocalDateTime.now(), false, false);
+                testUser.getFarmName(), "Updated Test Comment", 0, Instant.now(), false, false);
 
         // 인증 설정
         CustomUserDetails userDetails = new CustomUserDetails(userUtil.UserToDTO(testUser));

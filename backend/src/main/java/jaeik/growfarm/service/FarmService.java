@@ -35,12 +35,36 @@ public class FarmService {
     private final NotificationUtil notificationUtil;
     private final FcmTokenRepository fcmTokenRepository;
 
+    /**
+     * <h3>내 농장 조회</h3>
+     *
+     * <p>
+     * 사용자 ID를 통해 해당 사용자의 농작물 목록을 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userId 사용자 ID
+     * @return 농작물 목록
+     */
     public List<CropDTO> myFarm(Long userId) {
         List<Crop> crops = cropRepository.findByUsersId(userId);
 
         return crops.stream().map(farmUtil::convertToCropDTO).toList();
     }
 
+    /**
+     * <h3>다른 농장 방문</h3>
+     *
+     * <p>
+     * 농장 이름을 통해 해당 농장의 농작물 목록을 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param farmName 농장 이름
+     * @return 방문 농장의 농작물 목록
+     */
     public List<VisitCropDTO> visitFarm(String farmName) {
         Users user = userRepository.findByFarmName(farmName);
 
@@ -52,6 +76,19 @@ public class FarmService {
         return crops.stream().map(farmUtil::convertToVisitFarmDTO).toList();
     }
 
+    /**
+     * <h3>농작물 심기</h3>
+     *
+     * <p>
+     * 다른 사용자의 농장에 농작물을 심고 농장 주인에게 알림을 발송한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param farmName 농장 이름
+     * @param cropDTO  심을 농작물 정보 DTO
+     * @throws IOException FCM 메시지 발송 오류 시 발생
+     */
     public void plantCrop(String farmName, CropDTO cropDTO) throws IOException {
         Users user = userRepository.findByFarmName(farmName);
 
@@ -62,8 +99,8 @@ public class FarmService {
         Crop crop = farmUtil.convertToCrop(cropDTO, user);
         cropRepository.save(crop);
 
-        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM, "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
-
+        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM,
+                "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
 
         if (user.getSetting().isFarmNotification()) {
 
@@ -75,12 +112,23 @@ public class FarmService {
                         .token(fcmToken.getFcmRegistrationToken())
                         .title("누군가가 농장에 농작물을 심었습니다!")
                         .body("지금 확인해보세요!")
-                        .build()
-                );
+                        .build());
             }
         }
     }
 
+    /**
+     * <h3>농작물 삭제</h3>
+     *
+     * <p>
+     * 농작물 소유자만 해당 농작물을 삭제할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param cropId      농작물 ID
+     */
     public void deleteCrop(CustomUserDetails userDetails, Long cropId) {
         if (userDetails == null) {
             throw new RuntimeException("다시 로그인 해 주세요.");

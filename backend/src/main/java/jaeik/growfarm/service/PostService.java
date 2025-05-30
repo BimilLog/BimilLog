@@ -2,7 +2,6 @@ package jaeik.growfarm.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
@@ -12,8 +11,6 @@ import jaeik.growfarm.entity.board.Post;
 import jaeik.growfarm.entity.board.PostLike;
 import jaeik.growfarm.entity.notification.FcmToken;
 import jaeik.growfarm.entity.notification.NotificationType;
-import jaeik.growfarm.entity.report.Report;
-import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
@@ -63,14 +60,18 @@ public class PostService {
     private final FcmTokenRepository fcmTokenRepository;
     private final CommentLikeRepository commentLikeRepository;
 
-    /*
-     * 게시판 조회 메서드
-     * param int page: 페이지 번호
-     * param int size: 페이지 사이즈
-     * return convertToSimplePostDTOPage() Page<Post>를 Page<SimplePostDTO>로 만드는 메서드
-     * 설명 : 최신순으로 페이징
+    /**
+     * <h3>게시판 조회</h3>
      *
-     * 수정일 : 2025-05-05
+     * <p>
+     * 최신순으로 게시글 목록을 페이지네이션으로 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param page 페이지 번호
+     * @param size 페이지 사이즈
+     * @return 게시글 목록 페이지
      */
     public Page<SimplePostDTO> getBoard(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -78,49 +79,68 @@ public class PostService {
         return convertToSimplePostDTOPage(posts);
     }
 
-    /*
-     * 실시간 인기글 목록 조회 메서드
-     * return convertToSimplePostDTOPage() List<Post>를 List<SimplePostDTO>로 만드는 메서드
+    /**
+     * <h3>실시간 인기글 목록 조회</h3>
      *
-     * 수정일 : 2025-05-05
+     * <p>
+     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 실시간 인기글 목록
      */
     public List<SimplePostDTO> getRealtimePopularPosts() {
         List<Post> realtimePopularPosts = postRepository.findByIsRealtimePopularTrue();
         return convertToSimplePostDTOList(realtimePopularPosts);
     }
 
-    /*
-     * 주간 인기글 목록 조회 메서드
-     * return convertToSimplePostDTOPage() List<Post>를 List<SimplePostDTO>로 만드는 메서드
+    /**
+     * <h3>주간 인기글 목록 조회</h3>
      *
-     * 수정일 : 2025-05-05
+     * <p>
+     * 주간 인기글로 선정된 게시글 목록을 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 주간 인기글 목록
      */
     public List<SimplePostDTO> getWeeklyPopularPosts() {
         List<Post> weeklyPopularPosts = postRepository.findByIsWeeklyPopularTrue();
         return convertToSimplePostDTOList(weeklyPopularPosts);
     }
 
-    /*
-     * 명예의 전당글 목록 조회 메서드
-     * return convertToSimplePostDTOPage() List<Post>를 List<SimplePostDTO>로 만드는 메서드
+    /**
+     * <h3>명예의 전당 게시글 목록 조회</h3>
      *
-     * 수정일 : 2025-05-05
+     * <p>
+     * 명예의 전당에 선정된 게시글 목록을 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 명예의 전당 게시글 목록
      */
     public List<SimplePostDTO> getHallOfFamePosts() {
         List<Post> hallOfFamePosts = postRepository.findByIsHallOfFameTrue();
         return convertToSimplePostDTOList(hallOfFamePosts);
     }
 
-    /*
-     * 게시글 검색 메서드
-     * param String type 검색 유형
-     * param String query 검색어
-     * param int page 페이지 번호
-     * param int size 페이지 사이즈
-     * return convertToSimplePostDTOPage() Post를 SimplePostDTO로 만드는 메서드
-     * 설명 : 최신순으로 페이징
+    /**
+     * <h3>게시글 검색</h3>
      *
-     * 수정일 : 2025-05-05
+     * <p>
+     * 검색 유형과 검색어를 통해 게시글을 검색하고 최신순으로 페이지네이션한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param type  검색 유형
+     * @param query 검색어
+     * @param page  페이지 번호
+     * @param size  페이지 사이즈
+     * @return 검색된 게시글 목록 페이지
      */
     public Page<SimplePostDTO> searchPost(String type, String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -134,8 +154,19 @@ public class PostService {
         return convertToSimplePostDTOPage(posts);
     }
 
-
-    // 게시글 쓰기
+    /**
+     * <h3>게시글 작성</h3>
+     *
+     * <p>
+     * 새로운 게시글을 작성하고 저장한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param postReqDTO  게시글 작성 요청 DTO
+     * @return 작성된 게시글 DTO
+     */
     public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
 
         if (userDetails == null) {
@@ -147,7 +178,19 @@ public class PostService {
         return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), null, false);
     }
 
-    // 게시글 진입
+    /**
+     * <h3>게시글 상세 조회</h3>
+     *
+     * <p>
+     * 게시글 ID를 통해 게시글 상세 정보를 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID (좋아요 여부 확인용)
+     * @return 게시글 상세 DTO
+     */
     public PostDTO getPost(Long postId, Long userId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
@@ -155,10 +198,24 @@ public class PostService {
         boolean isLiked = userId != null && postLikeRepository.existsByPostIdAndUserId(postId, userId);
         ;
 
-        return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), getCommentList(postId, userId), isLiked);
+        return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), getCommentList(postId, userId),
+                isLiked);
     }
 
-    // 게시글 수정
+    /**
+     * <h3>게시글 수정</h3>
+     *
+     * <p>
+     * 게시글 작성자만 게시글을 수정할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postId      게시글 ID
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param postDTO     수정할 게시글 정보 DTO
+     * @return 수정된 게시글 DTO
+     */
     @Transactional
     public PostDTO updatePost(Long postId, CustomUserDetails userDetails, PostDTO postDTO) {
         Post post = postRepository.findById(postId)
@@ -175,7 +232,18 @@ public class PostService {
                 postLikeRepository.existsByPostIdAndUserId(postId, userDetails.getUserId()));
     }
 
-    // 게시글 삭제
+    /**
+     * <h3>게시글 삭제</h3>
+     *
+     * <p>
+     * 게시글 작성자만 게시글을 삭제할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postId      게시글 ID
+     * @param userDetails 현재 로그인한 사용자 정보
+     */
     @Transactional
     public void deletePost(Long postId, CustomUserDetails userDetails) {
         Post post = postRepository.findById(postId)
@@ -209,7 +277,6 @@ public class PostService {
         }
     }
 
-
     private List<SimplePostDTO> convertToSimplePostDTOList(List<Post> posts) {
         return posts.stream()
                 .map(post -> boardUtil.postToSimpleDTO(post,
@@ -229,7 +296,8 @@ public class PostService {
     private List<CommentDTO> getCommentList(Long postId, Long userId) {
 
         return commentRepository.findByCommentList(postId).stream().map(comment -> {
-            boolean userLike = userId != null && commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), userId);
+            boolean userLike = userId != null
+                    && commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), userId);
             return boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()), userLike);
         }).toList();
     }
@@ -275,8 +343,7 @@ public class PostService {
             notificationService.send(postUserId, notificationUtil.createEventDTO(
                     NotificationType.POST_FEATURED,
                     "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
-                    "http://localhost:3000/board/" + postId
-            ));
+                    "http://localhost:3000/board/" + postId));
 
             if (post.getUser().getSetting().isPostFeaturedNotification()) {
                 List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
@@ -322,8 +389,7 @@ public class PostService {
             notificationService.send(postUserId, notificationUtil.createEventDTO(
                     NotificationType.POST_FEATURED,
                     "🎉 회원님의 글이 명예의 전당에 등록 되었습니다!",
-                    "http://localhost:3000/board/" + postId
-            ));
+                    "http://localhost:3000/board/" + postId));
 
             if (post.getUser().getSetting().isPostFeaturedNotification()) {
                 List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
@@ -337,7 +403,6 @@ public class PostService {
             }
         }
     }
-
 
     // 조회수 증가
     @Transactional
@@ -422,12 +487,5 @@ public class PostService {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    public void reportPost(Long postId, CustomUserDetails userDetails, ReportDTO reportDTO) {
-        Report report = Report.builder().users(userUtil.DTOToUser(userDetails.getUserDTO())).reportType(ReportType.POST)
-                .targetId(postId).content(reportDTO.getContent()).build();
-
-        reportRepository.save(report);
     }
 }

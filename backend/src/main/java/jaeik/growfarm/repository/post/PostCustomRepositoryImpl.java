@@ -9,7 +9,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
                 .select(post.id)
                 .from(post)
                 .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .where(post.createdAt.after(LocalDateTime.now().minusDays(1)))
+                .where(post.createdAt.after(Instant.now().minus(1, ChronoUnit.DAYS)))
                 .groupBy(post.id)
                 .orderBy(postLike.count().desc())
                 .limit(5)
@@ -75,7 +76,7 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
                 .select(post.id)
                 .from(post)
                 .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .where(post.createdAt.after(LocalDateTime.now().minusDays(7)))
+                .where(post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS)))
                 .groupBy(post.id)
                 .orderBy(postLike.count().desc())
                 .limit(5)

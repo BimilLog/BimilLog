@@ -4,10 +4,18 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
-// 글 상세 보기용 DTO
+/**
+ * <h3>게시글 상세 정보 DTO</h3>
+ * <p>
+ * 게시글 상세 보기용 데이터 전송 객체
+ * </p>
+ * 
+ * @since 1.0.0
+ * @author Jaeik
+ */
 @Getter
 @Setter
 public class PostDTO {
@@ -36,13 +44,15 @@ public class PostDTO {
 
     private boolean is_HallOfFame;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     private List<CommentDTO> comments;
 
     private boolean userLike;
 
-    public PostDTO(Long postId, Long userId, String farmName, String title, String content, int views, int likes, boolean is_notice, boolean is_RealtimePopular, boolean is_WeeklyPopular, boolean is_HallOfFame, LocalDateTime createdAt, List<CommentDTO> comments, boolean userLike) {
+    public PostDTO(Long postId, Long userId, String farmName, String title, String content, int views, int likes,
+            boolean is_notice, boolean is_RealtimePopular, boolean is_WeeklyPopular, boolean is_HallOfFame,
+            Instant createdAt, List<CommentDTO> comments, boolean userLike) {
         this.postId = postId;
         this.userId = userId;
         this.farmName = farmName;

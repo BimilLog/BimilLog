@@ -1,9 +1,11 @@
 package jaeik.growfarm.entity.report;
 
-// 신고 종류
+/**
+ * 신고 유형을 정의하는 Enum 클래스.
+ */
 public enum ReportType {
-    POST, // 게시글 신고
-    COMMENT, // 댓글 신고
-    BUG, // 버그 신고
-    IMPROVEMENT, // 개선 사항
+    POST,
+    COMMENT,
+    ERROR,
+    IMPROVEMENT
 }

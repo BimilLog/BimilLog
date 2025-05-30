@@ -5,11 +5,34 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * <h2>GrowFarm 메인 애플리케이션 클래스</h2>
+ * <p>
+ * Spring Boot 애플리케이션의 진입점
+ * </p>
+ * <p>
+ * JPA Auditing과 스케줄링 기능을 활성화
+ * </p>
+ * 
+ * @since 1.0.0
+ * @author Jaeik
+ */
 @EnableJpaAuditing
 @EnableScheduling
 @SpringBootApplication
 public class GrowfarmApplication {
 
+    /**
+     * <h3>애플리케이션 시작점</h3>
+     *
+     * <p>
+     * Spring Boot 애플리케이션을 시작한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param args 명령행 인수
+     */
     public static void main(String[] args) {
         SpringApplication.run(GrowfarmApplication.class, args);
     }

@@ -4,7 +4,15 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-// 회원 가입시 농장 이름 등록할 때 전달 받는 DTO
+/**
+ * <h3>농장 이름 등록 요청 DTO</h3>
+ * <p>
+ * 회원 가입 시 농장 이름 등록할 때 전달받는 데이터 전송 객체
+ * </p>
+ * 
+ * @since 1.0.0
+ * @author Jaeik
+ */
 @Getter
 @Setter
 public class FarmNameReqDTO {

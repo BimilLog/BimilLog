@@ -13,7 +13,6 @@ import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.AdminService;
 import jaeik.growfarm.util.UserUtil;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
@@ -32,7 +31,8 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 /**
  * <h2>AdminController 통합 테스트</h2>
  * <p>실제 데이터베이스와 서비스를 사용하여 AdminController의 전체 API를 테스트합니다.</p>
- * @since 2025.05.17
+ * @since 1.0.0
+ * @author Jaeik
  */
 @SpringBootTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 public class AdminControllerIntegrationTest {
 
     private final AdminController adminController;
-    private final AdminService adminService;
     private final ReportRepository reportRepository;
     private final SettingRepository settingRepository;
     private final TokenRepository tokenRepository;
@@ -55,14 +54,12 @@ public class AdminControllerIntegrationTest {
     private Report testReport;
 
     public AdminControllerIntegrationTest(AdminController adminController,
-                                          AdminService adminService,
                                           ReportRepository reportRepository,
                                           SettingRepository settingRepository,
                                           TokenRepository tokenRepository,
                                           UserRepository userRepository,
                                           UserUtil userUtil) {
         this.adminController = adminController;
-        this.adminService = adminService;
         this.reportRepository = reportRepository;
         this.settingRepository = settingRepository;
         this.tokenRepository = tokenRepository;
@@ -87,25 +84,26 @@ public class AdminControllerIntegrationTest {
                 .build();
         settingRepository.save(adminSetting);
 
-        // 관리자 토큰 생성
-        Token adminToken = Token.builder()
-                .jwtRefreshToken("adminRefreshToken")
-                .kakaoAccessToken("adminKakaoAccessToken")
-                .kakaoRefreshToken("adminKakaoRefreshToken")
-                .build();
-        tokenRepository.save(adminToken);
-
         // 관리자 사용자 생성
-        Users admin = Users.builder()
+        Users adminUser = Users.builder()
                 .kakaoId(9876543210L)
                 .kakaoNickname("adminNickname")
                 .thumbnailImage("adminImage")
                 .farmName("adminFarm")
                 .role(UserRole.ADMIN)
                 .setting(adminSetting)
-                .token(adminToken)
                 .build();
-        adminUser = userRepository.save(admin);
+        userRepository.save(adminUser);
+
+        // 관리자 토큰 생성
+        Token adminToken = Token.builder()
+                .jwtRefreshToken("adminRefreshToken")
+                .kakaoAccessToken("adminKakaoAccessToken")
+                .kakaoRefreshToken("adminKakaoRefreshToken")
+                .users(adminUser)
+                .build();
+        tokenRepository.save(adminToken);
+
 
         // 일반 사용자 설정 생성
         Setting userSetting = Setting.builder()

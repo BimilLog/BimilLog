@@ -20,7 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +64,7 @@ public class UserControllerTest {
                 0,                            // commentCount
                 0,                            // likes
                 0,                            // views
-                LocalDateTime.now(),          // createdAt
+                Instant.now(),          // createdAt
                 false,                        // is_notice
                 false,                        // is_RealtimePopular
                 false,                        // is_WeeklyPopular
@@ -82,7 +82,7 @@ public class UserControllerTest {
                 "testFarm",                   // farmName
                 "Test comment content",       // content
                 0,                            // likes
-                LocalDateTime.now(),          // createdAt
+                Instant.now(),          // createdAt
                 false,                        // is_featured
                 false                         // userLike
         );
@@ -194,15 +194,14 @@ public class UserControllerTest {
     @DisplayName("건의하기 테스트")
     void testSuggestion() {
         // Given
-        doNothing().when(userService).suggestion(any(), any());
+        doNothing().when(userService).suggestion(any());
 
         // When
-        ResponseEntity<String> response = userController.suggestion(userDetails, reportDTO);
+        ResponseEntity<Void> response = userController.suggestion(reportDTO);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("건의가 완료되었습니다.", response.getBody());
-        verify(userService, times(1)).suggestion(userDetails, reportDTO);
+        verify(userService, times(1)).suggestion(reportDTO);
     }
 
     @Test

@@ -4,7 +4,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.Instant;
 
 // 댓글 DTO
 @Getter @Setter
@@ -24,13 +25,13 @@ public class CommentDTO {
 
     private int likes;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     private boolean is_featured;
 
     private boolean userLike;
 
-    public CommentDTO(Long id, Long postId, Long userId, String farmName, String content, int likes, LocalDateTime createdAt, boolean featured, boolean userLike) {
+    public CommentDTO(Long id, Long postId, Long userId, String farmName, String content, int likes, Instant createdAt, boolean featured, boolean userLike) {
         this.id = id;
         this.postId = postId;
         this.userId = userId;

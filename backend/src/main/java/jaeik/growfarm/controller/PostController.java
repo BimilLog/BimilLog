@@ -1,6 +1,5 @@
 package jaeik.growfarm.controller;
 
-import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
@@ -8,7 +7,6 @@ import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -17,19 +15,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/*
- * 게시판 관련 API
- * 게시판 조회
- * 실시간 인기글 조회
- * 주간 인기글 조회
- * 명예의 전당 조회
- * 게시글 검색
- * 게시글 조회
- * 게시글 작성
- * 게시글 수정
- * 게시글 삭제
- * 게시글 추천 / 추천 취소
- * 게시글 신고
+/**
+ * <h2>게시판 관련 컨트롤러</h2>
+ * <p>
+ * 게시판 조회, 실시간 인기글 조회, 주간 인기글 조회
+ * </p>
+ * <p>
+ * 명예의 전당 조회, 게시글 검색, 게시글 CRUD
+ * </p>
+ * <p>
+ * 게시글 추천/추천 취소, 게시글 신고
+ * </p>
  */
 @RestController
 @RequiredArgsConstructor
@@ -38,12 +34,18 @@ public class PostController {
 
     private final PostService postService;
 
-    /*
-     * 게시판 조회 API
-     * param int page: 페이지 번호
-     * param int size: 페이지 사이즈
-     * return: ResponseEntity<Page<SimplePostDTO>> 게시글 리스트
-     * 수정일 : 2025-05-05
+    /**
+     * <h3>게시판 조회 API</h3>
+     *
+     * <p>
+     * 최신순으로 게시글 목록을 페이지네이션으로 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param page 페이지 번호
+     * @param size 페이지 사이즈
+     * @return 게시글 목록 페이지
      */
     @GetMapping
     public ResponseEntity<Page<SimplePostDTO>> getBoard(@RequestParam int page, @RequestParam int size) {
@@ -51,10 +53,16 @@ public class PostController {
         return ResponseEntity.ok(postList);
     }
 
-    /*
-     * 실시간 인기글 목록 조회 API
-     * return : ResponseEntity<List<SimplePostDTO>> 실시간 인기글 목록
-     * 수정일 : 2025-05-05
+    /**
+     * <h3>실시간 인기글 조회 API</h3>
+     *
+     * <p>
+     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 실시간 인기글 목록
      */
     @GetMapping("/realtime")
     public ResponseEntity<List<SimplePostDTO>> getRealtimeBoard() {
@@ -62,10 +70,16 @@ public class PostController {
         return ResponseEntity.ok(realtimePopularPosts);
     }
 
-    /*
-     * 주간 인기글 목록 조회 API
-     * return : ResponseEntity<List<SimplePostDTO>> 주간 인기글 목록
-     * 수정일 : 2025-05-05
+    /**
+     * <h3>주간 인기글 조회 API</h3>
+     *
+     * <p>
+     * 주간 인기글로 선정된 게시글 목록을 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 주간 인기글 목록
      */
     @GetMapping("/weekly")
     public ResponseEntity<List<SimplePostDTO>> getWeeklyBoard() {
@@ -73,10 +87,16 @@ public class PostController {
         return ResponseEntity.ok(weeklyPopularPosts);
     }
 
-    /*
-     * 명예의 전당 목록 조회 API
-     * return : ResponseEntity<List<SimplePostDTO>> 명예의 전당 목록
-     * 수정일 : 2025-05-05
+    /**
+     * <h3>명예의 전당 조회 API</h3>
+     *
+     * <p>
+     * 명예의 전당에 선정된 게시글 목록을 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 명예의 전당 게시글 목록
      */
     @GetMapping("/fame")
     public ResponseEntity<List<SimplePostDTO>> getHallOfFameBoard() {
@@ -84,14 +104,20 @@ public class PostController {
         return ResponseEntity.ok(hallOfFamePosts);
     }
 
-    /*
-     * 게시글 검색 API
-     * param String type: 검색 타입 (제목, 제목 + 내용, 작성자)
-     * param String query: 검색어
-     * param int page: 페이지 번호
-     * param int size: 페이지 사이즈
-     * return: ResponseEntity<Page<SimplePostDTO>> 검색 결과 리스트
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>게시글 검색 API</h3>
+     *
+     * <p>
+     * 검색 유형과 검색어를 통해 게시글을 검색한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param type  검색 유형
+     * @param query 검색어
+     * @param page  페이지 번호
+     * @param size  페이지 사이즈
+     * @return 검색된 게시글 목록 페이지
      */
     @GetMapping("/search")
     public ResponseEntity<Page<SimplePostDTO>> searchPost(@RequestParam String type, // 제목, 제목 + 내용, 작성자 검색
@@ -103,19 +129,26 @@ public class PostController {
         return ResponseEntity.ok(searchList);
     }
 
-    /*
-     * 게시글 조회 API
-     * param Long postId: 게시글 ID
-     * param Long userId: 유저 ID (optional)
-     * return: ResponseEntity<PostDTO> 게시글 DTO
-     * 게시글 조회 시 쿠키 사용 중복 조회 방지.
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>게시글 상세 조회 API</h3>
+     *
+     * <p>
+     * 게시글 ID를 통해 게시글 상세 정보를 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postId      게시글 ID
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param request     HTTP 요청 객체
+     * @param response    HTTP 응답 객체
+     * @return 게시글 상세 정보
      */
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long postId,
-                                           @RequestParam(required = false) Long userId,
-                                           HttpServletRequest request,
-                                           HttpServletResponse response) {
+            @RequestParam(required = false) Long userId,
+            HttpServletRequest request,
+            HttpServletResponse response) {
 
         postService.incrementViewCount(postId, request, response);
 
@@ -124,27 +157,39 @@ public class PostController {
         return ResponseEntity.ok(postDTO);
     }
 
-    /*
-     * 게시글 작성 API
-     * param PostReqDTO postReqDTO: 게시글 작성 DTO
-     * return: ResponseEntity<PostDTO> 작성된 게시글 DTO
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>게시글 작성 API</h3>
+     *
+     * <p>
+     * 새로운 게시글을 작성하고 저장한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postReqDTO  게시글 작성 요청 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 작성된 게시글 정보
      */
     @PostMapping("/write")
     public ResponseEntity<PostDTO> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                             @RequestBody PostReqDTO postReqDTO) {
+            @RequestBody PostReqDTO postReqDTO) {
         PostDTO postDTO = postService.writePost(userDetails, postReqDTO);
         return ResponseEntity.ok(postDTO);
     }
 
-    /*
-     * 게시글 수정 API
-     * param Long postId: 게시글 ID
-     * param Long userId: 유저 ID
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param PostDTO postDTO: 게시글 수정 DTO
-     * return: ResponseEntity<PostDTO> 수정된 게시글 DTO
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>게시글 수정 API</h3>
+     *
+     * <p>
+     * 게시글 작성자만 게시글을 수정할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postId      게시글 ID
+     * @param postDTO     수정할 게시글 정보
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 수정된 게시글 정보
      */
     @PostMapping("/{postId}")
     public ResponseEntity<PostDTO> updatePost(@PathVariable Long postId,
@@ -155,12 +200,18 @@ public class PostController {
         return ResponseEntity.ok(updatedPostDTO);
     }
 
-    /*
-     * 게시글 삭제 API
-     * param Long postId: 게시글 ID
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * return: ResponseEntity<String> 게시글 삭제 완료 메시지
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>게시글 삭제 API</h3>
+     *
+     * <p>
+     * 게시글 작성자만 게시글을 삭제할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postId      게시글 ID
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 삭제 성공 메시지
      */
     @PostMapping("/{postId}/delete")
     public ResponseEntity<String> deletePost(@PathVariable Long postId,
@@ -169,12 +220,18 @@ public class PostController {
         return ResponseEntity.ok("게시글 삭제 완료");
     }
 
-    /*
-     * 게시글 추천 / 추천 취소 API
-     * param Long postId: 게시글 ID
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * return: ResponseEntity<String> 게시글 추천 완료 메시지
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>게시글 좋아요/좋아요 취소 API</h3>
+     *
+     * <p>
+     * 게시글에 좋아요를 누르거나 취소한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postId      게시글 ID
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 좋아요 처리 결과 메시지
      */
     @PostMapping("/{postId}/like")
     public ResponseEntity<String> likePost(@PathVariable Long postId,
@@ -182,21 +239,4 @@ public class PostController {
         postService.likePost(postId, userDetails);
         return ResponseEntity.ok("게시글 추천 완료");
     }
-
-    /*
-     * 게시글 신고 API
-     * param Long postId: 게시글 ID
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param ReportDTO reportDTO: 신고 DTO
-     * return: ResponseEntity<String> 게시글 신고 완료 메시지
-     * 수정일 : 2025-05-03
-     */
-    @PostMapping("/{postId}/report")
-    public ResponseEntity<String> reportPost(@PathVariable Long postId,
-                                             @AuthenticationPrincipal CustomUserDetails userDetails,
-                                             @RequestBody @Valid ReportDTO reportDTO) {
-        postService.reportPost(postId, userDetails, reportDTO);
-        return ResponseEntity.ok("게시글 신고 완료");
-    }
-
 }

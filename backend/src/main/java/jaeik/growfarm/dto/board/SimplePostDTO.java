@@ -4,10 +4,19 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
-// 글 목록 보기 용 DTO
-@Getter @Setter
+/**
+ * <h3>게시글 목록용 DTO</h3>
+ * <p>
+ * 게시글 목록 보기용 간단한 데이터 전송 객체
+ * </p>
+ * 
+ * @since 1.0.0
+ * @author Jaeik
+ */
+@Getter
+@Setter
 public class SimplePostDTO {
 
     private Long postId;
@@ -26,7 +35,7 @@ public class SimplePostDTO {
 
     private int views;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     private boolean is_notice;
 
@@ -36,7 +45,9 @@ public class SimplePostDTO {
 
     private boolean is_HallOfFame;
 
-    public SimplePostDTO(Long postId, Long userId, String farmName, String title, int commentCount, int likes, int views, LocalDateTime createdAt, boolean is_notice, boolean isRealtimePopular, boolean isWeeklyPopular, boolean isHallOfFame) {
+    public SimplePostDTO(Long postId, Long userId, String farmName, String title, int commentCount, int likes,
+            int views, Instant createdAt, boolean is_notice, boolean isRealtimePopular, boolean isWeeklyPopular,
+            boolean isHallOfFame) {
         this.postId = postId;
         this.userId = userId;
         this.farmName = farmName;

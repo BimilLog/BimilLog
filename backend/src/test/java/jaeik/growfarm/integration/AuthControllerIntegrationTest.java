@@ -71,13 +71,6 @@ public class AuthControllerIntegrationTest {
                 .build();
         settingRepository.save(setting);
 
-        Token token = Token.builder()
-                .jwtRefreshToken("testRefreshToken")
-                .kakaoAccessToken("testKakaoAccessToken")
-                .kakaoRefreshToken("testKakaoRefreshToken")
-                .build();
-        tokenRepository.save(token);
-
         Users user = Users.builder()
                 .kakaoId(1234567890L)
                 .kakaoNickname("testNickname")
@@ -85,9 +78,17 @@ public class AuthControllerIntegrationTest {
                 .farmName("testFarm")
                 .role(UserRole.USER)
                 .setting(setting)
-                .token(token)
                 .build();
         testUser = userRepository.save(user);
+
+        Token token = Token.builder()
+                .jwtRefreshToken("testRefreshToken")
+                .kakaoAccessToken("testKakaoAccessToken")
+                .kakaoRefreshToken("testKakaoRefreshToken")
+                .users(testUser)
+                .build();
+        tokenRepository.save(token);
+
     }
 
     /**

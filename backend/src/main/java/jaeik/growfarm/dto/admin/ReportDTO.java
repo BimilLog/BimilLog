@@ -6,7 +6,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-// 신고 DTO
+/**
+ * <h2>신고 DTO</h2>
+ * <p>신고 정보를 담는 DTO 클래스</p>
+ * <p>신고 ID, 신고 타입, 신고한 유저 ID, 신고 대상 ID, 신고 내용 등을 포함한다.</p>
+ * @since 2025-04-28
+ */
 @Getter @Setter
 @Builder
 public class ReportDTO {
@@ -20,6 +25,7 @@ public class ReportDTO {
     private Long targetId;
 
     @Size(max = 500, message = "내용은 최대 500자 까지 입력 가능합니다.")
+    @Size(min = 10, message = "내용은 최소 10자 이상 입력해야 합니다.")
     private String content;
 }
 

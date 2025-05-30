@@ -28,93 +28,101 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminService {
 
-    private final ReportRepository reportRepository;
-    private final UserRepository userRepository;
-    private final KakaoService kakaoService;
-    private final BlackListRepository blackListRepository;
-    private final EmitterRepository emitterRepository;
+        private final ReportRepository reportRepository;
+        private final UserRepository userRepository;
+        private final KakaoService kakaoService;
+        private final BlackListRepository blackListRepository;
+        private final EmitterRepository emitterRepository;
 
-    /*
-     * 신고 목록 조회
-     * param int page: 페이지 번호
-     * param int size: 페이지 사이즈
-     * param ReportType reportType: 신고 타입 (null이면 전체 조회)
-     * return: Page<ReportDTO>
-     *
-     * 신고 목록을 조회하는 메서드
-     * 신고 타입에 따라 필터링하여 페이지네이션된 결과를 반환한다.
-     * 신고 목록은 최신 순으로 정렬된다.
-     * 수정일 : 2025-05-03
-     */
-    public Page<ReportDTO> getReportList(int page, int size, ReportType reportType) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        /**
+         * <h3>신고 목록 조회</h3>
+         *
+         * <p>
+         * 신고 타입에 따라 필터링하여 페이지네이션된 신고 목록을 반환한다.
+         * </p>
+         * 
+         * @since 1.0.0
+         * @author Jaeik
+         * @param page       페이지 번호
+         * @param size       페이지 사이즈
+         * @param reportType 신고 타입 (null이면 전체 조회)
+         * @return 신고 목록 페이지
+         */
+        public Page<ReportDTO> getReportList(int page, int size, ReportType reportType) {
+                Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        if (reportType != null) {
-            Page<Report> reports = reportRepository.findByReportType(reportType, pageable);
-            return reports.map(report -> ReportDTO.builder()
-                    .reportId(report.getId())
-                    .reportType(report.getReportType())
-                    .userId(report.getUsers().getId())
-                    .content(report.getContent())
-                    .targetId(report.getTargetId())
-                    .build());
+                if (reportType != null) {
+                        Page<Report> reports = reportRepository.findByReportType(reportType, pageable);
+                        return reports.map(report -> ReportDTO.builder()
+                                        .reportId(report.getId())
+                                        .reportType(report.getReportType())
+                                        .userId(report.getUsers().getId())
+                                        .content(report.getContent())
+                                        .targetId(report.getTargetId())
+                                        .build());
+                }
+
+                Page<Report> reports = reportRepository.findAll(pageable);
+
+                return reports.map(report -> ReportDTO.builder()
+                                .reportId(report.getId())
+                                .reportType(report.getReportType())
+                                .userId(report.getUsers().getId())
+                                .targetId(report.getTargetId())
+                                .content(report.getContent())
+                                .build());
         }
 
-        Page<Report> reports = reportRepository.findAll(pageable);
+        /**
+         * <h3>신고 상세 조회</h3>
+         *
+         * <p>
+         * 신고 ID에 해당하는 신고 상세 정보를 조회한다.
+         * </p>
+         * 
+         * @since 1.0.0
+         * @author Jaeik
+         * @param reportId 신고 ID
+         * @return 신고 상세 정보 DTO
+         */
+        public ReportDTO getReportDetail(Long reportId) {
+                Report report = reportRepository.findById(reportId)
+                                .orElseThrow(() -> new IllegalArgumentException("신고를 찾을 수 없습니다: " + reportId));
 
-        return reports.map(report -> ReportDTO.builder()
-                .reportId(report.getId())
-                .reportType(report.getReportType())
-                .userId(report.getUsers().getId())
-                .targetId(report.getTargetId())
-                .content(report.getContent())
-                .build());
-    }
+                return ReportDTO.builder()
+                                .reportId(report.getId())
+                                .reportType(report.getReportType())
+                                .userId(report.getUsers().getId())
+                                .targetId(report.getTargetId())
+                                .content(report.getContent())
+                                .build();
+        }
 
-    /*
-     * 신고 상세 조회
-     * param Long reportId: 신고 ID
-     * return: ReportDTO
-     *
-     * 신고 상세 정보를 조회하는 메서드
-     * 신고 ID에 해당하는 신고 정보를 반환한다.
-     * 수정일 : 2025-05-03
-     */
-    public ReportDTO getReportDetail(Long reportId) {
-        Report report = reportRepository.findById(reportId)
-                .orElseThrow(() -> new IllegalArgumentException("신고를 찾을 수 없습니다: " + reportId));
+        /**
+         * <h3>사용자 차단 및 블랙리스트 등록</h3>
+         *
+         * <p>
+         * 사용자를 차단하고 블랙리스트에 등록하며 카카오 연결을 해제한다.
+         * </p>
+         * 
+         * @since 1.0.0
+         * @author Jaeik
+         * @param userId 차단할 사용자 ID
+         */
+        @Transactional
+        public void banUser(Long userId) {
+                Users user = userRepository.findById(userId)
+                                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
 
-        return ReportDTO.builder()
-                .reportId(report.getId())
-                .reportType(report.getReportType())
-                .userId(report.getUsers().getId())
-                .targetId(report.getTargetId())
-                .content(report.getContent())
-                .build();
-    }
+                emitterRepository.deleteAllEmitterByUserId(userId);
+                kakaoService.unlinkByAdmin(user.getKakaoId());
 
-    /*
-     * 유저 차단 및 블랙 리스트 등록
-     * param Long userId: 유저 ID
-     * return: ResponseEntity<String>
-     *
-     * 유저를 차단하고 블랙 리스트에 등록하는 메서드
-     * 수정일 : 2025-05-04
-     */
-    @Transactional
-    public void banUser(Long userId) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
+                BlackList blackList = BlackList.builder()
+                                .kakaoId(user.getKakaoId())
+                                .build();
 
-        emitterRepository.deleteAllEmitterByUserId(userId);
-        kakaoService.unlinkByAdmin(user.getKakaoId());
-
-        BlackList blackList = BlackList.builder()
-                .kakaoId(user.getKakaoId())
-                .build();
-
-        blackListRepository.save(blackList);
-        userRepository.delete(user);
-        SecurityContextHolder.clearContext();
-    }
+                blackListRepository.save(blackList);
+                userRepository.delete(user);
+                SecurityContextHolder.clearContext();
+        }
 }

@@ -25,18 +25,41 @@ import java.util.List;
 public class JwtTokenProvider {
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
+    private static final int MAX_AGE = 86400; // 24시간
 
     @Value("${jwt.secret}")
     private String secretKey;
 
     private Key key;
 
+    /**
+     * <h3>JWT 키 초기화</h3>
+     *
+     * <p>
+     * Base64로 인코딩된 시크릿 키를 디코딩하여 HMAC SHA 키를 생성한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     */
     @PostConstruct
     public void init() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
+    /**
+     * <h3>JWT 액세스 토큰 생성</h3>
+     *
+     * <p>
+     * 사용자 정보를 포함한 JWT 액세스 토큰을 생성한다. 유효기간은 6시간이다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDTO 사용자 정보 DTO
+     * @return JWT 액세스 토큰
+     */
     public String generateAccessToken(UserDTO userDTO) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + 21600000); // 6시간
@@ -56,6 +79,18 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /**
+     * <h3>JWT 리프레시 토큰 생성</h3>
+     *
+     * <p>
+     * 사용자 ID와 토큰 ID를 포함한 JWT 리프레시 토큰을 생성한다. 유효기간은 30일이다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDTO 사용자 정보 DTO
+     * @return JWT 리프레시 토큰
+     */
     public String generateRefreshToken(UserDTO userDTO) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + (86400000L * 30)); // 30일 유효기간
@@ -69,21 +104,34 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public List<ResponseCookie> getResponseCookies(String jwtAccessToken, String jwtRefreshToken, int maxAge) {
+    /**
+     * <h3>JWT 토큰 쿠키 생성</h3>
+     *
+     * <p>
+     * 액세스 토큰과 리프레시 토큰을 HTTP 쿠키로 생성한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param jwtAccessToken  JWT 액세스 토큰
+     * @param jwtRefreshToken JWT 리프레시 토큰
+     * @return 응답 쿠키 리스트
+     */
+    public List<ResponseCookie> getResponseCookies(String jwtAccessToken, String jwtRefreshToken) {
         ResponseCookie accessTokenCookie = ResponseCookie.from(JwtTokenProvider.ACCESS_TOKEN_COOKIE, jwtAccessToken)
                 .path("/")
-                .maxAge(maxAge)
+                .maxAge(MAX_AGE)
                 .httpOnly(true)
-                .sameSite("Strict")
-                .secure(true)
+                .sameSite("Lax")
+                .secure(false)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(JwtTokenProvider.REFRESH_TOKEN_COOKIE, jwtRefreshToken)
                 .path("/")
-                .maxAge(maxAge * 30L)
+                .maxAge(MAX_AGE * 30L)
                 .httpOnly(true)
-                .sameSite("Strict")
-                .secure(true)
+                .sameSite("Lax")
+                .secure(false)
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);
@@ -94,16 +142,16 @@ public class JwtTokenProvider {
                 .path("/")
                 .maxAge(0)
                 .httpOnly(true)
-                .sameSite("Strict")
-                .secure(true)
+                .sameSite("Lax")
+                .secure(false)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(JwtTokenProvider.REFRESH_TOKEN_COOKIE, "")
                 .path("/")
                 .maxAge(0)
                 .httpOnly(true)
-                .sameSite("Strict")
-                .secure(true)
+                .sameSite("Lax")
+                .secure(false)
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);

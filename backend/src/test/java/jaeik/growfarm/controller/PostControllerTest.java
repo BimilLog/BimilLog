@@ -20,7 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +63,7 @@ public class PostControllerTest {
                 false,                        // is_RealtimePopular
                 false,                        // is_WeeklyPopular
                 false,                        // is_HallOfFame
-                LocalDateTime.now(),          // createdAt
+                Instant.now(),          // createdAt
                 new ArrayList<>(),            // comments
                 false                         // userLike
         );
@@ -84,7 +84,7 @@ public class PostControllerTest {
                 0,                            // commentCount
                 0,                            // likes
                 0,                            // views
-                LocalDateTime.now(),          // createdAt
+                Instant.now(),          // createdAt
                 false,                        // is_notice
                 false,                        // is_RealtimePopular
                 false,                        // is_WeeklyPopular
@@ -248,19 +248,5 @@ public class PostControllerTest {
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("게시글 추천 완료", response.getBody());
-    }
-
-    @Test
-    @DisplayName("게시글 신고 테스트")
-    void testReportPost() {
-        // Given
-        doNothing().when(postService).reportPost(anyLong(), any(), any());
-
-        // When
-        ResponseEntity<String> response = postController.reportPost(1L, userDetails, reportDTO);
-
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("게시글 신고 완료", response.getBody());
     }
 }

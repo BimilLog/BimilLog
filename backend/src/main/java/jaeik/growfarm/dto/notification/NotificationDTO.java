@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 // 알림 DTO
 @Getter
@@ -20,7 +20,7 @@ public class NotificationDTO {
     private String url;
     private NotificationType type;
     private boolean isRead;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public static NotificationDTO fromEntity(Notification notification) {
         return NotificationDTO.builder()

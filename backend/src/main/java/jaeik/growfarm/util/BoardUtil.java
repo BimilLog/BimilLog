@@ -21,8 +21,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BoardUtil {
 
-
-    // 게시글 목록 보기 시 사용하는 변환 로직
+    /**
+     * <h3>Post 엔티티를 SimplePostDTO로 변환</h3>
+     *
+     * <p>
+     * 게시글 목록 보기 시 사용하는 변환 로직이다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param post         Post 엔티티
+     * @param commentCount 댓글 수
+     * @param likes        좋아요 수
+     * @return 간단한 게시글 DTO
+     */
     public SimplePostDTO postToSimpleDTO(Post post, int commentCount, int likes) {
         return new SimplePostDTO(
                 post.getId(),
@@ -36,10 +48,22 @@ public class BoardUtil {
                 post.isNotice(),
                 post.isRealtimePopular(),
                 post.isWeeklyPopular(),
-                post.isHallOfFame()
-        );
+                post.isHallOfFame());
     }
 
+    /**
+     * <h3>PostReqDTO를 Post 엔티티로 변환</h3>
+     *
+     * <p>
+     * 게시글 작성 요청 DTO를 Post 엔티티로 변환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param user       작성자 정보
+     * @param postReqDTO 게시글 작성 요청 DTO
+     * @return Post 엔티티
+     */
     public Post postReqDTOToPost(Users user, PostReqDTO postReqDTO) {
         return Post.builder()
                 .user(user)
@@ -53,6 +77,21 @@ public class BoardUtil {
                 .build();
     }
 
+    /**
+     * <h3>Post 엔티티를 PostDTO로 변환</h3>
+     *
+     * <p>
+     * 게시글 상세 보기 시 사용하는 변환 로직이다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param post     Post 엔티티
+     * @param likes    좋아요 수
+     * @param comments 댓글 목록
+     * @param userLike 사용자 좋아요 여부
+     * @return 게시글 상세 DTO
+     */
     public PostDTO postToDTO(Post post, int likes, List<CommentDTO> comments, boolean userLike) {
         return new PostDTO(
                 post.getId(),
@@ -68,8 +107,7 @@ public class BoardUtil {
                 post.isHallOfFame(),
                 post.getCreatedAt(),
                 comments,
-                userLike
-        );
+                userLike);
     }
 
     // 댓글 -> DTO 변환
@@ -83,8 +121,7 @@ public class BoardUtil {
                 likes,
                 comment.getCreatedAt(),
                 comment.isFeatured(),
-                userLike
-        );
+                userLike);
     }
 
     public Comment commentDTOToComment(CommentDTO commentDTO, Post post, Users user) {

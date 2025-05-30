@@ -49,6 +49,18 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final FcmTokenRepository fcmTokenRepository;
 
+    /**
+     * <h3>SSE 구독</h3>
+     *
+     * <p>
+     * 사용자의 실시간 알림을 위한 SSE 연결을 생성한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userId 사용자 ID
+     * @return SSE Emitter 객체
+     */
     public SseEmitter subscribe(Long userId) {
         String emitterId = notificationUtil.makeTimeIncludeId(userId);
         SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(Long.MAX_VALUE));
@@ -62,6 +74,18 @@ public class NotificationService {
         return emitter;
     }
 
+    /**
+     * <h3>실시간 알림 발송</h3>
+     *
+     * <p>
+     * 특정 사용자에게 실시간 알림을 발송하고 DB에 저장한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userId   사용자 ID
+     * @param eventDTO 이벤트 정보 DTO
+     */
     public void send(Long userId, EventDTO eventDTO) {
 
         Users user = userRepository.findById(userId)
@@ -80,7 +104,8 @@ public class NotificationService {
                 });
     }
 
-    private void sendNotification(SseEmitter emitter, String emitterId, NotificationType type, String data, String url) {
+    private void sendNotification(SseEmitter emitter, String emitterId, NotificationType type, String data,
+            String url) {
         String jsonData = String.format("{\"message\": \"%s\", \"url\": \"%s\"}",
                 data, url);
 
@@ -116,7 +141,6 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-
     @Transactional
     public void batchUpdate(UpdateNotificationDTO updateNotificationDTO) {
         List<Long> deleteIds = updateNotificationDTO.getDeletedIds();
@@ -133,7 +157,6 @@ public class NotificationService {
             }
         }
     }
-
 
     public void sendMessageTo(FcmSendDTO fcmSendDto) throws IOException {
 
@@ -187,8 +210,9 @@ public class NotificationService {
                                 .title(fcmSendDto.getTitle())
                                 .body(fcmSendDto.getBody())
                                 .image(null)
-                                .build()
-                        ).build()).validateOnly(false).build();
+                                .build())
+                        .build())
+                .validateOnly(false).build();
 
         return om.writeValueAsString(fcmMessageDto);
     }

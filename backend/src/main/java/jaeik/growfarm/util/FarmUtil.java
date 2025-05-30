@@ -16,7 +16,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FarmUtil {
 
-    // Crop -> CropDTO
+    /**
+     * <h3>Crop 엔티티를 CropDTO로 변환</h3>
+     *
+     * <p>
+     * Crop 엔티티를 CropDTO 객체로 변환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param crop Crop 엔티티
+     * @return 농작물 DTO
+     */
     public CropDTO convertToCropDTO(Crop crop) {
         CropDTO cropDTO = new CropDTO();
         cropDTO.setId(crop.getId());
@@ -29,7 +40,19 @@ public class FarmUtil {
         return cropDTO;
     }
 
-    // CropDTO -> Crop
+    /**
+     * <h3>CropDTO를 Crop 엔티티로 변환</h3>
+     *
+     * <p>
+     * CropDTO 객체를 Crop 엔티티로 변환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param cropDTO 농작물 DTO
+     * @param user    농장 소유자 정보
+     * @return Crop 엔티티
+     */
     public Crop convertToCrop(CropDTO cropDTO, Users user) {
         return Crop.builder()
                 .users(user)
@@ -41,7 +64,18 @@ public class FarmUtil {
                 .build();
     }
 
-    // Crop -> VisitFarmDTO
+    /**
+     * <h3>Crop 엔티티를 VisitCropDTO로 변환</h3>
+     *
+     * <p>
+     * 농장 방문 시 사용하는 농작물 DTO로 변환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param crop Crop 엔티티
+     * @return 방문 농장 농작물 DTO
+     */
     public VisitCropDTO convertToVisitFarmDTO(Crop crop) {
         VisitCropDTO visitCropDTO = new VisitCropDTO();
         visitCropDTO.setId(crop.getId());
@@ -51,10 +85,4 @@ public class FarmUtil {
         visitCropDTO.setHeight(crop.getHeight());
         return visitCropDTO;
     }
-
-
-
-
-
-
 }

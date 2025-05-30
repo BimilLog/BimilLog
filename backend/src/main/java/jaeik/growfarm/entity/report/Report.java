@@ -1,5 +1,6 @@
 package jaeik.growfarm.entity.report;
 
+import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.BaseEntity;
 import jakarta.persistence.*;
@@ -22,10 +23,9 @@ public class Report extends BaseEntity {
     @Column(name = "report_id")
     private Long id;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private Users users;
 
     @NotNull
@@ -38,4 +38,13 @@ public class Report extends BaseEntity {
     @NotNull
     @Column(columnDefinition = "TEXT", nullable = false) // 신고 내용 500자 허용
     private String content;
+
+    public static Report DtoToReport(ReportDTO reportDTO, Users user) {
+        return Report.builder()
+                .reportType(reportDTO.getReportType())
+                .users(user)
+                .targetId(reportDTO.getTargetId())
+                .content(reportDTO.getContent())
+                .build();
+    }
 }

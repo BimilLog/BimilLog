@@ -40,5 +40,4 @@ public class FcmToken extends BaseEntity {
     public void updateToken(String token) {
         this.fcmRegistrationToken = token;
     }
-
 }

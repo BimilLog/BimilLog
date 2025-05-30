@@ -28,11 +28,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /*
  * UserService 클래스
@@ -54,7 +58,20 @@ public class UserService {
     private final KakaoService kakaoService;
     private final UserUtil userUtil;
 
-    // 해당 유저의 작성 글 목록 반환
+    /**
+     * <h3>사용자 작성 글 목록 조회</h3>
+     *
+     * <p>
+     * 해당 유저의 작성 글 목록을 페이지네이션으로 반환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 작성 글 목록 페이지
+     */
     public Page<SimplePostDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -65,7 +82,20 @@ public class UserService {
                         postLikeRepository.countByPostId(post.getId())));
     }
 
-    // 해당 유저의 작성 댓글 목록 반환
+    /**
+     * <h3>사용자 작성 댓글 목록 조회</h3>
+     *
+     * <p>
+     * 해당 유저의 작성 댓글 목록을 페이지네이션으로 반환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 작성 댓글 목록 페이지
+     */
     public Page<CommentDTO> getCommentList(int page, int size, CustomUserDetails userDetails) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -76,22 +106,46 @@ public class UserService {
                         false));
     }
 
-    // 농장이름 변경
-    @Transactional
+    /**
+     * <h3>농장이름 변경</h3>
+     *
+     * <p>
+     * Dirty Read의 발생을 막기 위해 커밋된 읽기로 격리 수준 조정
+     * 유니크 컬럼이기 때문에 Non-repeatable read 발생해도 문제 없음
+     * </p>
+     *
+     * @param farmName    새로운 농장이름
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @throws IllegalArgumentException 이미 존재하는 농장이름인 경우
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateFarmName(String farmName, CustomUserDetails userDetails) {
-        // 이미 같은 농장이름이 있는지 검사
         if (userRepository.existsByFarmName(farmName)) {
             throw new IllegalArgumentException("이미 존재하는 농장이름입니다.");
         }
 
-        // 영속성 컨텍스트에서 사용자 엔티티를 조회하여 직접 업데이트
         Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        // 농장 이름 업데이트
         user.updateFarmName(farmName);
     }
 
+    /**
+     * <h3>사용자 좋아요한 글 목록 조회</h3>
+     *
+     * <p>
+     * 해당 유저가 좋아요한 글 목록을 페이지네이션으로 반환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 좋아요한 글 목록 페이지
+     */
     public Page<SimplePostDTO> getLikedPosts(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Post> posts = postRepository.findByLikedPosts(userDetails.getUserDTO().getUserId(), pageable);
@@ -101,6 +155,20 @@ public class UserService {
                         postLikeRepository.countByPostId(post.getId())));
     }
 
+    /**
+     * <h3>사용자 좋아요한 댓글 목록 조회</h3>
+     *
+     * <p>
+     * 해당 유저가 좋아요한 댓글 목록을 페이지네이션으로 반환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 좋아요한 댓글 목록 페이지
+     */
     public Page<CommentDTO> getLikedComments(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Comment> comments = commentRepository.findByLikedComments(userDetails.getUserDTO().getUserId(), pageable);
@@ -110,36 +178,48 @@ public class UserService {
                         true));
     }
 
-    public void suggestion(CustomUserDetails userDetails, ReportDTO reportDTO) {
+    /**
+     * <h3>건의 하기</h3>
+     *
+     * <p>
+     * 비로그인은 유저 ID를 null로 처리하여 저장하고 로그인 한 사람의 경우에는 유저 ID를 저장한다.
+     * </p>
+     *
+     * @param reportDTO 건의 내용 DTO
+     * @throws CustomException DTO의 유저 ID와 Context의 유저 ID가 일치하지 않는 경우
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public void suggestion(ReportDTO reportDTO) {
+        Users user = null;
 
-        if (userDetails == null) {
-            throw new RuntimeException("다시 로그인 해 주세요.");
+        if (reportDTO.getUserId() != null) {
+            SecurityContext securityContext = SecurityContextHolder.getContext();
+            CustomUserDetails userDetails = (CustomUserDetails) securityContext.getAuthentication().getPrincipal();
+
+            if (!Objects.equals(reportDTO.getUserId(), userDetails.getUserId())) {
+                throw new CustomException(ErrorCode.INVALID_USER_ID);
+            }
+
+            user = userRepository.getReferenceById(reportDTO.getUserId());
         }
-
-        // 신고 내용이 비어있지 않은지 확인
-        if (reportDTO.getContent() == null || reportDTO.getContent().isEmpty()) {
-            throw new IllegalArgumentException("신고 내용을 입력해주세요.");
-        }
-
-        // 신고 타입이 비어있지 않은지 확인
-        if (reportDTO.getReportType() == null) {
-            throw new IllegalArgumentException("신고 타입을 선택해주세요.");
-        }
-
-        // 신고 내용 저장
-        Users user = userRepository.findById(reportDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        Report report = Report.builder()
-                .reportType(reportDTO.getReportType())
-                .users(user)
-                .targetId(reportDTO.getTargetId())
-                .content(reportDTO.getContent())
-                .build();
-
+        Report report = Report.DtoToReport(reportDTO, user);
         reportRepository.save(report);
     }
 
+    /**
+     * <h3>카카오 친구 목록 조회</h3>
+     *
+     * <p>
+     * 카카오 API를 통해 친구 목록을 가져오고 농장 이름을 매핑하여 반환한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param offset      페이지 오프셋
+     * @return 카카오 친구 목록 DTO
+     */
     public KakaoFriendListDTO getFriendList(CustomUserDetails userDetails, int offset) {
         Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -168,6 +248,18 @@ public class UserService {
         return kakaoFriendListDTO;
     }
 
+    /**
+     * <h3>사용자 설정 업데이트</h3>
+     *
+     * <p>
+     * 사용자의 알림 설정을 업데이트한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param settingDTO 설정 정보 DTO
+     * @param userId     사용자 ID
+     */
     @Transactional
     public void updateSetting(SettingDTO settingDTO, Long userId) {
 
@@ -182,6 +274,18 @@ public class UserService {
 
     }
 
+    /**
+     * <h3>사용자 설정 조회</h3>
+     *
+     * <p>
+     * 사용자의 현재 설정 정보를 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userId 사용자 ID
+     * @return 설정 정보 DTO
+     */
     public SettingDTO getSetting(Long userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));

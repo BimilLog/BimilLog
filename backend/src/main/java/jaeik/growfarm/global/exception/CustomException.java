@@ -4,7 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
-@Getter @Setter
+@Getter
+@Setter
 public class CustomException extends RuntimeException {
 
     private final HttpStatus status;
@@ -31,8 +32,6 @@ public class CustomException extends RuntimeException {
         this.target = extractTarget();
         this.message = message;
     }
-
-
 
     private String extractTarget() {
         StackTraceElement[] stackTrace = this.getStackTrace();

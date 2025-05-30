@@ -1,6 +1,5 @@
 package jaeik.growfarm.service;
 
-import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.notification.FcmSendDTO;
 import jaeik.growfarm.entity.board.Comment;
@@ -8,8 +7,6 @@ import jaeik.growfarm.entity.board.CommentLike;
 import jaeik.growfarm.entity.board.Post;
 import jaeik.growfarm.entity.notification.FcmToken;
 import jaeik.growfarm.entity.notification.NotificationType;
-import jaeik.growfarm.entity.report.Report;
-import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
@@ -54,18 +51,19 @@ public class CommentService {
     private final NotificationUtil notificationUtil;
     private final FcmTokenRepository fcmTokenRepository;
 
-
-    /*
-     * 댓글 작성 메소드
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param Long postId: 게시글 ID
-     * param CommentDTO commentDTO: 댓글 DTO
-     * return void
+    /**
+     * <h3>댓글 작성</h3>
      *
-     * 설명 : 댓글을 DB에 저장하고 글 작성자에게 실시간 알림과 푸시 메시지를 발송한다.
-     * 수정일 : 2025-05-06
-     *
-     *
+     * <p>
+     * 댓글을 DB에 저장하고 글 작성자에게 실시간 알림과 푸시 메시지를 발송한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param postId      게시글 ID
+     * @param commentDTO  댓글 정보 DTO
+     * @throws IOException FCM 메시지 발송 오류 시 발생
      */
     public void writeComment(CustomUserDetails userDetails, Long postId, CommentDTO commentDTO) throws IOException {
         if (userDetails == null) {
@@ -81,7 +79,8 @@ public class CommentService {
         Long postUserId = post.getUser().getId();
 
         commentRepository.save(boardUtil.commentDTOToComment(commentDTO, post, user));
-        notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.COMMENT, user.getFarmName() + "님이 댓글을 남겼습니다!", "http://localhost:3000/board/" + postId));
+        notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.COMMENT,
+                user.getFarmName() + "님이 댓글을 남겼습니다!", "http://localhost:3000/board/" + postId));
 
         if (post.getUser().getSetting().isCommentNotification()) {
             List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
@@ -90,13 +89,24 @@ public class CommentService {
                         .token(fcmToken.getFcmRegistrationToken())
                         .title(user.getFarmName() + "님이 댓글을 남겼습니다!")
                         .body("지금 확인해보세요!")
-                        .build()
-                );
+                        .build());
             }
         }
     }
 
-    // 댓글 수정
+    /**
+     * <h3>댓글 수정</h3>
+     *
+     * <p>
+     * 댓글 작성자만 댓글을 수정할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param commentId   댓글 ID
+     * @param commentDTO  수정할 댓글 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     */
     @Transactional
     public void updateComment(Long commentId, CommentDTO commentDTO, CustomUserDetails userDetails) {
         Comment comment = commentRepository.findById(commentId)
@@ -108,7 +118,18 @@ public class CommentService {
         comment.updateComment(commentDTO.getContent());
     }
 
-    // 댓글 삭제
+    /**
+     * <h3>댓글 삭제</h3>
+     *
+     * <p>
+     * 댓글 작성자만 댓글을 삭제할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param commentId         댓글 ID
+     * @param customUserDetails 현재 로그인한 사용자 정보
+     */
     @Transactional
     public void deleteComment(Long commentId, CustomUserDetails customUserDetails) {
         Comment comment = commentRepository.findById(commentId)
@@ -131,7 +152,8 @@ public class CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
 
         Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
+                .orElseThrow(
+                        () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
 
         Optional<CommentLike> existingLike = commentLikeRepository.findByCommentIdAndUserId(commentId,
                 userDetails.getUserDTO().getUserId());
@@ -146,17 +168,6 @@ public class CommentService {
 
             commentLikeRepository.save(commentLike);
         }
-    }
-
-    public void reportComment(Long postId, CustomUserDetails userDetails, ReportDTO reportDTO) {
-        Report report = Report.builder()
-                .users(userUtil.DTOToUser(userDetails.getUserDTO()))
-                .reportType(ReportType.COMMENT)
-                .targetId(reportDTO.getTargetId())
-                .content(reportDTO.getContent())
-                .build();
-
-        reportRepository.save(report);
     }
 
     @Transactional
@@ -174,9 +185,7 @@ public class CommentService {
                         c -> c.getPost().getId(),
                         Collectors.collectingAndThen(
                                 Collectors.toList(),
-                                list -> list.stream().limit(3).toList()
-                        )
-                ));
+                                list -> list.stream().limit(3).toList())));
 
         // Step 4: 인기 댓글 지정 및 알림 전송
         topCommentsByPost.values().stream()
@@ -196,8 +205,7 @@ public class CommentService {
                                         .token(fcmToken.getFcmRegistrationToken())
                                         .title("🎉 당신의 댓글이 인기 댓글로 선정되었습니다!")
                                         .body("지금 확인해보세요!")
-                                        .build()
-                                );
+                                        .build());
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
@@ -210,9 +218,7 @@ public class CommentService {
                             notificationUtil.createEventDTO(
                                     NotificationType.COMMENT_FEATURED,
                                     "🎉 당신의 댓글이 인기 댓글로 선정되었습니다!",
-                                    "http://localhost:3000/board/" + postId
-                            )
-                    );
+                                    "http://localhost:3000/board/" + postId));
                 });
     }
 
