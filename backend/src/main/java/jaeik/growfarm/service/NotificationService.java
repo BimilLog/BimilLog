@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.growfarm.dto.notification.*;
-import jaeik.growfarm.entity.notification.DeviceType;
-import jaeik.growfarm.entity.notification.FcmToken;
 import jaeik.growfarm.entity.notification.Notification;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
@@ -31,7 +29,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /*
@@ -215,27 +212,5 @@ public class NotificationService {
                 .validateOnly(false).build();
 
         return om.writeValueAsString(fcmMessageDto);
-    }
-
-    @Transactional
-    public void registerFcmToken(Long userId, String token, DeviceType deviceType) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
-
-        Optional<FcmToken> optionalFcmToken = fcmTokenRepository.findByUsersIdAndDeviceType(userId, deviceType);
-
-        if (optionalFcmToken.isPresent()) {
-            // 이미 존재하면 토큰만 수정
-            FcmToken existingToken = optionalFcmToken.get();
-            existingToken.updateToken(token); // 아래에 updateToken 메서드 필요
-        } else {
-            // 존재하지 않으면 새로 추가
-            FcmToken newToken = FcmToken.builder()
-                    .users(user)
-                    .fcmRegistrationToken(token)
-                    .deviceType(deviceType)
-                    .build();
-            fcmTokenRepository.save(newToken);
-        }
     }
 }

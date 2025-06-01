@@ -174,7 +174,7 @@ public class PostService {
         }
 
         Post post = postRepository
-                .save(boardUtil.postReqDTOToPost(userUtil.DTOToUser(userDetails.getUserDTO()), postReqDTO));
+                .save(boardUtil.postReqDTOToPost(userUtil.DTOToUser(userDetails.getClientDTO()), postReqDTO));
         return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), null, false);
     }
 
@@ -223,7 +223,7 @@ public class PostService {
 
         Long userId = post.getUser().getId();
 
-        if (!userId.equals(userDetails.getUserDTO().getUserId())) {
+        if (!userId.equals(userDetails.getClientDTO().getUserId())) {
             throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
         }
 
@@ -249,7 +249,7 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        if (!post.getUser().getId().equals(userDetails.getUserDTO().getUserId())) {
+        if (!post.getUser().getId().equals(userDetails.getClientDTO().getUserId())) {
             throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
         }
 
@@ -262,11 +262,11 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        Users user = userRepository.findById(userDetails.getUserDTO().getUserId()).orElseThrow(
-                () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
+        Users user = userRepository.findById(userDetails.getClientDTO().getUserId()).orElseThrow(
+                () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getClientDTO().getUserId()));
 
         Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId,
-                userDetails.getUserDTO().getUserId());
+                userDetails.getClientDTO().getUserId());
 
         if (existingLike.isPresent()) {
             postLikeRepository.delete(existingLike.get());
@@ -345,7 +345,7 @@ public class PostService {
                     "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
                     "http://localhost:3000/board/" + postId));
 
-            if (post.getUser().getSetting().isPostFeaturedNotification()) {
+            if (post.getUser().getSetting().postFeaturedNotification()) {
                 List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
                 for (FcmToken fcmToken : fcmTokens) {
                     notificationService.sendMessageTo(FcmSendDTO.builder()
@@ -391,7 +391,7 @@ public class PostService {
                     "🎉 회원님의 글이 명예의 전당에 등록 되었습니다!",
                     "http://localhost:3000/board/" + postId));
 
-            if (post.getUser().getSetting().isPostFeaturedNotification()) {
+            if (post.getUser().getSetting().postFeaturedNotification()) {
                 List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
                 for (FcmToken fcmToken : fcmTokens) {
                     notificationService.sendMessageTo(FcmSendDTO.builder()

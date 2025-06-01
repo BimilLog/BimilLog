@@ -75,7 +75,7 @@ public class UserService {
     public Page<SimplePostDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Post> posts = postRepository.findByUserId(userDetails.getUserDTO().getUserId(), pageable);
+        Page<Post> posts = postRepository.findByUserId(userDetails.getClientDTO().getUserId(), pageable);
 
         return posts.map(
                 post -> boardUtil.postToSimpleDTO(post, commentRepository.countByPostId(post.getId()),
@@ -99,7 +99,7 @@ public class UserService {
     public Page<CommentDTO> getCommentList(int page, int size, CustomUserDetails userDetails) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Comment> comments = commentRepository.findByUserId(userDetails.getUserDTO().getUserId(), pageable);
+        Page<Comment> comments = commentRepository.findByUserId(userDetails.getClientDTO().getUserId(), pageable);
 
         return comments.map(
                 comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()),
@@ -126,7 +126,7 @@ public class UserService {
             throw new IllegalArgumentException("이미 존재하는 농장이름입니다.");
         }
 
-        Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
+        Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         user.updateFarmName(farmName);
@@ -148,7 +148,7 @@ public class UserService {
      */
     public Page<SimplePostDTO> getLikedPosts(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Post> posts = postRepository.findByLikedPosts(userDetails.getUserDTO().getUserId(), pageable);
+        Page<Post> posts = postRepository.findByLikedPosts(userDetails.getClientDTO().getUserId(), pageable);
 
         return posts.map(
                 post -> boardUtil.postToSimpleDTO(post, commentRepository.countByPostId(post.getId()),
@@ -171,7 +171,7 @@ public class UserService {
      */
     public Page<CommentDTO> getLikedComments(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Comment> comments = commentRepository.findByLikedComments(userDetails.getUserDTO().getUserId(), pageable);
+        Page<Comment> comments = commentRepository.findByLikedComments(userDetails.getClientDTO().getUserId(), pageable);
 
         return comments.map(
                 comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()),
@@ -221,7 +221,7 @@ public class UserService {
      * @return 카카오 친구 목록 DTO
      */
     public KakaoFriendListDTO getFriendList(CustomUserDetails userDetails, int offset) {
-        Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
+        Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         KakaoCheckConsentDTO kakaoCheckConsentDTO = kakaoService.checkConsent(user.getToken().getKakaoAccessToken());
@@ -267,10 +267,10 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Setting setting = user.getSetting();
-        setting.updateSetting(settingDTO.isFarmNotification(),
-                settingDTO.isCommentNotification(),
-                settingDTO.isPostFeaturedNotification(),
-                settingDTO.isCommentFeaturedNotification());
+        setting.updateSetting(settingDTO.farmNotification(),
+                settingDTO.commentNotification(),
+                settingDTO.postFeaturedNotification(),
+                settingDTO.commentFeaturedNotification());
 
     }
 

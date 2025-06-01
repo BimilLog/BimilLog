@@ -45,9 +45,9 @@ public class LogFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Long userId = userDetails.getUserDTO().getUserId();
-            Long kakaoId = userDetails.getUserDTO().getKakaoId();
-            String kakaoNickname = userDetails.getUserDTO().getKakaoNickname();
+            Long userId = userDetails.getClientDTO().getUserId();
+            Long kakaoId = userDetails.getClientDTO().getKakaoId();
+            String kakaoNickname = userDetails.getClientDTO().getKakaoNickname();
 
             if (uri.startsWith("/admin")) {
                 log.error("관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);

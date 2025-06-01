@@ -35,7 +35,7 @@ public class FarmController {
      */
     @PostMapping("/myFarm")
     public ResponseEntity<List<CropDTO>> myFarm(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<CropDTO> crops = farmService.myFarm(userDetails.getUserDTO().getUserId());
+        List<CropDTO> crops = farmService.myFarm(userDetails.getClientDTO().getUserId());
         return ResponseEntity.ok(crops);
     }
 

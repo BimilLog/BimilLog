@@ -1,7 +1,7 @@
 package jaeik.growfarm.global.security;
 
 import jaeik.growfarm.global.filter.HeaderCheckFilter;
-import jaeik.growfarm.global.filter.jwtFilter;
+import jaeik.growfarm.global.filter.JwtFilter;
 import jaeik.growfarm.global.filter.LogFilter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,7 +34,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SecurityConfig {
 
-    private final jwtFilter jwtFilter;
+    private final JwtFilter jwtFilter;
     private final LogFilter LogFilter;
     private final HeaderCheckFilter headerCheckFilter;
 

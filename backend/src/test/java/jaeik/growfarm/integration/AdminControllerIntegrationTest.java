@@ -11,7 +11,7 @@ import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
-import jaeik.growfarm.repository.user.TokenRepository;
+import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.UserUtil;
 import jakarta.transaction.Transactional;
@@ -77,10 +77,10 @@ public class AdminControllerIntegrationTest {
     void setUp() {
         // 관리자 사용자 설정 생성
         Setting adminSetting = Setting.builder()
-                .isFarmNotification(true)
-                .isCommentNotification(true)
-                .isPostFeaturedNotification(true)
-                .isCommentFeaturedNotification(true)
+                .farmNotification(true)
+                .commentNotification(true)
+                .postFeaturedNotification(true)
+                .commentFeaturedNotification(true)
                 .build();
         settingRepository.save(adminSetting);
 
@@ -107,10 +107,10 @@ public class AdminControllerIntegrationTest {
 
         // 일반 사용자 설정 생성
         Setting userSetting = Setting.builder()
-                .isFarmNotification(true)
-                .isCommentNotification(true)
-                .isPostFeaturedNotification(true)
-                .isCommentFeaturedNotification(true)
+                .farmNotification(true)
+                .commentNotification(true)
+                .postFeaturedNotification(true)
+                .commentFeaturedNotification(true)
                 .build();
         settingRepository.save(userSetting);
 

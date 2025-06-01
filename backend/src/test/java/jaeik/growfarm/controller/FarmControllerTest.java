@@ -42,8 +42,8 @@ public class FarmControllerTest {
     void setUp() {
         // Setup mock data
         userDetails = mock(CustomUserDetails.class);
-        when(userDetails.getUserDTO()).thenReturn(mock(jaeik.growfarm.dto.user.UserDTO.class));
-        when(userDetails.getUserDTO().getUserId()).thenReturn(1L);
+        when(userDetails.getClientDTO()).thenReturn(mock(jaeik.growfarm.dto.user.UserDTO.class));
+        when(userDetails.getClientDTO().getUserId()).thenReturn(1L);
 
         cropDTO = new CropDTO();
         // Set properties for cropDTO if needed

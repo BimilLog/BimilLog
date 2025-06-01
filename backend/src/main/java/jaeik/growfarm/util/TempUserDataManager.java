@@ -13,7 +13,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * <h2>사용자 데이터 임시 관리 클래스</h2>
+ *
+ * <p>신규 회원 가입시 사용자 데이터를 저장하고 관리한다.</p>
+ * <p>로그인 API와 회원가입 API 사이의 정보 유지를 위해 도입한 메모리다.</p>
+ * <p>UUID를 키로 사용하여 임시 데이터를 저장하며, 5분 후 자동으로 삭제된다</p>
+ * <p>UUID는 사용자 브라우저에 쿠키로 전달된다.</p>
+ *
+ * @since 1.0.0
+ * @author Jaeik
+ */
 @Component
 public class TempUserDataManager {
     private final ConcurrentHashMap<String, TempUserData> tempDataMap = new ConcurrentHashMap<>();
@@ -24,13 +34,14 @@ public class TempUserDataManager {
     public static class TempUserData {
         private TokenDTO tokenDTO;
         private KakaoInfoDTO kakaoInfoDTO;
+        private String fcmToken;
         private LocalDateTime createdTime;
     }
 
-    public String saveTempData(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO) {
+    public String saveTempData(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
-        TempUserData tempData = new TempUserData(tokenDTO, kakaoInfoDTO, LocalDateTime.now());
-        tempDataMap.put(uuid, tempData);
+        TempUserData tempUserData = new TempUserData(tokenDTO, kakaoInfoDTO, fcmToken, LocalDateTime.now());
+        tempDataMap.put(uuid, tempUserData);
         scheduleCleanup(uuid);
         return uuid;
     }

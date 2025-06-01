@@ -2,7 +2,6 @@ package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
-import jaeik.growfarm.entity.notification.DeviceType;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,7 @@ public class NotificationController {
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserDTO().getUserId();
+        Long userId = userDetails.getClientDTO().getUserId();
         return notificationService.subscribe(userId);
     }
 
@@ -51,7 +50,7 @@ public class NotificationController {
     @GetMapping("/list")
     public ResponseEntity<List<NotificationDTO>> getNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserDTO().getUserId();
+        Long userId = userDetails.getClientDTO().getUserId();
         List<NotificationDTO> notifications = notificationService.getNotificationList(userId);
         return ResponseEntity.ok(notifications);
     }
@@ -68,23 +67,5 @@ public class NotificationController {
             @RequestBody UpdateNotificationDTO updateNotificationDTO) {
         notificationService.batchUpdate(updateNotificationDTO);
         return ResponseEntity.ok().build();
-    }
-
-    /*
-     * FCM 토큰 등록 API
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param String token: FCM 토큰
-     * param DeviceType deviceType: 디바이스 타입
-     * return: ResponseEntity<String> FCM 토큰 등록 완료 메시지
-     * FCM 토큰은 핸드폰과 태블릿에서의 경우만 전달됨.
-     * 수정일 : 2025-05-03
-     */
-    @PostMapping("/fcm/token")
-    public ResponseEntity<String> registerFcmToken(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody String token,
-            @RequestParam DeviceType deviceType) {
-        Long userId = userDetails.getUserDTO().getUserId();
-        notificationService.registerFcmToken(userId, token, deviceType);
-        return ResponseEntity.status(200).build();
     }
 }

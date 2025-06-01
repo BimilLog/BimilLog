@@ -1,5 +1,6 @@
 package jaeik.growfarm.dto.user;
 
+import jaeik.growfarm.entity.user.Setting;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,11 +17,29 @@ import lombok.Setter;
 @Setter
 public class SettingDTO {
 
-    private boolean FarmNotification;
+    private Long settingId;
 
-    private boolean CommentNotification;
+    private boolean farmNotification;
 
-    private boolean PostFeaturedNotification;
+    private boolean commentNotification;
 
-    private boolean CommentFeaturedNotification;
+    private boolean postFeaturedNotification;
+
+    private boolean commentFeaturedNotification;
+
+    public SettingDTO(Setting setting) {
+        settingId = setting.getId();
+        farmNotification = setting.isFarmNotification();
+        commentNotification = setting.isCommentNotification();
+        postFeaturedNotification = setting.isPostFeaturedNotification();
+        commentFeaturedNotification = setting.isCommentFeaturedNotification();
+    }
+
+    public SettingDTO(Long settingId, boolean farmNotification, boolean commentNotification, boolean postFeaturedNotification, boolean commentFeaturedNotification) {
+        this.settingId = settingId;
+        this.farmNotification = farmNotification;
+        this.commentNotification = commentNotification;
+        this.postFeaturedNotification = postFeaturedNotification;
+        this.commentFeaturedNotification = commentFeaturedNotification;
+    }
 }

@@ -91,7 +91,7 @@ public class LoginResponse<T> {
         return ResponseCookie.from("temp", uuid)
                 .path("/")
                 .maxAge(300)
-                .httpOnly(true)
+                .httpOnly(false)
                 .sameSite("Lax")
                 .secure(false)
                 .build();

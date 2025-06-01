@@ -32,12 +32,14 @@ public class FcmToken extends BaseEntity {
     @Column(nullable = false)
     private String fcmRegistrationToken;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private DeviceType deviceType;
-
     public void updateToken(String token) {
         this.fcmRegistrationToken = token;
+    }
+
+    public static FcmToken create(Users users, String token) {
+        return FcmToken.builder()
+                .users(users)
+                .fcmRegistrationToken(token)
+                .build();
     }
 }

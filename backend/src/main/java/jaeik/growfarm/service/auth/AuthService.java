@@ -2,10 +2,7 @@ package jaeik.growfarm.service.auth;
 
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.dto.user.UserDTO;
-import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Token;
-import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
@@ -14,13 +11,11 @@ import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.BlackListRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
-import jaeik.growfarm.repository.user.SettingRepository;
-import jaeik.growfarm.repository.user.TokenRepository;
+import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.KakaoService;
 import jaeik.growfarm.util.LoginResponse;
 import jaeik.growfarm.util.TempUserDataManager;
-import jaeik.growfarm.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
 import org.springframework.http.ResponseCookie;
@@ -47,28 +42,27 @@ public class AuthService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final KakaoService kakaoService;
-    private final UserUtil userUtil;
     private final JwtTokenProvider jwtTokenProvider;
     private final BlackListRepository blackListRepository;
     private final EmitterRepository emitterRepository;
-    private final SettingRepository settingRepository;
     private final FcmTokenRepository fcmTokenRepository;
     private final TempUserDataManager tempUserDataManager;
-    private final UserUpdateService userUpdateService;
+    private final SaveUserService userUpdateService;
 
     /**
      * <h3>카카오 로그인</h3>
      *
      * <p>
-     * 기존 회원은 쿠키를 반환하고, 신규 회원은 토큰 ID를 반환한다.
+     * 기존 회원은 Jwt가 담긴 쿠키 쌍을 반환하고, 신규 회원은 UUID가 담긴 임시 쿠키를 반환한다.
      * </p>
      *
      * @param code 프론트에서 반환된 카카오 인가 코드
+     * @param fcmToken Firebase Cloud Messaging 토큰
      * @return Jwt가 삽입된 쿠키 또는 토큰 ID
      * @author Jaeik
      * @since 1.0.0
      */
-    public LoginResponse<?> processKakaoLogin(String code) {
+    public LoginResponse<?> processKakaoLogin(String code, String fcmToken) {
         validateLogin();
 
         TokenDTO tokenDTO = kakaoService.getToken(code);
@@ -78,12 +72,12 @@ public class AuthService {
         Optional<Users> existingUser = checkExistingUser(kakaoId);
 
         if (existingUser.isPresent()) {
-            return existingUserLogin(existingUser.get(), kakaoInfoDTO, tokenDTO);
+            return existingUserLogin(existingUser.get(), kakaoInfoDTO, tokenDTO, fcmToken);
         } else {
             if (checkBlackList(kakaoId)) {
                 throw new CustomException(ErrorCode.BLACKLIST_USER);
             }
-            return newUserLogin(kakaoInfoDTO, tokenDTO);
+            return newUserLogin(kakaoInfoDTO, tokenDTO, fcmToken);
         }
     }
 
@@ -139,13 +133,13 @@ public class AuthService {
      * @param user         기존 사용자 정보
      * @param kakaoInfoDTO 카카오 사용자 정보
      * @param tokenDTO     카카오 토큰 정보
+     * @param fcmToken     Firebase Cloud Messaging 토큰
      * @return LoginResponse<List<ResponseCookie>> JWT가 삽입된 쿠키 리스트
      * @author Jaeik
      * @since 1.0.0
      */
-    private LoginResponse<List<ResponseCookie>> existingUserLogin(Users user, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO) {
-        TokenDTO updateTokenDTO = userUpdateService.updateUserInfo(user, kakaoInfoDTO, tokenDTO);
-        List<ResponseCookie> cookies = jwtTokenProvider.getResponseCookies(updateTokenDTO.getJwtAccessToken(), (updateTokenDTO.getJwtRefreshToken()));
+    private LoginResponse<List<ResponseCookie>> existingUserLogin(Users user, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+        List<ResponseCookie> cookies = userUpdateService.saveExistUser(user, kakaoInfoDTO, tokenDTO, fcmToken);
         return LoginResponse.existingUser(cookies);
     }
 
@@ -156,66 +150,33 @@ public class AuthService {
      *
      * @param kakaoInfoDTO 카카오 사용자 정보
      * @param tokenDTO     카카오 토큰 정보
+     * @param fcmToken     Firebase Cloud Messaging 토큰
      * @return LoginResponse<ResponseCookie> UUID가 삽입된 쿠키
      * @author Jaeik
      * @since 1.0.0
      */
-    private LoginResponse<ResponseCookie> newUserLogin(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO) {
-        String uuid = tempUserDataManager.saveTempData(kakaoInfoDTO, tokenDTO);
+    private LoginResponse<ResponseCookie> newUserLogin(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+        String uuid = tempUserDataManager.saveTempData(kakaoInfoDTO, tokenDTO, fcmToken);
         return LoginResponse.newUser(uuid);
     }
 
-
     /**
-     * <h3>회원가입 API</h3>
+     * <h3>회원 가입</h3>
      *
      * <p>
-     * 임시 토큰을 통해 사용자 정보를 가져와 회원가입을 처리한다.
+     * uuid로 임시 저장된 사용자 정보를 기반으로 회원가입을 처리한다.
      * </p>
      *
-     * @param tokenId  임시 토큰 ID
      * @param farmName 사용자가 설정한 농장 이름
+     * @param uuid  임시 저장된 사용자 정보의 UUID
      * @return JWT가 삽입된 쿠키 리스트
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional
     public List<ResponseCookie> signUp(String farmName, String uuid) {
-
         TempUserDataManager.TempUserData tempUserData = tempUserDataManager.getTempData(uuid);
-
-        if (tempUserData == null) {
-            throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
-        }
-
-
-        Setting setting = Setting.builder()
-                .isFarmNotification(true)
-                .isCommentNotification(true)
-                .isPostFeaturedNotification(true)
-                .isCommentFeaturedNotification(true)
-                .build();
-        settingRepository.save(setting);
-
-        Users user = Users.builder()
-                .kakaoId(kakaoInfoDTO.getKakaoId())
-                .kakaoNickname(kakaoInfoDTO.getKakaoNickname())
-                .thumbnailImage(kakaoInfoDTO.getThumbnailImage())
-                .farmName(farmName)
-                .role(UserRole.USER)
-                .token(token)
-                .setting(setting)
-                .build();
-
-        userRepository.save(user); // 유저 저장
-
-        UserDTO userDTO = userUtil.UserToDTO(user);
-
-        String jwtAccessToken = jwtTokenProvider.generateAccessToken(userDTO);
-        String jwtRefreshToken = jwtTokenProvider.generateRefreshToken(userDTO);
-        token.updateJwtRefreshToken(jwtRefreshToken); // 토큰에 JWT 리프레시 토큰 저장
-
-        return jwtTokenProvider.getResponseCookies(jwtAccessToken, jwtRefreshToken, 86400);
+        if (tempUserData == null) {throw new CustomException(ErrorCode.INVALID_TEMP_DATA);}
+        return userUpdateService.saveNewUser(farmName, uuid, tempUserData.getKakaoInfoDTO(), tempUserData.getTokenDTO(), tempUserData.getFcmToken());
     }
 
     /**
@@ -240,8 +201,7 @@ public class AuthService {
 
             Long userId = userDetails.getUserId();
 
-            Users user = userRepository.findById(userId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_MATCH_USER));
+            Users user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_MATCH_USER));
             Token token = tokenRepository.findById(userDetails.getTokenId())
                     .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
 
@@ -280,7 +240,7 @@ public class AuthService {
                 throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
             }
 
-            Long userId = userDetails.getUserDTO().getUserId();
+            Long userId = userDetails.getClientDTO().getUserId();
 
             Token token = tokenRepository.findById(userDetails.getTokenId())
                     .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));

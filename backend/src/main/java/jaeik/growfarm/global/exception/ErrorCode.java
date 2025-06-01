@@ -19,6 +19,9 @@ public enum ErrorCode {
     INVALID_USER_ID(HttpStatus.INTERNAL_SERVER_ERROR, "유저 아이디가 잘못되었습니다."),
     ALREADY_LOGIN(HttpStatus.FORBIDDEN, "이미 로그인 된 유저 입니다."),
     INVALID_TEMP_DATA(HttpStatus.BAD_REQUEST, "시간이 초과 되었습니다. 다시 카카오 로그인을 진행해주세요."),
+    AUTH_JWT_ACCESS_TOKEN_ERROR(HttpStatus.FORBIDDEN, "JWT 엑세스 토큰 인증 중 오류 발생"),
+    RENEWAL_JWT_ACCESS_TOKEN_ERROR(HttpStatus.FORBIDDEN, "JWT 엑세스 토큰 갱신 중 오류 발생"),
+    INVALID_JWT_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT 리프레시 토큰입니다. 다시 로그인 해주세요."),
 
     // 게시판 관련
     NOT_FIND_POST(HttpStatus.FORBIDDEN, "해당 게시글이 존재하지 않습니다.");

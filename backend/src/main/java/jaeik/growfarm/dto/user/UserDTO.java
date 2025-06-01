@@ -1,8 +1,8 @@
 package jaeik.growfarm.dto.user;
 
 import jaeik.growfarm.entity.user.UserRole;
+import jaeik.growfarm.entity.user.Users;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -16,16 +16,13 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-@RequiredArgsConstructor
 public class UserDTO {
 
     private Long userId;
 
     private Long kakaoId;
 
-    private Long tokenId;
-
-    private Long settingId;
+    private SettingDTO settingDTO;
 
     private String kakaoNickname;
 
@@ -34,4 +31,34 @@ public class UserDTO {
     private String farmName;
 
     private UserRole role;
+
+    public UserDTO (Users user) {
+        this.userId = user.getId();
+        this.kakaoId = user.getKakaoId();
+        this.settingDTO = new SettingDTO(user.getSetting());
+        this.kakaoNickname = user.getKakaoNickname();
+        this.thumbnailImage = user.getThumbnailImage();
+        this.farmName = user.getFarmName();
+        this.role = user.getRole();
+    }
+
+    public UserDTO (Users user, SettingDTO settingDTO) {
+        this.userId = user.getId();
+        this.kakaoId = user.getKakaoId();
+        this.settingDTO = settingDTO;
+        this.kakaoNickname = user.getKakaoNickname();
+        this.thumbnailImage = user.getThumbnailImage();
+        this.farmName = user.getFarmName();
+        this.role = user.getRole();
+    }
+
+    public UserDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String farmName, UserRole role, SettingDTO settingDTO) {
+        this.userId = userId;
+        this.kakaoId = kakaoId;
+        this.kakaoNickname = kakaoNickname;
+        this.thumbnailImage = thumbnailImage;
+        this.farmName = farmName;
+        this.role = role;
+        this.settingDTO = settingDTO;
+    }
 }

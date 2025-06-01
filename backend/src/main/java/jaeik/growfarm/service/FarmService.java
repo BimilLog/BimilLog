@@ -102,7 +102,7 @@ public class FarmService {
         notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM,
                 "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
 
-        if (user.getSetting().isFarmNotification()) {
+        if (user.getSetting().farmNotification()) {
 
             // farmName으로 유저의 fcmToken을 가져와서 알림 전송
             List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
@@ -137,7 +137,7 @@ public class FarmService {
         Crop crop = cropRepository.findById(cropId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 농작물을 찾을 수 없습니다."));
 
-        if (!crop.getUsers().getId().equals(userDetails.getUserDTO().getUserId())) {
+        if (!crop.getUsers().getId().equals(userDetails.getClientDTO().getUserId())) {
             throw new RuntimeException("본인 농장의 농작물만 삭제할 수 있습니다.");
         }
 

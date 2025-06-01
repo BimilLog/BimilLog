@@ -198,7 +198,7 @@ public class UserController {
      */
     @GetMapping("/setting")
     public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserDTO().getUserId();
+        Long userId = userDetails.getClientDTO().getUserId();
         SettingDTO settingDTO = userService.getSetting(userId);
         return ResponseEntity.ok(settingDTO);
     }
@@ -219,7 +219,7 @@ public class UserController {
     @PostMapping("/setting")
     public ResponseEntity<SettingDTO> updateSetting(@RequestBody SettingDTO settingDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserDTO().getUserId();
+        Long userId = userDetails.getClientDTO().getUserId();
         userService.updateSetting(settingDTO, userId);
         SettingDTO newSettingDTO = userService.getSetting(userId);
         return ResponseEntity.ok(newSettingDTO);

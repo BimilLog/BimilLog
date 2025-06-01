@@ -1,6 +1,6 @@
 package jaeik.growfarm.global.auth;
 
-import jaeik.growfarm.dto.user.UserDTO;
+import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.entity.user.UserRole;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,12 +12,12 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * <h3>커스텀 사용자 상세 정보 클래스</h3>
+ * <h2>커스텀 사용자 상세 정보 클래스</h2>
  * <p>
  * UserDetails 인터페이스를 구현하여 Spring Security에서 사용자 정보를 처리하는 클래스
  * </p>
  * <p>
- * UserDTO 객체를 사용하여 사용자 정보를 저장하고, 권한을 설정하는 기능을 제공
+ * ClientDTO 객체를 사용하여 사용자 정보를 저장하고, 권한을 설정하는 기능을 제공
  * </p>
  * 
  * @since 1.0.0
@@ -26,23 +26,23 @@ import java.util.List;
 @Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final UserDTO userDTO;
+    private final ClientDTO clientDTO;
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
      * <h3>CustomUserDetails 생성자</h3>
      *
      * <p>
-     * UserDTO를 받아 CustomUserDetails 객체를 생성한다.
+     * ClientDTO를 받아서 CustomUserDetails 객체를 생성한다.
      * </p>
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param userDTO 사용자 정보 DTO
+     * @param clientDTO 사용자 정보 DTO
      */
-    public CustomUserDetails(UserDTO userDTO) {
-        this.userDTO = userDTO;
-        this.authorities = createAuthorities(userDTO.getRole());
+    public CustomUserDetails(ClientDTO clientDTO) {
+        this.clientDTO = clientDTO;
+        this.authorities = createAuthorities(clientDTO.getRole());
     }
 
     /**
@@ -67,30 +67,54 @@ public class CustomUserDetails implements UserDetails {
      * <h3>사용자 ID 조회</h3>
      *
      * <p>
-     * 사용자의 ID를 반환한다.
+     * 사용자의 유저 ID를 반환한다.
      * </p>
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @return 사용자 ID
+     * @return 유저 ID
      */
     public Long getUserId() {
-        return userDTO.getUserId();
+        return clientDTO.getUserId();
     }
 
     /**
-     * <h3>토큰 ID 조회</h3>
+     * <h3>사용자 토큰 ID 조회</h3>
      *
-     * <p>
-     * 사용자의 토큰 ID를 반환한다.
-     * </p>
-     * 
+     * <p>사용자의 토큰 ID를 반환한다.</p>
      * @since 1.0.0
      * @author Jaeik
      * @return 토큰 ID
      */
     public Long getTokenId() {
-        return userDTO.getTokenId();
+        return clientDTO.getTokenId();
+    }
+
+    /**
+     * <h3>사용자 FCM 토큰 ID 조회</h3>
+     *
+     * <p>사용자의 FCM 토큰 ID를 반환한다.</p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @return FCM 토큰 ID
+     */
+    public Long getFcmTokenId() {
+        return clientDTO.getFcmTokenId();
+    }
+
+    /**
+     * <h3>사용자 농장 이름 조회</h3>
+     *
+     * <p>사용자의 농장 이름을 반환한다.</p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 사용자 농장 이름
+     */
+    @Override
+    public String getUsername() {
+        return clientDTO.getFarmName();
     }
 
     @Override
@@ -104,27 +128,22 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
-        return userDTO.getFarmName();
-    }
-
-    @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return UserDetails.super.isAccountNonExpired();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return UserDetails.super.isAccountNonLocked();
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return UserDetails.super.isCredentialsNonExpired();
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return UserDetails.super.isEnabled();
     }
 }

@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class Token extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // PK 번호
     @Column(name = "token_id")
     private Long id;
 
@@ -37,13 +36,7 @@ public class Token extends BaseEntity {
     @Column(nullable = false)
     private String kakaoRefreshToken;
 
-    @NotNull
-    @Column(nullable = false)
     private String jwtRefreshToken;
-
-    public void updateJwtRefreshToken(String jwtRefreshToken) {
-        this.jwtRefreshToken = jwtRefreshToken;
-    }
 
     @Transactional
     public void updateKakaoToken(String kakaoAccessToken, String kakaoRefreshToken) {
@@ -53,7 +46,7 @@ public class Token extends BaseEntity {
         }
     }
 
-    public static Token DTOToToken(TokenDTO tokenDTO, Users user) {
+    public static Token createToken(TokenDTO tokenDTO, Users user) {
         return Token.builder()
                 .users(user)
                 .kakaoAccessToken(tokenDTO.getKakaoAccessToken())

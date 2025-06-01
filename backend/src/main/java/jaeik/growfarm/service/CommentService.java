@@ -82,7 +82,7 @@ public class CommentService {
         notificationService.send(postUserId, notificationUtil.createEventDTO(NotificationType.COMMENT,
                 user.getFarmName() + "님이 댓글을 남겼습니다!", "http://localhost:3000/board/" + postId));
 
-        if (post.getUser().getSetting().isCommentNotification()) {
+        if (post.getUser().getSetting().commentNotification()) {
             List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
             for (FcmToken fcmToken : fcmTokens) {
                 notificationService.sendMessageTo(FcmSendDTO.builder()
@@ -112,7 +112,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
 
-        if (!comment.getUser().getId().equals(userDetails.getUserDTO().getUserId())) {
+        if (!comment.getUser().getId().equals(userDetails.getClientDTO().getUserId())) {
             throw new IllegalArgumentException("댓글 작성자만 수정할 수 있습니다.");
         }
         comment.updateComment(commentDTO.getContent());
@@ -135,7 +135,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
 
-        if (!comment.getUser().getId().equals(customUserDetails.getUserDTO().getUserId())) {
+        if (!comment.getUser().getId().equals(customUserDetails.getClientDTO().getUserId())) {
             throw new IllegalArgumentException("댓글 작성자만 삭제할 수 있습니다.");
         }
 
@@ -151,12 +151,12 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
 
-        Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
+        Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
                 .orElseThrow(
-                        () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
+                        () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getClientDTO().getUserId()));
 
         Optional<CommentLike> existingLike = commentLikeRepository.findByCommentIdAndUserId(commentId,
-                userDetails.getUserDTO().getUserId());
+                userDetails.getClientDTO().getUserId());
 
         if (existingLike.isPresent()) {
             commentLikeRepository.delete(existingLike.get());
@@ -197,7 +197,7 @@ public class CommentService {
                     Long postId = comment.getPost().getId();
 
                     // 알림 설정 확인 및 FCM 전송
-                    if (comment.getUser().getSetting().isCommentNotification()) {
+                    if (comment.getUser().getSetting().commentNotification()) {
                         List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(comment.getUser());
                         for (FcmToken fcmToken : fcmTokens) {
                             try {

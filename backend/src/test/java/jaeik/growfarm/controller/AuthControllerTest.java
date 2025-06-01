@@ -143,7 +143,7 @@ public class AuthControllerTest {
         userDTO.setRole(UserRole.USER);
 
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        when(userDetails.getUserDTO()).thenReturn(userDTO);
+        when(userDetails.getClientDTO()).thenReturn(userDTO);
 
         // When
         ResponseEntity<?> response = authController.getCurrentUser(userDetails);

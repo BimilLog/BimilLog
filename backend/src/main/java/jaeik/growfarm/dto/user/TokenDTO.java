@@ -17,6 +17,8 @@ import lombok.Setter;
 @Setter
 public class TokenDTO {
 
+    private Long tokenId;
+
     private Long userId;
 
     @JsonProperty("access_token")
@@ -28,4 +30,5 @@ public class TokenDTO {
     private String jwtAccessToken;
 
     private String jwtRefreshToken;
+
 }

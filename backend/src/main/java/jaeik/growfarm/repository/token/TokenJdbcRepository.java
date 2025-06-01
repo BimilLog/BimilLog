@@ -1,0 +1,26 @@
+package jaeik.growfarm.repository.token;
+
+import lombok.AllArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+@Repository
+@AllArgsConstructor
+public class TokenJdbcRepository {
+
+    private JdbcTemplate jdbcTemplate;
+
+    /**
+     * <h3>JWT 리프레시 토큰 업데이트</h3>
+     *
+     * <p>주어진 토큰 ID에 해당하는 JWT 리프레시 토큰을 업데이트합니다.</p>
+     * <p>로그인, 리프레시 토큰 재발급때 사용합니다.</p>
+     *
+     * @param tokenId            토큰 ID
+     * @param newJwtRefreshToken 새로 설정할 JWT 리프레시 토큰
+     */
+    public void UpdateJwtRefreshToken(Long tokenId, String newJwtRefreshToken) {
+        String sql = "UPDATE token SET jwt_refresh_token = ? WHERE token_id = ?";
+        jdbcTemplate.update(sql, newJwtRefreshToken, tokenId);
+    }
+}

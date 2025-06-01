@@ -8,7 +8,7 @@ import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.user.SettingRepository;
-import jaeik.growfarm.repository.user.TokenRepository;
+import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.UserUtil;
 import jakarta.transaction.Transactional;
@@ -64,10 +64,10 @@ public class AuthControllerIntegrationTest {
     @BeforeAll
     void setUp() {
         Setting setting = Setting.builder()
-                .isFarmNotification(true)
-                .isCommentNotification(true)
-                .isPostFeaturedNotification(true)
-                .isCommentFeaturedNotification(true)
+                .farmNotification(true)
+                .commentNotification(true)
+                .postFeaturedNotification(true)
+                .commentFeaturedNotification(true)
                 .build();
         settingRepository.save(setting);
 
@@ -130,7 +130,7 @@ public class AuthControllerIntegrationTest {
         assertEquals(userDTO.getKakaoNickname(), ((UserDTO) response.getBody()).getKakaoNickname());
         assertEquals(userDTO.getThumbnailImage(), ((UserDTO) response.getBody()).getThumbnailImage());
         assertEquals(userDTO.getRole(), ((UserDTO) response.getBody()).getRole());
-        assertEquals(userDTO.getSettingId(), ((UserDTO) response.getBody()).getSettingId());
+        assertEquals(userDTO.getSetting(), ((UserDTO) response.getBody()).getSetting());
         assertEquals(userDTO.getTokenId(), ((UserDTO) response.getBody()).getTokenId());
         assertEquals(userDTO.getUserId(), ((UserDTO) response.getBody()).getUserId());
     }

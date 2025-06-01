@@ -52,8 +52,8 @@ public class UserControllerTest {
     void setUp() {
         // Setup mock data
         userDetails = mock(CustomUserDetails.class);
-        when(userDetails.getUserDTO()).thenReturn(mock(jaeik.growfarm.dto.user.UserDTO.class));
-        when(userDetails.getUserDTO().getUserId()).thenReturn(1L);
+        when(userDetails.getClientDTO()).thenReturn(mock(jaeik.growfarm.dto.user.UserDTO.class));
+        when(userDetails.getClientDTO().getUserId()).thenReturn(1L);
 
         // Create SimplePostDTO with required parameters
         simplePostDTO = new SimplePostDTO(
@@ -245,7 +245,7 @@ public class UserControllerTest {
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        verify(userService, times(1)).updateSetting(settingDTO, userDetails.getUserDTO().getUserId());
-        verify(userService, times(1)).getSetting(userDetails.getUserDTO().getUserId());
+        verify(userService, times(1)).updateSetting(settingDTO, userDetails.getClientDTO().getUserId());
+        verify(userService, times(1)).getSetting(userDetails.getClientDTO().getUserId());
     }
 }

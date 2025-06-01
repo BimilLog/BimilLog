@@ -48,9 +48,9 @@ public class HeaderCheckFilter extends OncePerRequestFilter {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null) {
                 CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-                Long userId = userDetails.getUserDTO().getUserId();
-                Long kakaoId = userDetails.getUserDTO().getKakaoId();
-                String kakaoNickname = userDetails.getUserDTO().getKakaoNickname();
+                Long userId = userDetails.getClientDTO().getUserId();
+                Long kakaoId = userDetails.getClientDTO().getKakaoId();
+                String kakaoNickname = userDetails.getClientDTO().getKakaoNickname();
                 log.error("비정상적인 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
             } else {
                 log.error("비정상적인 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {},Method: {}", ip, referer, uri, method);

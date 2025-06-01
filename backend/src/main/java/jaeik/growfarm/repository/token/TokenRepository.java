@@ -1,10 +1,8 @@
-package jaeik.growfarm.repository.user;
+package jaeik.growfarm.repository.token;
 
 import jaeik.growfarm.entity.user.Token;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
 
 /*
  * 토큰 Repository
@@ -14,7 +12,5 @@ import java.util.Optional;
 @Repository
 public interface TokenRepository extends JpaRepository<Token, Long> {
 
-    Optional<Token> findById(Long tokenId);
-
-    Token findByJwtRefreshToken(String jwtRefreshToken);
+    Token findTokenById(Long tokenId);
 }

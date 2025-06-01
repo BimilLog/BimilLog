@@ -13,7 +13,7 @@ import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.notification.NotificationRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
-import jaeik.growfarm.repository.user.TokenRepository;
+import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.NotificationService;
 import jaeik.growfarm.util.UserUtil;
@@ -84,10 +84,10 @@ public class NotificationControllerIntegrationTest {
     void setUp() {
         // 사용자 설정 생성
         Setting setting = Setting.builder()
-                .isFarmNotification(true)
-                .isCommentNotification(true)
-                .isPostFeaturedNotification(true)
-                .isCommentFeaturedNotification(true)
+                .farmNotification(true)
+                .commentNotification(true)
+                .postFeaturedNotification(true)
+                .commentFeaturedNotification(true)
                 .build();
         settingRepository.save(setting);
 

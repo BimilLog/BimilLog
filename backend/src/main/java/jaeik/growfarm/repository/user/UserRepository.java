@@ -35,19 +35,6 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      */
     Optional<Users> findByKakaoId(Long kakaoId);
 
-    /**
-     * <h3>토큰 ID로 사용자 조회</h3>
-     *
-     * <p>
-     * 토큰 ID를 통해 사용자를 조회한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @param tokenId 토큰 ID
-     * @return 사용자 정보
-     */
-    Users findByTokenId(Long tokenId);
 
     /**
      * <h3>농장 이름 존재 여부 확인</h3>
@@ -91,18 +78,4 @@ public interface UserRepository extends JpaRepository<Users, Long> {
      */
     @Query(value = "SELECT u.farm_name FROM users u WHERE u.kakao_id IN (:ids) ORDER BY FIELD(u.kakao_id, :#{#ids})", nativeQuery = true)
     List<String> findFarmNamesInOrder(@Param("ids") List<Long> ids);
-
-    /**
-     * <h3>카카오 ID 존재 여부 확인</h3>
-     *
-     * <p>
-     * 해당 카카오 ID가 이미 존재하는지 확인한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @param kakaoId 카카오 ID
-     * @return 존재 여부
-     */
-    boolean existsByKakaoId(Long kakaoId);
 }

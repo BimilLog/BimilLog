@@ -31,18 +31,18 @@ public class AuthController {
     /**
      * <h3>카카오 로그인 API</h3>
      *
-     * <p>
-     * 기존 회원은 JWT를 담은 쿠키를 반환하고, 신규 회원은 UUID가 있는 임시 쿠키를 반환한다.
-     * </p>
+     * <p>기존 회원은 JWT를 담은 쿠키를 반환하고, 신규 회원은 UUID가 있는 임시 쿠키를 반환한다.</p>
      *
      * @since 1.0.0
      * @author Jaeik
      * @param code 프론트에서 반환된 카카오 인가 코드
+     * @param fcmToken (선택) FCM 토큰, 푸시 알림을 위한 토큰
      * @return Jwt가 삽입된 쿠키 또는 임시 쿠키
      */
     @GetMapping("/login")
-    public ResponseEntity<?> loginKakao(@RequestParam String code) {
-        LoginResponse<?> result = authService.processKakaoLogin(code);
+    public ResponseEntity<?> loginKakao(@RequestParam String code,
+                                        @RequestParam(required = false) String fcmToken) {
+        LoginResponse<?> result = authService.processKakaoLogin(code, fcmToken);
 
         if (result.getType() == LoginResponse.LoginType.EXISTING_USER) {
             List<ResponseCookie> cookies = (List<ResponseCookie>) result.getData();
@@ -63,8 +63,8 @@ public class AuthController {
      *
      * <p>카카오 로그인 후 신규 회원일 경우 작동되며 farmName과 tokenId를 받아서 쿠키를 반환한다.</p>
      *
-     * @param farmName
-     * @param request  농장 등록 요청 DTO
+     * @param farmName 농장 이름
+     * @param uuid 임시 쿠키에 저장된 UUID
      * @return JWT가 삽입된 쿠키
      * @author Jaeik
      * @since 1.0.0
@@ -135,7 +135,7 @@ public class AuthController {
         if (userDetails == null) {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
-        return ResponseEntity.ok(userDetails.getUserDTO());
+        return ResponseEntity.ok(userDetails.getClientDTO());
     }
 
     /**
