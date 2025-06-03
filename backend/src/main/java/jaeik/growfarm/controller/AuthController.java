@@ -4,6 +4,7 @@ import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.auth.AuthService;
+import jaeik.growfarm.service.auth.UserUpdateService;
 import jaeik.growfarm.util.LoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -27,6 +28,7 @@ import java.util.List;
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
+    private final UserUpdateService userUpdateService;
 
     /**
      * <h3>카카오 로그인 API</h3>
@@ -59,7 +61,7 @@ public class AuthController {
     }
 
     /**
-     * <h3>자체 서비스 회원 가입 API</h3>
+     * <h3>서비스 회원 가입 API</h3>
      *
      * <p>카카오 로그인 후 신규 회원일 경우 작동되며 farmName과 tokenId를 받아서 쿠키를 반환한다.</p>
      *
@@ -84,16 +86,19 @@ public class AuthController {
     /**
      * <h3>로그아웃 API</h3>
      *
-     * <p>쿠키를 삭제하여 자체 서비스 로그아웃</p>
      * <p>카카오 서버와 통신하여 카카오 로그아웃</p>
+     * <p>사용자 토큰 삭제</p>
+     * <p>쿠키를 삭제하여 자체 서비스 로그아웃</p>
      *
      * @since 1.0.0
      * @author Jaeik
      * @param userDetails 인증된 사용자 정보
-     * @return 로그아웃 완료 메시지
+     * @return 로그아웃 쿠키
      */
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        authService.kakaoLogout(userDetails);
+        userUpdateService.logoutUser(userDetails.getUserId());
         List<ResponseCookie> cookies = authService.logout(userDetails);
         return ResponseEntity.ok()
                 .header("Set-Cookie", cookies.get(0).toString())
@@ -103,13 +108,13 @@ public class AuthController {
 
     /**
      * <h3>회원 탈퇴 API</h3>
-     * <p>쿠키를 삭제하고 관련 데이터를 삭제하여 자체 서비스 로그아웃</p>
+     * <p>쿠키를 삭제하고 관련 유저정보를 삭제하여 자체 서비스 회원 탈퇴</p>
      * <p>카카오 서버와 통신하여 카카오 연결끊기</p>
      *
      * @since 1.0.0
      * @author Jaeik
      * @param userDetails 인증된 사용자 정보
-     * @return 회원탈퇴 완료 메시지
+     * @return 로그아웃 쿠키
      */
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {

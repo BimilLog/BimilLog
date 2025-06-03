@@ -49,24 +49,22 @@ public class NotificationService {
     /**
      * <h3>SSE 구독</h3>
      *
-     * <p>
-     * 사용자의 실시간 알림을 위한 SSE 연결을 생성한다.
-     * </p>
+     * <p>사용자의 실시간 알림을 위한 SSE 연결을 생성한다.</p>
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param userId 사용자 ID
+     * @param tokenId 사용자 토큰 ID
      * @return SSE Emitter 객체
      */
-    public SseEmitter subscribe(Long userId) {
-        String emitterId = notificationUtil.makeTimeIncludeId(userId);
+    public SseEmitter subscribe(Long userId, Long tokenId) {
+        String emitterId = notificationUtil.makeTimeIncludeId(userId, tokenId);
         SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(Long.MAX_VALUE));
 
         emitter.onCompletion(() -> emitterRepository.deleteById(emitterId));
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
         sendNotification(emitter, emitterId, NotificationType.INITIATE,
-                "EventStream Created. [userId=%d]".formatted(userId), "");
+                "EventStream Created. [tokenId=%d]".formatted(emitterId), "");
 
         return emitter;
     }

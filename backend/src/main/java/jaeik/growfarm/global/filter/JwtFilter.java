@@ -78,8 +78,8 @@ public class JwtFilter extends OncePerRequestFilter {
             if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
                 Long tokenId = jwtTokenProvider.getTokenIdFromToken(refreshToken);
                 Long fcmTokenId = jwtTokenProvider.getFcmTokenIdFromToken(refreshToken);
-                Token token = tokenRepository.findTokenById(tokenId);
-                if (token != null && Objects.equals(token.getId(), tokenId)) {
+                Token token = tokenRepository.findById(tokenId).orElseThrow();
+                if (Objects.equals(token.getId(), tokenId)) {
                     try {
                         // 카카오 토큰 갱신
                         TokenDTO tokenDTO = kakaoService.refreshToken(token.getKakaoRefreshToken());

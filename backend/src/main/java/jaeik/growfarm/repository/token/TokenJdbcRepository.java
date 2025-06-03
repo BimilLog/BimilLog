@@ -4,6 +4,13 @@ import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/**
+ * <h2>토큰 Jdbc Repository</h2>
+ * <p>JdbcTemplate을 사용하여 토큰 관련 데이터베이스 작업을 수행합니다.</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Repository
 @AllArgsConstructor
 public class TokenJdbcRepository {
@@ -18,9 +25,13 @@ public class TokenJdbcRepository {
      *
      * @param tokenId            토큰 ID
      * @param newJwtRefreshToken 새로 설정할 JWT 리프레시 토큰
+     * @author Jaeik
+     * @since 1.0.0
      */
     public void UpdateJwtRefreshToken(Long tokenId, String newJwtRefreshToken) {
         String sql = "UPDATE token SET jwt_refresh_token = ? WHERE token_id = ?";
         jdbcTemplate.update(sql, newJwtRefreshToken, tokenId);
     }
+
+
 }

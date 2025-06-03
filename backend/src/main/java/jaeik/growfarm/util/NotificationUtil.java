@@ -14,19 +14,18 @@ import org.springframework.stereotype.Component;
 public class NotificationUtil {
 
     /**
-     * <h3>시간이 포함된 고유 ID 생성</h3>
+     * <h3>고유 Emitter ID 생성</h3>
      *
-     * <p>
-     * 사용자 ID와 현재 시간을 조합하여 고유한 ID를 생성한다.
-     * </p>
+     * <p>유저 ID와 토큰 ID를 조합하여 고유한 Emitter ID를 생성한다.</p>
      * 
      * @since 1.0.0
      * @author Jaeik
      * @param userId 사용자 ID
-     * @return 시간이 포함된 고유 ID
+     * @param tokenId 토큰 ID
+     * @return Emitter ID
      */
-    public String makeTimeIncludeId(Long userId) {
-        return userId + "_" + System.currentTimeMillis();
+    public String makeTimeIncludeId(Long userId, Long tokenId) {
+        return userId + "_" + tokenId + "_" + System.currentTimeMillis();
     }
 
     /**

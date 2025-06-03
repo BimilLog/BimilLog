@@ -8,25 +8,49 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-/*
- * SseEmitter Repository 구현체
- * SseEmitter 관련 메모리 작업을 구현하는 클래스
- * 수정일 : 2025-05-03
+/**
+ * <h3>SseEmitter Repository 구현 클래스</h3>
+ *
+ * <p>SseEmitter 관련 메모리 작업을 정의합니다.</p>
+ * <p>사용자 ID와 토큰 ID와 생성 시간을 조합하여 고유한 Emitter ID를 생성하고, 이를 통해 SseEmitter 객체를 저장 및 조회합니다.</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
 @Repository
 public class EmitterRepositoryImpl implements EmitterRepository {
-    // 사용자 별 emitterId와 sseEmitter 객체를 저장하는 map
+
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-    // 사용자 별 임의 emitterId 와 sseEmitter 객체를 emitter에 저장
-    // emitterId는 userId와 현재시간을 조합하여 생성
+    /**
+     * <h3>Emitter 저장</h3>
+     *
+     * <p>고유한 Emitter ID로 SseEmitter 객체를 저장합니다.</p>
+     * <p>사용자 ID와 토큰 ID와 생성 시간을 조합하여 고유한 Emitter ID를 생성합니다.</p>
+     *
+     * @param emitterId  Emitter ID
+     * @param sseEmitter SseEmitter 객체
+     * @return 저장된 SseEmitter 객체
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Override
     public SseEmitter save(String emitterId, SseEmitter sseEmitter) {
         emitters.put(emitterId, sseEmitter);
         return sseEmitter;
     }
 
-    // 사용자 ID로 시작하는 데이터를 해당 map에서 찾아 반환
+    /**
+     * <h3>사용자의 모든 Emitter 조회</h3>
+     *
+     * <p>사용자 ID에 해당하는 모든 Emitter를 조회합니다.</p>
+     * <p>해당 사용자에 연결된 모든 기기로 알림을 보내는 용도입니다.</p>
+     *
+     * @param userId 유저 ID
+     * @return 사용자 ID에 해당하는 모든 Emitter Map
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Override
     public Map<String, SseEmitter> findAllEmitterByUserId(Long userId) {
         return emitters.entrySet().stream()
@@ -34,13 +58,31 @@ public class EmitterRepositoryImpl implements EmitterRepository {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    // 특정 emitterId에 해당하는 데이터를 삭제
+    /**
+     * <h3>사용자의 특정 Emitter 삭제</h3>
+     *
+     * <p>EmitterID로 특정한 SseEmitter 객체를 삭제합니다.</p>
+     * <p>일시적 오류에서 사용합니다.</p>
+     *
+     * @param emitterId emitter ID
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Override
     public void deleteById(String emitterId) {
         emitters.remove(emitterId);
     }
 
-    // 사용자 ID로 시작하는 emitterId를 찾아 삭제
+    /**
+     * <h3>사용자의 모든 Emitter 삭제</h3>
+     *
+     * <p>사용자 ID에 해당하는 모든 Emitter를 삭제합니다.</p>
+     * <p>로그아웃, 회원탈퇴에서 사용합니다.</p>
+     *
+     * @param userId 유저 ID
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Override
     public void deleteAllEmitterByUserId(Long userId) {
         List<String> emitterIds = emitters.keySet().stream()
@@ -49,5 +91,4 @@ public class EmitterRepositoryImpl implements EmitterRepository {
 
         emitterIds.forEach(emitters::remove);
     }
-
 }

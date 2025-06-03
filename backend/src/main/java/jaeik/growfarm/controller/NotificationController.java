@@ -29,16 +29,17 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    /*
-     * SSE 구독 API
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * return: SseEmitter SSE 구독 객체
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>SSE 구독</h3>
+     *
+     * @param userDetails 현재 로그인한 유저 정보
+     * @return SSE 구독 객체
+     * @since 1.0.0
+     * @author Jaeik
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getClientDTO().getUserId();
-        return notificationService.subscribe(userId);
+        return notificationService.subscribe(userDetails.getUserId(), userDetails.getTokenId());
     }
 
     /*

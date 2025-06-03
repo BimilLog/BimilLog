@@ -32,10 +32,6 @@ public class FcmToken extends BaseEntity {
     @Column(nullable = false)
     private String fcmRegistrationToken;
 
-    public void updateToken(String token) {
-        this.fcmRegistrationToken = token;
-    }
-
     public static FcmToken create(Users users, String token) {
         return FcmToken.builder()
                 .users(users)
