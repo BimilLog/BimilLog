@@ -12,13 +12,12 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 /**
- * <h3>게시글 엔티티</h3>
- * <p>
- * 게시판의 게시글 정보를 저장하는 엔티티
- * </p>
- * 
- * @since 1.0.0
+ * <h2>게시글 엔티티</h2>
+ * <p>게시판에 작성된 게시글 정보를 저장하는 엔티티</p>
+ * <p>제목, 내용, 작성자, 조회수, 공지 여부 등을 포함</p>
+ *
  * @author Jaeik
+ * @since 1.0.0
  */
 @Entity
 @Getter
@@ -52,17 +51,8 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private boolean isNotice;
 
-    @NotNull
-    @Column(nullable = false)
-    private boolean isRealtimePopular;
-
-    @NotNull
-    @Column(nullable = false)
-    private boolean isWeeklyPopular;
-
-    @NotNull
-    @Column(nullable = false)
-    private boolean isHallOfFame;
+    @Enumerated(EnumType.STRING)
+    private PopularFlag popularFlag;
 
     /**
      * <h3>게시글 정보 업데이트</h3>
@@ -91,8 +81,8 @@ public class Post extends BaseEntity {
      * @author Jaeik
      * @param isRealtimePopular 실시간 인기글 여부
      */
-    public void setRealtimePopular(boolean isRealtimePopular) {
-        this.isRealtimePopular = isRealtimePopular;
+    public void updateRealtime(PostDTO postDTO) {
+        this.popularFlag = PopularFlag.REALTIME;
     }
 
     /**
@@ -106,22 +96,20 @@ public class Post extends BaseEntity {
      * @author Jaeik
      * @param isWeeklyPopular 주간 인기글 여부
      */
-    public void setWeeklyPopular(boolean isWeeklyPopular) {
-        this.isWeeklyPopular = isWeeklyPopular;
+    public void updateWeeklyPopular(PostDTO postDTO) {
+        this.popularFlag = PopularFlag.WEEKLY;
     }
 
     /**
-     * <h3>명예의 전당 설정</h3>
+     * <h3>레전더리 글 설정</h3>
      *
-     * <p>
-     * 게시글을 명예의 전당으로 설정한다.
-     * </p>
+     * <p>게시글을 레전더리로 설정한다.</p>
      * 
      * @since 1.0.0
      * @author Jaeik
      * @param isHallOfFame 명예의 전당 여부
      */
-    public void setHallOfFame(boolean isHallOfFame) {
-        this.isHallOfFame = isHallOfFame;
+    public void setHallOfFame(PostDTO postDTO) {
+        this.popularFlag = PopularFlag.LEGEND;
     }
 }

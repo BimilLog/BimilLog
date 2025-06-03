@@ -11,7 +11,14 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-// 신고 엔티티
+/**
+ * <h2>신고 엔티티</h2>
+ * <p>사용자 신고 정보를 저장하는 엔티티</p>
+ * <p>신고 유형, 대상 ID, 신고 내용 등을 포함</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Entity
 @Getter
 @SuperBuilder

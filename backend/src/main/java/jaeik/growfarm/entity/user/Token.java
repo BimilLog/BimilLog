@@ -11,7 +11,14 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.transaction.annotation.Transactional;
 
-// 토큰 엔티티
+/**
+ * <h2>토큰 엔티티</h2>
+ * <p>사용자의 카카오 및 JWT 토큰 정보를 저장하는 엔티티</p>
+ * <p>카카오 액세스 토큰, 카카오 리프레시 토큰, JWT 리프레시 토큰을 포함</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Entity
 @SuperBuilder
 @NoArgsConstructor

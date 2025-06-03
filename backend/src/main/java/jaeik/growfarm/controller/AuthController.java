@@ -63,7 +63,7 @@ public class AuthController {
     /**
      * <h3>서비스 회원 가입 API</h3>
      *
-     * <p>카카오 로그인 후 신규 회원일 경우 작동되며 farmName과 tokenId를 받아서 쿠키를 반환한다.</p>
+     * <p>카카오 로그인 후 신규 회원일 경우 작동되며 farmName과 uuid를 받아서 Jwt 쿠키를 반환한다.</p>
      *
      * @param farmName 농장 이름
      * @param uuid 임시 쿠키에 저장된 UUID

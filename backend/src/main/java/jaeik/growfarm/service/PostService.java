@@ -22,7 +22,6 @@ import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.BoardUtil;
 import jaeik.growfarm.util.NotificationUtil;
-import jaeik.growfarm.util.UserUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -53,7 +52,6 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
     private final BoardUtil boardUtil;
-    private final UserUtil userUtil;
     private final ReportRepository reportRepository;
     private final NotificationService notificationService;
     private final NotificationUtil notificationUtil;

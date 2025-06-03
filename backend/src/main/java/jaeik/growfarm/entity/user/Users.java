@@ -13,12 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>사용자 엔티티</h2>
- * <p>
- * 카카오 로그인을 통한 사용자 정보를 저장하는 엔티티
- * </p>
- * <p>
- * 농장 이름, 카카오 정보, 설정 정보 등을 포함
- * </p>
+ * <p>카카오 로그인을 통한 사용자 정보를 저장하는 엔티티</p>
+ * <p>농장 이름, 카카오 정보, 설정 정보 등을 포함</p>
  *
  * @author Jaeik
  * @since 1.0.0

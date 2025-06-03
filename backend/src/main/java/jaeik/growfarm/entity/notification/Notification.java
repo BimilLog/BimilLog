@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-// 알림 엔티티
+
 @Entity
 @Getter
 @SuperBuilder

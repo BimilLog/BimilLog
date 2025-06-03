@@ -5,6 +5,13 @@ import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/**
+ * <h2>사용자 관련 데이터베이스 작업을 수행하는 Repository</h2>
+ * <p>사용자 연결 해제 처리 및 카카오 엑세스 토큰 조회 기능을 제공합니다.</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Repository
 @AllArgsConstructor
 public class UserJdbcRepository {

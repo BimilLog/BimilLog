@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * <h2>SaveUserService 클래스</h2>
+ * <h2>UserUpdateService 클래스</h2>
  * <p>사용자 정보를 저장하고 업데이트하는 클래스</p>
  * <p>기존 유저 저장</p>
  * <p>신규 유저 저장</p>

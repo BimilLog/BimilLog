@@ -1,5 +1,6 @@
 package jaeik.growfarm.entity.board;
 
+import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.BaseEntity;
 import jakarta.persistence.*;
@@ -10,7 +11,14 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-// 댓글 엔티티
+/**
+ * <h2>댓글 엔티티</h2>
+ * <p>게시글에 대한 댓글 정보를 저장하는 엔티티</p>
+ * <p>댓글 내용, 작성자, 게시글 정보 등을 포함</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Getter
 @Entity
 @SuperBuilder
@@ -36,16 +44,15 @@ public class Comment extends BaseEntity {
     @Column(nullable = false) // 255자 허용
     private String content;
 
-    @NotNull
-    @Column(nullable = false)
-    private boolean isFeatured;
+    @Enumerated(EnumType.STRING)
+    private PopularFlag popularFlag;
 
     // 댓글 수정
     public void updateComment(String content) {
         this.content = content;
     }
 
-    public void setIsFeatured(boolean isFeatured) {
-        this.isFeatured = isFeatured;
+    public void updatePopular(CommentDTO commentDTO) {
+        this.popularFlag = PopularFlag.POPULAR;
     }
 }

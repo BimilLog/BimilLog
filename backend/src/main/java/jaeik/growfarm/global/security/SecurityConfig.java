@@ -23,9 +23,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-/*
- * 시큐리티 설정 클래스
- * 수정일 : 2025-05-03
+/**
+ * <h2>보안 설정 클래스</h2>
+ * <p>Spring Security를 사용하여 애플리케이션의 보안을 구성하는 클래스입니다.</p>
+ * <p>JWT 필터, 로그 필터, 헤더 체크 필터를 설정하고 CORS 정책을 정의합니다.</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
 @Getter
 @Configuration
@@ -79,6 +83,16 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * CORS 설정을 정의하는 메소드입니다.
+     * - 허용된 오리진: http://localhost:3000
+     * - 허용된 메소드: GET, POST, PUT, DELETE, OPTIONS
+     * - 허용된 헤더: 모든 헤더
+     * - 자격 증명 허용: true
+     * - 최대 캐시 시간: 3600초
+     *
+     * @return CorsConfigurationSource 객체
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

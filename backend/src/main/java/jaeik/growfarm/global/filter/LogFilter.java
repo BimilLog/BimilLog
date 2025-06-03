@@ -16,6 +16,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * <h2>로그 필터</h2>
+ * <p>HTTP 요청에 대한 로그를 기록하는 필터 클래스</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Component
 public class LogFilter extends OncePerRequestFilter {
 
@@ -25,6 +32,7 @@ public class LogFilter extends OncePerRequestFilter {
 
     private static final List<String> WHITELIST = List.of("/", "/board/", "/board/realtime", "/board/weekly",
             "/board/fame", "/board/search", "/board/{postId}", "/farm/{farmName}", "/auth/login", "/auth/signUp", "/auth/me", "/d fauth/health");
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

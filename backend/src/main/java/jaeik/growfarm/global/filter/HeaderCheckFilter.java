@@ -16,6 +16,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * <h2>헤더 체크 필터</h2>
+ * <p>특정 헤더 값이 일치하는지 확인하고, 일치하지 않을 경우 접근을 차단하는 필터</p>
+ * <p>신뢰할 수 있는 프론트엔드에서만 접근을 허용</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Component
 public class HeaderCheckFilter extends OncePerRequestFilter {
 

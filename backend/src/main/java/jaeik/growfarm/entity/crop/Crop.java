@@ -11,7 +11,14 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-// 농작물 엔티티
+/**
+ * <h2>작물 엔티티</h2>
+ * <p>사용자가 재배하는 작물 정보를 저장하는 엔티티</p>
+ * <p>사용자, 작물 종류, 익명 닉네임, 메시지, 크기 등을 포함</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Entity
 @Getter
 @SuperBuilder

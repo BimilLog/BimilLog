@@ -1,7 +1,11 @@
 package jaeik.growfarm.entity.crop;
 
 /**
- * 농작물 타입을 정의하는 Enum 클래스.
+ * <h2>작물 타입</h2>
+ * <p>다양한 작물의 종류를 정의하는 열거형</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
 public enum CropType {
     POTATO, CARROT, CABBAGE, TOMATO, STRAWBERRY,

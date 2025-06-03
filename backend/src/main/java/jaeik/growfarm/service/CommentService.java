@@ -191,7 +191,7 @@ public class CommentService {
         topCommentsByPost.values().stream()
                 .flatMap(List::stream)
                 .forEach(comment -> {
-                    comment.setIsFeatured(true); // 인기 댓글 지정
+                    comment.updatePopular(true); // 인기 댓글 지정
 
                     Long userId = comment.getUser().getId();
                     Long postId = comment.getPost().getId();

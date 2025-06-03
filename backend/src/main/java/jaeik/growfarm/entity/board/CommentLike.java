@@ -9,7 +9,14 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-// 댓글 좋아요 엔티티
+/**
+ * <h2>댓글 추천 엔티티</h2>
+ * <p>댓글에 대한 추천 정보를 저장하는 엔티티</p>
+ * <p>사용자와 댓글 간의 관계를 나타냄</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Entity
 @Getter
 @Builder

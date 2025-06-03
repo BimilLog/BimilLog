@@ -3,6 +3,13 @@ package jaeik.growfarm.global.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+/**
+ * <h2>에러 코드 열거형</h2>
+ * <p>애플리케이션에서 발생할 수 있는 다양한 에러 코드를 정의하는 열거형</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Getter
 public enum ErrorCode {
 

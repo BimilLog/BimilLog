@@ -5,6 +5,13 @@ import jaeik.growfarm.entity.user.Users;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * <h2>클라이언트 DTO</h2>
+ * <p>사용자 정보를 포함하는 데이터 전송 객체</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Setter
 @Getter
 public class ClientDTO extends UserDTO{

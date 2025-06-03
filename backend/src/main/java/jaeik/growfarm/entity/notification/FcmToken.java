@@ -10,7 +10,13 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-// FCM 토큰을 저장하는 Entity
+/**
+ * <h2>FCM 토큰 엔티티</h2>
+ * <p>Firebase Cloud Messaging(FCM) 토큰 정보를 저장하는 엔티티</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Entity
 @SuperBuilder
 @NoArgsConstructor

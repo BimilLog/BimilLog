@@ -6,7 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-// 설정 엔티티
+/**
+ * <h2>설정 엔티티</h2>
+ * <p>사용자의 알림 설정을 저장하는 엔티티</p>
+ * <p>농장, 댓글, 게시글 추천, 댓글 추천에 대한 알림 설정을 포함</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Entity
 @NoArgsConstructor
 @Getter

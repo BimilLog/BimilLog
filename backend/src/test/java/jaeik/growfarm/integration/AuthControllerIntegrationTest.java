@@ -1,16 +1,16 @@
 package jaeik.growfarm.integration;
 
 import jaeik.growfarm.controller.AuthController;
-import jaeik.growfarm.dto.user.UserDTO;
+import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
+import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.util.UserUtil;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,16 +43,16 @@ public class AuthControllerIntegrationTest {
     private final SettingRepository settingRepository;
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
-    private final UserUtil userUtil;
 
     private Users testUser;
+    private Setting testSetting;
+    private Token testToken;
 
-    public AuthControllerIntegrationTest(AuthController authController, SettingRepository settingRepository, TokenRepository tokenRepository, UserRepository userRepository, UserUtil userUtil) {
+    public AuthControllerIntegrationTest(AuthController authController, SettingRepository settingRepository, TokenRepository tokenRepository, UserRepository userRepository) {
         this.authController = authController;
         this.settingRepository = settingRepository;
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
-        this.userUtil = userUtil;
     }
 
     /**
@@ -69,7 +69,7 @@ public class AuthControllerIntegrationTest {
                 .postFeaturedNotification(true)
                 .commentFeaturedNotification(true)
                 .build();
-        settingRepository.save(setting);
+        testSetting = settingRepository.save(setting);
 
         Users user = Users.builder()
                 .kakaoId(1234567890L)
@@ -87,7 +87,7 @@ public class AuthControllerIntegrationTest {
                 .kakaoRefreshToken("testKakaoRefreshToken")
                 .users(testUser)
                 .build();
-        tokenRepository.save(token);
+        testToken = tokenRepository.save(token);
 
     }
 
@@ -113,8 +113,9 @@ public class AuthControllerIntegrationTest {
     @DisplayName("현재 로그인한 사용자 정보 조회 통합 테스트")
     void testGetCurrentUser() {
         // Given
-        UserDTO userDTO = userUtil.UserToDTO(testUser);
-        CustomUserDetails userDetails = new CustomUserDetails(userDTO);
+        SettingDTO settingDTO = new SettingDTO(testSetting);
+        ClientDTO clientDTO = new ClientDTO(testUser, settingDTO, testToken.getId(), null);
+        CustomUserDetails userDetails = new CustomUserDetails(clientDTO);
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
@@ -124,14 +125,14 @@ public class AuthControllerIntegrationTest {
 
         // Then
         assertNotNull(response.getBody());
-        assertEquals(userDTO, response.getBody());
-        assertEquals(userDTO.getFarmName(), ((UserDTO) response.getBody()).getFarmName());
-        assertEquals(userDTO.getKakaoId(), ((UserDTO) response.getBody()).getKakaoId());
-        assertEquals(userDTO.getKakaoNickname(), ((UserDTO) response.getBody()).getKakaoNickname());
-        assertEquals(userDTO.getThumbnailImage(), ((UserDTO) response.getBody()).getThumbnailImage());
-        assertEquals(userDTO.getRole(), ((UserDTO) response.getBody()).getRole());
-        assertEquals(userDTO.getSetting(), ((UserDTO) response.getBody()).getSetting());
-        assertEquals(userDTO.getTokenId(), ((UserDTO) response.getBody()).getTokenId());
-        assertEquals(userDTO.getUserId(), ((UserDTO) response.getBody()).getUserId());
+        assertEquals(clientDTO, response.getBody());
+        assertEquals(clientDTO.getFarmName(), ((ClientDTO) response.getBody()).getFarmName());
+        assertEquals(clientDTO.getKakaoId(), ((ClientDTO) response.getBody()).getKakaoId());
+        assertEquals(clientDTO.getKakaoNickname(), ((ClientDTO) response.getBody()).getKakaoNickname());
+        assertEquals(clientDTO.getThumbnailImage(), ((ClientDTO) response.getBody()).getThumbnailImage());
+        assertEquals(clientDTO.getRole(), ((ClientDTO) response.getBody()).getRole());
+        assertEquals(clientDTO.getSettingDTO(), ((ClientDTO) response.getBody()).getSettingDTO());
+        assertEquals(clientDTO.getTokenId(), ((ClientDTO) response.getBody()).getTokenId());
+        assertEquals(clientDTO.getUserId(), ((ClientDTO) response.getBody()).getUserId());
     }
 }
