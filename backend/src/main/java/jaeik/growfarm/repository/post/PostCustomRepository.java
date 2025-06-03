@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.post;
 
-import jaeik.growfarm.entity.board.Post;
+import jaeik.growfarm.entity.post.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

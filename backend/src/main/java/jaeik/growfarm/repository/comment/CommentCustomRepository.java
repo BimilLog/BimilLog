@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.comment;
 
-import jaeik.growfarm.entity.board.Comment;
+import jaeik.growfarm.entity.comment.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

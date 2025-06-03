@@ -2,9 +2,9 @@ package jaeik.growfarm.service;
 
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.notification.FcmSendDTO;
-import jaeik.growfarm.entity.board.Comment;
-import jaeik.growfarm.entity.board.CommentLike;
-import jaeik.growfarm.entity.board.Post;
+import jaeik.growfarm.entity.comment.Comment;
+import jaeik.growfarm.entity.comment.CommentLike;
+import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.notification.FcmToken;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;

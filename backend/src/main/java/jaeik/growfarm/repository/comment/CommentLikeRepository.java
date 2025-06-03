@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.comment;
 
-import jaeik.growfarm.entity.board.CommentLike;
+import jaeik.growfarm.entity.comment.CommentLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -30,8 +30,8 @@ public class LogFilter extends OncePerRequestFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
-    private static final List<String> WHITELIST = List.of("/", "/board/", "/board/realtime", "/board/weekly",
-            "/board/fame", "/board/search", "/board/{postId}", "/farm/{farmName}", "/auth/login", "/auth/signUp", "/auth/me", "/d fauth/health");
+    private static final List<String> WHITELIST = List.of("/", "/post/", "/post/realtime", "/post/weekly",
+            "/post/fame", "/post/search", "/post/{postId}", "/farm/{farmName}", "/auth/login", "/auth/signUp", "/auth/me", "/d fauth/health");
 
 
     @Override

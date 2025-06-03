@@ -1,6 +1,8 @@
-package jaeik.growfarm.entity.board;
+package jaeik.growfarm.entity.comment;
 
 import jaeik.growfarm.dto.board.CommentDTO;
+import jaeik.growfarm.entity.post.PopularFlag;
+import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.BaseEntity;
 import jakarta.persistence.*;

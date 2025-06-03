@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.post;
 
-import jaeik.growfarm.entity.board.PostLike;
+import jaeik.growfarm.entity.post.PostLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

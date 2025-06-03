@@ -1,4 +1,4 @@
-package jaeik.growfarm.entity.board;
+package jaeik.growfarm.entity.comment;
 
 import jaeik.growfarm.entity.user.Users;
 import jakarta.persistence.*;

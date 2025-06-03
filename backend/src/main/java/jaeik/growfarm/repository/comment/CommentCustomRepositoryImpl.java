@@ -1,10 +1,10 @@
 package jaeik.growfarm.repository.comment;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.entity.board.Comment;
-import jaeik.growfarm.entity.board.QComment;
-import jaeik.growfarm.entity.board.QCommentLike;
-import jaeik.growfarm.entity.board.QPost;
+import jaeik.growfarm.entity.comment.Comment;
+import jaeik.growfarm.entity.post.QComment;
+import jaeik.growfarm.entity.post.QCommentLike;
+import jaeik.growfarm.entity.post.QPost;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;

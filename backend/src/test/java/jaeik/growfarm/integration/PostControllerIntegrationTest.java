@@ -5,7 +5,7 @@ import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
-import jaeik.growfarm.entity.board.Post;
+import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.UserRole;

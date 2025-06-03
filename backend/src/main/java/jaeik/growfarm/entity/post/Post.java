@@ -1,4 +1,4 @@
-package jaeik.growfarm.entity.board;
+package jaeik.growfarm.entity.post;
 
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.entity.user.Users;
@@ -79,7 +79,7 @@ public class Post extends BaseEntity {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param isRealtimePopular 실시간 인기글 여부
+     * @param postDTO 게시글 정보
      */
     public void updateRealtime(PostDTO postDTO) {
         this.popularFlag = PopularFlag.REALTIME;
@@ -94,7 +94,7 @@ public class Post extends BaseEntity {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param isWeeklyPopular 주간 인기글 여부
+     * @param postDTO 게시글 정보
      */
     public void updateWeeklyPopular(PostDTO postDTO) {
         this.popularFlag = PopularFlag.WEEKLY;
@@ -107,7 +107,7 @@ public class Post extends BaseEntity {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param isHallOfFame 명예의 전당 여부
+     * @param postDTO 게시글 정보
      */
     public void setHallOfFame(PostDTO postDTO) {
         this.popularFlag = PopularFlag.LEGEND;

@@ -1,9 +1,9 @@
 package jaeik.growfarm.repository.post;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.entity.board.Post;
-import jaeik.growfarm.entity.board.QPost;
-import jaeik.growfarm.entity.board.QPostLike;
+import jaeik.growfarm.entity.post.Post;
+import jaeik.growfarm.entity.post.QPost;
+import jaeik.growfarm.entity.post.QPostLike;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
