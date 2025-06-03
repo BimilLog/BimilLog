@@ -1,4 +1,4 @@
-package jaeik.growfarm.util;
+package jaeik.growfarm.dto.auth;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,13 +8,9 @@ import org.springframework.http.ResponseCookie;
 import java.util.List;
 
 /**
- * <h3>카카오 로그인 시 반환되는 응답 DTO</h3>
- * <p>
- * 기존 유저와 신규 유저를 구별하는 역할을 한다.
- * </p>
- * <p>
- * 카카오 로그인 API의 타입 안전성을 강화 시키기 위해 도입했다.
- * </p>
+ * <h2>카카오 로그인 시 반환되는 응답 클래스</h2>
+ * <p>기존 유저와 신규 유저를 구별하는 역할을 한다.</p>
+ * <p>카카오 로그인 API의 타입 안전성을 강화 시키기 위해 도입했다.</p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -22,7 +18,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class LoginResponse<T> {
+public class LoginResponseDTO<T> {
 
     private LoginType type;
     private T data;
@@ -39,7 +35,7 @@ public class LoginResponse<T> {
      * @author Jaeik
      * @since 1.0.0
      */
-    public LoginResponse(LoginType loginType, T data) {
+    public LoginResponseDTO(LoginType loginType, T data) {
         this.type = loginType;
         this.data = data;
     }
@@ -66,8 +62,8 @@ public class LoginResponse<T> {
      * @author Jaeik
      * @since 1.0.0
      */
-    public static LoginResponse<List<ResponseCookie>> existingUser(List<ResponseCookie> cookies) {
-        return new LoginResponse<>(LoginType.EXISTING_USER, cookies);
+    public static LoginResponseDTO<List<ResponseCookie>> existingUser(List<ResponseCookie> cookies) {
+        return new LoginResponseDTO<>(LoginType.EXISTING_USER, cookies);
     }
 
     /**
@@ -82,11 +78,23 @@ public class LoginResponse<T> {
      * @author Jaeik
      * @since 1.0.0
      */
-    public static LoginResponse<ResponseCookie> newUser(String uuid) {
+    public static LoginResponseDTO<ResponseCookie> newUser(String uuid) {
         ResponseCookie cookie = getTempCookie(uuid);
-        return new LoginResponse<>(LoginType.NEW_USER, cookie);
+        return new LoginResponseDTO<>(LoginType.NEW_USER, cookie);
     }
 
+    /**
+     * <h3>임시 쿠키 생성</h3>
+     *
+     * <p>
+     * 신규 사용자의 UUID를 담은 임시 쿠키를 생성한다.
+     * </p>
+     *
+     * @param uuid 임시 쿠키에 사용할 UUID
+     * @return ResponseCookie 임시 쿠키
+     * @author Jaeik
+     * @since 1.0.0
+     */
     public static ResponseCookie getTempCookie(String uuid) {
         return ResponseCookie.from("temp", uuid)
                 .path("/")

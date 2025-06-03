@@ -14,8 +14,7 @@ import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.KakaoService;
-import jaeik.growfarm.util.LoginResponse;
-import jaeik.growfarm.util.TempUserDataManager;
+import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -62,7 +61,7 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
-    public LoginResponse<?> processKakaoLogin(String code, String fcmToken) {
+    public LoginResponseDTO<?> processKakaoLogin(String code, String fcmToken) {
         validateLogin();
 
         TokenDTO tokenDTO = kakaoService.getToken(code);
@@ -138,9 +137,9 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
-    private LoginResponse<List<ResponseCookie>> existingUserLogin(Users user, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+    private LoginResponseDTO<List<ResponseCookie>> existingUserLogin(Users user, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
         List<ResponseCookie> cookies = userUpdateService.saveExistUser(user, kakaoInfoDTO, tokenDTO, fcmToken);
-        return LoginResponse.existingUser(cookies);
+        return LoginResponseDTO.existingUser(cookies);
     }
 
     /**
@@ -155,9 +154,9 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
-    private LoginResponse<ResponseCookie> newUserLogin(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+    private LoginResponseDTO<ResponseCookie> newUserLogin(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
         String uuid = tempUserDataManager.saveTempData(kakaoInfoDTO, tokenDTO, fcmToken);
-        return LoginResponse.newUser(uuid);
+        return LoginResponseDTO.newUser(uuid);
     }
 
     /**

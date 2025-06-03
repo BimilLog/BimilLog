@@ -13,7 +13,6 @@ import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.util.TempUserDataManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;

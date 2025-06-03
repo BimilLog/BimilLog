@@ -5,7 +5,7 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.auth.AuthService;
 import jaeik.growfarm.service.auth.UserUpdateService;
-import jaeik.growfarm.util.LoginResponse;
+import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -44,9 +44,9 @@ public class AuthController {
     @GetMapping("/login")
     public ResponseEntity<?> loginKakao(@RequestParam String code,
                                         @RequestParam(required = false) String fcmToken) {
-        LoginResponse<?> result = authService.processKakaoLogin(code, fcmToken);
+        LoginResponseDTO<?> result = authService.processKakaoLogin(code, fcmToken);
 
-        if (result.getType() == LoginResponse.LoginType.EXISTING_USER) {
+        if (result.getType() == LoginResponseDTO.LoginType.EXISTING_USER) {
             List<ResponseCookie> cookies = (List<ResponseCookie>) result.getData();
             return ResponseEntity.ok()
                     .header("Set-Cookie", cookies.get(0).toString())
