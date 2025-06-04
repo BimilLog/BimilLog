@@ -33,9 +33,7 @@ public class CommentController {
     /**
      * <h3>댓글 작성 API</h3>
      *
-     * <p>
-     * 게시글에 새로운 댓글을 작성한다.
-     * </p>
+     * <p>게시글에 새로운 댓글을 작성한다.</p>
      * 
      * @since 1.0.0
      * @author Jaeik

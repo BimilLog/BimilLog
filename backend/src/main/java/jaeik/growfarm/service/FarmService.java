@@ -2,18 +2,18 @@ package jaeik.growfarm.service;
 
 import jaeik.growfarm.dto.farm.CropDTO;
 import jaeik.growfarm.dto.farm.VisitCropDTO;
-import jaeik.growfarm.dto.notification.FcmSendDTO;
 import jaeik.growfarm.entity.crop.Crop;
-import jaeik.growfarm.entity.notification.FcmToken;
-import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.event.FarmPlantEvent;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.farm.CropRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
+import jaeik.growfarm.service.notification.NotificationService;
 import jaeik.growfarm.util.FarmUtil;
 import jaeik.growfarm.util.NotificationUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -34,6 +34,9 @@ public class FarmService {
     private final NotificationService notificationService;
     private final NotificationUtil notificationUtil;
     private final FcmTokenRepository fcmTokenRepository;
+
+    // 이벤트 발행을 위한 ApplicationEventPublisher 🚀
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>내 농장 조회</h3>
@@ -81,6 +84,7 @@ public class FarmService {
      *
      * <p>
      * 다른 사용자의 농장에 농작물을 심고 농장 주인에게 알림을 발송한다.
+     * 이벤트 기반 아키텍처로 SSE와 FCM 알림을 비동기 처리한다.
      * </p>
      * 
      * @since 1.0.0
@@ -96,25 +100,15 @@ public class FarmService {
             throw new IllegalArgumentException("해당 농장을 찾을 수 없습니다.");
         }
 
+        // 농작물 저장 (동기)
         Crop crop = farmUtil.convertToCrop(cropDTO, user);
         cropRepository.save(crop);
 
-        notificationService.send(user.getId(), notificationUtil.createEventDTO(NotificationType.FARM,
-                "누군가가 농장에 농작물을 심었습니다!", "http://localhost:3000/farm/" + farmName));
-
-        if (user.getSetting().farmNotification()) {
-
-            // farmName으로 유저의 fcmToken을 가져와서 알림 전송
-            List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
-
-            for (FcmToken fcmToken : fcmTokens) {
-                notificationService.sendMessageTo(FcmSendDTO.builder()
-                        .token(fcmToken.getFcmRegistrationToken())
-                        .title("누군가가 농장에 농작물을 심었습니다!")
-                        .body("지금 확인해보세요!")
-                        .build());
-            }
-        }
+        // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
+        eventPublisher.publishEvent(new FarmPlantEvent(
+                user.getId(),
+                farmName,
+                user));
     }
 
     /**

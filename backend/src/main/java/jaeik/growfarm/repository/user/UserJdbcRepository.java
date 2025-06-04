@@ -1,6 +1,5 @@
 package jaeik.growfarm.repository.user;
 
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -28,7 +27,6 @@ public class UserJdbcRepository {
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional
     public void deleteAllTokensByUserId(Long userId) {
         String deleteTokenSql = "DELETE FROM token WHERE user_id = ?";
         String deleteFcmTokenSql = "DELETE FROM fcm_token WHERE user_id = ?";

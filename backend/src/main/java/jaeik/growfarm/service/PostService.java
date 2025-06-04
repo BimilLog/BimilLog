@@ -6,12 +6,10 @@ import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
-import jaeik.growfarm.dto.notification.FcmSendDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
-import jaeik.growfarm.entity.notification.FcmToken;
-import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.event.PostFeaturedEvent;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;
@@ -20,12 +18,16 @@ import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
+import jaeik.growfarm.service.notification.FcmService;
+import jaeik.growfarm.service.notification.SseService;
+import jaeik.growfarm.service.notification.NotificationService;
 import jaeik.growfarm.util.BoardUtil;
 import jaeik.growfarm.util.NotificationUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,6 +59,11 @@ public class PostService {
     private final NotificationUtil notificationUtil;
     private final FcmTokenRepository fcmTokenRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final SseService sseService;
+    private final FcmService fcmService;
+
+    // 이벤트 발행을 위한 ApplicationEventPublisher 🚀
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>게시판 조회</h3>
@@ -171,8 +178,10 @@ public class PostService {
             throw new IllegalArgumentException("로그인 후 작성해주세요.");
         }
 
-        Post post = postRepository
-                .save(boardUtil.postReqDTOToPost(userUtil.DTOToUser(userDetails.getClientDTO()), postReqDTO));
+        Users user = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Post post = postRepository.save(boardUtil.postReqDTOToPost(user, postReqDTO));
         return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), null, false);
     }
 
@@ -312,7 +321,7 @@ public class PostService {
 
     // 주간 인기글 등록
     // 7일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개
-    // 1일 스케줄러
+    // 1일 스케줄러 - 이벤트 기반 비동기 처리
     @Transactional
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateWeeklyPopularPosts() throws IOException {
@@ -335,30 +344,20 @@ public class PostService {
                 .toList();
 
         for (Post post : newlyFeaturedPosts) {
-            Long postUserId = post.getUser().getId();
-            Long postId = post.getId();
-
-            notificationService.send(postUserId, notificationUtil.createEventDTO(
-                    NotificationType.POST_FEATURED,
+            // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
+            eventPublisher.publishEvent(new PostFeaturedEvent(
+                    post.getUser().getId(),
                     "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
-                    "http://localhost:3000/board/" + postId));
-
-            if (post.getUser().getSetting().postFeaturedNotification()) {
-                List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
-                for (FcmToken fcmToken : fcmTokens) {
-                    notificationService.sendMessageTo(FcmSendDTO.builder()
-                            .token(fcmToken.getFcmRegistrationToken())
-                            .title("회원님의 글이 주간 인기글로 선정되었습니다!")
-                            .body("지금 확인해보세요!")
-                            .build());
-                }
-            }
+                    post.getId(),
+                    post.getUser(),
+                    "회원님의 글이 주간 인기글로 선정되었습니다!",
+                    "지금 확인해보세요!"));
         }
     }
 
     // 명예의 전당 등록
     // 추천 수가 20개 이상인 글
-    // 1일 스케줄러
+    // 1일 스케줄러 - 이벤트 기반 비동기 처리
     @Transactional
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateHallOfFamePosts() throws IOException {
@@ -381,24 +380,14 @@ public class PostService {
                 .toList();
 
         for (Post post : newlyFeaturedPosts) {
-            Long postUserId = post.getUser().getId();
-            Long postId = post.getId();
-
-            notificationService.send(postUserId, notificationUtil.createEventDTO(
-                    NotificationType.POST_FEATURED,
+            // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
+            eventPublisher.publishEvent(new PostFeaturedEvent(
+                    post.getUser().getId(),
                     "🎉 회원님의 글이 명예의 전당에 등록 되었습니다!",
-                    "http://localhost:3000/board/" + postId));
-
-            if (post.getUser().getSetting().postFeaturedNotification()) {
-                List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(post.getUser());
-                for (FcmToken fcmToken : fcmTokens) {
-                    notificationService.sendMessageTo(FcmSendDTO.builder()
-                            .token(fcmToken.getFcmRegistrationToken())
-                            .title("회원님의 글이 명예의 전당에 등록 되었습니다!")
-                            .body("지금 확인해보세요!")
-                            .build());
-                }
-            }
+                    post.getId(),
+                    post.getUser(),
+                    "회원님의 글이 명예의 전당에 등록 되었습니다!",
+                    "지금 확인해보세요!"));
         }
     }
 

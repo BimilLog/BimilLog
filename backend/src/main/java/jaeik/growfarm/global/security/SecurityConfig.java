@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 이거 추가!
                         .requestMatchers(HttpMethod.GET, "/board/**").permitAll()
+                        .requestMatchers("/board/write").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/auth/login", "/auth/signUp", "/auth/health")
                         .permitAll()

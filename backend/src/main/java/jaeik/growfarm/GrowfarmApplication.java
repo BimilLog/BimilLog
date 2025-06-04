@@ -3,6 +3,7 @@ package jaeik.growfarm;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -11,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * Spring Boot 애플리케이션의 진입점
  * </p>
  * <p>
- * JPA Auditing과 스케줄링 기능을 활성화
+ * JPA Auditing, 스케줄링, 비동기 처리 기능을 활성화
  * </p>
  * 
  * @since 1.0.0
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @EnableJpaAuditing
 @EnableScheduling
+@EnableAsync
 @SpringBootApplication
 public class GrowfarmApplication {
 

@@ -1,4 +1,4 @@
-package jaeik.growfarm.service;
+package jaeik.growfarm.service.notification;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

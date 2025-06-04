@@ -66,7 +66,6 @@ public class Users extends BaseEntity {
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public void updateUserInfo(String kakaoNickname, String thumbnailImage) {
         this.kakaoNickname = kakaoNickname;
         this.thumbnailImage = thumbnailImage;

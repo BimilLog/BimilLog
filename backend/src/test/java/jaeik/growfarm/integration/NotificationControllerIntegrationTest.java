@@ -15,7 +15,7 @@ import jaeik.growfarm.repository.notification.NotificationRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.NotificationService;
+import jaeik.growfarm.service.notification.NotificationService;
 import jaeik.growfarm.util.UserUtil;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;

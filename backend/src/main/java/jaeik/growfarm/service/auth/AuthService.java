@@ -1,5 +1,6 @@
 package jaeik.growfarm.service.auth;
 
+import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.entity.user.Users;
@@ -9,12 +10,9 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.BlackListRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
-import jaeik.growfarm.repository.notification.FcmTokenRepository;
-import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.KakaoService;
-import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -36,9 +34,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
     private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
     private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
     private final BlackListRepository blackListRepository;
@@ -46,7 +42,6 @@ public class AuthService {
     private final TempUserDataManager tempUserDataManager;
     private final UserUpdateService userUpdateService;
     private final UserJdbcRepository userJdbcRepository;
-    private final FcmTokenRepository fcmTokenRepository;
 
     /**
      * <h3>카카오 로그인</h3>

@@ -3,7 +3,7 @@ package jaeik.growfarm.controller;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.NotificationService;
+import jaeik.growfarm.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
