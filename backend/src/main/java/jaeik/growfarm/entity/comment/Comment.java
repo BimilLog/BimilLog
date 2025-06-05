@@ -10,15 +10,12 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>댓글 엔티티</h2>
- * <p>
- * 게시글에 대한 댓글 정보를 저장하는 엔티티
- * </p>
- * <p>
- * 댓글 내용, 작성자, 게시글 정보 등을 포함
- * </p>
+ * <p>게시글에 대한 댓글 정보를 저장하는 엔티티</p>
+ * <p>댓글 내용은 255자 까지 허용한다.</p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -52,6 +49,41 @@ public class Comment extends BaseEntity {
     @Column(nullable = false)
     private boolean popular;
 
+    private Integer password;
+
+    /**
+     * <h3>댓글 생성</h3>
+     *
+     * <p>새로운 댓글을 생성한다.</p>
+     *
+     * @param post    댓글이 달릴 게시글
+     * @param user    댓글 작성자
+     * @param content 댓글 내용
+     * @param password 댓글 비밀번호 (선택적)
+     * @return 생성된 댓글 엔티티
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public static Comment createComment(Post post, Users user, String content, int password) {
+        return Comment.builder()
+                .post(post)
+                .user(user)
+                .content(content)
+                .popular(false)
+                .password(password)
+                .build();
+    }
+
+    /**
+     * <h3>댓글 수정</h3>
+     *
+     * <p>댓글 내용을 수정한다.</p>
+     *
+     * @param content 수정할 댓글 내용
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Transactional
     public void updateComment(String content) {
         this.content = content;
     }

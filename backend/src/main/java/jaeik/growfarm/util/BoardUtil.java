@@ -123,13 +123,4 @@ public class BoardUtil {
                 comment.isFeatured(),
                 userLike);
     }
-
-    public Comment commentDTOToComment(CommentDTO commentDTO, Post post, Users user) {
-        return Comment.builder()
-                .post(post)
-                .user(user)
-                .content(commentDTO.getContent())
-                .isFeatured(commentDTO.is_featured())
-                .build();
-    }
 }

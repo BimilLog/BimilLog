@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
                 "Unknown",
                 e.getMessage()
         );
-        log.error("CustomException: 코드 : {}, 타겟 : {}, 메시지 : {}", e.getMessage(), e.getStackTrace(), e.getMessage());
+        log.error("Exception: 코드 : {}, 타겟 : {}, 메시지 : {}", e.getMessage(), e.getStackTrace(), e.getMessage());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

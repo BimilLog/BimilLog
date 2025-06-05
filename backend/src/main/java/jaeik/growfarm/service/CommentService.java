@@ -2,40 +2,41 @@ package jaeik.growfarm.service;
 
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.entity.comment.Comment;
+import jaeik.growfarm.entity.comment.CommentClosure;
 import jaeik.growfarm.entity.comment.CommentLike;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.event.CommentCreatedEvent;
-import jaeik.growfarm.event.CommentFeaturedEvent;
 import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.global.event.CommentCreatedEvent;
+import jaeik.growfarm.global.event.CommentFeaturedEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.repository.comment.CommentClosureRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
-import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.notification.FcmService;
-import jaeik.growfarm.service.notification.SseService;
-import jaeik.growfarm.service.notification.NotificationService;
-import jaeik.growfarm.util.BoardUtil;
-import jaeik.growfarm.util.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/*
- * 댓글 서비스
- * 댓글 작성, 수정, 삭제, 추천, 신고 기능을 제공하는 서비스 클래스
- * 수정일 : 2025-05-03
+/**
+ * <h2>댓글 서비스</h2>
+ * <p>
+ * 댓글 작성, 수정, 삭제, 추천 기능을 제공하며,
+ * 이벤트 기반 아키텍처로 실시간 알림과 푸시 메시지를 비동기로 처리한다.
+ * </p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -45,52 +46,47 @@ public class CommentService {
     private final CommentLikeRepository commentLikeRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-    private final BoardUtil boardUtil;
-    private final NotificationService notificationService;
-    private final NotificationUtil notificationUtil;
-    private final FcmTokenRepository fcmTokenRepository;
-    private final SseService sseService; // 비동기 SSE 알림 서비스
-    private final FcmService fcmService; // 비동기 FCM 알림 서비스
-
-    // 이벤트 발행을 위한 ApplicationEventPublisher 🚀
     private final ApplicationEventPublisher eventPublisher;
+    private final CommentClosureRepository commentClosureRepository;
 
     /**
      * <h3>댓글 작성</h3>
      *
-     * <p>
-     * 댓글을 DB에 저장하고 글 작성자에게 실시간 알림과 푸시 메시지를 발송한다.
-     * 이벤트 기반 아키텍처로 SSE와 FCM 알림을 비동기 처리한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     * <p>댓글을 DB에 저장하고 글 작성자에게 실시간 알림과 푸시 메시지를 발송한다.</p>
+     * <p>이벤트 기반 아키텍처로 SSE와 FCM 알림을 비동기 처리한다.</p>
+     * <p>클로저 테이블 패턴을 활용하여 계층형태로 저장한다.</p>
+     * <p>댓글 저장이 성공해도 클로저 테이블에서 오류가 발생하면 롤백시킨다.</p>
+     *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param postId      게시글 ID
      * @param commentDTO  댓글 정보 DTO
-     * @throws IOException FCM 메시지 발송 오류 시 발생
+     * @author Jaeik
+     * @since 1.0.0
      */
-    public void writeComment(CustomUserDetails userDetails, Long postId, CommentDTO commentDTO) throws IOException {
-        if (userDetails == null) {
-            throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
+    @Transactional
+    public void writeComment(CustomUserDetails userDetails, CommentDTO commentDTO) {
+        Post post = postRepository.getReferenceById(commentDTO.getPostId());
+        Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
+
+        try {
+            Comment comment = commentRepository.save(Comment.createComment(post, user, commentDTO.getContent(), commentDTO.getPassword()));
+            CommentClosure commentClosure = CommentClosure.createCommentClosure(comment, comment, 0);
+            commentClosureRepository.save(commentClosure);
+            if (commentDTO.getParentId() != null) {
+                List<CommentClosure> parentComments = commentClosureRepository.findByDescendantId(comment.getId()).orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
+                for (CommentClosure parentComment : parentComments) {
+                    Comment ancestor = parentComment.getAncestor();
+                    int depth = parentComment.getDepth() + 1;
+                    commentClosureRepository.save(CommentClosure.createCommentClosure(ancestor, comment, depth));
+                }
+            }
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
 
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_POST));
-
-        Users user = userRepository.findById(userDetails.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_MATCH_USER));
-
-        Long postUserId = post.getUser().getId();
-
-        // 댓글 저장 (동기)
-        commentRepository.save(boardUtil.commentDTOToComment(commentDTO, post, user));
-
-        // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
         eventPublisher.publishEvent(new CommentCreatedEvent(
-                postUserId,
-                user.getFarmName(),
-                postId,
+                post.getUser().getId(),
+                commentDTO.getFarmName(),
+                commentDTO.getPostId(),
                 post.getUser()));
     }
 
@@ -100,21 +96,15 @@ public class CommentService {
      * <p>
      * 댓글 작성자만 댓글을 수정할 수 있다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param commentId   댓글 ID
      * @param commentDTO  수정할 댓글 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
+     * @author Jaeik
+     * @since 1.0.0
      */
-    @Transactional
-    public void updateComment(Long commentId, CommentDTO commentDTO, CustomUserDetails userDetails) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
-
-        if (!comment.getUser().getId().equals(userDetails.getClientDTO().getUserId())) {
-            throw new IllegalArgumentException("댓글 작성자만 수정할 수 있습니다.");
-        }
+    public void updateComment(CommentDTO commentDTO, CustomUserDetails userDetails) {
+        Comment comment = ValidateComment(commentDTO, userDetails);
         comment.updateComment(commentDTO.getContent());
     }
 
@@ -124,23 +114,41 @@ public class CommentService {
      * <p>
      * 댓글 작성자만 댓글을 삭제할 수 있다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param commentId         댓글 ID
      * @param customUserDetails 현재 로그인한 사용자 정보
+     * @author Jaeik
+     * @since 1.0.0
      */
     @Transactional
-    public void deleteComment(Long commentId, CustomUserDetails customUserDetails) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
+    public void deleteComment(CommentDTO commentDTO, CustomUserDetails userDetails) {
+        Comment comment = ValidateComment(commentDTO, userDetails);
+        commentRepository.delete(comment);
+    }
 
-        if (!comment.getUser().getId().equals(customUserDetails.getClientDTO().getUserId())) {
-            throw new IllegalArgumentException("댓글 작성자만 삭제할 수 있습니다.");
+    /**
+     * <h3>댓글 유효성 검사</h3>
+     *
+     * <p>
+     * 댓글 수정 및 삭제 시 비밀번호 확인 및 작성자 확인을 수행한다.
+     * </p>
+     *
+     * @param commentDTO  댓글 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 유효한 댓글 엔티티
+     * @throws CustomException 댓글 비밀번호 불일치 또는 작성자 불일치 시 예외 발생
+     */
+    private Comment ValidateComment(CommentDTO commentDTO, CustomUserDetails userDetails) {
+        Comment comment = commentRepository.getReferenceById(commentDTO.getId());
+
+        if (commentDTO.getPassword() != null && !Objects.equals(comment.getPassword(), commentDTO.getPassword())) {
+            throw new CustomException(ErrorCode.COMMENT_PASSWORD_NOT_MATCH);
         }
 
-        commentLikeRepository.deleteAllByCommentId(commentId);
-        commentRepository.delete(comment);
+        if (commentDTO.getPassword() == null && !comment.getUser().getId().equals(userDetails.getClientDTO().getUserId())) {
+            throw new CustomException(ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+        }
+        return comment;
     }
 
     // 댓글 추천, 추천 취소

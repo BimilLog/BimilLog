@@ -43,11 +43,10 @@ public class CommentController {
      * @return 댓글 작성 성공 메시지
      * @throws IOException FCM 메시지 발송 오류 시 발생
      */
-    @PostMapping("/{postId}/comment")
-    public ResponseEntity<String> writeComment(@PathVariable Long postId,
-            @Valid @RequestBody CommentDTO commentDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails) throws IOException {
-        commentService.writeComment(userDetails, postId, commentDTO);
+    @PostMapping("/comment")
+    public ResponseEntity<String> writeComment(@Valid @RequestBody CommentDTO commentDTO,
+                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        commentService.writeComment(userDetails, commentDTO);
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
@@ -65,12 +64,10 @@ public class CommentController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 댓글 수정 성공 메시지
      */
-    @PostMapping("/{postId}/{commentId}")
+    @PostMapping("/comment/update")
     public ResponseEntity<String> updateComment(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long postId,
-            @PathVariable Long commentId,
             @RequestBody @Valid CommentDTO commentDTO) {
-        commentService.updateComment(commentId, commentDTO, userDetails);
+        commentService.updateComment(commentDTO, userDetails);
         return ResponseEntity.ok("댓글 수정 완료");
     }
 
@@ -87,11 +84,10 @@ public class CommentController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 댓글 삭제 성공 메시지
      */
-    @PostMapping("/{postId}/{commentId}/delete")
+    @PostMapping("/comment/delete")
     public ResponseEntity<String> deleteComment(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long postId,
-            @PathVariable Long commentId) {
-        commentService.deleteComment(commentId, userDetails);
+            @RequestBody @Valid CommentDTO commentDTO) {
+        commentService.deleteComment(commentDTO, userDetails);
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 

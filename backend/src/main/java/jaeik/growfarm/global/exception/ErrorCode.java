@@ -13,7 +13,10 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
-    // 유저 관련
+    /**
+     * <h3>인증 관련 에러 코드</h3>
+     * <p>인증 및 권한 관련 에러 코드</p>
+     */
     NULL_SECURITY_CONTEXT(HttpStatus.UNAUTHORIZED, "유저 인증 정보가 없습니다. 다시 로그인 해주세요"),
     NOT_MATCH_USER(HttpStatus.FORBIDDEN, "시큐리티 콘텍스트의 유저 정보가 DB에 없습니다"),
     NOT_FIND_TOKEN(HttpStatus.FORBIDDEN, "토큰을 찾을 수 없습니다. 다시 로그인 해주세요 "),
@@ -30,9 +33,18 @@ public enum ErrorCode {
     RENEWAL_JWT_ACCESS_TOKEN_ERROR(HttpStatus.FORBIDDEN, "JWT 엑세스 토큰 갱신 중 오류 발생"),
     INVALID_JWT_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT 리프레시 토큰입니다. 다시 로그인 해주세요."),
 
-    // 게시판 관련
-    NOT_FIND_POST(HttpStatus.FORBIDDEN, "해당 게시글이 존재하지 않습니다.");
-
+    /**
+     * <h3>게시판 관련 에러 코드</h3>
+     * <p>게시판 작성, 수정, 삭제 등과 관련된 에러 코드</p>
+     */
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다."),
+    PROXY_ENTITY_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "엔티티가 존재하지 않습니다."),
+    COMMENT_WRITE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 작성에 실패했습니다."),
+    PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글이 존재하지 않습니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글이 존재하지 않습니다."),
+    COMMENT_PASSWORD_NOT_MATCH(HttpStatus.FORBIDDEN, "댓글 비밀번호가 일치하지 않습니다."),
+    ONLY_COMMENT_OWNER_UPDATE(HttpStatus.FORBIDDEN, "댓글 작성자만 수정할 수 있습니다."),
+    ONLY_COMMENT_OWNER_DELETE(HttpStatus.FORBIDDEN, "댓글 작성자만 삭제할 수 있습니다.");
 
     private final HttpStatus status;
     private final String message;

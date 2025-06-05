@@ -4,7 +4,7 @@ import jaeik.growfarm.dto.farm.CropDTO;
 import jaeik.growfarm.dto.farm.VisitCropDTO;
 import jaeik.growfarm.entity.crop.Crop;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.event.FarmPlantEvent;
+import jaeik.growfarm.global.event.FarmPlantEvent;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.farm.CropRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;

@@ -1,9 +1,9 @@
-package jaeik.growfarm.listener;
+package jaeik.growfarm.global.listener;
 
-import jaeik.growfarm.event.CommentCreatedEvent;
-import jaeik.growfarm.event.CommentFeaturedEvent;
-import jaeik.growfarm.event.FarmPlantEvent;
-import jaeik.growfarm.event.PostFeaturedEvent;
+import jaeik.growfarm.global.event.CommentCreatedEvent;
+import jaeik.growfarm.global.event.CommentFeaturedEvent;
+import jaeik.growfarm.global.event.FarmPlantEvent;
+import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.service.notification.FcmService;
 import jaeik.growfarm.service.notification.SseService;
 import lombok.RequiredArgsConstructor;

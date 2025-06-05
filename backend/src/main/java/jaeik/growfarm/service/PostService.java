@@ -9,7 +9,7 @@ import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.event.PostFeaturedEvent;
+import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;

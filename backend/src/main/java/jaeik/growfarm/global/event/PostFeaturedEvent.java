@@ -1,4 +1,4 @@
-package jaeik.growfarm.event;
+package jaeik.growfarm.global.event;
 
 import jaeik.growfarm.entity.user.Users;
 import lombok.AllArgsConstructor;
