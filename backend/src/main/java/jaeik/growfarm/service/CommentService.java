@@ -67,15 +67,12 @@ public class CommentService {
      *
      *
      */
-    public void writeComment(CustomUserDetails userDetails, Long postId, CommentDTO commentDTO) throws IOException {
-        if (userDetails == null) {
-            throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
-        }
+    public void writeComment(Long postId, CommentDTO commentDTO) throws IOException {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_POST));
 
-        Users user = userRepository.findById(userDetails.getUserId())
+        Users user = userRepository.findById(commentDTO.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_MATCH_USER));
 
         Long postUserId = post.getUser().getId();
@@ -99,11 +96,11 @@ public class CommentService {
 
     // 댓글 수정
     @Transactional
-    public void updateComment(Long commentId, CommentDTO commentDTO, CustomUserDetails userDetails) {
+    public void updateComment(Long commentId, CommentDTO commentDTO) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
 
-        if (!comment.getUser().getId().equals(userDetails.getUserDTO().getUserId())) {
+        if (!comment.getUser().getId().equals(commentDTO.getUserId())) {
             throw new IllegalArgumentException("댓글 작성자만 수정할 수 있습니다.");
         }
         comment.updateComment(commentDTO.getContent());
@@ -111,31 +108,27 @@ public class CommentService {
 
     // 댓글 삭제
     @Transactional
-    public void deleteComment(Long commentId, CustomUserDetails customUserDetails) {
+    public void deleteComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
-
-        if (!comment.getUser().getId().equals(customUserDetails.getUserDTO().getUserId())) {
-            throw new IllegalArgumentException("댓글 작성자만 삭제할 수 있습니다.");
-        }
 
         commentLikeRepository.deleteAllByCommentId(commentId);
         commentRepository.delete(comment);
     }
 
     // 댓글 추천, 추천 취소
-    public void likeComment(Long postId, Long commentId, CustomUserDetails userDetails) {
+    public void likeComment(Long postId, Long commentId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
 
-        Users user = userRepository.findById(userDetails.getUserDTO().getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
+        Users user = userRepository.findById(12029L)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " ));
 
         Optional<CommentLike> existingLike = commentLikeRepository.findByCommentIdAndUserId(commentId,
-                userDetails.getUserDTO().getUserId());
+                12029L);
 
         if (existingLike.isPresent()) {
             commentLikeRepository.delete(existingLike.get());

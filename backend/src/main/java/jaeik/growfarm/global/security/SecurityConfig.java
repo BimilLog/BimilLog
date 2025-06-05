@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 이거 추가!
-                        .requestMatchers(HttpMethod.GET, "/api/board/**").permitAll()
+                        .requestMatchers("/api/board/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/auth/login", "/api/auth/signUp", "/api/auth/health")
                         .permitAll()

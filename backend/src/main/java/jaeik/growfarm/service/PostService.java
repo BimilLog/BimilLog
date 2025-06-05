@@ -136,14 +136,11 @@ public class PostService {
 
 
     // 게시글 쓰기
-    public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
-
-        if (userDetails == null) {
-            throw new IllegalArgumentException("로그인 후 작성해주세요.");
-        }
-
+    public PostDTO writePost(PostReqDTO postReqDTO) {
+        Users users = userRepository.findById(postReqDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + postReqDTO.getUserId()));
         Post post = postRepository
-                .save(boardUtil.postReqDTOToPost(userUtil.DTOToUser(userDetails.getUserDTO()), postReqDTO));
+                .save(boardUtil.postReqDTOToPost(users, postReqDTO));
         return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), null, false);
     }
 
@@ -160,45 +157,37 @@ public class PostService {
 
     // 게시글 수정
     @Transactional
-    public PostDTO updatePost(Long postId, CustomUserDetails userDetails, PostDTO postDTO) {
+    public PostDTO updatePost(Long postId,PostDTO postDTO) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
         Long userId = post.getUser().getId();
 
-        if (!userId.equals(userDetails.getUserDTO().getUserId())) {
-            throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
-        }
-
         post.updatePost(postDTO);
         return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), getCommentList(postId, userId),
-                postLikeRepository.existsByPostIdAndUserId(postId, userDetails.getUserId()));
+                postLikeRepository.existsByPostIdAndUserId(postId, postDTO.getUserId()));
     }
 
     // 게시글 삭제
     @Transactional
-    public void deletePost(Long postId, CustomUserDetails userDetails) {
+    public void deletePost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
-
-        if (!post.getUser().getId().equals(userDetails.getUserDTO().getUserId())) {
-            throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
-        }
 
         postLikeRepository.deleteAllByPostId(postId);
         postRepository.delete(post);
     }
 
     // 게시글 추천, 추천 취소
-    public void likePost(Long postId, CustomUserDetails userDetails) {
+    public void likePost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        Users user = userRepository.findById(userDetails.getUserDTO().getUserId()).orElseThrow(
-                () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getUserDTO().getUserId()));
+        Users user = userRepository.findById(12029L)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + 12029L));
 
         Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId,
-                userDetails.getUserDTO().getUserId());
+                12029L);
 
         if (existingLike.isPresent()) {
             postLikeRepository.delete(existingLike.get());

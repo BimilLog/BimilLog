@@ -131,9 +131,8 @@ public class PostController {
      * 수정일 : 2025-05-03
      */
     @PostMapping("/write")
-    public ResponseEntity<PostDTO> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                             @RequestBody PostReqDTO postReqDTO) {
-        PostDTO postDTO = postService.writePost(userDetails, postReqDTO);
+    public ResponseEntity<PostDTO> writePost(@RequestBody PostReqDTO postReqDTO) {
+        PostDTO postDTO = postService.writePost(postReqDTO);
         return ResponseEntity.ok(postDTO);
     }
 
@@ -149,9 +148,8 @@ public class PostController {
     @PostMapping("/{postId}")
     public ResponseEntity<PostDTO> updatePost(@PathVariable Long postId,
             @RequestParam Long userId,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody PostDTO postDTO) {
-        PostDTO updatedPostDTO = postService.updatePost(postId, userDetails, postDTO);
+        PostDTO updatedPostDTO = postService.updatePost(postId,postDTO);
         return ResponseEntity.ok(updatedPostDTO);
     }
 
@@ -163,9 +161,8 @@ public class PostController {
      * 수정일 : 2025-05-03
      */
     @PostMapping("/{postId}/delete")
-    public ResponseEntity<String> deletePost(@PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postService.deletePost(postId, userDetails);
+    public ResponseEntity<String> deletePost(@PathVariable Long postId) {
+        postService.deletePost(postId);
         return ResponseEntity.ok("게시글 삭제 완료");
     }
 
@@ -177,9 +174,8 @@ public class PostController {
      * 수정일 : 2025-05-03
      */
     @PostMapping("/{postId}/like")
-    public ResponseEntity<String> likePost(@PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postService.likePost(postId, userDetails);
+    public ResponseEntity<String> likePost(@PathVariable Long postId) {
+        postService.likePost(postId);
         return ResponseEntity.ok("게시글 추천 완료");
     }
 

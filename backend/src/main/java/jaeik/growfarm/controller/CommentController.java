@@ -36,10 +36,9 @@ public class CommentController {
      * 수정일 : 2025-05-06
      */
     @PostMapping("/{postId}/comment")
-    public ResponseEntity<String> writeComment(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                               @PathVariable Long postId,
+    public ResponseEntity<String> writeComment(@PathVariable Long postId,
                                                @RequestBody @Valid CommentDTO commentDTO) throws IOException {
-        commentService.writeComment(userDetails, postId, commentDTO);
+        commentService.writeComment(postId, commentDTO);
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
@@ -53,11 +52,11 @@ public class CommentController {
      * 수정일 : 2025-04-28
      */
     @PostMapping("/{postId}/{commentId}")
-    public ResponseEntity<String> updateComment(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<String> updateComment(
             @PathVariable Long postId,
             @PathVariable Long commentId,
             @RequestBody @Valid CommentDTO commentDTO) {
-        commentService.updateComment(commentId, commentDTO, userDetails);
+        commentService.updateComment(commentId, commentDTO);
         return ResponseEntity.ok("댓글 수정 완료");
     }
 
@@ -70,10 +69,10 @@ public class CommentController {
      * 수정일 : 2025-04-28
      */
     @PostMapping("/{postId}/{commentId}/delete")
-    public ResponseEntity<String> deleteComment(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<String> deleteComment(
             @PathVariable Long postId,
             @PathVariable Long commentId) {
-        commentService.deleteComment(commentId, userDetails);
+        commentService.deleteComment(commentId);
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 
@@ -86,9 +85,8 @@ public class CommentController {
      * 수정일 : 2025-04-28
      */
     @PostMapping("/{postId}/{commentId}/like")
-    public ResponseEntity<String> likeComment(@PathVariable Long postId, @PathVariable Long commentId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        commentService.likeComment(postId, commentId, userDetails);
+    public ResponseEntity<String> likeComment(@PathVariable Long postId, @PathVariable Long commentId) {
+        commentService.likeComment(postId, commentId);
         return ResponseEntity.ok("댓글 추천 완료");
     }
 
