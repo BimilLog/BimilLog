@@ -116,6 +116,7 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
+
     // 댓글 추천, 추천 취소
     public void likeComment(Long postId, Long commentId) {
         Post post = postRepository.findById(postId)
