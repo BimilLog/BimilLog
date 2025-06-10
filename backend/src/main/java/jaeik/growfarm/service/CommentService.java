@@ -124,11 +124,11 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다: " + commentId));
 
-        Users user = userRepository.findById(12029L)
+        Users user = userRepository.findById(1L)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " ));
 
         Optional<CommentLike> existingLike = commentLikeRepository.findByCommentIdAndUserId(commentId,
-                12029L);
+                1L);
 
         if (existingLike.isPresent()) {
             commentLikeRepository.delete(existingLike.get());

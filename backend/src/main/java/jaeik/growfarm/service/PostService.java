@@ -183,11 +183,11 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
 
-        Users user = userRepository.findById(12029L)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + 12029L));
+        Users user = userRepository.findById(1L)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + 1L));
 
         Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId,
-                12029L);
+                1L);
 
         if (existingLike.isPresent()) {
             postLikeRepository.delete(existingLike.get());
