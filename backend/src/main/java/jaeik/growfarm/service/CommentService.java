@@ -141,7 +141,6 @@ public class CommentService {
             commentLikeRepository.save(commentLike);
         }
     }
-
     public void reportComment(Long postId, CustomUserDetails userDetails, ReportDTO reportDTO) {
         Report report = Report.builder()
                 .users(userUtil.DTOToUser(userDetails.getUserDTO()))
