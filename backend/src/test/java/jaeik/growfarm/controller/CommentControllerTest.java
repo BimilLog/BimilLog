@@ -1,25 +1,9 @@
 package jaeik.growfarm.controller;
 
-import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.dto.board.CommentDTO;
-import jaeik.growfarm.entity.report.ReportType;
-import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.CommentService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class CommentControllerTest {

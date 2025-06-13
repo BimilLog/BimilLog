@@ -30,9 +30,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
     /**
      * <h3>전체 게시글 조회</h3>
      *
-     * <p>
-     * 모든 게시글을 페이지네이션으로 조회한다.
-     * </p>
+     * <p>모든 게시글을 페이지네이션으로 조회한다.</p>
      * 
      * @since 1.0.0
      * @author Jaeik

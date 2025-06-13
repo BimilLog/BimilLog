@@ -6,10 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/*
- * 댓글 추천 Repository
- * 댓글 좋아요 관련 데이터베이스 작업을 수행하는 Repository
- * 수정일 : 2025-05-03
+/**
+ * <h2>댓글 추천 레포지토리</h2>
+ * <p>댓글에 대한 추천 정보를 관리하는 레포지토리</p>
+ * <p>댓글과 사용자 간의 추천 관계를 저장하고 조회하는 기능을 제공한다.</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
 @Repository
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
@@ -19,6 +22,4 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     boolean existsByCommentIdAndUserId(Long commentId, Long userId);
 
     int countByCommentId(Long commentId);
-
-    void deleteAllByCommentId(Long commentId);
 }

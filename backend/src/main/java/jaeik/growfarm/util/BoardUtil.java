@@ -109,18 +109,4 @@ public class BoardUtil {
                 comments,
                 userLike);
     }
-
-    // 댓글 -> DTO 변환
-    public CommentDTO commentToDTO(Comment comment, int likes, boolean userLike) {
-        return new CommentDTO(
-                comment.getId(),
-                comment.getPost().getId(),
-                comment.getUser().getId(),
-                comment.getUser().getFarmName(),
-                comment.getContent(),
-                likes,
-                comment.getCreatedAt(),
-                comment.isFeatured(),
-                userLike);
-    }
 }

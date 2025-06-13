@@ -21,6 +21,7 @@ import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
+import jaeik.growfarm.service.comment.CommentService;
 import jaeik.growfarm.util.BoardUtil;
 import jaeik.growfarm.util.UserUtil;
 import lombok.RequiredArgsConstructor;
