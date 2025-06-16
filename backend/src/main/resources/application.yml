@@ -6,9 +6,10 @@ spring:
     include: secret  # secret 프로파일 포함 (환경별 설정 분리)
   datasource:
     hikari:  # HikariCP 커넥션 풀 설정
-      minimum-idle: 10  # 최소 유지 커넥션 수
-      maximum-pool-size: 30  # 최대 커넥션 풀 크기
-      leak-detection-threshold: 60000  # 커넥션 누수 감지 임계값 (60초)
+      minimum-idle: 40  # 최소 유지 커넥션 수
+      maximum-pool-size: 40  # 최대 커넥션 풀 크기
+      max-lifetime: 55000  # 커넥션 최대 생명 주기 (55초)
+      connection-timeout: 10000  # 커넥션 타임 아웃 (10초)
   cache:  # 캐시 설정
     type: caffeine  # Caffeine 캐시 엔진 사용
     caffeine:

@@ -76,7 +76,7 @@ public class CommentDTO {
     public CommentDTO(Comment comment) {
         this.id = comment.getId();
         this.postId = comment.getPost().getId();
-        this.farmName = comment.getUser() != null ? comment.getUser().getFarmName() : "비회원";
+        this.farmName = comment.getUser() != null ? comment.getUser().getUserName() : "비회원";
         this.content = comment.getContent();
         this.createdAt = comment.getCreatedAt();
         this.password = comment.getPassword();

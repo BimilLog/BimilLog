@@ -28,6 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Entity
 @SuperBuilder
 @NoArgsConstructor
+@Table(indexes = {
+        @Index(name = "idx_comment_post_deleted", columnList = "post_id, deleted")
+})
 public class Comment extends BaseEntity {
 
     @Id

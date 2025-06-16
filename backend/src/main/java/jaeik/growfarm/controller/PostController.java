@@ -27,7 +27,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/board")
+@RequestMapping("/post")
 public class PostController {
 
     private final PostService postService;
@@ -137,7 +137,6 @@ public class PostController {
      * @since 1.0.0
      * @author Jaeik
      * @param postId      게시글 ID
-     * @param userDetails 현재 로그인한 사용자 정보
      * @param request     HTTP 요청 객체
      * @param response    HTTP 응답 객체
      * @return 게시글 상세 정보

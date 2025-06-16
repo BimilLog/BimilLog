@@ -101,7 +101,7 @@ public class NotificationService {
 
     private void sendNotification(SseEmitter emitter, String emitterId, NotificationType type, String data,
             String url) {
-        String jsonData = String.format("{\"message\": \"%s\", \"url\": \"%s\"}",
+        String jsonData = String.format("{\"paper\": \"%s\", \"url\": \"%s\"}",
                 data, url);
 
         try {

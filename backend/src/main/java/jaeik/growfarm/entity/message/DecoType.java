@@ -1,4 +1,4 @@
-package jaeik.growfarm.entity.crop;
+package jaeik.growfarm.entity.message;
 
 /**
  * <h2>작물 타입</h2>
@@ -7,7 +7,7 @@ package jaeik.growfarm.entity.crop;
  * @author Jaeik
  * @since 1.0.0
  */
-public enum CropType {
+public enum DecoType {
     POTATO, CARROT, CABBAGE, TOMATO, STRAWBERRY,
     WATERMELON, PUMPKIN, APPLE, GRAPE, BANANA,
     GOBLIN, SLIME, ORC, DRAGON, PHOENIX,

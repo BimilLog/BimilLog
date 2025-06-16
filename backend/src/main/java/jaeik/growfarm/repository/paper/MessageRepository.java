@@ -1,6 +1,6 @@
-package jaeik.growfarm.repository.farm;
+package jaeik.growfarm.repository.paper;
 
-import jaeik.growfarm.entity.crop.Crop;
+import jaeik.growfarm.entity.message.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,8 +12,8 @@ import java.util.List;
  * 수정일 : 2025-05-03
  */
 @Repository
-public interface CropRepository extends JpaRepository<Crop, Long> {
+public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    List<Crop> findByUsersId(Long userId);
+    List<Message> findByUsersId(Long userId);
 
 }

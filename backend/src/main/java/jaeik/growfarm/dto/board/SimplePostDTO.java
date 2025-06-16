@@ -1,5 +1,6 @@
 package jaeik.growfarm.dto.board;
 
+import jaeik.growfarm.entity.post.PopularFlag;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +25,7 @@ public class SimplePostDTO {
     private Long userId;
 
     @Size(max = 8, message = "농장 이름은 최대 8글자 까지 입력 가능합니다.")
-    private String farmName;
+    private String userName;
 
     @Size(max = 30, message = "글 내용은 최대 30자 까지 입력 가능합니다.")
     private String title;
@@ -39,26 +40,18 @@ public class SimplePostDTO {
 
     private boolean is_notice;
 
-    private boolean is_RealtimePopular;
+    private PopularFlag popularFlag;
 
-    private boolean is_WeeklyPopular;
-
-    private boolean is_HallOfFame;
-
-    public SimplePostDTO(Long postId, Long userId, String farmName, String title, int commentCount, int likes,
-            int views, Instant createdAt, boolean is_notice, boolean isRealtimePopular, boolean isWeeklyPopular,
-            boolean isHallOfFame) {
+    public SimplePostDTO(Long postId, Long userId, String userName, String title, int commentCount, int likes,
+                         int views, Instant createdAt, boolean is_notice) {
         this.postId = postId;
         this.userId = userId;
-        this.farmName = farmName;
+        this.userName = userName;
         this.title = title;
         this.commentCount = commentCount;
         this.likes = likes;
         this.views = views;
         this.createdAt = createdAt;
         this.is_notice = is_notice;
-        this.is_RealtimePopular = isRealtimePopular;
-        this.is_WeeklyPopular = isWeeklyPopular;
-        this.is_HallOfFame = isHallOfFame;
     }
 }

@@ -116,7 +116,7 @@ public class PostControllerIntegrationTest {
                 .kakaoId(1234567890L)
                 .kakaoNickname("testNickname")
                 .thumbnailImage("testImage")
-                .farmName("testFarm")
+                .userName("testFarm")
                 .role(UserRole.USER)
                 .setting(setting)
                 .token(token)
@@ -151,7 +151,7 @@ public class PostControllerIntegrationTest {
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getTotalElements());
         assertEquals(testPost.getTitle(), response.getBody().getContent().getFirst().getTitle());
-        assertEquals(testPost.getUser().getFarmName(), response.getBody().getContent().getFirst().getFarmName());
+        assertEquals(testPost.getUser().getUserName(), response.getBody().getContent().getFirst().getUserName());
     }
 
 

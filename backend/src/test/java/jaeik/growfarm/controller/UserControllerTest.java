@@ -30,7 +30,7 @@ package jaeik.growfarm.controller;
 //        simplePostDTO = new SimplePostDTO(
 //                1L,                           // postId
 //                1L,                           // userId
-//                "testFarm",                   // farmName
+//                "testFarm",                   // userName
 //                "Test Title",                 // title
 //                0,                            // commentCount
 //                0,                            // likes
@@ -50,7 +50,7 @@ package jaeik.growfarm.controller;
 ////                1L,                           // id
 ////                1L,                           // postId
 ////                1L,                           // userId
-////                "testFarm",                   // farmName
+////                "testFarm",                   // userName
 ////                "Test comment content",       // content
 ////                0,                            // likes
 ////                Instant.now(),          // createdAt
@@ -63,7 +63,7 @@ package jaeik.growfarm.controller;
 //
 //        // Create FarmNameReqDTO
 //        farmNameReqDTO = new FarmNameReqDTO();
-//        farmNameReqDTO.setFarmName("newFarmName");
+//        farmNameReqDTO.setUserName("newFarmName");
 //
 //        // Create ReportDTO
 //        reportDTO = ReportDTO.builder()
@@ -158,7 +158,7 @@ package jaeik.growfarm.controller;
 //        // Then
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertEquals("농장 이름이 변경되었습니다.", response.getBody());
-//        verify(userService, times(1)).updateFarmName(farmNameReqDTO.getFarmName(), userDetails);
+//        verify(userService, times(1)).updateFarmName(farmNameReqDTO.getUserName(), userDetails);
 //    }
 //
 //    @Test

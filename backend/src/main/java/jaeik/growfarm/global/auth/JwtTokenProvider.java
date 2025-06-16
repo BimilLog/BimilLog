@@ -127,7 +127,7 @@ public class JwtTokenProvider {
                 .claim("kakaoId", clientDTO.getKakaoId())
                 .claim("fcmTokenId", clientDTO.getFcmTokenId())
                 .claim("settingId", clientDTO.getSettingDTO().getSettingId())
-                .claim("farmName", clientDTO.getFarmName())
+                .claim("userName", clientDTO.getFarmName())
                 .claim("role", clientDTO.getRole().name())
                 .claim("kakaoNickname", clientDTO.getKakaoNickname())
                 .claim("thumbnailImage", clientDTO.getThumbnailImage())
@@ -245,7 +245,7 @@ public class JwtTokenProvider {
                 claims.get("kakaoId", Long.class),
                 claims.get("kakaoNickname", String.class),
                 claims.get("thumbnailImage", String.class),
-                claims.get("farmName", String.class),
+                claims.get("userName", String.class),
                 claims.get("role", String.class).equals("USER") ? UserRole.USER : UserRole.ADMIN,
                 claims.get("tokenId", Long.class),
                 claims.get("fcmTokenId", Long.class),

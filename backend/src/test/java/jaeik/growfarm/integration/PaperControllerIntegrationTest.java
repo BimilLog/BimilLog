@@ -1,10 +1,10 @@
 package jaeik.growfarm.integration;
 
-import jaeik.growfarm.controller.FarmController;
-import jaeik.growfarm.dto.farm.CropDTO;
-import jaeik.growfarm.dto.farm.VisitCropDTO;
+import jaeik.growfarm.controller.PaperController;
+import jaeik.growfarm.dto.paper.MessageDTO;
+import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.dto.user.UserDTO;
-import jaeik.growfarm.entity.crop.CropType;
+import jaeik.growfarm.entity.message.DecoType;
 import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.UserRole;
@@ -42,9 +42,9 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestInstance(PER_CLASS)
 @Commit
 @Transactional
-public class FarmControllerIntegrationTest {
+public class PaperControllerIntegrationTest {
 
-    private final FarmController farmController;
+    private final PaperController paperController;
     private final SettingRepository settingRepository;
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
@@ -52,8 +52,8 @@ public class FarmControllerIntegrationTest {
 
     private Users testUser;
 
-    public FarmControllerIntegrationTest(FarmController farmController, SettingRepository settingRepository, TokenRepository tokenRepository, UserRepository userRepository, UserUtil userUtil) {
-        this.farmController = farmController;
+    public PaperControllerIntegrationTest(PaperController paperController, SettingRepository settingRepository, TokenRepository tokenRepository, UserRepository userRepository, UserUtil userUtil) {
+        this.paperController = paperController;
         this.settingRepository = settingRepository;
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
@@ -87,7 +87,7 @@ public class FarmControllerIntegrationTest {
                 .kakaoId(1234567890L)
                 .kakaoNickname("testNickname")
                 .thumbnailImage("testImage")
-                .farmName("testFarm")
+                .userName("testFarm")
                 .role(UserRole.USER)
                 .setting(setting)
                 .token(token)
@@ -108,15 +108,15 @@ public class FarmControllerIntegrationTest {
         // Given
         String farmName = "testFarm";
 
-        CropDTO cropDTO = new CropDTO();
-        cropDTO.setCropType(CropType.TOMATO);
-        cropDTO.setNickname("testCrop");
-        cropDTO.setMessage("testMessage");
-        cropDTO.setWidth(1);
-        cropDTO.setHeight(2);
+        MessageDTO messageDTO = new MessageDTO();
+        messageDTO.setDecoType(DecoType.TOMATO);
+        messageDTO.setNickname("testCrop");
+        messageDTO.setMessage("testMessage");
+        messageDTO.setWidth(1);
+        messageDTO.setHeight(2);
 
         // When
-        ResponseEntity<String> response = farmController.plantCrop(farmName, cropDTO);
+        ResponseEntity<String> response = paperController.plantCrop(farmName, messageDTO);
 
         // Then
         assertEquals("농작물이 심어졌습니다.", response.getBody());
@@ -135,15 +135,15 @@ public class FarmControllerIntegrationTest {
         String farmName = "testFarm";
 
         // When
-        ResponseEntity<List<VisitCropDTO>> response = farmController.visitFarm(farmName);
-        List<VisitCropDTO> visitCropList = response.getBody();
+        ResponseEntity<List<VisitMessageDTO>> response = paperController.visitFarm(farmName);
+        List<VisitMessageDTO> visitCropList = response.getBody();
 
         // Then
         assertNotNull(visitCropList);
         assertEquals(1, visitCropList.size());
 
-        VisitCropDTO visitCrop = visitCropList.getFirst();
-        assertEquals(CropType.TOMATO, visitCrop.getCropType());
+        VisitMessageDTO visitCrop = visitCropList.getFirst();
+        assertEquals(DecoType.TOMATO, visitCrop.getDecoType());
         assertEquals(1, visitCrop.getWidth());
         assertEquals(2, visitCrop.getHeight());
     }
@@ -166,15 +166,15 @@ public class FarmControllerIntegrationTest {
         );
 
         // When
-        ResponseEntity<List<CropDTO>> response = farmController.myFarm(userDetails);
-        List<CropDTO> cropList = response.getBody();
+        ResponseEntity<List<MessageDTO>> response = paperController.myFarm(userDetails);
+        List<MessageDTO> cropList = response.getBody();
 
         // Then
         assertNotNull(cropList);
         assertEquals(1, cropList.size());
 
-        CropDTO visitCrop = cropList.getFirst();
-        assertEquals(CropType.TOMATO, visitCrop.getCropType());
+        MessageDTO visitCrop = cropList.getFirst();
+        assertEquals(DecoType.TOMATO, visitCrop.getDecoType());
         assertEquals(1, visitCrop.getWidth());
         assertEquals(2, visitCrop.getHeight());
         assertEquals("testCrop", visitCrop.getNickname());
@@ -199,7 +199,7 @@ public class FarmControllerIntegrationTest {
         );
 
         // When
-        ResponseEntity<String> response = farmController.deleteCrop(userDetails, 1L);
+        ResponseEntity<String> response = paperController.deleteCrop(userDetails, 1L);
 
         // Then
         assertEquals("농작물이 삭제되었습니다.", response.getBody());

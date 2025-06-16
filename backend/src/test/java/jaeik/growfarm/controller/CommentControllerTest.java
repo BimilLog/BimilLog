@@ -25,7 +25,7 @@ public class CommentControllerTest {
 //                1L,                           // id
 //                1L,                           // postId
 //                1L,                           // userId
-//                "testFarm",                   // farmName
+//                "testFarm",                   // userName
 //                "Test comment content",       // content
 //                0,                            // likes
 //                Instant.now(),          // createdAt

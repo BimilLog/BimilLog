@@ -71,7 +71,7 @@ public class AuthControllerTest {
 //        // Given
 //        FarmNameReqDTO request = new FarmNameReqDTO();
 //        request.setTokenId(1L);
-//        request.setFarmName("testFarm");
+//        request.setUserName("testFarm");
 //
 //        List<ResponseCookie> cookies = new ArrayList<>();
 //        cookies.add(ResponseCookie.from("accessToken", "test-access-token").build());

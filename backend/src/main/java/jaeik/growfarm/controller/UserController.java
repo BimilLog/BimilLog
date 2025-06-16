@@ -4,7 +4,6 @@ import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
-import jaeik.growfarm.dto.user.FarmNameReqDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.UserService;

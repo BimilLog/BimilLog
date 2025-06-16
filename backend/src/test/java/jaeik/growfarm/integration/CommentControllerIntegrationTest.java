@@ -106,7 +106,7 @@ package jaeik.growfarm.integration;
 //                .kakaoId(1234567890L)
 //                .kakaoNickname("testNickname")
 //                .thumbnailImage("testImage")
-//                .farmName("testFarm")
+//                .userName("testFarm")
 //                .role(UserRole.USER)
 //                .setting(setting)
 //                .token(token)
@@ -145,7 +145,7 @@ package jaeik.growfarm.integration;
 //    void testWriteComment() throws IOException {
 //        // Given
 //        CommentDTO commentDTO = new CommentDTO(null, testPost.getId(), testUser.getId(),
-//                testUser.getFarmName(), "New Test Comment", 0, Instant.now(), false, false);
+//                testUser.getUserName(), "New Test Comment", 0, Instant.now(), false, false);
 //
 //        // 인증 설정
 //        CustomUserDetails userDetails = new CustomUserDetails(userUtil.UserToDTO(testUser));
@@ -169,7 +169,7 @@ package jaeik.growfarm.integration;
 //    void testUpdateComment() {
 //        // Given
 //        CommentDTO commentDTO = new CommentDTO(testComment.getId(), testPost.getId(), testUser.getId(),
-//                testUser.getFarmName(), "Updated Test Comment", 0, Instant.now(), false, false);
+//                testUser.getUserName(), "Updated Test Comment", 0, Instant.now(), false, false);
 //
 //        // 인증 설정
 //        CustomUserDetails userDetails = new CustomUserDetails(userUtil.UserToDTO(testUser));

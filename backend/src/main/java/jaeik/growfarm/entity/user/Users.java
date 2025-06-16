@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * <h2>사용자 엔티티</h2>
  * <p>카카오 로그인을 통한 사용자 정보를 저장하는 엔티티</p>
- * <p>농장 이름, 카카오 정보, 설정 정보 등을 포함</p>
+ * <p>닉네임, 카카오 정보, 설정 정보 등을 포함</p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -40,8 +40,8 @@ public class Users extends BaseEntity {
     private Long kakaoId;
 
     @NotNull
-    @Column(name = "farm_name", unique = true, nullable = false) // 농장 이름
-    private String farmName;
+    @Column(unique = true, nullable = false)
+    private String userName;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -84,7 +84,7 @@ public class Users extends BaseEntity {
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateFarmName(String farmName) {
-        this.farmName = farmName;
+        this.userName = farmName;
     }
 
     public static Users createUser(KakaoInfoDTO kakaoInfoDTO, String farmName, Setting setting) {
@@ -92,7 +92,7 @@ public class Users extends BaseEntity {
                 .kakaoId(kakaoInfoDTO.getKakaoId())
                 .kakaoNickname(kakaoInfoDTO.getKakaoNickname())
                 .thumbnailImage(kakaoInfoDTO.getThumbnailImage())
-                .farmName(farmName)
+                .userName(farmName)
                 .role(UserRole.USER)
                 .setting(setting)
                 .build();
@@ -102,7 +102,7 @@ public class Users extends BaseEntity {
         return Users.builder()
                 .id(userDTO.getUserId())
                 .kakaoId(userDTO.getKakaoId())
-                .farmName(userDTO.getFarmName())
+                .userName(userDTO.getFarmName())
                 .role(userDTO.getRole())
                 .kakaoNickname(userDTO.getKakaoNickname())
                 .thumbnailImage(userDTO.getThumbnailImage())

@@ -1,4 +1,4 @@
-package jaeik.growfarm.entity.crop;
+package jaeik.growfarm.entity.message;
 
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.security.MessageEncryptConverter;
@@ -25,7 +25,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @Table(name = "crop", uniqueConstraints =
         {@UniqueConstraint(name = "unique_user_x_y", columnNames = {"user_id", "width", "height"})})
-public class Crop extends BaseEntity {
+public class Message extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,12 +40,12 @@ public class Crop extends BaseEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "crop_type", nullable = false)
-    private CropType cropType;
+    @Column(nullable = false)
+    private DecoType decoType;
 
     @NotNull
     @Column(nullable = false, length = 8) // 익명 닉네임 8자 까지 허용
-    private String nickname;
+    private String anonymity;
 
     @NotNull
     @Column(columnDefinition = "TEXT", nullable = false)

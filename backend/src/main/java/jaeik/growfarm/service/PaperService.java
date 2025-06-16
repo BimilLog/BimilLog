@@ -1,16 +1,16 @@
 package jaeik.growfarm.service;
 
-import jaeik.growfarm.dto.farm.CropDTO;
-import jaeik.growfarm.dto.farm.VisitCropDTO;
-import jaeik.growfarm.entity.crop.Crop;
+import jaeik.growfarm.dto.paper.MessageDTO;
+import jaeik.growfarm.dto.paper.VisitMessageDTO;
+import jaeik.growfarm.entity.message.Message;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.event.FarmPlantEvent;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.repository.farm.CropRepository;
+import jaeik.growfarm.repository.paper.MessageRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.notification.NotificationService;
-import jaeik.growfarm.util.FarmUtil;
+import jaeik.growfarm.util.PaperUtil;
 import jaeik.growfarm.util.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,11 +26,11 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class FarmService {
+public class PaperService {
 
-    private final CropRepository cropRepository;
+    private final MessageRepository messageRepository;
     private final UserRepository userRepository;
-    private final FarmUtil farmUtil;
+    private final PaperUtil paperUtil;
     private final NotificationService notificationService;
     private final NotificationUtil notificationUtil;
     private final FcmTokenRepository fcmTokenRepository;
@@ -50,10 +50,10 @@ public class FarmService {
      * @param userId 사용자 ID
      * @return 농작물 목록
      */
-    public List<CropDTO> myFarm(Long userId) {
-        List<Crop> crops = cropRepository.findByUsersId(userId);
+    public List<MessageDTO> myFarm(Long userId) {
+        List<Message> messages = messageRepository.findByUsersId(userId);
 
-        return crops.stream().map(farmUtil::convertToCropDTO).toList();
+        return messages.stream().map(paperUtil::convertToCropDTO).toList();
     }
 
     /**
@@ -68,15 +68,15 @@ public class FarmService {
      * @param farmName 농장 이름
      * @return 방문 농장의 농작물 목록
      */
-    public List<VisitCropDTO> visitFarm(String farmName) {
+    public List<VisitMessageDTO> visitFarm(String farmName) {
         Users user = userRepository.findByFarmName(farmName);
 
         if (user == null) {
             throw new IllegalArgumentException("해당 농장을 찾을 수 없습니다.");
         }
 
-        List<Crop> crops = cropRepository.findByUsersId(user.getId());
-        return crops.stream().map(farmUtil::convertToVisitFarmDTO).toList();
+        List<Message> messages = messageRepository.findByUsersId(user.getId());
+        return messages.stream().map(paperUtil::convertToVisitFarmDTO).toList();
     }
 
     /**
@@ -90,10 +90,10 @@ public class FarmService {
      * @since 1.0.0
      * @author Jaeik
      * @param farmName 농장 이름
-     * @param cropDTO  심을 농작물 정보 DTO
+     * @param messageDTO  심을 농작물 정보 DTO
      * @throws IOException FCM 메시지 발송 오류 시 발생
      */
-    public void plantCrop(String farmName, CropDTO cropDTO) throws IOException {
+    public void plantCrop(String farmName, MessageDTO messageDTO) throws IOException {
         Users user = userRepository.findByFarmName(farmName);
 
         if (user == null) {
@@ -101,8 +101,8 @@ public class FarmService {
         }
 
         // 농작물 저장 (동기)
-        Crop crop = farmUtil.convertToCrop(cropDTO, user);
-        cropRepository.save(crop);
+        Message message = paperUtil.convertToCrop(messageDTO, user);
+        messageRepository.save(message);
 
         // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
         eventPublisher.publishEvent(new FarmPlantEvent(
@@ -128,13 +128,13 @@ public class FarmService {
             throw new RuntimeException("다시 로그인 해 주세요.");
         }
 
-        Crop crop = cropRepository.findById(cropId)
+        Message message = messageRepository.findById(cropId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 농작물을 찾을 수 없습니다."));
 
-        if (!crop.getUsers().getId().equals(userDetails.getClientDTO().getUserId())) {
+        if (!message.getUsers().getId().equals(userDetails.getClientDTO().getUserId())) {
             throw new RuntimeException("본인 농장의 농작물만 삭제할 수 있습니다.");
         }
 
-        cropRepository.delete(crop);
+        messageRepository.delete(message);
     }
 }

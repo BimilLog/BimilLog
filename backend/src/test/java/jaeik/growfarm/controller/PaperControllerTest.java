@@ -1,9 +1,9 @@
 package jaeik.growfarm.controller;
 
-import jaeik.growfarm.dto.farm.CropDTO;
-import jaeik.growfarm.dto.farm.VisitCropDTO;
+import jaeik.growfarm.dto.paper.MessageDTO;
+import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.FarmService;
+import jaeik.growfarm.service.PaperService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,18 +25,18 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class FarmControllerTest {
+public class PaperControllerTest {
 
     @Mock
-    private FarmService farmService;
+    private PaperService paperService;
 
     @InjectMocks
-    private FarmController farmController;
+    private PaperController paperController;
 
     private CustomUserDetails userDetails;
-    private CropDTO cropDTO;
-    private List<CropDTO> cropDTOList;
-    private List<VisitCropDTO> visitCropDTOList;
+    private MessageDTO messageDTO;
+    private List<MessageDTO> messageDTOList;
+    private List<VisitMessageDTO> visitMessageDTOList;
 
     @BeforeEach
     void setUp() {
@@ -45,27 +45,27 @@ public class FarmControllerTest {
         when(userDetails.getClientDTO()).thenReturn(mock(jaeik.growfarm.dto.user.UserDTO.class));
         when(userDetails.getClientDTO().getUserId()).thenReturn(1L);
 
-        cropDTO = new CropDTO();
+        messageDTO = new MessageDTO();
         // Set properties for cropDTO if needed
 
-        cropDTOList = new ArrayList<>();
-        cropDTOList.add(cropDTO);
+        messageDTOList = new ArrayList<>();
+        messageDTOList.add(messageDTO);
 
-        VisitCropDTO visitCropDTO = new VisitCropDTO();
+        VisitMessageDTO visitMessageDTO = new VisitMessageDTO();
         // Set properties for visitCropDTO if needed
 
-        visitCropDTOList = new ArrayList<>();
-        visitCropDTOList.add(visitCropDTO);
+        visitMessageDTOList = new ArrayList<>();
+        visitMessageDTOList.add(visitMessageDTO);
     }
 
     @Test
     @DisplayName("내 농장 가기 테스트")
     void testMyFarm() {
         // Given
-        when(farmService.myFarm(anyLong())).thenReturn(cropDTOList);
+        when(paperService.myFarm(anyLong())).thenReturn(messageDTOList);
 
         // When
-        ResponseEntity<List<CropDTO>> response = farmController.myFarm(userDetails);
+        ResponseEntity<List<MessageDTO>> response = paperController.myFarm(userDetails);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -77,10 +77,10 @@ public class FarmControllerTest {
     @DisplayName("다른 농장 가기 테스트")
     void testVisitFarm() {
         // Given
-        when(farmService.visitFarm(anyString())).thenReturn(visitCropDTOList);
+        when(paperService.visitFarm(anyString())).thenReturn(visitMessageDTOList);
 
         // When
-        ResponseEntity<List<VisitCropDTO>> response = farmController.visitFarm("testFarm");
+        ResponseEntity<List<VisitMessageDTO>> response = paperController.visitFarm("testFarm");
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -92,29 +92,29 @@ public class FarmControllerTest {
     @DisplayName("농작물 삭제 테스트")
     void testDeleteCrop() {
         // Given
-        doNothing().when(farmService).deleteCrop(any(), anyLong());
+        doNothing().when(paperService).deleteCrop(any(), anyLong());
 
         // When
-        ResponseEntity<String> response = farmController.deleteCrop(userDetails, 1L);
+        ResponseEntity<String> response = paperController.deleteCrop(userDetails, 1L);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("농작물이 삭제되었습니다.", response.getBody());
-        verify(farmService, times(1)).deleteCrop(userDetails, 1L);
+        verify(paperService, times(1)).deleteCrop(userDetails, 1L);
     }
 
     @Test
     @DisplayName("농작물 심기 테스트")
     void testPlantCrop() throws IOException {
         // Given
-        doNothing().when(farmService).plantCrop(anyString(), any());
+        doNothing().when(paperService).plantCrop(anyString(), any());
 
         // When
-        ResponseEntity<String> response = farmController.plantCrop("testFarm", cropDTO);
+        ResponseEntity<String> response = paperController.plantCrop("testFarm", messageDTO);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("농작물이 심어졌습니다.", response.getBody());
-        verify(farmService, times(1)).plantCrop("testFarm", cropDTO);
+        verify(paperService, times(1)).plantCrop("testFarm", messageDTO);
     }
 }

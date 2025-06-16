@@ -4,7 +4,6 @@ import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
-import jaeik.growfarm.entity.comment.Comment;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;
 import lombok.RequiredArgsConstructor;
@@ -39,16 +38,14 @@ public class BoardUtil {
         return new SimplePostDTO(
                 post.getId(),
                 post.getUser().getId(),
-                post.getUser().getFarmName(),
+                post.getUser().getUserName(),
                 post.getTitle(),
                 commentCount,
                 likes,
                 post.getViews(),
                 post.getCreatedAt(),
-                post.isNotice(),
-                post.isRealtimePopular(),
-                post.isWeeklyPopular(),
-                post.isHallOfFame());
+                post.isNotice()
+        );
     }
 
     /**
@@ -70,10 +67,7 @@ public class BoardUtil {
                 .title(postReqDTO.getTitle())
                 .content(postReqDTO.getContent())
                 .views(0)
-                .isNotice(false)
-                .isRealtimePopular(false)
-                .isWeeklyPopular(false)
-                .isWeeklyPopular(false)
+                .popularFlag(null)
                 .build();
     }
 
@@ -96,15 +90,13 @@ public class BoardUtil {
         return new PostDTO(
                 post.getId(),
                 post.getUser().getId(),
-                post.getUser().getFarmName(),
+                post.getUser().getUserName(),
                 post.getTitle(),
                 post.getContent(),
                 post.getViews(),
                 likes,
                 post.isNotice(),
-                post.isRealtimePopular(),
-                post.isWeeklyPopular(),
-                post.isHallOfFame(),
+                post.getPopularFlag(),
                 post.getCreatedAt(),
                 comments,
                 userLike);

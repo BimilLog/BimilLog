@@ -1,15 +1,17 @@
 package jaeik.growfarm.repository.post;
 
+import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.entity.post.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-/*
- * 커스텀 게시글 Repository
- * 게시글 관련 데이터베이스 작업을 수행하는 Repository
- * 수정일 : 2025-05-05
+/**
+ * <h2>게시글 커스텀 저장소</h2>
+ * <p>커스텀 쿼리를 정의하는 인터페이스</p>
+ * @author jaeik
+ * @version 1.0
  */
 public interface PostCustomRepository {
 
@@ -20,5 +22,7 @@ public interface PostCustomRepository {
     List<Post> updateHallOfFamePosts();
 
     Page<Post> findByLikedPosts(Long userId, Pageable pageable);
+
+    Page<SimplePostDTO> findPostsWithCommentAndLikeCounts(Pageable pageable);
 
 }

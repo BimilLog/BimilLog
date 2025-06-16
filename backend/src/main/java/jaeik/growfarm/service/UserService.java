@@ -23,7 +23,6 @@ import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.comment.CommentService;
 import jaeik.growfarm.util.BoardUtil;
-import jaeik.growfarm.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,12 +51,10 @@ public class UserService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final BoardUtil boardUtil;
-    private final CommentService commentService;
     private final ReportRepository reportRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final KakaoService kakaoService;
-    private final UserUtil userUtil;
 
     /**
      * <h3>사용자 작성 글 목록 조회</h3>
@@ -89,7 +86,7 @@ public class UserService {
      * <p>
      * 해당 유저의 작성 댓글 목록을 페이지네이션으로 반환한다.
      * </p>
-     * 
+     *
      * @since 1.0.0
      * @author Jaeik
      * @param page        페이지 번호

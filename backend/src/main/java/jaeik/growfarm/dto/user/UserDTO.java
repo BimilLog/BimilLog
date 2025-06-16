@@ -38,7 +38,7 @@ public class UserDTO {
         this.settingDTO = new SettingDTO(user.getSetting());
         this.kakaoNickname = user.getKakaoNickname();
         this.thumbnailImage = user.getThumbnailImage();
-        this.farmName = user.getFarmName();
+        this.farmName = user.getUserName();
         this.role = user.getRole();
     }
 
@@ -48,7 +48,7 @@ public class UserDTO {
         this.settingDTO = settingDTO;
         this.kakaoNickname = user.getKakaoNickname();
         this.thumbnailImage = user.getThumbnailImage();
-        this.farmName = user.getFarmName();
+        this.farmName = user.getUserName();
         this.role = user.getRole();
     }
 

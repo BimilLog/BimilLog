@@ -54,7 +54,7 @@ public class PostControllerTest {
         postDTO = new PostDTO(
                 1L,                           // postId
                 1L,                           // userId
-                "testFarm",                   // farmName
+                "testFarm",                   // userName
                 "Test Title",                 // title
                 "Test Content",               // content
                 0,                            // views
@@ -79,16 +79,16 @@ public class PostControllerTest {
         simplePostDTO = new SimplePostDTO(
                 1L,                           // postId
                 1L,                           // userId
-                "testFarm",                   // farmName
+                "testFarm",                   // userName
                 "Test Title",                 // title
                 0,                            // commentCount
                 0,                            // likes
                 0,                            // views
                 Instant.now(),          // createdAt
-                false,                        // is_notice
-                false,                        // is_RealtimePopular
-                false,                        // is_WeeklyPopular
-                false                         // is_HallOfFame
+                false                        // is_notice
+                // is_RealtimePopular
+                // is_WeeklyPopular
+                // is_HallOfFame
         );
 
         simplePostDTOList = new ArrayList<>();

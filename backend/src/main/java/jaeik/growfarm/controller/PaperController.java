@@ -1,9 +1,9 @@
 package jaeik.growfarm.controller;
 
-import jaeik.growfarm.dto.farm.CropDTO;
-import jaeik.growfarm.dto.farm.VisitCropDTO;
+import jaeik.growfarm.dto.paper.MessageDTO;
+import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.FarmService;
+import jaeik.growfarm.service.PaperService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +23,9 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/farm")
-public class FarmController {
+public class PaperController {
 
-    private final FarmService farmService;
+    private final PaperService paperService;
 
     /*
      * 내 농장 가기 API
@@ -34,20 +34,20 @@ public class FarmController {
      * 수정일 : 2025-05-03
      */
     @PostMapping("/myFarm")
-    public ResponseEntity<List<CropDTO>> myFarm(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<CropDTO> crops = farmService.myFarm(userDetails.getClientDTO().getUserId());
+    public ResponseEntity<List<MessageDTO>> myFarm(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<MessageDTO> crops = paperService.myFarm(userDetails.getClientDTO().getUserId());
         return ResponseEntity.ok(crops);
     }
 
     /*
      * 다른 농장 가기 API
-     * param String farmName: 농장 이름
+     * param String userName: 농장 이름
      * return: ResponseEntity<List<VisitCropDTO>> 다른 농장에 심어진 농작물 리스트
      * 수정일 : 2025-05-03
      */
     @GetMapping("{farmName}")
-    public ResponseEntity<List<VisitCropDTO>> visitFarm(@PathVariable String farmName) {
-        List<VisitCropDTO> crops = farmService.visitFarm(farmName);
+    public ResponseEntity<List<VisitMessageDTO>> visitFarm(@PathVariable String farmName) {
+        List<VisitMessageDTO> crops = paperService.visitFarm(farmName);
         return ResponseEntity.ok(crops);
     }
 
@@ -59,13 +59,13 @@ public class FarmController {
      */
     @PostMapping("/myFarm/{cropId}")
     public ResponseEntity<String> deleteCrop(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long cropId) {
-        farmService.deleteCrop(userDetails, cropId);
+        paperService.deleteCrop(userDetails, cropId);
         return ResponseEntity.ok("농작물이 삭제되었습니다.");
     }
 
     /*
      * 농작물 심기 API
-     * param String farmName: 농장 이름
+     * param String userName: 농장 이름
      * param CropDTO cropDTO: 농작물 DTO
      * return: ResponseEntity<String> 농작물 심기 완료 메시지
      * 수정일 : 2025-05-03
@@ -73,8 +73,8 @@ public class FarmController {
     @PostMapping("{farmName}")
     public ResponseEntity<String> plantCrop(
             @PathVariable String farmName,
-            @RequestBody @Valid CropDTO cropDTO) throws IOException {
-        farmService.plantCrop(farmName, cropDTO);
+            @RequestBody @Valid MessageDTO messageDTO) throws IOException {
+        paperService.plantCrop(farmName, messageDTO);
         return ResponseEntity.ok("농작물이 심어졌습니다.");
     }
 }

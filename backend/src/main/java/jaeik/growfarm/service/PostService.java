@@ -54,13 +54,7 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
     private final BoardUtil boardUtil;
-    private final ReportRepository reportRepository;
-    private final NotificationService notificationService;
-    private final NotificationUtil notificationUtil;
-    private final FcmTokenRepository fcmTokenRepository;
     private final CommentLikeRepository commentLikeRepository;
-    private final SseService sseService;
-    private final FcmService fcmService;
 
     // 이벤트 발행을 위한 ApplicationEventPublisher 🚀
     private final ApplicationEventPublisher eventPublisher;
@@ -80,8 +74,7 @@ public class PostService {
      */
     public Page<SimplePostDTO> getBoard(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Post> posts = postRepository.findAll(pageable);
-        return convertToSimplePostDTOPage(posts);
+        return postRepository.findPostsWithCommentAndLikeCounts(pageable);
     }
 
     /**
