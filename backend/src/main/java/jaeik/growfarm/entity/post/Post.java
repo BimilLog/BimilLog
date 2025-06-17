@@ -26,7 +26,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @SuperBuilder
 @Table(indexes = {
-        @Index(name = "idx_post_notice_created", columnList = "is_notice, created_at DESC")
+        @Index(name = "idx_post_notice_created", columnList = "is_notice, created_at DESC"),
+        @Index(name = "idx_post_created", columnList = "created_at")
 })
 public class Post extends BaseEntity {
 
