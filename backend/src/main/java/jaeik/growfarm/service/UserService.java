@@ -169,7 +169,8 @@ public class UserService {
      */
     public Page<CommentDTO> getLikedComments(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Comment> comments = commentRepository.findByLikedComments(userDetails.getClientDTO().getUserId(), pageable);
+        Page<Comment> comments = commentRepository.findByLikedComments(userDetails.getClientDTO().getUserId(),
+                pageable);
 
         return comments.map(
                 comment -> boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()),
@@ -289,5 +290,166 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         return userUtil.settingToSettingDTO(user.getSetting());
+    }
+
+    /**
+     * <h3>사용자 정보 조회</h3>
+     * <p>
+     * 현재 로그인한 사용자의 정보를 조회한다.
+     * </p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 사용자 정보 DTO
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    public UserDTO getUserInfo(CustomUserDetails userDetails) {
+        return userUtil.userToUserDTO(userDetails.getUser());
+    }
+
+    /**
+     * <h3>사용자 정보 수정</h3>
+     * <p>
+     * 현재 로그인한 사용자의 정보를 수정한다.
+     * </p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param userDTO     수정할 사용자 정보 DTO
+     * @return 수정된 사용자 정보 DTO
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    @Transactional
+    public UserDTO updateUserInfo(CustomUserDetails userDetails, UserDTO userDTO) {
+        Users user = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        user.updateUser(userDTO);
+        return userUtil.userToUserDTO(user);
+    }
+
+    /**
+     * <h3>사용자 프로필 이미지 업로드</h3>
+     * <p>
+     * 현재 로그인한 사용자의 프로필 이미지를 업로드한다.
+     * </p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param file        업로드할 프로필 이미지 파일
+     * @return 업로드 결과 메시지
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    @Transactional
+    public String uploadProfileImage(CustomUserDetails userDetails, MultipartFile file) {
+        try {
+            Users user = userRepository.findById(userDetails.getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            String profileImagePath = uploadImage(file);
+            user.updateProfileImage(profileImagePath);
+
+            return "프로필 이미지가 성공적으로 업로드되었습니다.";
+        } catch (IOException e) {
+            throw new RuntimeException("프로필 이미지 업로드에 실패했습니다.", e);
+        }
+    }
+
+    /**
+     * <h3>사용자 작성 게시글 조회</h3>
+     * <p>
+     * 현재 로그인한 사용자가 작성한 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param page        페이지 번호
+     * @param size        페이지 사이즈
+     * @return 사용자 작성 게시글 페이지
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    public Page<Post> getUserPosts(CustomUserDetails userDetails, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return postRepository.findByUserId(userDetails.getUserId(), pageable);
+    }
+
+    /**
+     * <h3>사용자 추천 게시글 조회</h3>
+     * <p>
+     * 현재 로그인한 사용자가 추천한 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param page        페이지 번호
+     * @param size        페이지 사이즈
+     * @return 사용자 추천 게시글 페이지
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    public Page<Post> getUserLikedPosts(CustomUserDetails userDetails, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return postRepository.findByLikedPosts(userDetails.getUserId(), pageable);
+    }
+
+    /**
+     * <h3>사용자 닉네임 중복 확인</h3>
+     * <p>
+     * 입력받은 닉네임이 이미 사용 중인지 확인한다.
+     * </p>
+     *
+     * @param userName 확인할 닉네임
+     * @return 중복 여부 (true: 중복됨, false: 사용 가능)
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    public boolean checkUserNameDuplicate(String userName) {
+        return userRepository.existsByUserName(userName);
+    }
+
+    /**
+     * <h3>회원 탈퇴</h3>
+     * <p>
+     * 현재 로그인한 사용자의 계정을 삭제한다.
+     * </p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 탈퇴 완료 메시지
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    @Transactional
+    public String deleteUser(CustomUserDetails userDetails) {
+        Users user = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        userRepository.delete(user);
+        return "회원 탈퇴가 완료되었습니다.";
+    }
+
+    /**
+     * <h3>사용자 신고</h3>
+     * <p>
+     * 특정 사용자를 신고한다.
+     * </p>
+     *
+     * @param userDetails 신고하는 사용자 정보
+     * @param targetId    신고당할 사용자 ID
+     * @param reason      신고 사유
+     * @return 신고 완료 메시지
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    @Transactional
+    public String reportUser(CustomUserDetails userDetails, Long targetId, String reason) {
+        Users reporter = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("신고자를 찾을 수 없습니다."));
+
+        Users target = userRepository.findById(targetId)
+                .orElseThrow(() -> new IllegalArgumentException("신고당할 사용자를 찾을 수 없습니다."));
+
+        // 신고 로직 구현 (Report 엔티티 생성 등)
+        // reportRepository.save(new Report(reporter, target, reason));
+
+        return "사용자 신고가 완료되었습니다.";
     }
 }

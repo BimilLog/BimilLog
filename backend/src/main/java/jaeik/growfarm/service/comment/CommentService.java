@@ -134,30 +134,24 @@ public class CommentService {
                 .map(Comment::getId)
                 .toList();
 
-        // 🔥 핵심 개선: 댓글과 부모 관계를 한 번에 조회
         List<Object[]> commentWithParentResults = commentRepository.findCommentsWithParentByRootIds(rootCommentIds);
 
-        // 모든 댓글 ID 추출
         List<Long> allCommentIds = commentWithParentResults.stream()
                 .map(row -> (Long) row[0])
                 .distinct()
                 .toList();
 
-        // 배치로 추천 수 조회
         Map<Long, Integer> likeCountMap = buildLikeCountMap(allCommentIds);
 
-        // 로그인 한 유저가 추천한 댓글들 배치 조회
         List<Long> userLikedCommentIds = getUserLikedCommentIds(allCommentIds, userDetails);
 
-        // 댓글 DTO 변환 및 관계 설정
         Map<Long, CommentDTO> commentDTOMap = buildCommentDTOMap(commentWithParentResults, likeCountMap,
                 userLikedCommentIds);
 
-        // 루트 댓글들만 반환 (자손들은 프론트엔드에서 트리 구조로 구성)
         List<CommentDTO> rootCommentDTOs = rootCommentPage.getContent()
                 .stream()
                 .map(comment -> commentDTOMap.get(comment.getId()))
-                .filter(Objects::nonNull) // 🔒 null 체크 추가
+                .filter(Objects::nonNull)
                 .toList();
 
         return new PageImpl<>(rootCommentDTOs, pageable, rootCommentPage.getTotalElements());
@@ -223,27 +217,23 @@ public class CommentService {
 
         for (Object[] row : commentWithParentResults) {
             Long commentId = (Long) row[0];
-            Long parentId = (Long) row[1]; // CASE WHEN depth = 1로 필터링된 부모 ID
+            Long parentId = (Long) row[1];
             Comment comment = (Comment) row[3];
 
-            // 🔒 null 체크로 안정성 향상
             if (comment == null) {
                 continue;
             }
 
-            // 이미 처리된 댓글이면 parentId만 업데이트
             CommentDTO dto = commentDTOMap.get(commentId);
             if (dto == null) {
                 dto = new CommentDTO(comment);
 
-                // 추천 수와 사용자 추천 여부 설정
                 dto.setLikes(likeCountMap.getOrDefault(commentId, 0));
                 dto.setUserLike(userLikedCommentIds.contains(commentId));
 
                 commentDTOMap.put(commentId, dto);
             }
 
-            // parentId 설정 (depth = 1인 경우에만)
             if (parentId != null) {
                 dto.setParentId(parentId);
             }

@@ -52,57 +52,6 @@ public class PostController {
     }
 
     /**
-     * <h3>실시간 인기글 조회 API</h3>
-     *
-     * <p>
-     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @return 실시간 인기글 목록
-     */
-    @GetMapping("/realtime")
-    public ResponseEntity<List<SimplePostDTO>> getRealtimeBoard() {
-        List<SimplePostDTO> realtimePopularPosts = postService.getRealtimePopularPosts();
-        return ResponseEntity.ok(realtimePopularPosts);
-    }
-
-    /**
-     * <h3>주간 인기글 조회 API</h3>
-     *
-     * <p>
-     * 주간 인기글로 선정된 게시글 목록을 조회한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @return 주간 인기글 목록
-     */
-    @GetMapping("/weekly")
-    public ResponseEntity<List<SimplePostDTO>> getWeeklyBoard() {
-        List<SimplePostDTO> weeklyPopularPosts = postService.getWeeklyPopularPosts();
-        return ResponseEntity.ok(weeklyPopularPosts);
-    }
-
-    /**
-     * <h3>명예의 전당 조회 API</h3>
-     *
-     * <p>
-     * 명예의 전당에 선정된 게시글 목록을 조회한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @return 명예의 전당 게시글 목록
-     */
-    @GetMapping("/fame")
-    public ResponseEntity<List<SimplePostDTO>> getHallOfFameBoard() {
-        List<SimplePostDTO> hallOfFamePosts = postService.getHallOfFamePosts();
-        return ResponseEntity.ok(hallOfFamePosts);
-    }
-
-    /**
      * <h3>게시글 검색 API</h3>
      *
      * <p>
@@ -118,8 +67,8 @@ public class PostController {
      * @return 검색된 게시글 목록 페이지
      */
     @GetMapping("/search")
-    public ResponseEntity<Page<SimplePostDTO>> searchPost(@RequestParam String type, // 제목, 제목 + 내용, 작성자 검색
-            @RequestParam String query, // 검색어
+    public ResponseEntity<Page<SimplePostDTO>> searchPost(@RequestParam String type,
+            @RequestParam String query,
             @RequestParam int page,
             @RequestParam int size) {
 
@@ -143,13 +92,13 @@ public class PostController {
      */
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long postId,
-            @RequestParam(required = false) Long userId,
-            HttpServletRequest request,
-            HttpServletResponse response) {
+                                           @AuthenticationPrincipal CustomUserDetails userDetails,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response) {
 
         postService.incrementViewCount(postId, request, response);
 
-        PostDTO postDTO = postService.getPost(postId, userId);
+        PostDTO postDTO = postService.getPost(postId, userDetails);
 
         return ResponseEntity.ok(postDTO);
     }
@@ -235,5 +184,56 @@ public class PostController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         postService.likePost(postId, userDetails);
         return ResponseEntity.ok("게시글 추천 완료");
+    }
+
+    /**
+     * <h3>실시간 인기글 조회 API</h3>
+     *
+     * <p>
+     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 실시간 인기글 목록
+     */
+    @GetMapping("/realtime")
+    public ResponseEntity<List<SimplePostDTO>> getRealtimeBoard() {
+        List<SimplePostDTO> realtimePopularPosts = postService.getRealtimePopularPosts();
+        return ResponseEntity.ok(realtimePopularPosts);
+    }
+
+    /**
+     * <h3>주간 인기글 조회 API</h3>
+     *
+     * <p>
+     * 주간 인기글로 선정된 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 주간 인기글 목록
+     */
+    @GetMapping("/weekly")
+    public ResponseEntity<List<SimplePostDTO>> getWeeklyBoard() {
+        List<SimplePostDTO> weeklyPopularPosts = postService.getWeeklyPopularPosts();
+        return ResponseEntity.ok(weeklyPopularPosts);
+    }
+
+    /**
+     * <h3>명예의 전당 조회 API</h3>
+     *
+     * <p>
+     * 명예의 전당에 선정된 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @return 명예의 전당 게시글 목록
+     */
+    @GetMapping("/fame")
+    public ResponseEntity<List<SimplePostDTO>> getHallOfFameBoard() {
+        List<SimplePostDTO> hallOfFamePosts = postService.getHallOfFamePosts();
+        return ResponseEntity.ok(hallOfFamePosts);
     }
 }

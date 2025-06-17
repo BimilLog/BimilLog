@@ -1,11 +1,11 @@
 package jaeik.growfarm.dto.board;
 
+import jaeik.growfarm.entity.post.PopularFlag;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.util.List;
 
 /**
  * <h3>게시글 상세 정보 DTO</h3>
@@ -23,8 +23,8 @@ public class PostDTO {
 
     private Long userId;
 
-    @Size(max = 8, message = "농장 이름은 최대 8글자 까지 입력 가능합니다.")
-    private String farmName;
+    @Size(max = 8, message = "닉네임 은 최대 8글자 까지 입력 가능합니다.")
+    private String userName;
 
     @Size(max = 30, message = "글 제목은 최대 30자 까지 입력 가능합니다.")
     private String title;
@@ -38,34 +38,23 @@ public class PostDTO {
 
     private boolean is_notice;
 
-    private boolean is_RealtimePopular;
-
-    private boolean is_WeeklyPopular;
-
-    private boolean is_HallOfFame;
+    private PopularFlag popularFlag;
 
     private Instant createdAt;
 
-    private List<CommentDTO> comments;
-
     private boolean userLike;
 
-    public PostDTO(Long postId, Long userId, String farmName, String title, String content, int views, int likes,
-            boolean is_notice, boolean is_RealtimePopular, boolean is_WeeklyPopular, boolean is_HallOfFame,
-            Instant createdAt, List<CommentDTO> comments, boolean userLike) {
+    public PostDTO(Long postId, Long userId, String userName, String title, String content, int views, int likes, boolean is_notice, PopularFlag popularFlag, Instant createdAt, boolean userLike) {
         this.postId = postId;
         this.userId = userId;
-        this.farmName = farmName;
+        this.userName = userName;
         this.title = title;
         this.content = content;
         this.views = views;
         this.likes = likes;
         this.is_notice = is_notice;
-        this.is_RealtimePopular = is_RealtimePopular;
-        this.is_WeeklyPopular = is_WeeklyPopular;
-        this.is_HallOfFame = is_HallOfFame;
+        this.popularFlag = popularFlag;
         this.createdAt = createdAt;
-        this.comments = comments;
         this.userLike = userLike;
     }
 }

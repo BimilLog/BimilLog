@@ -15,6 +15,7 @@ import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
+import jaeik.growfarm.repository.post.PostCustomRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -61,7 +62,6 @@ public class PostService {
 
     /**
      * <h3>게시판 조회</h3>
-     *
      * <p>
      * 최신순으로 게시글 목록을 페이지네이션으로 조회한다.
      * </p>
@@ -79,7 +79,6 @@ public class PostService {
 
     /**
      * <h3>실시간 인기글 목록 조회</h3>
-     *
      * <p>
      * 실시간 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
@@ -95,7 +94,6 @@ public class PostService {
 
     /**
      * <h3>주간 인기글 목록 조회</h3>
-     *
      * <p>
      * 주간 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
@@ -111,7 +109,6 @@ public class PostService {
 
     /**
      * <h3>명예의 전당 게시글 목록 조회</h3>
-     *
      * <p>
      * 명예의 전당에 선정된 게시글 목록을 조회한다.
      * </p>
@@ -127,7 +124,6 @@ public class PostService {
 
     /**
      * <h3>게시글 검색</h3>
-     *
      * <p>
      * 검색 유형과 검색어를 통해 게시글을 검색하고 최신순으로 페이지네이션한다.
      * </p>
@@ -142,19 +138,11 @@ public class PostService {
      */
     public Page<SimplePostDTO> searchPost(String type, String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Post> posts;
-        switch (type) {
-            case "제목" -> posts = postRepository.findByTitleContaining(query, pageable);
-            case "제목내용" -> posts = postRepository.findByTitleContainingOrContentContaining(query, query, pageable);
-            case "작성자" -> posts = postRepository.findByUser_farmNameContaining(query, pageable);
-            default -> throw new IllegalArgumentException("잘못된 검색 타입입니다: " + type);
-        }
-        return convertToSimplePostDTOPage(posts);
+        return postRepository.searchPosts(query, type, pageable);
     }
 
     /**
      * <h3>게시글 작성</h3>
-     *
      * <p>
      * 새로운 게시글을 작성하고 저장한다.
      * </p>
@@ -179,8 +167,7 @@ public class PostService {
     }
 
     /**
-     * <h3>게시글 상세 조회</h3>
-     *
+     * <h3>게시글 조회</h3>
      * <p>
      * 게시글 ID를 통해 게시글 상세 정보를 조회한다.
      * </p>
@@ -191,20 +178,13 @@ public class PostService {
      * @param userId 사용자 ID (좋아요 여부 확인용)
      * @return 게시글 상세 DTO
      */
-    public PostDTO getPost(Long postId, Long userId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
-
-        boolean isLiked = userId != null && postLikeRepository.existsByPostIdAndUserId(postId, userId);
-        ;
-
-        return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), getCommentList(postId, userId),
-                isLiked);
+    public PostDTO getPost(Long postId, CustomUserDetails userDetails) {
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        return postRepository.findPostById(postId, userId);
     }
 
     /**
      * <h3>게시글 수정</h3>
-     *
      * <p>
      * 게시글 작성자만 게시글을 수정할 수 있다.
      * </p>
@@ -234,7 +214,6 @@ public class PostService {
 
     /**
      * <h3>게시글 삭제</h3>
-     *
      * <p>
      * 게시글 작성자만 게시글을 삭제할 수 있다.
      * </p>
@@ -384,7 +363,18 @@ public class PostService {
         }
     }
 
-    // 조회수 증가
+    /**
+     * <h3>게시글 조회수 증가</h3>
+     * <p>
+     * 게시글 조회 시 조회수를 증가시키고, 쿠키에 해당 게시글 ID를 저장한다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @param postId   게시글 ID
+     * @param request  HTTP 요청 객체
+     * @param response HTTP 응답 객체
+     */
     @Transactional
     public void incrementViewCount(Long postId, HttpServletRequest request, HttpServletResponse response) {
         // 1. 게시글 존재 확인
@@ -402,6 +392,18 @@ public class PostService {
         }
     }
 
+    /**
+     * <h3>게시글 조회 쿠키 업데이트</h3>
+     * <p>
+     * 사용자가 본 게시글 ID를 쿠키에 저장한다. 최대 100개까지만 저장하며, 오래된 게시글은 제거한다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @param response HTTP 응답 객체
+     * @param cookies  현재 요청의 쿠키 배열
+     * @param postId   현재 조회한 게시글 ID
+     */
     private void updateViewCookie(HttpServletResponse response, Cookie[] cookies, Long postId) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -447,6 +449,18 @@ public class PostService {
         }
     }
 
+    /**
+     * <h3>사용자가 게시글을 본 적이 있는지 확인</h3>
+     * <p>
+     * 쿠키를 통해 사용자가 해당 게시글을 본 적이 있는지 확인한다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @param cookies 현재 요청의 쿠키 배열
+     * @param postId  게시글 ID
+     * @return true: 본 적 있음, false: 본 적 없음
+     */
     private boolean hasViewedPost(Cookie[] cookies, Long postId) {
         if (cookies == null)
             return false;

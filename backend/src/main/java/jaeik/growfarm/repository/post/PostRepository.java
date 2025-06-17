@@ -1,8 +1,6 @@
 package jaeik.growfarm.repository.post;
 
-import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.entity.post.Post;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,67 +27,7 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRepository {
 
     /**
-     * <h3>게시글 목록 조회</h3>
-     *
-     * <p>최신순으로 페이징하여 게시글 목록을 조회한다..</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 게시글 목록
-     * @author Jaeik
-     * @since  1.0.0
-     */
-    Page<SimplePostDTO> findPostsWithCommentAndLikeCounts(Pageable pageable);
-
-    /**
-     * <h3>제목으로 게시글 검색</h3>
-     *
-     * <p>
-     * 제목에 특정 문자열이 포함된 게시글을 검색한다.
-     * </p>
-     *
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return 검색된 게시글 페이지
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    Page<Post> findByTitleContaining(@NotNull String query, Pageable pageable);
-
-    /**
-     * <h3>제목 또는 내용으로 게시글 검색</h3>
-     *
-     * <p>
-     * 제목 또는 내용에 특정 문자열이 포함된 게시글을 검색한다.
-     * </p>
-     *
-     * @param titleQuery   제목 검색어
-     * @param contentQuery 내용 검색어
-     * @param pageable     페이지 정보
-     * @return 검색된 게시글 페이지
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    Page<Post> findByTitleContainingOrContentContaining(@NotNull String titleQuery, @NotNull String contentQuery,
-                                                        Pageable pageable);
-
-    /**
-     * <h3>농장 이름으로 게시글 검색</h3>
-     *
-     * <p>
-     * 작성자의 농장 이름에 특정 문자열이 포함된 게시글을 검색한다.
-     * </p>
-     *
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return 검색된 게시글 페이지
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    Page<Post> findByUser_farmNameContaining(@NotNull String query, Pageable pageable);
-
-    /**
      * <h3>사용자별 게시글 조회</h3>
-     *
      * <p>
      * 특정 사용자가 작성한 게시글을 조회한다.
      * </p>
@@ -104,7 +42,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
 
     /**
      * <h3>실시간 인기글 조회</h3>
-     *
      * <p>
      * 실시간 인기글로 설정된 게시글들을 조회한다.
      * </p>
@@ -117,7 +54,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
 
     /**
      * <h3>주간 인기글 조회</h3>
-     *
      * <p>
      * 주간 인기글로 설정된 게시글들을 조회한다.
      * </p>
@@ -130,7 +66,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
 
     /**
      * <h3>명예의 전당 게시글 조회</h3>
-     *
      * <p>
      * 명예의 전당으로 설정된 게시글들을 조회한다.
      * </p>
@@ -143,7 +78,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
 
     /**
      * <h3>실시간 인기글 초기화</h3>
-     *
      * <p>
      * 모든 게시글의 실시간 인기글 상태를 false로 초기화한다.
      * </p>
@@ -157,7 +91,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
 
     /**
      * <h3>주간 인기글 초기화</h3>
-     *
      * <p>
      * 모든 게시글의 주간 인기글 상태를 false로 초기화한다.
      * </p>
@@ -171,7 +104,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
 
     /**
      * <h3>명예의 전당 초기화</h3>
-     *
      * <p>
      * 모든 게시글의 명예의 전당 상태를 false로 초기화한다.
      * </p>

@@ -1,15 +1,11 @@
 package jaeik.growfarm.util;
 
-import jaeik.growfarm.dto.board.CommentDTO;
-import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /*
  * BoardUtil 클래스
@@ -44,8 +40,7 @@ public class BoardUtil {
                 likes,
                 post.getViews(),
                 post.getCreatedAt(),
-                post.isNotice()
-        );
+                post.isNotice());
     }
 
     /**
@@ -69,36 +64,5 @@ public class BoardUtil {
                 .views(0)
                 .popularFlag(null)
                 .build();
-    }
-
-    /**
-     * <h3>Post 엔티티를 PostDTO로 변환</h3>
-     *
-     * <p>
-     * 게시글 상세 보기 시 사용하는 변환 로직이다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @param post     Post 엔티티
-     * @param likes    좋아요 수
-     * @param comments 댓글 목록
-     * @param userLike 사용자 좋아요 여부
-     * @return 게시글 상세 DTO
-     */
-    public PostDTO postToDTO(Post post, int likes, List<CommentDTO> comments, boolean userLike) {
-        return new PostDTO(
-                post.getId(),
-                post.getUser().getId(),
-                post.getUser().getUserName(),
-                post.getTitle(),
-                post.getContent(),
-                post.getViews(),
-                likes,
-                post.isNotice(),
-                post.getPopularFlag(),
-                post.getCreatedAt(),
-                comments,
-                userLike);
     }
 }

@@ -23,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
+@Table(indexes = {
+        @Index(name = "idx_post_username", columnList = "user_name")
+})
 public class Users extends BaseEntity {
 
     @Id
