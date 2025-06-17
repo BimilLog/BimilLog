@@ -16,7 +16,6 @@ import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.util.BoardUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -54,7 +53,6 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
-    private final BoardUtil boardUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final PostUpdateService postUpdateService;
 
@@ -138,7 +136,6 @@ public class PostService {
      *
      * @param userDetails 현재 로그인 한 사용자 정보
      * @param postDTO     수정할 게시글 정보 DTO
-     * @return 수정된 게시글 DTO
      * @author Jaeik
      * @since 1.0.0
      */
@@ -154,7 +151,7 @@ public class PostService {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param postDTO 게시글 정보 DTO
+     * @param postDTO     게시글 정보 DTO
      * @author Jaeik
      * @since 1.0.0
      */
@@ -162,6 +159,33 @@ public class PostService {
         Post post = ValidatePost(userDetails, postDTO);
         List<Long> commentIds = commentRepository.findCommentIdsByPostId(post.getId());
         postUpdateService.postDelete(post, commentIds);
+    }
+
+    /**
+     * <h3>게시글 추천</h3>
+     *
+     * <p>
+     * 게시글을 추천하거나 추천 취소한다.
+     * </p>
+     * <p>
+     * 이미 추천한 경우 추천을 취소하고, 추천하지 않은 경우 추천을 추가한다.
+     * </p>
+     *
+     * @param postDTO     추천할 게시글 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public void likePost(PostDTO postDTO, CustomUserDetails userDetails) {
+        Long postId = postDTO.getPostId();
+        Long userId = userDetails.getUserId();
+
+        Post post = postRepository.getReferenceById(postId);
+        Users user = userRepository.getReferenceById(userId);
+
+        Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId, userId);
+
+        postUpdateService.savePostLike(existingLike, post, user);
     }
 
     /**
@@ -188,7 +212,7 @@ public class PostService {
         }
 
         if (userId == null) {
-            if(!Objects.equals(postDTO.getPassword(), post.getPassword())) {
+            if (!Objects.equals(postDTO.getPassword(), post.getPassword())) {
                 throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
             }
         }
@@ -196,49 +220,127 @@ public class PostService {
     }
 
     /**
-     * <h3>게시글 추천</h3>
-     *
+     * <h3>게시글 조회수 증가</h3>
      * <p>
-     * 게시글을 추천하거나 추천 취소한다.
-     * </p>
-     * <p>
-     * 이미 추천한 경우 추천을 취소하고, 추천하지 않은 경우 추천을 추가한다.
+     * 게시글 조회 시 조회수를 증가시키고, 쿠키에 해당 게시글 ID를 저장한다.
      * </p>
      *
-     * @param postDTO  추천할 게시글 정보 DTO
-     * @param userDetails 현재 로그인한 사용자 정보
+     * @param postId   게시글 ID
+     * @param request  HTTP 요청 객체
+     * @param response HTTP 응답 객체
      * @author Jaeik
      * @since 1.0.0
      */
-    public void likePost(PostDTO postDTO, CustomUserDetails userDetails) {
-        Long postId = postDTO.getPostId();
-        Long userId = userDetails.getUserId();
+    public void incrementViewCount(Long postId, HttpServletRequest request, HttpServletResponse response) {
+        if (!postRepository.existsById(postId)) {
+            throw new CustomException(ErrorCode.POST_NOT_FOUND);
+        }
 
-        Post post = postRepository.getReferenceById(postId);
-        Users user = userRepository.getReferenceById(userId);
+        Cookie[] cookies = request.getCookies();
 
-        Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId, userId);
-
-        postUpdateService.savePostLike(existingLike, post, user);
+        if (!hasViewedPost(cookies, postId)) {
+            postUpdateService.updateViewCount(postId);
+            updateViewCookie(response, cookies, postId);
+        }
     }
 
-    private List<SimplePostDTO> convertToSimplePostDTOList(List<Post> posts) {
-        return posts.stream()
-                .map(post -> boardUtil.postToSimpleDTO(post,
-                        commentRepository.countByPostId(post.getId()),
-                        postLikeRepository.countByPostId(post.getId())))
-                .collect(Collectors.toList());
+    /**
+     * <h3>게시글 조회 쿠키 업데이트</h3>
+     * <p>
+     * 사용자가 본 게시글 ID를 쿠키에 저장한다. 최대 100개까지만 저장하며, 오래된 게시글은 제거한다.
+     * </p>
+     *
+     * @param response HTTP 응답 객체
+     * @param cookies  현재 요청의 쿠키 배열
+     * @param postId   현재 조회한 게시글 ID
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private void updateViewCookie(HttpServletResponse response, Cookie[] cookies, Long postId) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Long> viewedPostIds = new ArrayList<>();
+
+            if (cookies != null) {
+                Optional<Cookie> existingCookie = Arrays.stream(cookies)
+                        .filter(cookie -> "post_views".equals(cookie.getName())).findFirst();
+
+                if (existingCookie.isPresent()) {
+                    try {
+                        String jsonValue = new String(Base64.getDecoder().decode(existingCookie.get().getValue()));
+                        viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<List<Long>>() {
+                        });
+                    } catch (Exception e) {
+                        viewedPostIds = new ArrayList<>();
+                    }
+                }
+            }
+
+            if (!viewedPostIds.contains(postId)) {
+                viewedPostIds.add(postId);
+
+                if (viewedPostIds.size() > 100) {
+                    viewedPostIds = viewedPostIds.subList(viewedPostIds.size() - 100, viewedPostIds.size());
+                }
+
+                String jsonValue = objectMapper.writeValueAsString(viewedPostIds);
+                String encodedValue = Base64.getEncoder().encodeToString(jsonValue.getBytes());
+
+                Cookie viewCookie = new Cookie("post_views", encodedValue);
+                viewCookie.setMaxAge(24 * 60 * 60);
+                viewCookie.setPath("/");
+                viewCookie.setHttpOnly(true);
+                response.addCookie(viewCookie);
+            }
+        } catch (Exception ignored) {
+        }
     }
 
+    /**
+     * <h3>사용자가 게시글을 본 적 있는지 확인</h3>
+     * <p>
+     * 쿠키를 통해 사용자가 해당 게시글을 본 적 있는지 확인한다.
+     * </p>
+     *
+     * @param cookies 현재 요청의 쿠키 배열
+     * @param postId  게시글 ID
+     * @return true: 본 적 있음, false: 본 적 없음
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private boolean hasViewedPost(Cookie[] cookies, Long postId) {
+        if (cookies == null)
+            return false;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return Arrays.stream(cookies).filter(cookie -> "post_views".equals(cookie.getName())).anyMatch(cookie -> {
+                try {
+                    String jsonValue = new String(Base64.getDecoder().decode(cookie.getValue()));
+                    List<Long> viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<>() {
+                    });
+                    return viewedPostIds.contains(postId);
+                } catch (Exception e) {
+                    return false;
+                }
+            });
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
-    // 실시간 인기글 등록
-    // 1일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개
-    // 30분 스케줄러
+    /**
+     * <h3>실시간 인기글 선정</h3>
+     * <p>
+     * 1일 이내의 글 중 추천 수가 가장 높은 상위 5개를 실시간 인기글로 등록한다.
+     * </p>
+     * <p>30분마다 시행한다.</p>
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Transactional
     @Scheduled(fixedRate = 60000 * 30)
     public void updateRealtimePopularPosts() {
         postRepository.updateRealtimePopularPosts();
-
     }
 
     // 주간 인기글 등록
@@ -313,125 +415,6 @@ public class PostService {
         }
     }
 
-    /**
-     * <h3>게시글 조회수 증가</h3>
-     * <p>
-     * 게시글 조회 시 조회수를 증가시키고, 쿠키에 해당 게시글 ID를 저장한다.
-     * </p>
-     *
-     * @param postId   게시글 ID
-     * @param request  HTTP 요청 객체
-     * @param response HTTP 응답 객체
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    @Transactional
-    public void incrementViewCount(Long postId, HttpServletRequest request, HttpServletResponse response) {
-        // 1. 게시글 존재 확인
-        if (!postRepository.existsById(postId)) {
-            throw new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId);
-        }
-
-        // 2. 쿠키 확인
-        Cookie[] cookies = request.getCookies();
-
-        // 3. 쿠키가 없거나 해당 게시글을 아직 조회하지 않은 경우에만 조회수 증가
-        if (!hasViewedPost(cookies, postId)) {
-            postRepository.incrementViews(postId);
-            updateViewCookie(response, cookies, postId);
-        }
-    }
-
-    /**
-     * <h3>게시글 조회 쿠키 업데이트</h3>
-     * <p>
-     * 사용자가 본 게시글 ID를 쿠키에 저장한다. 최대 100개까지만 저장하며, 오래된 게시글은 제거한다.
-     * </p>
-     *
-     * @param response HTTP 응답 객체
-     * @param cookies  현재 요청의 쿠키 배열
-     * @param postId   현재 조회한 게시글 ID
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private void updateViewCookie(HttpServletResponse response, Cookie[] cookies, Long postId) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            List<Long> viewedPostIds = new ArrayList<>();
-
-            if (cookies != null) {
-                Optional<Cookie> existingCookie = Arrays.stream(cookies)
-                        .filter(cookie -> "post_views".equals(cookie.getName())).findFirst();
-
-                if (existingCookie.isPresent()) {
-                    try {
-                        // Base64 디코딩 후 파싱
-                        String jsonValue = new String(Base64.getDecoder().decode(existingCookie.get().getValue()));
-                        viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<List<Long>>() {
-                        });
-                    } catch (Exception e) {
-                        // 기존 쿠키 값이 유효하지 않은 경우 빈 리스트로 시작
-                        viewedPostIds = new ArrayList<>();
-                    }
-                }
-            }
-
-            // 이미 본 게시글이면 추가하지 않음
-            if (!viewedPostIds.contains(postId)) {
-                viewedPostIds.add(postId);
-
-                // 최대 100개까지만 유지
-                if (viewedPostIds.size() > 100) {
-                    viewedPostIds = viewedPostIds.subList(viewedPostIds.size() - 100, viewedPostIds.size());
-                }
-
-                // JSON으로 직렬화 - Base64로 인코딩
-                String jsonValue = objectMapper.writeValueAsString(viewedPostIds);
-                String encodedValue = Base64.getEncoder().encodeToString(jsonValue.getBytes());
-
-                Cookie viewCookie = new Cookie("post_views", encodedValue);
-                viewCookie.setMaxAge(24 * 60 * 60); // 24시간
-                viewCookie.setPath("/");
-                viewCookie.setHttpOnly(true);
-                response.addCookie(viewCookie);
-            }
-        } catch (Exception ignored) {
-        }
-    }
-
-    /**
-     * <h3>사용자가 게시글을 본 적이 있는지 확인</h3>
-     * <p>
-     * 쿠키를 통해 사용자가 해당 게시글을 본 적이 있는지 확인한다.
-     * </p>
-     *
-     * @param cookies 현재 요청의 쿠키 배열
-     * @param postId  게시글 ID
-     * @return true: 본 적 있음, false: 본 적 없음
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private boolean hasViewedPost(Cookie[] cookies, Long postId) {
-        if (cookies == null)
-            return false;
-
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return Arrays.stream(cookies).filter(cookie -> "post_views".equals(cookie.getName())).anyMatch(cookie -> {
-                try {
-                    // Base64 디코딩 후 파싱
-                    String jsonValue = new String(Base64.getDecoder().decode(cookie.getValue()));
-                    List<Long> viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<List<Long>>() {
-                    });
-                    return viewedPostIds.contains(postId);
-                } catch (Exception e) {
-                    return false;
-                }
-            });
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
     /**
      * <h3>실시간 인기글 목록 조회</h3>

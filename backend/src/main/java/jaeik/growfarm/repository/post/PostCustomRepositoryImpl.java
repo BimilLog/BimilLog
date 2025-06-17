@@ -371,18 +371,25 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
         };
     }
 
-    // 1일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개를 실시간 인기글로 등록
+    /**
+     * <h3>실시간 인기글 선정</h3>
+     * <p>
+     * 1일 이내의 글 중 추천 수가 가장 높은 상위 5개를 실시간 인기글로 등록한다.
+     * </p>
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Override
+    @Transactional
     public void updateRealtimePopularPosts() {
         QPost post = QPost.post;
         QPostLike postLike = QPostLike.postLike;
 
-        // 1. 모든 게시글의 실시간 인기글 컬럼 초기화
         jpaQueryFactory.update(post)
                 .set(post.popularFlag, (PopularFlag) null)
+                .where(post.popularFlag.eq(PopularFlag.REALTIME))
                 .execute();
 
-        // 2. 실시간 인기글 조건에 맞는 상위 5개 조회
         List<Long> popularPostIds = jpaQueryFactory
                 .select(post.id)
                 .from(post)
@@ -393,7 +400,6 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
                 .limit(5)
                 .fetch();
 
-        // 3. 해당 게시글들의 실시간 인기글 컬럼 REALTIME으로 설정
         if (!popularPostIds.isEmpty()) {
             jpaQueryFactory.update(post)
                     .set(post.popularFlag, PopularFlag.REALTIME)

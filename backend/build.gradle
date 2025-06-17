@@ -36,6 +36,8 @@ dependencies {
     annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta' // QueryDSL 코드 생성용
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api' // Jakarta 어노테이션 지원
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api' // Jakarta Persistence API 지원
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 데이터베이스 지원
+    implementation 'org.springframework.boot:spring-boot-starter-cache' // 캐시 지원
 
     // ==== JWT (토큰 인증) 관련 ====
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // JWT API
@@ -61,8 +63,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8' // API 명세
 
     // ==== 알림 관련 ====
-    implementation 'com.google.firebase:firebase-admin:9.2.0'           // Google Firebase Admin
-
+    implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
 }
 
 tasks.named('test') {

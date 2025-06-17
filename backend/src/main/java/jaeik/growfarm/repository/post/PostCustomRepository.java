@@ -19,14 +19,6 @@ import java.util.List;
  */
 public interface PostCustomRepository {
 
-    void updateRealtimePopularPosts();
-
-    List<Post> updateWeeklyPopularPosts();
-
-    List<Post> updateHallOfFamePosts();
-
-    Page<Post> findByLikedPosts(Long userId, Pageable pageable);
-
     /**
      * <h3>게시글 목록 조회</h3>
      * <p>
@@ -71,5 +63,21 @@ public interface PostCustomRepository {
      * @author Jaeik
      */
     PostDTO findPostById(Long postId, Long userId);
+
+    /**
+     * <h3>실시간 인기글 선정</h3>
+     * <p>
+     * 1일 이내의 글 중 추천 수가 가장 높은 상위 5개를 실시간 인기글로 등록한다.
+     * </p>
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    void updateRealtimePopularPosts();
+
+    List<Post> updateWeeklyPopularPosts();
+
+    List<Post> updateHallOfFamePosts();
+
+    Page<Post> findByLikedPosts(Long userId, Pageable pageable);
 
 }

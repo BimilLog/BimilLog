@@ -21,10 +21,24 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version 1.0.0
  */
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRepository {
+
+    /**
+     * <h3>게시글 조회수 증가</h3>
+     * <p>
+     * 게시글의 조회수를 1 증가시킨다.
+     * </p>
+     *
+     * @param postId 게시글 ID
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Modifying
+    @Query(nativeQuery = true, value = "UPDATE post SET views = views + 1 WHERE post_id = :postId")
+    void incrementViews(@Param("postId") Long postId);
 
     /**
      * <h3>사용자별 게시글 조회</h3>
@@ -40,80 +54,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
      */
     Page<Post> findByUserId(Long userId, Pageable pageable);
 
-    /**
-     * <h3>실시간 인기글 조회</h3>
-     * <p>
-     * 실시간 인기글로 설정된 게시글들을 조회한다.
-     * </p>
-     *
-     * @return 실시간 인기글 목록
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    List<Post> findByIsRealtimePopularTrue();
-
-    /**
-     * <h3>주간 인기글 조회</h3>
-     * <p>
-     * 주간 인기글로 설정된 게시글들을 조회한다.
-     * </p>
-     *
-     * @return 주간 인기글 목록
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    List<Post> findByIsWeeklyPopularTrue();
-
-    /**
-     * <h3>명예의 전당 게시글 조회</h3>
-     * <p>
-     * 명예의 전당으로 설정된 게시글들을 조회한다.
-     * </p>
-     *
-     * @return 명예의 전당 게시글 목록
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    List<Post> findByIsHallOfFameTrue();
-
-    /**
-     * <h3>실시간 인기글 초기화</h3>
-     * <p>
-     * 모든 게시글의 실시간 인기글 상태를 false로 초기화한다.
-     * </p>
-     *
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.isRealtimePopular = false")
-    void resetRealtimePopular();
-
-    /**
-     * <h3>주간 인기글 초기화</h3>
-     * <p>
-     * 모든 게시글의 주간 인기글 상태를 false로 초기화한다.
-     * </p>
-     *
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.isWeeklyPopular = false")
-    void resetWeeklyPopular();
-
-    /**
-     * <h3>명예의 전당 초기화</h3>
-     * <p>
-     * 모든 게시글의 명예의 전당 상태를 false로 초기화한다.
-     * </p>
-     *
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.isHallOfFame = false")
-    void resetHallOfFame();
 
     // PostCustomRepository 상속 PostCustomRepository 상속 실시간 인기글에 등록
     void updateRealtimePopularPosts();
@@ -123,11 +63,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
 
     // PostCustomRepository 상속 명예의 전당에 등록
     List<Post> updateHallOfFamePosts();
-
-    // 조회수 증가
-    @Modifying
-    @Query(nativeQuery = true, value = "UPDATE post SET views = views + 1 WHERE post_id = :postId")
-    void incrementViews(@Param("postId") Long postId);
 
     // 해당 유저가 추천 누른 글 목록 반환
     Page<Post> findByLikedPosts(Long userId, Pageable pageable);

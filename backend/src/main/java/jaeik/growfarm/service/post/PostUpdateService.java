@@ -20,6 +20,7 @@ import java.util.Optional;
  * </p>
  *
  *
+ *
  * @author Jaeik
  * @version  1.0.0
  */
@@ -69,5 +70,18 @@ public class PostUpdateService {
                     .build();
             postLikeRepository.save(postLike);
         }
+    }
+
+    /**
+     * <h3>게시글 조회수 증가</h3>
+     * <p>게시글의 조회수를 1 증가시킨다.</p>
+     *
+     * @param postId 게시글 ID
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Transactional
+    public void updateViewCount(Long postId) {
+        postRepository.incrementViews(postId);
     }
 }
