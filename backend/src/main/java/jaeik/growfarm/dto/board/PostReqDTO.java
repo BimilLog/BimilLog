@@ -32,5 +32,5 @@ public class PostReqDTO {
     private String content;
 
     @Size(max = 8, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
-    private int password;
+    private Integer password;
 }

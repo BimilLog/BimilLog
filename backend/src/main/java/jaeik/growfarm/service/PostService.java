@@ -125,7 +125,7 @@ public class PostService {
     @Transactional
     public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
         Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
-        int password = userDetails == null ? postReqDTO.getPassword() : null;
+        Integer password = userDetails == null ? postReqDTO.getPassword() : null;
 
         Post post = postRepository.save(Post.createPost(user, postReqDTO));
         return new PostDTO(post.getId(),
@@ -138,8 +138,7 @@ public class PostService {
                 post.isNotice(),
                 post.getPopularFlag(),
                 post.getCreatedAt(),
-                false,
-                password);
+                false);
     }
 
     /**
@@ -148,7 +147,6 @@ public class PostService {
      * 게시글 작성자만 게시글을 수정할 수 있다.
      * </p>
      *
-     * @param postId      게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보
      * @param postDTO     수정할 게시글 정보 DTO
      * @return 수정된 게시글 DTO
@@ -165,7 +163,7 @@ public class PostService {
         }
 
         if (user == null) {
-            if(postDTO.getPassword() != post.getPassword()) {
+            if(!Objects.equals(postDTO.getPassword(), post.getPassword())) {
                 throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
             }
         }
@@ -181,8 +179,7 @@ public class PostService {
                 post.isNotice(),
                 post.getPopularFlag(),
                 post.getCreatedAt(),
-                false,
-                post.getPassword());
+                false);
     }
 
     /**

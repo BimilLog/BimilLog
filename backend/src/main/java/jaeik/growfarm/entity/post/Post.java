@@ -55,7 +55,7 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private boolean isNotice;
 
-    private int password;
+    private Integer password;
 
     @Enumerated(EnumType.STRING)
     private PopularFlag popularFlag;
