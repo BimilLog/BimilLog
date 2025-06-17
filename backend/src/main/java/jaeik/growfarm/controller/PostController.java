@@ -162,10 +162,10 @@ public class PostController {
     }
 
     /**
-     * <h3>게시글 좋아요/좋아요 취소 API</h3>
+     * <h3>게시글 추천/추천 취소 API</h3>
      *
      * <p>
-     * 게시글에 좋아요를 누르거나 취소한다.
+     * 게시글에 추천을 하거나 취소한다.
      * </p>
      * 
      * @since 1.0.0
@@ -174,11 +174,11 @@ public class PostController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 좋아요 처리 결과 메시지
      */
-    @PostMapping("/{postId}/like")
-    public ResponseEntity<String> likePost(@PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postService.likePost(postId, userDetails);
-        return ResponseEntity.ok("게시글 추천 완료");
+    @PostMapping("like")
+    public ResponseEntity<String> likePost(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                           @RequestBody @Valid PostDTO postDTO) {
+        postService.likePost(postDTO, userDetails);
+        return ResponseEntity.ok("추천 처리 완료");
     }
 
     /**

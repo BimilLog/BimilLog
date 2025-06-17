@@ -309,7 +309,7 @@ public class CommentService {
      * <h3>댓글 추천</h3>
      *
      * <p>
-     * 댓글에 추천을 추가하거나 제거한다.
+     * 댓글을 추천하거나 추천 취소한다.
      * </p>
      * <p>
      * 이미 추천한 경우 추천을 취소하고, 추천하지 않은 경우 추천을 추가한다.
@@ -329,7 +329,7 @@ public class CommentService {
 
         Optional<CommentLike> existingLike = commentLikeRepository.findByCommentIdAndUserId(commentId, userId);
 
-        commentUpdateService.likeSaveComment(existingLike, comment, user);
+        commentUpdateService.saveCommentLike(existingLike, comment, user);
     }
 
     /**

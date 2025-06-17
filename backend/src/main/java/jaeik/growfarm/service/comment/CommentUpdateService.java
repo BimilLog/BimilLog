@@ -100,7 +100,7 @@ public class CommentUpdateService {
      * @since 1.0.0
      */
     @Transactional
-    public void likeSaveComment(Optional<CommentLike> existingLike, Comment comment, Users user) {
+    public void saveCommentLike(Optional<CommentLike> existingLike, Comment comment, Users user) {
         if (existingLike.isPresent()) {
             commentLikeRepository.delete(existingLike.get());
         } else {

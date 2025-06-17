@@ -28,15 +28,4 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
      * @author Jaeik
      */
     Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId);
-
-    /**
-     * <h3>댓글 추천 수 조회</h3>
-     * <p>특정 댓글에 대한 추천 수를 조회한다.</p>
-     *
-     * @param commentId 댓글 ID
-     * @return 추천 수
-     * @since 1.0.0
-     * @author Jaeik
-     */
-    int countByCommentId(Long commentId);
 }

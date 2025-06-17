@@ -128,7 +128,6 @@ public class PostService {
     @Transactional
     public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
         Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
-
         Post post = postRepository.save(Post.createPost(user, postReqDTO));
         return PostDTO.newPost(post);
     }
@@ -161,7 +160,8 @@ public class PostService {
      */
     public void deletePost(CustomUserDetails userDetails, PostDTO postDTO) {
         Post post = ValidatePost(userDetails, postDTO);
-        postUpdateService.postDelete(post);
+        List<Long> commentIds = commentRepository.findCommentIdsByPostId(post.getId());
+        postUpdateService.postDelete(post, commentIds);
     }
 
     /**
@@ -195,24 +195,31 @@ public class PostService {
         return post;
     }
 
-    // 게시글 추천, 추천 취소
-    public void likePost(Long postId, CustomUserDetails userDetails) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
+    /**
+     * <h3>게시글 추천</h3>
+     *
+     * <p>
+     * 게시글을 추천하거나 추천 취소한다.
+     * </p>
+     * <p>
+     * 이미 추천한 경우 추천을 취소하고, 추천하지 않은 경우 추천을 추가한다.
+     * </p>
+     *
+     * @param postDTO  추천할 게시글 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public void likePost(PostDTO postDTO, CustomUserDetails userDetails) {
+        Long postId = postDTO.getPostId();
+        Long userId = userDetails.getUserId();
 
-        Users user = userRepository.findById(userDetails.getClientDTO().getUserId()).orElseThrow(
-                () -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userDetails.getClientDTO().getUserId()));
+        Post post = postRepository.getReferenceById(postId);
+        Users user = userRepository.getReferenceById(userId);
 
-        Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId,
-                userDetails.getClientDTO().getUserId());
+        Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId, userId);
 
-        if (existingLike.isPresent()) {
-            postLikeRepository.delete(existingLike.get());
-        } else {
-            PostLike postLike = PostLike.builder().post(post).user(user).build();
-
-            postLikeRepository.save(postLike);
-        }
+        postUpdateService.savePostLike(existingLike, post, user);
     }
 
     private List<SimplePostDTO> convertToSimplePostDTOList(List<Post> posts) {

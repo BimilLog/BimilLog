@@ -63,4 +63,14 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      */
     @Query("SELECT COUNT(cc) > 0 FROM CommentClosure cc WHERE cc.ancestor.id = :commentId AND cc.descendant.id != :commentId")
     boolean hasDescendants(@Param("commentId") Long commentId);
+
+    /**
+     * <h3>댓글 ID 리스트로 댓글관계 삭제</h3>
+     * <p>특정 댓글 ID 리스트에 해당하는 모든 댓글 관계를 삭제합니다.</p>
+     *
+     * @param commentIds 삭제할 댓글 ID 리스트
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    void deleteByCommentIds(List<Long> commentIds);
 }
