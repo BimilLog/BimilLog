@@ -32,7 +32,7 @@ import java.util.Objects;
  * <p>JWT 토큰을 검증하고 인증 정보를 설정하는 필터</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version  1.0.0
  */
 @Component
 @RequiredArgsConstructor

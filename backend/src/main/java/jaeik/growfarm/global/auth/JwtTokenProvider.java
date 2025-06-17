@@ -23,7 +23,7 @@ import java.util.List;
  * <p>JWT 토큰을 생성하고 검증합니다.</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version  1.0.0
  */
 @Component
 @RequiredArgsConstructor
@@ -127,7 +127,7 @@ public class JwtTokenProvider {
                 .claim("kakaoId", clientDTO.getKakaoId())
                 .claim("fcmTokenId", clientDTO.getFcmTokenId())
                 .claim("settingId", clientDTO.getSettingDTO().getSettingId())
-                .claim("userName", clientDTO.getFarmName())
+                .claim("userName", clientDTO.getUserName())
                 .claim("role", clientDTO.getRole().name())
                 .claim("kakaoNickname", clientDTO.getKakaoNickname())
                 .claim("thumbnailImage", clientDTO.getThumbnailImage())

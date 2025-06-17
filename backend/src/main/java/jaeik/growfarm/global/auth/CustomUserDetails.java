@@ -104,17 +104,17 @@ public class CustomUserDetails implements UserDetails {
     }
 
     /**
-     * <h3>사용자 농장 이름 조회</h3>
+     * <h3>닉네임 조회</h3>
      *
-     * <p>사용자의 농장 이름을 반환한다.</p>
+     * <p>사용자의 닉네임을 반환한다.</p>
      *
      * @since 1.0.0
      * @author Jaeik
-     * @return 사용자 농장 이름
+     * @return 사용자 닉네임
      */
     @Override
     public String getUsername() {
-        return clientDTO.getFarmName();
+        return clientDTO.getUserName();
     }
 
     @Override

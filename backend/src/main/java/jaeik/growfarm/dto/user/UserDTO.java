@@ -11,7 +11,7 @@ import lombok.Setter;
  * 사용자의 기본 정보를 담는 데이터 전송 객체
  * </p>
  * 
- * @since 1.0.0
+ * @version  1.0.0
  * @author Jaeik
  */
 @Setter
@@ -28,7 +28,7 @@ public class UserDTO {
 
     private String thumbnailImage;
 
-    private String farmName;
+    private String userName;
 
     private UserRole role;
 
@@ -38,7 +38,7 @@ public class UserDTO {
         this.settingDTO = new SettingDTO(user.getSetting());
         this.kakaoNickname = user.getKakaoNickname();
         this.thumbnailImage = user.getThumbnailImage();
-        this.farmName = user.getUserName();
+        this.userName = user.getUserName();
         this.role = user.getRole();
     }
 
@@ -48,7 +48,7 @@ public class UserDTO {
         this.settingDTO = settingDTO;
         this.kakaoNickname = user.getKakaoNickname();
         this.thumbnailImage = user.getThumbnailImage();
-        this.farmName = user.getUserName();
+        this.userName = user.getUserName();
         this.role = user.getRole();
     }
 
@@ -57,7 +57,7 @@ public class UserDTO {
         this.kakaoId = kakaoId;
         this.kakaoNickname = kakaoNickname;
         this.thumbnailImage = thumbnailImage;
-        this.farmName = farmName;
+        this.userName = farmName;
         this.role = role;
         this.settingDTO = settingDTO;
     }

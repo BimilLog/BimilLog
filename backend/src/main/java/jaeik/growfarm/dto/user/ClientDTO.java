@@ -10,7 +10,7 @@ import lombok.Setter;
  * <p>사용자 정보를 포함하는 데이터 전송 객체</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version  1.0.0
  */
 @Setter
 @Getter
