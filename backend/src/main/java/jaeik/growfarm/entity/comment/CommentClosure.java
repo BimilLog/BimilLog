@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(indexes = {
+        @Index(name = "idx_comment_closure_ancestor_depth", columnList = "descendant_id, depth")
+})
 public class CommentClosure {
 
     @Id

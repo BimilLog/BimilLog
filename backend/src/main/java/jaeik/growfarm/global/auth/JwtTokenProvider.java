@@ -134,7 +134,6 @@ public class JwtTokenProvider {
                 .claim("postFeaturedNotification", clientDTO.getSettingDTO().isPostFeaturedNotification())
                 .claim("farmNotification", clientDTO.getSettingDTO().isFarmNotification())
                 .claim("commentNotification", clientDTO.getSettingDTO().isCommentNotification())
-                .claim("commentFeaturedNotification", clientDTO.getSettingDTO().isCommentFeaturedNotification())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -237,8 +236,7 @@ public class JwtTokenProvider {
                 claims.get("settingId", Long.class),
                 claims.get("postFeaturedNotification", Boolean.class),
                 claims.get("farmNotification", Boolean.class),
-                claims.get("commentNotification", Boolean.class),
-                claims.get("commentFeaturedNotification", Boolean.class));
+                claims.get("commentNotification", Boolean.class));
 
         return new ClientDTO(
                 Long.parseLong(claims.getSubject()),

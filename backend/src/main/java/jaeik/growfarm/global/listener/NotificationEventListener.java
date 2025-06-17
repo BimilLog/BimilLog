@@ -1,7 +1,6 @@
 package jaeik.growfarm.global.listener;
 
 import jaeik.growfarm.global.event.CommentCreatedEvent;
-import jaeik.growfarm.global.event.CommentFeaturedEvent;
 import jaeik.growfarm.global.event.FarmPlantEvent;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.service.notification.FcmService;
@@ -143,41 +142,5 @@ public class NotificationEventListener {
                 event.getFcmBody());
 
         log.info("인기글 등극 FCM 이벤트 처리 완료: userId={}", event.getUserId());
-    }
-
-    // ================== 인기댓글 등극 이벤트 처리 ==================
-
-    /**
-     * <h3>인기댓글 등극 SSE 알림 처리</h3>
-     * 
-     * @param event 인기댓글 등극 이벤트
-     */
-    @EventListener
-    @Async("sseNotificationExecutor")
-    public void handleCommentFeaturedEventForSse(CommentFeaturedEvent event) {
-        log.info("인기댓글 등극 SSE 이벤트 처리 시작: userId={}, 스레드={}",
-                event.getUserId(), Thread.currentThread().getName());
-
-        sseService.sendCommentFeaturedNotificationAsync(
-                event.getUserId(),
-                event.getPostId());
-
-        log.info("인기댓글 등극 SSE 이벤트 처리 완료: userId={}", event.getUserId());
-    }
-
-    /**
-     * <h3>인기댓글 등극 FCM 알림 처리</h3>
-     * 
-     * @param event 인기댓글 등극 이벤트
-     */
-    @EventListener
-    @Async("fcmNotificationExecutor")
-    public void handleCommentFeaturedEventForFcm(CommentFeaturedEvent event) {
-        log.info("인기댓글 등극 FCM 이벤트 처리 시작: userId={}, 스레드={}",
-                event.getUserId(), Thread.currentThread().getName());
-
-        fcmService.sendCommentFeaturedFcmNotificationAsync(event.getUser());
-
-        log.info("인기댓글 등극 FCM 이벤트 처리 완료: userId={}", event.getUserId());
     }
 }

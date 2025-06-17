@@ -264,22 +264,6 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
-    private Page<SimplePostDTO> convertToSimplePostDTOPage(Page<Post> posts) {
-        return posts.map(post -> boardUtil.postToSimpleDTO(
-                post,
-                commentRepository.countByPostId(post.getId()),
-                postLikeRepository.countByPostId(post.getId())));
-    }
-
-    // 해당 글의 댓글 조회
-    private List<CommentDTO> getCommentList(Long postId, Long userId) {
-
-        return commentRepository.findByCommentList(postId).stream().map(comment -> {
-            boolean userLike = userId != null
-                    && commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), userId);
-            return boardUtil.commentToDTO(comment, commentLikeRepository.countByCommentId(comment.getId()), userLike);
-        }).toList();
-    }
 
     // 실시간 인기글 등록
     // 1일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개

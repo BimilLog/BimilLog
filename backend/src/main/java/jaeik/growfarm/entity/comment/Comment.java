@@ -29,7 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @SuperBuilder
 @NoArgsConstructor
 @Table(indexes = {
-        @Index(name = "idx_comment_post_deleted", columnList = "post_id, deleted")
+        @Index(name = "idx_comment_post_deleted", columnList = "post_id, deleted"),
+        @Index(name = "idx_comment_post_created", columnList = "post_id, created_at DESC")
 })
 public class Comment extends BaseEntity {
 
@@ -51,10 +52,6 @@ public class Comment extends BaseEntity {
     @NotNull
     @Column(nullable = false) // 255자 허용
     private String content;
-
-    @NotNull
-    @Column(nullable = false)
-    private boolean popular;
 
     @NotNull
     @Column(nullable = false)
@@ -82,12 +79,10 @@ public class Comment extends BaseEntity {
                 .post(post)
                 .user(user)
                 .content(content)
-                .popular(false)
                 .deleted(false)
                 .password(password)
                 .build();
     }
-
     /**
      * <h3>댓글 수정</h3>
      *
@@ -104,14 +99,6 @@ public class Comment extends BaseEntity {
         this.content = content;
     }
 
-    /**
-     * <h3>인기 댓글 상태 설정</h3>
-     *
-     * @param popular 인기 댓글 여부
-     */
-    public void updatePopular(boolean popular) {
-        this.popular = popular;
-    }
 
     /**
      * <h3>댓글 논리 삭제</h3>
@@ -123,6 +110,6 @@ public class Comment extends BaseEntity {
     @Transactional
     public void softDelete() {
         this.deleted = true;
-        this.content = "삭제된 메시지입니다.";
+        this.content = "삭제된 댓글 입니다.";
     }
 }

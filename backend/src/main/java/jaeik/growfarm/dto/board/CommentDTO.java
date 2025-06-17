@@ -48,20 +48,6 @@ public class CommentDTO {
 
     private boolean userLike;
 
-    public CommentDTO(Long id, Long postId, String farmName, String content, int likes, Instant createdAt,
-            Integer password, boolean featured, boolean deleted, boolean userLike) {
-        this.id = id;
-        this.postId = postId;
-        this.farmName = farmName;
-        this.content = content;
-        this.likes = likes;
-        this.createdAt = createdAt;
-        this.password = password;
-        this.popular = featured;
-        this.deleted = deleted;
-        this.userLike = userLike;
-    }
-
     /**
      * <h3>엔티티를 DTO로 변환</h3>
      * <p>
@@ -80,7 +66,6 @@ public class CommentDTO {
         this.content = comment.getContent();
         this.createdAt = comment.getCreatedAt();
         this.password = comment.getPassword();
-        this.popular = comment.isPopular();
         this.deleted = comment.isDeleted();
         this.parentId = null;
         this.likes = 0;

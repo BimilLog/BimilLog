@@ -1,11 +1,13 @@
 package jaeik.growfarm.repository.comment;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.entity.comment.Comment;
 import jaeik.growfarm.entity.comment.QComment;
+import jaeik.growfarm.entity.comment.QCommentClosure;
 import jaeik.growfarm.entity.comment.QCommentLike;
-import jaeik.growfarm.entity.post.QPost;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -15,79 +17,62 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/*
- * 커스텀 댓글 Repository 구현체
- * 댓글 관련 데이터베이스 작업을 수행하는 Repository 구현체
- * 수정일 : 2025-05-03
+/**
+ * <h2>커스텀 댓글 저장소 구현 클래스</h2>
+ * <p>
+ * 댓글 관련 데이터베이스 작업을 수행하며 커스텀한 쿼리메소드가 포함되어 있습니다.
+ * </p>
+ * @author Jaeik
+ * @version 1.0.0
  */
 @Repository
+@RequiredArgsConstructor
 public class CommentCustomRepositoryImpl implements CommentCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    public CommentCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
-        this.jpaQueryFactory = jpaQueryFactory;
-    }
-
-    // 글의 댓글 목록 가져 오기
+    /**
+     * <h3>루트 댓글 총 개수 조회</h3>
+     * <p>
+     * 삭제된 댓글 포함하여 전체 루트 댓글 개수 조회
+     * </p>
+     *
+     * @param postId 게시글 ID
+     * @return 전체 루트 댓글 개수
+     */
     @Override
-    public List<Comment> findByCommentList(Long postId) {
+    public Long countRootCommentsByPostId(Long postId) {
+
         QComment comment = QComment.comment;
-        QPost post = QPost.post;
+        QCommentClosure commentClosure = QCommentClosure.commentClosure;
 
-        return jpaQueryFactory
-                .selectFrom(comment)
-                .join(comment.post, post)
-                .where(post.id.eq(postId)) // 특정 게시글의 댓글만 필터링
-                .orderBy(comment.createdAt.desc())
-                .fetch();
-    }
-
-    // 해당 유저가 추천 누른 댓글 목록 반환
-    @Override
-    public Page<Comment> findByLikedComments(Long userId, Pageable pageable) {
-        QComment comment = QComment.comment;
-        QCommentLike commentLike = QCommentLike.commentLike;
-
-        // 사용자가 좋아요한 댓글 목록 조회 (페이징 적용)
-        List<Comment> comments = jpaQueryFactory
-                .selectFrom(comment)
-                .join(commentLike)
-                .on(comment.id.eq(commentLike.comment.id))
-                .where(commentLike.user.id.eq(userId))
-                .orderBy(comment.createdAt.desc()) // 최신순으로 정렬
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        // 전체 카운트 쿼리 실행
-        Long total = jpaQueryFactory
+        Long count = jpaQueryFactory
                 .select(comment.count())
                 .from(comment)
-                .join(commentLike)
-                .on(comment.id.eq(commentLike.comment.id))
-                .where(commentLike.user.id.eq(userId))
+                .join(commentClosure).on(commentClosure.descendant.eq(comment))
+                .where(comment.post.id.eq(postId).and(commentClosure.depth.eq(0)))
                 .fetchOne();
 
-        // null 안전성을 고려한 코드로 수정
-        return new PageImpl<>(comments, pageable, total == null ? 0L : total);
+        return count != null ? count : 0L;
     }
 
     /**
-     * <h3>게시글별 댓글 수 조회</h3>
+     * <h3>게시글별 댓글 수 배치 조회</h3>
      * <p>
-     * 게시글 ID 리스트로 각 게시글의 댓글 수를 조회한다.
+     * 여러 게시글의 댓글 수를 한 번에 조회 (삭제된 댓글 제외)
      * </p>
      *
      * @param postIds 게시글 ID 리스트
-     * @return 게시글 ID와 댓글 수의 맵
-     * @author Jaeik
-     * @since 1.0.0
+     * @return 게시글 ID와 댓글 수의 매핑
      */
     @Override
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return Map.of();
+        }
+
         QComment comment = QComment.comment;
-        NumberExpression<Long> commentCountExpr = comment.count().coalesce(0L).as("commentCount");
+        NumberExpression<Long> commentCountExpr = comment.count().coalesce(0L);
 
         return jpaQueryFactory
                 .select(comment.post.id, commentCountExpr)
@@ -100,7 +85,126 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
                         tuple -> tuple.get(comment.post.id),
                         tuple -> {
                             Long count = tuple.get(commentCountExpr);
-                            return count != null ? Math.toIntExact(count) : 0;
+                            return count != null && count <= Integer.MAX_VALUE
+                                    ? count.intValue()
+                                    : 0;
                         }));
+    }
+
+    /**
+     * <h3>인기댓글 조회</h3>
+     * <p>
+     * 해당 게시글의 댓글 중에서 추천수 3개 이상인 상위 3개를 조회
+     * </p>
+     *
+     * @param postId 게시글 ID
+     * @return 인기댓글 리스트 (추천수 포함)
+     */
+    @Override
+    public List<Tuple> findPopularComments(Long postId) {
+        QComment comment = QComment.comment;
+        QCommentLike commentLike = QCommentLike.commentLike;
+
+        return jpaQueryFactory
+                .select(
+                        comment,
+                        commentLike.count().coalesce(0L).as("likeCount"))
+                .from(comment)
+                .leftJoin(commentLike).on(commentLike.comment.eq(comment))
+                .where(comment.post.id.eq(postId))
+                .groupBy(comment.id)
+                .having(commentLike.count().goe(3))
+                .orderBy(commentLike.count().desc())
+                .limit(3)
+                .fetch();
+    }
+
+    /**
+     * <h3>댓글 조회</h3>
+     * <p>
+     * 루트댓글을 최신순으로 조회하고 자손댓글도 함께 반환
+     * </p>
+     *
+     * @param postId   게시글 ID
+     * @param pageable 페이징 정보
+     * @return 최신순 정렬된 루트 댓글과 자손댓글 리스트
+     */
+    @Override
+    public List<Tuple> findCommentsWithLatestOrder(Long postId, Pageable pageable) {
+        QComment comment = QComment.comment;
+        QCommentLike commentLike = QCommentLike.commentLike;
+        QCommentClosure commentClosure = QCommentClosure.commentClosure;
+
+        List<Long> rootCommentIds = jpaQueryFactory
+                .select(comment.id)
+                .from(comment)
+                .join(commentClosure).on(commentClosure.descendant.eq(comment))
+                .where(comment.post.id.eq(postId).and(commentClosure.depth.eq(0)))
+                .orderBy(comment.createdAt.desc()) // 최신순
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        if (rootCommentIds.isEmpty()) {
+            return List.of();
+        }
+
+        return jpaQueryFactory
+                .select(
+                        comment,
+                        commentLike.count().coalesce(0L).as("likeCount"),
+                        commentClosure.ancestor.id.as("rootCommentId"),
+                        commentClosure.depth.as("depth"))
+                .from(comment)
+                .leftJoin(commentLike).on(commentLike.comment.eq(comment))
+                .innerJoin(commentClosure).on(commentClosure.descendant.eq(comment))
+                .where(commentClosure.ancestor.id.in(rootCommentIds))
+                .groupBy(comment.id, commentClosure.ancestor.id, commentClosure.depth)
+                .orderBy(
+                        commentClosure.ancestor.createdAt.desc(),
+                        commentClosure.depth.asc(),
+                        comment.createdAt.asc()
+                )
+                .fetch();
+    }
+
+    /**
+     * <h3>사용자가 추천한 댓글 조회</h3>
+     * <p>
+     * 특정 사용자가 추천한 댓글 목록을 페이징하여 조회
+     * </p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이징 정보
+     * @return 추천한 댓글 목록 페이지
+     */
+    @Override
+    public Page<Comment> findByLikedComments(Long userId, Pageable pageable) {
+        if (userId == null || pageable == null) {
+            return Page.empty();
+        }
+
+        QComment comment = QComment.comment;
+        QCommentLike commentLike = QCommentLike.commentLike;
+
+        // 사용자가 추천한 댓글 목록 조회
+        List<Comment> comments = jpaQueryFactory
+                .selectFrom(comment)
+                .join(commentLike).on(comment.id.eq(commentLike.comment.id))
+                .where(commentLike.user.id.eq(userId))
+                .orderBy(comment.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // 전체 개수 조회
+        Long total = jpaQueryFactory
+                .select(comment.count())
+                .from(comment)
+                .join(commentLike).on(comment.id.eq(commentLike.comment.id))
+                .where(commentLike.user.id.eq(userId))
+                .fetchOne();
+
+        return new PageImpl<>(comments, pageable, total != null ? total : 0L);
     }
 }

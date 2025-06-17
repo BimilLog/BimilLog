@@ -1,13 +1,12 @@
 package jaeik.growfarm.service.comment;
 
+import com.querydsl.core.Tuple;
 import jaeik.growfarm.dto.board.CommentDTO;
-import jaeik.growfarm.entity.comment.Comment;
-import jaeik.growfarm.entity.comment.CommentLike;
+import jaeik.growfarm.entity.comment.*;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.event.CommentCreatedEvent;
-import jaeik.growfarm.global.event.CommentFeaturedEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.comment.CommentClosureRepository;
@@ -18,18 +17,11 @@ import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * <h2>CommentService</h2>
@@ -104,77 +96,143 @@ public class CommentService {
     }
 
     /**
-     * <h3>댓글 조회</h3>
-     *
+     * <h3>인기댓글 조회</h3>
      * <p>
-     * 게시글에 달린 댓글을 페이지 단위로 조회한다.
-     * </p>
-     * <p>
-     * 루트 댓글과 자손 댓글들을 클로저 테이블에서 조회하여 트리 구조로 구성한다.
+     * 해당 게시글의 댓글 중에서 추천수 3개 이상인 상위 3개를 조회
      * </p>
      *
      * @param postId      게시글 ID
-     * @param page        페이지 번호 (0부터 시작)
-     * @param userDetails 현재 로그인 한 사용자 정보 (추천 여부 확인용)
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 인기댓글 리스트
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
+
+        try {
+            List<Tuple> popularTuples = commentRepository.findPopularComments(postId);
+
+            if (popularTuples.isEmpty()) {
+                return List.of();
+            }
+
+            List<Long> popularCommentIds = popularTuples.stream()
+                    .map(tuple -> {
+                        Comment comment = tuple.get(QComment.comment);
+                        return comment != null ? comment.getId() : null;
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            List<Long> userLikedCommentIds = getUserLikedCommentIds(popularCommentIds, userDetails);
+
+            List<CommentDTO> popularComments = new ArrayList<>();
+            for (Tuple tuple : popularTuples) {
+                Comment comment = tuple.get(QComment.comment);
+                if (comment == null)
+                    continue;
+
+                try {
+                    CommentDTO commentDTO = new CommentDTO(comment);
+
+                    Long likeCount = tuple.get(QCommentLike.commentLike.count().coalesce(0L));
+                    commentDTO.setLikes(likeCount != null ? likeCount.intValue() : 0);
+
+                    commentDTO.setUserLike(userLikedCommentIds.contains(comment.getId()));
+
+                    commentDTO.setPopular(true);
+
+                    popularComments.add(commentDTO);
+                } catch (Exception e) {
+                    throw new CustomException(ErrorCode.POPULAR_COMMENT_FAILED);
+                }
+            }
+
+            return popularComments;
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+    /**
+     * <h3>일반 댓글 조회</h3>
+     * <p>
+     * 루트댓글을 최신순으로 조회하고 자손댓글도 함께 반환
+     * </p>
+     * <p>
+     * 인기댓글도 포함되어 중복 표시됨
+     * </p>
+     *
+     * @param postId      게시글 ID
+     * @param page        페이지 번호
+     * @param userDetails 현재 로그인한 사용자 정보
      * @return 댓글 목록 페이지
      * @author Jaeik
      * @since 1.0.0
      */
-    public Page<CommentDTO> getComments(Long postId, int page, CustomUserDetails userDetails) {
-        Pageable pageable = Pageable.ofSize(30).withPage(page);
-
-        Page<Comment> rootCommentPage = commentRepository.findRootCommentsByPostId(postId, pageable);
-
-        if (rootCommentPage.isEmpty()) {
-            return Page.empty(pageable);
+    public Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
+        if (page < 0) {
+            return Page.empty();
         }
 
-        List<Long> rootCommentIds = rootCommentPage.getContent()
-                .stream()
-                .map(Comment::getId)
-                .toList();
+        Pageable pageable = Pageable.ofSize(20).withPage(page);
 
-        List<Object[]> commentWithParentResults = commentRepository.findCommentsWithParentByRootIds(rootCommentIds);
+        try {
+            List<Tuple> commentTuples = commentRepository.findCommentsWithLatestOrder(postId, pageable);
 
-        List<Long> allCommentIds = commentWithParentResults.stream()
-                .map(row -> (Long) row[0])
-                .distinct()
-                .toList();
+            if (commentTuples.isEmpty()) {
+                return Page.empty(pageable);
+            }
 
-        Map<Long, Integer> likeCountMap = buildLikeCountMap(allCommentIds);
+            List<Long> commentIds = commentTuples.stream()
+                    .map(tuple -> {
+                        Comment comment = tuple.get(QComment.comment);
+                        return comment != null ? comment.getId() : null;
+                    })
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
 
-        List<Long> userLikedCommentIds = getUserLikedCommentIds(allCommentIds, userDetails);
+            List<Long> userLikedCommentIds = getUserLikedCommentIds(commentIds, userDetails);
 
-        Map<Long, CommentDTO> commentDTOMap = buildCommentDTOMap(commentWithParentResults, likeCountMap,
-                userLikedCommentIds);
+            Map<Long, CommentDTO> commentMap = new HashMap<>();
+            List<CommentDTO> rootComments = new ArrayList<>();
 
-        List<CommentDTO> rootCommentDTOs = rootCommentPage.getContent()
-                .stream()
-                .map(comment -> commentDTOMap.get(comment.getId()))
-                .filter(Objects::nonNull)
-                .toList();
+            for (Tuple tuple : commentTuples) {
+                Comment comment = tuple.get(QComment.comment);
+                if (comment == null)
+                    continue;
 
-        return new PageImpl<>(rootCommentDTOs, pageable, rootCommentPage.getTotalElements());
-    }
+                Long commentId = comment.getId();
+                if (commentMap.containsKey(commentId))
+                    continue;
 
-    /**
-     * <h3>추천 수 맵 생성</h3>
-     * <p>
-     * 댓글 ID와 추천 수의 매핑을 생성한다.
-     * </p>
-     *
-     * @param commentIds 댓글 ID 리스트
-     * @return 댓글 ID와 추천 수의 매핑
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private Map<Long, Integer> buildLikeCountMap(List<Long> commentIds) {
-        return commentRepository.findLikeCountsByCommentIds(commentIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0], // commentId
-                        row -> ((Number) row[1]).intValue() // likeCount
-                ));
+                try {
+                    CommentDTO dto = new CommentDTO(comment);
+
+                    Long likeCount = tuple.get(QCommentLike.commentLike.count().coalesce(0L));
+                    dto.setLikes(likeCount != null ? likeCount.intValue() : 0);
+
+                    dto.setUserLike(userLikedCommentIds.contains(commentId));
+
+                    commentMap.put(commentId, dto);
+
+                    Integer depth = tuple.get(QCommentClosure.commentClosure.depth);
+                    if (depth != null && depth == 0) {
+                        rootComments.add(dto);
+                    }
+                } catch (Exception e) {
+                    throw new CustomException(ErrorCode.COMMENT_FAILED);
+                }
+            }
+
+            Long totalCount = commentRepository.countRootCommentsByPostId(postId);
+
+            return new PageImpl<>(rootComments, pageable, totalCount != null ? totalCount : 0L);
+
+        } catch (Exception e) {
+            return Page.empty(pageable);
+        }
     }
 
     /**
@@ -193,53 +251,6 @@ public class CommentService {
         return (userDetails != null)
                 ? commentRepository.findUserLikedCommentIds(commentIds, userDetails.getUserId())
                 : List.of();
-    }
-
-    /**
-     * <h3>댓글 DTO 맵 생성</h3>
-     * <p>
-     * 쿼리 결과를 기반으로 CommentDTO 맵을 생성하고 관계를 설정한다.
-     * </p>
-     *
-     * @param commentWithParentResults 댓글과 부모 관계 쿼리 결과
-     * @param likeCountMap             추천 수 매핑
-     * @param userLikedCommentIds      사용자가 추천한 댓글 ID 리스트
-     * @return 댓글 ID와 DTO의 매핑
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private Map<Long, CommentDTO> buildCommentDTOMap(
-            List<Object[]> commentWithParentResults,
-            Map<Long, Integer> likeCountMap,
-            List<Long> userLikedCommentIds) {
-
-        Map<Long, CommentDTO> commentDTOMap = new HashMap<>();
-
-        for (Object[] row : commentWithParentResults) {
-            Long commentId = (Long) row[0];
-            Long parentId = (Long) row[1];
-            Comment comment = (Comment) row[3];
-
-            if (comment == null) {
-                continue;
-            }
-
-            CommentDTO dto = commentDTOMap.get(commentId);
-            if (dto == null) {
-                dto = new CommentDTO(comment);
-
-                dto.setLikes(likeCountMap.getOrDefault(commentId, 0));
-                dto.setUserLike(userLikedCommentIds.contains(commentId));
-
-                commentDTOMap.put(commentId, dto);
-            }
-
-            if (parentId != null) {
-                dto.setParentId(parentId);
-            }
-        }
-
-        return commentDTOMap;
     }
 
     /**
@@ -346,44 +357,4 @@ public class CommentService {
         }
         return comment;
     }
-
-    /**
-     * <h3>인기 댓글 업데이트</h3>
-     *
-     * <p>10분마다 추천 수 3개 이상인 댓글을 인기댓글로 선정하고, 이벤트 발행을 통해 SSE와 FCM 알림을 비동기로 처리한다.</p>
-     *
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    @Transactional
-    @Scheduled(fixedRate = 1000 * 60 * 10) // 10분마다 실행
-    public void updateFeaturedComments() {
-        // Step 1: 기존 인기 댓글 초기화
-        commentRepository.resetAllCommentFeaturedFlags();
-
-        // Step 2: 추천 수 3개 이상인 댓글 전부 불러오기
-        List<Comment> popularComments = commentRepository.findPopularComments();
-
-        // Step 3: 게시글별 상위 3개만 선정
-        Map<Long, List<Comment>> topCommentsByPost = popularComments.stream()
-                .collect(Collectors.groupingBy(
-                        c -> c.getPost().getId(),
-                        Collectors.collectingAndThen(
-                                Collectors.toList(),
-                                list -> list.stream().limit(3).toList())));
-
-        // Step 4: 인기 댓글 지정 및 이벤트 발행 🚀
-        topCommentsByPost.values().stream()
-                .flatMap(List::stream)
-                .forEach(comment -> {
-                    comment.updatePopular(true); // 인기 댓글 지정
-
-                    // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
-                    eventPublisher.publishEvent(new CommentFeaturedEvent(
-                            comment.getUser().getId(),
-                            comment.getPost().getId(),
-                            comment.getUser()));
-                });
-    }
-
 }

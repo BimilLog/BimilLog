@@ -46,7 +46,9 @@ public enum ErrorCode {
     ONLY_COMMENT_OWNER_UPDATE(HttpStatus.FORBIDDEN, "댓글 작성자만 수정할 수 있습니다."),
     ONLY_COMMENT_OWNER_DELETE(HttpStatus.FORBIDDEN, "댓글 작성자만 삭제할 수 있습니다."),
     COMMENT_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),
-    INCORRECT_SEARCH_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 검색 형식입니다.");
+    INCORRECT_SEARCH_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 검색 형식입니다."),
+    POPULAR_COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "인기 댓글 조회에 실패했습니다."),
+    COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 조회에 실패했습니다.");
 
     private final HttpStatus status;
     private final String message;

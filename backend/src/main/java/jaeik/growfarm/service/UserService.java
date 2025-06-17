@@ -7,6 +7,7 @@ import jaeik.growfarm.dto.kakao.KakaoCheckConsentDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.entity.comment.Comment;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.report.Report;
@@ -21,7 +22,6 @@ import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.comment.CommentService;
 import jaeik.growfarm.util.BoardUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,6 +33,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
@@ -268,8 +269,7 @@ public class UserService {
         Setting setting = user.getSetting();
         setting.updateSetting(settingDTO.farmNotification(),
                 settingDTO.commentNotification(),
-                settingDTO.postFeaturedNotification(),
-                settingDTO.commentFeaturedNotification());
+                settingDTO.postFeaturedNotification());
 
     }
 

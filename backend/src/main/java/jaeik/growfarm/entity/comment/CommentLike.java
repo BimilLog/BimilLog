@@ -22,6 +22,9 @@ import org.hibernate.annotations.OnDeleteAction;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(indexes = {
+        @Index(name = "uk_comment_like_user_comment", columnList = "comment_id, user_id")
+})
 public class CommentLike {
 
     @Id

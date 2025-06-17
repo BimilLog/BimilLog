@@ -25,21 +25,18 @@ public class SettingDTO {
 
     private boolean postFeaturedNotification;
 
-    private boolean commentFeaturedNotification;
 
     public SettingDTO(Setting setting) {
         settingId = setting.getId();
         farmNotification = setting.isFarmNotification();
         commentNotification = setting.isCommentNotification();
         postFeaturedNotification = setting.isPostFeaturedNotification();
-        commentFeaturedNotification = setting.isCommentFeaturedNotification();
     }
 
-    public SettingDTO(Long settingId, boolean farmNotification, boolean commentNotification, boolean postFeaturedNotification, boolean commentFeaturedNotification) {
+    public SettingDTO(Long settingId, boolean farmNotification, boolean commentNotification, boolean postFeaturedNotification) {
         this.settingId = settingId;
         this.farmNotification = farmNotification;
         this.commentNotification = commentNotification;
         this.postFeaturedNotification = postFeaturedNotification;
-        this.commentFeaturedNotification = commentFeaturedNotification;
     }
 }

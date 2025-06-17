@@ -34,15 +34,11 @@ public class Setting {
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean postFeaturedNotification = true;
 
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
-    private boolean commentFeaturedNotification = true;
 
-
-    public void updateSetting(boolean farmNotification, boolean commentNotification, boolean PostIsFeaturedNotification, boolean commentFeaturedNotification) {
+    public void updateSetting(boolean farmNotification, boolean commentNotification, boolean PostIsFeaturedNotification) {
         this.farmNotification = farmNotification;
         this.commentNotification = commentNotification;
         this.postFeaturedNotification = PostIsFeaturedNotification;
-        this.commentFeaturedNotification = commentFeaturedNotification;
     }
 
     public static Setting createSetting() {
@@ -50,7 +46,6 @@ public class Setting {
                 .farmNotification(true)
                 .commentNotification(true)
                 .postFeaturedNotification(true)
-                .commentFeaturedNotification(true)
                 .build();
     }
 
@@ -59,7 +54,6 @@ public class Setting {
                 .farmNotification(settingDTO.isFarmNotification())
                 .commentNotification(settingDTO.isCommentNotification())
                 .postFeaturedNotification(settingDTO.isPostFeaturedNotification())
-                .commentFeaturedNotification(settingDTO.isCommentFeaturedNotification())
                 .build();
     }
 }
