@@ -4,14 +4,11 @@ import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.entity.message.Message;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.global.event.FarmPlantEvent;
 import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.global.event.FarmPlantEvent;
 import jaeik.growfarm.repository.paper.MessageRepository;
-import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.notification.NotificationService;
 import jaeik.growfarm.util.PaperUtil;
-import jaeik.growfarm.util.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -31,11 +28,6 @@ public class PaperService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final PaperUtil paperUtil;
-    private final NotificationService notificationService;
-    private final NotificationUtil notificationUtil;
-    private final FcmTokenRepository fcmTokenRepository;
-
-    // 이벤트 발행을 위한 ApplicationEventPublisher 🚀
     private final ApplicationEventPublisher eventPublisher;
 
     /**

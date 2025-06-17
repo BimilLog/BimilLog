@@ -107,31 +107,4 @@ public class SseService {
                     userId, e.getMessage());
         }
     }
-
-    /**
-     * <h3>인기댓글 등극 SSE 알림 (비동기)</h3>
-     *
-     * @param userId 사용자 ID
-     * @param postId 게시글 ID
-     */
-    @Async("sseNotificationExecutor")
-    public void sendCommentFeaturedNotificationAsync(Long userId, Long postId) {
-        try {
-            log.info("인기댓글 SSE 알림 비동기 처리 시작: userId={}, 스레드={}",
-                    userId, Thread.currentThread().getName());
-
-            EventDTO eventDTO = notificationUtil.createEventDTO(
-                    NotificationType.COMMENT_FEATURED,
-                    "🎉 당신의 댓글이 인기 댓글로 선정되었습니다!",
-                    "http://localhost:3000/board/" + postId);
-
-            notificationService.send(userId, eventDTO);
-
-            log.info("인기댓글 SSE 알림 비동기 처리 완료: userId={}", userId);
-
-        } catch (Exception e) {
-            log.error("인기댓글 SSE 알림 비동기 처리 실패: userId={}, error={}",
-                    userId, e.getMessage());
-        }
-    }
 }

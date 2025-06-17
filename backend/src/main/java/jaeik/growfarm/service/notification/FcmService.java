@@ -126,36 +126,4 @@ public class FcmService {
                     user.getId(), e.getMessage());
         }
     }
-
-    /**
-     * <h3>인기댓글 등극 FCM 알림 (비동기)</h3>
-     *
-     * @param user 사용자
-     */
-    @Async("fcmNotificationExecutor")
-    public void sendCommentFeaturedFcmNotificationAsync(Users user) {
-        try {
-            log.info("인기댓글 FCM 알림 비동기 처리 시작: userId={}, 스레드={}",
-                    user.getId(), Thread.currentThread().getName());
-
-            if (user.getSetting().isCommentFeaturedNotification()) {
-                List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
-                for (FcmToken fcmToken : fcmTokens) {
-                    notificationService.sendMessageTo(FcmSendDTO.builder()
-                            .token(fcmToken.getFcmRegistrationToken())
-                            .title("🎉 당신의 댓글이 인기 댓글로 선정되었습니다!")
-                            .body("지금 확인해보세요!")
-                            .build());
-                }
-                log.info("인기댓글 FCM 알림 비동기 처리 완료: userId={}, 토큰 수={}",
-                        user.getId(), fcmTokens.size());
-            } else {
-                log.info("인기댓글 FCM 알림 설정 비활성화: userId={}", user.getId());
-            }
-
-        } catch (Exception e) {
-            log.error("인기댓글 FCM 알림 비동기 처리 실패: userId={}, error={}",
-                    user.getId(), e.getMessage());
-        }
-    }
 }

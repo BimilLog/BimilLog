@@ -8,7 +8,6 @@ import jaeik.growfarm.entity.notification.Notification;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.notification.EmitterRepository;
-import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.notification.NotificationRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.NotificationUtil;
@@ -44,17 +43,16 @@ public class NotificationService {
     private final EmitterRepository emitterRepository;
     private final NotificationUtil notificationUtil;
     private final UserRepository userRepository;
-    private final FcmTokenRepository fcmTokenRepository;
 
     /**
      * <h3>SSE 구독</h3>
      *
      * <p>사용자의 실시간 알림을 위한 SSE 연결을 생성한다.</p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param tokenId 사용자 토큰 ID
      * @return SSE Emitter 객체
+     * @author Jaeik
+     * @since 1.0.0
      */
     public SseEmitter subscribe(Long userId, Long tokenId) {
         String emitterId = notificationUtil.makeTimeIncludeId(userId, tokenId);
@@ -75,11 +73,11 @@ public class NotificationService {
      * <p>
      * 특정 사용자에게 실시간 알림을 발송하고 DB에 저장한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param userId   사용자 ID
      * @param eventDTO 이벤트 정보 DTO
+     * @author Jaeik
+     * @since 1.0.0
      */
     public void send(Long userId, EventDTO eventDTO) {
 
@@ -100,7 +98,7 @@ public class NotificationService {
     }
 
     private void sendNotification(SseEmitter emitter, String emitterId, NotificationType type, String data,
-            String url) {
+                                  String url) {
         String jsonData = String.format("{\"paper\": \"%s\", \"url\": \"%s\"}",
                 data, url);
 
