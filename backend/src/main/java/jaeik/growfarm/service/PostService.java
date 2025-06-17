@@ -2,28 +2,21 @@ package jaeik.growfarm.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.growfarm.dto.board.CommentDTO;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.repository.admin.ReportRepository;
-import jaeik.growfarm.repository.comment.CommentLikeRepository;
+import jaeik.growfarm.global.event.PostFeaturedEvent;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.comment.CommentRepository;
-import jaeik.growfarm.repository.notification.FcmTokenRepository;
-import jaeik.growfarm.repository.post.PostCustomRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.notification.FcmService;
-import jaeik.growfarm.service.notification.SseService;
-import jaeik.growfarm.service.notification.NotificationService;
 import jaeik.growfarm.util.BoardUtil;
-import jaeik.growfarm.util.NotificationUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,10 +34,17 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/*
- * PostService 클래스
- * 게시판 관련 서비스 클래스
- * 수정일 : 2025-05-03
+/**
+ * <h2>게시판 서비스</h2>
+ * <p>
+ * 게시글 CRUD, 검색, 추천 기능을 제공하는 서비스 클래스
+ * </p>
+ * <p>
+ * 게시글 조회수 증가, 인기글 등록 등의 기능도 포함되어 있다.
+ * </p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -55,9 +55,6 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
     private final BoardUtil boardUtil;
-    private final CommentLikeRepository commentLikeRepository;
-
-    // 이벤트 발행을 위한 ApplicationEventPublisher 🚀
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -65,12 +62,12 @@ public class PostService {
      * <p>
      * 최신순으로 게시글 목록을 페이지네이션으로 조회한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param page 페이지 번호
      * @param size 페이지 사이즈
      * @return 게시글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     public Page<SimplePostDTO> getBoard(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -78,48 +75,20 @@ public class PostService {
     }
 
     /**
-     * <h3>실시간 인기글 목록 조회</h3>
+     * <h3>게시글 조회</h3>
      * <p>
-     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
+     * 게시글 ID를 통해 게시글 상세 정보를 조회한다.
      * </p>
-     * 
-     * @since 1.0.0
+     *
+     * @param postId      게시글 ID
+     * @param userDetails 현재 로그인 한 사용자 정보
+     * @return 게시글 상세 DTO
      * @author Jaeik
-     * @return 실시간 인기글 목록
-     */
-    public List<SimplePostDTO> getRealtimePopularPosts() {
-        List<Post> realtimePopularPosts = postRepository.findByIsRealtimePopularTrue();
-        return convertToSimplePostDTOList(realtimePopularPosts);
-    }
-
-    /**
-     * <h3>주간 인기글 목록 조회</h3>
-     * <p>
-     * 주간 인기글로 선정된 게시글 목록을 조회한다.
-     * </p>
-     * 
      * @since 1.0.0
-     * @author Jaeik
-     * @return 주간 인기글 목록
      */
-    public List<SimplePostDTO> getWeeklyPopularPosts() {
-        List<Post> weeklyPopularPosts = postRepository.findByIsWeeklyPopularTrue();
-        return convertToSimplePostDTOList(weeklyPopularPosts);
-    }
-
-    /**
-     * <h3>명예의 전당 게시글 목록 조회</h3>
-     * <p>
-     * 명예의 전당에 선정된 게시글 목록을 조회한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @return 명예의 전당 게시글 목록
-     */
-    public List<SimplePostDTO> getHallOfFamePosts() {
-        List<Post> hallOfFamePosts = postRepository.findByIsHallOfFameTrue();
-        return convertToSimplePostDTOList(hallOfFamePosts);
+    public PostDTO getPost(Long postId, CustomUserDetails userDetails) {
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        return postRepository.findPostById(postId, userId);
     }
 
     /**
@@ -127,14 +96,14 @@ public class PostService {
      * <p>
      * 검색 유형과 검색어를 통해 게시글을 검색하고 최신순으로 페이지네이션한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param type  검색 유형
      * @param query 검색어
      * @param page  페이지 번호
      * @param size  페이지 사이즈
      * @return 검색된 게시글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     public Page<SimplePostDTO> searchPost(String type, String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -146,41 +115,31 @@ public class PostService {
      * <p>
      * 새로운 게시글을 작성하고 저장한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param postReqDTO  게시글 작성 요청 DTO
      * @return 작성된 게시글 DTO
-     */
-    public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
-
-        if (userDetails == null) {
-            throw new IllegalArgumentException("로그인 후 작성해주세요.");
-        }
-
-        Users user = userRepository.findById(userDetails.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        Post post = postRepository.save(boardUtil.postReqDTOToPost(user, postReqDTO));
-        return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), null, false);
-    }
-
-    /**
-     * <h3>게시글 조회</h3>
-     * <p>
-     * 게시글 ID를 통해 게시글 상세 정보를 조회한다.
-     * </p>
-     * 
-     * @since 1.0.0
      * @author Jaeik
-     * @param postId 게시글 ID
-     * @param userId 사용자 ID (좋아요 여부 확인용)
-     * @return 게시글 상세 DTO
+     * @since 1.0.0
      */
-    public PostDTO getPost(Long postId, CustomUserDetails userDetails) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
-        return postRepository.findPostById(postId, userId);
+    @Transactional
+    public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
+        Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
+        int password = userDetails == null ? postReqDTO.getPassword() : null;
+
+        Post post = postRepository.save(Post.createPost(user, postReqDTO));
+        return new PostDTO(post.getId(),
+                post.getUser().getId(),
+                post.getUser().getUserName(),
+                post.getTitle(),
+                post.getContent(),
+                0,
+                0,
+                post.isNotice(),
+                post.getPopularFlag(),
+                post.getCreatedAt(),
+                false,
+                password);
     }
 
     /**
@@ -188,28 +147,42 @@ public class PostService {
      * <p>
      * 게시글 작성자만 게시글을 수정할 수 있다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param postId      게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보
      * @param postDTO     수정할 게시글 정보 DTO
      * @return 수정된 게시글 DTO
+     * @author Jaeik
+     * @since 1.0.0
      */
     @Transactional
-    public PostDTO updatePost(Long postId, CustomUserDetails userDetails, PostDTO postDTO) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
+    public PostDTO updatePost(CustomUserDetails userDetails, PostDTO postDTO) {
+        Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
+        Post post = postRepository.findById(postDTO.getPostId()).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        Long userId = post.getUser().getId();
+        if (!Objects.equals(postDTO.getUserId(), (user != null ? user.getId() : null))) {
+            throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
+        }
 
-        if (!userId.equals(userDetails.getClientDTO().getUserId())) {
-            throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
+        if (user == null) {
+            if(postDTO.getPassword() != post.getPassword()) {
+                throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
+            }
         }
 
         post.updatePost(postDTO);
-        return boardUtil.postToDTO(post, postLikeRepository.countByPostId(post.getId()), getCommentList(postId, userId),
-                postLikeRepository.existsByPostIdAndUserId(postId, userDetails.getUserId()));
+        return new PostDTO(post.getId(),
+                post.getUser().getId(),
+                post.getUser().getUserName(),
+                post.getTitle(),
+                post.getContent(),
+                commentRepository.countByPostId(post.getId()),
+                postLikeRepository.countByPostId(post.getId()),
+                post.isNotice(),
+                post.getPopularFlag(),
+                post.getCreatedAt(),
+                false,
+                post.getPassword());
     }
 
     /**
@@ -217,11 +190,11 @@ public class PostService {
      * <p>
      * 게시글 작성자만 게시글을 삭제할 수 있다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param postId      게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보
+     * @author Jaeik
+     * @since 1.0.0
      */
     @Transactional
     public void deletePost(Long postId, CustomUserDetails userDetails) {
@@ -353,11 +326,11 @@ public class PostService {
      * 게시글 조회 시 조회수를 증가시키고, 쿠키에 해당 게시글 ID를 저장한다.
      * </p>
      *
-     * @since 1.0.0
-     * @author Jaeik
      * @param postId   게시글 ID
      * @param request  HTTP 요청 객체
      * @param response HTTP 응답 객체
+     * @author Jaeik
+     * @since 1.0.0
      */
     @Transactional
     public void incrementViewCount(Long postId, HttpServletRequest request, HttpServletResponse response) {
@@ -382,11 +355,11 @@ public class PostService {
      * 사용자가 본 게시글 ID를 쿠키에 저장한다. 최대 100개까지만 저장하며, 오래된 게시글은 제거한다.
      * </p>
      *
-     * @since 1.0.0
-     * @author Jaeik
      * @param response HTTP 응답 객체
      * @param cookies  현재 요청의 쿠키 배열
      * @param postId   현재 조회한 게시글 ID
+     * @author Jaeik
+     * @since 1.0.0
      */
     private void updateViewCookie(HttpServletResponse response, Cookie[] cookies, Long postId) {
         try {
@@ -439,11 +412,11 @@ public class PostService {
      * 쿠키를 통해 사용자가 해당 게시글을 본 적이 있는지 확인한다.
      * </p>
      *
-     * @since 1.0.0
-     * @author Jaeik
      * @param cookies 현재 요청의 쿠키 배열
      * @param postId  게시글 ID
      * @return true: 본 적 있음, false: 본 적 없음
+     * @author Jaeik
+     * @since 1.0.0
      */
     private boolean hasViewedPost(Cookie[] cookies, Long postId) {
         if (cookies == null)
@@ -465,5 +438,50 @@ public class PostService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * <h3>실시간 인기글 목록 조회</h3>
+     * <p>
+     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @return 실시간 인기글 목록
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public List<SimplePostDTO> getRealtimePopularPosts() {
+        List<Post> realtimePopularPosts = postRepository.findByIsRealtimePopularTrue();
+        return convertToSimplePostDTOList(realtimePopularPosts);
+    }
+
+    /**
+     * <h3>주간 인기글 목록 조회</h3>
+     * <p>
+     * 주간 인기글로 선정된 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @return 주간 인기글 목록
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public List<SimplePostDTO> getWeeklyPopularPosts() {
+        List<Post> weeklyPopularPosts = postRepository.findByIsWeeklyPopularTrue();
+        return convertToSimplePostDTOList(weeklyPopularPosts);
+    }
+
+    /**
+     * <h3>명예의 전당 게시글 목록 조회</h3>
+     * <p>
+     * 명예의 전당에 선정된 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @return 명예의 전당 게시글 목록
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public List<SimplePostDTO> getHallOfFamePosts() {
+        List<Post> hallOfFamePosts = postRepository.findByIsHallOfFameTrue();
+        return convertToSimplePostDTOList(hallOfFamePosts);
     }
 }

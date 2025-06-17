@@ -1,6 +1,7 @@
 package jaeik.growfarm.entity.post;
 
 import jaeik.growfarm.dto.board.PostDTO;
+import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.BaseEntity;
 import jakarta.persistence.*;
@@ -54,8 +55,36 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private boolean isNotice;
 
+    private int password;
+
     @Enumerated(EnumType.STRING)
     private PopularFlag popularFlag;
+
+
+    /**
+     * <h3>게시글 생성</h3>
+     *
+     * <p>
+     * 게시글을 생성하는 정적 팩토리 메서드이다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     * @param user       작성자 정보
+     * @param postReqDTO 게시글 작성 요청 DTO
+     * @return 생성된 Post 엔티티
+     */
+    public static Post createPost(Users user, PostReqDTO postReqDTO) {
+        return Post.builder()
+                .user(user)
+                .title(postReqDTO.getTitle())
+                .content(postReqDTO.getContent())
+                .views(0)
+                .isNotice(false)
+                .password(postReqDTO.getPassword())
+                .popularFlag(null)
+                .build();
+    }
 
     /**
      * <h3>게시글 정보 업데이트</h3>

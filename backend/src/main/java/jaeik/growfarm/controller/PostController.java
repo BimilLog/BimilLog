@@ -97,9 +97,7 @@ public class PostController {
                                            HttpServletResponse response) {
 
         postService.incrementViewCount(postId, request, response);
-
         PostDTO postDTO = postService.getPost(postId, userDetails);
-
         return ResponseEntity.ok(postDTO);
     }
 
@@ -129,20 +127,19 @@ public class PostController {
      * <p>
      * 게시글 작성자만 게시글을 수정할 수 있다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param postId      게시글 ID
-     * @param postDTO     수정할 게시글 정보
      * @param userDetails 현재 로그인한 사용자 정보
+     * @param postDTO     수정할 게시글 정보
      * @return 수정된 게시글 정보
+     * @author Jaeik
+     * @since 1.0.0
      */
-    @PostMapping("/{postId}")
-    public ResponseEntity<PostDTO> updatePost(@PathVariable Long postId,
-            @RequestParam Long userId,
+    @PostMapping("/update")
+    public ResponseEntity<PostDTO> updatePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody PostDTO postDTO) {
-        PostDTO updatedPostDTO = postService.updatePost(postId, userDetails, postDTO);
+        PostDTO updatedPostDTO = postService.updatePost(userDetails, postDTO);
         return ResponseEntity.ok(updatedPostDTO);
     }
 

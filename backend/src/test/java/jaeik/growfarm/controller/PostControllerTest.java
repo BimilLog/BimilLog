@@ -215,7 +215,7 @@ public class PostControllerTest {
         when(postService.updatePost(anyLong(), any(), any())).thenReturn(postDTO);
 
         // When
-        ResponseEntity<PostDTO> response = postController.updatePost(1L, 1L, userDetails, postDTO);
+        ResponseEntity<PostDTO> response = postController.updatePost(1L, userDetails, postDTO);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());

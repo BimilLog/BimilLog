@@ -44,7 +44,10 @@ public class PostDTO {
 
     private boolean userLike;
 
-    public PostDTO(Long postId, Long userId, String userName, String title, String content, int views, int likes, boolean is_notice, PopularFlag popularFlag, Instant createdAt, boolean userLike) {
+    @Size(max = 8, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
+    private int password;
+
+    public PostDTO(Long postId, Long userId, String userName, String title, String content, int views, int likes, boolean is_notice, PopularFlag popularFlag, Instant createdAt, boolean userLike, int password) {
         this.postId = postId;
         this.userId = userId;
         this.userName = userName;
@@ -56,5 +59,6 @@ public class PostDTO {
         this.popularFlag = popularFlag;
         this.createdAt = createdAt;
         this.userLike = userLike;
+        this.password = password;
     }
 }

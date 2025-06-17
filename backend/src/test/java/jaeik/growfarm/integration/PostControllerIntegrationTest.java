@@ -273,7 +273,7 @@ public class PostControllerIntegrationTest {
         );
 
         // When
-        ResponseEntity<PostDTO> response = postController.updatePost(testPost.getId(), testUser.getId(), userDetails, postDTO);
+        ResponseEntity<PostDTO> response = postController.updatePost(testPost.getId(), userDetails, postDTO);
 
         // Then
         assertNotNull(response.getBody());
