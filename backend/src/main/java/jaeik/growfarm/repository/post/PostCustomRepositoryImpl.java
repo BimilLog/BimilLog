@@ -144,7 +144,7 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
         }
 
         Integer views = postTuple.get(post.views);
-        return new PostDTO(
+        return PostDTO.existedPost(
                 postTuple.get(post.id),
                 postTuple.get(post.user.id),
                 postTuple.get(user.userName),

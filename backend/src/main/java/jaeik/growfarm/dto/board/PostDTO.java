@@ -1,6 +1,7 @@
 package jaeik.growfarm.dto.board;
 
 import jaeik.growfarm.entity.post.PopularFlag;
+import jaeik.growfarm.entity.post.Post;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,7 +37,7 @@ public class PostDTO {
 
     private int likes;
 
-    private boolean is_notice;
+    private boolean isNotice;
 
     private PopularFlag popularFlag;
 
@@ -47,17 +48,54 @@ public class PostDTO {
     @Size(max = 8, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
     private Integer password;
 
-    public PostDTO(Long postId, Long userId, String userName, String title, String content, int views, int likes, boolean is_notice, PopularFlag popularFlag, Instant createdAt, boolean userLike) {
-        this.postId = postId;
-        this.userId = userId;
-        this.userName = userName;
-        this.title = title;
-        this.content = content;
-        this.views = views;
-        this.likes = likes;
-        this.is_notice = is_notice;
-        this.popularFlag = popularFlag;
-        this.createdAt = createdAt;
-        this.userLike = userLike;
+    /**
+     * <h3>새 게시글을 PostDTO로 변환</h3>
+     * <p>
+     * 게시글 상세 보기 시 사용하는 변환 로직이다.
+     * </p>
+     *
+     * @param post 변환할 Post 엔티티
+     * @return 변환된 PostDTO 객체
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    public static PostDTO newPost (Post post) {
+        PostDTO postDTO = new PostDTO();
+        postDTO.setPostId(post.getId());
+        postDTO.setUserId(post.getUser().getId());
+        postDTO.setUserName(post.getUser().getUserName());
+        postDTO.setTitle(post.getTitle());
+        postDTO.setContent(post.getContent());
+        postDTO.setViews(0);
+        postDTO.setLikes(0);
+        postDTO.setNotice(false);
+        postDTO.setPopularFlag(null);
+        postDTO.setCreatedAt(post.getCreatedAt());
+        return postDTO;
+    }
+
+    /**
+     * <h3>기존 게시글을 PostDTO로 변환</h3>
+     * <p>
+     * Post 엔티티를 기반으로 PostDTO를 생성한다.
+     * </p>
+     *
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    public static PostDTO existedPost(Long postId, Long userId, String userName, String title, String content, int views, int likes, boolean isNotice, PopularFlag popularFlag, Instant createdAt, boolean userLike) {
+        PostDTO postDTO = new PostDTO();
+        postDTO.setPostId(postId);
+        postDTO.setUserId(userId);
+        postDTO.setUserName(userName);
+        postDTO.setTitle(title);
+        postDTO.setContent(content);
+        postDTO.setViews(views);
+        postDTO.setLikes(likes);
+        postDTO.setNotice(isNotice);
+        postDTO.setPopularFlag(popularFlag);
+        postDTO.setCreatedAt(createdAt);
+        postDTO.setUserLike(userLike);
+        return postDTO;
     }
 }

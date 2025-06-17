@@ -4,9 +4,10 @@ import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.PostService;
+import jaeik.growfarm.service.post.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -71,7 +72,6 @@ public class PostController {
             @RequestParam String query,
             @RequestParam int page,
             @RequestParam int size) {
-
         Page<SimplePostDTO> searchList = postService.searchPost(type, query, page, size);
         return ResponseEntity.ok(searchList);
     }
@@ -95,7 +95,6 @@ public class PostController {
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
                                            HttpServletRequest request,
                                            HttpServletResponse response) {
-
         postService.incrementViewCount(postId, request, response);
         PostDTO postDTO = postService.getPost(postId, userDetails);
         return ResponseEntity.ok(postDTO);
@@ -116,7 +115,7 @@ public class PostController {
      */
     @PostMapping("/write")
     public ResponseEntity<PostDTO> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody PostReqDTO postReqDTO) {
+            @RequestBody @Valid PostReqDTO postReqDTO) {
         PostDTO postDTO = postService.writePost(userDetails, postReqDTO);
         return ResponseEntity.ok(postDTO);
     }
@@ -128,7 +127,6 @@ public class PostController {
      * 게시글 작성자만 게시글을 수정할 수 있다.
      * </p>
      *
-     * @param postId      게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보
      * @param postDTO     수정할 게시글 정보
      * @return 수정된 게시글 정보
@@ -136,11 +134,11 @@ public class PostController {
      * @since 1.0.0
      */
     @PostMapping("/update")
-    public ResponseEntity<PostDTO> updatePost(
+    public ResponseEntity<String> updatePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody PostDTO postDTO) {
-        PostDTO updatedPostDTO = postService.updatePost(userDetails, postDTO);
-        return ResponseEntity.ok(updatedPostDTO);
+            @RequestBody @Valid PostDTO postDTO) {
+        postService.updatePost(userDetails, postDTO);
+        return ResponseEntity.ok("게시글 수정 완료");
     }
 
     /**
@@ -152,14 +150,14 @@ public class PostController {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param postId      게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 삭제 성공 메시지
      */
-    @PostMapping("/{postId}/delete")
-    public ResponseEntity<String> deletePost(@PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postService.deletePost(postId, userDetails);
+    @PostMapping("delete")
+    public ResponseEntity<String> deletePost(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid PostDTO postDTO) {
+        postService.deletePost(userDetails, postDTO);
         return ResponseEntity.ok("게시글 삭제 완료");
     }
 

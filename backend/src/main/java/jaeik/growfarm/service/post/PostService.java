@@ -1,4 +1,4 @@
-package jaeik.growfarm.service;
+package jaeik.growfarm.service.post;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,6 +56,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final BoardUtil boardUtil;
     private final ApplicationEventPublisher eventPublisher;
+    private final PostUpdateService postUpdateService;
 
     /**
      * <h3>게시판 조회</h3>
@@ -115,6 +116,8 @@ public class PostService {
      * <p>
      * 새로운 게시글을 작성하고 저장한다.
      * </p>
+     * <p>비회원은 패스워드를 저장한다. user는 null이다.</p>
+     * <p>회원은 패스워드가 null이다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param postReqDTO  게시글 작성 요청 DTO
@@ -125,85 +128,71 @@ public class PostService {
     @Transactional
     public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
         Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
-        Integer password = userDetails == null ? postReqDTO.getPassword() : null;
 
         Post post = postRepository.save(Post.createPost(user, postReqDTO));
-        return new PostDTO(post.getId(),
-                post.getUser().getId(),
-                post.getUser().getUserName(),
-                post.getTitle(),
-                post.getContent(),
-                0,
-                0,
-                post.isNotice(),
-                post.getPopularFlag(),
-                post.getCreatedAt(),
-                false);
+        return PostDTO.newPost(post);
     }
 
     /**
      * <h3>게시글 수정</h3>
-     * <p>
-     * 게시글 작성자만 게시글을 수정할 수 있다.
-     * </p>
+     * <p>게시글 작성자만 게시글을 수정할 수 있습니다.</p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보
+     * @param userDetails 현재 로그인 한 사용자 정보
      * @param postDTO     수정할 게시글 정보 DTO
      * @return 수정된 게시글 DTO
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional
-    public PostDTO updatePost(CustomUserDetails userDetails, PostDTO postDTO) {
-        Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
-        Post post = postRepository.findById(postDTO.getPostId()).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-
-        if (!Objects.equals(postDTO.getUserId(), (user != null ? user.getId() : null))) {
-            throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
-        }
-
-        if (user == null) {
-            if(!Objects.equals(postDTO.getPassword(), post.getPassword())) {
-                throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
-            }
-        }
-
+    public void updatePost(CustomUserDetails userDetails, PostDTO postDTO) {
+        Post post = ValidatePost(userDetails, postDTO);
         post.updatePost(postDTO);
-        return new PostDTO(post.getId(),
-                post.getUser().getId(),
-                post.getUser().getUserName(),
-                post.getTitle(),
-                post.getContent(),
-                commentRepository.countByPostId(post.getId()),
-                postLikeRepository.countByPostId(post.getId()),
-                post.isNotice(),
-                post.getPopularFlag(),
-                post.getCreatedAt(),
-                false);
     }
 
     /**
      * <h3>게시글 삭제</h3>
      * <p>
-     * 게시글 작성자만 게시글을 삭제할 수 있다.
+     * 게시글 작성자만 게시글을 삭제할 수 있습니다다.
      * </p>
      *
-     * @param postId      게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보
+     * @param postDTO 게시글 정보 DTO
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional
-    public void deletePost(Long postId, CustomUserDetails userDetails) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + postId));
+    public void deletePost(CustomUserDetails userDetails, PostDTO postDTO) {
+        Post post = ValidatePost(userDetails, postDTO);
+        postUpdateService.postDelete(post);
+    }
 
-        if (!post.getUser().getId().equals(userDetails.getClientDTO().getUserId())) {
-            throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
+    /**
+     * <h3>게시글 유효성 검사</h3>
+     * <p>
+     * 게시글 작성자만 게시글을 수정할 수 있다.
+     * </p>
+     * <p>비회원은 패스워드를 입력해야 한다.</p>
+     * <p>회원은 패스워드를 입력하지 않아도 된다. userId로 검사한다.</p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param postDTO     게시글 정보 DTO
+     * @return 유효한 게시글 엔티티
+     * @throws CustomException 게시글이 존재하지 않거나 작성자가 일치하지 않는 경우
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private Post ValidatePost(CustomUserDetails userDetails, PostDTO postDTO) {
+        Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+        Post post = postRepository.findById(postDTO.getPostId()).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if (!Objects.equals(postDTO.getUserId(), (userId))) {
+            throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
         }
 
-        postLikeRepository.deleteAllByPostId(postId);
-        postRepository.delete(post);
+        if (userId == null) {
+            if(!Objects.equals(postDTO.getPassword(), post.getPassword())) {
+                throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
+            }
+        }
+        return post;
     }
 
     // 게시글 추천, 추천 취소
