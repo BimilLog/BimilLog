@@ -61,7 +61,7 @@ public class PaperService {
      * @return 방문 농장의 농작물 목록
      */
     public List<VisitMessageDTO> visitFarm(String farmName) {
-        Users user = userRepository.findByFarmName(farmName);
+        Users user = userRepository.findByUserName(farmName);
 
         if (user == null) {
             throw new IllegalArgumentException("해당 농장을 찾을 수 없습니다.");
@@ -86,7 +86,7 @@ public class PaperService {
      * @throws IOException FCM 메시지 발송 오류 시 발생
      */
     public void plantCrop(String farmName, MessageDTO messageDTO) throws IOException {
-        Users user = userRepository.findByFarmName(farmName);
+        Users user = userRepository.findByUserName(farmName);
 
         if (user == null) {
             throw new IllegalArgumentException("해당 농장을 찾을 수 없습니다.");

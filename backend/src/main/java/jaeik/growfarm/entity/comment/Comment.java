@@ -41,12 +41,10 @@ public class Comment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-
     @JoinColumn(name = "post_id")
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id")
     private Users user;
 
@@ -84,6 +82,7 @@ public class Comment extends BaseEntity {
                 .password(password)
                 .build();
     }
+
     /**
      * <h3>댓글 수정</h3>
      *
@@ -99,7 +98,6 @@ public class Comment extends BaseEntity {
     public void updateComment(String content) {
         this.content = content;
     }
-
 
     /**
      * <h3>댓글 논리 삭제</h3>

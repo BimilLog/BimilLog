@@ -90,7 +90,7 @@ public class CommentService {
 
         eventPublisher.publishEvent(new CommentCreatedEvent(
                 post.getUser().getId(),
-                commentDTO.getFarmName(),
+                commentDTO.getUserName(),
                 commentDTO.getPostId(),
                 post.getUser()));
     }

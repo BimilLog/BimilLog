@@ -43,18 +43,18 @@ public class UserController {
      * <p>
      * 해당 사용자의 작성 게시글 목록을 페이지네이션으로 조회한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param page        페이지 번호
      * @param size        페이지 사이즈
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 작성 게시글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     @GetMapping("/posts")
     public ResponseEntity<Page<SimplePostDTO>> getPostList(@RequestParam int page,
-            @RequestParam int size,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                           @RequestParam int size,
+                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Page<SimplePostDTO> postList = userService.getPostList(page, size, userDetails);
         return ResponseEntity.ok(postList);
@@ -66,18 +66,18 @@ public class UserController {
      * <p>
      * 해당 사용자의 작성 댓글 목록을 페이지네이션으로 조회한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param page        페이지 번호
      * @param size        페이지 사이즈
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 작성 댓글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     @GetMapping("/comments")
     public ResponseEntity<Page<SimpleCommentDTO>> getCommentList(@RequestParam int page,
-            @RequestParam int size,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                                 @RequestParam int size,
+                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Page<SimpleCommentDTO> commentList = userService.getCommentList(page, size, userDetails);
         return ResponseEntity.ok(commentList);
@@ -89,18 +89,18 @@ public class UserController {
      * <p>
      * 해당 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param page        페이지 번호
      * @param size        페이지 사이즈
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 좋아요한 게시글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     @GetMapping("/likeposts")
     public ResponseEntity<Page<SimplePostDTO>> getLikedPosts(@RequestParam int page,
-            @RequestParam int size,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                             @RequestParam int size,
+                                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Page<SimplePostDTO> likedPosts = userService.getLikedPosts(page, size, userDetails);
         return ResponseEntity.ok(likedPosts);
     }
@@ -111,13 +111,13 @@ public class UserController {
      * <p>
      * 해당 사용자가 좋아요한 댓글 목록을 페이지네이션으로 조회한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param page        페이지 번호
      * @param size        페이지 사이즈
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 좋아요한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     @GetMapping("/likecomments")
     public ResponseEntity<Page<SimpleCommentDTO>> getLikedComments(@RequestParam int page,
@@ -133,16 +133,16 @@ public class UserController {
      * <p>
      * 닉네임 변경한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param userNameDTO 닉네임 변경 요청 DTO
-     * @param userDetails    현재 로그인한 사용자 정보
+     * @param userDetails 현재 로그인한 사용자 정보
      * @return 변경 성공 메시지
+     * @author Jaeik
+     * @since 1.0.0
      */
     @PostMapping("/username")
     public ResponseEntity<String> updateFarmName(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid UserNameDTO userNameDTO) {
+                                                 @RequestBody @Valid UserNameDTO userNameDTO) {
         userService.updateFarmName(userNameDTO.getUserName(), userDetails);
         return ResponseEntity.ok("닉네임이 변경되었습니다.");
     }
@@ -153,16 +153,17 @@ public class UserController {
      * <p>
      * 사용자의 건의사항을 접수한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param reportDTO 건의 내용 DTO
      * @return 건의 접수 성공 메시지
+     * @author Jaeik
+     * @since 1.0.0
      */
     @PostMapping("/suggestion")
-    public ResponseEntity<Void> suggestion(@RequestBody ReportDTO reportDTO) {
-        userService.suggestion(reportDTO);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> suggestion(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                           @RequestBody ReportDTO reportDTO) {
+        userService.suggestion(userDetails, reportDTO);
+        return ResponseEntity.ok("건의가 접수되었습니다.");
     }
 
     /**
@@ -171,16 +172,16 @@ public class UserController {
      * <p>
      * 카카오 API를 통해 친구 목록을 가져온다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param offset      페이지 오프셋
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 카카오 친구 목록
+     * @author Jaeik
+     * @since 1.0.0
      */
     @PostMapping("/friendlist")
     public ResponseEntity<KakaoFriendListDTO> getFriendList(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam int offset) {
+                                                            @RequestParam int offset) {
         return ResponseEntity.ok(userService.getFriendList(userDetails, offset));
     }
 
@@ -190,16 +191,15 @@ public class UserController {
      * <p>
      * 사용자의 현재 설정 정보를 조회한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 설정 정보
+     * @author Jaeik
+     * @since 1.0.0
      */
     @GetMapping("/setting")
     public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getClientDTO().getUserId();
-        SettingDTO settingDTO = userService.getSetting(userId);
+        SettingDTO settingDTO = userService.getSetting(userDetails);
         return ResponseEntity.ok(settingDTO);
     }
 
@@ -209,19 +209,19 @@ public class UserController {
      * <p>
      * 사용자의 알림 설정을 수정한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param settingDTO  설정 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 설정 수정 성공 메시지
+     * @author Jaeik
+     * @since 1.0.0
      */
     @PostMapping("/setting")
     public ResponseEntity<SettingDTO> updateSetting(@RequestBody SettingDTO settingDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getClientDTO().getUserId();
         userService.updateSetting(settingDTO, userId);
-        SettingDTO newSettingDTO = userService.getSetting(userId);
+        SettingDTO newSettingDTO = userService.getSetting(userDetails);
         return ResponseEntity.ok(newSettingDTO);
     }
 }

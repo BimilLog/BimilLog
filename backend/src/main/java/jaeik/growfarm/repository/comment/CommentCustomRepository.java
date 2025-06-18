@@ -101,4 +101,22 @@ public interface CommentCustomRepository {
      * @since 1.0.0
      */
     Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
+
+    /**
+     * <h3>회원탈퇴 시 댓글 처리</h3>
+     * <p>
+     * 탈퇴하는 사용자의 댓글을 적절히 처리한다.
+     * </p>
+     * <p>
+     * 자손이 있는 댓글: 논리적 삭제 + userId null로 변경
+     * </p>
+     * <p>
+     * 자손이 없는 댓글: 물리적 삭제
+     * </p>
+     *
+     * @param userId 탈퇴하는 사용자 ID
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    void processUserCommentsOnWithdrawal(Long userId);
 }

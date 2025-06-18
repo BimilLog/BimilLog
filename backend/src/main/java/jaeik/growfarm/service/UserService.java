@@ -9,31 +9,27 @@ import jaeik.growfarm.dto.post.SimplePostDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.user.Setting;
+import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
-import jaeik.growfarm.repository.comment.CommentCustomRepository;
-import jaeik.growfarm.repository.comment.CommentLikeRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
-import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
+import jaeik.growfarm.repository.token.TokenRepository;
+import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * <h2>사용자 서비스 클래스</h2>
@@ -51,11 +47,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final CommentCustomRepository commentCustomRepository;
     private final ReportRepository reportRepository;
-    private final PostLikeRepository postLikeRepository;
-    private final CommentLikeRepository commentLikeRepository;
     private final KakaoService kakaoService;
+    private final TokenRepository tokenRepository;
+    private final SettingRepository settingRepository;
 
     /**
      * <h3>유저 작성 글 목록 조회</h3>
@@ -63,13 +58,13 @@ public class UserService {
      * <p>
      * 해당 유저의 작성 글 목록을 페이지네이션으로 반환한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param page        페이지 번호
      * @param size        페이지 크기
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 작성 글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     public Page<SimplePostDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -83,12 +78,12 @@ public class UserService {
      * 해당 유저의 작성 댓글 목록을 페이지네이션으로 반환한다.
      * </p>
      *
-     * @since 1.0.0
-     * @author Jaeik
      * @param page        페이지 번호
      * @param size        페이지 크기
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 작성 댓글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     public Page<SimpleCommentDTO> getCommentList(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -101,13 +96,13 @@ public class UserService {
      * <p>
      * 해당 유저가 좋아요한 글 목록을 페이지네이션으로 반환한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param page        페이지 번호
      * @param size        페이지 크기
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 좋아요한 글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     public Page<SimplePostDTO> getLikedPosts(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -120,13 +115,13 @@ public class UserService {
      * <p>
      * 해당 유저가 추천한 댓글 목록을 페이지네이션으로 반환한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param page        페이지 번호
      * @param size        페이지 크기
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 추천한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 1.0.0
      */
     public Page<SimpleCommentDTO> getLikedComments(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -149,7 +144,7 @@ public class UserService {
      * @since 1.0.0
      */
     public void updateFarmName(String userName, CustomUserDetails userDetails) {
-        if (userRepository.existsByFarmName(userName)) {
+        if (userRepository.existsByUserName(userName)) {
             throw new CustomException(ErrorCode.Existed_NICKNAME);
         }
         Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
@@ -170,51 +165,92 @@ public class UserService {
      * @author Jaeik
      * @since 1.0.0
      */
-    public void suggestion(ReportDTO reportDTO) {
-        Users user = null;
-
-        if (reportDTO.getUserId() != null) {
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            CustomUserDetails userDetails = (CustomUserDetails) securityContext.getAuthentication().getPrincipal();
-
-            if (!Objects.equals(reportDTO.getUserId(), userDetails.getUserId())) {
-                throw new CustomException(ErrorCode.INVALID_USER_ID);
-            }
-
-            user = userRepository.getReferenceById(reportDTO.getUserId());
-        }
+    public void suggestion(CustomUserDetails userDetails, ReportDTO reportDTO) {
+        Users user = reportDTO.getUserId() != null ? userRepository.getReferenceById(userDetails.getUserId()) : null;
         Report report = Report.DtoToReport(reportDTO, user);
         reportRepository.save(report);
     }
+
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
      *
      * <p>
-     * 카카오 API를 통해 친구 목록을 가져오고 농장 이름을 매핑하여 반환한다.
+     * 카카오 API를 통해 친구 목록을 가져오고 닉네임을 매핑하여 반환한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param offset      페이지 오프셋
      * @return 카카오 친구 목록 DTO
+     * @author Jaeik
+     * @since 1.0.0
      */
     public KakaoFriendListDTO getFriendList(CustomUserDetails userDetails, int offset) {
-        Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        Token token = tokenRepository.findById(userDetails.getTokenId())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
+        validateKakaoConsent(token.getKakaoAccessToken());
 
-        KakaoCheckConsentDTO kakaoCheckConsentDTO = kakaoService.checkConsent(user.getToken().getKakaoAccessToken());
-        boolean hasNotAgreed = Arrays.stream(kakaoCheckConsentDTO.getScopes())
+        KakaoFriendListDTO friendListDTO = kakaoService.getFriendList(token.getKakaoAccessToken(), offset);
+        mapFarmNamesToFriends(friendListDTO.getElements());
+
+        return friendListDTO;
+    }
+
+    /**
+     * <h3>사용자 설정 조회</h3>
+     *
+     * <p>
+     * 사용자의 현재 설정 정보를 조회한다.
+     * </p>
+     *
+     * @param userId 사용자 ID
+     * @return 설정 정보 DTO
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public SettingDTO getSetting(CustomUserDetails userDetails) {
+        Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingDTO().getSettingId())
+                .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
+
+        return new SettingDTO(
+                setting.getId(),
+                setting.isFarmNotification(),
+                setting.isCommentNotification(),
+                setting.isPostFeaturedNotification()
+        );
+    }
+
+    /**
+     * <h3>카카오 친구 목록 조회 동의 여부를 확인한다.</h3>
+     *
+     * @param kakaoAccessToken 카카오 액세스 토큰
+     * @throws CustomException 동의하지 않은 항목이 있는 경우
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private void validateKakaoConsent(String kakaoAccessToken) {
+        KakaoCheckConsentDTO consentInfo = kakaoService.checkConsent(kakaoAccessToken);
+
+        boolean hasUnagreedScope = Arrays.stream(consentInfo.getScopes())
                 .anyMatch(scope -> !scope.isAgreed());
 
-        if (hasNotAgreed) {
+        if (hasUnagreedScope) {
             throw new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
         }
+    }
 
-        KakaoFriendListDTO kakaoFriendListDTO = kakaoService.getFriendList(user.getToken().getKakaoAccessToken(),
-                offset);
-        List<KakaoFriendDTO> friendList = kakaoFriendListDTO.getElements();
+    /**
+     * <h3>친구 목록에 농장 이름을 매핑한다.</h3>
+     *
+     * @param friendList 친구 목록
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private void mapFarmNamesToFriends(List<KakaoFriendDTO> friendList) {
+        if (friendList.isEmpty()) {
+            return;
+        }
+
         List<Long> friendIds = friendList.stream()
                 .map(KakaoFriendDTO::getId)
                 .toList();
@@ -222,10 +258,8 @@ public class UserService {
         List<String> farmNames = userRepository.findFarmNamesInOrder(friendIds);
 
         for (int i = 0; i < friendList.size(); i++) {
-            friendList.get(i).setFarmName(farmNames.get(i));
+            friendList.get(i).setUserName(farmNames.get(i));
         }
-
-        return kakaoFriendListDTO;
     }
 
     /**
@@ -234,11 +268,11 @@ public class UserService {
      * <p>
      * 사용자의 알림 설정을 업데이트한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param settingDTO 설정 정보 DTO
      * @param userId     사용자 ID
+     * @author Jaeik
+     * @since 1.0.0
      */
     @Transactional
     public void updateSetting(SettingDTO settingDTO, Long userId) {
@@ -253,22 +287,5 @@ public class UserService {
 
     }
 
-    /**
-     * <h3>사용자 설정 조회</h3>
-     *
-     * <p>
-     * 사용자의 현재 설정 정보를 조회한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @param userId 사용자 ID
-     * @return 설정 정보 DTO
-     */
-    public SettingDTO getSetting(Long userId) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        return userUtil.settingToSettingDTO(user.getSetting());
-    }
 }

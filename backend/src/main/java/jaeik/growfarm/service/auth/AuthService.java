@@ -9,6 +9,7 @@ import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.BlackListRepository;
+import jaeik.growfarm.repository.comment.CommentCustomRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -26,7 +27,9 @@ import java.util.Optional;
 
 /**
  * <h2>AuthService 클래스</h2>
- * <p>인증 관련 비즈니스 로직을 처리한다.</p>
+ * <p>
+ * 인증 관련 비즈니스 로직을 처리한다.
+ * </p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -42,6 +45,7 @@ public class AuthService {
     private final TempUserDataManager tempUserDataManager;
     private final UserUpdateService userUpdateService;
     private final UserJdbcRepository userJdbcRepository;
+    private final CommentCustomRepository commentCustomRepository;
 
     /**
      * <h3>카카오 로그인</h3>
@@ -78,7 +82,9 @@ public class AuthService {
     /**
      * <h3>로그인 유효성 검사</h3>
      *
-     * <p>현재 로그인 상태인지 확인하고, 이미 로그인 된 경우 예외를 발생시킨다.</p>
+     * <p>
+     * 현재 로그인 상태인지 확인하고, 이미 로그인 된 경우 예외를 발생시킨다.
+     * </p>
      *
      * @author Jaeik
      * @since 1.0.0
@@ -94,7 +100,9 @@ public class AuthService {
     /**
      * <h3>기존 사용자 조회</h3>
      *
-     * <p>카카오 ID로 기존 사용자를 조회한다.</p>
+     * <p>
+     * 카카오 ID로 기존 사용자를 조회한다.
+     * </p>
      *
      * @param kakaoId 카카오 ID
      * @return Optional<Users> 기존 사용자 정보
@@ -108,7 +116,9 @@ public class AuthService {
     /**
      * <h3>블랙리스트 사용자 확인</h3>
      *
-     * <p>카카오 ID가 블랙리스트에 있는지 확인한다.</p>
+     * <p>
+     * 카카오 ID가 블랙리스트에 있는지 확인한다.
+     * </p>
      *
      * @param kakaoId 카카오 ID
      * @return boolean 블랙리스트 여부
@@ -122,7 +132,9 @@ public class AuthService {
     /**
      * <h3>기존 사용자 로그인 처리</h3>
      *
-     * <p>기존 사용자의 정보를 업데이트하고 JWT 토큰을 생성하여 쿠키를 반환한다.</p>
+     * <p>
+     * 기존 사용자의 정보를 업데이트하고 JWT 토큰을 생성하여 쿠키를 반환한다.
+     * </p>
      *
      * @param user         기존 사용자 정보
      * @param kakaoInfoDTO 카카오 사용자 정보
@@ -132,7 +144,8 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
-    private LoginResponseDTO<List<ResponseCookie>> existingUserLogin(Users user, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+    private LoginResponseDTO<List<ResponseCookie>> existingUserLogin(Users user, KakaoInfoDTO kakaoInfoDTO,
+            TokenDTO tokenDTO, String fcmToken) {
         List<ResponseCookie> cookies = userUpdateService.saveExistUser(user, kakaoInfoDTO, tokenDTO, fcmToken);
         return LoginResponseDTO.existingUser(cookies);
     }
@@ -140,7 +153,9 @@ public class AuthService {
     /**
      * <h3>신규 사용자 로그인 처리</h3>
      *
-     * <p>신규 사용자의 정보를 TempUserDataManager 메모리에 임시저장하고 UUID를 담은 쿠키를 반환한다.</p>
+     * <p>
+     * 신규 사용자의 정보를 TempUserDataManager 메모리에 임시저장하고 UUID를 담은 쿠키를 반환한다.
+     * </p>
      *
      * @param kakaoInfoDTO 카카오 사용자 정보
      * @param tokenDTO     카카오 토큰 정보
@@ -149,7 +164,8 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
-    private LoginResponseDTO<ResponseCookie> newUserLogin(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+    private LoginResponseDTO<ResponseCookie> newUserLogin(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO,
+            String fcmToken) {
         String uuid = tempUserDataManager.saveTempData(kakaoInfoDTO, tokenDTO, fcmToken);
         return LoginResponseDTO.newUser(uuid);
     }
@@ -172,13 +188,16 @@ public class AuthService {
         if (tempUserData == null) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         }
-        return userUpdateService.saveNewUser(farmName, uuid, tempUserData.getKakaoInfoDTO(), tempUserData.getTokenDTO(), tempUserData.getFcmToken());
+        return userUpdateService.saveNewUser(farmName, uuid, tempUserData.getKakaoInfoDTO(), tempUserData.getTokenDTO(),
+                tempUserData.getFcmToken());
     }
 
     /**
      * <h3>로그아웃</h3>
      *
-     * <p>SSE연결과 ContextHolder를 삭제하고 로그아웃 쿠키를 반한합니다.</p>
+     * <p>
+     * SSE연결과 ContextHolder를 삭제하고 로그아웃 쿠키를 반한합니다.
+     * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 로그아웃 쿠키 리스트
@@ -201,7 +220,9 @@ public class AuthService {
     /**
      * <h3>회원탈퇴</h3>
      *
-     * <p>사용자의 모든 데이터를 삭제하고 카카오 연결을 해제합니다..</p>
+     * <p>
+     * 사용자의 모든 데이터를 삭제하고 카카오 연결을 해제합니다..
+     * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 탈퇴 처리 쿠키 리스트
@@ -213,15 +234,22 @@ public class AuthService {
         if (userDetails == null) {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
+
+        Long userId = userDetails.getUserId();
+
+        commentCustomRepository.processUserCommentsOnWithdrawal(userId);
         kakaoService.unlink(userJdbcRepository.getKakaoAccessToken(userDetails.getTokenId()));
-        userRepository.deleteById(userDetails.getUserId());
+        userRepository.deleteById(userId);
+
         return logout(userDetails);
     }
 
     /**
      * <h3>카카오 로그아웃</h3>
      *
-     * <p>카카오 서버와 통신하여 카카오 로그아웃을 수행합니다.</p>
+     * <p>
+     * 카카오 서버와 통신하여 카카오 로그아웃을 수행합니다.
+     * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
