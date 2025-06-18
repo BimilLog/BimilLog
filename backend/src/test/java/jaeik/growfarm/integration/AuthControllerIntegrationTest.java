@@ -126,7 +126,7 @@ public class AuthControllerIntegrationTest {
         // Then
         assertNotNull(response.getBody());
         assertEquals(clientDTO, response.getBody());
-        assertEquals(clientDTO.getFarmName(), ((ClientDTO) response.getBody()).getFarmName());
+        assertEquals(clientDTO.getUserName(), ((ClientDTO) response.getBody()).getUserName());
         assertEquals(clientDTO.getKakaoId(), ((ClientDTO) response.getBody()).getKakaoId());
         assertEquals(clientDTO.getKakaoNickname(), ((ClientDTO) response.getBody()).getKakaoNickname());
         assertEquals(clientDTO.getThumbnailImage(), ((ClientDTO) response.getBody()).getThumbnailImage());

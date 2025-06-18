@@ -15,7 +15,7 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const { checkAuth } = useAuthStore();
   const [tokenId, setTokenId] = useState<number | null>(null);
-  const [farmName, setFarmName] = useState<string>("");
+  const [userName, setUserName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -31,12 +31,12 @@ function SignupContent() {
     setTokenId(parseInt(tokenIdParam, 10));
   }, [searchParams, router]);
 
-  // 농장 이름 유효성 검사
-  const validateFarmName = (name: string): boolean => {
+  // 닉네임 유효성 검사
+  const validateUserName = (name: string): boolean => {
     const trimmedName = name.trim();
 
     if (trimmedName.length > 8) {
-      setNameError("농장 이름은 8글자 이하여야 합니다.");
+      setNameError("닉네임은 8글자 이하여야 합니다.");
       return false;
     }
 
@@ -54,7 +54,7 @@ function SignupContent() {
     e.preventDefault();
 
     // 유효성 검사
-    if (!validateFarmName(farmName) || !tokenId) {
+    if (!validateUserName(userName) || !tokenId) {
       if (!tokenId) setError("토큰 정보가 없습니다. 다시 로그인해주세요.");
       return;
     }
@@ -71,7 +71,7 @@ function SignupContent() {
         },
         body: JSON.stringify({
           tokenId,
-          farmName: escapeHTML(farmName.trim()),
+          userName: escapeHTML(userName.trim()),
         }),
       });
 
@@ -100,7 +100,7 @@ function SignupContent() {
           <div className="text-center mb-5">
             <h1 className="fw-bolder">농장 만들기</h1>
             <p className="lead fw-normal text-muted mb-0">
-              나만의 농장 이름을 지어주세요
+              나만의 닉네임을 지어주세요
             </p>
           </div>
 
@@ -111,25 +111,25 @@ function SignupContent() {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* 농장 이름 입력 */}
+            {/* 닉네임 입력 */}
             <div className="form-floating mb-3">
               <input
                 className={`form-control ${nameError ? "is-invalid" : ""}`}
-                id="farmName"
+                id="userName"
                 type="text"
-                placeholder="농장 이름을 입력하세요"
-                value={farmName}
+                placeholder="닉네임을 입력하세요"
+                value={userName}
                 onChange={(e) => {
                   setNameError(null);
-                  setFarmName(e.target.value);
+                  setUserName(e.target.value);
                 }}
                 required
                 maxLength={8}
               />
-              <label htmlFor="farmName">농장 이름</label>
+              <label htmlFor="userName">닉네임</label>
               {nameError && <div className="invalid-feedback">{nameError}</div>}
               <div className="form-text">
-                농장 이름은 8글자 이내로 입력해주세요.
+                닉네임은 8글자 이내로 입력해주세요.
               </div>
             </div>
 

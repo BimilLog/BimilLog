@@ -54,12 +54,12 @@ public class UserDTO {
         this.role = user.getRole();
     }
 
-    public UserDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String farmName, UserRole role, SettingDTO settingDTO) {
+    public UserDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String userName, UserRole role, SettingDTO settingDTO) {
         this.userId = userId;
         this.kakaoId = kakaoId;
         this.kakaoNickname = kakaoNickname;
         this.thumbnailImage = thumbnailImage;
-        this.userName = farmName;
+        this.userName = userName;
         this.role = role;
         this.settingDTO = settingDTO;
     }

@@ -12,7 +12,7 @@ public class MessageDTO {
 
     private Long id;
 
-    @Size(max = 8, message = "농장 이름은 최대 8글자 까지 입력 가능합니다.")
+    @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
     private String userName;
 
     private DecoType decoType;

@@ -99,11 +99,11 @@ export default function Home() {
     fetchFriendsByPage(page);
   };
 
-  const handleVisitFarm = async (farmName: string) => {
+  const handleVisitFarm = async (userName: string) => {
     try {
-      const response = await fetchClient(`${API_BASE}/farm/${farmName}`);
+      const response = await fetchClient(`${API_BASE}/farm/${userName}`);
       if (response.ok) {
-        window.location.href = `/farm/${farmName}`;
+        window.location.href = `/farm/${userName}`;
       } else {
         alert("농장을 방문할 수 없습니다.");
       }
@@ -218,7 +218,7 @@ export default function Home() {
                                         className="py-3 text-start"
                                         style={{ width: "30%" }}
                                       >
-                                        농장 이름
+                                        닉네임
                                       </th>
                                       <th
                                         className="py-3"
@@ -246,15 +246,15 @@ export default function Home() {
                                           </div>
                                         </td>
                                         <td className="align-middle py-3 text-start ps-4">
-                                          {friend.farmName || "-"}
+                                          {friend.userName || "-"}
                                         </td>
                                         <td className="align-middle py-3 text-center">
                                           <button
                                             className="btn btn-primary btn-sm px-3"
                                             onClick={() =>
-                                              handleVisitFarm(friend.farmName)
+                                              handleVisitFarm(friend.userName)
                                             }
-                                            disabled={!friend.farmName}
+                                            disabled={!friend.userName}
                                           >
                                             농장 가기
                                           </button>

@@ -177,18 +177,18 @@ public class AuthService {
      * uuid로 임시 저장된 사용자 정보를 기반으로 회원가입을 처리한다.
      * </p>
      *
-     * @param farmName 사용자가 설정한 농장 이름
+     * @param userName 사용자가 설정한 닉네임
      * @param uuid     임시 저장된 사용자 정보의 UUID
      * @return JWT가 삽입된 쿠키 리스트
      * @author Jaeik
      * @since 1.0.0
      */
-    public List<ResponseCookie> signUp(String farmName, String uuid) {
+    public List<ResponseCookie> signUp(String userName, String uuid) {
         TempUserDataManager.TempUserData tempUserData = tempUserDataManager.getTempData(uuid);
         if (tempUserData == null) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         }
-        return userUpdateService.saveNewUser(farmName, uuid, tempUserData.getKakaoInfoDTO(), tempUserData.getTokenDTO(),
+        return userUpdateService.saveNewUser(userName, uuid, tempUserData.getKakaoInfoDTO(), tempUserData.getTokenDTO(),
                 tempUserData.getFcmToken());
     }
 

@@ -69,7 +69,7 @@ public class AuthControllerTest {
 //    @DisplayName("회원가입 테스트")
 //    void testSignUp() {
 //        // Given
-//        FarmNameReqDTO request = new FarmNameReqDTO();
+//        UserNameReqDTO request = new UserNameReqDTO();
 //        request.setTokenId(1L);
 //        request.setUserName("testFarm");
 //
@@ -138,7 +138,7 @@ public class AuthControllerTest {
         // Given
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(1L);
-        userDTO.setFarmName("testFarm");
+        userDTO.setUserName("testFarm");
         userDTO.setKakaoNickname("testNickname");
         userDTO.setRole(UserRole.USER);
 

@@ -41,13 +41,13 @@ public class PaperController {
 
     /*
      * 다른 농장 가기 API
-     * param String userName: 농장 이름
+     * param String userName: 닉네임
      * return: ResponseEntity<List<VisitCropDTO>> 다른 농장에 심어진 농작물 리스트
      * 수정일 : 2025-05-03
      */
-    @GetMapping("{farmName}")
-    public ResponseEntity<List<VisitMessageDTO>> visitFarm(@PathVariable String farmName) {
-        List<VisitMessageDTO> crops = paperService.visitFarm(farmName);
+    @GetMapping("{userName}")
+    public ResponseEntity<List<VisitMessageDTO>> visitFarm(@PathVariable String userName) {
+        List<VisitMessageDTO> crops = paperService.visitFarm(userName);
         return ResponseEntity.ok(crops);
     }
 
@@ -65,16 +65,16 @@ public class PaperController {
 
     /*
      * 농작물 심기 API
-     * param String userName: 농장 이름
+     * param String userName: 닉네임
      * param CropDTO cropDTO: 농작물 DTO
      * return: ResponseEntity<String> 농작물 심기 완료 메시지
      * 수정일 : 2025-05-03
      */
-    @PostMapping("{farmName}")
+    @PostMapping("{userName}")
     public ResponseEntity<String> plantCrop(
-            @PathVariable String farmName,
+            @PathVariable String userName,
             @RequestBody @Valid MessageDTO messageDTO) throws IOException {
-        paperService.plantCrop(farmName, messageDTO);
+        paperService.plantCrop(userName, messageDTO);
         return ResponseEntity.ok("농작물이 심어졌습니다.");
     }
 }

@@ -52,16 +52,16 @@ public class PaperService {
      * <h3>다른 농장 방문</h3>
      *
      * <p>
-     * 농장 이름을 통해 해당 농장의 농작물 목록을 조회한다.
+     * 닉네임을 통해 해당 농장의 농작물 목록을 조회한다.
      * </p>
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param farmName 농장 이름
+     * @param userName 닉네임
      * @return 방문 농장의 농작물 목록
      */
-    public List<VisitMessageDTO> visitFarm(String farmName) {
-        Users user = userRepository.findByUserName(farmName);
+    public List<VisitMessageDTO> visitFarm(String userName) {
+        Users user = userRepository.findByUserName(userName);
 
         if (user == null) {
             throw new IllegalArgumentException("해당 농장을 찾을 수 없습니다.");
@@ -81,12 +81,12 @@ public class PaperService {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param farmName 농장 이름
+     * @param userName 닉네임
      * @param messageDTO  심을 농작물 정보 DTO
      * @throws IOException FCM 메시지 발송 오류 시 발생
      */
-    public void plantCrop(String farmName, MessageDTO messageDTO) throws IOException {
-        Users user = userRepository.findByUserName(farmName);
+    public void plantCrop(String userName, MessageDTO messageDTO) throws IOException {
+        Users user = userRepository.findByUserName(userName);
 
         if (user == null) {
             throw new IllegalArgumentException("해당 농장을 찾을 수 없습니다.");
@@ -99,7 +99,7 @@ public class PaperService {
         // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
         eventPublisher.publishEvent(new FarmPlantEvent(
                 user.getId(),
-                farmName,
+                userName,
                 user));
     }
 

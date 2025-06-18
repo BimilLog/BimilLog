@@ -28,18 +28,18 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     /**
-     * <h3>카카오 ID 목록으로 농장 이름 조회</h3>
+     * <h3>카카오 ID 목록으로 닉네임 조회</h3>
      * <p>
-     * 카카오 ID 목록의 순서대로 농장 이름을 조회한다.
+     * 카카오 ID 목록의 순서대로 닉네임을 조회한다.
      * </p>
      *
      * @param ids 카카오 ID 목록
-     * @return 농장 이름 리스트
+     * @return 닉네임 리스트
      * @author Jaeik
      * @since 1.0.0
      */
     @Override
-    public List<String> findFarmNamesInOrder(List<Long> ids) {
+    public List<String> findUserNamesInOrder(List<Long> ids) {
         if (ids.isEmpty()) {
             return Collections.emptyList();
         }
@@ -52,7 +52,7 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                 .where(user.kakaoId.in(ids))
                 .fetch();
 
-        Map<Long, String> kakaoIdToFarmName = results.stream()
+        Map<Long, String> kakaoIdToUserName = results.stream()
                 .collect(Collectors.toMap(
                         tuple -> tuple.get(user.kakaoId),
                         tuple -> Optional.ofNullable(tuple.get(user.userName)).orElse(""),
@@ -60,7 +60,7 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                 ));
 
         return ids.stream()
-                .map(id -> kakaoIdToFarmName.getOrDefault(id, ""))
+                .map(id -> kakaoIdToUserName.getOrDefault(id, ""))
                 .collect(Collectors.toList());
     }
 }

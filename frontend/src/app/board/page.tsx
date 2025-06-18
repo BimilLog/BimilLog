@@ -26,7 +26,7 @@ const PostItem = ({ post }: { post: SimplePostDTO }) => (
     </td>
     <td className="text-center">👍 {post.likes}</td>
     <td className="text-center">{post.views}</td>
-    <td className="text-center">{post.farmName}</td>
+    <td className="text-center">{post.userName}</td>
     <td className="text-center">
       {formatDateTime(post.createdAt).split(" ")[0]}
     </td>
@@ -67,7 +67,7 @@ interface PostType {
   postId?: number;
   title?: string;
   content?: string;
-  farmName?: string;
+  userName?: string;
   createdAt?: string;
   likes?: number;
   views?: number;
@@ -85,7 +85,7 @@ interface PostType {
   postId?: number;
   title?: string;
   content?: string;
-  farmName?: string;
+  userName?: string;
   createdAt?: string;
   likes?: number;
   views?: number;
@@ -294,7 +294,7 @@ export default function BoardPage() {
   const getPlaceholderText = () => {
     const placeholders: Record<string, string> = {
       제목: "제목으로 검색",
-      작성자: "농장 이름으로 검색",
+      작성자: "닉네임으로 검색",
       제목내용: "제목+내용으로 검색",
     };
     return placeholders[searchType] || "검색어를 입력하세요";

@@ -83,7 +83,7 @@ public class NotificationEventListener {
 
         sseService.sendFarmPlantNotificationAsync(
                 event.getFarmOwnerId(),
-                event.getFarmName());
+                event.getUserName());
 
         log.info("농작물 심기 SSE 이벤트 처리 완료: farmOwnerId={}", event.getFarmOwnerId());
     }

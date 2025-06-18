@@ -31,9 +31,9 @@ public class PaperUtil {
     public MessageDTO convertToCropDTO(Message message) {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(message.getId());
-        messageDTO.setFarmName(message.getUsers().getUserName());
+        messageDTO.setUserName(message.getUsers().getUserName());
         messageDTO.setDecoType(message.getDecoType());
-        messageDTO.setNickname(message.getAnonymity());
+        messageDTO.setUserName(message.getAnonymity());
         messageDTO.setMessage(message.getMessage());
         messageDTO.setWidth(message.getWidth());
         messageDTO.setHeight(message.getHeight());
@@ -57,7 +57,7 @@ public class PaperUtil {
         return Message.builder()
                 .users(user)
                 .decoType(messageDTO.getDecoType())
-                .anonymity(messageDTO.getNickname())
+                .anonymity(messageDTO.getAnonymity())
                 .message(messageDTO.getMessage())
                 .width(messageDTO.getWidth())
                 .height(messageDTO.getHeight())
@@ -79,7 +79,7 @@ public class PaperUtil {
     public VisitMessageDTO convertToVisitFarmDTO(Message message) {
         VisitMessageDTO visitMessageDTO = new VisitMessageDTO();
         visitMessageDTO.setId(message.getId());
-        visitMessageDTO.setFarmName(message.getUsers().getUserName());
+        visitMessageDTO.setUserName(message.getUsers().getUserName());
         visitMessageDTO.setDecoType(message.getDecoType());
         visitMessageDTO.setWidth(message.getWidth());
         visitMessageDTO.setHeight(message.getHeight());

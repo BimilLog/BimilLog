@@ -26,7 +26,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -143,7 +142,7 @@ public class UserService {
      * @author Jaeik
      * @since 1.0.0
      */
-    public void updateFarmName(String userName, CustomUserDetails userDetails) {
+    public void updateUserName(String userName, CustomUserDetails userDetails) {
         if (userRepository.existsByUserName(userName)) {
             throw new CustomException(ErrorCode.Existed_NICKNAME);
         }
@@ -191,7 +190,7 @@ public class UserService {
         validateKakaoConsent(token.getKakaoAccessToken());
 
         KakaoFriendListDTO friendListDTO = kakaoService.getFriendList(token.getKakaoAccessToken(), offset);
-        mapFarmNamesToFriends(friendListDTO.getElements());
+        mapUserNamesToFriends(friendListDTO.getElements());
 
         return friendListDTO;
     }
@@ -203,7 +202,7 @@ public class UserService {
      * 사용자의 현재 설정 정보를 조회한다.
      * </p>
      *
-     * @param userId 사용자 ID
+     * @param userDetails 현재 로그인 한 사용자 정보
      * @return 설정 정보 DTO
      * @author Jaeik
      * @since 1.0.0
@@ -218,6 +217,25 @@ public class UserService {
                 setting.isCommentNotification(),
                 setting.isPostFeaturedNotification()
         );
+    }
+
+    /**
+     * <h3>사용자 설정 업데이트</h3>
+     *
+     * <p>
+     * 사용자의 알림 설정을 업데이트한다.
+     * </p>
+     *
+     * @param settingDTO 설정 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public void updateSetting(SettingDTO settingDTO, CustomUserDetails userDetails) {
+        Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingDTO().getSettingId())
+                .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
+
+        setting.updateSetting(settingDTO);
     }
 
     /**
@@ -240,13 +258,13 @@ public class UserService {
     }
 
     /**
-     * <h3>친구 목록에 농장 이름을 매핑한다.</h3>
+     * <h3>친구 목록에 닉네임을 매핑한다.</h3>
      *
      * @param friendList 친구 목록
      * @author Jaeik
      * @since 1.0.0
      */
-    private void mapFarmNamesToFriends(List<KakaoFriendDTO> friendList) {
+    private void mapUserNamesToFriends(List<KakaoFriendDTO> friendList) {
         if (friendList.isEmpty()) {
             return;
         }
@@ -255,37 +273,10 @@ public class UserService {
                 .map(KakaoFriendDTO::getId)
                 .toList();
 
-        List<String> farmNames = userRepository.findFarmNamesInOrder(friendIds);
+        List<String> userNames = userRepository.findUserNamesInOrder(friendIds);
 
         for (int i = 0; i < friendList.size(); i++) {
-            friendList.get(i).setUserName(farmNames.get(i));
+            friendList.get(i).setUserName(userNames.get(i));
         }
     }
-
-    /**
-     * <h3>사용자 설정 업데이트</h3>
-     *
-     * <p>
-     * 사용자의 알림 설정을 업데이트한다.
-     * </p>
-     *
-     * @param settingDTO 설정 정보 DTO
-     * @param userId     사용자 ID
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    @Transactional
-    public void updateSetting(SettingDTO settingDTO, Long userId) {
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        Setting setting = user.getSetting();
-        setting.updateSetting(settingDTO.farmNotification(),
-                settingDTO.commentNotification(),
-                settingDTO.postFeaturedNotification());
-
-    }
-
-
 }

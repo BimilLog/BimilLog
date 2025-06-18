@@ -26,7 +26,7 @@ const PostItem = ({ post }: { post: SimplePostDTO }) => (
         )}
       </Link>
     </td>
-    <td>{post.farmName}</td>
+    <td>{post.userName}</td>
     <td>{post.views}</td>
     <td>{post.likes}</td>
     <td>{formatDateTime(post.createdAt).split(" ")[0]}</td>

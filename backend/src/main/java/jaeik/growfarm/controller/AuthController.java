@@ -63,19 +63,19 @@ public class AuthController {
     /**
      * <h3>서비스 회원 가입 API</h3>
      *
-     * <p>카카오 로그인 후 신규 회원일 경우 작동되며 farmName과 uuid를 받아서 Jwt 쿠키를 반환한다.</p>
+     * <p>카카오 로그인 후 신규 회원일 경우 작동되며 userName과 uuid를 받아서 Jwt 쿠키를 반환한다.</p>
      *
-     * @param farmName 농장 이름
+     * @param userName 닉네임
      * @param uuid 임시 쿠키에 저장된 UUID
      * @return JWT가 삽입된 쿠키
      * @author Jaeik
      * @since 1.0.0
      */
     @GetMapping("/signUp")
-    public ResponseEntity<String> SignUp(@RequestParam String farmName,
+    public ResponseEntity<String> SignUp(@RequestParam String userName,
                                          @CookieValue(value = "temp") String uuid) {
 
-        List<ResponseCookie> cookies = authService.signUp(farmName, uuid);
+        List<ResponseCookie> cookies = authService.signUp(userName, uuid);
 
         return ResponseEntity.ok()
                 .header("Set-Cookie", cookies.get(0).toString())

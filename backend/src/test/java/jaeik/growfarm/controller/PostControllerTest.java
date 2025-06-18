@@ -71,7 +71,7 @@
 //        // Create PostReqDTO and set properties
 //        postReqDTO = new PostReqDTO();
 //        postReqDTO.setUserId(1L);
-//        postReqDTO.setFarmName("testFarm");
+//        postReqDTO.setUserName("testFarm");
 //        postReqDTO.setTitle("Test Title");
 //        postReqDTO.setContent("Test Content");
 //

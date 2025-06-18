@@ -106,7 +106,7 @@ public class PaperControllerIntegrationTest {
     @DisplayName("농작물 심기 통합 테스트")
     void testPlantCrop() throws IOException {
         // Given
-        String farmName = "testFarm";
+        String userName = "testFarm";
 
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setDecoType(DecoType.TOMATO);
@@ -116,7 +116,7 @@ public class PaperControllerIntegrationTest {
         messageDTO.setHeight(2);
 
         // When
-        ResponseEntity<String> response = paperController.plantCrop(farmName, messageDTO);
+        ResponseEntity<String> response = paperController.plantCrop(userName, messageDTO);
 
         // Then
         assertEquals("농작물이 심어졌습니다.", response.getBody());
@@ -132,10 +132,10 @@ public class PaperControllerIntegrationTest {
     @DisplayName("다른 농장 방문 통합 테스트")
     void testVisitFarm() {
         // Given
-        String farmName = "testFarm";
+        String userName = "testFarm";
 
         // When
-        ResponseEntity<List<VisitMessageDTO>> response = paperController.visitFarm(farmName);
+        ResponseEntity<List<VisitMessageDTO>> response = paperController.visitFarm(userName);
         List<VisitMessageDTO> visitCropList = response.getBody();
 
         // Then

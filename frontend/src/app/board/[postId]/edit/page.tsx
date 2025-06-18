@@ -121,7 +121,7 @@ export default function EditPage() {
           },
           body: JSON.stringify({
             userId: user.userId,
-            farmName: user.farmName,
+            userName: user.userName,
             title: escapeHTML(title),
             content: escapeHTML(content),
           }),

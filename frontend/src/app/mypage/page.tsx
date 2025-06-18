@@ -4,33 +4,33 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import useAuthStore from "@/util/authStore";
 import fetchClient from "@/util/fetchClient";
-import { FarmNameReqDTO } from "@/components/types/schema";
+import { UserNameReqDTO } from "@/components/types/schema";
 import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 
 const API_BASE = "http://localhost:8080";
 
 export default function MyPage() {
   const { user, setUser, logout } = useAuthStore();
-  const [isEditingFarmName, setIsEditingFarmName] = useState(false);
-  const [newFarmName, setNewFarmName] = useState("");
+  const [isEditingUserName, setIsEditingUserName] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
 
-  const handleFarmNameChange = async (e: FormEvent) => {
+  const handleUserNameChange = async (e: FormEvent) => {
     e.preventDefault();
 
-    const trimmedFarmName = newFarmName.trim();
-    if (!trimmedFarmName) {
-      alert("새 농장 이름을 입력해주세요.");
+    const trimmedUserName = newUserName.trim();
+    if (!trimmedUserName) {
+      alert("새 닉네임을 입력해주세요.");
       return;
     }
 
-    if (trimmedFarmName.length > 8) {
-      alert("농장 이름은 8글자 이하여야 합니다.");
+    if (trimmedUserName.length > 8) {
+      alert("닉네임은 8글자 이하여야 합니다.");
       return;
     }
 
-    if (!validateNoXSS(trimmedFarmName)) {
+    if (!validateNoXSS(trimmedUserName)) {
       alert("특수문자(<, >, &, \", ')는 사용이 불가능합니다.");
       return;
     }
@@ -44,8 +44,8 @@ export default function MyPage() {
     setIsLoading(true);
 
     try {
-      const requestBody: Partial<FarmNameReqDTO> = {
-        farmName: escapeHTML(trimmedFarmName),
+      const requestBody: Partial<UserNameReqDTO> = {
+        userName: escapeHTML(trimmedUserName),
       };
       const response = await fetchClient(`${API_BASE}/user/mypage/updatefarm`, {
         method: "POST",
@@ -56,19 +56,19 @@ export default function MyPage() {
       await response.text();
 
       if (response.ok) {
-        setUser({ ...user, farmName: trimmedFarmName });
-        setIsEditingFarmName(false);
-        setNewFarmName("");
+        setUser({ ...user, userName: trimmedUserName });
+        setIsEditingUserName(false);
+        setNewUserName("");
         await logout();
       } else {
         alert(
-          `농장 이름 변경에 실패했습니다: ${response.status} ${response.statusText}`
+          `닉네임 변경에 실패했습니다: ${response.status} ${response.statusText}`
         );
       }
     } catch (error: unknown) {
-      console.error("농장 이름 변경 중 오류 발생:", error);
+      console.error("닉네임 변경 중 오류 발생:", error);
       alert(
-        `농장 이름 변경 중 오류가 발생했습니다: ${
+        `닉네임 변경 중 오류가 발생했습니다: ${
           error instanceof Error ? error.message : "알 수 없는 오류"
         }`
       );
@@ -134,7 +134,7 @@ export default function MyPage() {
 
                 {/* 사용자 정보 */}
                 <h5 className="fw-bold mb-1">
-                  {user?.farmName || "농장 이름 없음"}
+                  {user?.userName || "닉네임 없음"}
                 </h5>
                 <p className="text-muted mb-1">
                   카카오ID: {user?.kakaoId || "-"}
@@ -145,24 +145,24 @@ export default function MyPage() {
 
                 {/* 프로필 관리 버튼 및 폼 */}
                 <div className="d-grid gap-2 mb-2">
-                  {!isEditingFarmName ? (
+                  {!isEditingUserName ? (
                     <button
                       className="btn btn-secondary"
-                      onClick={() => setIsEditingFarmName(true)}
+                      onClick={() => setIsEditingUserName(true)}
                       disabled={isLoading || isWithdrawing}
                     >
-                      <i className="bi bi-pencil-square me-1"></i>농장 이름 변경
+                      <i className="bi bi-pencil-square me-1"></i>닉네임 변경
                     </button>
                   ) : (
                     <form
-                      onSubmit={handleFarmNameChange}
+                      onSubmit={handleUserNameChange}
                       className="vstack gap-2"
                     >
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="새 농장 이름 입력"
-                        value={newFarmName}
+                        placeholder="새 닉네임 입력"
+                        value={newUserName}
                         onChange={(e) => {
                           if (!validateNoXSS(e.target.value)) {
                             alert(
@@ -170,21 +170,21 @@ export default function MyPage() {
                             );
                             return;
                           }
-                          setNewFarmName(e.target.value);
+                          setNewUserName(e.target.value);
                         }}
                         required
                         disabled={isLoading || isWithdrawing}
                         maxLength={8}
                       />
                       <div className="form-text">
-                        농장 이름은 8글자 이내로 입력해주세요.
+                        닉네임은 8글자 이내로 입력해주세요.
                       </div>
                       <div className="hstack gap-2">
                         <button
                           type="submit"
                           className="btn btn-primary w-100"
                           disabled={
-                            isLoading || !newFarmName.trim() || isWithdrawing
+                            isLoading || !newUserName.trim() || isWithdrawing
                           }
                         >
                           {isLoading ? "변경 중..." : "변경"}
@@ -193,8 +193,8 @@ export default function MyPage() {
                           type="button"
                           className="btn btn-outline-secondary w-100"
                           onClick={() => {
-                            setIsEditingFarmName(false);
-                            setNewFarmName("");
+                            setIsEditingUserName(false);
+                            setNewUserName("");
                           }}
                           disabled={isLoading || isWithdrawing}
                         >

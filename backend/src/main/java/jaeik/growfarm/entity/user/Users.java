@@ -24,7 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @SuperBuilder
 @NoArgsConstructor
 @Table(indexes = {
-        @Index(name = "idx_post_username", columnList = "user_name")
+        @Index(name = "idx_post_username", columnList = "user_name"),
+        @Index(name = "idx_post_kakao_id_username", columnList = "kakao_id, user_name"),
 })
 public class Users extends BaseEntity {
 
@@ -75,13 +76,13 @@ public class Users extends BaseEntity {
     }
 
     /**
-     * <h3>농장 이름 업데이트</h3>
+     * <h3>닉네임 수정</h3>
      *
      * <p>
-     * 사용자의 농장 이름을 변경한다.
+     * 사용자의 닉네임을 수정한다.
      * </p>
      *
-     * @param farmName 새로운 농장 이름
+     * @param userName 새로운 닉네임
      * @author Jaeik
      * @since 1.0.0
      */
@@ -90,12 +91,12 @@ public class Users extends BaseEntity {
         this.userName = userName;
     }
 
-    public static Users createUser(KakaoInfoDTO kakaoInfoDTO, String farmName, Setting setting) {
+    public static Users createUser(KakaoInfoDTO kakaoInfoDTO, String userName, Setting setting) {
         return Users.builder()
                 .kakaoId(kakaoInfoDTO.getKakaoId())
                 .kakaoNickname(kakaoInfoDTO.getKakaoNickname())
                 .thumbnailImage(kakaoInfoDTO.getThumbnailImage())
-                .userName(farmName)
+                .userName(userName)
                 .role(UserRole.USER)
                 .setting(setting)
                 .build();

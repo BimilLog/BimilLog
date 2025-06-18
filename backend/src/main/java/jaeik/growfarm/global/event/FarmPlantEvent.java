@@ -24,9 +24,9 @@ public class FarmPlantEvent {
     private final Long farmOwnerId;
 
     /**
-     * 농장 이름
+     * 닉네임
      */
-    private final String farmName;
+    private final String userName;
 
     /**
      * 농장 주인 엔티티 (FCM 토큰 조회용)

@@ -66,7 +66,7 @@ public class UserUpdateService {
      *
      * <p>신규 유저의 정보를 저장하고 JWT 쿠키를 생성하여 반환합니다.</p>
      *
-     * @param farmName 농장 이름
+     * @param userName 닉네임
      * @param uuid UUID
      * @param kakaoInfoDTO 카카오 정보 DTO
      * @param tokenDTO 토큰 DTO
@@ -76,8 +76,8 @@ public class UserUpdateService {
      * @author Jaeik
      */
     @Transactional
-    public List<ResponseCookie> saveNewUser(String farmName, String uuid, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
-        Users user = userRepository.save(Users.createUser(kakaoInfoDTO, farmName, settingRepository.save(Setting.createSetting())));
+    public List<ResponseCookie> saveNewUser(String userName, String uuid, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+        Users user = userRepository.save(Users.createUser(kakaoInfoDTO, userName, settingRepository.save(Setting.createSetting())));
         tempUserDataManager.removeTempData(uuid);
         return jwtTokenProvider.generateJwtCookie(new ClientDTO(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),

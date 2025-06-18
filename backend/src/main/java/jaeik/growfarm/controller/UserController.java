@@ -141,9 +141,9 @@ public class UserController {
      * @since 1.0.0
      */
     @PostMapping("/username")
-    public ResponseEntity<String> updateFarmName(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<String> updateUserName(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                  @RequestBody @Valid UserNameDTO userNameDTO) {
-        userService.updateFarmName(userNameDTO.getUserName(), userDetails);
+        userService.updateUserName(userNameDTO.getUserName(), userDetails);
         return ResponseEntity.ok("닉네임이 변경되었습니다.");
     }
 
@@ -217,11 +217,9 @@ public class UserController {
      * @since 1.0.0
      */
     @PostMapping("/setting")
-    public ResponseEntity<SettingDTO> updateSetting(@RequestBody SettingDTO settingDTO,
-                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getClientDTO().getUserId();
-        userService.updateSetting(settingDTO, userId);
-        SettingDTO newSettingDTO = userService.getSetting(userDetails);
-        return ResponseEntity.ok(newSettingDTO);
+    public ResponseEntity<String> updateSetting(@RequestBody SettingDTO settingDTO,
+                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+        userService.updateSetting(settingDTO, userDetails);
+        return ResponseEntity.ok("설정 수정 완료");
     }
 }

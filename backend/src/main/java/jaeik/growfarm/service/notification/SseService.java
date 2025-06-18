@@ -57,10 +57,10 @@ public class SseService {
      * <h3>농작물 심기 SSE 알림 (비동기)</h3>
      *
      * @param farmOwnerId 농장 주인 ID
-     * @param farmName    농장 이름
+     * @param userName    닉네임
      */
     @Async("sseNotificationExecutor")
-    public void sendFarmPlantNotificationAsync(Long farmOwnerId, String farmName) {
+    public void sendFarmPlantNotificationAsync(Long farmOwnerId, String userName) {
         try {
             log.info("농작물 심기 SSE 알림 비동기 처리 시작: farmOwnerId={}, 스레드={}",
                     farmOwnerId, Thread.currentThread().getName());
@@ -68,7 +68,7 @@ public class SseService {
             EventDTO eventDTO = notificationUtil.createEventDTO(
                     NotificationType.FARM,
                     "누군가가 농장에 농작물을 심었습니다!",
-                    "http://localhost:3000/farm/" + farmName);
+                    "http://localhost:3000/farm/" + userName);
 
             notificationService.send(farmOwnerId, eventDTO);
 

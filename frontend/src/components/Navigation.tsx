@@ -519,8 +519,8 @@ const Navigation = () => {
     try {
       let response;
 
-      // 로그인 상태이고 검색한 농장 이름이 내 농장인 경우
-      if (user && user.farmName === searchFarm) {
+      // 로그인 상태이고 검색한 닉네임이 내 농장인 경우
+      if (user && user.userName === searchFarm) {
         response = await fetchClient(`${API_BASE}/farm/myFarm`, {
           method: "POST",
         });
@@ -550,7 +550,7 @@ const Navigation = () => {
   const handleMyFarmClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
 
-    if (!user || !user.farmName) return;
+    if (!user || !user.userName) return;
 
     try {
       const response = await fetchClient(`${API_BASE}/farm/myFarm`, {
@@ -558,7 +558,7 @@ const Navigation = () => {
       });
 
       if (response.ok) {
-        router.push(`/farm/${user.farmName}`);
+        router.push(`/farm/${user.userName}`);
       } else {
         alert("농장 정보를 가져오는데 실패했습니다.");
       }
@@ -606,7 +606,7 @@ const Navigation = () => {
                 <input
                   type="search"
                   className="form-control form-control-sm"
-                  placeholder="농장 이름을 입력하세요"
+                  placeholder="닉네임을 입력하세요"
                   aria-label="농장 검색"
                   style={{ height: "31px" }}
                   value={searchFarm}
@@ -639,7 +639,7 @@ const Navigation = () => {
               <input
                 type="search"
                 className="form-control form-control-sm"
-                placeholder="농장 이름을 입력하세요"
+                placeholder="닉네임을 입력하세요"
                 aria-label="농장 검색"
                 value={searchFarm}
                 onChange={(e) => setSearchFarm(e.target.value)}

@@ -140,7 +140,7 @@ function KakaoCallbackContent() {
           const data = text ? JSON.parse(text) : null;
 
           if (typeof data === "number") {
-            // 신규 회원 - 농장 이름 설정 페이지로 이동
+            // 신규 회원 - 닉네임 설정 페이지로 이동
             router.push(`/auth/signup?tokenId=${data}`);
           } else {
             // 예상치 못한 응답 형식이지만 로그인 처리

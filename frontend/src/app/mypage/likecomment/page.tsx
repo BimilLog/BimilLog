@@ -25,7 +25,7 @@ const CommentItem = ({ comment }: { comment: CommentDTO }) => (
           : comment.content}
       </Link>
     </td>
-    <td>{comment.farmName}</td>
+    <td>{comment.userName}</td>
     <td>{comment.likes}</td>
     <td>{formatDateTime(comment.createdAt).split(" ")[0]}</td>
   </tr>

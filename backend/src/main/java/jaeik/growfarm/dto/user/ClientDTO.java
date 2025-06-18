@@ -31,8 +31,8 @@ public class ClientDTO extends UserDTO{
         this.fcmTokenId = fcmTokenId;
     }
 
-    public ClientDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String farmName, UserRole role, Long tokenId, Long fcmTokenId, SettingDTO settingDTO) {
-        super(userId, kakaoId, kakaoNickname, thumbnailImage, farmName, role, settingDTO);
+    public ClientDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String userName, UserRole role, Long tokenId, Long fcmTokenId, SettingDTO settingDTO) {
+        super(userId, kakaoId, kakaoNickname, thumbnailImage, userName, role, settingDTO);
         this.tokenId = tokenId;
         this.fcmTokenId = fcmTokenId;
     }

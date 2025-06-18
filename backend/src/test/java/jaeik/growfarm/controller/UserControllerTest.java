@@ -12,7 +12,7 @@ package jaeik.growfarm.controller;
 //    private CustomUserDetails userDetails;
 //    private SimplePostDTO simplePostDTO;
 //    private CommentDTO commentDTO;
-//    private FarmNameReqDTO farmNameReqDTO;
+//    private UserNameReqDTO userNameReqDTO;
 //    private ReportDTO reportDTO;
 //    private SettingDTO settingDTO;
 //    private KakaoFriendListDTO kakaoFriendListDTO;
@@ -61,9 +61,9 @@ package jaeik.growfarm.controller;
 //        commentDTOList = new ArrayList<>();
 //        commentDTOList.add(commentDTO);
 //
-//        // Create FarmNameReqDTO
-//        farmNameReqDTO = new FarmNameReqDTO();
-//        farmNameReqDTO.setUserName("newFarmName");
+//        // Create UserNameReqDTO
+//        userNameReqDTO = new UserNameReqDTO();
+//        userNameReqDTO.setUserName("newUserName");
 //
 //        // Create ReportDTO
 //        reportDTO = ReportDTO.builder()
@@ -147,18 +147,18 @@ package jaeik.growfarm.controller;
 //    }
 //
 //    @Test
-//    @DisplayName("농장 이름 변경 테스트")
-//    void testUpdateFarmName() {
+//    @DisplayName("닉네임 변경 테스트")
+//    void testUpdateUserName() {
 //        // Given
-//        doNothing().when(userService).updateFarmName(anyString(), any());
+//        doNothing().when(userService).updateUserName(anyString(), any());
 //
 //        // When
-//        ResponseEntity<String> response = userController.updateFarmName(userDetails, farmNameReqDTO);
+//        ResponseEntity<String> response = userController.updateUserName(userDetails, userNameReqDTO);
 //
 //        // Then
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertEquals("농장 이름이 변경되었습니다.", response.getBody());
-//        verify(userService, times(1)).updateFarmName(farmNameReqDTO.getUserName(), userDetails);
+//        assertEquals("닉네임이 변경되었습니다.", response.getBody());
+//        verify(userService, times(1)).updateUserName(userNameReqDTO.getUserName(), userDetails);
 //    }
 //
 //    @Test

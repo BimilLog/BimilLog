@@ -62,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/auth/login", "/auth/signUp", "/auth/health")
                         .permitAll()
-                        .requestMatchers("/farm/{farmName}").permitAll()
+                        .requestMatchers("/farm/{userName}").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(headerCheckFilter, UsernamePasswordAuthenticationFilter.class)
