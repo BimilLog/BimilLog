@@ -7,6 +7,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.board.PostDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.entity.comment.QComment;
 import jaeik.growfarm.entity.post.PopularFlag;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.QPost;
@@ -27,6 +28,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -99,8 +101,8 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
      * @param postId 게시글 ID
      * @param userId 사용자 ID (null 가능)
      * @return PostDTO 게시글 상세 정보
-     * @since 1.0.0
      * @author Jaeik
+     * @since 1.0.0
      */
     @Override
     @Transactional(readOnly = true)
@@ -298,7 +300,7 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
      * @since 1.0.0
      */
     private List<SimplePostDTO> createSimplePostDTOs(List<Tuple> postTuples, QPost post, QUsers user,
-            Map<Long, Integer> commentCounts, Map<Long, Integer> likeCounts) {
+                                                     Map<Long, Integer> commentCounts, Map<Long, Integer> likeCounts) {
         return postTuples.stream()
                 .map(tuple -> {
                     Integer views = tuple.get(post.views.coalesce(0));
@@ -376,36 +378,80 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
      * <p>
      * 1일 이내의 글 중 추천 수가 가장 높은 상위 5개를 실시간 인기글로 등록한다.
      * </p>
+     *
+     * @return 실시간 인기글 목록
      * @author Jaeik
      * @since 1.0.0
      */
     @Override
     @Transactional
-    public void updateRealtimePopularPosts() {
+    public List<SimplePostDTO> updateRealtimePopularPosts() {
         QPost post = QPost.post;
         QPostLike postLike = QPostLike.postLike;
+        QComment comment = QComment.comment;
+        QUsers user = QUsers.users;
 
         jpaQueryFactory.update(post)
                 .set(post.popularFlag, (PopularFlag) null)
                 .where(post.popularFlag.eq(PopularFlag.REALTIME))
                 .execute();
 
-        List<Long> popularPostIds = jpaQueryFactory
-                .select(post.id)
+        List<Tuple> popularPostsData = jpaQueryFactory
+                .select(
+                        post.id,
+                        post.user.id,
+                        user.userName,
+                        post.title,
+                        post.views,
+                        post.createdAt,
+                        post.isNotice,
+                        postLike.count().coalesce(0L),
+                        comment.count().coalesce(0L)
+                )
                 .from(post)
+                .leftJoin(user).on(post.user.id.eq(user.id))
                 .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .leftJoin(comment).on(post.id.eq(comment.post.id))
                 .where(post.createdAt.after(Instant.now().minus(1, ChronoUnit.DAYS)))
-                .groupBy(post.id)
+                .groupBy(
+                        post.id,
+                        post.user.id,
+                        user.userName,
+                        post.title,
+                        post.views,
+                        post.createdAt,
+                        post.isNotice
+                )
                 .orderBy(postLike.count().desc())
                 .limit(5)
                 .fetch();
 
-        if (!popularPostIds.isEmpty()) {
-            jpaQueryFactory.update(post)
-                    .set(post.popularFlag, PopularFlag.REALTIME)
-                    .where(post.id.in(popularPostIds))
-                    .execute();
+        if (popularPostsData.isEmpty()) {
+            return Collections.emptyList();
         }
+
+        List<Long> popularPostIds = popularPostsData.stream()
+                .map(tuple -> tuple.get(post.id))
+                .collect(Collectors.toList());
+
+        jpaQueryFactory.update(post)
+                .set(post.popularFlag, PopularFlag.REALTIME)
+                .where(post.id.in(popularPostIds))
+                .execute();
+
+        return popularPostsData.stream()
+                .map(tuple -> new SimplePostDTO(
+                        tuple.get(post.id),
+                        tuple.get(post.user.id),
+                        tuple.get(user.userName),
+                        tuple.get(post.title),
+                        Objects.requireNonNull(tuple.get(comment.count())).intValue(),
+                        Objects.requireNonNull(tuple.get(postLike.count())).intValue(),
+                        tuple.get(post.views) != null ? Objects.requireNonNull(tuple.get(post.views)) : 0,
+                        tuple.get(post.createdAt),
+                        tuple.get(post.isNotice) != null && Boolean.TRUE.equals(tuple.get(post.isNotice))
+                ))
+                .collect(Collectors.toList());
     }
 
     // 7일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개를 주간 인기글로 등록

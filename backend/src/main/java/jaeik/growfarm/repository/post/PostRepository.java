@@ -55,9 +55,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
     Page<Post> findByUserId(Long userId, Pageable pageable);
 
 
-    // PostCustomRepository 상속 PostCustomRepository 상속 실시간 인기글에 등록
-    void updateRealtimePopularPosts();
-
     // PostCustomRepository 상속 주간 인기글에 등록
     List<Post> updateWeeklyPopularPosts();
 

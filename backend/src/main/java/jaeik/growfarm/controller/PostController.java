@@ -5,6 +5,7 @@ import jaeik.growfarm.dto.board.PostReqDTO;
 import jaeik.growfarm.dto.board.SimplePostDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.post.PostService;
+import jaeik.growfarm.service.redis.RedisPostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -32,6 +33,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final RedisPostService redisPostService;
 
     /**
      * <h3>게시판 조회 API</h3>
@@ -170,8 +172,8 @@ public class PostController {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param postId      게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보
+     * @param postDTO     추천/추천 취소할 게시글 정보
      * @return 좋아요 처리 결과 메시지
      */
     @PostMapping("like")
@@ -194,7 +196,7 @@ public class PostController {
      */
     @GetMapping("/realtime")
     public ResponseEntity<List<SimplePostDTO>> getRealtimeBoard() {
-        List<SimplePostDTO> realtimePopularPosts = postService.getRealtimePopularPosts();
+        List<SimplePostDTO> realtimePopularPosts = redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.REALTIME);
         return ResponseEntity.ok(realtimePopularPosts);
     }
 

@@ -16,6 +16,7 @@ import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
+import jaeik.growfarm.service.redis.RedisPostService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -55,6 +56,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final PostUpdateService postUpdateService;
+    private final RedisPostService redisPostService;
 
     /**
      * <h3>게시판 조회</h3>
@@ -333,15 +335,18 @@ public class PostService {
      * <p>
      * 1일 이내의 글 중 추천 수가 가장 높은 상위 5개를 실시간 인기글로 등록한다.
      * </p>
+     * <p>redis에 캐시한다.</p>
      * <p>30분마다 시행한다.</p>
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional
     @Scheduled(fixedRate = 60000 * 30)
     public void updateRealtimePopularPosts() {
-        postRepository.updateRealtimePopularPosts();
+        List<SimplePostDTO> realtimePosts = postRepository.updateRealtimePopularPosts();
+        redisPostService.cachePopularPosts(RedisPostService.PopularPostType.REALTIME, realtimePosts);
     }
+
+
 
     // 주간 인기글 등록
     // 7일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개

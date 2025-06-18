@@ -27,7 +27,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @SuperBuilder
 @Table(indexes = {
         @Index(name = "idx_post_notice_created", columnList = "is_notice, created_at DESC"),
-        @Index(name = "idx_post_created", columnList = "created_at")
+        @Index(name = "idx_post_created", columnList = "created_at"),
+        @Index(name = "idx_post_created_at_popular ", columnList = "created_at, popular_flag")
 })
 public class Post extends BaseEntity {
 
@@ -57,11 +58,10 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private boolean isNotice;
 
-    private Integer password;
-
     @Enumerated(EnumType.STRING)
     private PopularFlag popularFlag;
 
+    private Integer password;
 
     /**
      * <h3>게시글 생성</h3>
@@ -103,21 +103,6 @@ public class Post extends BaseEntity {
     public void updatePost(PostDTO postDTO) {
         this.title = postDTO.getTitle();
         this.content = postDTO.getContent();
-    }
-
-    /**
-     * <h3>실시간 인기글 설정</h3>
-     *
-     * <p>
-     * 게시글을 실시간 인기글로 설정한다.
-     * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
-     * @param postDTO 게시글 정보
-     */
-    public void updateRealtime(PostDTO postDTO) {
-        this.popularFlag = PopularFlag.REALTIME;
     }
 
     /**

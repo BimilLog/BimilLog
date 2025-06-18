@@ -69,10 +69,11 @@ public interface PostCustomRepository {
      * <p>
      * 1일 이내의 글 중 추천 수가 가장 높은 상위 5개를 실시간 인기글로 등록한다.
      * </p>
+     * @return 실시간 인기글 목록
      * @author Jaeik
      * @since 1.0.0
      */
-    void updateRealtimePopularPosts();
+    List<SimplePostDTO> updateRealtimePopularPosts();
 
     List<Post> updateWeeklyPopularPosts();
 
