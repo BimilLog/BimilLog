@@ -1,8 +1,7 @@
 package jaeik.growfarm.repository.post;
 
-import jaeik.growfarm.dto.board.PostDTO;
-import jaeik.growfarm.dto.board.SimplePostDTO;
-import jaeik.growfarm.entity.post.Post;
+import jaeik.growfarm.dto.post.PostDTO;
+import jaeik.growfarm.dto.post.SimplePostDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -69,6 +68,7 @@ public interface PostCustomRepository {
      * <p>
      * 1일 이내의 글 중 추천 수가 가장 높은 상위 5개를 실시간 인기글로 등록한다.
      * </p>
+     * 
      * @return 실시간 인기글 목록
      * @author Jaeik
      * @since 1.0.0
@@ -80,6 +80,7 @@ public interface PostCustomRepository {
      * <p>
      * 7일 이내의 글 중 추천 수가 가장 높은 상위 5개를 주간 인기글로 등록한다.
      * </p>
+     * 
      * @return 주간 인기글 목록
      * @author Jaeik
      * @since 1.0.0
@@ -91,11 +92,38 @@ public interface PostCustomRepository {
      * <p>
      * 추천 수가 20개 이상인 글을 레전드 인기글로 선정한다.
      * </p>
+     * 
      * @return 레전드 인기글 목록
      * @author Jaeik
      * @since 1.0.0
      */
     List<SimplePostDTO> updateLegendPosts();
 
-    Page<Post> findByLikedPosts(Long userId, Pageable pageable);
+    /**
+     * <h3>사용자 작성 글 목록 조회</h3>
+     * <p>
+     * 사용자 ID를 기준으로 해당 사용자가 작성한 글 목록을 조회한다.
+     * </p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 사용자가 작성한 글 목록
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    Page<SimplePostDTO> findPostsByUserId(Long userId, Pageable pageable);
+
+    /**
+     * <h3>사용자가 추천한 글 목록 조회</h3>
+     * <p>
+     * 사용자 ID를 기준으로 해당 사용자가 추천한 글 목록을 조회한다.
+     * </p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 사용자가 추천한 글 목록
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    Page<SimplePostDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
 }

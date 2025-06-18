@@ -1,4 +1,4 @@
-package jaeik.growfarm.dto.board;
+package jaeik.growfarm.dto.comment;
 
 import jaeik.growfarm.entity.comment.Comment;
 import jakarta.validation.constraints.NotNull;
@@ -29,8 +29,8 @@ public class CommentDTO {
     private Long postId;
 
     @NotNull
-    @Size(max = 8, message = "농장 이름은 최대 8글자 까지 입력 가능합니다.")
-    private String farmName;
+    @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
+    private String userName;
 
     @NotNull
     @Size(max = 255, message = "댓글은 최대 255자 까지 입력 가능합니다.")
@@ -62,7 +62,7 @@ public class CommentDTO {
     public CommentDTO(Comment comment) {
         this.id = comment.getId();
         this.postId = comment.getPost().getId();
-        this.farmName = comment.getUser() != null ? comment.getUser().getUserName() : "비회원";
+        this.userName = comment.getUser() != null ? comment.getUser().getUserName() : "비회원";
         this.content = comment.getContent();
         this.createdAt = comment.getCreatedAt();
         this.password = comment.getPassword();

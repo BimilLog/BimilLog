@@ -1,10 +1,11 @@
 package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.dto.board.CommentDTO;
-import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
+import jaeik.growfarm.dto.post.SimplePostDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.dto.user.UserNameDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.UserService;
 import jakarta.validation.Valid;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
  * 사용자가 좋아요한 게시글/댓글 목록 조회
  * </p>
  * <p>
- * 농장 이름 변경, 건의하기, 카카오 친구 목록
+ * 닉네임 변경, 건의하기, 카카오 친구 목록 불러오기
  * </p>
  * <p>
  * 설정 조회 및 수정
@@ -50,7 +51,7 @@ public class UserController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 작성 게시글 목록 페이지
      */
-    @GetMapping("/mypage/posts")
+    @GetMapping("/posts")
     public ResponseEntity<Page<SimplePostDTO>> getPostList(@RequestParam int page,
             @RequestParam int size,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -73,12 +74,12 @@ public class UserController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 작성 댓글 목록 페이지
      */
-    @GetMapping("/mypage/comments")
-    public ResponseEntity<Page<CommentDTO>> getCommentList(@RequestParam int page,
+    @GetMapping("/comments")
+    public ResponseEntity<Page<SimpleCommentDTO>> getCommentList(@RequestParam int page,
             @RequestParam int size,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Page<CommentDTO> commentList = userService.getCommentList(page, size, userDetails);
+        Page<SimpleCommentDTO> commentList = userService.getCommentList(page, size, userDetails);
         return ResponseEntity.ok(commentList);
     }
 
@@ -96,7 +97,7 @@ public class UserController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 좋아요한 게시글 목록 페이지
      */
-    @GetMapping("/mypage/likedposts")
+    @GetMapping("/likeposts")
     public ResponseEntity<Page<SimplePostDTO>> getLikedPosts(@RequestParam int page,
             @RequestParam int size,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -118,32 +119,32 @@ public class UserController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 좋아요한 댓글 목록 페이지
      */
-    @GetMapping("/mypage/likedcomments")
-    public ResponseEntity<Page<CommentDTO>> getLikedComments(@RequestParam int page,
-            @RequestParam int size,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Page<CommentDTO> likedComments = userService.getLikedComments(page, size, userDetails);
+    @GetMapping("/likecomments")
+    public ResponseEntity<Page<SimpleCommentDTO>> getLikedComments(@RequestParam int page,
+                                                                   @RequestParam int size,
+                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Page<SimpleCommentDTO> likedComments = userService.getLikedComments(page, size, userDetails);
         return ResponseEntity.ok(likedComments);
     }
 
     /**
-     * <h3>농장 이름 변경 API</h3>
+     * <h3>닉네임 변경 API</h3>
      *
      * <p>
-     * 사용자의 농장 이름을 변경한다.
+     * 닉네임 변경한다.
      * </p>
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param farmNameReqDTO 농장 이름 요청 DTO
+     * @param userNameDTO 닉네임 변경 요청 DTO
      * @param userDetails    현재 로그인한 사용자 정보
      * @return 변경 성공 메시지
      */
-    @PostMapping("/mypage/updatefarm")
+    @PostMapping("/username")
     public ResponseEntity<String> updateFarmName(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid FarmNameReqDTO farmNameReqDTO) {
-        userService.updateFarmName(farmNameReqDTO.getFarmName(), userDetails);
-        return ResponseEntity.ok("농장 이름이 변경되었습니다.");
+            @RequestBody @Valid UserNameDTO userNameDTO) {
+        userService.updateFarmName(userNameDTO.getUserName(), userDetails);
+        return ResponseEntity.ok("닉네임이 변경되었습니다.");
     }
 
     /**

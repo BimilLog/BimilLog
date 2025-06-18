@@ -2,7 +2,7 @@ package jaeik.growfarm.integration;
 
 //import jaeik.growfarm.controller.CommentController;
 //import jaeik.growfarm.dto.admin.ReportDTO;
-//import jaeik.growfarm.dto.board.CommentDTO;
+//import jaeik.growfarm.dto.comment.CommentDTO;
 //import jaeik.growfarm.entity.comment.Comment;
 //import jaeik.growfarm.entity.post.Post;
 //import jaeik.growfarm.entity.user.Setting;

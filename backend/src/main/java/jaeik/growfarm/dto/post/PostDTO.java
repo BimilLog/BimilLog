@@ -1,4 +1,4 @@
-package jaeik.growfarm.dto.board;
+package jaeik.growfarm.dto.post;
 
 import jaeik.growfarm.entity.post.PopularFlag;
 import jaeik.growfarm.entity.post.Post;

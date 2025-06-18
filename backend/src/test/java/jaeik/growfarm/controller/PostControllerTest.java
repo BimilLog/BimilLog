@@ -1,9 +1,9 @@
 //package jaeik.growfarm.controller;
 //
 //import jaeik.growfarm.dto.admin.ReportDTO;
-//import jaeik.growfarm.dto.board.PostDTO;
-//import jaeik.growfarm.dto.board.PostReqDTO;
-//import jaeik.growfarm.dto.board.SimplePostDTO;
+//import jaeik.growfarm.dto.post.PostDTO;
+//import jaeik.growfarm.dto.post.PostReqDTO;
+//import jaeik.growfarm.dto.post.SimplePostDTO;
 //import jaeik.growfarm.entity.report.ReportType;
 //import jaeik.growfarm.global.auth.CustomUserDetails;
 //import jaeik.growfarm.service.post.PostService;

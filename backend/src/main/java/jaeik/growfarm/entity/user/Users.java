@@ -86,8 +86,8 @@ public class Users extends BaseEntity {
      * @since 1.0.0
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void updateFarmName(String farmName) {
-        this.userName = farmName;
+    public void updateUserName(String userName) {
+        this.userName = userName;
     }
 
     public static Users createUser(KakaoInfoDTO kakaoInfoDTO, String farmName, Setting setting) {
@@ -105,7 +105,7 @@ public class Users extends BaseEntity {
         return Users.builder()
                 .id(userDTO.getUserId())
                 .kakaoId(userDTO.getKakaoId())
-                .userName(userDTO.getFarmName())
+                .userName(userDTO.getUserName())
                 .role(userDTO.getRole())
                 .kakaoNickname(userDTO.getKakaoNickname())
                 .thumbnailImage(userDTO.getThumbnailImage())

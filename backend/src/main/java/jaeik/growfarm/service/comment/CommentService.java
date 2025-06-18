@@ -1,7 +1,7 @@
 package jaeik.growfarm.service.comment;
 
 import com.querydsl.core.Tuple;
-import jaeik.growfarm.dto.board.CommentDTO;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.entity.comment.*;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;

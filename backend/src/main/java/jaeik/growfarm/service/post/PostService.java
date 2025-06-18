@@ -2,9 +2,9 @@ package jaeik.growfarm.service.post;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.growfarm.dto.board.PostDTO;
-import jaeik.growfarm.dto.board.PostReqDTO;
-import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.dto.post.PostDTO;
+import jaeik.growfarm.dto.post.PostReqDTO;
+import jaeik.growfarm.dto.post.SimplePostDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Users;

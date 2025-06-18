@@ -1,6 +1,6 @@
 package jaeik.growfarm.service.redis;
 
-import jaeik.growfarm.dto.board.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.post.PostService;

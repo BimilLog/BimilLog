@@ -1,4 +1,4 @@
-package jaeik.growfarm.dto.board;
+package jaeik.growfarm.dto.post;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jaeik.growfarm.entity.post.PopularFlag;

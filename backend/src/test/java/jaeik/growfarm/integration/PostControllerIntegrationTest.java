@@ -2,9 +2,9 @@
 //
 //import jaeik.growfarm.controller.PostController;
 //import jaeik.growfarm.dto.admin.ReportDTO;
-//import jaeik.growfarm.dto.board.PostDTO;
-//import jaeik.growfarm.dto.board.PostReqDTO;
-//import jaeik.growfarm.dto.board.SimplePostDTO;
+//import jaeik.growfarm.dto.post.PostDTO;
+//import jaeik.growfarm.dto.post.PostReqDTO;
+//import jaeik.growfarm.dto.post.SimplePostDTO;
 //import jaeik.growfarm.entity.post.Post;
 //import jaeik.growfarm.entity.user.Setting;
 //import jaeik.growfarm.entity.user.Token;

@@ -1,7 +1,7 @@
 package jaeik.growfarm.entity.post;
 
-import jaeik.growfarm.dto.board.PostDTO;
-import jaeik.growfarm.dto.board.PostReqDTO;
+import jaeik.growfarm.dto.post.PostDTO;
+import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.BaseEntity;
 import jakarta.persistence.*;

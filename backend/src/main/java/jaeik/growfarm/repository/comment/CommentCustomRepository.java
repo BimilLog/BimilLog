@@ -1,7 +1,7 @@
 package jaeik.growfarm.repository.comment;
 
 import com.querydsl.core.Tuple;
-import jaeik.growfarm.entity.comment.Comment;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -20,8 +20,6 @@ import java.util.Map;
  */
 @Repository
 public interface CommentCustomRepository {
-
-    Page<Comment> findByLikedComments(Long userId, Pageable pageable);
 
     /**
      * <h3>게시글별 댓글 수 조회</h3>
@@ -50,7 +48,7 @@ public interface CommentCustomRepository {
     List<Tuple> findPopularComments(Long postId);
 
     /**
-     * <h3>일반 댓글 조회 (최신순)</h3>
+     * <h3>일반 댓글 조회</h3>
      * <p>
      * 루트댓글을 최신순으로 조회하고 자손댓글도 함께 반환한다.
      * </p>
@@ -75,4 +73,32 @@ public interface CommentCustomRepository {
      * @since 1.0.0
      */
     Long countRootCommentsByPostId(Long postId);
+
+    /**
+     * <h3>사용자 작성 댓글 조회</h3>
+     * <p>
+     * 사용자 ID를 기준으로 해당 사용자가 작성한 댓글 목록을 조회한다.
+     * </p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이징 정보
+     * @return 사용자가 작성한 댓글 페이지
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable);
+
+    /**
+     * <h3>사용자가 추천한 댓글 조회</h3>
+     * <p>
+     * 사용자 ID를 기준으로 해당 사용자가 추천한 댓글 목록을 조회한다.
+     * </p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이징 정보
+     * @return 사용자가 추천한 댓글 페이지
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
 }

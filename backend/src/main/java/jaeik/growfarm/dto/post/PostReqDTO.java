@@ -1,4 +1,4 @@
-package jaeik.growfarm.dto.board;
+package jaeik.growfarm.dto.post;
 
 import jakarta.validation.constraints.Size;
 import lombok.Getter;

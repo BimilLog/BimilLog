@@ -1,6 +1,6 @@
 package jaeik.growfarm.controller;
 
-import jaeik.growfarm.dto.board.CommentDTO;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.comment.CommentService;
 import jakarta.validation.Valid;

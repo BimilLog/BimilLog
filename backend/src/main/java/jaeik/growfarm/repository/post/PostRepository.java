@@ -38,20 +38,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
     @Query(nativeQuery = true, value = "UPDATE post SET views = views + 1 WHERE post_id = :postId")
     void incrementViews(@Param("postId") Long postId);
 
-    /**
-     * <h3>사용자별 게시글 조회</h3>
-     * <p>
-     * 특정 사용자가 작성한 게시글을 조회한다.
-     * </p>
-     *
-     * @param userId   사용자 ID
-     * @param pageable 페이지 정보
-     * @return 사용자 게시글 페이지
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    Page<Post> findByUserId(Long userId, Pageable pageable);
-
 
     Page<Post> findByLikedPosts(Long userId, Pageable pageable);
 
