@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 /**
  * <h3>게시글 Repository</h3>
  * <p>
@@ -55,13 +53,6 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
     Page<Post> findByUserId(Long userId, Pageable pageable);
 
 
-    // PostCustomRepository 상속 주간 인기글에 등록
-    List<Post> updateWeeklyPopularPosts();
-
-    // PostCustomRepository 상속 명예의 전당에 등록
-    List<Post> updateHallOfFamePosts();
-
-    // 해당 유저가 추천 누른 글 목록 반환
     Page<Post> findByLikedPosts(Long userId, Pageable pageable);
 
 }

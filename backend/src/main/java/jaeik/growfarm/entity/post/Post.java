@@ -15,8 +15,12 @@ import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * <h2>게시글 엔티티</h2>
- * <p>게시판에 작성된 게시글 정보를 저장하는 엔티티</p>
- * <p>제목, 내용, 작성자, 조회수, 공지 여부 등을 포함</p>
+ * <p>
+ * 게시판에 작성된 게시글 정보를 저장하는 엔티티
+ * </p>
+ * <p>
+ * 제목, 내용, 작성자, 조회수, 공지 여부 등을 포함
+ * </p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -27,8 +31,9 @@ import org.hibernate.annotations.OnDeleteAction;
 @SuperBuilder
 @Table(indexes = {
         @Index(name = "idx_post_notice_created", columnList = "is_notice, created_at DESC"),
+        @Index(name = "idx_post_created_at_popular", columnList = "created_at, popular_flag"),
         @Index(name = "idx_post_created", columnList = "created_at"),
-        @Index(name = "idx_post_created_at_popular ", columnList = "created_at, popular_flag")
+        @Index(name = "idx_post_popular_flag", columnList = "popular_flag"),
 })
 public class Post extends BaseEntity {
 
@@ -123,7 +128,9 @@ public class Post extends BaseEntity {
     /**
      * <h3>레전더리 글 설정</h3>
      *
-     * <p>게시글을 레전더리로 설정한다.</p>
+     * <p>
+     * 게시글을 레전더리로 설정한다.
+     * </p>
      * 
      * @since 1.0.0
      * @author Jaeik

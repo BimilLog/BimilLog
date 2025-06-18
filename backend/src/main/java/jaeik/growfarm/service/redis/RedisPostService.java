@@ -49,7 +49,7 @@ public class RedisPostService {
     public enum PopularPostType {
         REALTIME("popular:posts:realtime", Duration.ofMinutes(30)),
         WEEKLY("popular:posts:weekly", Duration.ofDays(1)),
-        LEGENDARY("popular:posts:legendary", Duration.ofDays(1));
+        LEGEND("popular:posts:legend", Duration.ofDays(1));
 
         private final String key;
         private final Duration ttl;

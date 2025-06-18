@@ -75,10 +75,27 @@ public interface PostCustomRepository {
      */
     List<SimplePostDTO> updateRealtimePopularPosts();
 
-    List<Post> updateWeeklyPopularPosts();
+    /**
+     * <h3>주간 인기글 선정</h3>
+     * <p>
+     * 7일 이내의 글 중 추천 수가 가장 높은 상위 5개를 주간 인기글로 등록한다.
+     * </p>
+     * @return 주간 인기글 목록
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    List<SimplePostDTO> updateWeeklyPopularPosts();
 
-    List<Post> updateHallOfFamePosts();
+    /**
+     * <h3>레전드 인기글 선정</h3>
+     * <p>
+     * 추천 수가 20개 이상인 글을 레전드 인기글로 선정한다.
+     * </p>
+     * @return 레전드 인기글 목록
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    List<SimplePostDTO> updateLegendPosts();
 
     Page<Post> findByLikedPosts(Long userId, Pageable pageable);
-
 }

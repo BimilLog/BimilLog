@@ -155,7 +155,7 @@ public class PostController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 삭제 성공 메시지
      */
-    @PostMapping("delete")
+    @PostMapping("/delete")
     public ResponseEntity<String> deletePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PostDTO postDTO) {
@@ -176,7 +176,7 @@ public class PostController {
      * @param postDTO     추천/추천 취소할 게시글 정보
      * @return 좋아요 처리 결과 메시지
      */
-    @PostMapping("like")
+    @PostMapping("/like")
     public ResponseEntity<String> likePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody @Valid PostDTO postDTO) {
         postService.likePost(postDTO, userDetails);
@@ -213,24 +213,24 @@ public class PostController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<List<SimplePostDTO>> getWeeklyBoard() {
-        List<SimplePostDTO> weeklyPopularPosts = postService.getWeeklyPopularPosts();
+        List<SimplePostDTO> weeklyPopularPosts = redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.WEEKLY);
         return ResponseEntity.ok(weeklyPopularPosts);
     }
 
     /**
-     * <h3>명예의 전당 조회 API</h3>
+     * <h3>레전드 인기글 조회 API</h3>
      *
      * <p>
-     * 명예의 전당에 선정된 게시글 목록을 조회한다.
+     * 레전드 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
      *
      * @since 1.0.0
      * @author Jaeik
      * @return 명예의 전당 게시글 목록
      */
-    @GetMapping("/fame")
-    public ResponseEntity<List<SimplePostDTO>> getHallOfFameBoard() {
-        List<SimplePostDTO> hallOfFamePosts = postService.getHallOfFamePosts();
-        return ResponseEntity.ok(hallOfFamePosts);
+    @GetMapping("/legend")
+    public ResponseEntity<List<SimplePostDTO>> getLegendBoard() {
+        List<SimplePostDTO> legendPopularPosts = redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.LEGEND);
+        return ResponseEntity.ok(legendPopularPosts);
     }
 }

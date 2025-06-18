@@ -1,6 +1,8 @@
 package jaeik.growfarm.dto.board;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jaeik.growfarm.entity.post.PopularFlag;
+import jaeik.growfarm.entity.user.Users;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,8 +44,12 @@ public class SimplePostDTO {
 
     private PopularFlag popularFlag;
 
+    // 인기글 선정 시 알림 이벤트 발행용 (JSON 직렬화에서 제외)
+    @JsonIgnore
+    private Users user;
+
     public SimplePostDTO(Long postId, Long userId, String userName, String title, int commentCount, int likes,
-                         int views, Instant createdAt, boolean is_notice) {
+            int views, Instant createdAt, boolean is_notice) {
         this.postId = postId;
         this.userId = userId;
         this.userName = userName;
@@ -53,5 +59,19 @@ public class SimplePostDTO {
         this.views = views;
         this.createdAt = createdAt;
         this.is_notice = is_notice;
+    }
+
+    public SimplePostDTO(Long postId, Long userId, String userName, String title, int commentCount, int likes,
+            int views, Instant createdAt, boolean is_notice, Users user) {
+        this.postId = postId;
+        this.userId = userId;
+        this.userName = userName;
+        this.title = title;
+        this.commentCount = commentCount;
+        this.likes = likes;
+        this.views = views;
+        this.createdAt = createdAt;
+        this.is_notice = is_notice;
+        this.user = user;
     }
 }

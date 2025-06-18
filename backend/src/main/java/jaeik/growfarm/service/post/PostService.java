@@ -30,9 +30,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <h2>게시판 서비스</h2>
@@ -116,8 +114,12 @@ public class PostService {
      * <p>
      * 새로운 게시글을 작성하고 저장한다.
      * </p>
-     * <p>비회원은 패스워드를 저장한다. user는 null이다.</p>
-     * <p>회원은 패스워드가 null이다.</p>
+     * <p>
+     * 비회원은 패스워드를 저장한다. user는 null이다.
+     * </p>
+     * <p>
+     * 회원은 패스워드가 null이다.
+     * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param postReqDTO  게시글 작성 요청 DTO
@@ -134,7 +136,9 @@ public class PostService {
 
     /**
      * <h3>게시글 수정</h3>
-     * <p>게시글 작성자만 게시글을 수정할 수 있습니다.</p>
+     * <p>
+     * 게시글 작성자만 게시글을 수정할 수 있습니다.
+     * </p>
      *
      * @param userDetails 현재 로그인 한 사용자 정보
      * @param postDTO     수정할 게시글 정보 DTO
@@ -186,7 +190,6 @@ public class PostService {
         Users user = userRepository.getReferenceById(userId);
 
         Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndUserId(postId, userId);
-
         postUpdateService.savePostLike(existingLike, post, user);
     }
 
@@ -195,8 +198,12 @@ public class PostService {
      * <p>
      * 게시글 작성자만 게시글을 수정할 수 있다.
      * </p>
-     * <p>비회원은 패스워드를 입력해야 한다.</p>
-     * <p>회원은 패스워드를 입력하지 않아도 된다. userId로 검사한다.</p>
+     * <p>
+     * 비회원은 패스워드를 입력해야 한다.
+     * </p>
+     * <p>
+     * 회원은 패스워드를 입력하지 않아도 된다. userId로 검사한다.
+     * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param postDTO     게시글 정보 DTO
@@ -207,7 +214,8 @@ public class PostService {
      */
     private Post ValidatePost(CustomUserDetails userDetails, PostDTO postDTO) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        Post post = postRepository.findById(postDTO.getPostId()).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        Post post = postRepository.findById(postDTO.getPostId())
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (!Objects.equals(postDTO.getUserId(), (userId))) {
             throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
@@ -335,8 +343,13 @@ public class PostService {
      * <p>
      * 1일 이내의 글 중 추천 수가 가장 높은 상위 5개를 실시간 인기글로 등록한다.
      * </p>
-     * <p>redis에 캐시한다.</p>
-     * <p>30분마다 시행한다.</p>
+     * <p>
+     * redis에 캐시한다.
+     * </p>
+     * <p>
+     * 30분마다 시행한다.
+     * </p>
+     *
      * @author Jaeik
      * @since 1.0.0
      */
@@ -346,123 +359,68 @@ public class PostService {
         redisPostService.cachePopularPosts(RedisPostService.PopularPostType.REALTIME, realtimePosts);
     }
 
-
-
-    // 주간 인기글 등록
-    // 7일 이내의 글 중에서 추천 수가 가장 높은 글 상위 5개
-    // 1일 스케줄러 - 이벤트 기반 비동기 처리
-    @Transactional
+    /**
+     * <h3>주간 인기글 선정</h3>
+     * <p>
+     * 7일 이내의 글 중 추천 수가 가장 높은 상위 5개를 주간 인기글로 등록한다.
+     * </p>
+     * <p>
+     * redis에 캐시한다.
+     * </p>
+     * <p>
+     * 1일마다 시행한다.
+     * </p>
+     *
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Scheduled(fixedRate = 60000 * 1440)
-    public void updateWeeklyPopularPosts() throws IOException {
-        List<Post> existedPosts = postRepository.findByIsWeeklyPopularTrue();
-        List<Post> updatedPosts = postRepository.updateWeeklyPopularPosts();
+    public void updateWeeklyPopularPosts() {
+        List<SimplePostDTO> weeklyPosts = postRepository.updateWeeklyPopularPosts();
+        redisPostService.cachePopularPosts(RedisPostService.PopularPostType.WEEKLY, weeklyPosts);
 
-        // ID 기준으로 비교
-        Set<Long> existedIds = existedPosts.stream()
-                .map(Post::getId)
-                .collect(Collectors.toSet());
-
-        // 새롭게 추가된 인기글 ID만 추출 (updated에는 있는데 existed에는 없는 것)
-        Set<Long> newlyFeaturedIds = updatedPosts.stream()
-                .map(Post::getId).collect(Collectors.toSet());
-        newlyFeaturedIds.removeAll(existedIds);
-
-        // 해당 ID에 해당하는 Post 객체 필터링
-        List<Post> newlyFeaturedPosts = updatedPosts.stream()
-                .filter(post -> newlyFeaturedIds.contains(post.getId()))
-                .toList();
-
-        for (Post post : newlyFeaturedPosts) {
-            // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
-            eventPublisher.publishEvent(new PostFeaturedEvent(
-                    post.getUser().getId(),
-                    "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
-                    post.getId(),
-                    post.getUser(),
-                    "회원님의 글이 주간 인기글로 선정되었습니다!",
-                    "지금 확인해보세요!"));
+        for (SimplePostDTO simplePostDTO : weeklyPosts) {
+            if (simplePostDTO.getUser() != null) {
+                eventPublisher.publishEvent(new PostFeaturedEvent(
+                        simplePostDTO.getUserId(),
+                        "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
+                        simplePostDTO.getPostId(),
+                        simplePostDTO.getUser(),
+                        "회원님의 글이 주간 인기글로 선정되었습니다!",
+                        "지금 확인해보세요!"));
+            }
         }
     }
 
-    // 명예의 전당 등록
-    // 추천 수가 20개 이상인 글
-    // 1일 스케줄러 - 이벤트 기반 비동기 처리
-    @Transactional
+    /**
+     * <h3>레전드 게시글 선정</h3>
+     * <p>
+     * 추천 수가 20개 이상인 글을 선정한다.
+     * </p>
+     *
+     * <p>
+     * redis에 캐시한다.
+     * </p>
+     * <p>
+     * 1일마다 시행한다.
+     * </p>
+     *
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Scheduled(fixedRate = 60000 * 1440)
-    public void updateHallOfFamePosts() throws IOException {
-        List<Post> existedPosts = postRepository.findByIsHallOfFameTrue();
-        List<Post> updatedPosts = postRepository.updateHallOfFamePosts();
+    public void updateHallOfFamePosts() {
+        List<SimplePostDTO> legendPosts = postRepository.updateLegendPosts();
+        redisPostService.cachePopularPosts(RedisPostService.PopularPostType.LEGEND, legendPosts);
 
-        // ID 기준으로 비교
-        Set<Long> existedIds = existedPosts.stream()
-                .map(Post::getId)
-                .collect(Collectors.toSet());
-
-        // 새롭게 추가된 인기글 ID만 추출 (updated에는 있는데 existed에는 없는 것)
-        Set<Long> newlyFeaturedIds = updatedPosts.stream()
-                .map(Post::getId).collect(Collectors.toSet());
-        newlyFeaturedIds.removeAll(existedIds);
-
-        // 해당 ID에 해당하는 Post 객체 필터링
-        List<Post> newlyFeaturedPosts = updatedPosts.stream()
-                .filter(post -> newlyFeaturedIds.contains(post.getId()))
-                .toList();
-
-        for (Post post : newlyFeaturedPosts) {
-            // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
+        for (SimplePostDTO simplePostDTO : legendPosts) {
             eventPublisher.publishEvent(new PostFeaturedEvent(
-                    post.getUser().getId(),
-                    "🎉 회원님의 글이 명예의 전당에 등록 되었습니다!",
-                    post.getId(),
-                    post.getUser(),
-                    "회원님의 글이 명예의 전당에 등록 되었습니다!",
+                    simplePostDTO.getUserId(),
+                    "🎉 회원님의 글이 레전드 인기글로 선정되었습니다!",
+                    simplePostDTO.getPostId(),
+                    simplePostDTO.getUser(),
+                    "회원님의 글이 레전드 인기글로 선정되었습니다!",
                     "지금 확인해보세요!"));
         }
-    }
-
-
-    /**
-     * <h3>실시간 인기글 목록 조회</h3>
-     * <p>
-     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
-     * </p>
-     *
-     * @return 실시간 인기글 목록
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    public List<SimplePostDTO> getRealtimePopularPosts() {
-        List<Post> realtimePopularPosts = postRepository.findByIsRealtimePopularTrue();
-        return convertToSimplePostDTOList(realtimePopularPosts);
-    }
-
-    /**
-     * <h3>주간 인기글 목록 조회</h3>
-     * <p>
-     * 주간 인기글로 선정된 게시글 목록을 조회한다.
-     * </p>
-     *
-     * @return 주간 인기글 목록
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    public List<SimplePostDTO> getWeeklyPopularPosts() {
-        List<Post> weeklyPopularPosts = postRepository.findByIsWeeklyPopularTrue();
-        return convertToSimplePostDTOList(weeklyPopularPosts);
-    }
-
-    /**
-     * <h3>명예의 전당 게시글 목록 조회</h3>
-     * <p>
-     * 명예의 전당에 선정된 게시글 목록을 조회한다.
-     * </p>
-     *
-     * @return 명예의 전당 게시글 목록
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    public List<SimplePostDTO> getHallOfFamePosts() {
-        List<Post> hallOfFamePosts = postRepository.findByIsHallOfFameTrue();
-        return convertToSimplePostDTOList(hallOfFamePosts);
     }
 }

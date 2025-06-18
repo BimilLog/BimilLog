@@ -11,8 +11,12 @@ import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * <h2>글 추천 엔티티</h2>
- * <p>글에 대한 추천 정보를 저장하는 엔티티</p>
- * <p>사용자와 글 간의 관계를 나타냄</p>
+ * <p>
+ * 글에 대한 추천 정보를 저장하는 엔티티
+ * </p>
+ * <p>
+ * 사용자와 글 간의 관계를 나타냄
+ * </p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -22,6 +26,9 @@ import org.hibernate.annotations.OnDeleteAction;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(indexes = {
+        @Index(name = "idx_postlike_user_post", columnList = "user_id, post_id")
+})
 public class PostLike {
 
     @Id
