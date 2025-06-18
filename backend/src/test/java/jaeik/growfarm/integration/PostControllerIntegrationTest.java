@@ -116,7 +116,7 @@
 //                .kakaoId(1234567890L)
 //                .kakaoNickname("testNickname")
 //                .thumbnailImage("testImage")
-//                .userName("testFarm")
+//                .userName("testPaper")
 //                .role(UserRole.USER)
 //                .setting(setting)
 //                .token(token)

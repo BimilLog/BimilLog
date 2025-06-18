@@ -31,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 /**
- * <h2>FarmController 통합 테스트</h2>
- * 실제 데이터베이스와 서비스를 사용하여 FarmController의 전체 API를 테스트합니다.
+ * <h2>PaperController 통합 테스트</h2>
+ * 실제 데이터베이스와 서비스를 사용하여 PaperController의 전체 API를 테스트합니다.
  *
  * @since 2025.05.17
  */
@@ -87,7 +87,7 @@ public class PaperControllerIntegrationTest {
                 .kakaoId(1234567890L)
                 .kakaoNickname("testNickname")
                 .thumbnailImage("testImage")
-                .userName("testFarm")
+                .userName("testPaper")
                 .role(UserRole.USER)
                 .setting(setting)
                 .token(token)
@@ -106,7 +106,7 @@ public class PaperControllerIntegrationTest {
     @DisplayName("농작물 심기 통합 테스트")
     void testPlantCrop() throws IOException {
         // Given
-        String userName = "testFarm";
+        String userName = "testPaper";
 
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setDecoType(DecoType.TOMATO);
@@ -130,12 +130,12 @@ public class PaperControllerIntegrationTest {
     @Test
     @Order(2)
     @DisplayName("다른 농장 방문 통합 테스트")
-    void testVisitFarm() {
+    void testVisitPaper() {
         // Given
-        String userName = "testFarm";
+        String userName = "testPaper";
 
         // When
-        ResponseEntity<List<VisitMessageDTO>> response = paperController.visitFarm(userName);
+        ResponseEntity<List<VisitMessageDTO>> response = paperController.visitPaper(userName);
         List<VisitMessageDTO> visitCropList = response.getBody();
 
         // Then
@@ -156,7 +156,7 @@ public class PaperControllerIntegrationTest {
     @Test
     @Order(3)
     @DisplayName("내 농장 조회 통합 테스트")
-    void testMyFarm() {
+    void testMyPaper() {
         // Given
         UserDTO userDTO = userUtil.UserToDTO(testUser);
         CustomUserDetails userDetails = new CustomUserDetails(userDTO);
@@ -166,7 +166,7 @@ public class PaperControllerIntegrationTest {
         );
 
         // When
-        ResponseEntity<List<MessageDTO>> response = paperController.myFarm(userDetails);
+        ResponseEntity<List<MessageDTO>> response = paperController.myPaper(userDetails);
         List<MessageDTO> cropList = response.getBody();
 
         // Then

@@ -30,7 +30,7 @@ package jaeik.growfarm.controller;
 //        simplePostDTO = new SimplePostDTO(
 //                1L,                           // postId
 //                1L,                           // userId
-//                "testFarm",                   // userName
+//                "testPaper",                   // userName
 //                "Test Title",                 // title
 //                0,                            // commentCount
 //                0,                            // likes
@@ -50,7 +50,7 @@ package jaeik.growfarm.controller;
 ////                1L,                           // id
 ////                1L,                           // postId
 ////                1L,                           // userId
-////                "testFarm",                   // userName
+////                "testPaper",                   // userName
 ////                "Test comment content",       // content
 ////                0,                            // likes
 ////                Instant.now(),          // createdAt

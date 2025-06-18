@@ -5,8 +5,7 @@ import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.entity.message.Message;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.global.event.FarmPlantEvent;
-import jaeik.growfarm.repository.paper.MessageRepository;
+import jaeik.growfarm.repository.message.MessageRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.util.PaperUtil;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +15,11 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
-/*
- * FarmService 클래스
- * 농장 관련 서비스 클래스
- * 수정일 : 2025-05-03
+/**
+ * <h2>PaperService 클래스</h2>
+ * <p>롤링페이퍼 관련 서비스 클래스</p>
+ * @author Jaeik
+ * @version 1.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -31,21 +31,19 @@ public class PaperService {
     private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * <h3>내 농장 조회</h3>
+     * <h3>내 롤링페이퍼 조회</h3>
      *
      * <p>
-     * 사용자 ID를 통해 해당 사용자의 농작물 목록을 조회한다.
+     * 사용자 ID를 통해 해당 사용자의 메시지 목록을 조회한다.
      * </p>
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param userId 사용자 ID
-     * @return 농작물 목록
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 내 롤링페이퍼 메시지 리스트
      */
-    public List<MessageDTO> myFarm(Long userId) {
-        List<Message> messages = messageRepository.findByUsersId(userId);
-
-        return messages.stream().map(paperUtil::convertToCropDTO).toList();
+    public List<MessageDTO> myPaper(CustomUserDetails userDetails) {
+        return messageRepository.findMessageDTOsByUserId(userDetails.getUserId());
     }
 
     /**
@@ -60,7 +58,7 @@ public class PaperService {
      * @param userName 닉네임
      * @return 방문 농장의 농작물 목록
      */
-    public List<VisitMessageDTO> visitFarm(String userName) {
+    public List<VisitMessageDTO> visitPaper(String userName) {
         Users user = userRepository.findByUserName(userName);
 
         if (user == null) {
@@ -68,7 +66,7 @@ public class PaperService {
         }
 
         List<Message> messages = messageRepository.findByUsersId(user.getId());
-        return messages.stream().map(paperUtil::convertToVisitFarmDTO).toList();
+        return messages.stream().map(paperUtil::convertToVisitPaperDTO).toList();
     }
 
     /**
@@ -97,7 +95,7 @@ public class PaperService {
         messageRepository.save(message);
 
         // 이벤트 발행 🚀 (알림은 이벤트 리스너에서 비동기로 처리)
-        eventPublisher.publishEvent(new FarmPlantEvent(
+        eventPublisher.publishEvent(new PaperPlantEvent(
                 user.getId(),
                 userName,
                 user));

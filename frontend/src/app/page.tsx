@@ -99,7 +99,7 @@ export default function Home() {
     fetchFriendsByPage(page);
   };
 
-  const handleVisitFarm = async (userName: string) => {
+  const handleVisitPaper = async (userName: string) => {
     try {
       const response = await fetchClient(`${API_BASE}/farm/${userName}`);
       if (response.ok) {
@@ -252,7 +252,7 @@ export default function Home() {
                                           <button
                                             className="btn btn-primary btn-sm px-3"
                                             onClick={() =>
-                                              handleVisitFarm(friend.userName)
+                                              handleVisitPaper(friend.userName)
                                             }
                                             disabled={!friend.userName}
                                           >

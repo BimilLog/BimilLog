@@ -71,7 +71,7 @@ public class AuthControllerTest {
 //        // Given
 //        UserNameReqDTO request = new UserNameReqDTO();
 //        request.setTokenId(1L);
-//        request.setUserName("testFarm");
+//        request.setUserName("testPaper");
 //
 //        List<ResponseCookie> cookies = new ArrayList<>();
 //        cookies.add(ResponseCookie.from("accessToken", "test-access-token").build());
@@ -138,7 +138,7 @@ public class AuthControllerTest {
         // Given
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(1L);
-        userDTO.setUserName("testFarm");
+        userDTO.setUserName("testPaper");
         userDTO.setKakaoNickname("testNickname");
         userDTO.setRole(UserRole.USER);
 

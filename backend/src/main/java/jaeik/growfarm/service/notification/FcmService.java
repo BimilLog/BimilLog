@@ -67,12 +67,12 @@ public class FcmService {
      * @param farmOwner 농장 주인
      */
     @Async("fcmNotificationExecutor")
-    public void sendFarmPlantFcmNotificationAsync(Users farmOwner) {
+    public void sendPaperPlantFcmNotificationAsync(Users farmOwner) {
         try {
             log.info("농작물 심기 FCM 알림 비동기 처리 시작: userId={}, 스레드={}",
                     farmOwner.getId(), Thread.currentThread().getName());
 
-            if (farmOwner.getSetting().isFarmNotification()) {
+            if (farmOwner.getSetting().isMessageNotification()) {
                 List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(farmOwner);
                 for (FcmToken fcmToken : fcmTokens) {
                     notificationService.sendMessageTo(FcmSendDTO.builder()

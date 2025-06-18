@@ -27,7 +27,7 @@ public class Setting {
     private Long id;
 
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
-    private boolean farmNotification = true;
+    private boolean messageNotification = true;
 
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean commentNotification = true;
@@ -37,14 +37,14 @@ public class Setting {
 
     @Transactional
     public void updateSetting(SettingDTO settingDTO) {
-        farmNotification = settingDTO.isFarmNotification();
+        messageNotification = settingDTO.isMessageNotification();
         commentNotification = settingDTO.isCommentNotification();
         postFeaturedNotification = settingDTO.isPostFeaturedNotification();
     }
 
     public static Setting createSetting() {
         return Setting.builder()
-                .farmNotification(true)
+                .messageNotification(true)
                 .commentNotification(true)
                 .postFeaturedNotification(true)
                 .build();
@@ -52,7 +52,7 @@ public class Setting {
 
     public static Setting createSetting(SettingDTO settingDTO) {
         return Setting.builder()
-                .farmNotification(settingDTO.isFarmNotification())
+                .messageNotification(settingDTO.isMessageNotification())
                 .commentNotification(settingDTO.isCommentNotification())
                 .postFeaturedNotification(settingDTO.isPostFeaturedNotification())
                 .build();

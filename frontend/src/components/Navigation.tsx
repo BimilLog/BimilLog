@@ -36,7 +36,7 @@ const handleLogin = () => {
 
 const Navigation = () => {
   const { user, logout } = useAuthStore();
-  const [searchFarm, setSearchFarm] = useState(""); // 농장 검색어 상태
+  const [searchPaper, setSearchPaper] = useState(""); // 농장 검색어 상태
   const [isSearching, setIsSearching] = useState(false); // 검색 중 상태
   const router = useRouter();
 
@@ -510,9 +510,9 @@ const Navigation = () => {
     logout();
   };
 
-  const handleFarmSearch = async (e: FormEvent) => {
+  const handlePaperSearch = async (e: FormEvent) => {
     e.preventDefault();
-    if (!searchFarm.trim()) return;
+    if (!searchPaper.trim()) return;
 
     setIsSearching(true);
 
@@ -520,20 +520,20 @@ const Navigation = () => {
       let response;
 
       // 로그인 상태이고 검색한 닉네임이 내 농장인 경우
-      if (user && user.userName === searchFarm) {
-        response = await fetchClient(`${API_BASE}/farm/myFarm`, {
+      if (user && user.userName === searchPaper) {
+        response = await fetchClient(`${API_BASE}/farm/myPaper`, {
           method: "POST",
         });
       } else {
         // 타인 농장 요청
         response = await fetchClient(
-          `${API_BASE}/farm/${encodeURIComponent(searchFarm)}`
+          `${API_BASE}/farm/${encodeURIComponent(searchPaper)}`
         );
       }
 
       if (response.ok) {
         // 농장이 존재하는 경우 페이지 이동
-        router.push(`/farm/${searchFarm}`);
+        router.push(`/farm/${searchPaper}`);
       } else {
         // 농장이 존재하지 않는 경우 알림
         alert("존재하지 않는 농장입니다.");
@@ -547,13 +547,13 @@ const Navigation = () => {
   };
 
   // 내 농장 가기 이벤트 핸들러 추가
-  const handleMyFarmClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleMyPaperClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
 
     if (!user || !user.userName) return;
 
     try {
-      const response = await fetchClient(`${API_BASE}/farm/myFarm`, {
+      const response = await fetchClient(`${API_BASE}/farm/myPaper`, {
         method: "POST",
       });
 
@@ -601,7 +601,7 @@ const Navigation = () => {
             className="d-none d-lg-block mx-lg-3 flex-grow-1"
             style={{ maxWidth: "400px" }}
           >
-            <form className="d-flex" role="search" onSubmit={handleFarmSearch}>
+            <form className="d-flex" role="search" onSubmit={handlePaperSearch}>
               <div className="input-group input-group-sm">
                 <input
                   type="search"
@@ -609,8 +609,8 @@ const Navigation = () => {
                   placeholder="닉네임을 입력하세요"
                   aria-label="농장 검색"
                   style={{ height: "31px" }}
-                  value={searchFarm}
-                  onChange={(e) => setSearchFarm(e.target.value)}
+                  value={searchPaper}
+                  onChange={(e) => setSearchPaper(e.target.value)}
                   disabled={isSearching}
                 />
                 <button
@@ -633,7 +633,7 @@ const Navigation = () => {
           <form
             className="d-flex d-lg-none my-3 w-100"
             role="search"
-            onSubmit={handleFarmSearch}
+            onSubmit={handlePaperSearch}
           >
             <div className="input-group input-group-sm">
               <input
@@ -641,8 +641,8 @@ const Navigation = () => {
                 className="form-control form-control-sm"
                 placeholder="닉네임을 입력하세요"
                 aria-label="농장 검색"
-                value={searchFarm}
-                onChange={(e) => setSearchFarm(e.target.value)}
+                value={searchPaper}
+                onChange={(e) => setSearchPaper(e.target.value)}
                 disabled={isSearching}
               />
               <button
@@ -674,7 +674,7 @@ const Navigation = () => {
             {user ? (
               <>
                 <li className="nav-item">
-                  <a className="nav-link" href="#" onClick={handleMyFarmClick}>
+                  <a className="nav-link" href="#" onClick={handleMyPaperClick}>
                     내농장가기
                   </a>
                 </li>

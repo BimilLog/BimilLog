@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /*
- * FarmUtil 클래스
+ * PaperUtil 클래스
  * 농장 관련 유틸리티 클래스
  * 수정일 : 2025-05-03
  */
@@ -76,7 +76,7 @@ public class PaperUtil {
      * @param message Crop 엔티티
      * @return 방문 농장 농작물 DTO
      */
-    public VisitMessageDTO convertToVisitFarmDTO(Message message) {
+    public VisitMessageDTO convertToVisitPaperDTO(Message message) {
         VisitMessageDTO visitMessageDTO = new VisitMessageDTO();
         visitMessageDTO.setId(message.getId());
         visitMessageDTO.setUserName(message.getUsers().getUserName());

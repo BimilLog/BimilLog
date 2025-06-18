@@ -213,7 +213,7 @@ public class UserService {
 
         return new SettingDTO(
                 setting.getId(),
-                setting.isFarmNotification(),
+                setting.isMessageNotification(),
                 setting.isCommentNotification(),
                 setting.isPostFeaturedNotification()
         );

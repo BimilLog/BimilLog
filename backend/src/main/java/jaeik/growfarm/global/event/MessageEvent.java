@@ -16,12 +16,12 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class FarmPlantEvent {
+public class MessageEvent {
 
     /**
-     * 농장 주인 ID (알림을 받을 사용자)
+     * 롤링페이퍼 주인 ID (알림을 받을 사용자)
      */
-    private final Long farmOwnerId;
+    private final Long paperOwnerId;
 
     /**
      * 닉네임
@@ -31,5 +31,5 @@ public class FarmPlantEvent {
     /**
      * 농장 주인 엔티티 (FCM 토큰 조회용)
      */
-    private final Users farmOwner;
+    private final Users paperOwner;
 }

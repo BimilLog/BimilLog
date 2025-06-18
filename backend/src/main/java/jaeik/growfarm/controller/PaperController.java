@@ -13,41 +13,45 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
-/*
- * 농장 관련 API
- * 내 농장 가기
- * 다른 농장 가기
- * 농작물 삭제
- * 농작물 심기
+/**
+ * <h2>롤링 페이퍼 API</h2>
+ * <p>내 롤링 페이퍼 조회</p>
+ * <p>다른 사람 롤링 페이퍼 조회</p>
+ * <p>메시지 삭제</p>
+ * <p>메시지 적기</p>
+ * @author Jaeik
+ * @version 1.0.0
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/farm")
+@RequestMapping("/paper")
 public class PaperController {
 
     private final PaperService paperService;
 
-    /*
-     * 내 농장 가기 API
-     * param CustomUserDetails userDetails: 현재 로그인 한 유저 정보
-     * return: ResponseEntity<List<CropDTO>> 내 농장에 심어진 농작물 리스트
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>내 롤링페이퍼 조회 API</h3>
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return ResponseEntity<List<MessageDTO>> 내 롤링 페이퍼 메시지 리스트
+     * @since 1.0.0
+     * @author Jaeik
      */
-    @PostMapping("/myFarm")
-    public ResponseEntity<List<MessageDTO>> myFarm(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<MessageDTO> crops = paperService.myFarm(userDetails.getClientDTO().getUserId());
-        return ResponseEntity.ok(crops);
+    @GetMapping
+    public ResponseEntity<List<MessageDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<MessageDTO> messageDTOS = paperService.myPaper(userDetails);
+        return ResponseEntity.ok(messageDTOS);
     }
 
-    /*
-     * 다른 농장 가기 API
-     * param String userName: 닉네임
-     * return: ResponseEntity<List<VisitCropDTO>> 다른 농장에 심어진 농작물 리스트
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>다른 롤링페이퍼 방문 API</h3>
+     * @param userName 닉네임
+     * @return ResponseEntity<List<VisitMessageDTO>> 방문한 롤링페이퍼의 메시지 목록
+     * @author Jaeik
+     * @since 1.0.0
      */
     @GetMapping("{userName}")
-    public ResponseEntity<List<VisitMessageDTO>> visitFarm(@PathVariable String userName) {
-        List<VisitMessageDTO> crops = paperService.visitFarm(userName);
+    public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String userName) {
+        List<VisitMessageDTO> crops = paperService.visitPaper(userName);
         return ResponseEntity.ok(crops);
     }
 
@@ -57,7 +61,7 @@ public class PaperController {
      * return: ResponseEntity<String> 농작물 삭제 완료 메시지
      * 수정일 : 2025-05-03
      */
-    @PostMapping("/myFarm/{cropId}")
+    @PostMapping("/myPaper/{cropId}")
     public ResponseEntity<String> deleteCrop(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long cropId) {
         paperService.deleteCrop(userDetails, cropId);
         return ResponseEntity.ok("농작물이 삭제되었습니다.");

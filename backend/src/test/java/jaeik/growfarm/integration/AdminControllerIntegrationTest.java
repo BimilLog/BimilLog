@@ -89,7 +89,7 @@ public class AdminControllerIntegrationTest {
                 .kakaoId(9876543210L)
                 .kakaoNickname("adminNickname")
                 .thumbnailImage("adminImage")
-                .userName("adminFarm")
+                .userName("adminPaper")
                 .role(UserRole.ADMIN)
                 .setting(adminSetting)
                 .build();
@@ -127,7 +127,7 @@ public class AdminControllerIntegrationTest {
                 .kakaoId(1234567890L)
                 .kakaoNickname("userNickname")
                 .thumbnailImage("userImage")
-                .userName("userFarm")
+                .userName("userPaper")
                 .role(UserRole.USER)
                 .setting(userSetting)
                 .token(userToken)

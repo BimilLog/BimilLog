@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * <h2>GrowFarm 메인 애플리케이션 클래스</h2>
+ * <h2>GrowPaper 메인 애플리케이션 클래스</h2>
  * <p>
  * Spring Boot 애플리케이션의 진입점
  * </p>

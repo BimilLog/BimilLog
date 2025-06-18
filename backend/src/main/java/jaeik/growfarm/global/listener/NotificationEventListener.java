@@ -1,7 +1,7 @@
 package jaeik.growfarm.global.listener;
 
 import jaeik.growfarm.global.event.CommentCreatedEvent;
-import jaeik.growfarm.global.event.FarmPlantEvent;
+import jaeik.growfarm.global.event.MessageEvent;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.service.notification.FcmService;
 import jaeik.growfarm.service.notification.SseService;
@@ -77,15 +77,15 @@ public class NotificationEventListener {
      */
     @EventListener
     @Async("sseNotificationExecutor")
-    public void handleFarmPlantEventForSse(FarmPlantEvent event) {
+    public void handlePaperPlantEventForSse(MessageEvent event) {
         log.info("농작물 심기 SSE 이벤트 처리 시작: farmOwnerId={}, 스레드={}",
-                event.getFarmOwnerId(), Thread.currentThread().getName());
+                event.getPaperOwnerId(), Thread.currentThread().getName());
 
-        sseService.sendFarmPlantNotificationAsync(
-                event.getFarmOwnerId(),
+        sseService.sendPaperPlantNotificationAsync(
+                event.getPaperOwnerId(),
                 event.getUserName());
 
-        log.info("농작물 심기 SSE 이벤트 처리 완료: farmOwnerId={}", event.getFarmOwnerId());
+        log.info("농작물 심기 SSE 이벤트 처리 완료: farmOwnerId={}", event.getPaperOwnerId());
     }
 
     /**
@@ -95,13 +95,13 @@ public class NotificationEventListener {
      */
     @EventListener
     @Async("fcmNotificationExecutor")
-    public void handleFarmPlantEventForFcm(FarmPlantEvent event) {
+    public void handlePaperPlantEventForFcm(MessageEvent event) {
         log.info("농작물 심기 FCM 이벤트 처리 시작: farmOwnerId={}, 스레드={}",
-                event.getFarmOwnerId(), Thread.currentThread().getName());
+                event.getPaperOwnerId(), Thread.currentThread().getName());
 
-        fcmService.sendFarmPlantFcmNotificationAsync(event.getFarmOwner());
+        fcmService.sendPaperPlantFcmNotificationAsync(event.getPaperOwner());
 
-        log.info("농작물 심기 FCM 이벤트 처리 완료: farmOwnerId={}", event.getFarmOwnerId());
+        log.info("농작물 심기 FCM 이벤트 처리 완료: farmOwnerId={}", event.getPaperOwnerId());
     }
 
     // ================== 인기글 등극 이벤트 처리 ==================

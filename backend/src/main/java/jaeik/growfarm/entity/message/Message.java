@@ -12,9 +12,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 /**
- * <h2>작물 엔티티</h2>
- * <p>사용자가 재배하는 작물 정보를 저장하는 엔티티</p>
- * <p>사용자, 작물 종류, 익명 닉네임, 메시지, 크기 등을 포함</p>
+ * <h2>메시지 엔티티</h2>
+ * <p>롤링페이퍼의 메시지를 담당하는 엔티티</p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -23,7 +22,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-@Table(name = "crop", uniqueConstraints =
+@Table(name = "message", uniqueConstraints =
         {@UniqueConstraint(name = "unique_user_x_y", columnNames = {"user_id", "width", "height"})})
 public class Message extends BaseEntity {
 
@@ -50,7 +49,7 @@ public class Message extends BaseEntity {
     @NotNull
     @Column(columnDefinition = "TEXT", nullable = false)
     @Convert(converter = MessageEncryptConverter.class)
-    private String message; // 익명 메시지 255자 까지 지만 암호화 때문에 TEXT로 설정
+    private String content; // 익명 메시지 255자 까지 지만 암호화 때문에 TEXT로 설정
 
     @NotNull
     @Column(nullable = false)

@@ -60,7 +60,7 @@ public class SseService {
      * @param userName    닉네임
      */
     @Async("sseNotificationExecutor")
-    public void sendFarmPlantNotificationAsync(Long farmOwnerId, String userName) {
+    public void sendPaperPlantNotificationAsync(Long farmOwnerId, String userName) {
         try {
             log.info("농작물 심기 SSE 알림 비동기 처리 시작: farmOwnerId={}, 스레드={}",
                     farmOwnerId, Thread.currentThread().getName());

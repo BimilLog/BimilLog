@@ -54,7 +54,7 @@
 //        postDTO = new PostDTO(
 //                1L,                           // postId
 //                1L,                           // userId
-//                "testFarm",                   // userName
+//                "testPaper",                   // userName
 //                "Test Title",                 // title
 //                "Test Content",               // content
 //                0,                            // views
@@ -71,7 +71,7 @@
 //        // Create PostReqDTO and set properties
 //        postReqDTO = new PostReqDTO();
 //        postReqDTO.setUserId(1L);
-//        postReqDTO.setUserName("testFarm");
+//        postReqDTO.setUserName("testPaper");
 //        postReqDTO.setTitle("Test Title");
 //        postReqDTO.setContent("Test Content");
 //
@@ -79,7 +79,7 @@
 //        simplePostDTO = new SimplePostDTO(
 //                1L,                           // postId
 //                1L,                           // userId
-//                "testFarm",                   // userName
+//                "testPaper",                   // userName
 //                "Test Title",                 // title
 //                0,                            // commentCount
 //                0,                            // likes
