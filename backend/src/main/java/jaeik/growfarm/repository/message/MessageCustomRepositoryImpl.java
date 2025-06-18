@@ -24,6 +24,16 @@ public class MessageCustomRepositoryImpl implements MessageCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    /**
+     * <h3>사용자 ID로 메시지 DTO 리스트 조회</h3>
+     *
+     * <p>
+     * 사용자 ID를 통해 해당 사용자의 메시지 DTO 리스트를 조회합니다.
+     * </p>
+     *
+     * @param userId 사용자 ID
+     * @return List<MessageDTO> 해당 사용자의 메시지 DTO 리스트
+     */
     @Override
     public List<MessageDTO> findMessageDTOsByUserId(Long userId) {
         QMessage message = QMessage.message;

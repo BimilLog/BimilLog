@@ -59,7 +59,7 @@ public class PaperService {
      * @return 방문 농장의 농작물 목록
      */
     public List<VisitMessageDTO> visitPaper(String userName) {
-        Users user = userRepository.findByUserName(userName);
+        Users user = userRepository.findByUserName(userName)
 
         if (user == null) {
             throw new IllegalArgumentException("해당 농장을 찾을 수 없습니다.");
