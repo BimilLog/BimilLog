@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class Token extends BaseEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "token_id")
     private Long id;
 

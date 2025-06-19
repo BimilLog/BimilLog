@@ -63,6 +63,11 @@ dependencies {
 
     // ==== 알림 관련 ====
     implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
+    
+    // ==== Commons Logging 충돌 해결 ====
+    configurations.all {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
 }
 
 tasks.named('test') {

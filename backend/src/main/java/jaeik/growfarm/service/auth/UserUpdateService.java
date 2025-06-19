@@ -98,7 +98,7 @@ public class UserUpdateService {
     @Transactional
     public void logoutUser(Long userId) {
         userJdbcRepository.deleteAllTokensByUserId(userId);
-        fcmTokenRepository.deleteByUserId(userId);
+        fcmTokenRepository.deleteByUsers_Id(userId);
     }
 
     /**

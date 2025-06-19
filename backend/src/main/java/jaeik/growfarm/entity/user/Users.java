@@ -24,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @SuperBuilder
 @NoArgsConstructor
 @Table(indexes = {
-        @Index(name = "idx_post_username", columnList = "user_name"),
-        @Index(name = "idx_post_kakao_id_username", columnList = "kakao_id, user_name"),
+        @Index(name = "idx_user_username", columnList = "userName"),
+        @Index(name = "idx_user_kakao_id_username", columnList = "kakao_id, userName"),
 })
 public class Users extends BaseEntity {
 

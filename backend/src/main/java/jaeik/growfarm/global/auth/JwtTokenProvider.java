@@ -132,7 +132,7 @@ public class JwtTokenProvider {
                 .claim("kakaoNickname", clientDTO.getKakaoNickname())
                 .claim("thumbnailImage", clientDTO.getThumbnailImage())
                 .claim("postFeaturedNotification", clientDTO.getSettingDTO().isPostFeaturedNotification())
-                .claim("farmNotification", clientDTO.getSettingDTO().isPaperNotification())
+                .claim("messageNotification", clientDTO.getSettingDTO().isMessageNotification())
                 .claim("commentNotification", clientDTO.getSettingDTO().isCommentNotification())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
@@ -235,7 +235,7 @@ public class JwtTokenProvider {
         SettingDTO settingDTO = new SettingDTO(
                 claims.get("settingId", Long.class),
                 claims.get("postFeaturedNotification", Boolean.class),
-                claims.get("farmNotification", Boolean.class),
+                claims.get("messageNotification", Boolean.class),
                 claims.get("commentNotification", Boolean.class));
 
         return new ClientDTO(

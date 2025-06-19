@@ -144,7 +144,7 @@ public class UserService {
      */
     public void updateUserName(String userName, CustomUserDetails userDetails) {
         if (userRepository.existsByUserName(userName)) {
-            throw new CustomException(ErrorCode.Existed_NICKNAME);
+            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
         }
         Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
