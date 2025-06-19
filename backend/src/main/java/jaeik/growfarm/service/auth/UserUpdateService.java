@@ -8,6 +8,7 @@ import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
+import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
@@ -39,6 +40,7 @@ public class UserUpdateService {
     private final SettingRepository settingRepository;
     private final FcmTokenRepository fcmTokenRepository;
     private final UserJdbcRepository userJdbcRepository;
+    private final CommentRepository commentRepository;
 
     /**
      * <h3>기존 유저 저장</h3>
@@ -97,6 +99,21 @@ public class UserUpdateService {
     public void logoutUser(Long userId) {
         userJdbcRepository.deleteAllTokensByUserId(userId);
         fcmTokenRepository.deleteByUserId(userId);
+    }
+
+    /**
+     * <h3>회원 탈퇴 처리</h3>
+     *
+     * <p>사용자의 댓글을 처리하고, 사용자 정보를 삭제합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    @Transactional
+    public void performWithdrawProcess(Long userId) {
+        commentRepository.processUserCommentsOnWithdrawal(userId);
+        userRepository.deleteById(userId);
     }
 }
 

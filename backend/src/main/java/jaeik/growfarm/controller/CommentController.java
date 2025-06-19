@@ -28,7 +28,7 @@ import java.util.List;
  * 댓글 추천/추천 취소
  * </p>
  * 
- * @since 1.0.0
+ * @version 1.0.0
  * @author Jaeik
  */
 @RestController

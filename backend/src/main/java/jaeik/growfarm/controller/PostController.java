@@ -26,6 +26,8 @@ import java.util.List;
  * <p>게시글 검색</p>
  * <p>게시글 CRUD</p>
  * <p>게시글 추천/추천 취소</p>
+ * @author Jaeik
+ * @version 1.0.0
  */
 @RestController
 @RequiredArgsConstructor

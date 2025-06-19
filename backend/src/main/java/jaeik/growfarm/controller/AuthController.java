@@ -22,6 +22,8 @@ import java.util.List;
  * <p>회원 탈퇴 처리</p>
  * <p>현재 로그인한 유저 정보 조회</p>
  * <p>AWS 로드 밸런서 상태 검사</p>
+ * @author Jaeik
+ * @version 1.0.0
  */
 @RestController
 @RequiredArgsConstructor

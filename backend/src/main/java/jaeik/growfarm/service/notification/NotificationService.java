@@ -30,10 +30,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/*
- * NotificationService 클래스
- * 알림 관련 서비스 클래스
- * 수정일 : 2025-05-03
+/**
+ * <h2>알림 서비스</h2>
+ *
+ * <p>
+ * 사용자에게 실시간 알림을 제공하고, 알림을 데이터베이스에 저장하는 서비스.
+ * </p>
+ *
+ * @author Jaeik
+ * @version 1.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -62,7 +67,7 @@ public class NotificationService {
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
         sendNotification(emitter, emitterId, NotificationType.INITIATE,
-                "EventStream Created. [tokenId=%d]".formatted(emitterId), "");
+                "EventStream Created. [emitterId=%s]".formatted(emitterId), "");
 
         return emitter;
     }

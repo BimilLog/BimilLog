@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.*;
  * <p>
  * 설정 조회 및 수정
  * </p>
+ * @author Jaeik
+ * @version 1.0.0
  */
 @RestController
 @RequiredArgsConstructor

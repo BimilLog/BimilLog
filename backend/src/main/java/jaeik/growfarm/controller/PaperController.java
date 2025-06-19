@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * <h2>롤링 페이퍼 API</h2>
+ * <h2>롤링 페이퍼 컨트롤러</h2>
  * <p>내 롤링 페이퍼 조회</p>
  * <p>다른 사람 롤링 페이퍼 조회</p>
  * <p>메시지 삭제</p>

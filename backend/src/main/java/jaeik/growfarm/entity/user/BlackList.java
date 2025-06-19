@@ -23,4 +23,10 @@ public class BlackList extends BaseEntity {
 
     @Id
     private Long kakaoId;
+
+    public static BlackList createBlackList(Long kakaoId) {
+        return BlackList.builder()
+                .kakaoId(kakaoId)
+                .build();
+    }
 }

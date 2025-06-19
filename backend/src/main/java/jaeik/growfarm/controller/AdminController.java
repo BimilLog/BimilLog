@@ -2,7 +2,7 @@ package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.report.ReportType;
-import jaeik.growfarm.service.AdminService;
+import jaeik.growfarm.service.admin.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;

@@ -14,12 +14,19 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
-/*
- * 알림 관련 API
- * SSE 구독
+/**
+ * <h2>알림 관련 컨트롤러</h2>
+ * <p>
+ * 알림 구독
+ * </p>
+ * <p>
  * 알림 리스트 조회
- * 알림 읽음, 삭제 처리
- * FCM 토큰 등록
+ * </p>
+ * <p>
+ * 알림 읽음/삭제 처리
+ * </p>
+ * @author Jaeik
+ * @version 1.0.0
  */
 @Slf4j
 @RestController

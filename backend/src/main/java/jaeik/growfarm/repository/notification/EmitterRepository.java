@@ -4,10 +4,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
 
-/*
- * SseEmitter Repository
- * SseEmitter 관련 메모리 작업을 정의하는 인터페이스
- * 수정일 : 2025-05-03
+/**
+ * <h2>SSE Emitter Repository</h2>
+ * <p>사용자별 SSE Emitter를 저장하고 관리하는 인터페이스</p>
+ * <p>사용자의 실시간 알림 기능을 구현하기 위한 Emitter 저장소</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
 public interface EmitterRepository {
 

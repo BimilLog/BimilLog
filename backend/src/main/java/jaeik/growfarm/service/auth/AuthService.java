@@ -8,9 +8,9 @@ import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.repository.admin.BlackListRepository;
-import jaeik.growfarm.repository.comment.CommentCustomRepository;
+import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
+import jaeik.growfarm.repository.user.BlackListRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.KakaoService;
@@ -45,7 +45,7 @@ public class AuthService {
     private final TempUserDataManager tempUserDataManager;
     private final UserUpdateService userUpdateService;
     private final UserJdbcRepository userJdbcRepository;
-    private final CommentCustomRepository commentCustomRepository;
+    private final CommentRepository commentRepository;
 
     /**
      * <h3>카카오 로그인</h3>
@@ -235,11 +235,8 @@ public class AuthService {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
 
-        Long userId = userDetails.getUserId();
-
-        commentCustomRepository.processUserCommentsOnWithdrawal(userId);
         kakaoService.unlink(userJdbcRepository.getKakaoAccessToken(userDetails.getTokenId()));
-        userRepository.deleteById(userId);
+        userUpdateService.performWithdrawProcess(userDetails.getUserId());
 
         return logout(userDetails);
     }

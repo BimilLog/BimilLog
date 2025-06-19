@@ -2,7 +2,7 @@ package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.report.ReportType;
-import jaeik.growfarm.service.AdminService;
+import jaeik.growfarm.service.admin.AdminService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

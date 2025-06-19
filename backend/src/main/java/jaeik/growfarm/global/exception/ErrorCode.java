@@ -60,7 +60,7 @@ public enum ErrorCode {
      * 유저 정보 조회, 수정, 삭제 등과 관련된 에러 코드
      * </p>
      */
-    Existed_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다."),
+    EXISTED_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다."),
 
@@ -71,8 +71,14 @@ public enum ErrorCode {
      * </p>
      */
     USERNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 닉네임의 롤링페이퍼를 찾을 수 없습니다."),
-    MESSAGE_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인 롤링페이퍼의 메시지만 삭제할 수 있습니다.");
+    MESSAGE_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인 롤링페이퍼의 메시지만 삭제할 수 있습니다."),
 
+    /**
+     * <h3>관리자 에러 코드</h3>
+     * <p>관리자 관련 에러 코드</p>
+     */
+    NOT_FOUND_REPORT(HttpStatus.NOT_FOUND, "해당 신고를 찾을 수 없습니다."),
+    BAN_USER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "유저 차단 중 오류 발생");
 
 
     private final HttpStatus status;
