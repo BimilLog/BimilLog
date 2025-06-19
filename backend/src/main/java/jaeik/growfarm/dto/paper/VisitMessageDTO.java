@@ -1,19 +1,25 @@
 package jaeik.growfarm.dto.paper;
 
 import jaeik.growfarm.entity.message.DecoType;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-// 다른 사람의 농장에 갔을 때 전달받는 농작물 DTO
+/**
+ * <h2> 방문 메시지 DTO</h2>
+ * <p>
+ * 다른 사람의 롤링 페이퍼 방문시 전달 받는 DTO
+ * </p>
+ *
+ * @author Jaeik
+ * @version 1.0.0
+ */
 @Getter
 @Setter
 public class VisitMessageDTO {
 
     private Long id;
 
-    @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
-    private String userName;
+    private Long userId;
 
     private DecoType decoType;
 

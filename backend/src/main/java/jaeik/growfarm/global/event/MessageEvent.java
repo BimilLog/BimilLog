@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * <h2>농작물 심기 이벤트</h2>
+ * <h2>메시지 작성 이벤트</h2>
  * <p>
- * 다른 사용자가 농장에 농작물을 심었을 때 발생하는 이벤트
+ * 다른 사용자가 롤링페이퍼에 메시지를 남겼을 때 발생하는 이벤트
  * SSE와 FCM 알림을 트리거한다
  * </p>
  *

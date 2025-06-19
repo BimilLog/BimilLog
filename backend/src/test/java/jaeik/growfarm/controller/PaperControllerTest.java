@@ -3,7 +3,7 @@
 //import jaeik.growfarm.dto.paper.MessageDTO;
 //import jaeik.growfarm.dto.paper.VisitMessageDTO;
 //import jaeik.growfarm.global.auth.CustomUserDetails;
-//import jaeik.growfarm.service.PaperService;
+//import jaeik.growfarm.service.paper.PaperService;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.DisplayName;
 //import org.junit.jupiter.api.Test;

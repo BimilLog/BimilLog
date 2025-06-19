@@ -1,6 +1,7 @@
 package jaeik.growfarm.repository.message;
 
 import jaeik.growfarm.dto.paper.MessageDTO;
+import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,5 +19,7 @@ import java.util.List;
 public interface MessageCustomRepository {
 
     List<MessageDTO> findMessageDTOsByUserId(Long userId);
+
+    List<VisitMessageDTO> findVisitMessageDTOsByUserName(String userName);
 
 }

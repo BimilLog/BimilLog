@@ -23,6 +23,8 @@ public class MessageDTO {
 
     private Long id;
 
+    private Long userId;
+
     private DecoType decoType;
 
     @Size(max = 8, message = "익명 이름은 최대 8글자 까지 입력 가능합니다.")

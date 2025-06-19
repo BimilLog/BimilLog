@@ -62,7 +62,17 @@ public enum ErrorCode {
      */
     Existed_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
-    SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다.");
+    SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다."),
+
+    /**
+     * <h3>롤링페이퍼 관련 에러 코드</h3>
+     * <p>
+     * 롤링페이퍼 작성, 조회, 수정, 삭제 등과 관련된 에러 코드
+     * </p>
+     */
+    USERNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 닉네임의 롤링페이퍼를 찾을 수 없습니다."),
+    MESSAGE_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인 롤링페이퍼의 메시지만 삭제할 수 있습니다.");
+
 
 
     private final HttpStatus status;

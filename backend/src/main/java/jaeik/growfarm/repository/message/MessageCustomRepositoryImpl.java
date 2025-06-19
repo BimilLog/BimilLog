@@ -1,9 +1,12 @@
 package jaeik.growfarm.repository.message;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.paper.MessageDTO;
+import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.entity.message.QMessage;
+import jaeik.growfarm.entity.user.QUsers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -41,6 +44,7 @@ public class MessageCustomRepositoryImpl implements MessageCustomRepository {
         return jpaQueryFactory
                 .select(Projections.bean(MessageDTO.class,
                         message.id,
+                        Expressions.constant(userId),
                         message.decoType,
                         message.anonymity,
                         message.content,
@@ -49,8 +53,41 @@ public class MessageCustomRepositoryImpl implements MessageCustomRepository {
                 ))
                 .from(message)
                 .where(message.users.id.eq(userId))
-                .orderBy(message.createdAt.desc())
                 .fetch();
     }
 
+    /**
+     * <h3>닉네임로 방문 메시지 DTO 리스트 조회</h3>
+     *
+     * <p>
+     * 닉네임을 통해 해당 사용자의 방문 메시지 DTO 리스트를 조회합니다.
+     * </p>
+     * <P>
+     * 다른 사람의 롤링페이퍼를 방문할 때 사용됩니다.
+     * </P>
+     *
+     * @param userName 사용자 닉네임
+     * @return List<VisitMessageDTO> 해당 사용자의 방문 메시지 DTO 리스트
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    @Override
+    public List<VisitMessageDTO> findVisitMessageDTOsByUserName(String userName) {
+        QMessage message = QMessage.message;
+        QUsers user = QUsers.users;
+
+
+        return jpaQueryFactory
+                .select(Projections.bean(VisitMessageDTO.class,
+                        message.id,
+                        message.users.id,
+                        message.decoType,
+                        message.width,
+                        message.height
+                ))
+                .from(message)
+                .join(message.users, user)
+                .where(user.userName.eq(userName))
+                .fetch();
+    }
 }

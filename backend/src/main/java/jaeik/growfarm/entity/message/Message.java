@@ -1,5 +1,6 @@
 package jaeik.growfarm.entity.message;
 
+import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.security.MessageEncryptConverter;
 import jaeik.growfarm.repository.BaseEntity;
@@ -58,4 +59,15 @@ public class Message extends BaseEntity {
     @NotNull
     @Column(nullable = false)
     private int height;
+
+    public static Message createMessage(Users users, MessageDTO messageDTO) {
+        return Message.builder()
+                .users(users)
+                .decoType(messageDTO.getDecoType())
+                .anonymity(messageDTO.getAnonymity())
+                .content(messageDTO.getContent())
+                .width(messageDTO.getWidth())
+                .height(messageDTO.getHeight())
+                .build();
+    }
 }
