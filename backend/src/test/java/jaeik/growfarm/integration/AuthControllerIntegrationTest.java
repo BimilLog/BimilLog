@@ -17,8 +17,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.Commit;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestConstructor;
+
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -42,7 +44,6 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(PER_CLASS)
-@Commit
 @Transactional
 public class AuthControllerIntegrationTest {
 
@@ -52,8 +53,9 @@ public class AuthControllerIntegrationTest {
     private final UserRepository userRepository;
 
     private Users testUser;
-    private Setting testSetting;
     private Token testToken;
+    private CustomUserDetails userDetails;
+    private final Random random = new Random();
 
     public AuthControllerIntegrationTest(AuthController authController, SettingRepository settingRepository,
             TokenRepository tokenRepository, UserRepository userRepository) {
@@ -63,39 +65,50 @@ public class AuthControllerIntegrationTest {
         this.userRepository = userRepository;
     }
 
-    /**
-     * <h3>테스트 데이터 초기화</h3>
-     * 사용자 데이터 생성
-     *
-     * @since 2025.05.17
-     */
     @BeforeAll
     void setUp() {
+        // (deleteAll 호출 제거)
+
+        // 고유한 값 생성
+        int uniqueId = random.nextInt(1000000);
+        long timestamp = System.currentTimeMillis();
+
+        // 사용자 설정 생성
         Setting setting = Setting.builder()
                 .messageNotification(true)
                 .commentNotification(true)
                 .postFeaturedNotification(true)
                 .build();
-        testSetting = settingRepository.save(setting);
+        settingRepository.save(setting);
 
+        // 사용자 생성
         Users user = Users.builder()
-                .kakaoId(1234567890L)
-                .kakaoNickname("testNickname")
+                .kakaoId(timestamp + uniqueId)
+                .kakaoNickname("testNickname" + uniqueId)
                 .thumbnailImage("testImage")
-                .userName("testPaper")
+                .userName("testUser" + uniqueId)
                 .role(UserRole.USER)
                 .setting(setting)
                 .build();
         testUser = userRepository.save(user);
 
-        Token token = Token.builder()
-                .jwtRefreshToken("testRefreshToken")
-                .kakaoAccessToken("testKakaoAccessToken")
-                .kakaoRefreshToken("testKakaoRefreshToken")
+        // 토큰 생성
+        testToken = Token.builder()
                 .users(testUser)
+                .jwtRefreshToken("testRefreshToken" + uniqueId)
+                .kakaoAccessToken("testKakaoAccessToken" + uniqueId)
+                .kakaoRefreshToken("testKakaoRefreshToken" + uniqueId)
                 .build();
-        testToken = tokenRepository.save(token);
+        testToken = tokenRepository.save(testToken);
 
+        // ClientDTO 생성
+        ClientDTO clientDTO = new ClientDTO(testUser, testToken.getId(), null);
+        userDetails = new CustomUserDetails(clientDTO);
+    }
+
+    @AfterAll
+    void tearDown() {
+        // 별도 정리 로직 없음 (트랜잭션 롤백)
     }
 
     /**
@@ -122,7 +135,7 @@ public class AuthControllerIntegrationTest {
     @DisplayName("현재 로그인한 사용자 정보 조회 통합 테스트")
     void testGetCurrentUser() {
         // Given
-        SettingDTO settingDTO = new SettingDTO(testSetting);
+        SettingDTO settingDTO = new SettingDTO(testUser.getSetting());
         ClientDTO clientDTO = new ClientDTO(testUser, settingDTO, testToken.getId(), null);
         CustomUserDetails userDetails = new CustomUserDetails(clientDTO);
 
@@ -143,4 +156,12 @@ public class AuthControllerIntegrationTest {
         assertEquals(clientDTO.getTokenId(), ((ClientDTO) response.getBody()).getTokenId());
         assertEquals(clientDTO.getUserId(), ((ClientDTO) response.getBody()).getUserId());
     }
+
+    /*
+     * 카카오 API가 필요한 테스트들은 Mock 서버 구축 후 추가 예정:
+     * - testLoginKakao() - 카카오 로그인
+     * - testSignUp() - 회원가입 (임시 쿠키 필요)
+     * - testLogout() - 로그아웃 (카카오 로그아웃 필요)
+     * - testWithdraw() - 회원탈퇴 (카카오 연결 해제 필요)
+     */
 }

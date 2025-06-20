@@ -41,12 +41,6 @@ public class UserControllerTest {
     private UserController userController;
 
     private CustomUserDetails userDetails;
-    private UserNameDTO userNameDTO;
-    private ReportDTO reportDTO;
-    private SettingDTO settingDTO;
-    private KakaoFriendListDTO kakaoFriendListDTO;
-    private List<SimplePostDTO> simplePostDTOList;
-    private List<SimpleCommentDTO> simpleCommentDTOList;
 
     @BeforeEach
     void setUp() {
@@ -54,83 +48,28 @@ public class UserControllerTest {
         userDetails = mock(CustomUserDetails.class);
         when(userDetails.getClientDTO()).thenReturn(mock(jaeik.growfarm.dto.user.ClientDTO.class));
         when(userDetails.getClientDTO().getUserId()).thenReturn(1L);
-
-        // Create SimplePostDTO with required parameters
-        // postId
-        // userId
-        // userName
-        // title
-        // commentCount
-        // likes
-        // views
-        // createdAt
-        // is_notice
-        SimplePostDTO simplePostDTO = new SimplePostDTO(
-                1L,                           // postId
-                1L,                           // userId
-                "testPaper",                   // userName
-                "Test Title",                 // title
-                0,                            // commentCount
-                0,                            // likes
-                0,                            // views
-                Instant.now(),          // createdAt
-                false                         // is_notice
-        );
-        // No need to set PopularFlag for this test
-
-        simplePostDTOList = new ArrayList<>();
-        simplePostDTOList.add(simplePostDTO);
-
-        // Create SimpleCommentDTO with required parameters
-        // id
-        // postId
-        // userName
-        // content
-        // createdAt
-        // likes
-        // userLike
-        SimpleCommentDTO simpleCommentDTO = new SimpleCommentDTO(
-                1L,                           // id
-                1L,                           // postId
-                "testPaper",                   // userName
-                "Test comment content",       // content
-                Instant.now(),                // createdAt
-                0,                            // likes
-                false                         // userLike
-        );
-
-        simpleCommentDTOList = new ArrayList<>();
-        simpleCommentDTOList.add(simpleCommentDTO);
-
-        // Create UserNameDTO
-        userNameDTO = new UserNameDTO();
-        userNameDTO.setUserName("newUserName");
-
-        // Create ReportDTO
-        reportDTO = ReportDTO.builder()
-                .reportId(1L)
-                .reportType(ReportType.IMPROVEMENT)
-                .userId(1L)
-                .content("Test suggestion content")
-                .build();
-
-        // Create SettingDTO
-        Setting setting = mock(Setting.class);
-        when(setting.getId()).thenReturn(1L);
-        when(setting.isMessageNotification()).thenReturn(true);
-        when(setting.isCommentNotification()).thenReturn(true);
-        when(setting.isPostFeaturedNotification()).thenReturn(true);
-        settingDTO = new SettingDTO(setting);
-
-        // Create KakaoFriendListDTO
-        kakaoFriendListDTO = new KakaoFriendListDTO();
-        // Set properties for kakaoFriendListDTO if needed
     }
 
     @Test
     @DisplayName("유저의 작성 게시글 목록 조회 테스트")
     void testGetPostList() {
         // Given
+        // Create SimplePostDTO with required parameters
+        SimplePostDTO simplePostDTO = new SimplePostDTO(
+                1L, // postId
+                1L, // userId
+                "testPaper", // userName
+                "Test Title", // title
+                0, // commentCount
+                0, // likes
+                0, // views
+                Instant.now(), // createdAt
+                false // is_notice
+        );
+
+        List<SimplePostDTO> simplePostDTOList = new ArrayList<>();
+        simplePostDTOList.add(simplePostDTO);
+
         Page<SimplePostDTO> postPage = new PageImpl<>(simplePostDTOList);
         when(userService.getPostList(anyInt(), anyInt(), any())).thenReturn(postPage);
 
@@ -147,6 +86,19 @@ public class UserControllerTest {
     @DisplayName("유저의 작성 댓글 목록 조회 테스트")
     void testGetCommentList() {
         // Given
+        SimpleCommentDTO simpleCommentDTO = new SimpleCommentDTO(
+                1L, // id
+                1L, // postId
+                "testPaper", // userName
+                "Test comment content", // content
+                Instant.now(), // createdAt
+                0, // likes
+                false // userLike
+        );
+
+        List<SimpleCommentDTO> simpleCommentDTOList = new ArrayList<>();
+        simpleCommentDTOList.add(simpleCommentDTO);
+
         Page<SimpleCommentDTO> commentPage = new PageImpl<>(simpleCommentDTOList);
         when(userService.getCommentList(anyInt(), anyInt(), any())).thenReturn(commentPage);
 
@@ -163,6 +115,21 @@ public class UserControllerTest {
     @DisplayName("유저가 추천한 게시글 목록 조회 테스트")
     void testGetLikedPosts() {
         // Given
+        SimplePostDTO simplePostDTO = new SimplePostDTO(
+                1L, // postId
+                1L, // userId
+                "testPaper", // userName
+                "Test Title", // title
+                0, // commentCount
+                0, // likes
+                0, // views
+                Instant.now(), // createdAt
+                false // is_notice
+        );
+
+        List<SimplePostDTO> simplePostDTOList = new ArrayList<>();
+        simplePostDTOList.add(simplePostDTO);
+
         Page<SimplePostDTO> postPage = new PageImpl<>(simplePostDTOList);
         when(userService.getLikedPosts(anyInt(), anyInt(), any())).thenReturn(postPage);
 
@@ -179,6 +146,19 @@ public class UserControllerTest {
     @DisplayName("유저가 추천한 댓글 목록 조회 테스트")
     void testGetLikedComments() {
         // Given
+        SimpleCommentDTO simpleCommentDTO = new SimpleCommentDTO(
+                1L, // id
+                1L, // postId
+                "testPaper", // userName
+                "Test comment content", // content
+                Instant.now(), // createdAt
+                0, // likes
+                false // userLike
+        );
+
+        List<SimpleCommentDTO> simpleCommentDTOList = new ArrayList<>();
+        simpleCommentDTOList.add(simpleCommentDTO);
+
         Page<SimpleCommentDTO> commentPage = new PageImpl<>(simpleCommentDTOList);
         when(userService.getLikedComments(anyInt(), anyInt(), any())).thenReturn(commentPage);
 
@@ -195,6 +175,9 @@ public class UserControllerTest {
     @DisplayName("닉네임 변경 테스트")
     void testUpdateUserName() {
         // Given
+        UserNameDTO userNameDTO = new UserNameDTO();
+        userNameDTO.setUserName("newUserName");
+
         doNothing().when(userService).updateUserName(anyString(), any());
 
         // When
@@ -210,6 +193,13 @@ public class UserControllerTest {
     @DisplayName("건의하기 테스트")
     void testSuggestion() {
         // Given
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportId(1L)
+                .reportType(ReportType.IMPROVEMENT)
+                .userId(1L)
+                .content("Test suggestion content")
+                .build();
+
         doNothing().when(userService).suggestion(any(), any());
 
         // When
@@ -225,6 +215,7 @@ public class UserControllerTest {
     @DisplayName("카카오 친구 목록 가져오기 테스트")
     void testGetFriendList() {
         // Given
+        KakaoFriendListDTO kakaoFriendListDTO = new KakaoFriendListDTO();
         when(userService.getFriendList(any(), anyInt())).thenReturn(kakaoFriendListDTO);
 
         // When
@@ -239,6 +230,13 @@ public class UserControllerTest {
     @DisplayName("설정 조회 테스트")
     void testGetSetting() {
         // Given
+        Setting setting = mock(Setting.class);
+        when(setting.getId()).thenReturn(1L);
+        when(setting.isMessageNotification()).thenReturn(true);
+        when(setting.isCommentNotification()).thenReturn(true);
+        when(setting.isPostFeaturedNotification()).thenReturn(true);
+        SettingDTO settingDTO = new SettingDTO(setting);
+
         when(userService.getSetting(any())).thenReturn(settingDTO);
 
         // When
@@ -253,6 +251,13 @@ public class UserControllerTest {
     @DisplayName("설정 수정 테스트")
     void testUpdateSetting() {
         // Given
+        Setting setting = mock(Setting.class);
+        when(setting.getId()).thenReturn(1L);
+        when(setting.isMessageNotification()).thenReturn(true);
+        when(setting.isCommentNotification()).thenReturn(true);
+        when(setting.isPostFeaturedNotification()).thenReturn(true);
+        SettingDTO settingDTO = new SettingDTO(setting);
+
         doNothing().when(userService).updateSetting(any(), any());
 
         // When

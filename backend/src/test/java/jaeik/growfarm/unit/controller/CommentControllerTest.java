@@ -13,13 +13,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +33,6 @@ import static org.mockito.Mockito.*;
  * </p>
  */
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class CommentControllerTest {
 
@@ -45,34 +42,23 @@ public class CommentControllerTest {
     @InjectMocks
     private CommentController commentController;
 
-    private CommentDTO commentDTO;
     private CustomUserDetails userDetails;
-    private List<CommentDTO> commentList;
 
     @BeforeEach
     void setUp() {
-        // Setup mock data
-        commentDTO = mock(CommentDTO.class);
-        when(commentDTO.getId()).thenReturn(1L);
-        when(commentDTO.getPostId()).thenReturn(1L);
-        when(commentDTO.getUserName()).thenReturn("testUser");
-        when(commentDTO.getContent()).thenReturn("Test comment content");
-        when(commentDTO.getLikes()).thenReturn(0);
-        when(commentDTO.getCreatedAt()).thenReturn(Instant.now());
-        when(commentDTO.isUserLike()).thenReturn(false);
-
         userDetails = mock(CustomUserDetails.class);
         when(userDetails.getUserId()).thenReturn(1L);
-
-        commentList = new ArrayList<>();
-        commentList.add(commentDTO);
     }
 
     @Test
     @DisplayName("댓글 조회 테스트")
     void testGetComments() {
         // Given
+        CommentDTO commentDTO = mock(CommentDTO.class);
+        List<CommentDTO> commentList = new ArrayList<>();
+        commentList.add(commentDTO);
         Page<CommentDTO> commentPage = new PageImpl<>(commentList);
+
         when(commentService.getCommentsLatestOrder(anyLong(), anyInt(), any())).thenReturn(commentPage);
 
         // When
@@ -89,6 +75,10 @@ public class CommentControllerTest {
     @DisplayName("인기댓글 조회 테스트")
     void testGetPopularComments() {
         // Given
+        CommentDTO commentDTO = mock(CommentDTO.class);
+        List<CommentDTO> commentList = new ArrayList<>();
+        commentList.add(commentDTO);
+
         when(commentService.getPopularComments(anyLong(), any())).thenReturn(commentList);
 
         // When
@@ -105,6 +95,7 @@ public class CommentControllerTest {
     @DisplayName("댓글 작성 테스트")
     void testWriteComment() {
         // Given
+        CommentDTO commentDTO = mock(CommentDTO.class);
         doNothing().when(commentService).writeComment(any(), any());
 
         // When
@@ -120,6 +111,7 @@ public class CommentControllerTest {
     @DisplayName("댓글 수정 테스트")
     void testUpdateComment() {
         // Given
+        CommentDTO commentDTO = mock(CommentDTO.class);
         doNothing().when(commentService).updateComment(any(), any());
 
         // When
@@ -135,6 +127,7 @@ public class CommentControllerTest {
     @DisplayName("댓글 삭제 테스트")
     void testDeleteComment() {
         // Given
+        CommentDTO commentDTO = mock(CommentDTO.class);
         doNothing().when(commentService).deleteComment(any(), any());
 
         // When
@@ -150,6 +143,7 @@ public class CommentControllerTest {
     @DisplayName("댓글 추천 테스트")
     void testLikeComment() {
         // Given
+        CommentDTO commentDTO = mock(CommentDTO.class);
         doNothing().when(commentService).likeComment(any(), any());
 
         // When

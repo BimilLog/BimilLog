@@ -4,7 +4,6 @@ import jaeik.growfarm.controller.AdminController;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.service.admin.AdminService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -33,13 +32,12 @@ public class AdminControllerTest {
     @InjectMocks
     private AdminController adminController;
 
-    private ReportDTO mockReportDTO;
-    private List<ReportDTO> mockReportList;
-
-    @BeforeEach
-    void setUp() {
-        // Setup mock data
-        mockReportDTO = ReportDTO.builder()
+    @Test
+    @DisplayName("신고 목록 조회 테스트")
+    @WithMockUser(roles = "ADMIN")
+    void testGetReportList() {
+        // Given
+        ReportDTO mockReportDTO = ReportDTO.builder()
                 .reportId(1L)
                 .reportType(ReportType.POST)
                 .userId(1L)
@@ -47,15 +45,9 @@ public class AdminControllerTest {
                 .content("Test report content")
                 .build();
 
-        mockReportList = new ArrayList<>();
+        List<ReportDTO> mockReportList = new ArrayList<>();
         mockReportList.add(mockReportDTO);
-    }
 
-    @Test
-    @DisplayName("신고 목록 조회 테스트")
-    @WithMockUser(roles = "ADMIN")
-    void testGetReportList() {
-        // Given
         Page<ReportDTO> reportPage = new PageImpl<>(mockReportList);
         when(adminService.getReportList(anyInt(), anyInt(), any())).thenReturn(reportPage);
 
@@ -75,6 +67,14 @@ public class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     void testGetReportDetail() {
         // Given
+        ReportDTO mockReportDTO = ReportDTO.builder()
+                .reportId(1L)
+                .reportType(ReportType.POST)
+                .userId(1L)
+                .targetId(2L)
+                .content("Test report content")
+                .build();
+
         when(adminService.getReportDetail(anyLong())).thenReturn(mockReportDTO);
 
         // When

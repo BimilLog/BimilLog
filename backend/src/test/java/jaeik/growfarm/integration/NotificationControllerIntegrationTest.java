@@ -15,17 +15,17 @@ import jaeik.growfarm.repository.notification.NotificationRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.Commit;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestConstructor;
 
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,105 +41,116 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(PER_CLASS)
-@Commit
 @Transactional
 public class NotificationControllerIntegrationTest {
 
-    private final NotificationController notificationController;
-    private final NotificationRepository notificationRepository;
-    private final SettingRepository settingRepository;
-    private final TokenRepository tokenRepository;
-    private final UserRepository userRepository;
+        private final NotificationController notificationController;
+        private final NotificationRepository notificationRepository;
+        private final SettingRepository settingRepository;
+        private final TokenRepository tokenRepository;
+        private final UserRepository userRepository;
+        private final Random random = new Random();
 
-    private Notification testNotification;
-    private CustomUserDetails userDetails;
+        private Notification testNotification;
+        private CustomUserDetails userDetails;
 
-    public NotificationControllerIntegrationTest(NotificationController notificationController,
-            NotificationRepository notificationRepository,
-            SettingRepository settingRepository,
-            TokenRepository tokenRepository,
-            UserRepository userRepository) {
-        this.notificationController = notificationController;
-        this.notificationRepository = notificationRepository;
-        this.settingRepository = settingRepository;
-        this.tokenRepository = tokenRepository;
-        this.userRepository = userRepository;
-    }
+        public NotificationControllerIntegrationTest(NotificationController notificationController,
+                        NotificationRepository notificationRepository,
+                        SettingRepository settingRepository,
+                        TokenRepository tokenRepository,
+                        UserRepository userRepository) {
+                this.notificationController = notificationController;
+                this.notificationRepository = notificationRepository;
+                this.settingRepository = settingRepository;
+                this.tokenRepository = tokenRepository;
+                this.userRepository = userRepository;
+        }
 
-    @BeforeAll
-    void setUp() {
-        // 사용자 설정 생성
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-        settingRepository.save(setting);
+        @BeforeAll
+        void setUp() {
+                // 고유한 값 생성을 위한 랜덤 값
+                int uniqueId = random.nextInt(1000000);
+                long timestamp = System.currentTimeMillis();
 
-        // 토큰 생성
-        Token token = Token.builder()
-                .jwtRefreshToken("testRefreshToken")
-                .kakaoAccessToken("testKakaoAccessToken")
-                .kakaoRefreshToken("testKakaoRefreshToken")
-                .build();
-        tokenRepository.save(token);
+                // 사용자 설정 생성
+                Setting setting = Setting.builder()
+                                .messageNotification(true)
+                                .commentNotification(true)
+                                .postFeaturedNotification(true)
+                                .build();
+                settingRepository.save(setting);
 
-        // 사용자 생성
-        Users user = Users.builder()
-                .kakaoId(1234567890L)
-                .kakaoNickname("testNickname")
-                .thumbnailImage("testImage")
-                .userName("testUser")
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
-        Users testUser = userRepository.save(user);
+                // 사용자 생성 (고유한 값 사용)
+                Users user = Users.builder()
+                                .kakaoId(timestamp + uniqueId)
+                                .kakaoNickname("testNickname" + uniqueId)
+                                .thumbnailImage("testImage")
+                                .userName("testUser" + uniqueId)
+                                .role(UserRole.USER)
+                                .setting(setting)
+                                .build();
+                Users testUser = userRepository.save(user);
 
-        // 알림 생성
-        Notification notification = Notification.builder()
-                .notificationType(NotificationType.COMMENT)
-                .data("새로운 댓글이 작성되었습니다")
-                .isRead(false)
-                .url("/post/1")
-                .users(testUser)
-                .build();
-        testNotification = notificationRepository.save(notification);
+                // 토큰 생성
+                Token token = Token.builder()
+                                .users(testUser)
+                                .jwtRefreshToken("testRefreshToken" + uniqueId)
+                                .kakaoAccessToken("testKakaoAccessToken" + uniqueId)
+                                .kakaoRefreshToken("testKakaoRefreshToken" + uniqueId)
+                                .build();
+                tokenRepository.save(token);
 
-        // ClientDTO 생성
-        ClientDTO clientDTO = new ClientDTO(testUser, token.getId(), null);
-        userDetails = new CustomUserDetails(clientDTO);
-    }
+                // 알림 생성
+                Notification notification = Notification.builder()
+                                .data("Test Notification " + uniqueId)
+                                .notificationType(NotificationType.COMMENT)
+                                .users(testUser)
+                                .isRead(false)
+                                .build();
+                testNotification = notificationRepository.save(notification);
 
-    @Test
-    @DisplayName("알림 목록 조회 통합 테스트")
-    void testGetNotifications() {
-        // Given
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+                // ClientDTO 생성
+                ClientDTO clientDTO = new ClientDTO(testUser, token.getId(), null);
+                userDetails = new CustomUserDetails(clientDTO);
+        }
 
-        // When
-        ResponseEntity<List<NotificationDTO>> response = notificationController.getNotifications(userDetails);
+        @AfterAll
+        void tearDown() {
+                // 별도 정리 로직 없음
+        }
 
-        // Then
-        assertEquals(200, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
-    }
+        @Test
+        @DisplayName("알림 목록 조회 통합 테스트")
+        void testGetNotifications() {
+                // Given
+                SecurityContextHolder.getContext().setAuthentication(
+                                new UsernamePasswordAuthenticationToken(userDetails, null,
+                                                userDetails.getAuthorities()));
 
-    @Test
-    @DisplayName("알림 읽음 처리 통합 테스트")
-    void testMarkAsRead() {
-        // Given
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+                // When
+                ResponseEntity<List<NotificationDTO>> response = notificationController.getNotifications(userDetails);
 
-        UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setReadIds(List.of(testNotification.getId()));
-        updateDTO.setDeletedIds(List.of());
+                // Then
+                assertEquals(200, response.getStatusCodeValue());
+                assertNotNull(response.getBody());
+        }
 
-        // When
-        ResponseEntity<Void> response = notificationController.markAsRead(userDetails, updateDTO);
+        @Test
+        @DisplayName("알림 읽음 처리 통합 테스트")
+        void testMarkAsRead() {
+                // Given
+                SecurityContextHolder.getContext().setAuthentication(
+                                new UsernamePasswordAuthenticationToken(userDetails, null,
+                                                userDetails.getAuthorities()));
 
-        // Then
-        assertEquals(200, response.getStatusCodeValue());
-    }
+                UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
+                updateDTO.setReadIds(List.of(testNotification.getId()));
+                updateDTO.setDeletedIds(List.of());
+
+                // When
+                ResponseEntity<Void> response = notificationController.markAsRead(userDetails, updateDTO);
+
+                // Then
+                assertEquals(200, response.getStatusCodeValue());
+        }
 }

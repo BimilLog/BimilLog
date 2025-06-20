@@ -3,19 +3,29 @@ package jaeik.growfarm.dto.admin;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
  * <h2>신고 DTO</h2>
- * <p>신고 정보를 담는 DTO 클래스</p>
- * <p>신고 ID, 신고 타입, 신고한 유저 ID, 신고 대상 ID, 신고 내용 등을 포함한다.</p>
+ * <p>
+ * 신고 정보를 담는 DTO 클래스
+ * </p>
+ * <p>
+ * 신고 ID, 신고 타입, 신고한 유저 ID, 신고 대상 ID, 신고 내용 등을 포함한다.
+ * </p>
+ * 
  * @since 1.0.0
  * @author Jaeik
  */
-@Getter @Setter
+@Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReportDTO {
 
     private Long reportId;
@@ -40,5 +50,3 @@ public class ReportDTO {
                 .build();
     }
 }
-
-

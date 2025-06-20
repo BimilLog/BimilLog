@@ -73,7 +73,7 @@ public class Comment extends BaseEntity {
      * @author Jaeik
      * @since 1.0.0
      */
-    public static Comment createComment(Post post, Users user, String content, int password) {
+    public static Comment createComment(Post post, Users user, String content, Integer password) {
         return Comment.builder()
                 .post(post)
                 .user(user)

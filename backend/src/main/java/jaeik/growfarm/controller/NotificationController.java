@@ -76,7 +76,7 @@ public class NotificationController {
      * @since 1.0.0
      * @author Jaeik
      */
-    @PostMapping("/batch")
+    @PostMapping("/update")
     public ResponseEntity<Void> markAsRead(@AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody UpdateNotificationDTO updateNotificationDTO) {
         notificationService.batchUpdate(userDetails, updateNotificationDTO);

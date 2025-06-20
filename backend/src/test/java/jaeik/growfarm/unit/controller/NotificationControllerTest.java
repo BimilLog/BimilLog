@@ -36,8 +36,6 @@ public class NotificationControllerTest {
     private NotificationController notificationController;
 
     private CustomUserDetails userDetails;
-    private List<NotificationDTO> notificationDTOList;
-    private UpdateNotificationDTO updateNotificationDTO;
 
     @BeforeEach
     void setUp() {
@@ -45,8 +43,12 @@ public class NotificationControllerTest {
         userDetails = mock(CustomUserDetails.class);
         when(userDetails.getUserId()).thenReturn(1L);
         when(userDetails.getTokenId()).thenReturn(1L);
+    }
 
-        // Create NotificationDTO
+    @Test
+    @DisplayName("알림 리스트 조회 테스트")
+    void testGetNotifications() {
+        // Given
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .id(1L)
                 .data("Test notification")
@@ -56,19 +58,9 @@ public class NotificationControllerTest {
                 .createdAt(Instant.now())
                 .build();
 
-        notificationDTOList = new ArrayList<>();
+        List<NotificationDTO> notificationDTOList = new ArrayList<>();
         notificationDTOList.add(notificationDTO);
 
-        // Create UpdateNotificationDTO
-        updateNotificationDTO = new UpdateNotificationDTO();
-        updateNotificationDTO.setReadIds(List.of(1L));
-        updateNotificationDTO.setDeletedIds(List.of(2L));
-    }
-
-    @Test
-    @DisplayName("알림 리스트 조회 테스트")
-    void testGetNotifications() {
-        // Given
         when(notificationService.getNotificationList(any())).thenReturn(notificationDTOList);
 
         // When
@@ -86,6 +78,10 @@ public class NotificationControllerTest {
     @DisplayName("알림 읽음/삭제 처리 테스트")
     void testMarkAsRead() {
         // Given
+        UpdateNotificationDTO updateNotificationDTO = new UpdateNotificationDTO();
+        updateNotificationDTO.setReadIds(List.of(1L));
+        updateNotificationDTO.setDeletedIds(List.of(2L));
+
         doNothing().when(notificationService).batchUpdate(any(), any());
 
         // When
