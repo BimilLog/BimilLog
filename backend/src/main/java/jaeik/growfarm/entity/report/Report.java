@@ -2,7 +2,7 @@ package jaeik.growfarm.entity.report;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.repository.BaseEntity;
+import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

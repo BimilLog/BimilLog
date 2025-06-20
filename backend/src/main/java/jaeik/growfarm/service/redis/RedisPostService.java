@@ -18,7 +18,9 @@ import java.util.List;
  * <p>
  * Redis를 사용하여 다양한 유형의 인기 게시글 목록을 캐싱하고 관리하는 서비스
  * </p>
- * <p>실시간, 주간, 레전드 인기 게시글 목록을 하나의 서비스에서 관리한다.</p>
+ * <p>
+ * 실시간, 주간, 레전드 인기 게시글 목록을 하나의 서비스에서 관리한다.
+ * </p>
  * <p>
  * Redis에 캐싱하고, 조회, 삭제 등의 작업을 수행한다.
  * </p>
@@ -33,7 +35,6 @@ public class RedisPostService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final PostService postService;
 
-
     /**
      * <h3>인기글 유형</h3>
      * <p>
@@ -42,6 +43,7 @@ public class RedisPostService {
      * <p>
      * 각 유형은 Redis 키와 TTL(유효 기간)을 포함한다.
      * </p>
+     * 
      * @author Jaeik
      * @version 1.0.0
      */

@@ -1,6 +1,6 @@
 package jaeik.growfarm.entity.user;
 
-import jaeik.growfarm.repository.BaseEntity;
+import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Getter;
@@ -24,6 +24,13 @@ public class BlackList extends BaseEntity {
     @Id
     private Long kakaoId;
 
+    /**
+     * <h2>블랙리스트 엔티티 생성</h2>
+     * <p>카카오 ID를 기반으로 블랙리스트 엔티티를 생성</p>
+     *
+     * @param kakaoId 카카오 ID
+     * @return 생성된 블랙리스트 엔티티
+     */
     public static BlackList createBlackList(Long kakaoId) {
         return BlackList.builder()
                 .kakaoId(kakaoId)

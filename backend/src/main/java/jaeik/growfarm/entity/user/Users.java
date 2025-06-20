@@ -2,7 +2,7 @@ package jaeik.growfarm.entity.user;
 
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.UserDTO;
-import jaeik.growfarm.repository.BaseEntity;
+import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -13,8 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>사용자 엔티티</h2>
- * <p>카카오 로그인을 통한 사용자 정보를 저장하는 엔티티</p>
- * <p>닉네임, 카카오 정보, 설정 정보 등을 포함</p>
+ * <p>
+ * 카카오 로그인을 통한 사용자 정보를 저장하는 엔티티
+ * </p>
+ * <p>
+ * 닉네임, 카카오 정보, 설정 정보 등을 포함
+ * </p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -44,7 +48,7 @@ public class Users extends BaseEntity {
     private Long kakaoId;
 
     @NotNull
-    @Column(unique = true, nullable = false)
+    @Column(name = "user_name", unique = true, nullable = false)
     private String userName;
 
     @NotNull

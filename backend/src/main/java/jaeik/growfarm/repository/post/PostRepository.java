@@ -1,8 +1,6 @@
 package jaeik.growfarm.repository.post;
 
 import jaeik.growfarm.entity.post.Post;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -37,8 +35,4 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
     @Modifying
     @Query(nativeQuery = true, value = "UPDATE post SET views = views + 1 WHERE post_id = :postId")
     void incrementViews(@Param("postId") Long postId);
-
-
-    Page<Post> findByLikedPosts(Long userId, Pageable pageable);
-
 }

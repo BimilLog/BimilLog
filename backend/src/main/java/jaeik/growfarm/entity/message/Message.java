@@ -3,7 +3,7 @@ package jaeik.growfarm.entity.message;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.security.MessageEncryptConverter;
-import jaeik.growfarm.repository.BaseEntity;
+import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

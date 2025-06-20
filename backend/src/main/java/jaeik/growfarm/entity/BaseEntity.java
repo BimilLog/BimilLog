@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository;
+package jaeik.growfarm.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

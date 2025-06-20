@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 public class CommentCustomRepositoryImpl implements CommentCustomRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
-    private final CommentRepository commentRepository;
     private final CommentClosureRepository commentClosureRepository;
 
     /**
@@ -331,7 +330,10 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
                         .execute();
             } else {
                 commentClosureRepository.deleteByDescendantId(commentId);
-                commentRepository.delete(userComment);
+                jpaQueryFactory
+                        .delete(comment)
+                        .where(comment.id.eq(commentId))
+                        .execute();
             }
         }
     }

@@ -3,7 +3,7 @@ package jaeik.growfarm.entity.post;
 import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.repository.BaseEntity;
+import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
@@ -30,10 +30,10 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @SuperBuilder
 @Table(indexes = {
-        @Index(name = "idx_post_notice_created", columnList = "is_notice, created_at DESC"),
-        @Index(name = "idx_post_created_at_popular", columnList = "created_at, popular_flag"),
+        @Index(name = "idx_post_notice_created", columnList = "isNotice, created_at DESC"),
+        @Index(name = "idx_post_created_at_popular", columnList = "created_at, popularFlag"),
         @Index(name = "idx_post_created", columnList = "created_at"),
-        @Index(name = "idx_post_popular_flag", columnList = "popular_flag"),
+        @Index(name = "idx_post_popular_flag", columnList = "popularFlag"),
 })
 public class Post extends BaseEntity {
 
