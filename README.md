@@ -1,4 +1,4 @@
-<div>익명 롤링페이퍼 프로젝트 네 마음을 심어줘</div>
+<div>익명 롤링페이퍼 프로젝트 비밀로그(BimilLog)</div>
 <div>https://grow-farm.com</div>
 </p>
 <p>
