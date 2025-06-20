@@ -190,7 +190,7 @@ public class PostControllerIntegrationTest {
     @DisplayName("게시글 검색 통합 테스트")
     void testSearchPost() {
         // When
-        ResponseEntity<Page<SimplePostDTO>> response = postController.searchPost("title", "Test", 0, 10);
+        ResponseEntity<Page<SimplePostDTO>> response = postController.searchPost("TITLE_CONTENT", "Test", 0, 10);
 
         // Then
         assertNotNull(response.getBody());
