@@ -1,5 +1,6 @@
-package jaeik.growfarm.controller;
+package jaeik.growfarm.unit.controller;
 
+import jaeik.growfarm.controller.AdminController;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.service.admin.AdminService;
@@ -65,8 +66,8 @@ public class AdminControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getContent().size());
-        assertEquals(1L, response.getBody().getContent().get(0).getReportId());
-        assertEquals(ReportType.POST, response.getBody().getContent().get(0).getReportType());
+        assertEquals(1L, response.getBody().getContent().getFirst().getReportId());
+        assertEquals(ReportType.POST, response.getBody().getContent().getFirst().getReportType());
     }
 
     @Test

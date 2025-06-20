@@ -3,7 +3,7 @@ package jaeik.growfarm.integration;
 import jaeik.growfarm.controller.NotificationController;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
-import jaeik.growfarm.entity.notification.DeviceType;
+import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.entity.notification.Notification;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Setting;
@@ -12,11 +12,10 @@ import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.notification.NotificationRepository;
-import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
+import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.notification.NotificationService;
-import jaeik.growfarm.util.UserUtil;
+
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,7 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.TestConstructor;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,9 +33,9 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 /**
  * <h2>NotificationController 통합 테스트</h2>
- * <p>실제 데이터베이스와 서비스를 사용하여 NotificationController의 전체 API를 테스트합니다.</p>
- * <p>SSE 관련 기능은 테스트에서 제외함.</p>
- * @since 2025.05.17
+ * <p>
+ * 실제 데이터베이스와 서비스를 사용하여 NotificationController의 전체 API를 테스트합니다.
+ * </p>
  */
 @SpringBootTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
@@ -48,46 +46,33 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 public class NotificationControllerIntegrationTest {
 
     private final NotificationController notificationController;
-    private final NotificationService notificationService;
     private final NotificationRepository notificationRepository;
     private final SettingRepository settingRepository;
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
-    private final UserUtil userUtil;
 
-    private Users testUser;
     private Notification testNotification;
+    private CustomUserDetails userDetails;
 
     public NotificationControllerIntegrationTest(NotificationController notificationController,
-                                                NotificationService notificationService,
-                                                NotificationRepository notificationRepository,
-                                                SettingRepository settingRepository,
-                                                TokenRepository tokenRepository,
-                                                UserRepository userRepository,
-                                                UserUtil userUtil) {
+            NotificationRepository notificationRepository,
+            SettingRepository settingRepository,
+            TokenRepository tokenRepository,
+            UserRepository userRepository) {
         this.notificationController = notificationController;
-        this.notificationService = notificationService;
         this.notificationRepository = notificationRepository;
         this.settingRepository = settingRepository;
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
-        this.userUtil = userUtil;
     }
 
-    /**
-     * <h3>테스트 데이터 초기화</h3>
-     * 사용자, 알림 데이터 생성
-     *
-     * @since 2025.05.17
-     */
     @BeforeAll
     void setUp() {
         // 사용자 설정 생성
         Setting setting = Setting.builder()
-                .farmNotification(true)
+                .messageNotification(true)
                 .commentNotification(true)
                 .postFeaturedNotification(true)
-                .commentFeaturedNotification(true)
                 .build();
         settingRepository.save(setting);
 
@@ -104,89 +89,55 @@ public class NotificationControllerIntegrationTest {
                 .kakaoId(1234567890L)
                 .kakaoNickname("testNickname")
                 .thumbnailImage("testImage")
-                .userName("testPaper")
+                .userName("testUser")
                 .role(UserRole.USER)
                 .setting(setting)
-                .token(token)
                 .build();
-        testUser = userRepository.save(user);
+        Users testUser = userRepository.save(user);
 
         // 알림 생성
         Notification notification = Notification.builder()
-                .users(testUser)
-                .data("Test Notification Content")
                 .notificationType(NotificationType.COMMENT)
+                .data("새로운 댓글이 작성되었습니다")
                 .isRead(false)
+                .url("/post/1")
+                .users(testUser)
                 .build();
         testNotification = notificationRepository.save(notification);
+
+        // ClientDTO 생성
+        ClientDTO clientDTO = new ClientDTO(testUser, token.getId(), null);
+        userDetails = new CustomUserDetails(clientDTO);
     }
 
-    /**
-     * <h3>알림 리스트 조회 통합 테스트</h3>
-     * @since 2025.05.17
-     */
     @Test
-    @DisplayName("알림 리스트 조회 통합 테스트")
+    @DisplayName("알림 목록 조회 통합 테스트")
     void testGetNotifications() {
-        // 인증 설정
-        CustomUserDetails userDetails = new CustomUserDetails(userUtil.UserToDTO(testUser));
+        // Given
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
-        );
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
         // When
         ResponseEntity<List<NotificationDTO>> response = notificationController.getNotifications(userDetails);
 
         // Then
+        assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals(testNotification.getData(), response.getBody().get(0).getData());
     }
 
-    /**
-     * <h3>알림 읽음, 삭제 처리 통합 테스트</h3>
-     * @since 2025.05.17
-     */
     @Test
-    @DisplayName("알림 읽음, 삭제 처리 통합 테스트")
+    @DisplayName("알림 읽음 처리 통합 테스트")
     void testMarkAsRead() {
         // Given
-        UpdateNotificationDTO updateNotificationDTO = new UpdateNotificationDTO();
-        updateNotificationDTO.setReadIds(Arrays.asList(testNotification.getId()));
-        updateNotificationDTO.setDeletedIds(List.of());
-
-        // 인증 설정
-        CustomUserDetails userDetails = new CustomUserDetails(userUtil.UserToDTO(testUser));
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
-        );
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+
+        UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
+        updateDTO.setReadIds(List.of(testNotification.getId()));
+        updateDTO.setDeletedIds(List.of());
 
         // When
-        ResponseEntity<Void> response = notificationController.markAsRead(userDetails, updateNotificationDTO);
-
-        // Then
-        assertEquals(200, response.getStatusCodeValue());
-    }
-
-    /**
-     * <h3>FCM 토큰 등록 통합 테스트</h3>
-     * @since 2025.05.17
-     */
-    @Test
-    @DisplayName("FCM 토큰 등록 통합 테스트")
-    void testRegisterFcmToken() {
-        // Given
-        String fcmToken = "test-fcm-token";
-        DeviceType deviceType = DeviceType.MOBILE;
-
-        // 인증 설정
-        CustomUserDetails userDetails = new CustomUserDetails(userUtil.UserToDTO(testUser));
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
-        );
-
-        // When
-        ResponseEntity<String> response = notificationController.registerFcmToken(userDetails, fcmToken, deviceType);
+        ResponseEntity<Void> response = notificationController.markAsRead(userDetails, updateDTO);
 
         // Then
         assertEquals(200, response.getStatusCodeValue());

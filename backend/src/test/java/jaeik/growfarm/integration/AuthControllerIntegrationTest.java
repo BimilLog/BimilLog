@@ -26,9 +26,16 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 /**
  * <h2>AuthController 통합 테스트</h2>
- * <p>실제 데이터베이스와 서비스를 사용하여 AuthController의 전체 API를 테스트합니다.</p>
- * <p>카카오 서버와 통신이 필요한 API는 테스트에서 제외함.</p>
- * <p>이후에 카카오 Mock 서버를 만들어 테스트에 추가 필요.</p>
+ * <p>
+ * 실제 데이터베이스와 서비스를 사용하여 AuthController의 전체 API를 테스트합니다.
+ * </p>
+ * <p>
+ * 카카오 서버와 통신이 필요한 API는 테스트에서 제외함.
+ * </p>
+ * <p>
+ * 이후에 카카오 Mock 서버를 만들어 테스트에 추가 필요.
+ * </p>
+ * 
  * @since 2025.05.17
  */
 @SpringBootTest
@@ -48,7 +55,8 @@ public class AuthControllerIntegrationTest {
     private Setting testSetting;
     private Token testToken;
 
-    public AuthControllerIntegrationTest(AuthController authController, SettingRepository settingRepository, TokenRepository tokenRepository, UserRepository userRepository) {
+    public AuthControllerIntegrationTest(AuthController authController, SettingRepository settingRepository,
+            TokenRepository tokenRepository, UserRepository userRepository) {
         this.authController = authController;
         this.settingRepository = settingRepository;
         this.tokenRepository = tokenRepository;
@@ -64,10 +72,9 @@ public class AuthControllerIntegrationTest {
     @BeforeAll
     void setUp() {
         Setting setting = Setting.builder()
-                .farmNotification(true)
+                .messageNotification(true)
                 .commentNotification(true)
                 .postFeaturedNotification(true)
-                .commentFeaturedNotification(true)
                 .build();
         testSetting = settingRepository.save(setting);
 
@@ -93,6 +100,7 @@ public class AuthControllerIntegrationTest {
 
     /**
      * <h3>서버 상태 검사 통합 테스트</h3>
+     * 
      * @since 2025.05.17
      */
     @Test
@@ -107,6 +115,7 @@ public class AuthControllerIntegrationTest {
 
     /**
      * <h3>현재 로그인한 사용자 정보 조회 통합 테스트</h3>
+     * 
      * @since 2025.05.17
      */
     @Test
@@ -118,8 +127,7 @@ public class AuthControllerIntegrationTest {
         CustomUserDetails userDetails = new CustomUserDetails(clientDTO);
 
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
-        );
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
         // When
         ResponseEntity<?> response = authController.getCurrentUser(userDetails);
 
