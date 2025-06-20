@@ -6,6 +6,7 @@ import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.post.PostService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -29,11 +30,15 @@ import java.util.List;
  * @version 1.0.0
  */
 @Service
-@RequiredArgsConstructor
 public class RedisPostService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final PostService postService;
+
+    public RedisPostService(RedisTemplate<String, Object> redisTemplate, @Lazy PostService postService) {
+        this.redisTemplate = redisTemplate;
+        this.postService = postService;
+    }
 
     /**
      * <h3>인기글 유형</h3>
