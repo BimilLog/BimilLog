@@ -78,8 +78,17 @@ public enum ErrorCode {
      * <p>관리자 관련 에러 코드</p>
      */
     NOT_FOUND_REPORT(HttpStatus.NOT_FOUND, "해당 신고를 찾을 수 없습니다."),
-    BAN_USER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "유저 차단 중 오류 발생");
+    BAN_USER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "유저 차단 중 오류 발생"),
 
+    /**
+     * <h3>알림 에러 코드</h3>
+     * <p>알림 관련 에러 코드</p>
+     */
+    SSE_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "SSE 알림 전송 중 오류 발생"),
+    FCM_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "FCM 알림 전송 중 오류 발생"),
+    NOTIFICATION_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송 중 오류 발생"),
+    NOTIFICATION_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "다른 사람의 알림은 삭제할 수 없습니다."),
+    NOTIFICATION_READ_FORBIDDEN(HttpStatus.FORBIDDEN, "다른 사람의 알림은 읽을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

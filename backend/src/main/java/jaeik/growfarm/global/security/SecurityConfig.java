@@ -1,8 +1,9 @@
 package jaeik.growfarm.global.security;
 
-import jaeik.growfarm.global.filter.HeaderCheckFilter;
 import jaeik.growfarm.global.filter.JwtFilter;
 import jaeik.growfarm.global.filter.LogFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.context.annotation.Bean;
@@ -13,23 +14,27 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.*;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
- * <h2>보안 설정 클래스</h2>
+ * <h2>보안 설정</h2>
  * <p>Spring Security를 사용하여 애플리케이션의 보안을 구성하는 클래스입니다.</p>
  * <p>JWT 필터, 로그 필터, 헤더 체크 필터를 설정하고 CORS 정책을 정의합니다.</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version 1.0.0
  */
 @Getter
 @Configuration
@@ -40,43 +45,55 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final LogFilter LogFilter;
-    private final HeaderCheckFilter headerCheckFilter;
 
+    /**
+     * <h3>보안 필터 체인 설정</h3>
+     * <p>HTTP 보안 설정을 정의합니다.</p>
+     * <ul>
+     *     <li>CSRF 보호를 위한 쿠키 기반 토큰 저장소 사용</li>
+     *     <li>CORS 정책 정의</li>
+     *     <li>폼 로그인 및 HTTP 기본 인증 비활성화</li>
+     *     <li>세션 관리 정책을 상태 비저장으로 설정</li>
+     *     <li>URL 패턴에 따른 권한 부여 규칙 설정</li>
+     * </ul>
+     *
+     * @param http HttpSecurity 객체
+     * @return SecurityFilterChain 객체
+     * @throws Exception 보안 설정 중 발생할 수 있는 예외
+     * @author Jaeik
+     * @since 1.0.0
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-//                .csrf(csrf -> csrf
-//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-//                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-//                .sessionManagement(session -> session
-//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 이거 추가!
-                        .requestMatchers(HttpMethod.GET, "/board/**").permitAll()
-                        .requestMatchers("/board/write").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/auth/login", "auth/login", "auth/health").permitAll()
+                        .requestMatchers("/comment/like").authenticated()
+                        .requestMatchers("/comment/**").permitAll()
+                        .requestMatchers("/post/like").authenticated()
+                        .requestMatchers("/post/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/auth/login", "/auth/signUp", "/auth/health")
-                        .permitAll()
-                        .requestMatchers("/farm/{userName}").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/paper/{userName}").permitAll()
+                        .requestMatchers("/user/suggestion").authenticated()
                         .anyRequest().authenticated())
-                .addFilterBefore(headerCheckFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(LogFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers
-                        // X-XSS-Protection 헤더 설정 (브라우저 내장 XSS 필터 활성화)
                         .xssProtection(xss -> xss
                                 .headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
-                        // X-Content-Type-Options 헤더 설정 (MIME 스니핑 방지)
                         .contentTypeOptions(HeadersConfigurer.ContentTypeOptionsConfig::disable)
-                        // X-Frame-Options 헤더 설정 (클릭재킹 방지)
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-                        // Content-Security-Policy 헤더 설정 (리소스 로드 제한)
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives(
                                         "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;")));
@@ -85,14 +102,18 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS 설정을 정의하는 메소드입니다.
-     * - 허용된 오리진: http://localhost:3000
-     * - 허용된 메소드: GET, POST, PUT, DELETE, OPTIONS
-     * - 허용된 헤더: 모든 헤더
-     * - 자격 증명 허용: true
-     * - 최대 캐시 시간: 3600초
+     * <h3>CORS 설정</h3>
+     * <p>Cross-Origin Resource Sharing(CORS) 정책을 정의합니다.</p>
+     * <ul>
+     *     <li>허용된 오리진: http://localhost:3000</li>
+     *     <li>허용된 HTTP 메서드: GET, POST, PUT, DELETE, OPTIONS</li>
+     *     <li>허용된 헤더: 모든 헤더</li>
+     *     <li>자격 증명 허용</li>
+     * </ul>
      *
      * @return CorsConfigurationSource 객체
+     * @author Jaeik
+     * @since 1.0.0
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -110,42 +131,38 @@ public class SecurityConfig {
 }
 
 /**
- * SPA(Single Page Application)에 대한 CSRF 보호를 처리하는 클래스입니다.
- * - BREACH 공격 방어를 위한 XOR 처리
- * - HTTP 요청 헤더와 요청 매개변수에 따른 토큰 확인
- * - 인증 및 로그아웃 후 새 토큰 발급을 위한 지연 로딩 처리
+ * <h2>SPA CSRF 토큰 요청 핸들러</h2>
+ * <p>단일 페이지 애플리케이션(SPA)에서 CSRF 토큰을 처리하는 핸들러입니다.</p>
+ * <p>BREACH 공격 보호를 위해 XorCsrfTokenRequestAttributeHandler를 사용합니다.</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
-//final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
-//    private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
-//    private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
-//
-//    @Override
-//    public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
-//        /*
-//         * CsrfToken이 응답 본문에 렌더링될 때 BREACH 보호를 제공하기 위해
-//         * 항상 XorCsrfTokenRequestAttributeHandler를 사용합니다.
-//         */
-//        this.xor.handle(request, response, csrfToken);
-//        /*
-//         * 지연된 토큰을 로드하여 쿠키에 토큰 값을 렌더링합니다.
-//         */
-//        csrfToken.get();
-//    }
-//
-//    @Override
-//    public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
-//        String headerValue = request.getHeader(csrfToken.getHeaderName());
-//        /*
-//         * 요청에 헤더 값이 포함된 경우 CsrfTokenRequestAttributeHandler를 사용하여
-//         * CsrfToken을 해결합니다. 이것은 SPA가 쿠키를 통해 얻은 원시 CsrfToken 값을
-//         * 자동으로 헤더에 포함시킬 때 적용됩니다.
-//         *
-//         * 다른 모든 경우(예: 요청에 요청 매개변수가 포함된 경우)에는
-//         * XorCsrfTokenRequestAttributeHandler를 사용하여 CsrfToken을 해결합니다.
-//         * 이것은 서버 측에서 렌더링된 폼에 _csrf 요청 매개변수가 숨겨진 입력으로
-//         * 포함되어 있을 때 적용됩니다.
-//         */
-//        return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request,
-//                csrfToken);
-//    }
-//}
+final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
+    private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
+    private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
+
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
+        this.xor.handle(request, response, csrfToken);
+        csrfToken.get();
+    }
+
+    /**
+     * <h3>CSRF 토큰 값 해결</h3>
+     * <p>요청에서 CSRF 토큰 값을 해결합니다.</p>
+     * <p>헤더에 CSRF 토큰이 포함된 경우 plain 핸들러를 사용하고, 그렇지 않은 경우 xor 핸들러를 사용합니다.</p>
+     *
+     * @param request   HttpServletRequest 객체
+     * @param csrfToken CsrfToken 객체
+     * @return CSRF 토큰 값
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Override
+    public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+        String headerValue = request.getHeader(csrfToken.getHeaderName());
+        return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request,
+                csrfToken);
+    }
+}

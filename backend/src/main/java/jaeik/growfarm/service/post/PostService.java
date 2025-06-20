@@ -416,10 +416,10 @@ public class PostService {
         for (SimplePostDTO simplePostDTO : legendPosts) {
             eventPublisher.publishEvent(new PostFeaturedEvent(
                     simplePostDTO.getUserId(),
-                    "🎉 회원님의 글이 레전드 인기글로 선정되었습니다!",
+                    "🎉 회원님의 글이 레전드글로 선정되었습니다!",
                     simplePostDTO.getPostId(),
                     simplePostDTO.getUser(),
-                    "회원님의 글이 레전드 인기글로 선정되었습니다!",
+                    "회원님의 글이 레전드글로 선정되었습니다!",
                     "지금 확인해보세요!"));
         }
     }

@@ -2,7 +2,15 @@ package jaeik.growfarm.dto.notification;
 
 import lombok.*;
 
-// FCM 메시지 생성용 DTO
+/**
+ * <h2>FCM 전송 DTO</h2>
+ * <p>
+ * Firebase Cloud Messaging(FCM)을 통해 알림을 전송하기 위한 데이터 전송 객체입니다.
+ * </p>
+ *
+ * @author Jaeik
+ * @version 1.0.0
+ */
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
