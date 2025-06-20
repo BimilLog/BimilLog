@@ -25,7 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestConstructor;
 
 import java.util.List;
@@ -42,10 +41,10 @@ import static org.mockito.Mockito.mock;
  * 실제 데이터베이스와 서비스를 사용하여 PostController의 전체 API를 테스트합니다.
  * </p>
  * 
- * @since 2025.05.21
+ * @version 1.0.0
+ * @author Jaeik
  */
 @SpringBootTest
-@Disabled("통합 테스트 수정 중")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(PER_CLASS)
@@ -137,11 +136,6 @@ public class PostControllerIntegrationTest {
         // 별도 정리 로직 없음
     }
 
-    /**
-     * <h3>게시판 조회 통합 테스트</h3>
-     * 
-     * @since 2025.05.21
-     */
     @Test
     @Order(1)
     @DisplayName("게시판 조회 통합 테스트")
@@ -156,11 +150,6 @@ public class PostControllerIntegrationTest {
         assertEquals(testPost.getUser().getUserName(), response.getBody().getContent().getFirst().getUserName());
     }
 
-    /**
-     * <h3>실시간 인기글 목록 조회 통합 테스트</h3>
-     * 
-     * @since 2025.05.17
-     */
     @Test
     @Order(2)
     @DisplayName("실시간 인기글 목록 조회 통합 테스트")
@@ -172,11 +161,6 @@ public class PostControllerIntegrationTest {
         assertNotNull(response.getBody());
     }
 
-    /**
-     * <h3>주간 인기글 목록 조회 통합 테스트</h3>
-     * 
-     * @since 2025.05.17
-     */
     @Test
     @Order(3)
     @DisplayName("주간 인기글 목록 조회 통합 테스트")
@@ -188,11 +172,7 @@ public class PostControllerIntegrationTest {
         assertNotNull(response.getBody());
     }
 
-    /**
-     * <h3>레전드 인기글 목록 조회 통합 테스트</h3>
-     * 
-     * @since 2025.05.17
-     */
+
     @Test
     @Order(4)
     @DisplayName("레전드 인기글 목록 조회 통합 테스트")
@@ -204,11 +184,7 @@ public class PostControllerIntegrationTest {
         assertNotNull(response.getBody());
     }
 
-    /**
-     * <h3>게시글 검색 통합 테스트</h3>
-     * 
-     * @since 2025.05.17
-     */
+
     @Test
     @Order(5)
     @DisplayName("게시글 검색 통합 테스트")
@@ -220,11 +196,7 @@ public class PostControllerIntegrationTest {
         assertNotNull(response.getBody());
     }
 
-    /**
-     * <h3>게시글 조회 통합 테스트</h3>
-     * 
-     * @since 2025.05.17
-     */
+
     @Test
     @Order(6)
     @DisplayName("게시글 조회 통합 테스트")
@@ -238,11 +210,7 @@ public class PostControllerIntegrationTest {
         assertEquals(testPost.getContent(), response.getBody().getContent());
     }
 
-    /**
-     * <h3>게시글 작성 통합 테스트 - 회원</h3>
-     * 
-     * @since 2025.05.17
-     */
+
     @Test
     @Order(7)
     @DisplayName("게시글 작성 통합 테스트 - 회원")
@@ -266,11 +234,7 @@ public class PostControllerIntegrationTest {
         assertEquals("Test Content " + uniqueId, response.getBody().getContent());
     }
 
-    /**
-     * <h3>게시글 작성 통합 테스트 - 비회원</h3>
-     * 
-     * @since 2025.05.17
-     */
+
     @Test
     @Order(8)
     @DisplayName("게시글 작성 통합 테스트 - 비회원")
@@ -292,11 +256,6 @@ public class PostControllerIntegrationTest {
         assertEquals("Guest Post Content " + uniqueId, response.getBody().getContent());
     }
 
-    /**
-     * <h3>게시글 수정 통합 테스트 - 회원</h3>
-     * 
-     * @since 2025.05.17
-     */
     @Test
     @Order(9)
     @DisplayName("게시글 수정 통합 테스트 - 회원")
@@ -318,11 +277,6 @@ public class PostControllerIntegrationTest {
         assertEquals("글 수정 완료", response.getBody());
     }
 
-    /**
-     * <h3>게시글 수정 통합 테스트 - 비회원</h3>
-     * 
-     * @since 2025.05.17
-     */
     @Test
     @Order(10)
     @DisplayName("게시글 수정 통합 테스트 - 비회원")
@@ -361,11 +315,6 @@ public class PostControllerIntegrationTest {
         assertEquals("글 수정 완료", response.getBody());
     }
 
-    /**
-     * <h3>게시글 삭제 통합 테스트 - 회원</h3>
-     * 
-     * @since 2025.05.17
-     */
     @Test
     @Order(11)
     @DisplayName("게시글 삭제 통합 테스트 - 회원")
@@ -384,11 +333,6 @@ public class PostControllerIntegrationTest {
         assertEquals("게시글 삭제 완료", response.getBody());
     }
 
-    /**
-     * <h3>게시글 삭제 통합 테스트 - 비회원</h3>
-     * 
-     * @since 2025.05.17
-     */
     @Test
     @Order(12)
     @DisplayName("게시글 삭제 통합 테스트 - 비회원")
@@ -427,11 +371,6 @@ public class PostControllerIntegrationTest {
         assertEquals("게시글 삭제 완료", response.getBody());
     }
 
-    /**
-     * <h3>게시글 추천 통합 테스트</h3>
-     * 
-     * @since 2025.05.17
-     */
     @Test
     @Order(13)
     @DisplayName("게시글 추천 통합 테스트")

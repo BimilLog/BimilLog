@@ -37,6 +37,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * <h2>CommentService 단위 테스트</h2>
+ * <p>
+ * 댓글 서비스의 비즈니스 로직을 테스트합니다.
+ * </p>
+ * @version 1.0.0
+ * @author Jaeik
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class CommentServiceTest {

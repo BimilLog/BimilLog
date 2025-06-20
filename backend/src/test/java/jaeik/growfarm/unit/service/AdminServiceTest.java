@@ -39,6 +39,8 @@ import static org.mockito.Mockito.*;
  * <p>
  * 관리자 서비스의 비즈니스 로직을 테스트합니다.
  * </p>
+ * @version 1.0.0
+ * @author Jaeik
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

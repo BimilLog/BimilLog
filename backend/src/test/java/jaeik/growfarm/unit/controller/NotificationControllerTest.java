@@ -26,6 +26,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
+/**
+ * <h2>NotificationController 단위 테스트</h2>
+ * <p>
+ * NotificationController의 메서드를 단위 테스트로 검증합니다.
+ * </p>
+ * @version 1.0.0
+ * @author Jaeik
+ */
 @SpringBootTest
 public class NotificationControllerTest {
 

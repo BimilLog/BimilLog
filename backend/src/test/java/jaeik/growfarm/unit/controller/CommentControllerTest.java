@@ -31,6 +31,8 @@ import static org.mockito.Mockito.*;
  * <p>
  * 댓글 관련 컨트롤러의 메서드들을 테스트합니다.
  * </p>
+ * @version 1.0.0
+ * @author Jaeik
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

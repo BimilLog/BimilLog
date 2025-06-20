@@ -26,8 +26,10 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PaperController 단위 테스트</h2>
  * <p>
- * 농장 관련 컨트롤러의 메서드들을 테스트합니다.
+ * 롤링페이퍼 관련 컨트롤러의 메서드들을 테스트합니다.
  * </p>
+ * @version 1.0.0
+ * @author Jaeik
  */
 @SpringBootTest
 public class PaperControllerTest {

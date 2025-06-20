@@ -32,6 +32,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * <h2>NotificationService 단위 테스트</h2>
+ * <p>
+ * NotificationService의 비즈니스 로직을 테스트합니다.
+ * </p>
+ * @version 1.0.0
+ * @author Jaeik
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class NotificationServiceTest {

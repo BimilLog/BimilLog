@@ -21,7 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestConstructor;
 
 import java.util.List;
@@ -36,6 +35,8 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
  * <p>
  * 실제 데이터베이스와 서비스를 사용하여 NotificationController의 전체 API를 테스트합니다.
  * </p>
+ * @version 1.0.0
+ * @author Jaeik
  */
 @SpringBootTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)

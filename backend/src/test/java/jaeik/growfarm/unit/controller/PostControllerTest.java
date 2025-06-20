@@ -32,6 +32,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * <h2>PostController 단위 테스트</h2>
+ * <p>
+ * PostController의 API를 단위 테스트합니다.
+ * </p>
+ * <p>
+ * Mock 객체를 사용하여 PostService와 RedisPostService의 의존성을 주입합니다.
+ * </p>
+ * <p>
+ * 실제 데이터베이스와의 상호작용 없이 테스트를 수행합니다.
+ * </p>
+ *
+ * @version 1.0.0
+ * @author Jaeik
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class PostControllerTest {

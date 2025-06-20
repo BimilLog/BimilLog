@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * <p>
  * AuthController의 각 메서드를 단위 테스트로 검증합니다.
  * </p>
+ * @version 1.0.0
+ * @author Jaeik
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

@@ -17,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestConstructor;
 
 import java.util.Random;
@@ -38,7 +37,8 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
  * 이후에 카카오 Mock 서버를 만들어 테스트에 추가 필요.
  * </p>
  * 
- * @since 2025.05.17
+ * @version 1.0.0
+ * @author Jaeik
  */
 @SpringBootTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)

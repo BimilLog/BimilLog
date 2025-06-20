@@ -13,8 +13,8 @@ import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
+import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
@@ -23,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestConstructor;
 
 import java.util.Random;
@@ -36,6 +35,14 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
  * <p>
  * 실제 데이터베이스와 서비스를 사용하여 UserController의 전체 API를 테스트합니다.
  * </p>
+ * <p>
+ * 카카오 서버와 통신이 필요한 API는 테스트에서 제외함.
+ * </p>
+ * <p>
+ * 이후에 카카오 Mock 서버를 만들어 테스트에 추가 필요.
+ * </p>
+ * @version 1.0.0
+ * @author Jaeik
  */
 @SpringBootTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)

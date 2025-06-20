@@ -41,6 +41,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * <h2>PostService 단위 테스트</h2>
+ * <p>
+ * 게시글 관련 서비스의 메서드들을 테스트합니다.
+ * </p>
+ * @version 1.0.0
+ * @author Jaeik
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class PostServiceTest {
