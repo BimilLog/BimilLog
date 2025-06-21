@@ -1,4 +1,4 @@
-package jaeik.growfarm.service;
+package jaeik.growfarm.service.user;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
@@ -20,6 +20,7 @@ import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
+import jaeik.growfarm.service.kakao.KakaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

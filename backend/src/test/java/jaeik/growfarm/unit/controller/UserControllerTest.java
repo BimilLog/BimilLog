@@ -10,7 +10,7 @@ import jaeik.growfarm.dto.user.UserNameDTO;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.UserService;
+import jaeik.growfarm.service.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

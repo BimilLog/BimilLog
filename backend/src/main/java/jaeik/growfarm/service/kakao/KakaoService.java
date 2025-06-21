@@ -1,4 +1,4 @@
-package jaeik.growfarm.service;
+package jaeik.growfarm.service.kakao;
 
 import jaeik.growfarm.dto.kakao.KakaoCheckConsentDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;

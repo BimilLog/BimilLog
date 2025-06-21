@@ -9,7 +9,7 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.KakaoService;
+import jaeik.growfarm.service.kakao.KakaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

@@ -13,7 +13,7 @@ import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.KakaoService;
+import jaeik.growfarm.service.kakao.KakaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;

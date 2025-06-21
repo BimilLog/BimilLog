@@ -7,7 +7,7 @@ import jaeik.growfarm.dto.post.SimplePostDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.dto.user.UserNameDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.UserService;
+import jaeik.growfarm.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

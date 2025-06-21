@@ -9,7 +9,7 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.KakaoService;
+import jaeik.growfarm.service.kakao.KakaoService;
 import jaeik.growfarm.service.admin.AdminService;
 import jaeik.growfarm.service.admin.AdminUpdateService;
 import org.junit.jupiter.api.*;
