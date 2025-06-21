@@ -49,7 +49,13 @@ jobs:
           docker tag frontend:latest $IMAGE_REPO:frontend
           docker push $IMAGE_REPO:frontend
 
-      - name: Deploy Backend via Bastion Host
+      - name: Build and push redis image
+        run: |
+          docker build -t redis ./backend/src/main/java/jaeik/growfarm/repository
+          docker tag redis:latest $IMAGE_REPO:redis
+          docker push $IMAGE_REPO:redis
+
+      - name: Deploy Backend and Redis via Bastion Host
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.BASTION_HOST }}
@@ -62,6 +68,11 @@ jobs:
               docker stop backend || true
               docker rm backend || true
               docker run -d --name backend -p 8080:8080 jaeikjeong/growfarm:backend
+            
+              docker pull jaeikjeong/growfarm:redis
+              docker stop redis || true
+              docker rm redis || true
+              docker run -d --name redis -p 6379:6379 jaeikjeong/growfarm:redis --requirepass ${{ secrets.REDIS_PASSWORD }}
             ENDSSH
 
       - name: Deploy Frontend via Bastion Host

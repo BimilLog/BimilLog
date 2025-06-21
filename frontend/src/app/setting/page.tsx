@@ -12,18 +12,18 @@ const API_BASE = "https://grow-farm.com/api";
 // UI용 확장 타입 (DTO와 UI 전용 필드 분리)
 interface SettingUIState {
   AllNotification: boolean; // UI 전용 필드, 서버에 전송되지 않음
-  FarmNotification: boolean;
-  CommentNotification: boolean;
-  PostFeaturedNotification: boolean;
-  CommentFeaturedNotification: boolean;
+  farmNotification: boolean;
+  commentNotification: boolean;
+  postFeaturedNotification: boolean;
+  commentFeaturedNotification: boolean;
 }
 
 const defaultSettings: SettingUIState = {
   AllNotification: false,
-  FarmNotification: false, // 누군가가 농장에 농작물 심었을 때
-  CommentNotification: false, // 누군가가 내 글에 댓글달았을 때
-  PostFeaturedNotification: false, // 내 글이 인기글이 되었을 때
-  CommentFeaturedNotification: false, // 내 댓글이 인기 댓글이 되었을 때
+  farmNotification: false, // 누군가가 농장에 농작물 심었을 때
+  commentNotification: false, // 누군가가 내 글에 댓글달았을 때
+  postFeaturedNotification: false, // 내 글이 인기글이 되었을 때
+  commentFeaturedNotification: false, // 내 댓글이 인기 댓글이 되었을 때
 };
 
 const SettingPage = () => {
@@ -53,10 +53,10 @@ const SettingPage = () => {
           // 서버에서 받은 데이터를 UI 상태로 변환
           const uiSettings: SettingUIState = {
             // 서버 응답 필드명에 맞게 접근 (is 접두사 없음)
-            FarmNotification: Boolean(data.farmNotification),
-            CommentNotification: Boolean(data.commentNotification),
-            PostFeaturedNotification: Boolean(data.postFeaturedNotification),
-            CommentFeaturedNotification: Boolean(
+            farmNotification: Boolean(data.farmNotification),
+            commentNotification: Boolean(data.commentNotification),
+            postFeaturedNotification: Boolean(data.postFeaturedNotification),
+            commentFeaturedNotification: Boolean(
               data.commentFeaturedNotification
             ),
             // 모든 알림이 켜져있는지 확인하여 알림전체 상태 설정
@@ -87,10 +87,10 @@ const SettingPage = () => {
     setSettings({
       AllNotification: checked,
       // 모든 알림을 켜면 모든 개별 알림도 켜지게, 끄면 모든 개별 알림도 꺼지게
-      FarmNotification: checked,
-      CommentNotification: checked,
-      PostFeaturedNotification: checked,
-      CommentFeaturedNotification: checked,
+      farmNotification: checked,
+      commentNotification: checked,
+      postFeaturedNotification: checked,
+      commentFeaturedNotification: checked,
     });
   };
 
@@ -114,17 +114,17 @@ const SettingPage = () => {
 
       // 모든 알림이 켜져있는지 확인
       const allTurnedOn =
-        updatedSettings.FarmNotification &&
-        updatedSettings.CommentNotification &&
-        updatedSettings.PostFeaturedNotification &&
-        updatedSettings.CommentFeaturedNotification;
+        updatedSettings.farmNotification &&
+        updatedSettings.commentNotification &&
+        updatedSettings.postFeaturedNotification &&
+        updatedSettings.commentFeaturedNotification;
 
       // 모든 알림이 꺼져있는지 확인
       const allTurnedOff =
-        !updatedSettings.FarmNotification &&
-        !updatedSettings.CommentNotification &&
-        !updatedSettings.PostFeaturedNotification &&
-        !updatedSettings.CommentFeaturedNotification;
+        !updatedSettings.farmNotification &&
+        !updatedSettings.commentNotification &&
+        !updatedSettings.postFeaturedNotification &&
+        !updatedSettings.commentFeaturedNotification;
 
       // 전체 알림 상태 업데이트
       if (allTurnedOn || allTurnedOff) {
@@ -147,10 +147,10 @@ const SettingPage = () => {
       // SettingDTO 형식에 맞게 데이터 구성 (AllNotification 제외)
       // 서버 필드명 형식에 맞게 변환 (is 접두사 없이)
       const settingData = {
-        farmNotification: settings.FarmNotification,
-        commentNotification: settings.CommentNotification,
-        postFeaturedNotification: settings.PostFeaturedNotification,
-        commentFeaturedNotification: settings.CommentFeaturedNotification,
+        farmNotification: settings.farmNotification,
+        commentNotification: settings.commentNotification,
+        postFeaturedNotification: settings.postFeaturedNotification,
+        commentFeaturedNotification: settings.commentFeaturedNotification,
       };
 
       console.log("서버에 전송할 설정 데이터:", settingData);
@@ -170,10 +170,10 @@ const SettingPage = () => {
 
           // 서버에서 받은 데이터를 UI 상태로 변환
           const uiSettings: SettingUIState = {
-            FarmNotification: Boolean(data.farmNotification),
-            CommentNotification: Boolean(data.commentNotification),
-            PostFeaturedNotification: Boolean(data.postFeaturedNotification),
-            CommentFeaturedNotification: Boolean(
+            farmNotification: Boolean(data.farmNotification),
+            commentNotification: Boolean(data.commentNotification),
+            postFeaturedNotification: Boolean(data.postFeaturedNotification),
+            commentFeaturedNotification: Boolean(
               data.commentFeaturedNotification
             ),
             // 모든 알림이 켜져있는지 확인하여 알림전체 상태 설정
@@ -251,15 +251,15 @@ const SettingPage = () => {
                     <input
                       className="form-check-input"
                       type="checkbox"
-                      id="FarmNotification"
-                      checked={settings.FarmNotification}
+                      id="farmNotification"
+                      checked={settings.farmNotification}
                       onChange={(e) =>
-                        handleToggleChange("FarmNotification", e.target.checked)
+                        handleToggleChange("farmNotification", e.target.checked)
                       }
                     />
                     <label
                       className="form-check-label"
-                      htmlFor="FarmNotification"
+                      htmlFor="farmNotification"
                     >
                       농장 활동 알림
                     </label>
@@ -275,18 +275,18 @@ const SettingPage = () => {
                     <input
                       className="form-check-input"
                       type="checkbox"
-                      id="CommentNotification"
-                      checked={settings.CommentNotification}
+                      id="commentNotification"
+                      checked={settings.commentNotification}
                       onChange={(e) =>
                         handleToggleChange(
-                          "CommentNotification",
+                          "commentNotification",
                           e.target.checked
                         )
                       }
                     />
                     <label
                       className="form-check-label"
-                      htmlFor="CommentNotification"
+                      htmlFor="commentNotification"
                     >
                       댓글 알림
                     </label>
@@ -302,18 +302,18 @@ const SettingPage = () => {
                     <input
                       className="form-check-input"
                       type="checkbox"
-                      id="PostFeaturedNotification"
-                      checked={settings.PostFeaturedNotification}
+                      id="postFeaturedNotification"
+                      checked={settings.postFeaturedNotification}
                       onChange={(e) =>
                         handleToggleChange(
-                          "PostFeaturedNotification",
+                          "postFeaturedNotification",
                           e.target.checked
                         )
                       }
                     />
                     <label
                       className="form-check-label"
-                      htmlFor="PostFeaturedNotification"
+                      htmlFor="postFeaturedNotification"
                     >
                       인기글 알림
                     </label>
@@ -329,18 +329,18 @@ const SettingPage = () => {
                     <input
                       className="form-check-input"
                       type="checkbox"
-                      id="CommentFeaturedNotification"
-                      checked={settings.CommentFeaturedNotification}
+                      id="commentFeaturedNotification"
+                      checked={settings.commentFeaturedNotification}
                       onChange={(e) =>
                         handleToggleChange(
-                          "CommentFeaturedNotification",
+                          "commentFeaturedNotification",
                           e.target.checked
                         )
                       }
                     />
                     <label
                       className="form-check-label"
-                      htmlFor="CommentFeaturedNotification"
+                      htmlFor="commentFeaturedNotification"
                     >
                       인기 댓글 알림
                     </label>

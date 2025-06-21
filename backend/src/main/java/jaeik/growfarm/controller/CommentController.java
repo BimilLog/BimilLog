@@ -1,109 +1,159 @@
 package jaeik.growfarm.controller;
 
-import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.dto.board.CommentDTO;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.CommentService;
+import jaeik.growfarm.service.comment.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import java.util.List;
 
 /**
  * <h2>댓글 관련 컨트롤러</h2>
- * <p>댓글 작성</p>
- * <p>댓글 수정</p>
- * <p>댓글 삭제</p>
- * <p>댓글 추천 / 추천 취소</p>
- * <p>댓글 신고</p>
+ *
+ * <p>
+ * 댓글 작성
+ * </p>
+ * <p>
+ * 댓글 수정
+ * </p>
+ * <p>
+ * 댓글 삭제
+ * </p>
+ * <p>
+ * 댓글 추천/추천 취소
+ * </p>
+ * 
+ * @version 1.0.0
+ * @author Jaeik
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/board")
+@RequestMapping("/comment")
 public class CommentController {
 
     private final CommentService commentService;
 
-    /*
-     * 댓글 작성 API
-     * CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param Long postId: 게시글 ID
-     * param CommentDTO commentDTO: 댓글 DTO
-     * return: ResponseEntity<String> 댓글 작성 완료 메시지
-     * 수정일 : 2025-05-06
+    /**
+     * <h3>댓글 조회 API</h3>
+     * <p>
+     * 게시글에 달린 댓글을 최신순으로 페이징하여 반환한다.
+     * </p>
+     *
+     * @param postId 게시글 ID
+     * @param page   페이지 번호
+     * @return 댓글 목록 페이지 (최신순)
+     * @since 1.0.0
+     * @author Jaeik
      */
-    @PostMapping("/{postId}/comment")
-    public ResponseEntity<String> writeComment(@PathVariable Long postId,
-                                               @RequestBody @Valid CommentDTO commentDTO) throws IOException {
-        commentService.writeComment(postId, commentDTO);
+    @GetMapping("/{postId}")
+    public ResponseEntity<Page<CommentDTO>> getComments(@AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(commentService.getCommentsLatestOrder(postId, page, userDetails));
+    }
+
+    /**
+     * <h3>인기댓글 조회 API</h3>
+     * <p>
+     * 추천수 3개 이상이며 글에서 추천수가 상위 3위이내인 댓글을 반환한다.
+     * </p>
+     *
+     * @param postId 게시글 ID
+     * @return 인기댓글 리스트 (최대 3개)
+     * @since 1.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/{postId}/popular")
+    public ResponseEntity<List<CommentDTO>> getPopularComments(@AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long postId) {
+        return ResponseEntity.ok(commentService.getPopularComments(postId, userDetails));
+    }
+
+
+    /**
+     * <h3>댓글 작성 API</h3>
+     *
+     * <p>
+     * 게시글에 새로운 댓글을 작성한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param commentDTO  댓글 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 댓글 작성 성공 메시지
+     */
+    @PostMapping("/write")
+    public ResponseEntity<String> writeComment(@Valid @RequestBody CommentDTO commentDTO,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        commentService.writeComment(userDetails, commentDTO);
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
-    /*
-     * 댓글 수정 API
-     * CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param Long postId: 게시글 ID
-     * param Long commentId: 댓글 ID
-     * param CommentDTO commentDTO: 댓글 DTO
-     * return: ResponseEntity<String> 댓글 수정 완료 메시지
-     * 수정일 : 2025-04-28
+    /**
+     * <h3>댓글 수정 API</h3>
+     *
+     * <p>
+     * 댓글 작성자만 댓글을 수정할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param commentDTO  수정할 댓글 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 댓글 수정 성공 메시지
      */
-    @PostMapping("/{postId}/{commentId}")
-    public ResponseEntity<String> updateComment(
-            @PathVariable Long postId,
-            @PathVariable Long commentId,
+    @PostMapping("/update")
+    public ResponseEntity<String> updateComment(@AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentDTO commentDTO) {
-        commentService.updateComment(commentId, commentDTO);
+        commentService.updateComment(commentDTO, userDetails);
         return ResponseEntity.ok("댓글 수정 완료");
     }
 
-    /*
-     * 댓글 삭제 API
-     * CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param Long postId: 게시글 ID
-     * param Long commentId: 댓글 ID
-     * return: ResponseEntity<String> 댓글 삭제 완료 메시지
-     * 수정일 : 2025-04-28
+    /**
+     * <h3>댓글 삭제 API</h3>
+     *
+     * <p>
+     * 댓글 작성자만 댓글을 삭제할 수 있다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 댓글 삭제 성공 메시지
      */
-    @PostMapping("/{postId}/{commentId}/delete")
-    public ResponseEntity<String> deleteComment(
-            @PathVariable Long postId,
-            @PathVariable Long commentId) {
-        commentService.deleteComment(commentId);
+    @PostMapping("/delete")
+    public ResponseEntity<String> deleteComment(@AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid CommentDTO commentDTO) {
+        commentService.deleteComment(commentDTO, userDetails);
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 
-    /*
-     * 댓글 추천 / 추천 취소 API
-     * CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param Long postId: 게시글 ID
-     * param Long commentId: 댓글 ID
-     * return: ResponseEntity<String> 댓글 추천 완료 메시지
-     * 수정일 : 2025-04-28
+    /**
+     * <h3>댓글 추천/추천 취소 API</h3>
+     *
+     * <p>
+     * 댓글에 추천을 하거나 취소한다.
+     * </p>
+     * <p>
+     * 추천/추천 취소는 로그인 한 유저만 가능하다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param commentDTO  댓글 정보 DTO
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 추천 처리 메시지
      */
-    @PostMapping("/{postId}/{commentId}/like")
-    public ResponseEntity<String> likeComment(@PathVariable Long postId, @PathVariable Long commentId) {
-        commentService.likeComment(postId, commentId);
-        return ResponseEntity.ok("댓글 추천 완료");
-    }
-
-    /*
-     * 댓글 신고 API
-     * CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param Long postId: 게시글 ID
-     * param Long commentId: 댓글 ID
-     * param ReportDTO reportDTO: 신고 DTO
-     * return: ResponseEntity<String> 댓글 신고 완료 메시지
-     * 수정일 : 2025-05-06
-     */
-    @PostMapping("/{postId}/comment/report")
-    public ResponseEntity<String> reportComment(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                @PathVariable Long postId,
-                                                @RequestBody @Valid ReportDTO reportDTO) {
-        commentService.reportComment(postId, userDetails, reportDTO);
-        return ResponseEntity.ok("댓글 신고 완료");
+    @PostMapping("/like")
+    public ResponseEntity<String> likeComment(@RequestBody @Valid CommentDTO commentDTO,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        commentService.likeComment(commentDTO, userDetails);
+        return ResponseEntity.ok("추천 처리 완료");
     }
 }

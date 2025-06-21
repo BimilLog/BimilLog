@@ -1,6 +1,12 @@
 package jaeik.growfarm.entity.user;
 
-// 유저 구분 타입
+/**
+ * <h2>사용자 역할</h2>
+ * <p>사용자의 역할을 정의하는 열거형</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 public enum UserRole {
     USER,
     ADMIN

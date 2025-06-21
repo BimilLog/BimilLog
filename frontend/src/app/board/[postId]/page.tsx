@@ -203,7 +203,7 @@ export default function PostPage() {
       const commentDTO = {
         postId: Number(postId),
         userId: user.userId,
-        farmName: user.farmName,
+        userName: user.userName,
         content: commentContent,
       };
 
@@ -572,7 +572,7 @@ export default function PostPage() {
             <SafeHTML html={sanitizeHtml(post.title)} />
           </h1>
           <div className="fw-bold text-xl-end mx-3">
-            작성농장 : {post.farmName}
+            작성농장 : {post.userName}
           </div>
           <div className="text-muted fw-bold mb-2 d-flex justify-content-end gap-4 mx-3">
             <div>조회: {post.views}</div>
@@ -764,7 +764,7 @@ export default function PostPage() {
               <div className="d-flex mb-4" key={comment.id}>
                 <div className="ms-3 w-100">
                   <div className="d-flex justify-content-between">
-                    <div className="fw-bold">{comment.farmName}</div>
+                    <div className="fw-bold">{comment.userName}</div>
                     <small className="text-muted">
                       {formatDateTime(comment.createdAt)}
                     </small>

@@ -138,13 +138,13 @@ const cropTypeOptions = Object.keys(cropTypeToEmoji)
     image: cropTypeToImage[key],
   }));
 
-export default function FarmPage() {
+export default function PaperPage() {
   const params = useParams();
-  // URL 파라미터에서 farmname 추출 후 문자열로 처리
-  const rawFarmName = Array.isArray(params.farmname)
-    ? params.farmname[0]
-    : params.farmname ?? "";
-  const farmName = decodeURIComponent(rawFarmName);
+  // URL 파라미터에서 username 추출 후 문자열로 처리
+  const rawUserName = Array.isArray(params.username)
+    ? params.username[0]
+    : params.username ?? "";
+  const userName = decodeURIComponent(rawUserName);
 
   // 현재 로그인한 사용자 정보
   const { user } = useAuthStore();
@@ -178,7 +178,7 @@ export default function FarmPage() {
   const shareDropdownRef = useRef<HTMLDivElement>(null);
 
   // 자신의 농장인지 확인
-  const isMyFarm = user && user.farmName === farmName;
+  const isMyPaper = user && user.userName === userName;
 
   // Kakao SDK 초기화
   const javaScriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY;
@@ -227,7 +227,7 @@ export default function FarmPage() {
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: farmName + " 농장에 놀러오세요!", // B영역: 농장 이름
+        title: userName + " 농장에 놀러오세요!", // B영역: 닉네임
         imageUrl:
           "https://postfiles.pstatic.net/MjAyNTA0MThfNzcg/MDAxNzQ0OTc4MDY3NjU2.b2ZRY2ZhuqdeFe8R70IoJZ0gGm4XTFZgKrZqNqQYinkg.vorO6lPc33dEIhZqQ7PbrwjOH7qn9-RfkOJAEVA2I2cg.JPEG/farmImage.jpeg?type=w773", // A영역: 이미지 (명시적 URL 적용),
         link: {
@@ -287,15 +287,15 @@ export default function FarmPage() {
       let response;
 
       // 본인 농장인 경우
-      if (isMyFarm) {
-        response = await fetchClient(`${API_BASE}/farm/myFarm`, {
+      if (isMyPaper) {
+        response = await fetchClient(`${API_BASE}/farm/myPaper`, {
           method: "POST",
         });
       }
       // 타인 농장인 경우
       else {
         response = await fetchClient(
-          `${API_BASE}/farm/${encodeURIComponent(farmName)}`
+          `${API_BASE}/farm/${encodeURIComponent(userName)}`
         );
       }
 
@@ -319,13 +319,13 @@ export default function FarmPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [farmName, isMyFarm, router]);
+  }, [userName, isMyPaper, router]);
 
   useEffect(() => {
-    if (farmName) {
+    if (userName) {
       fetchCrops();
     }
-  }, [farmName, fetchCrops]);
+  }, [userName, fetchCrops]);
 
   // 특정 좌표에 있는 농작물 찾기
   const getCropAtPosition = (x: number, y: number) => {
@@ -338,14 +338,14 @@ export default function FarmPage() {
 
     if (crop) {
       // 자신의 농장일 경우에만 작물 정보 표시
-      if (isMyFarm) {
+      if (isMyPaper) {
         setSelectedCrop(crop);
       } else {
         // 타인 농장에서 작물 클릭 시 정보를 표시하지 않음
         // 대신 간단한 알림을 표시하거나 무시할 수 있음
         setSelectedPosition(null);
       }
-    } else if (!isMyFarm) {
+    } else if (!isMyPaper) {
       // 타인 농장이고 작물이 없는 경우 작물 심기 위해 좌표 선택
       setSelectedPosition({ x, y });
       setPlantForm((prev) => ({ ...prev, width: x, height: y }));
@@ -415,7 +415,7 @@ export default function FarmPage() {
     setIsPlanting(true);
 
     try {
-      const response = await fetchClient(`${API_BASE}/farm/${farmName}`, {
+      const response = await fetchClient(`${API_BASE}/farm/${userName}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -456,7 +456,7 @@ export default function FarmPage() {
     }
 
     try {
-      const response = await fetchClient(`${API_BASE}/farm/myFarm/${cropId}`, {
+      const response = await fetchClient(`${API_BASE}/farm/myPaper/${cropId}`, {
         method: "POST",
       });
 
@@ -493,7 +493,7 @@ export default function FarmPage() {
           <div className="col-lg-12">
             <div className="py-3 bg-light">
               <div className="text-center">
-                <h2 className="fw-bolder">{farmName} 농장</h2>
+                <h2 className="fw-bolder">{userName} 농장</h2>
               </div>
             </div>
             <div
@@ -649,7 +649,7 @@ export default function FarmPage() {
                       </div>
 
                       {/* 삭제 버튼 (자신의 농장인 경우에만 표시) */}
-                      {isMyFarm && (
+                      {isMyPaper && (
                         <div className="d-grid">
                           <button
                             className="btn btn-danger"
@@ -681,7 +681,7 @@ export default function FarmPage() {
             </div>
 
             {/* 타인 농장일 경우 농작물 심기 버튼 */}
-            {!isMyFarm && (
+            {!isMyPaper && (
               <div className="mt-3 d-grid gap-2">
                 <button
                   className="btn btn-primary"
@@ -701,7 +701,7 @@ export default function FarmPage() {
             )}
 
             {/* 자신의 농장일 경우 홍보하기 버튼 */}
-            {isMyFarm && (
+            {isMyPaper && (
               <div className="mt-3 d-grid">
                 <div className="position-relative" ref={shareDropdownRef}>
                   <button

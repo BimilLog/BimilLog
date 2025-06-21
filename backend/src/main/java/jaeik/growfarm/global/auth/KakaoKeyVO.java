@@ -4,10 +4,12 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/*
- * 카카오 API 키 정보 VO
- * 카카오 API를 사용하기 위해 필요한 정보들을 담고 있는 VO 클래스입니다.
- * 수정일 : 2025-05-03
+/**
+ * <h2>카카오 API 키 정보 클래스</h2>
+ * <p>카카오 API와 관련된 키 정보를 관리하는 클래스</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
  */
 @Component
 @Getter

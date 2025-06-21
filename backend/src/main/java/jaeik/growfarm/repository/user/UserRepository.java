@@ -1,30 +1,50 @@
 package jaeik.growfarm.repository.user;
 
-
 import jaeik.growfarm.entity.user.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
-/*
- * 유저 Repository
- * 유저 관련 데이터베이스 작업을 수행하는 Repository
- * 수정일 : 2025-05-03
+/**
+ * <h2>사용자 Repository</h2>
+ * <p>
+ * 사용자 관련 데이터베이스 작업을 수행하는 Repository
+ * </p>
+ * 
+ * @since 1.0.0
+ * @author Jaeik
  */
 @Repository
-public interface UserRepository extends JpaRepository<Users, Long> {
+public interface UserRepository extends JpaRepository<Users, Long>, UserCustomRepository {
 
+    /**
+     * <h3>카카오 ID로 사용자 조회</h3>
+     *
+     * <p>
+     * 카카오 ID를 통해 사용자를 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param kakaoId 카카오 ID
+     * @return 사용자 정보 (Optional)
+     */
     Optional<Users> findByKakaoId(Long kakaoId);
 
-    Users findByTokenId(Long tokenId);
+    /**
+     * <h3>닉네임으로 사용자 조회</h3>
+     *
+     * <p>
+     * 닉네임을 통해 사용자를 조회한다.
+     * </p>
+     * 
+     * @since 1.0.0
+     * @author Jaeik
+     * @param UserName 유저 닉네임
+     * @return 사용자 정보
+     */
+    Users findByUserName(String UserName);
 
-    boolean existsByFarmName(String farmName);
-
-    Users findByFarmName(String farmName);
-
-    @Query(value = "SELECT u.farm_name FROM users u WHERE u.kakao_id IN (:ids) ORDER BY FIELD(u.kakao_id, :#{#ids})", nativeQuery = true)
-    List<String> findFarmNamesInOrder(@Param("ids") List<Long> ids);}
+    boolean existsByUserName(String userName);
+}

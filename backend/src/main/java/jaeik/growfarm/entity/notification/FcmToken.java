@@ -1,7 +1,7 @@
 package jaeik.growfarm.entity.notification;
 
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.repository.BaseEntity;
+import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -10,7 +10,13 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-// FCM 토큰을 저장하는 Entity
+/**
+ * <h2>FCM 토큰 엔티티</h2>
+ * <p>Firebase Cloud Messaging(FCM) 토큰 정보를 저장하는 엔티티</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Entity
 @SuperBuilder
 @NoArgsConstructor
@@ -32,13 +38,10 @@ public class FcmToken extends BaseEntity {
     @Column(nullable = false)
     private String fcmRegistrationToken;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private DeviceType deviceType;
-
-    public void updateToken(String token) {
-        this.fcmRegistrationToken = token;
+    public static FcmToken create(Users users, String token) {
+        return FcmToken.builder()
+                .users(users)
+                .fcmRegistrationToken(token)
+                .build();
     }
-
 }

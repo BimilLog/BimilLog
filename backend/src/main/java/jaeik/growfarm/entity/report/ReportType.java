@@ -1,9 +1,15 @@
 package jaeik.growfarm.entity.report;
 
-// 신고 종류
+/**
+ * <h2>신고 타입</h2>
+ * <p>다양한 신고의 종류를 정의하는 열거형</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 public enum ReportType {
-    POST, // 게시글 신고
-    COMMENT, // 댓글 신고
-    BUG, // 버그 신고
-    IMPROVEMENT, // 개선 사항
+    POST,
+    COMMENT,
+    ERROR,
+    IMPROVEMENT
 }

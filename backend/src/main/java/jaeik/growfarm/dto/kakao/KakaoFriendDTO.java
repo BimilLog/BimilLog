@@ -5,7 +5,15 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-// 카카오 친구 DTO
+/**
+ * <h2>카카오 친구 정보 DTO</h2>
+ * <p>
+ * 카카오 친구 목록에서 각 친구의 정보를 담는 데이터 전송 객체
+ * </p>
+ *
+ * @author Jaeik
+ * @version 1.0.0
+ */
 @Getter
 @Setter
 public class KakaoFriendDTO {
@@ -19,6 +27,6 @@ public class KakaoFriendDTO {
     @JsonProperty("profile_thumbnail_image")
     private String profileThumbnailImage;
 
-    @Size(max = 8, message = "농장 이름은 최대 8글자 까지 입력 가능합니다.")
-    private String farmName;
+    @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
+    private String userName;
 }

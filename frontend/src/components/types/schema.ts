@@ -4,7 +4,7 @@ export interface UserDTO {
     tokenId: number;
     kakaoNickname: string;
     thumbnailImage: string;
-    farmName: string;
+    userName: string;
     role: UserRole;
 }
 
@@ -18,7 +18,7 @@ export interface KakaoFriendDTO {
     uuid: string;
     profile_nickname: string;
     profile_thumbnail_image: string;
-    farmName: string;
+    userName: string;
 }
 
 export interface KakaoFriendListDTO {
@@ -28,7 +28,7 @@ export interface KakaoFriendListDTO {
 
 export interface CropDTO {
     id: number;
-    farmName: string;
+    userName: string;
     cropType: CropType;
     nickname: string;
     message: string;
@@ -36,9 +36,9 @@ export interface CropDTO {
     height: number;
 }
 
-export interface FarmNameReqDTO {
+export interface UserNameReqDTO {
     tokenId : number;
-    farmName: string;
+    userName: string;
 }
 
 export const enum CropType {
@@ -81,7 +81,7 @@ export enum ReportType{
 export interface PostDTO {
     postId: number;
     userId: number;
-    farmName: string;
+    userName: string;
     title: string;
     content: string;
     views: number;
@@ -98,7 +98,7 @@ export interface PostDTO {
 export interface SimplePostDTO {
     postId: number;
     userId: number;
-    farmName: string;
+    userName: string;
     title: string;
     commentCount: number;
     likes: number;
@@ -114,7 +114,7 @@ export interface CommentDTO {
     id: number;
     postId: number;
     userId: number;
-    farmName: string;
+    userName: string;
     content: string;
     likes: number;
     createdAt: string;

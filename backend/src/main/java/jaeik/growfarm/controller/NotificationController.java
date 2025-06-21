@@ -2,9 +2,8 @@ package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
-import jaeik.growfarm.entity.notification.DeviceType;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.NotificationService;
+import jaeik.growfarm.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -15,12 +14,19 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
-/*
- * 알림 관련 API
- * SSE 구독
+/**
+ * <h2>알림 관련 컨트롤러</h2>
+ * <p>
+ * 알림 구독
+ * </p>
+ * <p>
  * 알림 리스트 조회
- * 알림 읽음, 삭제 처리
- * FCM 토큰 등록
+ * </p>
+ * <p>
+ * 알림 읽음/삭제 처리
+ * </p>
+ * @author Jaeik
+ * @version 1.0.0
  */
 @Slf4j
 @RestController
@@ -30,61 +36,50 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    /*
-     * SSE 구독 API
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * return: SseEmitter SSE 구독 객체
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>SSE 구독</h3>
+     *
+     * @param userDetails 현재 로그인한 유저 정보
+     * @return SSE 구독 객체
+     * @since 1.0.0
+     * @author Jaeik
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserDTO().getUserId();
-        return notificationService.subscribe(userId);
+        return notificationService.subscribe(userDetails.getUserId(), userDetails.getTokenId());
     }
 
-    /*
-     * 알림 리스트 조회 API
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * return: ResponseEntity<List<NotificationDTO>> 알림 리스트
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>알림 리스트 조회</h3>
+     * <p>
+     *     현재 로그인한 유저의 알림 리스트를 조회합니다.
+     * </p>
+     * @param userDetails 현재 로그인한 유저 정보>
+     * @return ResponseEntity<List<NotificationDTO>> 알림 리스트
+     * @since 1.0.0
+     * @author Jaeik
      */
     @GetMapping("/list")
-    public ResponseEntity<List<NotificationDTO>> getNotifications(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserDTO().getUserId();
-        List<NotificationDTO> notifications = notificationService.getNotificationList(userId);
-        return ResponseEntity.ok(notifications);
+    public ResponseEntity<List<NotificationDTO>> getNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<NotificationDTO> notificationDTOS = notificationService.getNotificationList(userDetails);
+        return ResponseEntity.ok(notificationDTOS);
     }
 
-    /*
-     * 알림 읽음, 삭제 처리 API
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param UpdateNotificationDTO updateNotificationDTO: 알림 읽음, 삭제 처리 DTO
-     * return: ResponseEntity<Void> 알림 처리 완료 메시지
-     * 수정일 : 2025-05-03
+    /**
+     * <h3>알림 읽음/삭제 처리</h3>
+     * <p>
+     *     현재 로그인한 유저의 알림을 읽음 처리하거나 삭제합니다.
+     * </p>
+     * @param userDetails 현재 로그인한 유저 정보
+     * @param updateNotificationDTO 알림 업데이트 정보
+     * @return ResponseEntity<Void> HTTP 응답
+     * @since 1.0.0
+     * @author Jaeik
      */
-    @PostMapping("/batch-update")
+    @PostMapping("/update")
     public ResponseEntity<Void> markAsRead(@AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody UpdateNotificationDTO updateNotificationDTO) {
-        notificationService.batchUpdate(updateNotificationDTO);
+        notificationService.batchUpdate(userDetails, updateNotificationDTO);
         return ResponseEntity.ok().build();
-    }
-
-    /*
-     * FCM 토큰 등록 API
-     * param CustomUserDetails userDetails: 현재 로그인한 유저 정보
-     * param String token: FCM 토큰
-     * param DeviceType deviceType: 디바이스 타입
-     * return: ResponseEntity<String> FCM 토큰 등록 완료 메시지
-     * FCM 토큰은 핸드폰과 태블릿에서의 경우만 전달됨.
-     * 수정일 : 2025-05-03
-     */
-    @PostMapping("/fcm/token")
-    public ResponseEntity<String> registerFcmToken(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody String token,
-            @RequestParam DeviceType deviceType) {
-        Long userId = userDetails.getUserDTO().getUserId();
-        notificationService.registerFcmToken(userId, token, deviceType);
-        return ResponseEntity.status(200).build();
     }
 }

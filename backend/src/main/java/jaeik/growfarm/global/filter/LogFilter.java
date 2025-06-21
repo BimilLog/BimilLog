@@ -16,6 +16,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * <h2>로그 필터</h2>
+ * <p>HTTP 요청에 대한 로그를 기록하는 필터 클래스</p>
+ *
+ * @author Jaeik
+ * @since 1.0.0
+ */
 @Component
 public class LogFilter extends OncePerRequestFilter {
 
@@ -23,8 +30,9 @@ public class LogFilter extends OncePerRequestFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
-    private static final List<String> WHITELIST = List.of("/", "/board/", "/board/realtime", "/board/weekly",
-            "/board/fame", "/board/search", "/board/{postId}", "/farm/{farmName}", "/auth/login", "/auth/signUp", "/auth/me", "/d fauth/health");
+    private static final List<String> WHITELIST = List.of("/", "/post/", "/post/realtime", "/post/weekly",
+            "/post/fame", "/post/search", "/post/{postId}", "/message/{userName}", "/auth/login", "/auth/signUp", "/auth/me", "/d fauth/health");
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -45,9 +53,9 @@ public class LogFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Long userId = userDetails.getUserDTO().getUserId();
-            Long kakaoId = userDetails.getUserDTO().getKakaoId();
-            String kakaoNickname = userDetails.getUserDTO().getKakaoNickname();
+            Long userId = userDetails.getClientDTO().getUserId();
+            Long kakaoId = userDetails.getClientDTO().getKakaoId();
+            String kakaoNickname = userDetails.getClientDTO().getKakaoNickname();
 
             if (uri.startsWith("/admin")) {
                 log.error("관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);

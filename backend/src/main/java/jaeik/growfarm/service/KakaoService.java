@@ -32,7 +32,18 @@ public class KakaoService {
     private final KakaoKeyVO kakaoKeyVO;
     private final WebClient.Builder webClientBuilder;
 
-    // 토큰 받기
+    /**
+     * <h3>카카오 토큰 발급</h3>
+     *
+     * <p>
+     * 카카오 인가 코드를 통해 액세스 토큰과 리프레시 토큰을 발급받는다.
+     * </p>
+     *
+     * @param code 카카오 인가 코드
+     * @return 토큰 정보 DTO
+     * @author Jaeik
+     * @since 1.0.0
+     */
     public TokenDTO getToken(String code) {
         WebClient webClient = webClientBuilder.build();
 
@@ -52,15 +63,23 @@ public class KakaoService {
                         status -> status.is4xxClientError() || status.is5xxServerError(),
                         clientResponse -> clientResponse.bodyToMono(String.class)
                                 .flatMap(errorBody -> Mono.error(new CustomException(
-                                        (HttpStatus) clientResponse
-                                                .statusCode(),
-                                        "카카오 토큰 발급 실패: " + errorBody))))
+                                        (HttpStatus) clientResponse.statusCode(), "카카오 토큰 발급 실패: " + errorBody))))
                 .bodyToMono(TokenDTO.class);
 
         return response.block();
     }
 
-    // 로그아웃
+    /**
+     * <h3>카카오 로그아웃</h3>
+     *
+     * <p>
+     * 카카오 액세스 토큰을 사용하여 카카오 서비스에서 로그아웃한다.
+     * </p>
+     *
+     * @param kakaoAccessToken 카카오 액세스 토큰
+     * @author Jaeik
+     * @since 1.0.0
+     */
     public void logout(String kakaoAccessToken) {
         WebClient webClient = webClientBuilder.build();
 
@@ -70,9 +89,8 @@ public class KakaoService {
                 .retrieve()
                 .onStatus(
                         status -> status.is4xxClientError() || status.is5xxServerError(),
-                        clientResponse -> Mono
-                                .error(new RuntimeException("로그아웃이 실패 했습니다.: "
-                                        + clientResponse.statusCode())))
+                        clientResponse -> Mono.error(
+                                new RuntimeException("로그아웃이 실패 했습니다.: " + clientResponse.statusCode())))
                 .bodyToMono(String.class);
 
         String result = response.block();
@@ -239,7 +257,7 @@ public class KakaoService {
     public KakaoCheckConsentDTO checkConsent(String kakaoAccessToken) {
         WebClient webClient = webClientBuilder.build();
 
-        String scopesJson = "[\"friends\"]";  // JSON 배열 문자열로 직접 설정
+        String scopesJson = "[\"friends\"]"; // JSON 배열 문자열로 직접 설정
 
         Mono<KakaoCheckConsentDTO> response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -255,13 +273,13 @@ public class KakaoService {
                         clientResponse -> clientResponse.bodyToMono(String.class)
                                 .flatMap(body -> {
                                     log.error("카카오 동의 조회 실패 응답: {}", body);
-                                    return Mono.error(new RuntimeException("동의 내역 확인 실패: " + body));
+                                    return Mono.error(new RuntimeException(
+                                            "동의 내역 확인 실패: " + body));
                                 }))
                 .bodyToMono(KakaoCheckConsentDTO.class);
 
         return response.block();
     }
-
 
     // 여러 사용자 정보 가져오기
     public String getMultipleUserInfo(Long[] targetIds) {
