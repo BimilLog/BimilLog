@@ -1,10 +1,5 @@
 package jaeik.growfarm.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
@@ -43,7 +38,6 @@ import java.util.List;
  * @author Jaeik
  * @version 1.0.0
  */
-@Tag(name = "인증", description = "인증 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -64,16 +58,9 @@ public class AuthController {
      * @param fcmToken (선택) FCM 토큰, 푸시 알림을 위한 토큰
      * @return Jwt가 삽입된 쿠키 또는 임시 쿠키
      */
-    @Operation(summary = "카카오 로그인", description = "카카오 인가 코드를 받아 로그인 또는 임시 회원 데이터를 생성합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "로그인 성공 또는 임시 쿠키 발급 완료"),
-            @ApiResponse(responseCode = "403", description = "차단된 회원"),
-            @ApiResponse(responseCode = "500", description = "카카오 유저 정보 조회 실패")
-    })
     @GetMapping("/login")
-    public ResponseEntity<?> loginKakao(
-            @Parameter(description = "카카오 인가 코드") @RequestParam String code,
-            @Parameter(description = "FCM 토큰 (선택사항)") @RequestParam(required = false) String fcmToken) {
+    public ResponseEntity<?> loginKakao(@RequestParam String code,
+            @RequestParam(required = false) String fcmToken) {
         LoginResponseDTO<?> result = authService.processKakaoLogin(code, fcmToken);
 
         if (result.getType() == LoginResponseDTO.LoginType.EXISTING_USER) {
@@ -103,15 +90,9 @@ public class AuthController {
      * @author Jaeik
      * @since 1.0.0
      */
-    @Operation(summary = "회원가입", description = "카카오 로그인 후 임시 쿠키와 닉네임을 받아 정식 회원으로 가입합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "회원가입 성공"),
-            @ApiResponse(responseCode = "400", description = "이미 존재하는 닉네임 또는 유효하지 않은 임시 데이터"),
-    })
     @GetMapping("/signUp")
-    public ResponseEntity<String> SignUp(
-            @Parameter(description = "사용할 닉네임") @RequestParam String userName,
-            @Parameter(description = "로그인 시 발급받은 임시 쿠키 값") @CookieValue(value = "temp") String uuid) {
+    public ResponseEntity<String> SignUp(@RequestParam String userName,
+            @CookieValue(value = "temp") String uuid) {
 
         List<ResponseCookie> cookies = authService.signUp(userName, uuid);
 
@@ -139,15 +120,8 @@ public class AuthController {
      * @param userDetails 인증된 사용자 정보
      * @return 로그아웃 쿠키
      */
-    @Operation(summary = "로그아웃", description = "서버에서 사용자의 토큰을 만료시키고 로그아웃 처리합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
-            @ApiResponse(responseCode = "401", description = "유저 인증 정보가 없습니다."),
-            @ApiResponse(responseCode = "500", description = "로그아웃 실패")
-    })
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(
-            @Parameter(description = "현재 로그인한 사용자 정보") @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         authService.kakaoLogout(userDetails);
         userUpdateService.logoutUser(userDetails.getUserId());
         List<ResponseCookie> cookies = authService.logout(userDetails);
@@ -171,15 +145,8 @@ public class AuthController {
      * @param userDetails 인증된 사용자 정보
      * @return 로그아웃 쿠키
      */
-    @Operation(summary = "회원 탈퇴", description = "서비스에서 회원 정보를 삭제하고 연결된 카카오 계정의 연결을 끊습니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "회원탈퇴 성공"),
-            @ApiResponse(responseCode = "401", description = "유저 인증 정보가 없습니다."),
-            @ApiResponse(responseCode = "500", description = "회원탈퇴 실패")
-    })
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdraw(
-            @Parameter(description = "현재 로그인한 사용자 정보") @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         List<ResponseCookie> cookies = authService.withdraw(userDetails);
         return ResponseEntity.ok()
                 .header("Set-Cookie", cookies.get(0).toString())
@@ -199,14 +166,8 @@ public class AuthController {
      * @param userDetails 인증된 사용자 정보
      * @return 현재 로그인한 사용자 정보
      */
-    @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 정보를 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "사용자 정보 조회 성공"),
-            @ApiResponse(responseCode = "401", description = "유저 인증 정보가 없습니다.")
-    })
     @PostMapping("/me")
-    public ResponseEntity<?> getCurrentUser(
-            @Parameter(description = "현재 로그인한 사용자 정보") @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
@@ -220,12 +181,8 @@ public class AuthController {
      * @author Jaeik
      * @return 상태 검사 완료 메시지
      */
-    @Operation(summary = "서버 상태 확인", description = "서버의 상태를 확인합니다.")
-    @ApiResponse(responseCode = "200", description = "서버 정상 동작 중")
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("Server is running");
-    }}
-
-    
-            
+    }
+}
