@@ -105,7 +105,7 @@ public class PaperControllerTest {
         doNothing().when(paperService).deleteMessageInMyPaper(any(), any());
 
         // When
-        ResponseEntity<String> response = paperController.deleteCrop(userDetails, messageDTO);
+        ResponseEntity<String> response = paperController.deleteMessage(userDetails, messageDTO);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -120,7 +120,7 @@ public class PaperControllerTest {
         doNothing().when(paperService).writeMessage(anyString(), any());
 
         // When
-        ResponseEntity<String> response = paperController.plantCrop("testPaper", messageDTO);
+        ResponseEntity<String> response = paperController.writeMessage("testPaper", messageDTO);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());

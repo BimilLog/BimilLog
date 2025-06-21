@@ -54,7 +54,6 @@ public class AuthControllerIntegrationTest {
 
     private Users testUser;
     private Token testToken;
-    private CustomUserDetails userDetails;
     private final Random random = new Random();
 
     public AuthControllerIntegrationTest(AuthController authController, SettingRepository settingRepository,
@@ -101,14 +100,6 @@ public class AuthControllerIntegrationTest {
                 .build();
         testToken = tokenRepository.save(testToken);
 
-        // ClientDTO 생성
-        ClientDTO clientDTO = new ClientDTO(testUser, testToken.getId(), null);
-        userDetails = new CustomUserDetails(clientDTO);
-    }
-
-    @AfterAll
-    void tearDown() {
-        // 별도 정리 로직 없음 (트랜잭션 롤백)
     }
 
     /**

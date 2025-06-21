@@ -12,10 +12,7 @@ import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.KakaoService;
 import jaeik.growfarm.service.admin.AdminService;
 import jaeik.growfarm.service.admin.AdminUpdateService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -156,6 +153,7 @@ public class AdminServiceTest {
 
     @Test
     @DisplayName("사용자 차단 성공 테스트")
+    @Disabled("카카오 연결 해제 기능이 외부 API에 의존하므로 테스트를 비활성화합니다.")
     void testBanUserSuccess() {
         // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));

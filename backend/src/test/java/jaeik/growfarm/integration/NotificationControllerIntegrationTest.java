@@ -115,11 +115,6 @@ public class NotificationControllerIntegrationTest {
                 userDetails = new CustomUserDetails(clientDTO);
         }
 
-        @AfterAll
-        void tearDown() {
-                // 별도 정리 로직 없음
-        }
-
         @Test
         @DisplayName("알림 목록 조회 통합 테스트")
         void testGetNotifications() {

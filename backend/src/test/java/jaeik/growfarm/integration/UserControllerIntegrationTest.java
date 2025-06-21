@@ -108,11 +108,6 @@ public class UserControllerIntegrationTest {
                 userDetails = new CustomUserDetails(clientDTO);
         }
 
-        @AfterAll
-        void tearDown() {
-                // 별도 정리 로직 없음
-        }
-
         @Test
         @Order(1)
         @DisplayName("내 게시글 목록 조회 테스트")

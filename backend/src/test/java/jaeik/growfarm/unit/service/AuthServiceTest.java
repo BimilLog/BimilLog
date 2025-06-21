@@ -7,6 +7,7 @@ import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
@@ -15,7 +16,6 @@ import jaeik.growfarm.service.KakaoService;
 import jaeik.growfarm.service.auth.AuthService;
 import jaeik.growfarm.service.auth.TempUserDataManager;
 import jaeik.growfarm.service.auth.UserUpdateService;
-import jaeik.growfarm.repository.comment.CommentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -31,9 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -228,8 +226,8 @@ public class AuthServiceTest {
     }
 
     @Test
-    @Disabled("MockitoException 문제로 임시 비활성화")
     @DisplayName("회원탈퇴 테스트")
+    @Disabled("회원탈퇴 기능은 실제 카카오 API와 연동되어 있어 테스트가 불가능합니다.")
     void testWithdraw() {
         // Given
         when(mockUserDetails.getUserId()).thenReturn(1L);

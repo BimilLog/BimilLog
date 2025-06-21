@@ -62,8 +62,13 @@ public class PostDTO {
     public static PostDTO newPost (Post post) {
         PostDTO postDTO = new PostDTO();
         postDTO.setPostId(post.getId());
-        postDTO.setUserId(post.getUser().getId());
-        postDTO.setUserName(post.getUser().getUserName());
+
+        Long userId = (post.getUser() != null) ? post.getUser().getId() : null;
+        String userName = (post.getUser() != null) ? post.getUser().getUserName() : "비회원";
+
+        postDTO.setUserId(userId);
+        postDTO.setUserName(userName);
+
         postDTO.setTitle(post.getTitle());
         postDTO.setContent(post.getContent());
         postDTO.setViews(0);

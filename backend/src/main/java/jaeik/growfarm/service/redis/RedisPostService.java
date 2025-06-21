@@ -5,7 +5,6 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.post.PostService;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -78,7 +77,7 @@ public class RedisPostService {
         try {
             redisTemplate.opsForValue().set(type.getKey(), popularPosts, type.getTtl());
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_WRITE_ERROR);
+            throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
         }
     }
 
@@ -102,7 +101,7 @@ public class RedisPostService {
                 return (List<SimplePostDTO>) cached;
             }
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_READ_ERROR);
+            throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
         }
         return Collections.emptyList();
     }
@@ -117,7 +116,7 @@ public class RedisPostService {
         try {
             redisTemplate.delete(type.getKey());
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_DELETE_ERROR);
+            throw new CustomException(ErrorCode.REDIS_DELETE_ERROR, e);
         }
     }
 

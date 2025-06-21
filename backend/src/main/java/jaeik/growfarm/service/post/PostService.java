@@ -409,7 +409,7 @@ public class PostService {
      * @since 1.0.0
      */
     @Scheduled(fixedRate = 60000 * 1440)
-    public void updateHallOfFamePosts() {
+    public void updateLegendPopularPosts() {
         List<SimplePostDTO> legendPosts = postRepository.updateLegendPosts();
         redisPostService.cachePopularPosts(RedisPostService.PopularPostType.LEGEND, legendPosts);
 

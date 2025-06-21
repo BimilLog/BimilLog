@@ -47,8 +47,6 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
         private final JPAQueryFactory jpaQueryFactory;
         private final CommentRepository commentRepository;
 
-
-
         /**
          * <h3>게시글 목록 조회</h3>
          * <p>
@@ -461,7 +459,7 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
                                                 user)
                                 .from(post)
                                 .leftJoin(user).on(post.user.id.eq(user.id))
-                                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                                .join(postLike).on(post.id.eq(postLike.post.id))
                                 .leftJoin(comment).on(post.id.eq(comment.post.id))
                                 .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS)))
                                 .groupBy(
@@ -517,33 +515,33 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
                                 .execute();
 
                 List<Tuple> legendPostsData = jpaQueryFactory
-                                .select(
-                                                post.id,
-                                                post.user.id,
-                                                user.userName,
-                                                post.title,
-                                                post.views,
-                                                post.createdAt,
-                                                post.isNotice,
-                                                postLike.count().coalesce(0L),
-                                                comment.count().coalesce(0L),
-                                                user)
-                                .from(post)
-                                .leftJoin(user).on(post.user.id.eq(user.id))
-                                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                                .groupBy(
-                                                post.id,
-                                                post.user.id,
-                                                user.userName,
-                                                post.title,
-                                                post.views,
-                                                post.createdAt,
-                                                post.isNotice,
-                                                user)
-                                .having(postLike.count().goe(20))
-                                .orderBy(postLike.count().desc())
-                                .fetch();
+                        .select(
+                                post.id,
+                                post.user.id,
+                                user.userName,
+                                post.title,
+                                post.views,
+                                post.createdAt,
+                                post.isNotice,
+                                postLike.count().coalesce(0L),
+                                comment.count().coalesce(0L),
+                                user)
+                        .from(post)
+                        .leftJoin(user).on(post.user.id.eq(user.id))
+                        .join(postLike).on(post.id.eq(postLike.post.id))
+                        .leftJoin(comment).on(post.id.eq(comment.post.id))
+                        .groupBy(
+                                post.id,
+                                post.user.id,
+                                user.userName,
+                                post.title,
+                                post.views,
+                                post.createdAt,
+                                post.isNotice,
+                                user)
+                        .having(postLike.count().goe(20))
+                        .orderBy(postLike.count().desc())
+                        .fetch();
 
                 if (legendPostsData.isEmpty()) {
                         return Collections.emptyList();
@@ -577,24 +575,21 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
          * @since 1.0.0
          */
         private List<SimplePostDTO> convertTuplesToSimplePostDTOs(List<Tuple> tuples, QPost post, QUsers user,
-                        QComment comment, QPostLike postLike) {
+                                                                  QComment comment, QPostLike postLike) {
                 return tuples.stream()
-                                .map(tuple -> new SimplePostDTO(
-                                                tuple.get(post.id),
-                                                tuple.get(post.user.id),
-                                                tuple.get(user.userName),
-                                                tuple.get(post.title),
-                                                Objects.requireNonNull(tuple.get(comment.count())).intValue(),
-                                                Objects.requireNonNull(tuple.get(postLike.count())).intValue(),
-                                                tuple.get(post.views) != null
-                                                                ? Objects.requireNonNull(tuple.get(post.views))
-                                                                : 0,
-                                                tuple.get(post.createdAt),
-                                                tuple.get(post.isNotice) != null
-                                                                && Boolean.TRUE.equals(tuple.get(post.isNotice)),
-                                                tuple.get(user) // Users 엔티티 전달
-                                ))
-                                .collect(Collectors.toList());
+                        .map(tuple -> new SimplePostDTO(
+                                tuple.get(post.id),
+                                tuple.get(post.user.id),
+                                tuple.get(user.userName),
+                                tuple.get(post.title),
+                                tuple.get(comment.count()) != null ? Objects.requireNonNull(tuple.get(comment.count())).intValue() : 0,
+                                tuple.get(postLike.count()) != null ? Objects.requireNonNull(tuple.get(postLike.count())).intValue() : 0,
+                                tuple.get(post.views) != null ? tuple.get(post.views) : 0,
+                                tuple.get(post.createdAt),
+                                tuple.get(post.isNotice) != null && Boolean.TRUE.equals(tuple.get(post.isNotice)),
+                                tuple.get(user)
+                        ))
+                        .collect(Collectors.toList());
         }
 
         /**

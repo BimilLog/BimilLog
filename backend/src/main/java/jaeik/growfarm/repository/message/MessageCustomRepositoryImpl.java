@@ -1,5 +1,6 @@
 package jaeik.growfarm.repository.message;
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -44,7 +45,7 @@ public class MessageCustomRepositoryImpl implements MessageCustomRepository {
         return jpaQueryFactory
                 .select(Projections.bean(MessageDTO.class,
                         message.id,
-                        Expressions.constant(userId),
+                        ExpressionUtils.as(Expressions.constant(userId), "userId"),
                         message.decoType,
                         message.anonymity,
                         message.content,

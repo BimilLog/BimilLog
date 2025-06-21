@@ -35,6 +35,10 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
  * <p>
  * 실제 데이터베이스와 서비스를 사용하여 CommentController의 전체 API를 테스트합니다.
  * </p>
+ * <p>
+ * 회원/비회원별 댓글 CRUD 및 추천 기능을 검증합니다.
+ * </p>
+ * 
  * @version 1.0.0
  * @author Jaeik
  */
@@ -126,11 +130,6 @@ public class CommentControllerIntegrationTest {
         // ClientDTO 생성
         ClientDTO clientDTO = new ClientDTO(testUser, token.getId(), null);
         userDetails = new CustomUserDetails(clientDTO);
-    }
-
-    @AfterAll
-    void tearDown() {
-        // 별도 데이터 정리 로직 없음
     }
 
     @Test

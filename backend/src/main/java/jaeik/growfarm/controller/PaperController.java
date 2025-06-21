@@ -67,7 +67,7 @@ public class PaperController {
      * @since 1.0.0
      */
     @PostMapping("{userName}")
-    public ResponseEntity<String> plantCrop(
+    public ResponseEntity<String> writeMessage(
             @PathVariable String userName,
             @RequestBody @Valid MessageDTO messageDTO) {
         paperService.writeMessage(userName, messageDTO);
@@ -84,7 +84,7 @@ public class PaperController {
      * @since 1.0.0
      */
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteCrop(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
                                              @RequestBody@Valid MessageDTO messageDTO) {
         paperService.deleteMessageInMyPaper(userDetails, messageDTO);
         return ResponseEntity.ok("메시지가 삭제되었습니다.");
