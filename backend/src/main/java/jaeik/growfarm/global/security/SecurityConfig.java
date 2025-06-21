@@ -25,13 +25,16 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.Supplier;
 
 /**
  * <h2>보안 설정</h2>
- * <p>Spring Security를 사용하여 애플리케이션의 보안을 구성하는 클래스입니다.</p>
- * <p>JWT 필터, 로그 필터, 헤더 체크 필터를 설정하고 CORS 정책을 정의합니다.</p>
+ * <p>
+ * Spring Security를 사용하여 애플리케이션의 보안을 구성하는 클래스입니다.
+ * </p>
+ * <p>
+ * JWT 필터, 로그 필터, 헤더 체크 필터를 설정하고 CORS 정책을 정의합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 1.0.0
@@ -46,17 +49,19 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final LogFilter LogFilter;
 
-    private final String url = "http://localhost:3000";
+    private final String url = "https://grow-farm.com";
 
     /**
      * <h3>보안 필터 체인 설정</h3>
-     * <p>HTTP 보안 설정을 정의합니다.</p>
+     * <p>
+     * HTTP 보안 설정을 정의합니다.
+     * </p>
      * <ul>
-     *     <li>CSRF 보호를 위한 쿠키 기반 토큰 저장소 사용</li>
-     *     <li>CORS 정책 정의</li>
-     *     <li>폼 로그인 및 HTTP 기본 인증 비활성화</li>
-     *     <li>세션 관리 정책을 상태 비저장으로 설정</li>
-     *     <li>URL 패턴에 따른 권한 부여 규칙 설정</li>
+     * <li>CSRF 보호를 위한 쿠키 기반 토큰 저장소 사용</li>
+     * <li>CORS 정책 정의</li>
+     * <li>폼 로그인 및 HTTP 기본 인증 비활성화</li>
+     * <li>세션 관리 정책을 상태 비저장으로 설정</li>
+     * <li>URL 패턴에 따른 권한 부여 규칙 설정</li>
      * </ul>
      *
      * @param http HttpSecurity 객체
@@ -71,7 +76,6 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
-                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -105,12 +109,14 @@ public class SecurityConfig {
 
     /**
      * <h3>CORS 설정</h3>
-     * <p>Cross-Origin Resource Sharing(CORS) 정책을 정의합니다.</p>
+     * <p>
+     * Cross-Origin Resource Sharing(CORS) 정책을 정의합니다.
+     * </p>
      * <ul>
-     *     <li>허용된 오리진: http://localhost:3000</li>
-     *     <li>허용된 HTTP 메서드: GET, POST, PUT, DELETE, OPTIONS</li>
-     *     <li>허용된 헤더: 모든 헤더</li>
-     *     <li>자격 증명 허용</li>
+     * <li>허용된 오리진: http://localhost:3000</li>
+     * <li>허용된 HTTP 메서드: GET, POST, PUT, DELETE, OPTIONS</li>
+     * <li>허용된 헤더: 모든 헤더</li>
+     * <li>자격 증명 허용</li>
      * </ul>
      *
      * @return CorsConfigurationSource 객체
@@ -120,7 +126,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(url, url + "/"));
+        configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
@@ -134,8 +140,12 @@ public class SecurityConfig {
 
 /**
  * <h2>SPA CSRF 토큰 요청 핸들러</h2>
- * <p>단일 페이지 애플리케이션(SPA)에서 CSRF 토큰을 처리하는 핸들러입니다.</p>
- * <p>BREACH 공격 보호를 위해 XorCsrfTokenRequestAttributeHandler를 사용합니다.</p>
+ * <p>
+ * 단일 페이지 애플리케이션(SPA)에서 CSRF 토큰을 처리하는 핸들러입니다.
+ * </p>
+ * <p>
+ * BREACH 공격 보호를 위해 XorCsrfTokenRequestAttributeHandler를 사용합니다.
+ * </p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -152,8 +162,12 @@ final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
 
     /**
      * <h3>CSRF 토큰 값 해결</h3>
-     * <p>요청에서 CSRF 토큰 값을 해결합니다.</p>
-     * <p>헤더에 CSRF 토큰이 포함된 경우 plain 핸들러를 사용하고, 그렇지 않은 경우 xor 핸들러를 사용합니다.</p>
+     * <p>
+     * 요청에서 CSRF 토큰 값을 해결합니다.
+     * </p>
+     * <p>
+     * 헤더에 CSRF 토큰이 포함된 경우 plain 핸들러를 사용하고, 그렇지 않은 경우 xor 핸들러를 사용합니다.
+     * </p>
      *
      * @param request   HttpServletRequest 객체
      * @param csrfToken CsrfToken 객체
