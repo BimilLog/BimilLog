@@ -31,7 +31,7 @@ public class LogFilter extends OncePerRequestFilter {
 
 
     private static final List<String> WHITELIST = List.of("/", "/post/", "/post/realtime", "/post/weekly",
-            "/post/fame", "/post/search", "/post/{postId}", "/message/{userName}", "/auth/login", "/auth/signUp", "/auth/me", "/d fauth/health");
+            "/post/fame", "/post/search", "/post/{postId}", "/message/{userName}", "/auth/login", "/auth/signUp", "/auth/me", "/auth/health");
 
 
     @Override
