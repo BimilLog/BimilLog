@@ -46,6 +46,8 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final LogFilter LogFilter;
 
+    private final String url = "http://localhost:3000";
+
     /**
      * <h3>보안 필터 체인 설정</h3>
      * <p>HTTP 보안 설정을 정의합니다.</p>
@@ -118,7 +120,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3000/"));
+        configuration.setAllowedOrigins(List.of(url, url + "/"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

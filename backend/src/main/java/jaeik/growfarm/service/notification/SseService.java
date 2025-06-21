@@ -7,6 +7,7 @@ import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.util.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,9 @@ public class SseService {
     private final NotificationService notificationService;
     private final NotificationUtil notificationUtil;
 
+    @Value("${url}")
+    private String url;
+
     /**
      * <h3>댓글 달림 SSE 알림</h3>
      *
@@ -42,7 +46,7 @@ public class SseService {
             EventDTO eventDTO = notificationUtil.createEventDTO(
                     NotificationType.COMMENT,
                     commenterName + "님이 댓글을 남겼습니다!",
-                    "http://localhost:3000/board/" + postId);
+                    url + "/board/" + postId);
             notificationService.send(postUserId, eventDTO);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SSE_SEND_ERROR);
@@ -63,7 +67,7 @@ public class SseService {
             EventDTO eventDTO = notificationUtil.createEventDTO(
                     NotificationType.FARM,
                     "롤링페이퍼에 메시지가 작성되었어요!",
-                    "http://localhost:3000/farm/" + userName);
+                    url + "/paper/" + userName);
             notificationService.send(farmOwnerId, eventDTO);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SSE_SEND_ERROR);
@@ -83,7 +87,7 @@ public class SseService {
             EventDTO eventDTO = notificationUtil.createEventDTO(
                     NotificationType.POST_FEATURED,
                     message,
-                    "http://localhost:3000/board/" + postId);
+                    url + "/board/" + postId);
             notificationService.send(userId, eventDTO);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SSE_SEND_ERROR);
