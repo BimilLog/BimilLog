@@ -10,7 +10,9 @@ import fetchClient from "@/util/fetchClient";
 import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 import { useRouter } from "next/navigation";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
+
+
 
 // Kakao SDK TypeScript declarations
 declare global {

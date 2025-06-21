@@ -8,7 +8,9 @@ import fetchClient from "@/util/fetchClient";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Pagination from "@/components/Pagination";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
+
+
 
 export default function Home() {
   const { user } = useAuthStore();

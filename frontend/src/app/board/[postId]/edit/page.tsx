@@ -9,7 +9,9 @@ import fetchClient from "@/util/fetchClient";
 import { validateNoXSS, escapeHTML } from "@/util/inputValidation";
 import { validatePostTitle, validatePostContent } from "@/util/boardValidation";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "https://grow-farm.com/api";
+
+
 
 export default function EditPage() {
   const { postId } = useParams();
