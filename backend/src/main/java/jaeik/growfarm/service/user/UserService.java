@@ -144,13 +144,31 @@ public class UserService {
      * @since 1.0.0
      */
     public void updateUserName(String userName, CustomUserDetails userDetails) {
-        if (userRepository.existsByUserName(userName)) {
-            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
-        }
+        isUserNameAvailable(userName);
         Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         user.updateUserName(userName);
+    }
+
+    /**
+     * <h3>닉네임 중복 확인</h3>
+     *
+     * <p>
+     * 주어진 닉네임이 이미 존재하는지 확인한다.
+     * </p>
+     *
+     * @param userName 닉네임
+     * @return 닉네임이 사용 가능한 경우 true
+     * @throws CustomException 닉네임이 이미 존재하는 경우
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public boolean isUserNameAvailable(String userName) {
+        if (userRepository.existsByUserName(userName)) {
+            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
+        }
+        return true;
     }
 
     /**

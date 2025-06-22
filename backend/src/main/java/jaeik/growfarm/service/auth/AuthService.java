@@ -205,9 +205,6 @@ public class AuthService {
      * @since 1.0.0
      */
     public List<ResponseCookie> logout(CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
-        }
         try {
             emitterRepository.deleteAllEmitterByUserId(userDetails.getUserId());
             SecurityContextHolder.clearContext();

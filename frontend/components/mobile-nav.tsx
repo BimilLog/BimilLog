@@ -1,87 +1,139 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useAuth } from "@/hooks/useAuth"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Home, MessageSquare, User, TrendingUp } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Menu,
+  Home,
+  MessageSquare,
+  User as UserIcon,
+  TrendingUp,
+} from "lucide-react";
+import Link from "next/link";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export function MobileNav() {
-  const [open, setOpen] = useState(false)
-  const { user, isAuthenticated, login, logout } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const navItems = [
-    { href: "/", label: "홈", icon: Home },
-    ...(isAuthenticated && user
-      ? [{ href: `/rolling-paper/${user.nickname}`, label: "내 롤링페이퍼", icon: MessageSquare }]
-      : []),
-    { href: "/board", label: "게시판", icon: MessageSquare },
-    { href: "/popular", label: "인기글", icon: TrendingUp },
-    ...(isAuthenticated ? [{ href: "/mypage", label: "마이페이지", icon: User }] : []),
-  ]
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    return name.charAt(0).toUpperCase();
+  };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="md:hidden">
-          <Menu className="w-5 h-5" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="w-64">
-        <div className="flex flex-col space-y-4 mt-8">
-          <div className="flex items-center space-x-2 px-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              비밀로그
-            </h2>
-          </div>
-
-          <nav className="flex flex-col space-y-2 px-2">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <Icon className="w-5 h-5 mr-3" />
-                    {item.label}
-                  </Button>
-                </Link>
-              )
-            })}
-          </nav>
-
-          <div className="px-4 pt-4 border-t">
+    <div className="md:hidden">
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Menu className="h-6 w-6" />
+            <span className="sr-only">메뉴 열기</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64 flex flex-col">
+          <SheetHeader className="text-left">
+            <SheetTitle className="sr-only">메인 메뉴</SheetTitle>
+            <SheetDescription className="sr-only">
+              사이트의 주요 페이지로 이동할 수 있는 링크 목록입니다.
+            </SheetDescription>
             {isAuthenticated && user ? (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">{user.nickname}님</p>
-                <Button
-                  variant="outline"
-                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                  onClick={() => {
-                    logout()
-                    setOpen(false)
-                  }}
-                >
-                  로그아웃
-                </Button>
+              <div className="flex items-center space-x-2 pt-4">
+                <Avatar>
+                  <AvatarImage
+                    src={user.thumbnailImage || ""}
+                    alt={user.userName || ""}
+                  />
+                  <AvatarFallback>{getInitials(user.userName)}</AvatarFallback>
+                </Avatar>
+                <span className="font-semibold">{user.userName}</span>
               </div>
             ) : (
-              <Button
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-600"
-                onClick={() => {
-                  login()
-                  setOpen(false)
-                }}
+              <h2 className="text-lg font-semibold pt-4">비밀로그</h2>
+            )}
+          </SheetHeader>
+
+          <div className="flex-grow">
+            <nav className="flex flex-col space-y-2 mt-4">
+              <Link
+                href="/"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100"
               >
-                카카오 로그인
+                <Home className="w-5 h-5" />
+                <span>홈</span>
+              </Link>
+              <Link
+                href="/board"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span>게시판</span>
+              </Link>
+              <Link
+                href="/visit"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100"
+              >
+                <TrendingUp className="w-5 h-5" />
+                <span>롤링페이퍼 방문</span>
+              </Link>
+              {isAuthenticated && (
+                <Link
+                  href="/mypage"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100"
+                >
+                  <UserIcon className="w-5 h-5" />
+                  <span>마이페이지</span>
+                </Link>
+              )}
+            </nav>
+          </div>
+
+          <div className="pb-4">
+            {isAuthenticated ? (
+              <Button
+                onClick={() => {
+                  logout();
+                  setIsOpen(false);
+                }}
+                className="w-full"
+                variant="outline"
+              >
+                로그아웃
               </Button>
+            ) : (
+              <div className="flex flex-col space-y-2">
+                <Button
+                  asChild
+                  onClick={() => setIsOpen(false)}
+                  className="w-full"
+                >
+                  <Link href="/login">로그인</Link>
+                </Button>
+                <Button
+                  asChild
+                  onClick={() => setIsOpen(false)}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  <Link href="/signup">회원가입</Link>
+                </Button>
+              </div>
             )}
           </div>
-        </div>
-      </SheetContent>
-    </Sheet>
-  )
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
 }

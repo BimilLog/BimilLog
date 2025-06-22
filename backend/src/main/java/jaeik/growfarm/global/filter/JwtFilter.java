@@ -6,8 +6,6 @@ import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
-import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.kakao.KakaoService;
@@ -29,10 +27,12 @@ import java.util.Objects;
 
 /**
  * <h2>JWT 필터</h2>
- * <p>JWT 토큰을 검증하고 인증 정보를 설정하는 필터</p>
+ * <p>
+ * JWT 토큰을 검증하고 인증 정보를 설정하는 필터
+ * </p>
  *
  * @author Jaeik
- * @version  1.0.0
+ * @version 1.0.0
  */
 @Component
 @RequiredArgsConstructor
@@ -67,12 +67,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // Access Token이 유효할 때
         if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
-            try {
-                setAuthentication(accessToken);
-            } catch (Exception e) {
-                throw new CustomException(ErrorCode.AUTH_JWT_ACCESS_TOKEN_ERROR);
-            }
-        } else {  // accessToken이 없거나 유효 하지 않을 때
+            setAuthentication(accessToken);
+        } else { // accessToken이 없거나 유효 하지 않을 때
             String refreshToken = extractTokenFromCookie(request, JwtTokenProvider.REFRESH_TOKEN_COOKIE);
             // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을 검증
             if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
@@ -80,28 +76,21 @@ public class JwtFilter extends OncePerRequestFilter {
                 Long fcmTokenId = jwtTokenProvider.getFcmTokenIdFromToken(refreshToken);
                 Token token = tokenRepository.findById(tokenId).orElseThrow();
                 if (Objects.equals(token.getId(), tokenId)) {
-                    try {
-                        // 카카오 토큰 갱신
-                        TokenDTO tokenDTO = kakaoService.refreshToken(token.getKakaoRefreshToken());
-                        token.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
+                    // 카카오 토큰 갱신
+                    TokenDTO tokenDTO = kakaoService.refreshToken(token.getKakaoRefreshToken());
+                    token.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
 
-                        // 유저 정보 조회
-                        Users user = userRepository.findById(token.getUsers().getId()).orElseThrow();
-                        ClientDTO clientDTO = new ClientDTO(user, tokenId, fcmTokenId);
+                    // 유저 정보 조회
+                    Users user = userRepository.findById(token.getUsers().getId()).orElseThrow();
+                    ClientDTO clientDTO = new ClientDTO(user, tokenId, fcmTokenId);
 
-                        // 새로운 accessTokenCookie 발급
-                        ResponseCookie cookie = jwtTokenProvider.generateJwtAccessCookie(clientDTO);
-                        response.addHeader("Set-Cookie", cookie.toString());
+                    // 새로운 accessTokenCookie 발급
+                    ResponseCookie cookie = jwtTokenProvider.generateJwtAccessCookie(clientDTO);
+                    response.addHeader("Set-Cookie", cookie.toString());
 
-                        // 사용자 인증 정보 설정
-                        setAuthentication(cookie.getValue());
-                    } catch (Exception e) {
-                        throw new CustomException(ErrorCode.RENEWAL_JWT_ACCESS_TOKEN_ERROR);
-                    }
+                    // 사용자 인증 정보 설정
+                    setAuthentication(cookie.getValue());
                 }
-            } else {
-                // refreshToken이 없거나 유효하지 않을 때
-                throw new CustomException(ErrorCode.INVALID_JWT_REFRESH_TOKEN);
             }
         }
         filterChain.doFilter(request, response);
@@ -109,7 +98,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * <h3>인증 정보 설정</h3>
-     * <p>JWT 엑세스 토큰 에서 사용자 정보를 추출하여 인증 정보를 설정합니다.</p>
+     * <p>
+     * JWT 엑세스 토큰 에서 사용자 정보를 추출하여 인증 정보를 설정합니다.
+     * </p>
      *
      * @param jwtAccessToken JWT 엑세스 토큰
      */
@@ -126,7 +117,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     /**
      * <h3>쿠키에서 토큰 추출</h3>
-     * <p>HTTP 요청에서 지정된 쿠키 이름의 값을 추출합니다.</p>
+     * <p>
+     * HTTP 요청에서 지정된 쿠키 이름의 값을 추출합니다.
+     * </p>
      *
      * @param request    HTTP 요청 객체
      * @param cookieName 쿠키 이름

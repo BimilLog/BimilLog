@@ -1,60 +1,72 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Heart } from "lucide-react"
-import { authApi } from "@/lib/api"
-import { useAuth } from "@/hooks/useAuth"
+import { useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Heart } from "lucide-react";
+import { authApi } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AuthCallbackPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { refreshUser } = useAuth()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { refreshUser } = useAuth();
+  const isProcessing = useRef(false);
 
   useEffect(() => {
+    if (isProcessing.current) {
+      return;
+    }
+    isProcessing.current = true;
+
     const handleCallback = async () => {
-      const code = searchParams.get("code")
-      const error = searchParams.get("error")
-      const state = searchParams.get("state") // 최종 리다이렉트 URL
+      const code = searchParams.get("code");
+      const error = searchParams.get("error");
+      const state = searchParams.get("state"); // 최종 리다이렉트 URL
 
       if (error) {
-        console.error("Kakao Auth error:", error)
-        router.push("/login?error=" + encodeURIComponent(error))
-        return
+        console.error("Kakao Auth error:", error);
+        router.push("/login?error=" + encodeURIComponent(error));
+        return;
       }
 
       if (code) {
         try {
-          // 인가 코드를 서버로 전송하여 로그인 처리
-          const response = await authApi.kakaoLogin(code)
-          if (response.success) {
-            await refreshUser() // 사용자 정보 새로고침
-            // 서버 응답에 따라 닉네임 설정이 필요한지 확인
-            // Swagger 문서에 따르면 /auth/login 응답에 닉네임 필요 여부가 명시되어 있지 않으므로,
-            // 일단 `refreshUser` 후 사용자 객체에 닉네임이 없으면 설정 페이지로 리다이렉트하는 로직을 추가합니다.
-            const user = await authApi.getCurrentUser()
-            if (user.success && user.data && !user.data.userName) {
-              router.push("/signup?nickname=required")
+          const loginResponse = await authApi.kakaoLogin(code);
+
+          if (loginResponse.success) {
+            // 쿠키가 정상적으로 세팅되었는지 확인하기 위해 /auth/me API 호출
+            const userResponse = await authApi.getCurrentUser();
+
+            if (userResponse.success && userResponse.data?.userName) {
+              // 정식 회원: 유저 정보가 있고, userName이 존재함
+              await refreshUser(); // 전역 상태 업데이트
+              const finalRedirect = state ? decodeURIComponent(state) : "/";
+              router.push(finalRedirect);
             } else {
-              const finalRedirect = state ? decodeURIComponent(state) : "/"
-              router.push(finalRedirect)
+              // 임시 회원: 유저 정보가 없거나, userName이 없음
+              router.push("/signup?required=true");
             }
           } else {
-            console.error("Server login failed:", response.error)
-            router.push("/login?error=" + encodeURIComponent(response.error || "로그인 실패"))
+            console.error("Server login failed:", loginResponse.error);
+            router.push(
+              "/login?error=" +
+                encodeURIComponent(loginResponse.error || "로그인 실패")
+            );
           }
         } catch (apiError) {
-          console.error("API call failed during Kakao login:", apiError)
-          router.push("/login?error=" + encodeURIComponent("API 호출 실패"))
+          console.error("API call failed during Kakao login:", apiError);
+          router.push("/login?error=" + encodeURIComponent("API 호출 실패"));
         }
       } else {
         // code가 없는 경우 (예: 사용자가 로그인 취소)
-        router.push("/login?error=" + encodeURIComponent("카카오 로그인 취소 또는 오류"))
+        router.push(
+          "/login?error=" + encodeURIComponent("카카오 로그인 취소 또는 오류")
+        );
       }
-    }
+    };
 
-    handleCallback()
-  }, [router, searchParams, refreshUser])
+    handleCallback();
+  }, [router, searchParams, refreshUser]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
@@ -65,5 +77,5 @@ export default function AuthCallbackPage() {
         <p className="text-gray-600">로그인 처리 중...</p>
       </div>
     </div>
-  )
+  );
 }

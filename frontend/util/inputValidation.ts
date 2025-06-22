@@ -60,4 +60,24 @@ export const validateNoXSS = (value: string): boolean => {
   }
   
   return isInputSafe(value);
+};
+
+/**
+ * 닉네임 유효성을 검사합니다.
+ * - 2~8자 길이
+ * - 한글, 영어, 숫자만 허용
+ * @param nickname 검사할 닉네임
+ * @returns { valid: boolean, message: string }
+ */
+export const validateNickname = (nickname: string): { valid: boolean; message: string } => {
+  if (nickname.length < 2 || nickname.length > 8) {
+    return { valid: false, message: "닉네임은 2~8자 사이여야 합니다." };
+  }
+  
+  const nicknameRegex = /^[가-힣a-zA-Z0-9]+$/;
+  if (!nicknameRegex.test(nickname)) {
+    return { valid: false, message: "특수문자는 사용할 수 없습니다." };
+  }
+  
+  return { valid: true, message: "사용 가능한 닉네임 형식입니다." };
 }; 

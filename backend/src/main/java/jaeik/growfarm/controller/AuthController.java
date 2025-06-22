@@ -137,7 +137,7 @@ public class AuthController {
      * @param userDetails 인증된 사용자 정보
      * @return 현재 로그인한 사용자 정보
      */
-    @PostMapping("/me")
+    @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);

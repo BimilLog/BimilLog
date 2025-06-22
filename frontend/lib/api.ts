@@ -1,19 +1,45 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://www.grow-farm.com"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api"
+
+// 쿠키를 가져오는 헬퍼 함수
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    const popped = parts.pop();
+    if (popped) {
+      return popped.split(';').shift() || null;
+    }
+  }
+  return null;
+}
 
 // API 응답 타입 정의
 export interface ApiResponse<T = any> {
   success: boolean
-  data?: T
+  data?: T | null
   message?: string
   error?: string
 }
 
-// 사용자 정보 타입
+// 사용자 정보 타입 (ClientDTO)
 export interface User {
   userId: number
   userName: string
-  kakaoId?: string
-  createdAt?: string
+  kakaoId?: number
+  settingDTO?: {
+    settingId: number
+    messageNotification: boolean
+    commentNotification: boolean
+    postFeaturedNotification: boolean
+  }
+  kakaoNickname?: string
+  thumbnailImage?: string
+  role?: "USER" | "ADMIN"
+  tokenId?: number
+  fcmTokenId?: number | null
 }
 
 // 롤링페이퍼 메시지 타입
@@ -109,7 +135,8 @@ export interface Setting {
   settingId: number
   messageNotification: boolean
   commentNotification: boolean
-  postFeaturedNotification: boolean
+  popularPostNotification: boolean
+  paperNotification: boolean;
 }
 
 // 페이지네이션 타입
@@ -136,8 +163,14 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
 
-    const defaultHeaders = {
+    const csrfToken = getCookie("XSRF-TOKEN");
+
+    const defaultHeaders: Record<string, string> = {
       "Content-Type": "application/json",
+    };
+
+    if (csrfToken) {
+      defaultHeaders["X-XSRF-TOKEN"] = csrfToken;
     }
 
     const config: RequestInit = {
@@ -152,11 +185,46 @@ class ApiClient {
     try {
       const response = await fetch(url, config)
 
+      // 로그인이 반드시 필요한 API 엔드포인트 목록
+      const requiredAuthEndpoints = [
+        '/user',          // 마이페이지
+        '/paper',         // 내 롤링페이퍼
+        '/api/admin',     // 관리자
+        '/post/like',     // 글 추천
+        '/comment/like',  // 댓글 추천
+        '/notification',  // 알림
+        '/auth/logout',   // 로그아웃
+        '/auth/withdraw'  // 회원탈퇴
+      ];
+
+      // 현재 요청이 반드시 인증이 필요한지 확인
+      const requiresAuth = requiredAuthEndpoints.some(requiredUrl => {
+        // 정확히 일치해야 하는 경우 (e.g. '/paper')
+        if (requiredUrl === '/paper' || requiredUrl.endsWith('/like')) {
+            return endpoint === requiredUrl;
+        }
+        // 접두사로 일치하는 경우 (e.g. '/user/', '/api/admin/')
+        return endpoint.startsWith(requiredUrl);
+      });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        // 인증이 필수가 아닌 API에서 발생한 401 에러는 정상 흐름으로 간주
+        if (!requiresAuth && response.status === 401) {
+            return { success: true, data: null };
+        }
+        const errorBody = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`)
+      }
+      
+      const contentType = response.headers.get("content-type");
+      let data;
+
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json()
+      } else {
+        data = await response.text();
       }
 
-      const data = await response.json()
       return {
         success: true,
         data,
@@ -218,7 +286,7 @@ export const authApi = {
   },
 
   // 현재 사용자 정보 조회 (httpOnly 쿠키 자동 포함)
-  getCurrentUser: () => apiClient.post<User>("/auth/me"),
+  getCurrentUser: () => apiClient.get<User>("/auth/me"),
 
   // 로그아웃
   logout: () => apiClient.post("/auth/logout"),
@@ -227,8 +295,7 @@ export const authApi = {
   deleteAccount: () => apiClient.post("/auth/withdraw"),
 
   // 회원가입 (닉네임 설정)
-  signUp: (userName: string, tempCookie: string) =>
-    apiClient.get(`/auth/signUp?userName=${encodeURIComponent(userName)}&temp=${tempCookie}`),
+  signUp: (userName: string) => apiClient.get(`/auth/signUp?userName=${encodeURIComponent(userName)}`),
 
   // 서버 상태 확인
   healthCheck: () => apiClient.get<string>("/auth/health"),
@@ -236,6 +303,9 @@ export const authApi = {
 
 // 사용자 관련 API
 export const userApi = {
+  // 닉네임 중복 확인
+  checkUserName: (userName: string) => apiClient.get<boolean>(`/user/username/check?userName=${encodeURIComponent(userName)}`),
+
   // 닉네임 변경
   updateUserName: (userName: string) => apiClient.post("/user/username", { userName }),
 
@@ -270,6 +340,20 @@ export const userApi = {
   // 사용자가 추천한 댓글 목록
   getUserLikedComments: (page = 0, size = 10) =>
     apiClient.get<PageResponse<SimpleComment>>(`/user/likecomments?page=${page}&size=${size}`),
+
+  // 사용자 관련 API
+  getCurrentUser: (): Promise<ApiResponse<User>> => {
+    return apiClient.get<User>("/auth/me")
+  },
+  getUserByNickname: (nickname: string): Promise<ApiResponse<User>> => {
+    return apiClient.get<User>(`/user/profile/${nickname}`);
+  },
+  getSettings: (): Promise<ApiResponse<Setting>> => {
+    return apiClient.get<Setting>('/user/settings');
+  },
+  updateSettings: (settings: Partial<Setting>): Promise<ApiResponse<Setting>> => {
+    return apiClient.patch<Setting>('/user/settings', settings);
+  },
 }
 
 // 롤링페이퍼 관련 API

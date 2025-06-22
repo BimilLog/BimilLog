@@ -1,14 +1,20 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Heart } from "lucide-react"
-import Link from "next/link"
-import { useAuth } from "@/hooks/useAuth"
-import { NotificationBell } from "./notification-bell"
-import { MobileNav } from "./mobile-nav"
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Heart } from "lucide-react";
+import { MobileNav } from "@/components/mobile-nav";
+import { NotificationBell } from "./notification-bell";
 
 export function AuthHeader() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    return name.substring(0, 1).toUpperCase();
+  };
 
   return (
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
@@ -22,58 +28,60 @@ export function AuthHeader() {
               비밀로그
             </span>
           </Link>
-          <MobileNav />
         </div>
 
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/board" className="text-gray-600 hover:text-gray-900 transition-colors">
-            게시판
-          </Link>
-          <Link href="/popular" className="text-gray-600 hover:text-gray-900 transition-colors">
-            인기글
-          </Link>
-          {isAuthenticated && user && (
+        <div className="flex flex-1 items-center justify-end">
+          <nav className="hidden md:flex items-center gap-6">
             <Link
-              href={`/rolling-paper/${user.nickname}`}
+              href="/board"
               className="text-gray-600 hover:text-gray-900 transition-colors"
             >
-              내 롤링페이퍼
+              게시판
             </Link>
-          )}
-        </nav>
+            {isAuthenticated && (
+              <Link
+                href="/mypage"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                마이페이지
+              </Link>
+            )}
+            {!isAuthenticated && (
+              <Link
+                href="/login"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                로그인
+              </Link>
+            )}
+          </nav>
+        </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-end space-x-2 md:space-x-4">
           {isLoading ? (
-            <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
+            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
           ) : isAuthenticated && user ? (
             <>
               <NotificationBell />
-              <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
-                <Link href="/mypage">{user.nickname}님</Link>
-              </Button>
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={user.thumbnailImage} alt={user.userName} />
+                <AvatarFallback>{getInitials(user.userName)}</AvatarFallback>
+              </Avatar>
+              <span className="hidden sm:inline font-semibold text-sm text-gray-700">
+                {user.userName}님
+              </span>
               <Button
                 variant="outline"
                 onClick={logout}
-                className="bg-white text-red-600 border-red-200 hover:bg-red-50"
+                className="bg-white text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
               >
                 로그아웃
               </Button>
             </>
-          ) : (
-            <>
-              <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
-                <Link href="/login">로그인</Link>
-              </Button>
-              <Button
-                asChild
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-              >
-                <Link href="/signup">시작하기</Link>
-              </Button>
-            </>
-          )}
+          ) : null}
+          <MobileNav />
         </div>
       </div>
     </header>
-  )
+  );
 }

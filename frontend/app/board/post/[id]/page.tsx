@@ -1,106 +1,119 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/useAuth"
-import { boardApi, commentApi, type Post, type Comment } from "@/lib/api"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ArrowLeft, ThumbsUp, MessageSquare, Edit, Trash2, Eye, Lock, Send, Loader2 } from "lucide-react"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { boardApi, commentApi, type Post, type Comment } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  ArrowLeft,
+  ThumbsUp,
+  MessageSquare,
+  Edit,
+  Trash2,
+  Eye,
+  Lock,
+  Send,
+  Loader2,
+} from "lucide-react";
+import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const Editor = dynamic(() => import("@/components/editor"), { ssr: false });
 
 export default function PostDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { user, isAuthenticated } = useAuth()
-  const postId = Number.parseInt(params.id as string)
+  const params = useParams();
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
+  const postId = Number.parseInt(params.id as string);
 
-  const [post, setPost] = useState<Post | null>(null)
-  const [comments, setComments] = useState<Comment[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isPasswordRequired, setIsPasswordRequired] = useState(false)
-  const [passwordInput, setPasswordInput] = useState("")
-  const [newComment, setNewComment] = useState("")
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  const [post, setPost] = useState<Post | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPasswordRequired, setIsPasswordRequired] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [newComment, setNewComment] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   // 게시글 조회
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await boardApi.getPost(postId)
+        const response = await boardApi.getPost(postId);
         if (response.success && response.data) {
-          setPost(response.data)
+          setPost(response.data);
           // 비밀글이고 비밀번호가 필요한 경우
           if (response.data.password && !response.data.content) {
-            setIsPasswordRequired(true)
+            setIsPasswordRequired(true);
           }
         } else {
-          alert("게시글을 찾을 수 없습니다.")
-          router.push("/board")
+          alert("게시글을 찾을 수 없습니다.");
+          router.push("/board");
         }
       } catch (error) {
-        console.error("Failed to fetch post:", error)
-        alert("게시글을 불러오는데 실패했습니다.")
-        router.push("/board")
+        console.error("Failed to fetch post:", error);
+        alert("게시글을 불러오는데 실패했습니다.");
+        router.push("/board");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
     if (postId) {
-      fetchPost()
+      fetchPost();
     }
-  }, [postId, router])
+  }, [postId, router]);
 
   // 댓글 조회
   useEffect(() => {
     const fetchComments = async () => {
-      if (!post || isPasswordRequired) return
+      if (!post || isPasswordRequired) return;
 
       try {
-        const response = await commentApi.getComments(postId)
+        const response = await commentApi.getComments(postId);
         if (response.success && response.data) {
-          setComments(response.data.content)
+          setComments(response.data.content);
         }
       } catch (error) {
-        console.error("Failed to fetch comments:", error)
+        console.error("Failed to fetch comments:", error);
       }
-    }
+    };
 
-    fetchComments()
-  }, [postId, post, isPasswordRequired])
+    fetchComments();
+  }, [postId, post, isPasswordRequired]);
 
   const handlePasswordSubmit = async () => {
     if (!passwordInput) {
-      alert("비밀번호를 입력해주세요.")
-      return
+      alert("비밀번호를 입력해주세요.");
+      return;
     }
 
     try {
       // 비밀번호 확인 로직 (실제 API에서는 서버에서 처리)
       if (post && Number.parseInt(passwordInput) === post.password) {
-        setIsPasswordRequired(false)
-        setPasswordInput("")
+        setIsPasswordRequired(false);
+        setPasswordInput("");
       } else {
-        alert("비밀번호가 틀렸습니다.")
+        alert("비밀번호가 틀렸습니다.");
       }
     } catch (error) {
-      alert("비밀번호 확인 중 오류가 발생했습니다.")
+      alert("비밀번호 확인 중 오류가 발생했습니다.");
     }
-  }
+  };
 
   const handleLike = async () => {
     if (!isAuthenticated || !post) {
-      alert("로그인이 필요합니다.")
-      return
+      alert("로그인이 필요합니다.");
+      return;
     }
 
     try {
-      const response = await boardApi.likePost(post)
+      const response = await boardApi.likePost(post);
       if (response.success) {
         setPost((prev) =>
           prev
@@ -109,69 +122,69 @@ export default function PostDetailPage() {
                 likes: prev.userLike ? prev.likes - 1 : prev.likes + 1,
                 userLike: !prev.userLike,
               }
-            : null,
-        )
+            : null
+        );
       }
     } catch (error) {
-      console.error("Failed to like post:", error)
+      console.error("Failed to like post:", error);
     }
-  }
+  };
 
   const handleCommentSubmit = async () => {
     if (!isAuthenticated || !user) {
-      alert("로그인이 필요합니다.")
-      return
+      alert("로그인이 필요합니다.");
+      return;
     }
 
     if (!newComment.trim()) {
-      alert("댓글 내용을 입력해주세요.")
-      return
+      alert("댓글 내용을 입력해주세요.");
+      return;
     }
 
-    setIsSubmittingComment(true)
+    setIsSubmittingComment(true);
     try {
       const response = await commentApi.createComment({
         postId,
         userName: user.userName,
         content: newComment.trim(),
-      })
+      });
 
       if (response.success) {
-        setNewComment("")
+        setNewComment("");
         // 댓글 목록 새로고침
-        const commentsResponse = await commentApi.getComments(postId)
+        const commentsResponse = await commentApi.getComments(postId);
         if (commentsResponse.success && commentsResponse.data) {
-          setComments(commentsResponse.data.content)
+          setComments(commentsResponse.data.content);
         }
       } else {
-        alert("댓글 작성에 실패했습니다.")
+        alert("댓글 작성에 실패했습니다.");
       }
     } catch (error) {
-      console.error("Failed to create comment:", error)
-      alert("댓글 작성 중 오류가 발생했습니다.")
+      console.error("Failed to create comment:", error);
+      alert("댓글 작성 중 오류가 발생했습니다.");
     } finally {
-      setIsSubmittingComment(false)
+      setIsSubmittingComment(false);
     }
-  }
+  };
 
   const handleDeletePost = async () => {
-    if (!post || !user || post.userId !== user.userId) return
+    if (!post || !user || post.userId !== user.userId) return;
 
     if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
       try {
-        const response = await boardApi.deletePost(post)
+        const response = await boardApi.deletePost(post);
         if (response.success) {
-          alert("게시글이 삭제되었습니다.")
-          router.push("/board")
+          alert("게시글이 삭제되었습니다.");
+          router.push("/board");
         } else {
-          alert("게시글 삭제에 실패했습니다.")
+          alert("게시글 삭제에 실패했습니다.");
         }
       } catch (error) {
-        console.error("Failed to delete post:", error)
-        alert("게시글 삭제 중 오류가 발생했습니다.")
+        console.error("Failed to delete post:", error);
+        alert("게시글 삭제 중 오류가 발생했습니다.");
       }
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -181,11 +194,11 @@ export default function PostDetailPage() {
           <p className="text-gray-600">게시글을 불러오는 중...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!post) {
-    return null
+    return null;
   }
 
   return (
@@ -227,15 +240,21 @@ export default function PostDetailPage() {
           <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl mb-8">
             <CardContent className="p-8 text-center">
               <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-gray-800 mb-2">비밀글입니다</h2>
-              <p className="text-gray-600 mb-6">이 게시글을 보려면 비밀번호를 입력해주세요.</p>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">
+                비밀글입니다
+              </h2>
+              <p className="text-gray-600 mb-6">
+                이 게시글을 보려면 비밀번호를 입력해주세요.
+              </p>
               <div className="flex items-center space-x-2 max-w-sm mx-auto">
                 <Input
                   type="password"
                   placeholder="비밀번호"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handlePasswordSubmit()}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && handlePasswordSubmit()
+                  }
                 />
                 <Button onClick={handlePasswordSubmit}>확인</Button>
               </div>
@@ -251,19 +270,25 @@ export default function PostDetailPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      {post.password && <Lock className="w-4 h-4 text-red-500" />}
-                      {post.notice && <Badge className="bg-red-500 text-white">공지</Badge>}
+                      {post.password && (
+                        <Lock className="w-4 h-4 text-red-500" />
+                      )}
+                      {post.notice && (
+                        <Badge className="bg-red-500 text-white">공지</Badge>
+                      )}
                       {post.popularFlag && (
                         <Badge className="bg-orange-500 text-white">
                           {post.popularFlag === "REALTIME"
                             ? "실시간"
                             : post.popularFlag === "WEEKLY"
-                              ? "주간"
-                              : "레전드"}
+                            ? "주간"
+                            : "레전드"}
                         </Badge>
                       )}
                     </div>
-                    <CardTitle className="text-2xl font-bold text-gray-800 mb-3">{post.title}</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-gray-800 mb-3">
+                      {post.title}
+                    </CardTitle>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       <div className="flex items-center space-x-2">
                         <Avatar className="w-6 h-6">
@@ -292,7 +317,10 @@ export default function PostDetailPage() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="prose max-w-none">
-                  <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">{post.content}</div>
+                  <div
+                    className="text-gray-800 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                  />
                 </div>
 
                 {/* 추천 버튼 */}
@@ -300,7 +328,9 @@ export default function PostDetailPage() {
                   <Button
                     onClick={handleLike}
                     variant={post.userLike ? "default" : "outline"}
-                    className={post.userLike ? "bg-red-500 hover:bg-red-600" : ""}
+                    className={
+                      post.userLike ? "bg-red-500 hover:bg-red-600" : ""
+                    }
                     disabled={!isAuthenticated}
                   >
                     <ThumbsUp className="w-4 h-4 mr-2" />
@@ -317,13 +347,7 @@ export default function PostDetailPage() {
                   <CardTitle className="text-lg">댓글 작성</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Textarea
-                    placeholder="댓글을 입력하세요..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    rows={3}
-                    className="resize-none"
-                  />
+                  <Editor value={newComment} onChange={setNewComment} />
                   <div className="flex justify-end">
                     <Button
                       onClick={handleCommentSubmit}
@@ -348,11 +372,16 @@ export default function PostDetailPage() {
               </CardHeader>
               <CardContent>
                 {comments.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">첫 번째 댓글을 남겨보세요!</div>
+                  <div className="text-center py-8 text-gray-500">
+                    첫 번째 댓글을 남겨보세요!
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {comments.map((comment) => (
-                      <div key={comment.id} className="p-4 bg-gray-50 rounded-lg">
+                      <div
+                        key={comment.id}
+                        className="p-4 bg-gray-50 rounded-lg"
+                      >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <Avatar className="w-6 h-6">
@@ -360,15 +389,26 @@ export default function PostDetailPage() {
                                 {comment.userName.charAt(0)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="font-medium text-gray-800">{comment.userName}</span>
-                            <span className="text-xs text-gray-500">{comment.createdAt}</span>
+                            <span className="font-medium text-gray-800">
+                              {comment.userName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {comment.createdAt}
+                            </span>
                           </div>
-                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-600">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-500 hover:text-red-600"
+                          >
                             <ThumbsUp className="w-4 h-4 mr-1" />
                             {comment.likes}
                           </Button>
                         </div>
-                        <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                        <div
+                          className="text-gray-700"
+                          dangerouslySetInnerHTML={{ __html: comment.content }}
+                        />
                       </div>
                     ))}
                   </div>
@@ -379,5 +419,5 @@ export default function PostDetailPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

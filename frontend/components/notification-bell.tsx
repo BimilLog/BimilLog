@@ -78,20 +78,19 @@ export function NotificationBell() {
                     <div
                       key={notification.id}
                       className={`p-3 border-b hover:bg-gray-50 transition-colors ${
-                        !notification.isRead ? "bg-blue-50" : ""
+                        !notification ? "bg-blue-50" : ""
                       }`}
                     >
                       <div className="flex items-start space-x-3">
                         <div className="flex-shrink-0 mt-1">{getNotificationIcon(notification.type)}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{notification.title}</p>
-                          <p className="text-sm text-gray-600 line-clamp-2">{notification.content}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{notification.data}</p>
                           <p className="text-xs text-gray-400 mt-1">
                             {new Date(notification.createdAt).toLocaleString()}
                           </p>
                         </div>
                         <div className="flex-shrink-0 flex space-x-1">
-                          {!notification.isRead && (
+                          {!notification.read && (
                             <Button
                               variant="ghost"
                               size="sm"
