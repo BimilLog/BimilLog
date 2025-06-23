@@ -1,5 +1,6 @@
 package jaeik.growfarm.service.post;
 
+import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Users;
@@ -46,6 +47,20 @@ public class PostUpdateService {
             commentClosureRepository.deleteByCommentIds(commentIds);
         }
         postRepository.delete(post);
+    }
+
+    /**
+     * <h3>게시글 수정</h3>
+     * <p>게시글을 수정한다.</p>
+     *
+     * @param postDTO 게시글 DTO
+     * @param post    게시글 엔티티
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Transactional
+    public void postUpdate(PostDTO postDTO, Post post) {
+        post.updatePost(postDTO);
     }
 
     /**

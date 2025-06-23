@@ -147,7 +147,7 @@ public class PostService {
      */
     public void updatePost(CustomUserDetails userDetails, PostDTO postDTO) {
         Post post = ValidatePost(userDetails, postDTO);
-        post.updatePost(postDTO);
+        postUpdateService.postUpdate(postDTO, post);
     }
 
     /**

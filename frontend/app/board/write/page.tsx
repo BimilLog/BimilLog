@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
 const Editor = dynamic(() => import("@/components/editor"), { ssr: false });
+
+const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, "");
 
 export default function WritePostPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -23,13 +24,6 @@ export default function WritePostPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
-
-  // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
-  // 이 페이지는 비회원도 접근 가능하므로 주석 처리 또는 로직 변경
-  // if (!isLoading && !isAuthenticated) {
-  //   router.push("/login");
-  //   return null;
-  // }
 
   if (isLoading) {
     return (
@@ -45,7 +39,9 @@ export default function WritePostPage() {
   }
 
   const handleSubmit = async () => {
-    if (!title.trim() || !content.trim()) {
+    const plainContent = stripHtml(content).trim();
+
+    if (!title.trim() || !plainContent) {
       alert("제목과 내용을 모두 입력해주세요.");
       return;
     }
@@ -55,11 +51,22 @@ export default function WritePostPage() {
       return;
     }
 
+    if (password && !/^[0-9]+$/.test(password)) {
+      alert("비밀번호는 숫자만 입력 가능합니다.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const postData: { title: string; content: string; password?: number } = {
+      const postData: {
+        userName: string | null;
+        title: string;
+        content: string;
+        password?: number;
+      } = {
+        userName: isAuthenticated ? user!.userName : null,
         title: title.trim(),
-        content: content.trim(),
+        content: plainContent,
       };
 
       if (!isAuthenticated && password) {
@@ -70,8 +77,6 @@ export default function WritePostPage() {
       if (response.success && response.data) {
         alert("게시글이 성공적으로 작성되었습니다!");
         router.push(`/board/post/${response.data.postId}`);
-      } else {
-        alert("게시글 작성에 실패했습니다. 다시 시도해주세요.");
       }
     } catch (error) {
       console.error("Failed to create post:", error);
@@ -87,7 +92,6 @@ export default function WritePostPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -131,7 +135,6 @@ export default function WritePostPage() {
           <CardContent className="space-y-6">
             {!isPreview ? (
               <>
-                {/* 제목 입력 */}
                 <div className="space-y-2">
                   <Label
                     htmlFor="title"
@@ -148,7 +151,6 @@ export default function WritePostPage() {
                   />
                 </div>
 
-                {/* 내용 입력 */}
                 <div className="space-y-2">
                   <Label
                     htmlFor="content"
@@ -168,27 +170,25 @@ export default function WritePostPage() {
                       htmlFor="password"
                       className="text-sm font-medium text-gray-700"
                     >
-                      비밀번호 (숫자 4자리)
+                      비밀번호 (숫자 4-8자리)
                     </Label>
                     <Input
                       id="password"
-                      type="number"
+                      type="password"
                       placeholder="게시글 수정/삭제 시 필요합니다."
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      maxLength={4}
                       className="border-2 border-gray-200 focus:border-purple-400"
                     />
                   </div>
                 )}
 
-                {/* 작성자 정보 */}
                 {isAuthenticated && user && (
                   <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-bold">
-                          {user?.userName?.charAt(0)}
+                          {user?.userName?.charAt(0) || "?"}
                         </span>
                       </div>
                       <div>
@@ -204,9 +204,11 @@ export default function WritePostPage() {
                 )}
               </>
             ) : (
-              // 미리보기
-              <div className="prose max-w-none p-4 bg-gray-50 rounded-lg min-h-[400px]">
-                <h1 className="text-3xl font-bold mb-6">{title}</h1>
+              <div className="prose max-w-none">
+                <h1 className="text-3xl font-bold mb-4">{title}</h1>
+                <div className="text-sm text-gray-500 mb-6">
+                  작성자: {isAuthenticated ? user?.userName : "익명"}
+                </div>
                 {formatPreviewContent(content)}
               </div>
             )}

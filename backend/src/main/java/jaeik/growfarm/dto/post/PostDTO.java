@@ -2,6 +2,8 @@ package jaeik.growfarm.dto.post;
 
 import jaeik.growfarm.entity.post.PopularFlag;
 import jaeik.growfarm.entity.post.Post;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +47,8 @@ public class PostDTO {
 
     private boolean userLike;
 
-    @Size(max = 8, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
+    @Min(value = 4, message = "비밀번호는 최소 4글자 이상 입력해야 합니다.")
+    @Max(value = 8, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
     private Integer password;
 
     /**

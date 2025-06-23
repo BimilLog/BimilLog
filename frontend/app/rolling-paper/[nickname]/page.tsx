@@ -1,80 +1,113 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { MessageSquare, Plus, Heart, Share2, ArrowLeft, Send } from "lucide-react"
-import Link from "next/link"
-import { useParams } from "next/navigation"
-import { rollingPaperApi, getDecoInfo, type VisitMessage, type RollingPaperMessage } from "@/lib/api"
-import { useAuth } from "@/hooks/useAuth"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  MessageSquare,
+  Plus,
+  Heart,
+  Share2,
+  ArrowLeft,
+  Send,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import {
+  rollingPaperApi,
+  getDecoInfo,
+  type VisitMessage,
+  type RollingPaperMessage,
+} from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PublicRollingPaperPage() {
-  const params = useParams()
-  const nickname = params.nickname as string
-  const { user, isAuthenticated } = useAuth()
-  const [messages, setMessages] = useState<{ [key: number]: VisitMessage | RollingPaperMessage }>({})
-  const [isLoading, setIsLoading] = useState(true)
-  const [isOwner, setIsOwner] = useState(false)
+  const params = useParams();
+  const { user, isAuthenticated } = useAuth();
+  const [nickname, setNickname] = useState<string>("");
+  const [messages, setMessages] = useState<{
+    [key: number]: VisitMessage | RollingPaperMessage;
+  }>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
+
+  // params에서 nickname 추출
+  useEffect(() => {
+    if (params.nickname) {
+      setNickname(params.nickname as string);
+    }
+  }, [params]);
 
   // 롤링페이퍼 메시지 조회
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await rollingPaperApi.getRollingPaper(nickname)
+        const response = await rollingPaperApi.getRollingPaper(nickname);
         if (response.success && response.data) {
-          const messageMap: { [key: number]: VisitMessage } = {}
+          const messageMap: { [key: number]: VisitMessage } = {};
           response.data.forEach((message) => {
-            const position = message.height * 6 + message.width // 6칸으로 변경
-            messageMap[position] = message
-          })
-          setMessages(messageMap)
+            const position = message.height * 6 + message.width; // 6칸으로 변경
+            messageMap[position] = message;
+          });
+          setMessages(messageMap);
         }
       } catch (error) {
-        console.error("Failed to fetch messages:", error)
+        console.error("Failed to fetch messages:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
     if (nickname) {
-      fetchMessages()
+      fetchMessages();
     }
-  }, [nickname])
+  }, [nickname]);
 
   // 소유자 확인
   useEffect(() => {
     if (isAuthenticated && user && nickname) {
-      setIsOwner(user.userName === decodeURIComponent(nickname))
+      setIsOwner(user.userName === decodeURIComponent(nickname));
     }
-  }, [isAuthenticated, user, nickname])
+  }, [isAuthenticated, user, nickname]);
 
   const handleShare = async () => {
-    const url = window.location.href
+    const url = window.location.href;
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${nickname}님의 롤링페이퍼`,
           text: "익명으로 따뜻한 메시지를 남겨보세요!",
           url: url,
-        })
+        });
       } catch (error) {
-        console.log("Share cancelled")
+        console.log("Share cancelled");
       }
     } else {
       try {
-        await navigator.clipboard.writeText(url)
-        alert("링크가 클립보드에 복사되었습니다!")
+        await navigator.clipboard.writeText(url);
+        alert("링크가 클립보드에 복사되었습니다!");
       } catch (error) {
-        console.error("Failed to copy to clipboard:", error)
+        console.error("Failed to copy to clipboard:", error);
       }
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -83,10 +116,12 @@ export default function PublicRollingPaperPage() {
           <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="w-7 h-7 text-white animate-pulse" />
           </div>
-          <p className="text-gray-600 font-medium">롤링페이퍼를 불러오는 중...</p>
+          <p className="text-gray-600 font-medium">
+            롤링페이퍼를 불러오는 중...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -106,13 +141,22 @@ export default function PublicRollingPaperPage() {
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-gray-800">{decodeURIComponent(nickname)}님의 롤링페이퍼</h1>
-                <p className="text-xs text-gray-500">총 {Object.keys(messages).length}개의 메시지</p>
+                <h1 className="font-bold text-gray-800">
+                  {decodeURIComponent(nickname)}님의 롤링페이퍼
+                </h1>
+                <p className="text-xs text-gray-500">
+                  총 {Object.keys(messages).length}개의 메시지
+                </p>
               </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="bg-white" onClick={handleShare}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white"
+              onClick={handleShare}
+            >
               <Share2 className="w-4 h-4 mr-2" />
               공유하기
             </Button>
@@ -146,7 +190,8 @@ export default function PublicRollingPaperPage() {
                   key={i}
                   className="w-6 h-6 bg-white rounded-full shadow-inner border-2 border-pink-300"
                   style={{
-                    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1)",
+                    boxShadow:
+                      "inset 0 2px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1)",
                   }}
                 />
               ))}
@@ -161,10 +206,18 @@ export default function PublicRollingPaperPage() {
                 </h1>
 
                 {/* 귀여운 데코레이션 */}
-                <div className="absolute -top-2 -left-4 text-2xl animate-bounce">🌸</div>
-                <div className="absolute -top-1 -right-6 text-xl animate-pulse">✨</div>
-                <div className="absolute -bottom-2 left-8 text-lg animate-bounce delay-300">🎀</div>
-                <div className="absolute -bottom-1 right-12 text-xl animate-pulse delay-500">💖</div>
+                <div className="absolute -top-2 -left-4 text-2xl animate-bounce">
+                  🌸
+                </div>
+                <div className="absolute -top-1 -right-6 text-xl animate-pulse">
+                  ✨
+                </div>
+                <div className="absolute -bottom-2 left-8 text-lg animate-bounce delay-300">
+                  🎀
+                </div>
+                <div className="absolute -bottom-1 right-12 text-xl animate-pulse delay-500">
+                  💖
+                </div>
 
                 <p className="text-pink-600 text-sm mt-2 transform rotate-1 font-medium">
                   총 {Object.keys(messages).length}개의 따뜻한 메시지 💌
@@ -177,8 +230,10 @@ export default function PublicRollingPaperPage() {
               <div className="grid grid-cols-6 gap-3 bg-white/30 p-6 rounded-2xl border-2 border-dashed border-pink-300">
                 {Array.from({ length: 84 }, (_, i) => {
                   // 6x14 = 84칸
-                  const hasMessage = messages[i]
-                  const decoInfo = hasMessage ? getDecoInfo(hasMessage.decoType) : null
+                  const hasMessage = messages[i];
+                  const decoInfo = hasMessage
+                    ? getDecoInfo(hasMessage.decoType)
+                    : null;
 
                   return (
                     <Dialog key={i}>
@@ -200,7 +255,9 @@ export default function PublicRollingPaperPage() {
                         >
                           {hasMessage ? (
                             <div className="relative">
-                              <span className="text-2xl animate-bounce">{decoInfo?.emoji}</span>
+                              <span className="text-2xl animate-bounce">
+                                {decoInfo?.emoji}
+                              </span>
                               {/* 반짝이는 효과 */}
                               <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300 rounded-full animate-ping"></div>
                             </div>
@@ -215,7 +272,9 @@ export default function PublicRollingPaperPage() {
                       <DialogContent className="max-w-md mx-4 bg-gradient-to-br from-pink-50 to-purple-50 border-4 border-pink-200 rounded-3xl">
                         <DialogHeader>
                           <DialogTitle className="text-center text-pink-800 font-bold">
-                            {hasMessage ? "💌 메시지 보기" : "✨ 새 메시지 작성"}
+                            {hasMessage
+                              ? "💌 메시지 보기"
+                              : "✨ 새 메시지 작성"}
                           </DialogTitle>
                         </DialogHeader>
                         {hasMessage ? (
@@ -228,22 +287,30 @@ export default function PublicRollingPaperPage() {
                               setMessages((prev) => ({
                                 ...prev,
                                 [i]: newMessage,
-                              }))
+                              }));
                             }}
                           />
                         )}
                       </DialogContent>
                     </Dialog>
-                  )
+                  );
                 })}
               </div>
             </div>
 
             {/* 귀여운 스티커들 */}
-            <div className="absolute top-16 right-8 text-3xl animate-spin-slow">🌟</div>
-            <div className="absolute top-32 left-12 text-2xl animate-bounce">🦋</div>
-            <div className="absolute bottom-20 right-16 text-2xl animate-pulse">🌺</div>
-            <div className="absolute bottom-32 left-8 text-xl animate-bounce delay-700">🍀</div>
+            <div className="absolute top-16 right-8 text-3xl animate-spin-slow">
+              🌟
+            </div>
+            <div className="absolute top-32 left-12 text-2xl animate-bounce">
+              🦋
+            </div>
+            <div className="absolute bottom-20 right-16 text-2xl animate-pulse">
+              🌺
+            </div>
+            <div className="absolute bottom-32 left-8 text-xl animate-bounce delay-700">
+              🍀
+            </div>
           </div>
         </div>
 
@@ -260,7 +327,7 @@ export default function PublicRollingPaperPage() {
               {Object.values(messages)
                 .slice(-3)
                 .map((message) => {
-                  const decoInfo = getDecoInfo(message.decoType)
+                  const decoInfo = getDecoInfo(message.decoType);
                   return (
                     <div
                       key={message.id}
@@ -273,23 +340,36 @@ export default function PublicRollingPaperPage() {
                       </div>
                       <div className="flex-1">
                         <p className="text-gray-800 text-sm font-medium">
-                          {"content" in message ? message.content : "누군가 따뜻한 메시지를 남겼어요 💕"}
+                          {"content" in message
+                            ? message.content
+                            : "누군가 따뜻한 메시지를 남겼어요 💕"}
                         </p>
                         <div className="flex items-center space-x-2 mt-2">
-                          <Badge variant="outline" className="text-xs bg-white border-pink-300">
-                            {"anonymity" in message ? message.anonymity : "익명"}
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-white border-pink-300"
+                          >
+                            {"anonymity" in message
+                              ? message.anonymity
+                              : "익명"}
                           </Badge>
-                          <span className="text-xs text-gray-500 font-medium">{decoInfo.name}</span>
+                          <span className="text-xs text-gray-500 font-medium">
+                            {decoInfo.name}
+                          </span>
                         </div>
                       </div>
                     </div>
-                  )
+                  );
                 })}
               {Object.keys(messages).length === 0 && (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">📝</div>
-                  <p className="text-gray-500 text-lg font-semibold">아직 메시지가 없어요</p>
-                  <p className="text-gray-400 text-sm mt-2 font-medium">첫 번째 메시지를 남겨보세요! 💌</p>
+                  <p className="text-gray-500 text-lg font-semibold">
+                    아직 메시지가 없어요
+                  </p>
+                  <p className="text-gray-400 text-sm mt-2 font-medium">
+                    첫 번째 메시지를 남겨보세요! 💌
+                  </p>
                 </div>
               )}
             </div>
@@ -297,14 +377,20 @@ export default function PublicRollingPaperPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
-function MessageView({ message, isOwner }: { message: VisitMessage | RollingPaperMessage; isOwner: boolean }) {
-  const decoInfo = getDecoInfo(message.decoType)
+function MessageView({
+  message,
+  isOwner,
+}: {
+  message: VisitMessage | RollingPaperMessage;
+  isOwner: boolean;
+}) {
+  const decoInfo = getDecoInfo(message.decoType);
 
   const handleDelete = async () => {
-    if (!isOwner || !("content" in message)) return
+    if (!isOwner || !("content" in message)) return;
 
     if (confirm("정말로 이 메시지를 삭제하시겠습니까?")) {
       try {
@@ -316,16 +402,16 @@ function MessageView({ message, isOwner }: { message: VisitMessage | RollingPape
           content: message.content,
           width: message.width,
           height: message.height,
-        })
+        });
         if (response.success) {
-          window.location.reload()
+          window.location.reload();
         }
       } catch (error) {
-        console.error("Failed to delete message:", error)
-        alert("메시지 삭제에 실패했습니다.")
+        console.error("Failed to delete message:", error);
+        alert("메시지 삭제에 실패했습니다.");
       }
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -341,14 +427,21 @@ function MessageView({ message, isOwner }: { message: VisitMessage | RollingPape
       >
         <div className="flex items-center space-x-3 mb-4">
           <span className="text-4xl animate-bounce">{decoInfo.emoji}</span>
-          <Badge variant="secondary" className="bg-white/80 text-pink-800 border-pink-300 font-semibold">
+          <Badge
+            variant="secondary"
+            className="bg-white/80 text-pink-800 border-pink-300 font-semibold"
+          >
             {decoInfo.name}
           </Badge>
         </div>
         {"content" in message ? (
-          <p className="text-gray-800 leading-relaxed font-medium">{message.content}</p>
+          <p className="text-gray-800 leading-relaxed font-medium">
+            {message.content}
+          </p>
         ) : (
-          <p className="text-gray-500 italic font-medium">메시지 내용을 볼 수 없습니다</p>
+          <p className="text-gray-500 italic font-medium">
+            메시지 내용을 볼 수 없습니다
+          </p>
         )}
 
         {/* 반짝이는 효과 */}
@@ -359,7 +452,10 @@ function MessageView({ message, isOwner }: { message: VisitMessage | RollingPape
       <div className="flex items-center justify-between">
         <div>
           {"anonymity" in message && (
-            <Badge variant="outline" className="bg-pink-50 border-pink-300 text-pink-800 font-semibold">
+            <Badge
+              variant="outline"
+              className="bg-pink-50 border-pink-300 text-pink-800 font-semibold"
+            >
               {message.anonymity}
             </Badge>
           )}
@@ -376,44 +472,52 @@ function MessageView({ message, isOwner }: { message: VisitMessage | RollingPape
         )}
       </div>
     </div>
-  )
+  );
 }
 
 const decoTypeMap = {
   POTATO: { name: "감자", emoji: "🥔", color: "from-yellow-400 to-orange-500" },
-  SWEET_POTATO: { name: "고구마", emoji: "🍠", color: "from-orange-500 to-red-600" },
+  SWEET_POTATO: {
+    name: "고구마",
+    emoji: "🍠",
+    color: "from-orange-500 to-red-600",
+  },
   CHESTNUT: { name: "밤", emoji: "🌰", color: "from-amber-600 to-yellow-700" },
   PEANUT: { name: "땅콩", emoji: "🥜", color: "from-yellow-700 to-yellow-800" },
-  ACORN: { name: "도토리", emoji: "🌰", color: "from-orange-800 to-yellow-900" },
-}
+  ACORN: {
+    name: "도토리",
+    emoji: "🌰",
+    color: "from-orange-800 to-yellow-900",
+  },
+};
 
 function MessageForm({
   nickname,
   position,
   onSubmit,
 }: {
-  nickname: string
-  position: { x: number; y: number }
-  onSubmit: (message: any) => void
+  nickname: string;
+  position: { x: number; y: number };
+  onSubmit: (message: any) => void;
 }) {
-  const [content, setContent] = useState("")
-  const [anonymity, setAnonymity] = useState("")
-  const [decoType, setDecoType] = useState("POTATO")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [content, setContent] = useState("");
+  const [anonymity, setAnonymity] = useState("");
+  const [decoType, setDecoType] = useState("POTATO");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const decoOptions = Object.entries(getDecoInfo).map(([key, info]) => ({
     value: key,
     label: `${info.emoji} ${info.name}`,
     info,
-  }))
+  }));
 
   const handleSubmit = async () => {
     if (!content.trim() || !anonymity.trim()) {
-      alert("모든 필드를 입력해주세요.")
-      return
+      alert("모든 필드를 입력해주세요.");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const response = await rollingPaperApi.createMessage(nickname, {
         decoType,
@@ -421,7 +525,7 @@ function MessageForm({
         content: content.trim(),
         width: position.x,
         height: position.y,
-      })
+      });
 
       if (response.success) {
         onSubmit({
@@ -432,27 +536,29 @@ function MessageForm({
           content: content.trim(),
           width: position.x,
           height: position.y,
-        })
-        setContent("")
-        setAnonymity("")
-        alert("메시지가 성공적으로 등록되었습니다! 💌")
+        });
+        setContent("");
+        setAnonymity("");
+        alert("메시지가 성공적으로 등록되었습니다! 💌");
       } else {
-        alert("메시지 등록에 실패했습니다. 다시 시도해주세요.")
+        alert("메시지 등록에 실패했습니다. 다시 시도해주세요.");
       }
     } catch (error) {
-      console.error("Failed to create message:", error)
-      alert("메시지 등록에 실패했습니다. 다시 시도해주세요.")
+      console.error("Failed to create message:", error);
+      alert("메시지 등록에 실패했습니다. 다시 시도해주세요.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const selectedDecoInfo = getDecoInfo(decoType)
+  const selectedDecoInfo = getDecoInfo(decoType);
 
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-bold mb-3 text-pink-800">💭 익명 닉네임</label>
+        <label className="block text-sm font-bold mb-3 text-pink-800">
+          💭 익명 닉네임
+        </label>
         <Input
           placeholder="익명의 친구"
           value={anonymity}
@@ -462,7 +568,9 @@ function MessageForm({
       </div>
 
       <div>
-        <label className="block text-sm font-bold mb-3 text-pink-800">💌 따뜻한 메시지</label>
+        <label className="block text-sm font-bold mb-3 text-pink-800">
+          💌 따뜻한 메시지
+        </label>
         <Textarea
           placeholder="따뜻한 메시지를 남겨주세요..."
           value={content}
@@ -473,7 +581,9 @@ function MessageForm({
       </div>
 
       <div>
-        <label className="block text-sm font-bold mb-3 text-pink-800">🎨 데코레이션 선택</label>
+        <label className="block text-sm font-bold mb-3 text-pink-800">
+          🎨 데코레이션 선택
+        </label>
         <Select value={decoType} onValueChange={setDecoType}>
           <SelectTrigger className="border-3 border-pink-300 rounded-2xl focus:border-pink-500 bg-pink-50">
             <SelectValue>
@@ -514,5 +624,5 @@ function MessageForm({
         )}
       </Button>
     </div>
-  )
+  );
 }

@@ -17,6 +17,7 @@ import {
   MessageSquare,
   User as UserIcon,
   TrendingUp,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -95,6 +96,16 @@ export function MobileNav() {
                 >
                   <UserIcon className="w-5 h-5" />
                   <span>마이페이지</span>
+                </Link>
+              )}
+              {isAuthenticated && user?.role === "ADMIN" && (
+                <Link
+                  href="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center space-x-2 p-2 rounded-md hover:bg-red-100 text-red-600"
+                >
+                  <Shield className="w-5 h-5" />
+                  <span>관리자</span>
                 </Link>
               )}
             </nav>

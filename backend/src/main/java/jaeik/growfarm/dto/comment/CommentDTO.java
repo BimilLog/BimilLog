@@ -1,6 +1,8 @@
 package jaeik.growfarm.dto.comment;
 
 import jaeik.growfarm.entity.comment.Comment;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -42,6 +44,8 @@ public class CommentDTO {
 
     private boolean deleted;
 
+    @Min(value = 1000, message = "비밀번호는 최소 4글자 이상 입력해야 합니다.")
+    @Max(value = 99999999, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
     private Integer password;
 
     private int likes;

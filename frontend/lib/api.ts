@@ -139,6 +139,21 @@ export interface Setting {
   paperNotification: boolean;
 }
 
+// 신고 타입
+export interface Report {
+  reportId: number
+  reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
+  userId: number
+  targetId: number
+  content: string
+  createdAt?: string
+  targetTitle?: string
+  targetAuthor?: string
+  reporterNickname?: string
+  reason?: string
+  status?: "pending" | "investigating" | "resolved" | "rejected"
+}
+
 // 페이지네이션 타입
 export interface PageResponse<T> {
   totalPages: number
@@ -216,13 +231,16 @@ class ApiClient {
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`)
       }
       
-      const contentType = response.headers.get("content-type");
       let data;
-
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json()
-      } else {
-        data = await response.text();
+      try {
+        // 먼저 JSON 파싱 시도 (clone 사용)
+        data = await response.clone().json();
+      } catch (jsonError) {
+        try {
+          data = await response.text();
+        } catch (textError) {
+          data = null;
+        }
       }
 
       return {
@@ -404,6 +422,7 @@ export const boardApi = {
 
   // 게시글 작성
   createPost: (post: {
+    userName: string | null
     title: string
     content: string
     password?: number
@@ -413,10 +432,13 @@ export const boardApi = {
   updatePost: (post: Post) => apiClient.post("/post/update", post),
 
   // 게시글 삭제
-  deletePost: (post: Post) => apiClient.post("/post/delete", post),
+  deletePost: (postId: number, password?: string) => {
+    const payload = password ? { postId, password: Number(password) } : { postId };
+    return apiClient.post("/post/delete", payload);
+  },
 
   // 게시글 추천/취소
-  likePost: (post: Post) => apiClient.post("/post/like", post),
+  likePost: (postId: number) => apiClient.post("/post/like", { postId }),
 
   // 실시간 인기글 조회
   getRealtimePosts: () => apiClient.get<SimplePost[]>("/post/realtime"),
@@ -446,13 +468,23 @@ export const commentApi = {
   }) => apiClient.post("/comment/write", comment),
 
   // 댓글 수정
-  updateComment: (comment: Comment) => apiClient.post("/comment/update", comment),
+  updateComment: (commentId: number, data: { content: string; password?: string }) => {
+    const payload = data.password 
+      ? { id: commentId, content: data.content, password: Number(data.password) }
+      : { id: commentId, content: data.content };
+    return apiClient.post("/comment/update", payload);
+  },
 
   // 댓글 삭제
-  deleteComment: (comment: Comment) => apiClient.post("/comment/delete", comment),
+  deleteComment: (commentId: number, password?: string) => {
+    const payload = password 
+      ? { id: commentId, password: Number(password) }
+      : { id: commentId };
+    return apiClient.post("/comment/delete", payload);
+  },
 
   // 댓글 추천/취소
-  likeComment: (comment: Comment) => apiClient.post("/comment/like", comment),
+  likeComment: (commentId: number) => apiClient.post("/comment/like", { id: commentId }),
 }
 
 // 알림 관련 API
@@ -476,14 +508,14 @@ export const adminApi = {
   getReports: (page = 0, size = 20, reportType?: string) => {
     const params = new URLSearchParams({ page: page.toString(), size: size.toString() })
     if (reportType) params.append("reportType", reportType)
-    return apiClient.get(`/api/admin/report?${params.toString()}`)
+    return apiClient.get(`/admin/report?${params.toString()}`)
   },
 
   // 신고 상세 조회
-  getReport: (reportId: number) => apiClient.get(`/api/admin/report/${reportId}`),
+  getReport: (reportId: number) => apiClient.get(`/admin/report/${reportId}`),
 
   // 사용자 차단
-  banUser: (userId: number) => apiClient.post(`/api/admin/user/ban?userId=${userId}`),
+  banUser: (userId: number) => apiClient.post(`/admin/user/ban?userId=${userId}`),
 }
 
 // SSE 연결 관리

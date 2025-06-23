@@ -43,14 +43,21 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoService kakaoService;
 
-
     /**
      * <h3>필터 내부 처리</h3>
      *
-     * <p>Security Filter Chain중 사용자인증필터앞에 삽입되어 JWT토큰에 관한 처리를 하는 필터입니다.</p>
-     * <p>로그인이 필요한 요청은 엑세스 토큰과 리프레시 토큰이 모두 유효한 경우만 통과 가능합니다.</p>
-     * <p>엑세스 토큰이 유효하지 않은 경우 리프레시 토큰을 검증하여 새로운 엑세스 토큰을 발급합니다.</p>
-     * <p>리프레시 토큰이 유효하지 않는 경우 401에러가 반환되며 재 로그인을 해야합니다.</p>
+     * <p>
+     * Security Filter Chain중 사용자인증필터앞에 삽입되어 JWT토큰에 관한 처리를 하는 필터입니다.
+     * </p>
+     * <p>
+     * 로그인이 필요한 요청은 엑세스 토큰과 리프레시 토큰이 모두 유효한 경우만 통과 가능합니다.
+     * </p>
+     * <p>
+     * 엑세스 토큰이 유효하지 않은 경우 리프레시 토큰을 검증하여 새로운 엑세스 토큰을 발급합니다.
+     * </p>
+     * <p>
+     * 리프레시 토큰이 유효하지 않는 경우 401에러가 반환되며 재 로그인을 해야합니다.
+     * </p>
      *
      * @param request     HTTP 요청 객체
      * @param response    HTTP 응답 객체
@@ -61,7 +68,8 @@ public class JwtFilter extends OncePerRequestFilter {
      * @since 1.0.0
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         String accessToken = extractTokenFromCookie(request, JwtTokenProvider.ACCESS_TOKEN_COOKIE);
 
@@ -70,7 +78,8 @@ public class JwtFilter extends OncePerRequestFilter {
             setAuthentication(accessToken);
         } else { // accessToken이 없거나 유효 하지 않을 때
             String refreshToken = extractTokenFromCookie(request, JwtTokenProvider.REFRESH_TOKEN_COOKIE);
-            // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을 검증
+            // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을
+            // 검증
             if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
                 Long tokenId = jwtTokenProvider.getTokenIdFromToken(refreshToken);
                 Long fcmTokenId = jwtTokenProvider.getFcmTokenIdFromToken(refreshToken);
@@ -80,8 +89,8 @@ public class JwtFilter extends OncePerRequestFilter {
                     TokenDTO tokenDTO = kakaoService.refreshToken(token.getKakaoRefreshToken());
                     token.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
 
-                    // 유저 정보 조회
-                    Users user = userRepository.findById(token.getUsers().getId()).orElseThrow();
+                    // 유저 정보 조회 (Setting 포함)
+                    Users user = userRepository.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
                     ClientDTO clientDTO = new ClientDTO(user, tokenId, fcmTokenId);
 
                     // 새로운 accessTokenCookie 발급

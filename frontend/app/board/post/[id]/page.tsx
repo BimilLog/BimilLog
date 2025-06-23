@@ -4,419 +4,449 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { boardApi, commentApi, type Post, type Comment } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  ArrowLeft,
-  ThumbsUp,
-  MessageSquare,
-  Edit,
-  Trash2,
-  Eye,
-  Lock,
-  Send,
-  Loader2,
-} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 
-const Editor = dynamic(() => import("@/components/editor"), { ssr: false });
+// 분리된 컴포넌트들 import
+import { PostHeader } from "./components/PostHeader";
+import { PostContent } from "./components/PostContent";
+import { CommentForm } from "./components/CommentForm";
+import { PopularComments } from "./components/PopularComments";
+import { CommentList } from "./components/CommentList";
+import { PasswordModal } from "./components/PasswordModal";
+
+interface CommentWithReplies extends Comment {
+  replies?: CommentWithReplies[];
+}
 
 export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
-  const postId = Number.parseInt(params.id as string);
+  const [id, setId] = useState<string | null>(null);
 
   const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPasswordRequired, setIsPasswordRequired] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
+  const [comments, setComments] = useState<CommentWithReplies[]>([]);
+  const [popularComments, setPopularComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [modalPassword, setModalPassword] = useState("");
+  const [passwordModalTitle, setPasswordModalTitle] = useState("");
+  const [pendingAction, setPendingAction] = useState<() => void>(() => {});
+
+  // 댓글 관련 상태
   const [newComment, setNewComment] = useState("");
+  const [commentPassword, setCommentPassword] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
-  // 게시글 조회
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const response = await boardApi.getPost(postId);
-        if (response.success && response.data) {
-          setPost(response.data);
-          // 비밀글이고 비밀번호가 필요한 경우
-          if (response.data.password && !response.data.content) {
-            setIsPasswordRequired(true);
-          }
-        } else {
-          alert("게시글을 찾을 수 없습니다.");
-          router.push("/board");
-        }
-      } catch (error) {
-        console.error("Failed to fetch post:", error);
-        alert("게시글을 불러오는데 실패했습니다.");
-        router.push("/board");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // 답글 관련 상태
+  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [replyPassword, setReplyPassword] = useState("");
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
-    if (postId) {
+  // 댓글 수정 관련 상태
+  const [editingComment, setEditingComment] = useState<Comment | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+
+  // params에서 id 추출
+  useEffect(() => {
+    if (params.id) {
+      setId(params.id as string);
+    }
+  }, [params]);
+
+  useEffect(() => {
+    if (id) {
       fetchPost();
+      fetchComments();
     }
-  }, [postId, router]);
+  }, [id]);
 
-  // 댓글 조회
-  useEffect(() => {
-    const fetchComments = async () => {
-      if (!post || isPasswordRequired) return;
-
-      try {
-        const response = await commentApi.getComments(postId);
-        if (response.success && response.data) {
-          setComments(response.data.content);
-        }
-      } catch (error) {
-        console.error("Failed to fetch comments:", error);
-      }
-    };
-
-    fetchComments();
-  }, [postId, post, isPasswordRequired]);
-
-  const handlePasswordSubmit = async () => {
-    if (!passwordInput) {
-      alert("비밀번호를 입력해주세요.");
-      return;
-    }
-
+  const fetchPost = async () => {
     try {
-      // 비밀번호 확인 로직 (실제 API에서는 서버에서 처리)
-      if (post && Number.parseInt(passwordInput) === post.password) {
-        setIsPasswordRequired(false);
-        setPasswordInput("");
+      const response = await boardApi.getPost(Number(id));
+      if (response.success && response.data) {
+        setPost(response.data);
       } else {
-        alert("비밀번호가 틀렸습니다.");
+        throw new Error("게시글을 불러올 수 없습니다");
       }
     } catch (error) {
-      alert("비밀번호 확인 중 오류가 발생했습니다.");
+      console.error("게시글 조회 실패:", error);
+      router.push("/board");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTotalCommentCount = (
+    comments: (Comment & { replies?: Comment[] })[]
+  ): number => {
+    let count = 0;
+    comments.forEach((comment) => {
+      count += 1; // 현재 댓글
+      if (comment.replies) {
+        count += getTotalCommentCount(comment.replies); // 재귀적으로 답글 개수 계산
+      }
+    });
+    return count;
+  };
+
+  const buildCommentTree = (comments: Comment[]): Comment[] => {
+    const commentMap = new Map<number, Comment & { replies: Comment[] }>();
+    const rootComments: Comment[] = [];
+
+    // 먼저 모든 댓글을 Map에 저장하고 replies 배열 초기화
+    comments.forEach((comment) => {
+      commentMap.set(comment.id, { ...comment, replies: [] });
+    });
+
+    // 부모-자식 관계 설정
+    comments.forEach((comment) => {
+      if (comment.parentId && commentMap.has(comment.parentId)) {
+        const parent = commentMap.get(comment.parentId)!;
+        const child = commentMap.get(comment.id)!;
+        parent.replies.push(child);
+      } else {
+        // 부모가 없으면 루트 댓글
+        rootComments.push(commentMap.get(comment.id)!);
+      }
+    });
+
+    return rootComments;
+  };
+
+  const fetchComments = async () => {
+    try {
+      const [commentsResponse, popularResponse] = await Promise.all([
+        commentApi.getComments(Number(id), 0),
+        commentApi.getPopularComments(Number(id)),
+      ]);
+
+      if (commentsResponse.success && commentsResponse.data) {
+        const treeComments = buildCommentTree(commentsResponse.data.content);
+        setComments(treeComments);
+      }
+
+      if (popularResponse.success && popularResponse.data) {
+        setPopularComments(popularResponse.data);
+      }
+    } catch (error) {
+      console.error("댓글 조회 실패:", error);
+    }
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (modalPassword) {
+      pendingAction();
+      setShowPasswordModal(false);
+      setModalPassword("");
     }
   };
 
   const handleLike = async () => {
-    if (!isAuthenticated || !post) {
-      alert("로그인이 필요합니다.");
-      return;
-    }
-
+    if (!post) return;
     try {
-      const response = await boardApi.likePost(post);
-      if (response.success) {
-        setPost((prev) =>
-          prev
-            ? {
-                ...prev,
-                likes: prev.userLike ? prev.likes - 1 : prev.likes + 1,
-                userLike: !prev.userLike,
-              }
-            : null
-        );
-      }
+      await boardApi.likePost(post.postId);
+      fetchPost();
     } catch (error) {
-      console.error("Failed to like post:", error);
+      console.error("추천 실패:", error);
     }
   };
 
   const handleCommentSubmit = async () => {
-    if (!isAuthenticated || !user) {
-      alert("로그인이 필요합니다.");
-      return;
-    }
-
-    if (!newComment.trim()) {
-      alert("댓글 내용을 입력해주세요.");
-      return;
-    }
+    if (!newComment.trim()) return;
+    if (!isAuthenticated && !commentPassword.trim()) return;
 
     setIsSubmittingComment(true);
     try {
-      const response = await commentApi.createComment({
-        postId,
-        userName: user.userName,
-        content: newComment.trim(),
+      await commentApi.createComment({
+        postId: Number(id),
+        userName: isAuthenticated ? user?.userName || "" : "비회원",
+        content: newComment,
+        password: isAuthenticated ? undefined : Number(commentPassword),
       });
 
-      if (response.success) {
-        setNewComment("");
-        // 댓글 목록 새로고침
-        const commentsResponse = await commentApi.getComments(postId);
-        if (commentsResponse.success && commentsResponse.data) {
-          setComments(commentsResponse.data.content);
-        }
-      } else {
-        alert("댓글 작성에 실패했습니다.");
-      }
+      setNewComment("");
+      setCommentPassword("");
+      await fetchComments();
     } catch (error) {
-      console.error("Failed to create comment:", error);
-      alert("댓글 작성 중 오류가 발생했습니다.");
+      console.error("댓글 작성 실패:", error);
     } finally {
       setIsSubmittingComment(false);
     }
   };
 
-  const handleDeletePost = async () => {
-    if (!post || !user || post.userId !== user.userId) return;
+  const handleReplySubmit = async () => {
+    if (!replyContent.trim() || !replyingTo) return;
+    if (!isAuthenticated && !replyPassword.trim()) return;
 
-    if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
-      try {
-        const response = await boardApi.deletePost(post);
-        if (response.success) {
-          alert("게시글이 삭제되었습니다.");
-          router.push("/board");
-        } else {
-          alert("게시글 삭제에 실패했습니다.");
-        }
-      } catch (error) {
-        console.error("Failed to delete post:", error);
-        alert("게시글 삭제 중 오류가 발생했습니다.");
+    setIsSubmittingReply(true);
+    try {
+      await commentApi.createComment({
+        postId: Number(id),
+        userName: isAuthenticated ? user?.userName || "" : "비회원",
+        content: replyContent,
+        parentId: replyingTo.id,
+        password: isAuthenticated ? undefined : Number(replyPassword),
+      });
+
+      setReplyContent("");
+      setReplyPassword("");
+      setReplyingTo(null);
+      await fetchComments();
+    } catch (error) {
+      console.error("답글 작성 실패:", error);
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+    setReplyContent("");
+    setReplyPassword("");
+  };
+
+  const handleLikeComment = async (comment: Comment) => {
+    try {
+      await commentApi.likeComment(comment.id);
+      await fetchComments();
+    } catch (error) {
+      console.error("댓글 추천 실패:", error);
+    }
+  };
+
+  const scrollToComment = (commentId: number) => {
+    const element = document.getElementById(`comment-${commentId}`);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      // 하이라이트 효과
+      const commentContent = element.querySelector(".comment-content");
+      if (commentContent) {
+        commentContent.classList.add("bg-yellow-200");
+        setTimeout(() => {
+          commentContent.classList.remove("bg-yellow-200");
+        }, 2000);
       }
     }
   };
 
-  if (isLoading) {
+  const handleDeletePost = async () => {
+    if (!post) return;
+
+    const deleteAction = async () => {
+      try {
+        if (post.userName === "비회원") {
+          await boardApi.deletePost(post.postId, modalPassword);
+        } else {
+          await boardApi.deletePost(post.postId);
+        }
+        router.push("/board");
+      } catch (error) {
+        console.error("게시글 삭제 실패:", error);
+      }
+    };
+
+    if (post.userName === "비회원") {
+      setPasswordModalTitle("게시글 삭제");
+      setPendingAction(() => deleteAction);
+      setShowPasswordModal(true);
+    } else {
+      await deleteAction();
+    }
+  };
+
+  const canModify = () => {
+    if (!post) return false;
+    if (post.userName === "비회원") {
+      return !isAuthenticated;
+    }
+    return isAuthenticated && user?.userName === post.userName;
+  };
+
+  const isMyComment = (comment: Comment) => {
+    return isAuthenticated && user?.userName === comment.userName;
+  };
+
+  const canModifyComment = (comment: Comment) => {
+    if (comment.userName === "비회원") {
+      return !isAuthenticated;
+    }
+    return isAuthenticated && user?.userName === comment.userName;
+  };
+
+  const handleEditComment = (comment: Comment) => {
+    setEditingComment(comment);
+    setEditContent(comment.content);
+    setEditPassword("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingComment(null);
+    setEditContent("");
+    setEditPassword("");
+  };
+
+  const handleUpdateComment = async () => {
+    if (!editingComment || !editContent.trim()) return;
+
+    try {
+      if (isMyComment(editingComment)) {
+        await commentApi.updateComment(editingComment.id, {
+          content: editContent,
+        });
+      } else {
+        if (!editPassword.trim()) return;
+        await commentApi.updateComment(editingComment.id, {
+          content: editContent,
+          password: editPassword,
+        });
+      }
+
+      setEditingComment(null);
+      setEditContent("");
+      setEditPassword("");
+      await fetchComments();
+    } catch (error) {
+      console.error("댓글 수정 실패:", error);
+    }
+  };
+
+  const handleDeleteComment = (comment: Comment) => {
+    const deleteAction = (password?: string) => {
+      confirmDeleteComment(comment, password);
+    };
+
+    if (comment.userName === "비회원") {
+      setPasswordModalTitle("댓글 삭제");
+      setPendingAction(() => deleteAction(modalPassword));
+      setShowPasswordModal(true);
+    } else {
+      deleteAction();
+    }
+  };
+
+  const confirmDeleteComment = async (comment: Comment, password?: string) => {
+    try {
+      if (comment.userName === "비회원") {
+        await commentApi.deleteComment(comment.id, password);
+      } else {
+        await commentApi.deleteComment(comment.id);
+      }
+      await fetchComments();
+    } catch (error) {
+      console.error("댓글 삭제 실패:", error);
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">게시글을 불러오는 중...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
   }
 
   if (!post) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+        <p>게시글을 찾을 수 없습니다.</p>
+      </div>
+    );
   }
 
+  const commentCount = getTotalCommentCount(comments);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8">
+        {/* 뒤로가기 버튼 */}
+        <div className="mb-6">
           <Link href="/board">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              게시판으로
-            </Button>
+            <ArrowLeft className="w-5 h-5 inline mr-2" />
+            목록으로 돌아가기
           </Link>
-          {isAuthenticated && user && post.userId === user.userId && (
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" asChild className="bg-white">
-                <Link href={`/board/post/${postId}/edit`}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  수정
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDeletePost}
-                className="bg-white text-red-600 border-red-200 hover:bg-red-50"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                삭제
-              </Button>
-            </div>
-          )}
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* 비밀번호 입력 */}
-        {isPasswordRequired && (
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl mb-8">
-            <CardContent className="p-8 text-center">
-              <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-gray-800 mb-2">
-                비밀글입니다
-              </h2>
-              <p className="text-gray-600 mb-6">
-                이 게시글을 보려면 비밀번호를 입력해주세요.
-              </p>
-              <div className="flex items-center space-x-2 max-w-sm mx-auto">
-                <Input
-                  type="password"
-                  placeholder="비밀번호"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  onKeyPress={(e) =>
-                    e.key === "Enter" && handlePasswordSubmit()
-                  }
-                />
-                <Button onClick={handlePasswordSubmit}>확인</Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* 게시글 카드 */}
+        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-8">
+          <PostHeader
+            post={post}
+            commentCount={commentCount}
+            canModify={canModify}
+            onDeleteClick={handleDeletePost}
+          />
+          <PostContent
+            post={post}
+            isAuthenticated={isAuthenticated}
+            onLike={handleLike}
+          />
+        </Card>
 
-        {/* 게시글 내용 */}
-        {!isPasswordRequired && (
-          <>
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl mb-8">
-              <CardHeader className="border-b">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      {post.password && (
-                        <Lock className="w-4 h-4 text-red-500" />
-                      )}
-                      {post.notice && (
-                        <Badge className="bg-red-500 text-white">공지</Badge>
-                      )}
-                      {post.popularFlag && (
-                        <Badge className="bg-orange-500 text-white">
-                          {post.popularFlag === "REALTIME"
-                            ? "실시간"
-                            : post.popularFlag === "WEEKLY"
-                            ? "주간"
-                            : "레전드"}
-                        </Badge>
-                      )}
-                    </div>
-                    <CardTitle className="text-2xl font-bold text-gray-800 mb-3">
-                      {post.title}
-                    </CardTitle>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <div className="flex items-center space-x-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs">
-                            {post.userName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{post.userName}</span>
-                      </div>
-                      <span>{post.createdAt}</span>
-                      <div className="flex items-center space-x-1">
-                        <Eye className="w-4 h-4" />
-                        <span>{post.views}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <ThumbsUp className="w-4 h-4" />
-                        <span>{post.likes}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>{comments.length}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="prose max-w-none">
-                  <div
-                    className="text-gray-800 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  />
-                </div>
+        {/* 댓글 작성 폼 */}
+        <CommentForm
+          isAuthenticated={isAuthenticated}
+          newComment={newComment}
+          commentPassword={commentPassword}
+          isSubmittingComment={isSubmittingComment}
+          onCommentChange={setNewComment}
+          onPasswordChange={setCommentPassword}
+          onSubmit={handleCommentSubmit}
+        />
 
-                {/* 추천 버튼 */}
-                <div className="flex items-center justify-center mt-8 pt-6 border-t">
-                  <Button
-                    onClick={handleLike}
-                    variant={post.userLike ? "default" : "outline"}
-                    className={
-                      post.userLike ? "bg-red-500 hover:bg-red-600" : ""
-                    }
-                    disabled={!isAuthenticated}
-                  >
-                    <ThumbsUp className="w-4 h-4 mr-2" />
-                    추천 {post.likes}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+        {/* 인기 댓글 */}
+        <PopularComments
+          popularComments={popularComments}
+          onCommentClick={scrollToComment}
+        />
 
-            {/* 댓글 작성 */}
-            {isAuthenticated && (
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-8">
-                <CardHeader>
-                  <CardTitle className="text-lg">댓글 작성</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Editor value={newComment} onChange={setNewComment} />
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleCommentSubmit}
-                      disabled={isSubmittingComment || !newComment.trim()}
-                      className="bg-gradient-to-r from-pink-500 to-purple-600"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      {isSubmittingComment ? "작성 중..." : "댓글 작성"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+        {/* 댓글 목록 */}
+        <CommentList
+          comments={comments}
+          commentCount={commentCount}
+          editingComment={editingComment}
+          editContent={editContent}
+          editPassword={editPassword}
+          replyingTo={replyingTo}
+          replyContent={replyContent}
+          replyPassword={replyPassword}
+          isAuthenticated={isAuthenticated}
+          isSubmittingReply={isSubmittingReply}
+          onEditComment={handleEditComment}
+          onUpdateComment={handleUpdateComment}
+          onCancelEdit={handleCancelEdit}
+          onDeleteComment={handleDeleteComment}
+          onReplyTo={setReplyingTo}
+          onReplySubmit={handleReplySubmit}
+          onCancelReply={handleCancelReply}
+          setEditContent={setEditContent}
+          setEditPassword={setEditPassword}
+          setReplyContent={setReplyContent}
+          setReplyPassword={setReplyPassword}
+          isMyComment={isMyComment}
+          onLikeComment={handleLikeComment}
+          canModifyComment={canModifyComment}
+        />
 
-            {/* 댓글 목록 */}
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MessageSquare className="w-5 h-5 text-purple-600" />
-                  <span>댓글 {comments.length}개</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {comments.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    첫 번째 댓글을 남겨보세요!
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {comments.map((comment) => (
-                      <div
-                        key={comment.id}
-                        className="p-4 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="w-6 h-6">
-                              <AvatarFallback className="bg-gradient-to-r from-blue-500 to-green-600 text-white text-xs">
-                                {comment.userName.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium text-gray-800">
-                              {comment.userName}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {comment.createdAt}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-500 hover:text-red-600"
-                          >
-                            <ThumbsUp className="w-4 h-4 mr-1" />
-                            {comment.likes}
-                          </Button>
-                        </div>
-                        <div
-                          className="text-gray-700"
-                          dangerouslySetInnerHTML={{ __html: comment.content }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </>
-        )}
+        {/* 비밀번호 모달 */}
+        <PasswordModal
+          isOpen={showPasswordModal}
+          password={modalPassword}
+          onPasswordChange={setModalPassword}
+          onConfirm={handlePasswordSubmit}
+          onCancel={() => {
+            setShowPasswordModal(false);
+            setModalPassword("");
+          }}
+          title={passwordModalTitle}
+        />
       </div>
     </div>
   );

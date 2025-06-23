@@ -99,21 +99,36 @@ export default function BoardPage() {
     fetchPostsAndSearch(0);
   }, [postsPerPage]);
 
+  // 주간/레전드 인기글 데이터 지연 로딩
   useEffect(() => {
-    const fetchPopular = async () => {
+    const fetchWeekly = async () => {
+      // 데이터가 이미 있으면 다시 호출하지 않음
+      if (weeklyPosts.length > 0) return;
       try {
-        const [weeklyRes, legendRes] = await Promise.all([
-          boardApi.getWeeklyPosts(),
-          boardApi.getLegendPosts(),
-        ]);
-        if (weeklyRes.success && weeklyRes.data) setWeeklyPosts(weeklyRes.data);
-        if (legendRes.success && legendRes.data) setLegendPosts(legendRes.data);
+        const res = await boardApi.getWeeklyPosts();
+        if (res.success && res.data) setWeeklyPosts(res.data);
       } catch (error) {
-        console.error("Failed to fetch popular posts:", error);
+        console.error("Failed to fetch weekly posts:", error);
       }
     };
-    fetchPopular();
-  }, []);
+
+    const fetchLegend = async () => {
+      // 데이터가 이미 있으면 다시 호출하지 않음
+      if (legendPosts.length > 0) return;
+      try {
+        const res = await boardApi.getLegendPosts();
+        if (res.success && res.data) setLegendPosts(res.data);
+      } catch (error) {
+        console.error("Failed to fetch legend posts:", error);
+      }
+    };
+
+    if (activeTab === "popular") {
+      fetchWeekly();
+    } else if (activeTab === "legend") {
+      fetchLegend();
+    }
+  }, [activeTab]); // weeklyPosts, legendPosts는 의존성 배열에서 제거하여 탭 이동마다 재호출되지 않도록 함
 
   const handleSearch = () => {
     // 검색 시 항상 첫 페이지부터 결과 표시
@@ -131,17 +146,15 @@ export default function BoardPage() {
             <MessageSquare className="w-6 h-6 text-purple-600" />
             <h1 className="text-xl font-bold text-gray-800">커뮤니티 게시판</h1>
           </div>
-          {isAuthenticated && (
-            <Button
-              asChild
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
-            >
-              <Link href="/board/write">
-                <Edit className="w-4 h-4 mr-2" />
-                글쓰기
-              </Link>
-            </Button>
-          )}
+          <Button
+            asChild
+            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+          >
+            <Link href="/board/write">
+              <Edit className="w-4 h-4 mr-2" />
+              글쓰기
+            </Link>
+          </Button>
         </div>
       </header>
 

@@ -2,10 +2,9 @@ package jaeik.growfarm.entity.post;
 
 import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
-import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.entity.BaseEntity;
+import jaeik.growfarm.entity.user.Users;
 import jakarta.persistence.*;
-import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -104,7 +103,6 @@ public class Post extends BaseEntity {
      * @author Jaeik
      * @param postDTO 업데이트할 게시글 정보
      */
-    @Transactional
     public void updatePost(PostDTO postDTO) {
         this.title = postDTO.getTitle();
         this.content = postDTO.getContent();

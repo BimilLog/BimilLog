@@ -46,6 +46,14 @@ export function AuthHeader() {
                 마이페이지
               </Link>
             )}
+            {isAuthenticated && user?.role === "ADMIN" && (
+              <Link
+                href="/admin"
+                className="text-red-600 hover:text-red-700 transition-colors font-semibold"
+              >
+                관리자
+              </Link>
+            )}
             {!isAuthenticated && (
               <Link
                 href="/login"

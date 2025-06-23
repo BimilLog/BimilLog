@@ -94,7 +94,6 @@ public class Comment extends BaseEntity {
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional
     public void updateComment(String content) {
         this.content = content;
     }
