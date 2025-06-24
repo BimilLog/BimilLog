@@ -102,7 +102,7 @@ export function MobileNav({ className }: MobileNavProps) {
               </div>
 
               {/* 네비게이션 링크들 */}
-              <nav className="flex-1 px-6 py-4 space-y-2">
+              <nav className="flex-1 px-6 py-4 space-y-2 bg-white">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;

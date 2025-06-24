@@ -81,8 +81,10 @@ export default function LoginPage() {
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">로그인 없이도 이용 가능!</p>
                   <p>
-                    다른 사람의 롤링페이퍼에 메시지를 남기는 것은 로그인 없이도
-                    가능합니다.
+                    로그인 없이도 다른 사람의 롤링페이퍼에 메시지를 남길 수 있어요.
+                  </p>
+                  <p>
+                    게시판 이용도 할 수 있어요.
                   </p>
                 </div>
               </div>

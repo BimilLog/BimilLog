@@ -152,7 +152,6 @@ public class UserService {
         userUpdateService.userNameUpdate(userName, user);
     }
 
-
     /**
      * <h3>닉네임 중복 확인</h3>
      *
@@ -190,7 +189,6 @@ public class UserService {
         Report report = Report.DtoToReport(reportDTO, user);
         reportRepository.save(report);
     }
-
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
@@ -232,12 +230,7 @@ public class UserService {
         Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingDTO().getSettingId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
 
-        return new SettingDTO(
-                setting.getId(),
-                setting.isMessageNotification(),
-                setting.isCommentNotification(),
-                setting.isPostFeaturedNotification()
-        );
+        return new SettingDTO(setting);
     }
 
     /**
@@ -247,7 +240,7 @@ public class UserService {
      * 사용자의 알림 설정을 업데이트한다.
      * </p>
      *
-     * @param settingDTO 설정 정보 DTO
+     * @param settingDTO  설정 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
      * @since 1.0.0
@@ -258,8 +251,6 @@ public class UserService {
 
         userUpdateService.settingUpdate(settingDTO, setting);
     }
-
-
 
     /**
      * <h3>카카오 친구 목록 조회 동의 여부를 확인한다.</h3>

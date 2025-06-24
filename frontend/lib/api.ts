@@ -139,6 +139,21 @@ export interface Setting {
   postFeaturedNotification: boolean
 }
 
+// 카카오 친구 타입
+export interface KakaoFriend {
+  id: number
+  uuid: string
+  userName: string
+  profile_nickname: string
+  profile_thumbnail_image: string
+}
+
+// 카카오 친구 목록 타입
+export interface KakaoFriendList {
+  elements: KakaoFriend[]
+  total_count: number
+}
+
 // 신고 타입
 export interface Report {
   reportId: number
@@ -358,7 +373,7 @@ export const userApi = {
   getUserSettings: () => apiClient.get<Setting>("/user/setting"),
 
   // 사용자 설정 수정
-  updateUserSettings: (settings: Partial<Setting>) => apiClient.post("/user/setting", settings),
+  updateUserSettings: (settings: Setting) => apiClient.post("/user/setting", settings),
 
   // 건의사항 제출
   submitSuggestion: (report: {
@@ -369,7 +384,7 @@ export const userApi = {
   }) => apiClient.post("/user/suggestion", report),
 
   // 카카오 친구 목록 조회
-  getFriendList: (offset: number) => apiClient.post(`/user/friendlist?offset=${offset}`),
+  getFriendList: (offset: number) => apiClient.post<KakaoFriendList>(`/user/friendlist?offset=${offset}`),
 
   // 사용자가 작성한 글 목록
   getUserPosts: (page = 0, size = 10) =>

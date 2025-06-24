@@ -59,11 +59,18 @@ export default function SettingsPage() {
   const updateSettings = async (newSettings: Partial<Setting>) => {
     if (!settings) return;
 
+    // 현재 설정값과 새로운 설정값을 병합하여 전체 설정 객체 생성
+    const fullSettings: Setting = {
+      ...settings,
+      ...newSettings,
+    };
+
     try {
       setSaving(true);
-      const response = await userApi.updateUserSettings(newSettings);
+      // 항상 전체 설정 객체를 전송
+      const response = await userApi.updateUserSettings(fullSettings);
       if (response.success) {
-        setSettings({ ...settings, ...newSettings });
+        setSettings(fullSettings);
       }
     } catch (error) {
       console.error("설정 저장 실패:", error);
@@ -79,10 +86,12 @@ export default function SettingsPage() {
     >,
     value: boolean
   ) => {
+    // 개별 설정 변경 시에도 전체 설정값 전송
     updateSettings({ [field]: value });
   };
 
   const handleAllToggle = (enabled: boolean) => {
+    // 전체 설정 변경
     updateSettings({
       messageNotification: enabled,
       commentNotification: enabled,
@@ -166,12 +175,12 @@ export default function SettingsPage() {
 
       <main className="container mx-auto px-4 pb-8">
         <div className="max-w-2xl mx-auto space-y-6">
-          {/* FCM 알림 설정 카드 */}
+          {/* 푸시 알림 설정 카드 */}
           <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="w-5 h-5 text-purple-600" />
-                FCM 알림 설정
+                푸시 알림 설정
               </CardTitle>
               <CardDescription>
                 각 알림 유형을 개별적으로 설정할 수 있습니다.

@@ -89,6 +89,7 @@ export {
 // Content Components
 export { default as Editor } from './molecules/editor';
 export { ReportModal } from './molecules/ReportModal';
+export { KakaoFriendsModal } from './molecules/kakao-friends-modal';
 
 // State Components
 export { 

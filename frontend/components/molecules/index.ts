@@ -8,6 +8,7 @@ export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './dialog';
 export { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './sheet';
 export { ReportModal } from './ReportModal';
+export { KakaoFriendsModal } from './kakao-friends-modal';
 export { default as Editor } from './editor';
 export { SearchBox } from './search-box';
 export { FormField } from './form-field';
@@ -34,6 +35,7 @@ export * from './sheet';
 // Content Components
 export * from './editor';
 export * from './ReportModal';
+export * from './kakao-friends-modal';
 
 // State Components
 export * from './loading';

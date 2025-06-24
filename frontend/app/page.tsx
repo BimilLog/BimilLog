@@ -2,13 +2,21 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, MessageCircle, Users, Sparkles } from "lucide-react";
+import { Heart, MessageCircle, Users, Sparkles, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { KakaoFriendsModal } from "@/components/molecules/kakao-friends-modal";
 
 export default function HomePage() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
+
+  const handleOpenFriendsModal = () => {
+    if (!isAuthenticated) return;
+    setIsFriendsModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
@@ -31,6 +39,16 @@ export default function HomePage() {
                 className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-8 py-3 text-lg"
               >
                 <Link href="/login">내 롤링페이퍼 만들기</Link>
+              </Button>
+            )}
+            {isAuthenticated && (
+              <Button
+                size="lg"
+                onClick={handleOpenFriendsModal}
+                className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 px-8 py-3 text-lg text-yellow-900 font-bold shadow-lg"
+              >
+                <UserCheck className="w-5 h-5 mr-2" />
+                카카오 친구 확인하기
               </Button>
             )}
             <Button
@@ -67,6 +85,20 @@ export default function HomePage() {
 
           <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm">
             <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                카카오 연동
+              </h3>
+              <p className="text-gray-600 text-sm">
+                카카오톡으로 간편하게 로그인하고 친구들에게 공유해보세요
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6 text-center">
               <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
@@ -89,20 +121,6 @@ export default function HomePage() {
               </h3>
               <p className="text-gray-600 text-sm">
                 다른 사용자들과 소통하고 인기글을 확인해보세요
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-800">
-                카카오 연동
-              </h3>
-              <p className="text-gray-600 text-sm">
-                카카오톡으로 간편하게 로그인하고 친구들에게 공유해보세요
               </p>
             </CardContent>
           </Card>
@@ -220,10 +238,16 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 비밀로그. All rights reserved.</p>
+            <p>&copy; 2025 비밀로그. All rights reserved.</p>
           </div>
         </div>
       </footer>
+
+      {/* 카카오 친구 모달 */}
+      <KakaoFriendsModal
+        isOpen={isFriendsModalOpen}
+        onClose={() => setIsFriendsModalOpen(false)}
+      />
     </div>
   );
 }

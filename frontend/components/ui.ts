@@ -23,6 +23,7 @@ export * from './molecules/select';
 export * from './molecules/dialog';
 export * from './molecules/sheet';
 export { ReportModal } from './molecules/ReportModal';
+export { KakaoFriendsModal } from './molecules/kakao-friends-modal';
 export { default as Editor } from './molecules/editor';
 export * from './molecules/search-box';
 export * from './molecules/form-field';

@@ -93,8 +93,9 @@ export function AuthHeader() {
               </span>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={logout}
-                className="bg-white text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                className="hidden md:flex bg-white text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
               >
                 로그아웃
               </Button>

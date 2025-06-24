@@ -49,9 +49,9 @@ frontend/components/
 
 - `Dialog` - 모달 다이얼로그
 - `Sheet` - 시트(사이드 패널)
-- `Popover` - 팝오버
-- `DropdownMenu` - 드롭다운 메뉴
-- `Select` - 선택 박스
+- `Popover` - 팝오버 (모바일 최적화, 완전 불투명 배경)
+- `DropdownMenu` - 드롭다운 메뉴 (모바일 최적화, 완전 불투명 배경)
+- `Select` - 선택 박스 (모바일 최적화, 완전 불투명 배경)
 
 **📝 폼 & 입력 컴포넌트**
 
@@ -60,7 +60,7 @@ frontend/components/
 
 **🎨 콘텐츠 컴포넌트**
 
-- `Editor` - 텍스트 에디터
+- `Editor` - 텍스트 에디터 (Quill 기반, SSR 안전)
 - `ReportModal` - 신고 모달
 
 **⏳ 상태 컴포넌트 (모바일 최적화)**
@@ -409,7 +409,68 @@ export function SearchPage() {
 }
 ```
 
-### 2. 모바일 최적화 로그인 페이지 만들기
+### 2. SSR 안전 텍스트 에디터 사용하기
+
+```typescript
+"use client";
+
+import React, { useState } from "react";
+import {
+  Button, // Atoms
+  Editor,
+  FormField,
+  Card, // Molecules
+  PageTemplate, // Templates
+} from "@/components";
+
+export function CreatePostPage() {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // 게시글 저장 로직
+    console.log({ title, content });
+  };
+
+  return (
+    <PageTemplate>
+      <div className="max-w-4xl mx-auto p-4">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-6">
+          새 글 작성하기
+        </h1>
+
+        <Card className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <FormField
+              label="제목"
+              name="title"
+              value={title}
+              onChange={setTitle}
+              placeholder="게시글 제목을 입력하세요"
+              required
+            />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                내용
+              </label>
+              {/* SSR 안전 에디터 - 자동으로 로딩 UI 표시 */}
+              <Editor value={content} onChange={setContent} />
+            </div>
+
+            <Button type="submit" size="full">
+              게시글 저장
+            </Button>
+          </form>
+        </Card>
+      </div>
+    </PageTemplate>
+  );
+}
+```
+
+### 3. 모바일 최적화 로그인 페이지 만들기
 
 ```typescript
 "use client";
@@ -560,6 +621,52 @@ const buttonHeight = "48px";
 if (validateTouchTarget(buttonHeight)) {
   console.log("터치 타겟 크기가 적절합니다!"); // true - 44px 이상
 }
+```
+
+## 🔧 SSR (서버 사이드 렌더링) 호환성
+
+이 컴포넌트 시스템은 **Next.js SSR과 완전 호환**되도록 설계되었습니다.
+
+### 🎯 SSR 안전 컴포넌트
+
+**클라이언트 전용 컴포넌트 (Dynamic Import 사용)**
+
+- `Editor` - Quill.js 기반 텍스트 에디터
+  - Next.js `dynamic()` 함수를 사용하여 클라이언트에서만 로드
+  - 로딩 중 스켈레톤 UI 표시
+  - `document` 객체 접근 문제 해결
+
+### 🚀 브라우저 특화 기능 처리
+
+**동적 로딩 패턴**
+
+```typescript
+import dynamic from "next/dynamic";
+
+// SSR 안전 에디터 로딩
+const Editor = dynamic(() => import("@/components/molecules/editor"), {
+  ssr: false,
+  loading: () => <EditorLoading />,
+});
+
+// 사용 예시
+<Editor value={content} onChange={setContent} />;
+```
+
+**브라우저 환경 체크**
+
+```typescript
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  // 브라우저에서만 실행되는 코드
+  const initBrowserOnlyFeature = async () => {
+    const module = await import("browser-only-library");
+    // 초기화 로직
+  };
+
+  initBrowserOnlyFeature();
+}, []);
 ```
 
 ## 📱 모바일 퍼스트 디자인 원칙
