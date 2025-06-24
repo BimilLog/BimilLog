@@ -74,8 +74,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 닉네임 변경
   const updateUserName = async (userName: string): Promise<boolean> => {
+    if (!user) {
+      console.error("User not available for username update");
+      return false;
+    }
+
     try {
-      const response = await userApi.updateUserName(userName);
+      const response = await userApi.updateUserName(user.userId, userName);
       if (response.success) {
         await refreshUser();
         return true;

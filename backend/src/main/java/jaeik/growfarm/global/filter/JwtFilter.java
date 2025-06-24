@@ -1,14 +1,13 @@
 package jaeik.growfarm.global.filter;
 
 import jaeik.growfarm.dto.user.ClientDTO;
-import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.kakao.KakaoService;
+import jaeik.growfarm.service.auth.AuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -41,7 +40,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final KakaoService kakaoService;
+    private final AuthService authService;
 
     /**
      * <h3>필터 내부 처리</h3>
@@ -86,8 +85,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 Token token = tokenRepository.findById(tokenId).orElseThrow();
                 if (Objects.equals(token.getId(), tokenId)) {
                     // 카카오 토큰 갱신
-                    TokenDTO tokenDTO = kakaoService.refreshToken(token.getKakaoRefreshToken());
-                    token.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
+                    authService.renewalKaKaoToken(token);
 
                     // 유저 정보 조회 (Setting 포함)
                     Users user = userRepository.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
@@ -104,6 +102,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
+
 
     /**
      * <h3>인증 정보 설정</h3>

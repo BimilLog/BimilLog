@@ -33,7 +33,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({
           <div className="mb-4">
             <Input
               type="password"
-              placeholder="비밀번호 (숫자만 입력)"
+              placeholder="비밀번호 (4자리 숫자)"
               value={commentPassword}
               onChange={(e) => onPasswordChange(e.target.value)}
             />

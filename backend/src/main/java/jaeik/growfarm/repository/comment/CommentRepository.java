@@ -51,4 +51,18 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
          * @since 1.0.0
          */
         List<Long> findCommentIdsByPostId(Long postId);
+
+        /**
+         * <h3>댓글 ID로 사용자 ID 조회</h3>
+         * <p>
+         * 댓글 ID로 해당 댓글을 작성한 사용자의 ID를 조회합니다.
+         * </p>
+         *
+         * @param commentId 댓글 ID
+         * @return 사용자 ID
+         * @author Jaeik
+         * @since 1.0.0
+         */
+        @Query("SELECT c.user.id FROM Comment c WHERE c.id = :commentId")
+        Long findUserIdByCommentId(@Param("commentId") Long commentId);
 }

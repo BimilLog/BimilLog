@@ -36,7 +36,7 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
               <div className="hover:text-purple-600 transition-colors">
                 {item.title && <p className="font-semibold">{item.title}</p>}
                 {item.content && (
-                  <p className="text-gray-600">"{item.content}"</p>
+                  <p className="text-gray-600">{item.content}</p>
                 )}
                 <p className="text-sm text-gray-400 mt-2">
                   {new Date(item.createdAt).toLocaleDateString()}

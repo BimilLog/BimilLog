@@ -1,11 +1,11 @@
 package jaeik.growfarm.controller;
 
+import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.auth.AuthService;
-import jaeik.growfarm.service.auth.UserUpdateService;
-import jaeik.growfarm.dto.auth.LoginResponseDTO;
+import jaeik.growfarm.service.auth.AuthUpdateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
-    private final UserUpdateService userUpdateService;
+    private final AuthUpdateService authUpdateService;
 
     /**
      * <h3>카카오 로그인 API</h3>
@@ -100,7 +100,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         authService.kakaoLogout(userDetails);
-        userUpdateService.logoutUser(userDetails.getUserId());
+        authUpdateService.logoutUser(userDetails.getUserId());
         List<ResponseCookie> cookies = authService.logout(userDetails);
         return ResponseEntity.ok()
                 .header("Set-Cookie", cookies.get(0).toString())

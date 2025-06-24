@@ -10,6 +10,7 @@ interface CommentWithReplies extends Comment {
 interface CommentListProps {
   comments: CommentWithReplies[];
   commentCount: number;
+  postId: number;
   editingComment: Comment | null;
   editContent: string;
   editPassword: string;
@@ -37,6 +38,7 @@ interface CommentListProps {
 export const CommentList: React.FC<CommentListProps> = ({
   comments,
   commentCount,
+  postId,
   editingComment,
   editContent,
   editPassword,
@@ -76,6 +78,7 @@ export const CommentList: React.FC<CommentListProps> = ({
                 key={comment.id}
                 comment={comment}
                 depth={0}
+                postId={postId}
                 editingComment={editingComment}
                 editContent={editContent}
                 editPassword={editPassword}

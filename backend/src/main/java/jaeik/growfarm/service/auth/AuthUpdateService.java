@@ -19,19 +19,27 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 
 /**
  * <h2>UserUpdateService 클래스</h2>
- * <p>사용자 정보를 저장하고 업데이트하는 클래스</p>
- * <p>기존 유저 저장</p>
- * <p>신규 유저 저장</p>
+ * <p>
+ * 사용자 정보를 저장하고 업데이트하는 클래스
+ * </p>
+ * <p>
+ * 기존 유저 저장
+ * </p>
+ * <p>
+ * 신규 유저 저장
+ * </p>
+ * 
  * @since 1.0.0
  * @author Jaeik
  */
 @Service
 @RequiredArgsConstructor
-public class UserUpdateService {
+public class AuthUpdateService {
 
     private final TokenRepository tokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -41,22 +49,26 @@ public class UserUpdateService {
     private final FcmTokenRepository fcmTokenRepository;
     private final UserJdbcRepository userJdbcRepository;
     private final CommentRepository commentRepository;
+    private final EntityManager entityManager;
 
     /**
      * <h3>기존 유저 저장</h3>
      *
-     * <p>기존 유저의 정보를 업데이트하고 JWT 쿠키를 생성하여 반환합니다.</p>
+     * <p>
+     * 기존 유저의 정보를 업데이트하고 JWT 쿠키를 생성하여 반환합니다.
+     * </p>
      *
-     * @param user 기존 유저 정보
+     * @param user         기존 유저 정보
      * @param kakaoInfoDTO 카카오 정보 DTO
-     * @param tokenDTO 토큰 DTO
-     * @param fcmToken FCM 토큰 (선택)
+     * @param tokenDTO     토큰 DTO
+     * @param fcmToken     FCM 토큰 (선택)
      * @return JWT 쿠키 리스트
      * @since 1.0.0
      * @author Jaeik
      */
     @Transactional
-    public List<ResponseCookie> saveExistUser(Users user, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+    public List<ResponseCookie> saveExistUser(Users user, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO,
+            String fcmToken) {
         user.updateUserInfo(kakaoInfoDTO.getKakaoNickname(), kakaoInfoDTO.getThumbnailImage());
         return jwtTokenProvider.generateJwtCookie(new ClientDTO(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
@@ -66,20 +78,24 @@ public class UserUpdateService {
     /**
      * <h3>신규 유저 저장</h3>
      *
-     * <p>신규 유저의 정보를 저장하고 JWT 쿠키를 생성하여 반환합니다.</p>
+     * <p>
+     * 신규 유저의 정보를 저장하고 JWT 쿠키를 생성하여 반환합니다.
+     * </p>
      *
-     * @param userName 닉네임
-     * @param uuid UUID
+     * @param userName     닉네임
+     * @param uuid         UUID
      * @param kakaoInfoDTO 카카오 정보 DTO
-     * @param tokenDTO 토큰 DTO
-     * @param fcmToken FCM 토큰 (선택)
+     * @param tokenDTO     토큰 DTO
+     * @param fcmToken     FCM 토큰 (선택)
      * @return JWT 쿠키 리스트
      * @since 1.0.0
      * @author Jaeik
      */
     @Transactional
-    public List<ResponseCookie> saveNewUser(String userName, String uuid, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
-        Users user = userRepository.save(Users.createUser(kakaoInfoDTO, userName, settingRepository.save(Setting.createSetting())));
+    public List<ResponseCookie> saveNewUser(String userName, String uuid, KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO,
+            String fcmToken) {
+        Users user = userRepository
+                .save(Users.createUser(kakaoInfoDTO, userName, settingRepository.save(Setting.createSetting())));
         tempUserDataManager.removeTempData(uuid);
         return jwtTokenProvider.generateJwtCookie(new ClientDTO(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
@@ -89,7 +105,9 @@ public class UserUpdateService {
     /**
      * <h3>로그아웃 처리</h3>
      *
-     * <p>사용자의 모든 토큰과 FCM 토큰을 삭제합니다.</p>
+     * <p>
+     * 사용자의 모든 토큰과 FCM 토큰을 삭제합니다.
+     * </p>
      *
      * @param userId 사용자 ID
      * @since 1.0.0
@@ -104,7 +122,9 @@ public class UserUpdateService {
     /**
      * <h3>회원 탈퇴 처리</h3>
      *
-     * <p>사용자의 댓글을 처리하고, 사용자 정보를 삭제합니다.</p>
+     * <p>
+     * 사용자의 댓글을 처리하고, 사용자 정보를 삭제합니다.
+     * </p>
      *
      * @param userId 사용자 ID
      * @since 1.0.0
@@ -112,9 +132,18 @@ public class UserUpdateService {
      */
     @Transactional
     public void performWithdrawProcess(Long userId) {
+        // 댓글 처리
         commentRepository.processUserCommentsOnWithdrawal(userId);
+
+        // 영속성 컨텍스트 정리
+        entityManager.flush();
+        entityManager.clear();
+
+        // 모든 토큰과 FCM 토큰 삭제
+        userJdbcRepository.deleteAllTokensByUserId(userId);
+        fcmTokenRepository.deleteByUsers_Id(userId);
+
+        // ID로 직접 사용자 삭제 (엔티티 조회 없이 삭제)
         userRepository.deleteById(userId);
     }
 }
-
-

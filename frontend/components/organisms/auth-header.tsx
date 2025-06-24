@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart } from "lucide-react";
-import { MobileNav } from "@/components/mobile-nav";
+import { Button } from "@/components/atoms/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
+import { Heart, Settings } from "lucide-react";
+import { MobileNav } from "@/components/organisms/mobile-nav";
 import { NotificationBell } from "./notification-bell";
 
 export function AuthHeader() {
@@ -37,6 +37,12 @@ export function AuthHeader() {
               className="text-gray-600 hover:text-gray-900 transition-colors"
             >
               게시판
+            </Link>
+            <Link
+              href="/suggest"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              건의하기
             </Link>
             {isAuthenticated && (
               <Link
@@ -71,6 +77,13 @@ export function AuthHeader() {
           ) : isAuthenticated && user ? (
             <>
               <NotificationBell />
+              <Link
+                href="/settings"
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title="설정"
+              >
+                <Settings className="w-5 h-5" />
+              </Link>
               <Avatar className="h-9 w-9">
                 <AvatarImage src={user.thumbnailImage} alt={user.userName} />
                 <AvatarFallback>{getInitials(user.userName)}</AvatarFallback>

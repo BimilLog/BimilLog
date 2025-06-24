@@ -44,7 +44,7 @@ public class SimpleCommentDTO {
     public SimpleCommentDTO(Long id, Long postId, String userName, String content, Instant createdAt, int likes, boolean userLike) {
         this.id = id;
         this.postId = postId;
-        this.userName = userName != null ? userName : "비회원";
+        this.userName = userName != null ? userName : "익명";
         this.content = content;
         this.createdAt = createdAt;
         this.likes = likes;

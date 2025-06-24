@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, MessageCircle, Users, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { AuthHeader } from "@/components/auth-header";
+import { AuthHeader } from "@/components/organisms/auth-header";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {

@@ -8,8 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>사용자 엔티티</h2>
@@ -90,7 +88,6 @@ public class Users extends BaseEntity {
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateUserName(String userName) {
         this.userName = userName;
     }

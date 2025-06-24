@@ -305,12 +305,7 @@ public class CommentService {
 
         try {
             boolean hasDescendants = commentClosureRepository.hasDescendants(commentId);
-
-            if (hasDescendants) {
-                comment.softDelete();
-            } else {
-                commentUpdateService.hardDelete(commentId, comment);
-            }
+            commentUpdateService.commentDelete(hasDescendants, commentId, comment);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.COMMENT_DELETE_FAILED);
         }

@@ -29,10 +29,10 @@ public class CommentDTO {
 
     private Long parentId;
 
-    @NotNull
     private Long postId;
 
-    @NotNull
+    private Long userId;
+
     @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
     private String userName;
 
@@ -44,8 +44,8 @@ public class CommentDTO {
 
     private boolean deleted;
 
-    @Min(value = 1000, message = "비밀번호는 최소 4글자 이상 입력해야 합니다.")
-    @Max(value = 99999999, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
+    @Min(value = 1000, message = "비밀번호는 4자리 숫자여야 합니다.")
+    @Max(value = 9999, message = "비밀번호는 4자리 숫자여야 합니다.")
     private Integer password;
 
     private int likes;
@@ -68,7 +68,8 @@ public class CommentDTO {
     public CommentDTO(Comment comment) {
         this.id = comment.getId();
         this.postId = comment.getPost().getId();
-        this.userName = comment.getUser() != null ? comment.getUser().getUserName() : "비회원";
+        this.userName = comment.getUser() != null ? comment.getUser().getUserName() : "익명";
+        this.userId = comment.getUser() != null ? comment.getUser().getId() : null;
         this.content = comment.getContent();
         this.createdAt = comment.getCreatedAt();
         this.password = comment.getPassword();

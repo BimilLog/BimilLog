@@ -1,15 +1,31 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Bell, Check, Trash2, MessageSquare, Heart, TrendingUp } from "lucide-react"
-import { useNotifications } from "@/hooks/useNotifications"
-import { useAuth } from "@/hooks/useAuth"
+import { Button } from "@/components/atoms/button";
+import { Badge } from "@/components/atoms/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/molecules/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/molecules/popover";
+import {
+  Bell,
+  Check,
+  Trash2,
+  MessageSquare,
+  Heart,
+  TrendingUp,
+} from "lucide-react";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useAuth } from "@/hooks/useAuth";
 
 export function NotificationBell() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth();
   const {
     notifications,
     unreadCount,
@@ -18,24 +34,24 @@ export function NotificationBell() {
     deleteNotification,
     markAllAsRead,
     requestNotificationPermission,
-  } = useNotifications()
+  } = useNotifications();
 
-  if (!isAuthenticated) return null
+  if (!isAuthenticated) return null;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "MESSAGE":
-        return <MessageSquare className="w-4 h-4 text-purple-600" />
+        return <MessageSquare className="w-4 h-4 text-purple-600" />;
       case "COMMENT":
-        return <MessageSquare className="w-4 h-4 text-blue-600" />
+        return <MessageSquare className="w-4 h-4 text-blue-600" />;
       case "LIKE":
-        return <Heart className="w-4 h-4 text-red-600" />
+        return <Heart className="w-4 h-4 text-red-600" />;
       case "POPULAR_POST":
-        return <TrendingUp className="w-4 h-4 text-orange-600" />
+        return <TrendingUp className="w-4 h-4 text-orange-600" />;
       default:
-        return <Bell className="w-4 h-4 text-gray-600" />
+        return <Bell className="w-4 h-4 text-gray-600" />;
     }
-  }
+  };
 
   return (
     <Popover>
@@ -55,11 +71,21 @@ export function NotificationBell() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">알림</CardTitle>
               <div className="flex space-x-2">
-                <Button variant="ghost" size="sm" onClick={requestNotificationPermission} className="text-xs">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={requestNotificationPermission}
+                  className="text-xs"
+                >
                   브라우저 알림 허용
                 </Button>
                 {unreadCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={markAllAsRead}
+                    className="text-xs"
+                  >
                     모두 읽음
                   </Button>
                 )}
@@ -71,7 +97,9 @@ export function NotificationBell() {
               {isLoading ? (
                 <div className="p-4 text-center text-gray-500">로딩 중...</div>
               ) : notifications.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">알림이 없습니다</div>
+                <div className="p-4 text-center text-gray-500">
+                  알림이 없습니다
+                </div>
               ) : (
                 <div className="space-y-1">
                   {notifications.map((notification) => (
@@ -82,9 +110,13 @@ export function NotificationBell() {
                       }`}
                     >
                       <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 mt-1">{getNotificationIcon(notification.type)}</div>
+                        <div className="flex-shrink-0 mt-1">
+                          {getNotificationIcon(notification.type)}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{notification.data}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {notification.data}
+                          </p>
                           <p className="text-xs text-gray-400 mt-1">
                             {new Date(notification.createdAt).toLocaleString()}
                           </p>
@@ -119,5 +151,5 @@ export function NotificationBell() {
         </Card>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

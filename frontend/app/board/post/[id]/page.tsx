@@ -23,7 +23,7 @@ interface CommentWithReplies extends Comment {
 export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [id, setId] = useState<string | null>(null);
 
   const [post, setPost] = useState<Post | null>(null);
@@ -33,7 +33,8 @@ export default function PostDetailPage() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [modalPassword, setModalPassword] = useState("");
   const [passwordModalTitle, setPasswordModalTitle] = useState("");
-  const [pendingAction, setPendingAction] = useState<() => void>(() => {});
+  const [deleteMode, setDeleteMode] = useState<"post" | "comment" | null>(null);
+  const [targetComment, setTargetComment] = useState<Comment | null>(null);
 
   // 댓글 관련 상태
   const [newComment, setNewComment] = useState("");
@@ -139,11 +140,22 @@ export default function PostDetailPage() {
   };
 
   const handlePasswordSubmit = async () => {
-    if (modalPassword) {
-      pendingAction();
-      setShowPasswordModal(false);
-      setModalPassword("");
+    if (!modalPassword.trim()) {
+      alert("비밀번호를 입력해주세요.");
+      return;
     }
+
+    if (deleteMode === "post") {
+      await confirmDeletePost(modalPassword);
+    } else if (deleteMode === "comment" && targetComment) {
+      await confirmDeleteComment(targetComment, modalPassword);
+    }
+
+    // Reset state after action
+    setShowPasswordModal(false);
+    setModalPassword("");
+    setDeleteMode(null);
+    setTargetComment(null);
   };
 
   const handleLike = async () => {
@@ -164,7 +176,7 @@ export default function PostDetailPage() {
     try {
       await commentApi.createComment({
         postId: Number(id),
-        userName: isAuthenticated ? user?.userName || "" : "비회원",
+        userName: isAuthenticated ? user?.userName || "" : "익명",
         content: newComment,
         password: isAuthenticated ? undefined : Number(commentPassword),
       });
@@ -187,7 +199,7 @@ export default function PostDetailPage() {
     try {
       await commentApi.createComment({
         postId: Number(id),
-        userName: isAuthenticated ? user?.userName || "" : "비회원",
+        userName: isAuthenticated ? user?.userName || "" : "익명",
         content: replyContent,
         parentId: replyingTo.id,
         password: isAuthenticated ? undefined : Number(replyPassword),
@@ -238,34 +250,61 @@ export default function PostDetailPage() {
     }
   };
 
+  const confirmDeletePost = async (password?: string) => {
+    if (!post) return;
+    try {
+      const response =
+        post.userName === "익명" || post.userName === null
+          ? await boardApi.deletePost(
+              post.postId,
+              post.userId,
+              password,
+              post.content,
+              post.title
+            )
+          : await boardApi.deletePost(post.postId, post.userId);
+
+      if (response.success) {
+        router.push("/board");
+      } else {
+        // 비밀번호 불일치 에러 처리
+        if (
+          response.error &&
+          response.error.includes("게시글 비밀번호가 일치하지 않습니다")
+        ) {
+          alert("비밀번호가 일치하지 않습니다.");
+        } else {
+          alert(response.error || "게시글 삭제에 실패했습니다.");
+        }
+      }
+    } catch (error) {
+      console.error("게시글 삭제 실패:", error);
+      // HTTP 에러 상태 처리
+      if (error instanceof Error && error.message.includes("403")) {
+        alert("비밀번호가 일치하지 않습니다.");
+      } else {
+        alert("게시글 삭제 중 오류가 발생했습니다.");
+      }
+    }
+  };
+
   const handleDeletePost = async () => {
     if (!post) return;
 
-    const deleteAction = async () => {
-      try {
-        if (post.userName === "비회원") {
-          await boardApi.deletePost(post.postId, modalPassword);
-        } else {
-          await boardApi.deletePost(post.postId);
-        }
-        router.push("/board");
-      } catch (error) {
-        console.error("게시글 삭제 실패:", error);
-      }
-    };
-
-    if (post.userName === "비회원") {
+    if (post.userName === "익명" || post.userName === null) {
+      setDeleteMode("post");
       setPasswordModalTitle("게시글 삭제");
-      setPendingAction(() => deleteAction);
       setShowPasswordModal(true);
     } else {
-      await deleteAction();
+      await confirmDeletePost();
     }
   };
 
   const canModify = () => {
-    if (!post) return false;
-    if (post.userName === "비회원") {
+    if (!post || isLoading) return false;
+
+    // 비회원 글은 비회원만 수정/삭제 가능 (하지만 실제로는 비밀번호로 검증)
+    if (post.userName === "익명" || post.userName === null) {
       return !isAuthenticated;
     }
     return isAuthenticated && user?.userName === post.userName;
@@ -276,7 +315,8 @@ export default function PostDetailPage() {
   };
 
   const canModifyComment = (comment: Comment) => {
-    if (comment.userName === "비회원") {
+    // 비회원 댓글은 비회원만 수정/삭제 가능 (하지만 실제로는 비밀번호로 검증)
+    if (comment.userName === "익명" || comment.userName === null) {
       return !isAuthenticated;
     }
     return isAuthenticated && user?.userName === comment.userName;
@@ -298,51 +338,95 @@ export default function PostDetailPage() {
     if (!editingComment || !editContent.trim()) return;
 
     try {
-      if (isMyComment(editingComment)) {
-        await commentApi.updateComment(editingComment.id, {
-          content: editContent,
-        });
-      } else {
-        if (!editPassword.trim()) return;
-        await commentApi.updateComment(editingComment.id, {
-          content: editContent,
-          password: editPassword,
-        });
-      }
+      const response = isMyComment(editingComment)
+        ? await commentApi.updateComment(editingComment.id, {
+            content: editContent,
+          })
+        : editPassword.trim()
+        ? await commentApi.updateComment(editingComment.id, {
+            content: editContent,
+            password: editPassword,
+          })
+        : null;
 
-      setEditingComment(null);
-      setEditContent("");
-      setEditPassword("");
-      await fetchComments();
+      if (!response) return;
+
+      if (response.success) {
+        setEditingComment(null);
+        setEditContent("");
+        setEditPassword("");
+        await fetchComments();
+      } else {
+        // 비밀번호 불일치 에러 처리
+        if (
+          response.error &&
+          response.error.includes("댓글 비밀번호가 일치하지 않습니다")
+        ) {
+          alert("비밀번호가 일치하지 않습니다.");
+        } else {
+          alert(response.error || "댓글 수정에 실패했습니다.");
+        }
+      }
     } catch (error) {
       console.error("댓글 수정 실패:", error);
+      // HTTP 에러 상태 처리
+      if (error instanceof Error && error.message.includes("403")) {
+        alert("비밀번호가 일치하지 않습니다.");
+      } else {
+        alert("댓글 수정 중 오류가 발생했습니다.");
+      }
     }
   };
 
   const handleDeleteComment = (comment: Comment) => {
-    const deleteAction = (password?: string) => {
-      confirmDeleteComment(comment, password);
-    };
-
-    if (comment.userName === "비회원") {
+    if (comment.userName === "익명" || comment.userName === null) {
+      setDeleteMode("comment");
+      setTargetComment(comment);
       setPasswordModalTitle("댓글 삭제");
-      setPendingAction(() => deleteAction(modalPassword));
       setShowPasswordModal(true);
     } else {
-      deleteAction();
+      confirmDeleteComment(comment);
     }
   };
 
   const confirmDeleteComment = async (comment: Comment, password?: string) => {
     try {
-      if (comment.userName === "비회원") {
-        await commentApi.deleteComment(comment.id, password);
+      const response =
+        comment.userName === "익명" || comment.userName === null
+          ? await commentApi.deleteComment(
+              comment.id,
+              user?.userId,
+              Number(password),
+              comment.content
+            )
+          : await commentApi.deleteComment(
+              comment.id,
+              user?.userId,
+              undefined,
+              comment.content
+            );
+
+      if (response.success) {
+        await fetchComments();
       } else {
-        await commentApi.deleteComment(comment.id);
+        // 비밀번호 불일치 에러 처리
+        if (
+          response.error &&
+          response.error.includes("댓글 비밀번호가 일치하지 않습니다")
+        ) {
+          alert("비밀번호가 일치하지 않습니다.");
+        } else {
+          alert(response.error || "댓글 삭제에 실패했습니다.");
+        }
       }
-      await fetchComments();
     } catch (error) {
       console.error("댓글 삭제 실패:", error);
+      // HTTP 에러 상태 처리
+      if (error instanceof Error && error.message.includes("403")) {
+        alert("비밀번호가 일치하지 않습니다.");
+      } else {
+        alert("댓글 삭제 중 오류가 발생했습니다.");
+      }
     }
   };
 
@@ -411,6 +495,7 @@ export default function PostDetailPage() {
         <CommentList
           comments={comments}
           commentCount={commentCount}
+          postId={post.postId}
           editingComment={editingComment}
           editContent={editContent}
           editPassword={editPassword}
@@ -444,6 +529,8 @@ export default function PostDetailPage() {
           onCancel={() => {
             setShowPasswordModal(false);
             setModalPassword("");
+            setDeleteMode(null);
+            setTargetComment(null);
           }}
           title={passwordModalTitle}
         />

@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>토큰 엔티티</h2>
@@ -46,7 +45,13 @@ public class Token extends BaseEntity {
 
     private String jwtRefreshToken;
 
-    @Transactional
+    /**
+     * <h3>카카오 토큰 업데이트</h3>
+     * <p>카카오 액세스 토큰과 리프레시 토큰을 업데이트합니다.</p>
+     *
+     * @param kakaoAccessToken 카카오 액세스 토큰
+     * @param kakaoRefreshToken 카카오 리프레시 토큰 (null 또는 빈 문자열인 경우 업데이트하지 않음)
+     */
     public void updateKakaoToken(String kakaoAccessToken, String kakaoRefreshToken) {
         this.kakaoAccessToken = kakaoAccessToken;
         if (kakaoRefreshToken != null && !kakaoRefreshToken.isBlank()) {
@@ -54,6 +59,14 @@ public class Token extends BaseEntity {
         }
     }
 
+    /**
+     * <h3>토큰 생성</h3>
+     * <p>TokenDTO와 Users 객체를 사용하여 Token 엔티티를 생성합니다.</p>
+     *
+     * @param tokenDTO TokenDTO 객체
+     * @param user Users 객체
+     * @return 생성된 Token 엔티티
+     */
     public static Token createToken(TokenDTO tokenDTO, Users user) {
         return Token.builder()
                 .users(user)

@@ -319,9 +319,10 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
         public void processUserCommentsOnWithdrawal(Long userId) {
                 QComment comment = QComment.comment;
 
+                // deleted 조건 제거 - 모든 댓글(논리적 삭제된 댓글 포함)을 처리
                 List<Comment> userComments = jpaQueryFactory
                                 .selectFrom(comment)
-                                .where(comment.user.id.eq(userId).and(comment.deleted.eq(false)))
+                                .where(comment.user.id.eq(userId))
                                 .fetch();
 
                 for (Comment userComment : userComments) {
@@ -330,6 +331,7 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
                         boolean hasDescendants = commentClosureRepository.hasDescendants(commentId);
 
                         if (hasDescendants) {
+                                // 자손이 있는 댓글: 논리적 삭제 + userId null로 변경
                                 jpaQueryFactory
                                                 .update(comment)
                                                 .set(comment.deleted, true)
@@ -338,6 +340,7 @@ public class CommentCustomRepositoryImpl implements CommentCustomRepository {
                                                 .where(comment.id.eq(commentId))
                                                 .execute();
                         } else {
+                                // 자손이 없는 댓글: 물리적 삭제
                                 commentClosureRepository.deleteByDescendantId(commentId);
                                 jpaQueryFactory
                                                 .delete(comment)

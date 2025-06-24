@@ -35,4 +35,19 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRep
     @Modifying
     @Query(nativeQuery = true, value = "UPDATE post SET views = views + 1 WHERE post_id = :postId")
     void incrementViews(@Param("postId") Long postId);
+
+    /**
+     * <h3>글 ID로 사용자 ID 조회</h3>
+     * <p>
+     * 글 ID로 해당 댓글을 작성한 사용자의 ID를 조회합니다.
+     * </p>
+     *
+     * @param postId 글 ID
+     * @return 사용자 ID
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Query(nativeQuery = true, value = "SELECT user_id FROM post WHERE post_id = :postId")
+    Long findUserIdByPostId(@Param("postId") Long postId);
+
 }

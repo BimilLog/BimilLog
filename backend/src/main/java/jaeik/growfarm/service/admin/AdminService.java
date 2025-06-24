@@ -8,6 +8,8 @@ import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
+import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.kakao.KakaoService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>관리자 서비스 클래스</h2>
@@ -34,6 +37,8 @@ public class AdminService {
     private final UserRepository userRepository;
     private final KakaoService kakaoService;
     private final AdminUpdateService adminUpdateService;
+    private final CommentRepository commentRepository;
+    private final PostRepository postRepository;
 
     /**
      * <h3>신고 목록 조회</h3>
@@ -74,6 +79,34 @@ public class AdminService {
     }
 
     /**
+     * <h3>사용자 차단 및 블랙리스트 등록 검증</h3>
+     *
+     * <p>
+     * 댓글ID 또는 게시글ID를 통해 사용자를 조회한다.
+     * </p>
+     *
+     * @param reportDTO 신고 DTO
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private Long banUserValidation(ReportDTO reportDTO) {
+
+        if (reportDTO.getTargetId() == null) {
+            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+        }
+
+        if (reportDTO.getReportType() == ReportType.COMMENT) {
+            return commentRepository.findUserIdByCommentId(reportDTO.getTargetId());
+        }
+
+        if (reportDTO.getReportType() == ReportType.POST) {
+            return postRepository.findUserIdByPostId(reportDTO.getTargetId());
+        }
+
+        throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+    }
+
+    /**
      * <h3>사용자 차단 및 블랙리스트 등록</h3>
      *
      * <p>
@@ -84,11 +117,14 @@ public class AdminService {
      * @author Jaeik
      * @since 1.0.0
      */
-    public void banUser(Long userId) {
-        try {
-            Users user = userRepository.findById(userId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    @Transactional
+    public void banUser(ReportDTO reportDTO) {
+        Long userId = banUserValidation(reportDTO);
 
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        try {
             Long kakaoId = user.getKakaoId();
 
             BlackList blackList = BlackList.createBlackList(kakaoId);
@@ -98,4 +134,5 @@ public class AdminService {
             throw new CustomException(ErrorCode.BAN_USER_ERROR);
         }
     }
+
 }

@@ -1,21 +1,21 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/atoms/input";
+import { Button } from "@/components/atoms/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/molecules/select";
 import { Search, ListFilter } from "lucide-react";
 
 interface BoardSearchProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  searchType: "title" | "content" | "author";
-  setSearchType: (type: "title" | "content" | "author") => void;
+  searchType: "TITLE" | "TITLE_CONTENT" | "AUTHOR";
+  setSearchType: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR") => void;
   postsPerPage: string;
   setPostsPerPage: (value: string) => void;
   handleSearch: () => void;
@@ -36,7 +36,7 @@ export const BoardSearch = ({
         <div className="flex-1 flex items-center bg-white rounded-md border">
           <Select
             value={searchType}
-            onValueChange={(value: "title" | "content" | "author") =>
+            onValueChange={(value: "TITLE" | "TITLE_CONTENT" | "AUTHOR") =>
               setSearchType(value)
             }
           >
@@ -44,9 +44,9 @@ export const BoardSearch = ({
               <SelectValue placeholder="검색 유형" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="title">제목</SelectItem>
-              <SelectItem value="content">내용</SelectItem>
-              <SelectItem value="author">작성자</SelectItem>
+              <SelectItem value="TITLE">제목</SelectItem>
+              <SelectItem value="TITLE_CONTENT">제목+내용</SelectItem>
+              <SelectItem value="AUTHOR">작성자</SelectItem>
             </SelectContent>
           </Select>
           <Input

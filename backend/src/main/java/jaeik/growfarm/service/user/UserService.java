@@ -51,6 +51,7 @@ public class UserService {
     private final KakaoService kakaoService;
     private final TokenRepository tokenRepository;
     private final SettingRepository settingRepository;
+    private final UserUpdateService userUpdateService;
 
     /**
      * <h3>유저 작성 글 목록 조회</h3>
@@ -148,8 +149,9 @@ public class UserService {
         Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        user.updateUserName(userName);
+        userUpdateService.userNameUpdate(userName, user);
     }
+
 
     /**
      * <h3>닉네임 중복 확인</h3>
@@ -254,8 +256,10 @@ public class UserService {
         Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingDTO().getSettingId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
 
-        setting.updateSetting(settingDTO);
+        userUpdateService.settingUpdate(settingDTO, setting);
     }
+
+
 
     /**
      * <h3>카카오 친구 목록 조회 동의 여부를 확인한다.</h3>

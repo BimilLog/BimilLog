@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>설정 엔티티</h2>
@@ -35,7 +34,6 @@ public class Setting {
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean postFeaturedNotification = true;
 
-    @Transactional
     public void updateSetting(SettingDTO settingDTO) {
         messageNotification = settingDTO.isMessageNotification();
         commentNotification = settingDTO.isCommentNotification();

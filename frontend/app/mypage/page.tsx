@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi, rollingPaperApi } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { AuthHeader } from "@/components/auth-header";
+import { AuthHeader } from "@/components/organisms/auth-header";
 
 // 분리된 컴포넌트들 import
 import { UserProfile } from "./components/UserProfile";
@@ -12,8 +12,14 @@ import { UserStats } from "./components/UserStats";
 import { ActivityTabs } from "./components/ActivityTabs";
 
 export default function MyPage() {
-  const { user, isAuthenticated, isLoading, updateUserName, refreshUser } =
-    useAuth();
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    updateUserName,
+    refreshUser,
+    logout,
+  } = useAuth();
   const router = useRouter();
 
   const [userStats, setUserStats] = useState({
@@ -76,7 +82,11 @@ export default function MyPage() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       <AuthHeader />
       <main className="container mx-auto px-4 py-8">
-        <UserProfile user={user} onNicknameChange={handleNicknameChange} />
+        <UserProfile
+          user={user}
+          onNicknameChange={handleNicknameChange}
+          onLogout={logout}
+        />
         <UserStats stats={userStats} />
         <ActivityTabs />
       </main>

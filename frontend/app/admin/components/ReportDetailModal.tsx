@@ -7,8 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle, XCircle } from "lucide-react";
-import { type Report } from "@/lib/api";
+import { CheckCircle, XCircle, UserX } from "lucide-react";
+import { type Report, adminApi } from "@/lib/api";
+import { useState } from "react";
 
 interface ReportDetailModalProps {
   report: Report | null;
@@ -21,6 +22,8 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   isOpen,
   onOpenChange,
 }) => {
+  const [isBanning, setIsBanning] = useState(false);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -48,6 +51,37 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
         return "개선사항";
       default:
         return "기타";
+    }
+  };
+
+  const handleBanUser = async () => {
+    if (!report || !report.targetId) return;
+
+    const confirmBan = window.confirm(
+      "정말로 이 사용자를 차단하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+    );
+
+    if (!confirmBan) return;
+
+    setIsBanning(true);
+    try {
+      const response = await adminApi.banUserByReport({
+        targetId: report.targetId,
+        reportType: report.reportType,
+        content: report.content,
+      });
+
+      if (response.success) {
+        alert("사용자가 성공적으로 차단되었습니다.");
+        onOpenChange(false);
+      } else {
+        alert(response.error || "사용자 차단에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Ban user failed:", error);
+      alert("사용자 차단 중 오류가 발생했습니다.");
+    } finally {
+      setIsBanning(false);
     }
   };
 
@@ -130,6 +164,17 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
               <XCircle className="w-4 h-4 mr-2" />
               반려
             </Button>
+            {report.targetId && (
+              <Button
+                onClick={handleBanUser}
+                disabled={isBanning}
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <UserX className="w-4 h-4 mr-2" />
+                {isBanning ? "처리 중..." : "회원탈퇴"}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

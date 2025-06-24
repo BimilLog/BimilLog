@@ -1,8 +1,8 @@
 package jaeik.growfarm.entity.comment;
 
+import jaeik.growfarm.entity.BaseEntity;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>댓글 엔티티</h2>
@@ -105,8 +104,8 @@ public class Comment extends BaseEntity {
      * 자손 댓글이 있는 경우 논리적 삭제를 수행한다.
      * </p>
      */
-    @Transactional
     public void softDelete() {
+        this.user = null;
         this.deleted = true;
         this.content = "삭제된 댓글 입니다.";
     }

@@ -14,7 +14,11 @@ import { ArrowLeft, Save, Eye, Loader2, LockKeyhole } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
-const Editor = dynamic(() => import("@/components/editor"), { ssr: false });
+const Editor = dynamic(() => import("@/components/molecules/editor"), {
+  ssr: false,
+});
+
+const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, "");
 
 export default function EditPostPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -98,7 +102,9 @@ export default function EditPostPage() {
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || !content.trim())
+    const plainContent = stripHtml(content).trim();
+
+    if (!title.trim() || !plainContent)
       return alert("제목과 내용을 입력해주세요.");
     if (!post) return;
 
@@ -107,7 +113,7 @@ export default function EditPostPage() {
       const updatedPost: Post = {
         ...post,
         title: title.trim(),
-        content: content.trim(),
+        content: plainContent,
         password: password ? Number(password) : undefined,
       };
 
@@ -116,10 +122,24 @@ export default function EditPostPage() {
         alert("게시글이 성공적으로 수정되었습니다!");
         router.push(`/board/post/${postId}`);
       } else {
-        alert(response.error || "게시글 수정에 실패했습니다.");
+        // 비밀번호 불일치 에러 처리
+        if (
+          response.error &&
+          response.error.includes("게시글 비밀번호가 일치하지 않습니다")
+        ) {
+          alert("비밀번호가 일치하지 않습니다.");
+        } else {
+          alert(response.error || "게시글 수정에 실패했습니다.");
+        }
       }
     } catch (error) {
       console.error("Failed to update post:", error);
+      // HTTP 에러 상태 처리
+      if (error instanceof Error && error.message.includes("403")) {
+        alert("비밀번호가 일치하지 않습니다.");
+      } else {
+        alert("게시글 수정 중 오류가 발생했습니다.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -256,7 +276,7 @@ export default function EditPostPage() {
                         htmlFor="password"
                         className="text-sm font-medium text-gray-700"
                       >
-                        비밀번호 (숫자만)
+                        비밀번호 (4자리 숫자)
                       </Label>
                       <Input
                         id="password"

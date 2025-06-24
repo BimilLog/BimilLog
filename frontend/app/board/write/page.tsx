@@ -12,7 +12,9 @@ import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
-const Editor = dynamic(() => import("@/components/editor"), { ssr: false });
+const Editor = dynamic(() => import("@/components/molecules/editor"), {
+  ssr: false,
+});
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, "");
 
@@ -170,7 +172,7 @@ export default function WritePostPage() {
                       htmlFor="password"
                       className="text-sm font-medium text-gray-700"
                     >
-                      비밀번호 (숫자 4-8자리)
+                      비밀번호 (4자리 숫자)
                     </Label>
                     <Input
                       id="password"

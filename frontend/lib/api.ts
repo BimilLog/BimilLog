@@ -99,6 +99,7 @@ export interface Comment {
   id: number
   parentId?: number
   postId: number
+  userId?: number
   userName: string
   content: string
   popular: boolean
@@ -135,8 +136,7 @@ export interface Setting {
   settingId: number
   messageNotification: boolean
   commentNotification: boolean
-  popularPostNotification: boolean
-  paperNotification: boolean;
+  postFeaturedNotification: boolean
 }
 
 // 신고 타입
@@ -227,8 +227,35 @@ class ApiClient {
         if (!requiresAuth && response.status === 401) {
             return { success: true, data: null };
         }
-        const errorBody = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`)
+        
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          // 서버에서 보낸 에러 메시지가 있으면 사용
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+          return {
+            success: false,
+            error: errorMessage,
+          };
+        } catch (jsonError) {
+          // JSON 파싱 실패 시 텍스트로 시도
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage = errorText;
+            }
+          } catch (textError) {
+            // 텍스트도 실패하면 기본 메시지 사용
+          }
+          return {
+            success: false,
+            error: errorMessage,
+          };
+        }
       }
       
       let data;
@@ -325,7 +352,7 @@ export const userApi = {
   checkUserName: (userName: string) => apiClient.get<boolean>(`/user/username/check?userName=${encodeURIComponent(userName)}`),
 
   // 닉네임 변경
-  updateUserName: (userName: string) => apiClient.post("/user/username", { userName }),
+  updateUserName: (userId: number, userName: string) => apiClient.post("/user/username", { userId, userName }),
 
   // 사용자 설정 조회
   getUserSettings: () => apiClient.get<Setting>("/user/setting"),
@@ -336,6 +363,7 @@ export const userApi = {
   // 건의사항 제출
   submitSuggestion: (report: {
     reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
+    userId?: number
     targetId?: number
     content: string
   }) => apiClient.post("/user/suggestion", report),
@@ -359,19 +387,7 @@ export const userApi = {
   getUserLikedComments: (page = 0, size = 10) =>
     apiClient.get<PageResponse<SimpleComment>>(`/user/likecomments?page=${page}&size=${size}`),
 
-  // 사용자 관련 API
-  getCurrentUser: (): Promise<ApiResponse<User>> => {
-    return apiClient.get<User>("/auth/me")
-  },
-  getUserByNickname: (nickname: string): Promise<ApiResponse<User>> => {
-    return apiClient.get<User>(`/user/profile/${nickname}`);
-  },
-  getSettings: (): Promise<ApiResponse<Setting>> => {
-    return apiClient.get<Setting>('/user/settings');
-  },
-  updateSettings: (settings: Partial<Setting>): Promise<ApiResponse<Setting>> => {
-    return apiClient.patch<Setting>('/user/settings', settings);
-  },
+
 }
 
 // 롤링페이퍼 관련 API
@@ -415,7 +431,7 @@ export const boardApi = {
   getPost: (postId: number) => apiClient.get<Post>(`/post/${postId}`),
 
   // 게시글 검색
-  searchPosts: (type: "title" | "content" | "author", query: string, page = 0, size = 10) =>
+  searchPosts: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR", query: string, page = 0, size = 10) =>
     apiClient.get<PageResponse<SimplePost>>(
       `/post/search?type=${type}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`,
     ),
@@ -432,8 +448,12 @@ export const boardApi = {
   updatePost: (post: Post) => apiClient.post("/post/update", post),
 
   // 게시글 삭제
-  deletePost: (postId: number, password?: string) => {
-    const payload = password ? { postId, password: Number(password) } : { postId };
+  deletePost: (postId: number, userId?: number, password?: string, content?: string, title?: string) => {
+    const payload: any = { postId };
+    if (userId !== undefined) payload.userId = userId;
+    if (password) payload.password = Number(password);
+    if (content) payload.content = content;
+    if (title) payload.title = title;
     return apiClient.post("/post/delete", payload);
   },
 
@@ -476,10 +496,11 @@ export const commentApi = {
   },
 
   // 댓글 삭제
-  deleteComment: (commentId: number, password?: string) => {
-    const payload = password 
-      ? { id: commentId, password: Number(password) }
-      : { id: commentId };
+  deleteComment: (commentId: number, userId?: number, password?: number, content?: string) => {
+    const payload: any = { id: commentId };
+    if (userId !== undefined) payload.userId = userId;
+    if (password !== undefined) payload.password = Number(password);
+    if (content) payload.content = content;
     return apiClient.post("/comment/delete", payload);
   },
 
@@ -516,6 +537,10 @@ export const adminApi = {
 
   // 사용자 차단
   banUser: (userId: number) => apiClient.post(`/admin/user/ban?userId=${userId}`),
+
+  // 회원탈퇴 (관리자)
+  banUserByReport: (reportData: { targetId: number; reportType: string; content: string }) =>
+    apiClient.post("/admin/user/ban", reportData),
 }
 
 // SSE 연결 관리

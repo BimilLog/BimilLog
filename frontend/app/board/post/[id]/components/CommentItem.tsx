@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ThumbsUp, Reply } from "lucide-react";
-import { Comment } from "@/lib/api";
+import { ThumbsUp, Reply, Flag } from "lucide-react";
+import { Comment, userApi } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import { ReportModal } from "@/components/ui/ReportModal";
+import { useState } from "react";
 
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };
@@ -16,6 +19,7 @@ interface CommentItemProps {
   replyPassword: string;
   isAuthenticated: boolean;
   isSubmittingReply: boolean;
+  postId: number;
   onEditComment: (comment: Comment) => void;
   onUpdateComment: () => void;
   onCancelEdit: () => void;
@@ -43,6 +47,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   replyPassword,
   isAuthenticated,
   isSubmittingReply,
+  postId,
   onEditComment,
   onUpdateComment,
   onCancelEdit,
@@ -58,9 +63,37 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   onLikeComment,
   canModifyComment,
 }) => {
+  const { user } = useAuth();
   const maxDepth = 3; // 최대 들여쓰기 레벨
   const actualDepth = Math.min(depth, maxDepth);
   const marginLeft = actualDepth * 24; // 24px씩 들여쓰기
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  const handleReportSubmit = async (reportReason: string) => {
+    try {
+      const reportData: any = {
+        reportType: "COMMENT",
+        targetId: comment.id,
+        content: reportReason,
+      };
+
+      // 회원인 경우에만 userId 추가
+      if (user?.userId) {
+        reportData.userId = user.userId;
+      }
+
+      const response = await userApi.submitSuggestion(reportData);
+
+      if (response.success) {
+        alert("신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다.");
+      } else {
+        alert(response.error || "신고 접수에 실패했습니다. 다시 시도해주세요.");
+      }
+    } catch (error) {
+      console.error("Report failed:", error);
+      alert("신고 접수 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  };
 
   return (
     <div
@@ -135,7 +168,18 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   <Reply className="w-4 h-4 mr-1" />
                   답글
                 </Button>
-                {canModifyComment(comment) && (
+                {!isMyComment(comment) && !comment.deleted && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsReportModalOpen(true)}
+                    className="hover:bg-red-50 border-red-300 text-red-600 hover:text-red-700"
+                  >
+                    <Flag className="w-4 h-4 mr-1" />
+                    신고
+                  </Button>
+                )}
+                {canModifyComment(comment) && !comment.deleted && (
                   <>
                     <Button size="sm" onClick={() => onEditComment(comment)}>
                       수정
@@ -214,6 +258,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               replyPassword={replyPassword}
               isAuthenticated={isAuthenticated}
               isSubmittingReply={isSubmittingReply}
+              postId={postId}
               onEditComment={onEditComment}
               onUpdateComment={onUpdateComment}
               onCancelEdit={onCancelEdit}
@@ -232,6 +277,14 @@ export const CommentItem: React.FC<CommentItemProps> = ({
           ))}
         </div>
       )}
+
+      {/* 신고 모달 */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSubmit={handleReportSubmit}
+        type="댓글"
+      />
     </div>
   );
 };

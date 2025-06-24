@@ -98,9 +98,13 @@ public class CommentUpdateService {
      * @since 1.0.0
      */
     @Transactional
-    public void hardDelete(Long commentId, Comment comment) {
-        commentClosureRepository.deleteByDescendantId(commentId);
-        commentRepository.delete(comment);
+    public void commentDelete(boolean hasDescendants, Long commentId, Comment comment) {
+        if (hasDescendants) {
+            comment.softDelete();
+        } else {
+            commentClosureRepository.deleteByDescendantId(commentId);
+            commentRepository.delete(comment);
+        }
     }
 
 
