@@ -17,10 +17,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi, userApi } from "@/lib/api";
 import { validateNickname } from "@/util/inputValidation";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function SignUpPage() {
   const { login, isAuthenticated, isLoading, updateUserName, refreshUser } =
     useAuth();
+  const { connectSSE, fetchNotifications } = useNotifications();
   const router = useRouter();
   const searchParams = useSearchParams();
   const needsNickname = searchParams.get("required") === "true";
@@ -84,7 +86,16 @@ export default function SignUpPage() {
     try {
       const response = await authApi.signUp(nickname);
       if (response.success) {
-        await login();
+        console.log(
+          "신규회원 닉네임 설정 성공 - 사용자 정보 갱신 후 SSE 자동 연결 예정"
+        );
+
+        // 사용자 정보 갱신 (useAuth의 refreshUser 호출)
+        await refreshUser();
+
+        // 알림 목록 조회 (SSE 연결은 useNotifications의 useEffect에서 자동으로 처리됨)
+        await fetchNotifications();
+
         router.push("/");
       } else {
         alert(response.error || "회원가입에 실패했습니다.");

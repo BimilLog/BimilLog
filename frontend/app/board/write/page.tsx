@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { AuthHeader } from "@/components/organisms/auth-header";
 
 const Editor = dynamic(() => import("@/components/molecules/editor"), {
   ssr: false,
@@ -29,12 +30,15 @@ export default function WritePostPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <Save className="w-7 h-7 text-white animate-pulse" />
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+        <AuthHeader />
+        <div className="flex items-center justify-center flex-1 min-h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Save className="w-7 h-7 text-white animate-pulse" />
+            </div>
+            <p className="text-gray-600">로딩 중...</p>
           </div>
-          <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>
     );
@@ -94,7 +98,10 @@ export default function WritePostPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+      <AuthHeader />
+
+      {/* 페이지 전용 서브 헤더 */}
+      <div className="bg-white/60 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link href="/board">
@@ -124,7 +131,7 @@ export default function WritePostPage() {
             </Button>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">

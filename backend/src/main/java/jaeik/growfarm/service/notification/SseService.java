@@ -46,7 +46,7 @@ public class SseService {
             EventDTO eventDTO = notificationUtil.createEventDTO(
                     NotificationType.COMMENT,
                     commenterName + "님이 댓글을 남겼습니다!",
-                    url + "/board/" + postId);
+                    url + "/board/post/" + postId);
             notificationService.send(postUserId, eventDTO);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SSE_SEND_ERROR);
@@ -67,7 +67,7 @@ public class SseService {
             EventDTO eventDTO = notificationUtil.createEventDTO(
                     NotificationType.FARM,
                     "롤링페이퍼에 메시지가 작성되었어요!",
-                    url + "/paper/" + userName);
+                    url + "/rolling-paper/" + userName);
             notificationService.send(farmOwnerId, eventDTO);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SSE_SEND_ERROR);
@@ -87,7 +87,7 @@ public class SseService {
             EventDTO eventDTO = notificationUtil.createEventDTO(
                     NotificationType.POST_FEATURED,
                     message,
-                    url + "/board/" + postId);
+                    url + "/board/post/" + postId);
             notificationService.send(userId, eventDTO);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SSE_SEND_ERROR);

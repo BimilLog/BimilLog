@@ -5,11 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Heart } from "lucide-react";
 import { authApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
+import { getFCMToken, isMobileOrTablet } from "@/lib/utils";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshUser } = useAuth();
+  const { connectSSE, fetchNotifications } = useNotifications();
   const isProcessing = useRef(false);
 
   useEffect(() => {
@@ -31,7 +34,31 @@ export default function AuthCallbackPage() {
 
       if (code) {
         try {
-          const loginResponse = await authApi.kakaoLogin(code);
+          // FCM 토큰 가져오기 (모바일/태블릿에서만)
+          let fcmToken: string | null = null;
+
+          if (isMobileOrTablet()) {
+            console.log("모바일/태블릿 환경 감지 - FCM 토큰 가져오기 시도");
+            try {
+              fcmToken = await getFCMToken();
+              if (fcmToken) {
+                console.log("FCM 토큰 획득 성공 - 로그인 시 전송합니다");
+              } else {
+                console.log("FCM 토큰 획득 실패 - FCM 토큰 없이 로그인 진행");
+              }
+            } catch (fcmError) {
+              console.error("FCM 토큰 가져오기 중 오류:", fcmError);
+              console.log("FCM 토큰 오류 무시하고 로그인 진행");
+            }
+          } else {
+            console.log("데스크톱 환경 - FCM 토큰 건너뛰기");
+          }
+
+          // 카카오 로그인 (FCM 토큰 포함)
+          const loginResponse = await authApi.kakaoLogin(
+            code,
+            fcmToken || undefined
+          );
 
           if (loginResponse.success) {
             // 쿠키가 정상적으로 세팅되었는지 확인하기 위해 /auth/me API 호출
@@ -40,6 +67,12 @@ export default function AuthCallbackPage() {
             if (userResponse.success && userResponse.data?.userName) {
               // 정식 회원: 유저 정보가 있고, userName이 존재함
               await refreshUser(); // 전역 상태 업데이트
+
+              // 기존회원 로그인 성공 후 SSE 연결 및 알림 목록 조회
+              console.log("기존회원 로그인 성공 - SSE 연결을 시작합니다.");
+              await fetchNotifications(); // 알림 목록 조회
+              connectSSE(); // SSE 연결 시작
+
               const finalRedirect = state ? decodeURIComponent(state) : "/";
               router.push(finalRedirect);
             } else {
@@ -66,7 +99,7 @@ export default function AuthCallbackPage() {
     };
 
     handleCallback();
-  }, [router, searchParams, refreshUser]);
+  }, [router, searchParams, refreshUser, connectSSE, fetchNotifications]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
@@ -75,6 +108,9 @@ export default function AuthCallbackPage() {
           <Heart className="w-7 h-7 text-white animate-pulse" />
         </div>
         <p className="text-gray-600">로그인 처리 중...</p>
+        {isMobileOrTablet() && (
+          <p className="text-sm text-gray-500 mt-2">모바일 알림 설정 중...</p>
+        )}
       </div>
     </div>
   );

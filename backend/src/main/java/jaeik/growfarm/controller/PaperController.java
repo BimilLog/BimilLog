@@ -14,10 +14,18 @@ import java.util.List;
 
 /**
  * <h2>롤링 페이퍼 컨트롤러</h2>
- * <p>내 롤링 페이퍼 조회</p>
- * <p>다른 사람 롤링 페이퍼 조회</p>
- * <p>메시지 삭제</p>
- * <p>메시지 적기</p>
+ * <p>
+ * 내 롤링 페이퍼 조회
+ * </p>
+ * <p>
+ * 다른 사람 롤링 페이퍼 조회
+ * </p>
+ * <p>
+ * 메시지 삭제
+ * </p>
+ * <p>
+ * 메시지 적기
+ * </p>
  *
  * @author Jaeik
  * @version 1.0.0
@@ -74,18 +82,18 @@ public class PaperController {
         return ResponseEntity.ok("메시지가 작성되었습니다.");
     }
 
-
     /**
      * <h3>메시지 삭제 API</h3>
+     * 
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param messageDTO 삭제할 메시지 정보
+     * @param messageDTO  삭제할 메시지 정보
      * @return ResponseEntity<String> 농작물 삭제 완료 메시지
      * @author Jaeik
      * @since 1.0.0
      */
     @PostMapping("/delete")
     public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                             @RequestBody@Valid MessageDTO messageDTO) {
+            @RequestBody @Valid MessageDTO messageDTO) {
         paperService.deleteMessageInMyPaper(userDetails, messageDTO);
         return ResponseEntity.ok("메시지가 삭제되었습니다.");
     }

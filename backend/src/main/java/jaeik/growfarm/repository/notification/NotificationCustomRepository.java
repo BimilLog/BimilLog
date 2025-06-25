@@ -38,11 +38,10 @@ public interface NotificationCustomRepository {
      *
      * @param ids    삭제할 알림 ID 목록
      * @param userId 사용자 ID
-     * @return int 삭제된 알림의 수
      * @author Jaeik
      * @since 1.0.0
      */
-    int deleteByIdInAndUserId(List<Long> ids, Long userId);
+    void deleteByIdInAndUserId(List<Long> ids, Long userId);
 
     /**
      * <h3>알림 읽음 처리</h3>
@@ -52,9 +51,8 @@ public interface NotificationCustomRepository {
      *
      * @param ids    읽음 처리할 알림 ID 목록
      * @param userId 사용자 ID
-     * @return int 읽음 처리된 알림의 수
      * @author Jaeik
      * @since 1.0.0
      */
-    int markAsReadByIdInAndUserId(List<Long> ids, Long userId);
+    void markAsReadByIdInAndUserId(List<Long> ids, Long userId);
 }

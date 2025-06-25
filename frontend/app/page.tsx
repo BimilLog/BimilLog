@@ -2,12 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, MessageCircle, Users, Sparkles, UserCheck } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Users,
+  Sparkles,
+  UserCheck,
+  Share2,
+} from "lucide-react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { KakaoFriendsModal } from "@/components/molecules/kakao-friends-modal";
+import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
 
 export default function HomePage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -137,15 +145,24 @@ export default function HomePage() {
             <p className="text-xl mb-8 opacity-90">
               소중한 사람들과 특별한 추억을 만들어보세요
             </p>
-            <Button
-              size="lg"
-              className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
-              asChild
-            >
-              <Link href={isAuthenticated ? "/rolling-paper" : "/signup"}>
-                {isAuthenticated ? "내 롤링페이퍼 보기" : "무료로 시작하기"}
-              </Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button
+                size="lg"
+                className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
+                asChild
+              >
+                <Link href={isAuthenticated ? "/rolling-paper" : "/signup"}>
+                  {isAuthenticated ? "내 롤링페이퍼 보기" : "무료로 시작하기"}
+                </Link>
+              </Button>
+
+              <KakaoShareButton
+                type="service"
+                variant="outline"
+                size="lg"
+                className="px-8 py-3 text-lg font-semibold min-h-[44px]"
+              />
+            </div>
           </CardContent>
         </Card>
       </section>

@@ -2,9 +2,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, ThumbsUp, MessageSquare, Lock, Edit, Trash2 } from "lucide-react";
+import {
+  Eye,
+  ThumbsUp,
+  MessageSquare,
+  Lock,
+  Edit,
+  Trash2,
+  Share2,
+} from "lucide-react";
 import { Post } from "@/lib/api";
 import Link from "next/link";
+import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
 
 interface PostHeaderProps {
   post: Post;
@@ -65,20 +74,35 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
             </div>
           </div>
         </div>
-        {canModify() && (
-          <div className="flex space-x-2">
-            <Link href={`/board/post/${post.postId}/edit`}>
-              <Button size="sm" variant="outline">
-                <Edit className="w-4 h-4 mr-1" />
-                수정
+        <div className="flex flex-col space-y-2">
+          {/* 카카오톡 공유 버튼 */}
+          <KakaoShareButton
+            type="post"
+            postId={post.postId}
+            title={post.title}
+            author={post.userName || "익명"}
+            content={post.content}
+            likes={post.likes}
+            variant="outline"
+            size="sm"
+            className="w-24"
+          />
+
+          {canModify() && (
+            <div className="flex space-x-2">
+              <Link href={`/board/post/${post.postId}/edit`}>
+                <Button size="sm" variant="outline">
+                  <Edit className="w-4 h-4 mr-1" />
+                  수정
+                </Button>
+              </Link>
+              <Button size="sm" variant="destructive" onClick={onDeleteClick}>
+                <Trash2 className="w-4 h-4 mr-1" />
+                삭제
               </Button>
-            </Link>
-            <Button size="sm" variant="destructive" onClick={onDeleteClick}>
-              <Trash2 className="w-4 h-4 mr-1" />
-              삭제
-            </Button>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </CardHeader>
   );

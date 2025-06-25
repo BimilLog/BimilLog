@@ -120,3 +120,95 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 커스텀 애니메이션 */
+@layer utilities {
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+}
+
+/* Quill 에디터 스타일 수정 - viewBox 문제 해결 */
+@layer components {
+  .ql-editor {
+    min-height: 200px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    padding: 12px !important;
+  }
+
+  .ql-editor.ql-blank::before {
+    color: #6b7280 !important;
+    font-style: normal !important;
+    pointer-events: none !important;
+    position: absolute !important;
+  }
+
+  /* 툴바 아이콘 관련 문제 해결 */
+  .ql-toolbar {
+    border-top: 1px solid #e5e7eb !important;
+    border-left: 1px solid #e5e7eb !important;
+    border-right: 1px solid #e5e7eb !important;
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+    background: #f9fafb !important;
+  }
+
+  .ql-container {
+    border-bottom: 1px solid #e5e7eb !important;
+    border-left: 1px solid #e5e7eb !important;
+    border-right: 1px solid #e5e7eb !important;
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    font-family: inherit !important;
+  }
+
+  /* SVG 아이콘 문제 해결 */
+  .ql-toolbar button svg {
+    width: 18px !important;
+    height: 18px !important;
+    display: block !important;
+  }
+
+  .ql-toolbar button:before {
+    display: none !important;
+  }
+
+  /* viewBox 텍스트가 표시되는 문제 해결 */
+  .ql-toolbar .ql-formats {
+    margin-right: 15px !important;
+  }
+
+  .ql-toolbar button {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 3px 5px !important;
+    border-radius: 4px !important;
+  }
+
+  .ql-toolbar button:hover {
+    background-color: #e5e7eb !important;
+  }
+
+  .ql-toolbar button.ql-active {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+
+  /* 잘못된 텍스트 노드 숨기기 */
+  .ql-toolbar button[data-value]:after {
+    content: attr(data-value) !important;
+  }
+
+  /* 문제가 되는 텍스트 노드 강제 숨김 */
+  .ql-toolbar button:not([class*="ql-"]):not([data-value]) {
+    font-size: 0 !important;
+    text-indent: -9999px !important;
+  }
+
+  /* 에디터 포커스 시 테두리 스타일 */
+  .ql-editor:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+}

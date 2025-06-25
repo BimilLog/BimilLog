@@ -62,15 +62,14 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
      *
      * @param ids    삭제할 알림 ID 목록
      * @param userId 사용자 ID
-     * @return int 삭제된 알림의 수
      * @author Jaeik
      * @since 1.0.0
      */
     @Override
-    public int deleteByIdInAndUserId(List<Long> ids, Long userId) {
+    public void deleteByIdInAndUserId(List<Long> ids, Long userId) {
         QNotification notification = QNotification.notification;
 
-        return (int) jpaQueryFactory
+        jpaQueryFactory
                 .delete(notification)
                 .where(notification.id.in(ids)
                         .and(notification.users.id.eq(userId)))
@@ -85,15 +84,14 @@ public class NotificationCustomRepositoryImpl implements NotificationCustomRepos
      *
      * @param ids    읽음 처리할 알림 ID 목록
      * @param userId 사용자 ID
-     * @return int 읽음 처리된 알림의 수
      * @author Jaeik
      * @since 1.0.0
      */
     @Override
-    public int markAsReadByIdInAndUserId(List<Long> ids, Long userId) {
+    public void markAsReadByIdInAndUserId(List<Long> ids, Long userId) {
         QNotification notification = QNotification.notification;
 
-        return (int) jpaQueryFactory
+        jpaQueryFactory
                 .update(notification)
                 .set(notification.isRead, true)
                 .where(notification.id.in(ids)

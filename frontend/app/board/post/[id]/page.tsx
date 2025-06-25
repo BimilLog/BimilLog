@@ -7,6 +7,9 @@ import { boardApi, commentApi, type Post, type Comment } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { AuthHeader } from "@/components/organisms/auth-header";
+import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import { sharePost } from "@/lib/kakao-share";
 
 // 분리된 컴포넌트들 import
 import { PostHeader } from "./components/PostHeader";
@@ -450,6 +453,7 @@ export default function PostDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100">
+      <AuthHeader />
       <div className="container mx-auto px-4 py-8">
         {/* 뒤로가기 버튼 */}
         <div className="mb-6">

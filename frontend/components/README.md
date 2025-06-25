@@ -89,7 +89,7 @@ Molecules와 Atoms가 결합된 복잡한 UI 섹션입니다.
 
 - `AuthHeader` - 인증 헤더
 - `MobileNav` - 모바일 네비게이션
-- `NotificationBell` - 알림 벨
+- `NotificationBell` - 실시간 알림 시스템 (SSE + FCM 연동, 모바일 바텀시트)
 - `BoardSearch` - 게시판 검색
 - `BoardPagination` - 게시판 페이지네이션
 - `PostList` - 게시글 목록
@@ -308,6 +308,16 @@ const spacing = getSpacing(4);
 - **모바일 터치 최적화** - 최소 44px 터치 타겟, 피드백 애니메이션
 - **브랜드 일관성** - 모든 컴포넌트에 통일된 `bg-white/80 backdrop-blur-sm` 스타일
 - **Design Token 시스템** - 완전한 모바일 퍼스트 디자인 토큰 체계
+
+**🔔 실시간 알림 시스템 (SSE + FCM + 모바일 바텀시트)**
+
+- **SSE 연결 시스템** - Server-Sent Events로 실시간 알림 수신
+- **FCM 토큰 관리** - 모바일/태블릿에서 Firebase 푸시 알림 지원
+- **모바일 바텀시트** - 터치 친화적인 알림 UI (Sheet 컴포넌트)
+- **배치 처리 시스템** - 개별 액션은 5분마다 일괄 처리, 전체 액션은 즉시 실행
+- **알림 관리 기능** - 모두 읽기, 모두 삭제, 개별 읽음/삭제 처리
+- **시각적 피드백** - 알림 타입별 아이콘, 상대시간 표시, 읽음 상태 구분
+- **스마트 연결** - 인증 및 닉네임 설정 완료시에만 SSE 연결
 
 **🔧 개발자 경험**
 
@@ -620,6 +630,148 @@ import { validateTouchTarget } from "@/lib/design-tokens";
 const buttonHeight = "48px";
 if (validateTouchTarget(buttonHeight)) {
   console.log("터치 타겟 크기가 적절합니다!"); // true - 44px 이상
+}
+```
+
+### 4. 실시간 알림 시스템 사용하기 (SSE + FCM + 모바일 바텀시트)
+
+```typescript
+"use client";
+
+import React from "react";
+import {
+  Button, // Atoms
+  NotificationBell, // Organisms (완전한 알림 시스템)
+} from "@/components";
+import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
+
+export function AppHeader() {
+  const { user } = useAuth();
+
+  // useNotifications 훅에서 모든 알림 상태를 관리
+  const {
+    notifications, // 알림 목록
+    unreadCount, // 읽지 않은 알림 수
+    isConnected, // SSE 연결 상태
+    isLoading, // 로딩 상태
+    batchStatus, // 배치 처리 상태 (개발 모드)
+
+    // 개별 액션 (배치 큐에 추가)
+    markAsRead, // 개별 읽음 처리
+    deleteNotification, // 개별 삭제
+
+    // 전체 액션 (즉시 실행)
+    markAllAsRead, // 모든 알림 읽음 처리
+    deleteAllNotifications, // 모든 알림 삭제
+
+    // 새로고침
+    fetchNotifications, // 수동 새로고침
+  } = useNotifications();
+
+  return (
+    <header className="bg-white/80 backdrop-blur-sm shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* 로고 */}
+          <div className="flex items-center">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              비밀로그
+            </h1>
+          </div>
+
+          {/* 사용자 액션 */}
+          <div className="flex items-center space-x-4">
+            {user && (
+              <>
+                {/* 실시간 알림 벨 - 모든 기능이 통합된 완전한 컴포넌트 */}
+                <NotificationBell />
+
+                {/* 사용자 정보 */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-700">{user.nickname}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+// NotificationBell 컴포넌트의 주요 기능들:
+
+// 📱 **모바일 최적화**
+// - 데스크톱: Card 형태의 팝오버 (기존)
+// - 모바일/태블릿: Sheet 형태의 바텀시트 (새로 추가)
+// - 화면 크기 자동 감지 및 적절한 UI 제공
+
+// 🔔 **실시간 알림 시스템**
+// - SSE (Server-Sent Events) 연결로 실시간 알림 수신
+// - FCM (Firebase Cloud Messaging) 토큰 자동 관리
+// - 모바일/태블릿에서만 FCM 토큰 등록
+// - 연결 상태 시각적 표시 (개발 모드)
+
+// 📋 **알림 관리 기능**
+// - 읽지 않은 알림 수 배지 표시
+// - 개별 알림 읽음/삭제 (배치 처리)
+// - 전체 알림 읽음/삭제 (즉시 처리)
+// - 자동 새로고침 및 수동 새로고침
+
+// ⚡ **성능 최적화**
+// - 배치 처리: 개별 액션은 5분마다 일괄 처리
+// - 즉시 처리: 전체 액션은 바로 실행
+// - UI 즉시 업데이트: 서버 응답 대기 없이 UI 먼저 변경
+// - 스마트 연결: 인증 상태 및 닉네임 설정 완료시에만 SSE 연결
+
+// 🎨 **시각적 향상**
+// - 알림 타입별 아이콘 (댓글, 농장, 인기글, 관리자 등)
+// - 상대 시간 표시 (방금 전, N분 전, N시간 전, N일 전)
+// - 읽지 않은 알림 시각적 강조
+// - 부드러운 애니메이션 및 터치 피드백
+
+// 사용자 정의 알림 처리 예시
+export function CustomNotificationHandler() {
+  const { notifications } = useNotifications();
+
+  // 특정 타입의 알림만 필터링
+  const commentNotifications = notifications.filter(
+    (n) => n.type === "COMMENT"
+  );
+  const farmNotifications = notifications.filter((n) => n.type === "FARM");
+
+  return (
+    <div className="space-y-4">
+      {/* 댓글 알림 */}
+      {commentNotifications.length > 0 && (
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h3 className="font-medium text-blue-900 mb-2">
+            새로운 댓글 ({commentNotifications.length}개)
+          </h3>
+          {commentNotifications.slice(0, 3).map((notification) => (
+            <div key={notification.id} className="text-sm text-blue-700">
+              {notification.data}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 농장 알림 */}
+      {farmNotifications.length > 0 && (
+        <div className="bg-green-50 p-4 rounded-lg">
+          <h3 className="font-medium text-green-900 mb-2">
+            농장 업데이트 ({farmNotifications.length}개)
+          </h3>
+          {farmNotifications.slice(0, 3).map((notification) => (
+            <div key={notification.id} className="text-sm text-green-700">
+              {notification.data}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 ```
 

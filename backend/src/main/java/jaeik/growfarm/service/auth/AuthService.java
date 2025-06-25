@@ -9,8 +9,8 @@ import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
+import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -46,7 +46,7 @@ public class AuthService {
     private final TempUserDataManager tempUserDataManager;
     private final AuthUpdateService authUpdateService;
     private final UserJdbcRepository userJdbcRepository;
-    private final CommentRepository commentRepository;
+    private final TokenRepository tokenRepository;
 
     /**
      * <h3>카카오 로그인</h3>
@@ -250,8 +250,10 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
+    @Transactional(readOnly = true)
     public void kakaoLogout(CustomUserDetails userDetails) {
-        kakaoService.logout(userJdbcRepository.getKakaoAccessToken(userDetails.getTokenId()));
+        Token token = tokenRepository.findById(userDetails.getTokenId()).orElseThrow();
+        kakaoService.logout(token.getKakaoAccessToken());
     }
 
     /**
@@ -269,5 +271,6 @@ public class AuthService {
     public void renewalKaKaoToken(Token token) {
         TokenDTO tokenDTO = kakaoService.refreshToken(token.getKakaoRefreshToken());
         token.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
+        tokenRepository.flush();
     }
 }

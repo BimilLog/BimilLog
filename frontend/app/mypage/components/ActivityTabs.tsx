@@ -62,16 +62,25 @@ export const ActivityTabs: React.FC = () => {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="my-posts">
-            <ActivityTabContent fetchData={fetchMyPosts} />
+            <ActivityTabContent fetchData={fetchMyPosts} contentType="posts" />
           </TabsContent>
           <TabsContent value="my-comments">
-            <ActivityTabContent fetchData={fetchMyComments} />
+            <ActivityTabContent
+              fetchData={fetchMyComments}
+              contentType="comments"
+            />
           </TabsContent>
           <TabsContent value="liked-posts">
-            <ActivityTabContent fetchData={fetchLikedPosts} />
+            <ActivityTabContent
+              fetchData={fetchLikedPosts}
+              contentType="liked-posts"
+            />
           </TabsContent>
           <TabsContent value="liked-comments">
-            <ActivityTabContent fetchData={fetchLikedComments} />
+            <ActivityTabContent
+              fetchData={fetchLikedComments}
+              contentType="liked-comments"
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

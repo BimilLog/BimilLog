@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/atoms/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
-import { Heart, Settings } from "lucide-react";
+import { Heart, Settings, MessageSquare } from "lucide-react";
 import { MobileNav } from "@/components/organisms/mobile-nav";
 import { NotificationBell } from "./notification-bell";
 
@@ -38,6 +38,15 @@ export function AuthHeader() {
             >
               게시판
             </Link>
+            {isAuthenticated && (
+              <Link
+                href="/rolling-paper"
+                className="text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-1"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>내 롤링페이퍼</span>
+              </Link>
+            )}
             <Link
               href="/suggest"
               className="text-gray-600 hover:text-gray-900 transition-colors"

@@ -562,50 +562,138 @@ export const adminApi = {
 export class SSEManager {
   private eventSource: EventSource | null = null
   private listeners: Map<string, (data: any) => void> = new Map()
+  private reconnectAttempts = 0
+  private maxReconnectAttempts = 5
+  private reconnectDelay = 1000
 
   connect() {
     if (this.eventSource) {
       this.disconnect()
     }
 
-    this.eventSource = new EventSource(notificationApi.subscribeToNotifications(), {
-      withCredentials: true, // httpOnly 쿠키 포함
-    })
+    try {
+      // JWT 토큰을 URL 파라미터로 전달
+      const token = getCookie("accessToken")
+      const sseUrl = token 
+        ? `${notificationApi.subscribeToNotifications()}?token=${encodeURIComponent(token)}`
+        : notificationApi.subscribeToNotifications()
 
-    this.eventSource.onopen = () => {
-      console.log("SSE connection opened")
-    }
+      console.log("SSE 연결 시도:", sseUrl.replace(token || '', '[TOKEN]'))
 
-    this.eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        const listener = this.listeners.get(data.type)
-        if (listener) {
-          listener(data)
-        }
-      } catch (error) {
-        console.error("Failed to parse SSE message:", error)
+      this.eventSource = new EventSource(sseUrl, {
+        withCredentials: true, // httpOnly 쿠키 포함
+      })
+
+      this.eventSource.onopen = (event) => {
+        console.log("SSE connection opened successfully", event)
+        this.reconnectAttempts = 0 // 성공 시 재연결 시도 횟수 초기화
       }
-    }
 
-    this.eventSource.onerror = (error) => {
-      console.error("SSE connection error:", error)
+      // SSE 이벤트 리스너 등록 (백엔드에서 .name(type.toString())으로 전송하는 이벤트들)
+      const handleSSEEvent = (event: MessageEvent) => {
+        console.log(`SSE ${event.type} event received:`, event.data)
+        try {
+          const data = JSON.parse(event.data)
+          console.log("Parsed SSE data:", data)
+          
+          // 백엔드 메시지 구조: { message: "내용", url: "URL" }
+          // 프론트엔드 알림 구조로 변환
+          const notificationData = {
+            // 임시 ID (실제로는 서버에서 받아야 함 - 추후 개선 필요)
+            id: Date.now() + Math.random(), // 중복 방지
+            data: data.message || data.data || "새로운 알림",
+            url: data.url || "",
+            type: event.type || "NOTIFICATION",
+            createdAt: new Date().toISOString(),
+            read: false
+          }
+          
+          // INITIATE 이벤트는 연결 확인용이므로 알림으로 처리하지 않음
+          if (event.type === "INITIATE") {
+            console.log("SSE 연결 초기화 완료:", data.message)
+            return
+          }
+          
+          // 리스너 실행
+          const listener = this.listeners.get("notification")
+          if (listener) {
+            console.log("SSE 알림 리스너 실행:", notificationData)
+            listener(notificationData)
+          } else {
+            console.warn("No listener found for SSE message")
+          }
+        } catch (error) {
+          console.error(`Failed to parse SSE ${event.type} event:`, error, "Raw data:", event.data)
+        }
+      }
+
+      // 기본 메시지 이벤트
+      this.eventSource.onmessage = handleSSEEvent
+
+      // 특정 타입별 이벤트 리스너 등록
+      const eventTypes = ["COMMENT", "FARM", "POST_FEATURED", "COMMENT_FEATURED", "ADMIN", "INITIATE"]
+      eventTypes.forEach(type => {
+        if (this.eventSource) {
+          this.eventSource.addEventListener(type, handleSSEEvent)
+        }
+      })
+
+      this.eventSource.onerror = (error) => {
+        console.error("SSE connection error:", error)
+        console.log("EventSource readyState:", this.eventSource?.readyState)
+        
+        // 연결 실패 시 재연결 시도
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.reconnectAttempts++
+          console.log(`SSE 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts}`)
+          
+          setTimeout(() => {
+            this.connect()
+          }, this.reconnectDelay * this.reconnectAttempts)
+        } else {
+          console.error("SSE 재연결 시도 초과됨")
+        }
+      }
+
+    } catch (error) {
+      console.error("SSE 연결 실패:", error)
     }
   }
 
   disconnect() {
     if (this.eventSource) {
+      console.log("SSE 연결을 종료합니다.")
       this.eventSource.close()
       this.eventSource = null
+      this.reconnectAttempts = 0
     }
   }
 
   addEventListener(type: string, listener: (data: any) => void) {
+    console.log(`SSE 리스너 등록: ${type}`)
     this.listeners.set(type, listener)
   }
 
   removeEventListener(type: string) {
+    console.log(`SSE 리스너 제거: ${type}`)
     this.listeners.delete(type)
+  }
+
+  // 연결 상태 확인
+  isConnected(): boolean {
+    return this.eventSource !== null && this.eventSource.readyState === EventSource.OPEN
+  }
+
+  // 연결 상태 반환
+  getConnectionState(): string {
+    if (!this.eventSource) return "DISCONNECTED"
+    
+    switch (this.eventSource.readyState) {
+      case EventSource.CONNECTING: return "CONNECTING"
+      case EventSource.OPEN: return "OPEN" 
+      case EventSource.CLOSED: return "CLOSED"
+      default: return "UNKNOWN"
+    }
   }
 }
 
