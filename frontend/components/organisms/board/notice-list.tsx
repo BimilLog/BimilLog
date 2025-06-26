@@ -2,21 +2,20 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Pin } from "lucide-react";
-
-interface Notice {
-  id: number;
-  title: string;
-  author: string;
-  date: string;
-  views: number;
-  isPinned: boolean;
-}
+import Link from "next/link";
+import type { SimplePost } from "@/lib/api";
 
 interface NoticeListProps {
-  notices: Notice[];
+  posts: SimplePost[];
 }
 
-export const NoticeList = ({ notices }: NoticeListProps) => {
+export const NoticeList = ({ posts }: NoticeListProps) => {
+  const notices = posts.filter((post) => post._notice);
+
+  if (notices.length === 0) {
+    return null;
+  }
+
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
       <CardContent className="p-0">
@@ -25,7 +24,7 @@ export const NoticeList = ({ notices }: NoticeListProps) => {
             <tbody>
               {notices.map((notice) => (
                 <tr
-                  key={notice.id}
+                  key={notice.postId}
                   className="border-b border-gray-100 bg-purple-50/50 hover:bg-purple-100/50 transition-colors"
                 >
                   <td className="p-3 text-left font-medium hidden sm:table-cell w-20">
@@ -35,18 +34,25 @@ export const NoticeList = ({ notices }: NoticeListProps) => {
                     </div>
                   </td>
                   <td className="p-3 text-left font-semibold text-purple-800">
-                    {notice.title}
+                    <Link
+                      href={`/board/post/${notice.postId}`}
+                      className="hover:underline"
+                    >
+                      {notice.title}
+                    </Link>
                   </td>
                   <td className="p-3 text-left font-medium w-32 hidden md:table-cell">
-                    {notice.author}
+                    {notice.userName}
                   </td>
                   <td className="p-3 text-left font-medium w-32 hidden md:table-cell">
-                    {notice.date}
+                    {new Date(notice.createdAt).toLocaleDateString("ko-KR")}
                   </td>
                   <td className="p-3 text-left font-medium w-16">
                     {notice.views}
                   </td>
-                  <td className="p-3 text-left font-medium w-16">-</td>
+                  <td className="p-3 text-left font-medium w-16">
+                    {notice.likes}
+                  </td>
                 </tr>
               ))}
             </tbody>

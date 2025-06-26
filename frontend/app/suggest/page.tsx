@@ -21,9 +21,11 @@ import {
   Lightbulb,
   Send,
   Bug,
+  ArrowLeft,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
+import Link from "next/link";
 
 type SuggestionType = "ERROR" | "IMPROVEMENT";
 
@@ -103,9 +105,6 @@ export default function SuggestPage() {
       <header className="py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <Heart className="w-7 h-7 text-white" />
-            </div>
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
               건의하기
             </h1>
@@ -238,13 +237,10 @@ export default function SuggestPage() {
               </h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  • 건의사항은 순차적으로 검토되며, 답변까지 1-3일 정도 소요될
-                  수 있습니다.
+                  • 바라는 기능이나 기능 개선에 대한 제안을 해주세요 어떠한
+                  의견도 좋아요.
                 </li>
-                <li>
-                  • 로그인하신 경우 마이페이지에서 답변을 확인하실 수 있습니다.
-                </li>
-                <li>• 건설적인 의견과 구체적인 설명을 부탁드립니다.</li>
+                <li>• 버그, 오류를 발견할 시에는 제보할 수 있습니다.</li>
                 <li>• 욕설, 비방, 스팸성 내용은 삭제될 수 있습니다.</li>
               </ul>
             </CardContent>

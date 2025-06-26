@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
 
 interface MobileNavProps {
   className?: string;
@@ -78,17 +79,35 @@ export function MobileNav({ className }: MobileNavProps) {
               {/* 헤더 */}
               <div className="flex items-center justify-between p-6 bg-gradient-to-r from-pink-50 to-purple-50">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <Heart className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                      비밀로그
-                    </h2>
-                    {isAuthenticated && user && (
-                      <p className="text-sm text-gray-600">{user.userName}님</p>
-                    )}
-                  </div>
+                  {isAuthenticated && user ? (
+                    <>
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage
+                          src={user.thumbnailImage || undefined}
+                          alt={user.userName}
+                          onError={(e) => {
+                            // 이미지 로딩 실패 시 fallback으로 전환
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                        <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-medium">
+                          {user.userName?.charAt(0)?.toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="text-lg font-semibold text-gray-700">
+                        {user.userName}님
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-9 h-9 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <Heart className="w-5 h-5 text-white" />
+                      </div>
+                      <p className="text-lg font-semibold text-gray-700">
+                        비밀로그
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <Button
                   variant="ghost"

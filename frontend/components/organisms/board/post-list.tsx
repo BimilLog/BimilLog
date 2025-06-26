@@ -12,6 +12,8 @@ interface PostListProps {
 }
 
 export const PostList = ({ posts }: PostListProps) => {
+  const regularPosts = posts.filter((post) => !post._notice);
+
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
       <CardContent className="p-0">
@@ -34,8 +36,8 @@ export const PostList = ({ posts }: PostListProps) => {
               </tr>
             </thead>
             <tbody>
-              {posts.length > 0 ? (
-                posts.map((post) => (
+              {regularPosts.length > 0 ? (
+                regularPosts.map((post) => (
                   <tr
                     key={post.postId}
                     className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"

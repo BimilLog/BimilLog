@@ -269,8 +269,12 @@ public class AuthService {
      */
     @Transactional
     public void renewalKaKaoToken(Token token) {
-        TokenDTO tokenDTO = kakaoService.refreshToken(token.getKakaoRefreshToken());
-        token.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
-        tokenRepository.flush();
+        Token managedToken = tokenRepository.findById(token.getId()).orElseThrow(
+                () -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
+
+        TokenDTO tokenDTO = kakaoService.refreshToken(managedToken.getKakaoRefreshToken());
+        managedToken.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
+
+        tokenRepository.save(managedToken);
     }
 }

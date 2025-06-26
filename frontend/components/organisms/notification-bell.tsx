@@ -129,6 +129,9 @@ export function NotificationBell() {
 
   const NotificationContent = () => (
     <div className="w-full max-w-md mx-auto">
+      {/* 스크린 리더용 제목 (숨김) */}
+      <SheetTitle className="sr-only">알림</SheetTitle>
+
       {/* 헤더 */}
       <div className="flex items-center justify-between p-4 border-b bg-white/50">
         <div className="flex items-center space-x-2">

@@ -10,7 +10,6 @@ import {
   Search,
   ArrowLeft,
   Heart,
-  Users,
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
@@ -88,43 +87,35 @@ export default function VisitPage() {
     }
   };
 
-  // 인기 롤링페이퍼 예시 데이터
-  const popularRollingPapers = [
-    { nickname: "행복한토끼", messageCount: 47, emoji: "🐰" },
-    { nickname: "별빛소녀", messageCount: 32, emoji: "⭐" },
-    { nickname: "코딩마스터", messageCount: 28, emoji: "💻" },
-    { nickname: "꽃길만걷자", messageCount: 25, emoji: "🌸" },
-    { nickname: "햇살같은사람", messageCount: 23, emoji: "☀️" },
-    { nickname: "달콤한하루", messageCount: 19, emoji: "🍯" },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
-      {/* Header */}
+      {/* Header (모바일 최적화) */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                홈으로
-              </Button>
-            </Link>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="pl-0">
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">홈</span>
+                </Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
+                <h1 className="text-base sm:text-xl font-bold text-gray-800 whitespace-nowrap">
+                  롤링페이퍼 방문
+                </h1>
               </div>
-              <h1 className="text-xl font-bold text-gray-800">
-                롤링페이퍼 방문
-              </h1>
             </div>
+            <KakaoShareButton
+              type="service"
+              variant="outline"
+              size="sm"
+              className="px-2 sm:px-3 py-1 text-sm h-8"
+            />
           </div>
-          <KakaoShareButton
-            type="service"
-            variant="outline"
-            size="sm"
-            className="px-3 py-1 text-sm h-8"
-          />
         </div>
       </header>
 
@@ -182,86 +173,6 @@ export default function VisitPage() {
                 "롤링페이퍼 방문하기"
               )}
             </Button>
-          </CardContent>
-        </Card>
-
-        {/* Popular Rolling Papers */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-lg">
-              <Users className="w-5 h-5 text-orange-500" />
-              <span>인기 롤링페이퍼</span>
-              <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
-                예시
-              </span>
-            </CardTitle>
-            <p className="text-gray-600 text-sm">
-              참고용 예시 데이터입니다. 실제 사용자의 닉네임을 입력해 주세요.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {popularRollingPapers.map((paper, index) => (
-              <div
-                key={paper.nickname}
-                className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:shadow-md transition-all cursor-pointer"
-                onClick={async () => {
-                  setSearchNickname(paper.nickname);
-                  // 인기 롤링페이퍼는 예시 데이터이므로 별도 처리
-                  setSearchError("");
-                  setIsSearching(true);
-
-                  try {
-                    const response = await rollingPaperApi.getRollingPaper(
-                      paper.nickname
-                    );
-                    if (response.success) {
-                      router.push(
-                        `/rolling-paper/${encodeURIComponent(paper.nickname)}`
-                      );
-                    } else {
-                      setSearchError(
-                        "죄송해요, 해당 롤링페이퍼는 예시 데이터입니다. 실제 사용자의 닉네임을 검색해 주세요."
-                      );
-                    }
-                  } catch (error) {
-                    setSearchError(
-                      "죄송해요, 해당 롤링페이퍼는 예시 데이터입니다. 실제 사용자의 닉네임을 검색해 주세요."
-                    );
-                  } finally {
-                    setIsSearching(false);
-                  }
-                }}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-cyan-100 to-blue-100 rounded-full">
-                    <span className="text-lg">{paper.emoji}</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800">
-                      {paper.nickname}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {paper.messageCount}개의 메시지
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                      index === 0
-                        ? "bg-yellow-500"
-                        : index === 1
-                        ? "bg-gray-400"
-                        : index === 2
-                        ? "bg-orange-400"
-                        : "bg-purple-400"
-                    }`}
-                  >
-                    {index + 1}
-                  </div>
-                </div>
-              </div>
-            ))}
           </CardContent>
         </Card>
 

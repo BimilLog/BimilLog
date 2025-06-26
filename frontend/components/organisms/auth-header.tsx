@@ -20,13 +20,12 @@ export function AuthHeader() {
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              비밀로그
-            </span>
+          <Link href="/" className="flex items-center">
+            <img
+              src="/log.png"
+              alt="비밀로그"
+              className="h-12 object-contain"
+            />
           </Link>
         </div>
 
@@ -43,7 +42,6 @@ export function AuthHeader() {
                 href="/rolling-paper"
                 className="text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-1"
               >
-                <MessageSquare className="w-4 h-4" />
                 <span>내 롤링페이퍼</span>
               </Link>
             )}
@@ -80,34 +78,36 @@ export function AuthHeader() {
           </nav>
         </div>
 
-        <div className="flex items-center justify-end space-x-2 md:space-x-4">
+        <div className="flex items-center justify-end">
           {isLoading ? (
             <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
           ) : isAuthenticated && user ? (
             <>
               <NotificationBell />
-              <Link
-                href="/settings"
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="설정"
-              >
-                <Settings className="w-5 h-5" />
-              </Link>
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={user.thumbnailImage} alt={user.userName} />
-                <AvatarFallback>{getInitials(user.userName)}</AvatarFallback>
-              </Avatar>
-              <span className="hidden sm:inline font-semibold text-sm text-gray-700">
-                {user.userName}님
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="hidden md:flex bg-white text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-              >
-                로그아웃
-              </Button>
+              <div className="flex items-center space-x-2 md:space-x-4">
+                <Link
+                  href="/settings"
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="설정"
+                >
+                  <Settings className="w-5 h-5" />
+                </Link>
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={user.thumbnailImage} alt={user.userName} />
+                  <AvatarFallback>{getInitials(user.userName)}</AvatarFallback>
+                </Avatar>
+                <span className="hidden sm:inline font-semibold text-sm text-gray-700">
+                  {user.userName}님
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={logout}
+                  className="hidden md:flex bg-white text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                >
+                  로그아웃
+                </Button>
+              </div>
             </>
           ) : null}
           <MobileNav />

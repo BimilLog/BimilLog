@@ -12,8 +12,12 @@ export default function NotFoundPage() {
         <div className="mb-8">
           <div className="relative">
             {/* 메인 아이콘 */}
-            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center">
-              <Heart className="w-12 h-12 text-white" />
+            <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+              <img
+                src="/log.png"
+                alt="비밀로그"
+                className="h-24 object-contain"
+              />
             </div>
 
             {/* 404 숫자 */}

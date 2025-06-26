@@ -91,7 +91,7 @@ export interface SimplePost {
   views: number
   createdAt: string
   popularFlag?: "REALTIME" | "WEEKLY" | "LEGEND"
-  is_notice: boolean
+  _notice: boolean
 }
 
 // 댓글 타입

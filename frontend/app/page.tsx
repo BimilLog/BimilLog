@@ -170,13 +170,14 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-5 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">비밀로그</span>
+              <div className="flex items-center mb-4">
+                <img
+                  src="/log.png"
+                  alt="비밀로그"
+                  className="h-10 object-contain"
+                />
               </div>
               <p className="text-gray-400">
                 익명으로 마음을 전하는 특별한 공간
@@ -250,6 +251,21 @@ export default function HomePage() {
                   >
                     이용약관
                   </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">운영자</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a
+                    href="https://cyclic-icebreaker-daa.notion.site/1d4a9f47800c80a1b12fc2aae7befd0e"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
+                  >
+                    개발자
+                  </a>
                 </li>
               </ul>
             </div>

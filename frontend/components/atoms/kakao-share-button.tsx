@@ -111,7 +111,7 @@ export function KakaoShareButton({
       className={className}
     >
       <Share2 className="w-4 h-4 mr-2" />
-      {isSharing ? "공유 중..." : "카카오톡 공유"}
+      {isSharing ? "공유 중..." : type === "post" ? "공유" : "카카오톡 공유"}
     </Button>
   );
 }

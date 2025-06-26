@@ -18,6 +18,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<any>(null);
+  const isInitializing = useRef(false);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,12 +27,14 @@ const QuillEditor: React.FC<EditorProps> = ({
       if (
         typeof window === "undefined" ||
         !editorRef.current ||
-        quillRef.current
+        quillRef.current ||
+        isInitializing.current
       ) {
         return;
       }
 
       try {
+        isInitializing.current = true;
         console.log("Quill 에디터 초기화를 시작합니다...");
 
         // Quill을 동적으로 import
@@ -156,6 +159,8 @@ const QuillEditor: React.FC<EditorProps> = ({
           error instanceof Error ? error.message : "에디터 로드에 실패했습니다."
         );
         setIsReady(true);
+      } finally {
+        isInitializing.current = false;
       }
     };
 

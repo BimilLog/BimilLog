@@ -53,6 +53,7 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository {
      * </p>
      * <p>
      * 게시글 당 댓글 수, 추천 수를 반환한다.
+     * 공지글과 일반글 모두 포함한다.
      * </p>
      *
      * @return 게시글 목록 페이지
@@ -61,7 +62,14 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository {
      */
     @Transactional(readOnly = true)
     public Page<SimplePostDTO> findPostsWithCommentAndLikeCounts(Pageable pageable) {
-        return findPostsInternal(null, null, pageable);
+        QPost post = QPost.post;
+        QUsers user = QUsers.users;
+
+        // 일반 조회에서는 공지글도 포함 (조건 없음)
+        List<Tuple> postTuples = fetchPosts(post, user, null, pageable);
+        Long total = fetchTotalCount(post, user, null);
+
+        return processPostTuples(postTuples, post, user, pageable, false, total);
     }
 
     /**
@@ -71,6 +79,7 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository {
      * </p>
      * <p>
      * 게시글 마다의 총 댓글 수, 총 추천 수를 반환한다.
+     * 검색 시에는 공지글을 제외한다.
      * </p>
      *
      * @param keyword    검색어
@@ -90,7 +99,8 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository {
                 default -> throw new CustomException(ErrorCode.INCORRECT_SEARCH_FORMAT);
             };
         }
-        return findPostsInternal(null, null, pageable);
+        // 검색어가 없으면 일반 조회로 처리 (공지글 포함)
+        return findPostsWithCommentAndLikeCounts(pageable);
     }
 
     /**
@@ -180,10 +190,15 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository {
 
         BooleanExpression searchCondition = createSearchCondition(post, user, keyword, searchType);
 
-        BooleanExpression baseCondition = post.isNotice.eq(false);
-        BooleanExpression finalCondition = searchCondition != null
-                ? baseCondition.and(searchCondition)
-                : baseCondition;
+        // 검색 시에만 공지글 제외, 일반 조회 시에는 공지글도 포함
+        BooleanExpression finalCondition = searchCondition;
+        if (keyword != null && !keyword.trim().isEmpty() && searchType != null) {
+            // 검색 시에는 공지글 제외
+            BooleanExpression baseCondition = post.isNotice.eq(false);
+            finalCondition = searchCondition != null
+                    ? baseCondition.and(searchCondition)
+                    : baseCondition;
+        }
 
         List<Tuple> postTuples = fetchPosts(post, user, finalCondition, pageable);
         Long total = fetchTotalCount(post, user, finalCondition);

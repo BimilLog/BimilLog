@@ -189,13 +189,6 @@ export default function PublicRollingPaperPage({
                 <Share2 className="w-4 h-4 md:mr-1" />
                 <span className="hidden md:inline">공유</span>
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white h-8 md:h-10 px-2 md:px-3"
-              >
-                <Heart className="w-4 h-4" />
-              </Button>
             </div>
           </div>
         </div>

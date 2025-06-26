@@ -78,7 +78,7 @@ export const shareRollingPaper = async (
       content: {
         title: `${userName}님의 롤링페이퍼 💕`,
         description: `${userName}님에게 따뜻한 메시지를 남겨보세요! 현재 ${messageCount}개의 메시지가 있어요.`,
-        imageUrl: 'https://mud-kage.kakao.com/dn/Q2iNx/btqgeRgV54P/VLdBs9cvyn8BJXB3o7N8UK/kakaolink40_original.png',
+        imageUrl: 'https://postfiles.pstatic.net/MjAyNTA2MjZfODgg/MDAxNzUwOTI0NDQ5NDU4.zZz8zqcDJtERdyJ3uCHQdqMPCq8f1nAYN5nHYY4E1Q0g._A1ZRNw0ez8hbO96WyW8laMX3QZPKSr2PXZoVagjCU8g.PNG/log.png?type=w3840',
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,
@@ -125,7 +125,7 @@ export const sharePost = async (
       content: {
         title: `📝 ${title}`,
         description: `${author}님이 작성한 글입니다.\n\n${description}\n\n👍 ${likes}개의 추천`,
-        imageUrl: 'https://mud-kage.kakao.com/dn/Q2iNx/btqgeRgV54P/VLdBs9cvyn8BJXB3o7N8UK/kakaolink40_original.png',
+        imageUrl: 'https://postfiles.pstatic.net/MjAyNTA2MjZfODgg/MDAxNzUwOTI0NDQ5NDU4.zZz8zqcDJtERdyJ3uCHQdqMPCq8f1nAYN5nHYY4E1Q0g._A1ZRNw0ez8hbO96WyW8laMX3QZPKSr2PXZoVagjCU8g.PNG/log.png?type=w3840',
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,
@@ -165,7 +165,7 @@ export const shareService = async (): Promise<boolean> => {
       content: {
         title: '💕 비밀로그 - 익명 롤링페이퍼 서비스',
         description: '친구들에게 익명으로 따뜻한 메시지를 받아보세요! 나만의 롤링페이퍼를 만들고 소중한 추억을 남겨보세요.',
-        imageUrl: 'https://mud-kage.kakao.com/dn/Q2iNx/btqgeRgV54P/VLdBs9cvyn8BJXB3o7N8UK/kakaolink40_original.png',
+        imageUrl: 'https://postfiles.pstatic.net/MjAyNTA2MjZfODgg/MDAxNzUwOTI0NDQ5NDU4.zZz8zqcDJtERdyJ3uCHQdqMPCq8f1nAYN5nHYY4E1Q0g._A1ZRNw0ez8hbO96WyW8laMX3QZPKSr2PXZoVagjCU8g.PNG/log.png?type=w3840',
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,

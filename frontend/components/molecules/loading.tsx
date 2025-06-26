@@ -39,14 +39,10 @@ export function Spinner({
 export function BrandSpinner({ className }: { className?: string }) {
   return (
     <div className={cn("relative", className)}>
-      <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
-        <Heart className="w-7 h-7 text-white animate-pulse" />
-      </div>
-      <div
-        className="absolute inset-0 w-12 h-12 border-2 border-purple-300 rounded-xl animate-spin"
-        style={{
-          animation: "spin 2s linear infinite",
-        }}
+      <img
+        src="/log.png"
+        alt="비밀로그"
+        className="h-12 object-contain animate-pulse"
       />
     </div>
   );

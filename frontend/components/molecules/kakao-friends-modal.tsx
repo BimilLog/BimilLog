@@ -11,8 +11,10 @@ import {
 } from "@/components/molecules/dialog";
 import { Spinner } from "@/components/atoms/spinner";
 import { EmptyState } from "@/components/molecules/empty-state";
+import { Alert } from "@/components/molecules/alert";
 import { userApi, KakaoFriendList } from "@/lib/api";
-import { Users, MessageCircle, X, RefreshCw } from "lucide-react";
+import { logoutAndRedirectToConsent } from "@/lib/kakao-auth";
+import { Users, MessageCircle, X, RefreshCw, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface KakaoFriendsModalProps {
@@ -24,23 +26,57 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
   const [friendsData, setFriendsData] = useState<KakaoFriendList | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsConsent, setNeedsConsent] = useState(false);
   const router = useRouter();
 
   const fetchFriends = async () => {
     setIsLoading(true);
     setError(null);
+    setNeedsConsent(false);
     try {
       const response = await userApi.getFriendList(0);
+
       if (response.success && response.data) {
         setFriendsData(response.data);
       } else {
-        setError("친구 목록을 가져올 수 없습니다.");
+        // 실패했지만 에러 메시지 체크
+        const errorMessage =
+          response?.error || "친구 목록을 가져올 수 없습니다.";
+
+        // 카카오 친구 동의 실패 에러 체크
+        if (errorMessage.includes("카카오 친구 추가 동의을 해야 합니다")) {
+          setNeedsConsent(true);
+          setError("카카오 친구 목록 접근을 위해 추가 동의가 필요합니다.");
+        } else {
+          setError(errorMessage);
+        }
       }
-    } catch (err) {
-      console.error("카카오 친구 조회 오류:", err);
+    } catch (err: any) {
+      console.error("카카오 친구 조회 예외:", err);
       setError("카카오 친구 조회 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleConsentClick = () => {
+    try {
+      // 확인 대화상자 표시
+      const confirmed = window.confirm(
+        "카카오 친구 목록 접근 권한을 받기 위해 잠시 로그아웃됩니다.\n" +
+          "로그아웃 후 카카오 동의 페이지로 이동하시겠습니까?\n\n" +
+          "동의 완료 후 자동으로 다시 로그인됩니다."
+      );
+
+      if (confirmed) {
+        logoutAndRedirectToConsent();
+      }
+    } catch (err: any) {
+      console.error("카카오 동의 처리 실패:", err);
+      setError(
+        err.message ||
+          "동의 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+      );
     }
   };
 
@@ -112,6 +148,36 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
             <div className="flex flex-col items-center justify-center py-12 px-4">
               <Spinner className="w-8 h-8 text-yellow-500 mb-4" />
               <p className="text-gray-600">친구 목록을 불러오는 중...</p>
+            </div>
+          ) : needsConsent ? (
+            <div className="p-4">
+              <Alert className="mb-4 border-yellow-200 bg-yellow-50">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <div className="ml-2">
+                  <h4 className="text-sm font-medium text-yellow-800 mb-1">
+                    카카오 친구 목록 동의 필요
+                  </h4>
+                  <p className="text-sm text-yellow-700 mb-3">
+                    카카오톡 친구 목록을 확인하려면 추가 동의가 필요합니다. 동의
+                    페이지로 이동하여 '친구 목록 제공' 권한을 허용해주세요.
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={handleConsentClick}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2"
+                    >
+                      동의하러 가기
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={fetchFriends}
+                      className="text-sm px-4 py-2"
+                    >
+                      다시 시도
+                    </Button>
+                  </div>
+                </div>
+              </Alert>
             </div>
           ) : error ? (
             <div className="p-4">

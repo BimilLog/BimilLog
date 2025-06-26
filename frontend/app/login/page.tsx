@@ -28,9 +28,11 @@ export default function LoginPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-7 h-7 text-white animate-pulse" />
-          </div>
+          <img
+            src="/log.png"
+            alt="비밀로그"
+            className="h-12 object-contain mx-auto mb-4 animate-pulse"
+          />
           <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>
@@ -42,13 +44,12 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2">
-            <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <Heart className="w-7 h-7 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              비밀로그
-            </span>
+          <Link href="/" className="inline-block">
+            <img
+              src="/log.png"
+              alt="비밀로그"
+              className="h-16 object-contain mx-auto"
+            />
           </Link>
         </div>
 
@@ -81,11 +82,10 @@ export default function LoginPage() {
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">로그인 없이도 이용 가능!</p>
                   <p>
-                    로그인 없이도 다른 사람의 롤링페이퍼에 메시지를 남길 수 있어요.
+                    로그인 없이도 다른 사람의 롤링페이퍼에 메시지를 남길 수
+                    있어요.
                   </p>
-                  <p>
-                    게시판 이용도 할 수 있어요.
-                  </p>
+                  <p>게시판 이용도 할 수 있어요.</p>
                 </div>
               </div>
             </div>

@@ -146,8 +146,9 @@ public abstract class PostCustomBaseRepository {
                     Integer views = tuple.get(post.views.coalesce(0));
                     Long userId = tuple.get(post.user.id);
                     String userName = tuple.get(user.userName);
+                    Boolean isNotice = tuple.get(post.isNotice);
 
-                    return new SimplePostDTO(
+                    SimplePostDTO dto = new SimplePostDTO(
                             tuple.get(post.id),
                             userId,
                             userName != null ? userName : "익명",
@@ -156,7 +157,12 @@ public abstract class PostCustomBaseRepository {
                             likeCounts.getOrDefault(tuple.get(post.id), 0),
                             views != null ? views : 0,
                             tuple.get(post.createdAt),
-                            userLike);
+                            Boolean.TRUE.equals(isNotice));
+
+                    // PopularFlag 설정
+                    dto.setPopularFlag(tuple.get(post.popularFlag));
+
+                    return dto;
                 })
                 .collect(Collectors.toList());
     }
@@ -211,7 +217,7 @@ public abstract class PostCustomBaseRepository {
                 .select(post.count())
                 .from(post);
 
-        if (condition.toString().contains("users")) {
+        if (condition != null && condition.toString().contains("users")) {
             query = query.leftJoin(post.user, user);
         }
 

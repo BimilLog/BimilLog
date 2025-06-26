@@ -37,7 +37,6 @@ import { MessageView } from "./components/MessageView";
 export default function RollingPaperPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  const [selectedCell, setSelectedCell] = useState<number | null>(null);
   const [messages, setMessages] = useState<{
     [key: number]: RollingPaperMessage;
   }>({});
@@ -90,25 +89,41 @@ export default function RollingPaperPage() {
 
   const handleShare = async () => {
     if (!user) return;
-    const url = `${window.location.origin}/rolling-paper/${encodeURIComponent(
-      user.userName
-    )}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${user.userName}님의 롤링페이퍼`,
-          text: "익명으로 따뜻한 메시지를 남겨보세요!",
-          url: url,
-        });
-      } catch (error) {
-        console.log("Share cancelled");
+
+    // 카카오톡 공유 함수 임포트
+    const { shareRollingPaper, fallbackShare } = await import(
+      "@/lib/kakao-share"
+    );
+
+    try {
+      // 카카오톡 공유 시도
+      const success = await shareRollingPaper(
+        user.userName,
+        Object.keys(messages).length
+      );
+
+      // 카카오톡 공유 실패 시 대체 공유 방법 사용
+      if (!success) {
+        const url = `${
+          window.location.origin
+        }/rolling-paper/${encodeURIComponent(user.userName)}`;
+        fallbackShare(
+          url,
+          `${user.userName}님의 롤링페이퍼`,
+          `${user.userName}님에게 따뜻한 메시지를 남겨보세요!`
+        );
       }
-    } else {
+    } catch (error) {
+      console.error("공유 중 오류 발생:", error);
+      // 오류 발생 시 클립보드 복사로 대체
       try {
+        const url = `${
+          window.location.origin
+        }/rolling-paper/${encodeURIComponent(user.userName)}`;
         await navigator.clipboard.writeText(url);
         alert("링크가 클립보드에 복사되었습니다!");
-      } catch (error) {
-        console.error("Failed to copy to clipboard:", error);
+      } catch (clipboardError) {
+        console.error("클립보드 복사 실패:", clipboardError);
       }
     }
   };
@@ -131,23 +146,6 @@ export default function RollingPaperPage() {
   if (!isAuthenticated || !user) {
     return null;
   }
-
-  const handleMessageSubmit = (index: number, data: any) => {
-    setMessages((prev) => ({
-      ...prev,
-      [index]: {
-        id: Date.now(),
-        userId: user?.userId || 0,
-        decoType: data.decoType,
-        anonymity: data.anonymousNickname,
-        content: data.content,
-        width: index % 6, // 6칸으로 변경
-        height: Math.floor(index / 6),
-        createdAt: new Date().toISOString(),
-        isDeleted: false,
-      },
-    }));
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
@@ -197,13 +195,6 @@ export default function RollingPaperPage() {
               >
                 <Share2 className="w-4 h-4 md:mr-1" />
                 <span className="hidden md:inline">공유</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white h-8 md:h-10 px-2 md:px-3"
-              >
-                <Heart className="w-4 h-4" />
               </Button>
             </div>
           </div>

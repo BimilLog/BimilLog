@@ -23,26 +23,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// 공지사항 데이터는 변하지 않으므로 컴포넌트 외부로 이동
-const notices = [
-  {
-    id: 1,
-    title: "비밀로그 서비스 이용약관 안내",
-    author: "관리자",
-    date: "2024.01.20",
-    views: 1234,
-    isPinned: true,
-  },
-  {
-    id: 2,
-    title: "새로운 기능 업데이트 안내",
-    author: "관리자",
-    date: "2024.01.18",
-    views: 856,
-    isPinned: true,
-  },
-];
-
 export default function BoardPage() {
   const { isAuthenticated } = useAuth();
 
@@ -243,7 +223,7 @@ export default function BoardPage() {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
-            <NoticeList notices={notices} />
+            <NoticeList posts={posts} />
             <PostList posts={posts} />
           </TabsContent>
 

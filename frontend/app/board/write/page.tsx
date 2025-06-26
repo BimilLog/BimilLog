@@ -10,12 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { AuthHeader } from "@/components/organisms/auth-header";
-
-const Editor = dynamic(() => import("@/components/molecules/editor"), {
-  ssr: false,
-});
+import Editor from "@/components/molecules/editor";
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, "");
 
@@ -100,35 +96,63 @@ export default function WritePostPage() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       <AuthHeader />
 
-      {/* 페이지 전용 서브 헤더 */}
-      <div className="bg-white/60 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/board">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                게시판으로
+      {/* 페이지 전용 서브 헤더 (모바일 최적화) */}
+      <div className="bg-white/60 backdrop-blur-sm border-b sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {/* 좌측: 뒤로가기 및 제목 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Link href="/board">
+                  <Button variant="ghost" size="sm" className="pl-0">
+                    <ArrowLeft className="w-4 h-4 mr-1" />
+                    <span className="hidden sm:inline">게시판</span>
+                  </Button>
+                </Link>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-800 whitespace-nowrap">
+                  새 글 작성
+                </h1>
+              </div>
+              {/* 모바일에서만 보이는 버튼 그룹 */}
+              <div className="sm:hidden flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsPreview(!isPreview)}
+                  className="bg-white"
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !title.trim() || !content.trim()}
+                  className="bg-gradient-to-r from-pink-500 to-purple-600"
+                >
+                  <Save className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* 우측: 버튼 그룹 (데스크톱) */}
+            <div className="hidden sm:flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsPreview(!isPreview)}
+                className="bg-white"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                {isPreview ? "편집" : "미리보기"}
               </Button>
-            </Link>
-            <h1 className="text-xl font-bold text-gray-800">새 글 작성</h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsPreview(!isPreview)}
-              className="bg-white"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              {isPreview ? "편집" : "미리보기"}
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || !title.trim() || !content.trim()}
-              className="bg-gradient-to-r from-pink-500 to-purple-600"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {isSubmitting ? "작성 중..." : "작성완료"}
-            </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || !title.trim() || !content.trim()}
+                className="bg-gradient-to-r from-pink-500 to-purple-600"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isSubmitting ? "작성 중..." : "작성완료"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

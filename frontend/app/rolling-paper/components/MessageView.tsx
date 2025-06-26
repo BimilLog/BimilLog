@@ -58,7 +58,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
           <span className="text-4xl animate-bounce">{decoInfo.emoji}</span>
           <Badge
             variant="secondary"
-            className="bg-white/80 text-cyan-800 border-cyan-300 font-semibold"
+            className="bg-white/80 text-pink-800 border-pink-300 font-semibold"
           >
             {decoInfo.name}
           </Badge>
@@ -67,16 +67,16 @@ export const MessageView: React.FC<MessageViewProps> = ({
           {message.content}
         </p>
 
-        {/* 시원한 반짝이는 효과 */}
-        <div className="absolute top-2 right-2 w-3 h-3 bg-cyan-300 rounded-full animate-ping"></div>
-        <div className="absolute bottom-3 left-3 w-2 h-2 bg-blue-300 rounded-full animate-pulse delay-500"></div>
+        {/* 반짝이는 효과 */}
+        <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
+        <div className="absolute bottom-3 left-3 w-2 h-2 bg-pink-300 rounded-full animate-pulse delay-500"></div>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
           <Badge
             variant="outline"
-            className="bg-cyan-50 border-cyan-300 text-cyan-800 font-semibold"
+            className="bg-pink-50 border-pink-300 text-pink-800 font-semibold"
           >
             {message.anonymity}
           </Badge>

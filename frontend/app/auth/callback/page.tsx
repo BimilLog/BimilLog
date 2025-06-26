@@ -38,20 +38,11 @@ export default function AuthCallbackPage() {
           let fcmToken: string | null = null;
 
           if (isMobileOrTablet()) {
-            console.log("모바일/태블릿 환경 감지 - FCM 토큰 가져오기 시도");
             try {
               fcmToken = await getFCMToken();
-              if (fcmToken) {
-                console.log("FCM 토큰 획득 성공 - 로그인 시 전송합니다");
-              } else {
-                console.log("FCM 토큰 획득 실패 - FCM 토큰 없이 로그인 진행");
-              }
             } catch (fcmError) {
               console.error("FCM 토큰 가져오기 중 오류:", fcmError);
-              console.log("FCM 토큰 오류 무시하고 로그인 진행");
             }
-          } else {
-            console.log("데스크톱 환경 - FCM 토큰 건너뛰기");
           }
 
           // 카카오 로그인 (FCM 토큰 포함)
@@ -69,11 +60,34 @@ export default function AuthCallbackPage() {
               await refreshUser(); // 전역 상태 업데이트
 
               // 기존회원 로그인 성공 후 SSE 연결 및 알림 목록 조회
-              console.log("기존회원 로그인 성공 - SSE 연결을 시작합니다.");
               await fetchNotifications(); // 알림 목록 조회
               connectSSE(); // SSE 연결 시작
 
-              const finalRedirect = state ? decodeURIComponent(state) : "/";
+              // 카카오 친구 동의 완료 후 돌아온 경우 확인
+              const returnUrl = sessionStorage.getItem("returnUrl");
+              const kakaoConsentUrl = sessionStorage.getItem("kakaoConsentUrl");
+
+              let finalRedirect = "/";
+
+              if (returnUrl && kakaoConsentUrl) {
+                // 카카오 친구 동의 완료 후 돌아온 경우
+                finalRedirect = returnUrl;
+
+                // 세션 스토리지 정리
+                sessionStorage.removeItem("returnUrl");
+                sessionStorage.removeItem("kakaoConsentUrl");
+
+                // 성공 알림 표시
+                setTimeout(() => {
+                  alert(
+                    "카카오 친구 목록 동의가 완료되었습니다! 이제 친구 목록을 확인할 수 있습니다."
+                  );
+                }, 1000);
+              } else if (state) {
+                // 일반 로그인 state 파라미터가 있는 경우
+                finalRedirect = decodeURIComponent(state);
+              }
+
               router.push(finalRedirect);
             } else {
               // 임시 회원: 유저 정보가 없거나, userName이 없음
@@ -104,9 +118,11 @@ export default function AuthCallbackPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
       <div className="text-center">
-        <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-          <Heart className="w-7 h-7 text-white animate-pulse" />
-        </div>
+        <img
+          src="/log.png"
+          alt="비밀로그"
+          className="h-12 object-contain mx-auto mb-4 animate-pulse"
+        />
         <p className="text-gray-600">로그인 처리 중...</p>
         {isMobileOrTablet() && (
           <p className="text-sm text-gray-500 mt-2">모바일 알림 설정 중...</p>

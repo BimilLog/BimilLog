@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Eye,
@@ -28,38 +27,63 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
   canModify,
   onDeleteClick,
 }) => {
+  // 시간 포맷팅 함수 (T와 Z 제거, 분까지만 표시)
+  const formatDateTime = (dateTimeString: string) => {
+    try {
+      const date = new Date(dateTimeString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    } catch (error) {
+      return dateTimeString; // 포맷팅 실패 시 원본 반환
+    }
+  };
+
   return (
-    <CardHeader className="border-b">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-2">
-            {post.password && <Lock className="w-4 h-4 text-red-500" />}
-            {post.notice && (
-              <Badge className="bg-red-500 text-white">공지</Badge>
-            )}
-            {post.popularFlag && (
-              <Badge className="bg-orange-500 text-white">
-                {post.popularFlag === "REALTIME"
-                  ? "실시간"
-                  : post.popularFlag === "WEEKLY"
-                  ? "주간"
-                  : "레전드"}
-              </Badge>
-            )}
-          </div>
-          <CardTitle className="text-2xl font-bold text-gray-800 mb-3">
-            {post.title}
-          </CardTitle>
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <div className="flex items-center space-x-2">
-              <Avatar className="w-6 h-6">
-                <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs">
-                  {post.userName?.charAt(0) || "?"}
-                </AvatarFallback>
-              </Avatar>
-              <span>{post.userName}</span>
+    <CardHeader className="border-b p-4 md:p-6">
+      {/* 제목과 배지 */}
+      <div className="mb-4">
+        <div className="flex items-center flex-wrap gap-2 mb-3">
+          {post.password && <Lock className="w-4 h-4 text-red-500" />}
+          {post.notice && (
+            <Badge className="bg-red-500 text-white text-xs">공지</Badge>
+          )}
+          {post.popularFlag && (
+            <Badge className="bg-orange-500 text-white text-xs">
+              {post.popularFlag === "REALTIME"
+                ? "실시간"
+                : post.popularFlag === "WEEKLY"
+                ? "주간"
+                : "레전드"}
+            </Badge>
+          )}
+        </div>
+        <CardTitle className="text-xl md:text-2xl font-bold text-gray-800 leading-tight">
+          {post.title}
+        </CardTitle>
+      </div>
+
+      {/* 작성자 정보 - 모바일 최적화 */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col space-y-2">
+          {/* 작성자와 시간 */}
+          <div className="flex items-center space-x-3 text-sm text-gray-600">
+            <div className="flex items-center space-x-2 min-w-0">
+              <span className="truncate max-w-[120px] md:max-w-none">
+                {post.userName}
+              </span>
             </div>
-            <span>{post.createdAt}</span>
+            <span className="text-xs text-gray-500 whitespace-nowrap">
+              {formatDateTime(post.createdAt)}
+            </span>
+          </div>
+
+          {/* 통계 정보 */}
+          <div className="flex items-center space-x-4 text-sm text-gray-600">
             <div className="flex items-center space-x-1">
               <Eye className="w-4 h-4" />
               <span>{post.views}</span>
@@ -74,7 +98,9 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
             </div>
           </div>
         </div>
-        <div className="flex flex-col space-y-2">
+
+        {/* 버튼 영역 - 모바일 최적화 */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           {/* 카카오톡 공유 버튼 */}
           <KakaoShareButton
             type="post"
@@ -85,20 +111,32 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
             likes={post.likes}
             variant="outline"
             size="sm"
-            className="w-24"
+            className="w-full sm:w-auto"
           />
 
           {canModify() && (
-            <div className="flex space-x-2">
-              <Link href={`/board/post/${post.postId}/edit`}>
-                <Button size="sm" variant="outline">
-                  <Edit className="w-4 h-4 mr-1" />
-                  수정
+            <div className="flex gap-2">
+              <Link
+                href={`/board/post/${post.postId}/edit`}
+                className="flex-1 sm:flex-initial"
+              >
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  <Edit className="w-4 h-4 sm:mr-1" />
+                  <span className="hidden sm:inline">수정</span>
                 </Button>
               </Link>
-              <Button size="sm" variant="destructive" onClick={onDeleteClick}>
-                <Trash2 className="w-4 h-4 mr-1" />
-                삭제
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={onDeleteClick}
+                className="flex-1 sm:flex-initial"
+              >
+                <Trash2 className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">삭제</span>
               </Button>
             </div>
           )}
