@@ -29,12 +29,13 @@ import org.springframework.web.bind.annotation.*;
  * <p>
  * 설정 조회 및 수정
  * </p>
+ * 
  * @author Jaeik
  * @version 1.0.0
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/user")
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
@@ -55,9 +56,8 @@ public class UserController {
      */
     @GetMapping("/posts")
     public ResponseEntity<Page<SimplePostDTO>> getPostList(@RequestParam int page,
-                                                           @RequestParam int size,
-                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
-
+            @RequestParam int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Page<SimplePostDTO> postList = userService.getPostList(page, size, userDetails);
         return ResponseEntity.ok(postList);
     }
@@ -78,9 +78,8 @@ public class UserController {
      */
     @GetMapping("/comments")
     public ResponseEntity<Page<SimpleCommentDTO>> getCommentList(@RequestParam int page,
-                                                                 @RequestParam int size,
-                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-
+            @RequestParam int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Page<SimpleCommentDTO> commentList = userService.getCommentList(page, size, userDetails);
         return ResponseEntity.ok(commentList);
     }
@@ -101,8 +100,8 @@ public class UserController {
      */
     @GetMapping("/likeposts")
     public ResponseEntity<Page<SimplePostDTO>> getLikedPosts(@RequestParam int page,
-                                                             @RequestParam int size,
-                                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @RequestParam int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Page<SimplePostDTO> likedPosts = userService.getLikedPosts(page, size, userDetails);
         return ResponseEntity.ok(likedPosts);
     }
@@ -123,8 +122,8 @@ public class UserController {
      */
     @GetMapping("/likecomments")
     public ResponseEntity<Page<SimpleCommentDTO>> getLikedComments(@RequestParam int page,
-                                                                   @RequestParam int size,
-                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @RequestParam int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Page<SimpleCommentDTO> likedComments = userService.getLikedComments(page, size, userDetails);
         return ResponseEntity.ok(likedComments);
     }
@@ -162,7 +161,7 @@ public class UserController {
      */
     @PostMapping("/username")
     public ResponseEntity<String> updateUserName(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                 @RequestBody @Valid UserNameDTO userNameDTO) {
+            @RequestBody @Valid UserNameDTO userNameDTO) {
         userService.updateUserName(userNameDTO.getUserName(), userDetails);
         return ResponseEntity.ok("닉네임이 변경되었습니다.");
     }
@@ -181,7 +180,7 @@ public class UserController {
      */
     @PostMapping("/suggestion")
     public ResponseEntity<String> suggestion(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                           @RequestBody ReportDTO reportDTO) {
+            @RequestBody ReportDTO reportDTO) {
         userService.suggestion(userDetails, reportDTO);
         return ResponseEntity.ok("건의가 접수되었습니다.");
     }
@@ -201,7 +200,7 @@ public class UserController {
      */
     @PostMapping("/friendlist")
     public ResponseEntity<KakaoFriendListDTO> getFriendList(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                            @RequestParam int offset) {
+            @RequestParam int offset) {
         return ResponseEntity.ok(userService.getFriendList(userDetails, offset));
     }
 
@@ -238,7 +237,7 @@ public class UserController {
      */
     @PostMapping("/setting")
     public ResponseEntity<String> updateSetting(@RequestBody SettingDTO settingDTO,
-                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         userService.updateSetting(settingDTO, userDetails);
         return ResponseEntity.ok("설정 수정 완료");
     }

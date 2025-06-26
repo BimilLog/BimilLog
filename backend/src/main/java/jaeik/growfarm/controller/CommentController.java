@@ -51,7 +51,8 @@ public class CommentController {
      * @author Jaeik
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<Page<CommentDTO>> getComments(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<Page<CommentDTO>> getComments(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
         return ResponseEntity.ok(commentService.getCommentsLatestOrder(postId, page, userDetails));
@@ -69,11 +70,11 @@ public class CommentController {
      * @author Jaeik
      */
     @GetMapping("/{postId}/popular")
-    public ResponseEntity<List<CommentDTO>> getPopularComments(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<List<CommentDTO>> getPopularComments(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId) {
         return ResponseEntity.ok(commentService.getPopularComments(postId, userDetails));
     }
-
 
     /**
      * <h3>댓글 작성 API</h3>
@@ -89,7 +90,8 @@ public class CommentController {
      * @return 댓글 작성 성공 메시지
      */
     @PostMapping("/write")
-    public ResponseEntity<String> writeComment(@Valid @RequestBody CommentDTO commentDTO,
+    public ResponseEntity<String> writeComment(
+            @Valid @RequestBody CommentDTO commentDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         commentService.writeComment(userDetails, commentDTO);
         return ResponseEntity.ok("댓글 작성 완료");
@@ -109,7 +111,8 @@ public class CommentController {
      * @return 댓글 수정 성공 메시지
      */
     @PostMapping("/update")
-    public ResponseEntity<String> updateComment(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<String> updateComment(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentDTO commentDTO) {
         commentService.updateComment(commentDTO, userDetails);
         return ResponseEntity.ok("댓글 수정 완료");
@@ -128,7 +131,8 @@ public class CommentController {
      * @return 댓글 삭제 성공 메시지
      */
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteComment(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<String> deleteComment(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentDTO commentDTO) {
         commentService.deleteComment(commentDTO, userDetails);
         return ResponseEntity.ok("댓글 삭제 완료");
@@ -151,7 +155,8 @@ public class CommentController {
      * @return 추천 처리 메시지
      */
     @PostMapping("/like")
-    public ResponseEntity<String> likeComment(@RequestBody @Valid CommentDTO commentDTO,
+    public ResponseEntity<String> likeComment(
+            @RequestBody @Valid CommentDTO commentDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         commentService.likeComment(commentDTO, userDetails);
         return ResponseEntity.ok("추천 처리 완료");

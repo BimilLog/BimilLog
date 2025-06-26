@@ -25,13 +25,14 @@ import java.util.List;
  * <p>
  * 알림 읽음/삭제 처리
  * </p>
+ * 
  * @author Jaeik
  * @version 1.0.0
  */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/notification")
+@RequestMapping("/notification")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -52,15 +53,17 @@ public class NotificationController {
     /**
      * <h3>알림 리스트 조회</h3>
      * <p>
-     *     현재 로그인한 유저의 알림 리스트를 조회합니다.
+     * 현재 로그인한 유저의 알림 리스트를 조회합니다.
      * </p>
+     * 
      * @param userDetails 현재 로그인한 유저 정보>
      * @return ResponseEntity<List<NotificationDTO>> 알림 리스트
      * @since 1.0.0
      * @author Jaeik
      */
     @GetMapping("/list")
-    public ResponseEntity<List<NotificationDTO>> getNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<List<NotificationDTO>> getNotifications(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<NotificationDTO> notificationDTOS = notificationService.getNotificationList(userDetails);
         return ResponseEntity.ok(notificationDTOS);
     }
@@ -68,9 +71,10 @@ public class NotificationController {
     /**
      * <h3>알림 읽음/삭제 처리</h3>
      * <p>
-     *     현재 로그인한 유저의 알림을 읽음 처리하거나 삭제합니다.
+     * 현재 로그인한 유저의 알림을 읽음 처리하거나 삭제합니다.
      * </p>
-     * @param userDetails 현재 로그인한 유저 정보
+     * 
+     * @param userDetails           현재 로그인한 유저 정보
      * @param updateNotificationDTO 알림 업데이트 정보
      * @return ResponseEntity<Void> HTTP 응답
      * @since 1.0.0

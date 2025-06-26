@@ -19,13 +19,28 @@ import java.util.List;
 
 /**
  * <h2>게시판 관련 컨트롤러</h2>
- * <p>게시판 조회</p>
- * <p>실시간 인기글 조회</p>
- * <p>주간 인기글 조회</p>
- * <p>명예의 전당 조회</p>
- * <p>게시글 검색</p>
- * <p>게시글 CRUD</p>
- * <p>게시글 추천/추천 취소</p>
+ * <p>
+ * 게시판 조회
+ * </p>
+ * <p>
+ * 실시간 인기글 조회
+ * </p>
+ * <p>
+ * 주간 인기글 조회
+ * </p>
+ * <p>
+ * 명예의 전당 조회
+ * </p>
+ * <p>
+ * 게시글 검색
+ * </p>
+ * <p>
+ * 게시글 CRUD
+ * </p>
+ * <p>
+ * 게시글 추천/추천 취소
+ * </p>
+ * 
  * @author Jaeik
  * @version 1.0.0
  */
@@ -89,16 +104,16 @@ public class PostController {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param postId      게시글 ID
-     * @param request     HTTP 요청 객체
-     * @param response    HTTP 응답 객체
+     * @param postId   게시글 ID
+     * @param request  HTTP 요청 객체
+     * @param response HTTP 응답 객체
      * @return 게시글 상세 정보
      */
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long postId,
-                                           @AuthenticationPrincipal CustomUserDetails userDetails,
-                                           HttpServletRequest request,
-                                           HttpServletResponse response) {
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         postService.incrementViewCount(postId, request, response);
         PostDTO postDTO = postService.getPost(postId, userDetails);
         return ResponseEntity.ok(postDTO);
@@ -180,7 +195,7 @@ public class PostController {
      */
     @PostMapping("/like")
     public ResponseEntity<String> likePost(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                           @RequestBody @Valid PostDTO postDTO) {
+            @RequestBody @Valid PostDTO postDTO) {
         postService.likePost(postDTO, userDetails);
         return ResponseEntity.ok("추천 처리 완료");
     }
@@ -198,7 +213,8 @@ public class PostController {
      */
     @GetMapping("/realtime")
     public ResponseEntity<List<SimplePostDTO>> getRealtimeBoard() {
-        List<SimplePostDTO> realtimePopularPosts = redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.REALTIME);
+        List<SimplePostDTO> realtimePopularPosts = redisPostService
+                .getCachedPopularPosts(RedisPostService.PopularPostType.REALTIME);
         return ResponseEntity.ok(realtimePopularPosts);
     }
 
@@ -215,7 +231,8 @@ public class PostController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<List<SimplePostDTO>> getWeeklyBoard() {
-        List<SimplePostDTO> weeklyPopularPosts = redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.WEEKLY);
+        List<SimplePostDTO> weeklyPopularPosts = redisPostService
+                .getCachedPopularPosts(RedisPostService.PopularPostType.WEEKLY);
         return ResponseEntity.ok(weeklyPopularPosts);
     }
 
@@ -232,7 +249,8 @@ public class PostController {
      */
     @GetMapping("/legend")
     public ResponseEntity<List<SimplePostDTO>> getLegendBoard() {
-        List<SimplePostDTO> legendPopularPosts = redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.LEGEND);
+        List<SimplePostDTO> legendPopularPosts = redisPostService
+                .getCachedPopularPosts(RedisPostService.PopularPostType.LEGEND);
         return ResponseEntity.ok(legendPopularPosts);
     }
 }
