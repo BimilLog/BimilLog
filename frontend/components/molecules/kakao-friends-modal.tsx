@@ -160,7 +160,7 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
                   </h4>
                   <p className="text-sm text-yellow-700 mb-3">
                     카카오톡 친구 목록을 확인하려면 추가 동의가 필요합니다. 동의
-                    페이지로 이동하여 '친구 목록 제공' 권한을 허용해주세요.
+                    페이지로 이동하여 &#39;친구 목록 제공&#39; 권한을 허용해주세요.
                   </p>
                   <div className="flex space-x-2">
                     <Button
