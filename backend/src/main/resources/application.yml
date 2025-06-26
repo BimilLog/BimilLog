@@ -8,8 +8,10 @@ spring:
     hikari:  # HikariCP 커넥션 풀 설정
       minimum-idle: 40  # 최소 유지 커넥션 수
       maximum-pool-size: 40  # 최대 커넥션 풀 크기
-      max-lifetime: 55000  # 커넥션 최대 생명 주기 (55초)
-      connection-timeout: 10000  # 커넥션 타임 아웃 (10초)
+      connection-timeout: 15000  # 커넥션 타임 아웃 (15초)
+      max-lifetime: 1800000  # 커넥션 최대 생명주기 (30분)
+      idle-timeout: 600000  # 커넥션 유휴 시간 (10분)
+      leak-detection-threshold: 60000  # 커넥션 누수 감지 임계값 (60초)
   cache:  # 캐시 설정
     type: caffeine  # Caffeine 캐시 엔진 사용
     caffeine:
