@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
-import { Pin } from "lucide-react";
 
 interface PostListProps {
   posts: SimplePost[];

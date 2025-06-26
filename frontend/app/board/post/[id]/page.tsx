@@ -8,8 +8,6 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
-import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
-import { sharePost } from "@/lib/kakao-share";
 
 // 분리된 컴포넌트들 import
 import { PostHeader } from "./components/PostHeader";
@@ -491,7 +489,9 @@ export default function PostDetailPage() {
 
         {/* 인기 댓글 */}
         <PopularComments
-          popularComments={popularComments}
+          comments={popularComments}
+          onLikeComment={handleLikeComment}
+          onReplyTo={setReplyingTo}
           onCommentClick={scrollToComment}
         />
 

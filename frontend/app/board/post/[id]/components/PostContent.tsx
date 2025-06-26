@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
+import { SafeHTML } from "@/components/ui";
 import { ThumbsUp, Flag } from "lucide-react";
 import { Post, userApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +24,12 @@ export const PostContent: React.FC<PostContentProps> = ({
 
   const handleReportSubmit = async (reportReason: string) => {
     try {
-      const reportData: any = {
+      const reportData: {
+        reportType: "POST";
+        targetId: number;
+        content: string;
+        userId?: number;
+      } = {
         reportType: "POST",
         targetId: post.postId,
         content: reportReason,
@@ -50,9 +56,9 @@ export const PostContent: React.FC<PostContentProps> = ({
   return (
     <CardContent className="p-6">
       <div className="prose max-w-none">
-        <div
+        <SafeHTML
+          html={post.content}
           className="text-gray-800 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: post.content }}
         />
       </div>
 

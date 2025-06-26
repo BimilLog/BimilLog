@@ -3,10 +3,8 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/atoms/button";
 import {
-  MessageSquare,
   Heart,
   Search,
-  Users,
   FileText,
   Sparkles,
   AlertCircle,
@@ -93,8 +91,10 @@ export function EmptyState({
 
   const title = customTitle || defaults.title || "내용이 없어요";
   const description = customDescription || defaults.description || "";
-  const actionLabel = customActionLabel || (defaults as any).actionLabel;
-  const shouldShowRetry = showRetry || (defaults as any).showRetry || false;
+  const actionLabel =
+    customActionLabel || (defaults as { actionLabel?: string }).actionLabel;
+  const shouldShowRetry =
+    showRetry || (defaults as { showRetry?: boolean }).showRetry || false;
 
   const IconComponent = iconMap[type];
   const icon =
@@ -159,176 +159,6 @@ export function EmptyState({
             )}
           </Button>
         )}
-      </div>
-    </div>
-  );
-}
-
-// 특화된 빈 상태 컴포넌트들
-
-// 게시글 없음
-export function EmptyPosts({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg",
-        className
-      )}
-    >
-      <EmptyState type="posts" icon={<MessageSquare className="w-12 h-12" />} />
-    </div>
-  );
-}
-
-// 메시지 없음
-export function EmptyMessages({
-  className,
-  onShare,
-}: {
-  className?: string;
-  onShare?: () => void;
-}) {
-  return (
-    <div
-      className={cn(
-        "bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg",
-        className
-      )}
-    >
-      <EmptyState
-        type="messages"
-        icon={<Heart className="w-12 h-12" />}
-        onAction={onShare}
-      />
-    </div>
-  );
-}
-
-// 검색 결과 없음
-export function EmptySearch({
-  searchTerm,
-  onReset,
-  className,
-}: {
-  searchTerm?: string;
-  onReset?: () => void;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg",
-        className
-      )}
-    >
-      <EmptyState
-        type="search"
-        title={`"${searchTerm}" 검색 결과가 없어요`}
-        icon={<Search className="w-12 h-12" />}
-        onAction={onReset}
-      />
-    </div>
-  );
-}
-
-// 에러 상태
-export function ErrorState({
-  onRetry,
-  className,
-}: {
-  onRetry?: () => void;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg",
-        className
-      )}
-    >
-      <EmptyState
-        type="error"
-        icon={<AlertCircle className="w-12 h-12" />}
-        onRetry={onRetry}
-      />
-    </div>
-  );
-}
-
-// 오프라인 상태
-export function OfflineState({
-  onRetry,
-  className,
-}: {
-  onRetry?: () => void;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg",
-        className
-      )}
-    >
-      <EmptyState
-        type="offline"
-        icon={<Wifi className="w-12 h-12" />}
-        onRetry={onRetry}
-      />
-    </div>
-  );
-}
-
-// 환영 메시지 (신규 사용자용)
-export function WelcomeState({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 rounded-lg border-0 shadow-lg",
-        className
-      )}
-    >
-      <EmptyState
-        title="비밀로그에 오신 것을 환영해요! 🎉"
-        description="익명으로 마음을 전하는 특별한 공간에서 소중한 추억을 만들어보세요."
-        actionLabel="시작하기"
-        actionHref="/rolling-paper"
-        icon={
-          <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <Sparkles className="w-7 h-7 text-white" />
-          </div>
-        }
-      />
-    </div>
-  );
-}
-
-// 페이지 전체 빈 상태 (전체 화면)
-export function PageEmptyState({
-  type = "custom",
-  title,
-  description,
-  actionLabel,
-  actionHref,
-  onAction,
-  className,
-}: EmptyStateProps) {
-  return (
-    <div
-      className={cn(
-        "min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center p-4",
-        className
-      )}
-    >
-      <div className="w-full max-w-md">
-        <EmptyState
-          type={type}
-          title={title}
-          description={description}
-          actionLabel={actionLabel}
-          actionHref={actionHref}
-          onAction={onAction}
-        />
       </div>
     </div>
   );

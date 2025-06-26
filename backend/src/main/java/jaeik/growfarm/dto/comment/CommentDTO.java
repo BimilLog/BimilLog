@@ -3,7 +3,6 @@ package jaeik.growfarm.dto.comment;
 import jaeik.growfarm.entity.comment.Comment;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,7 +35,6 @@ public class CommentDTO {
     @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
     private String userName;
 
-    @NotNull
     @Size(max = 255, message = "댓글은 최대 255자 까지 입력 가능합니다.")
     private String content;
 
@@ -61,7 +59,6 @@ public class CommentDTO {
      * </p>
      *
      * @param comment 변환할 댓글 엔티티
-     * @return 변환된 CommentDTO 객체
      * @since 1.0.0
      * @author Jaeik
      */

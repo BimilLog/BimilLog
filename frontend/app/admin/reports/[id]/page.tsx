@@ -5,13 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle,
   XCircle,
-  Ban,
   Calendar,
   Flag,
 } from "lucide-react";

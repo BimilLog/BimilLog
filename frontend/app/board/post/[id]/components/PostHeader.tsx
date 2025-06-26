@@ -1,15 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Eye,
-  ThumbsUp,
-  MessageSquare,
-  Lock,
-  Edit,
-  Trash2,
-  Share2,
-} from "lucide-react";
+import { Eye, ThumbsUp, MessageSquare, Lock, Edit, Trash2 } from "lucide-react";
 import { Post } from "@/lib/api";
 import Link from "next/link";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
@@ -38,7 +30,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
       const minutes = String(date.getMinutes()).padStart(2, "0");
 
       return `${year}-${month}-${day} ${hours}:${minutes}`;
-    } catch (error) {
+    } catch {
       return dateTimeString; // 포맷팅 실패 시 원본 반환
     }
   };

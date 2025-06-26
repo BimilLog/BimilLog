@@ -18,7 +18,7 @@ import { KakaoFriendsModal } from "@/components/molecules/kakao-friends-modal";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
 
 export default function HomePage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
 
   const handleOpenFriendsModal = () => {
@@ -196,14 +196,6 @@ export default function HomePage() {
                 </li>
                 <li>
                   <Link
-                    href="/popular"
-                    className="hover:text-white transition-colors"
-                  >
-                    인기글
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     href="/visit"
                     className="hover:text-white transition-colors"
                   >
@@ -255,7 +247,7 @@ export default function HomePage() {
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">운영자</h3>
+              <h3 className="font-semibold mb-4">운영</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
                   <a
@@ -264,7 +256,7 @@ export default function HomePage() {
                     rel="noopener noreferrer"
                     className="hover:text-white transition-colors"
                   >
-                    개발자
+                    개발자 노션
                   </a>
                 </li>
               </ul>

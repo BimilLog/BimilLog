@@ -8,14 +8,7 @@ import {
   getDecoInfo,
 } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import {
-  MessageSquare,
-  Plus,
-  ArrowLeft,
-  Share2,
-  Heart,
-  Info,
-} from "lucide-react";
+import { MessageSquare, ArrowLeft, Share2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +24,6 @@ import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
 
 // 분리된 컴포넌트들 import
-import { MessageForm } from "./components/MessageForm";
 import { MessageView } from "./components/MessageView";
 
 export default function RollingPaperPage() {

@@ -39,7 +39,7 @@ export default function EditPostPage() {
   const [isPreview, setIsPreview] = useState(false);
 
   // 비회원 게시글 수정을 위한 상태
-  const [isGuest, setIsGuest] = useState(false);
+  const [, setIsGuest] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [guestPassword, setGuestPassword] = useState("");
 

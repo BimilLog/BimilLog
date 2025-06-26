@@ -4,6 +4,8 @@ import { sanitizeHtml } from "@/util/sanitize";
 interface SafeHTMLProps {
   html: string;
   className?: string;
+  allowedTags?: string[];
+  forbiddenTags?: string[];
 }
 
 /**
@@ -12,15 +14,23 @@ interface SafeHTMLProps {
  * DOMPurify를 사용하여 XSS 공격을 방지합니다.
  * dangerouslySetInnerHTML 대신 이 컴포넌트를 사용하세요.
  */
-const SafeHTML: React.FC<SafeHTMLProps> = ({ html, className }) => {
+const SafeHTML: React.FC<SafeHTMLProps> = ({
+  html,
+  className,
+  allowedTags,
+  forbiddenTags,
+}) => {
   // 빈 문자열이면 렌더링하지 않음
   if (!html) return null;
 
-  // HTML 콘텐츠 정화
-  const sanitizedHtml = sanitizeHtml(html);
+  // HTML 콘텐츠 정화 (사용자 정의 태그 설정 지원)
+  const sanitizedHtml = sanitizeHtml(html, {
+    allowedTags,
+    forbiddenTags,
+  });
 
   return (
-    <span
+    <div
       className={className}
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />

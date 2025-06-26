@@ -9,7 +9,6 @@ frontend/components/
 ├── atoms/          # 원자 - 가장 기본적인 UI 요소
 ├── molecules/      # 분자 - Atoms의 조합으로 구성된 단순한 UI 그룹
 ├── organisms/      # 유기체 - 복잡한 UI 섹션
-├── templates/      # 템플릿 - 페이지 레이아웃 구조 (향후 확장)
 ├── index.ts        # 메인 export 파일
 ├── ui.ts          # 호환성을 위한 re-export 파일
 └── README.md       # 이 문서
@@ -30,7 +29,7 @@ frontend/components/
 - `Switch` - 토글 스위치
 - `Icon` - 아이콘 컴포넌트 (Lucide 아이콘 지원)
 - `Spinner` - 로딩 스피너
-- `SafeHTML` - 안전한 HTML 렌더링
+- `KakaoShareButton` - 카카오 공유 버튼
 
 ### Molecules (분자)
 
@@ -39,9 +38,6 @@ frontend/components/
 **📱 레이아웃 & 구조**
 
 - `Card` - 카드 컴포넌트
-  - `FeatureCard` - 기능 소개용 카드 (메인페이지 스타일)
-  - `CTACard` - 액션 유도 카드 (그라디언트 배경)
-  - `BottomSheetCard` - 모바일 바텀시트 스타일
 - `Alert` - 알림 메시지
 - `Tabs` - 탭 인터페이스
 
@@ -62,26 +58,16 @@ frontend/components/
 
 - `Editor` - 텍스트 에디터 (Quill 기반, SSR 안전)
 - `ReportModal` - 신고 모달
+- `KakaoFriendsModal` - 카카오 친구 목록 모달
 
 **⏳ 상태 컴포넌트 (모바일 최적화)**
 
 - `Loading` - 범용 로딩 컴포넌트
-- `BrandSpinner` - 브랜드 일관성 있는 로딩 스피너
 - `Skeleton` - 스켈레톤 로딩 (콘텐츠 자리표시자)
-- `CardSkeleton` - 카드형 스켈레톤
-- `ListSkeleton` - 리스트형 스켈레톤
-- `PullToRefreshLoader` - 모바일 당겨서 새로고침
 
 **📭 빈 상태 컴포넌트 (Empty States)**
 
 - `EmptyState` - 범용 빈 상태 컴포넌트
-- `EmptyPosts` - 게시글 없음 상태
-- `EmptyMessages` - 메시지 없음 상태
-- `EmptySearch` - 검색 결과 없음 상태
-- `ErrorState` - 에러 상태
-- `OfflineState` - 오프라인 상태
-- `WelcomeState` - 환영 메시지 (신규 사용자용)
-- `PageEmptyState` - 전체 페이지 빈 상태
 
 ### Organisms (유기체)
 
@@ -105,7 +91,6 @@ Molecules와 Atoms가 결합된 복잡한 UI 섹션입니다.
 import { Button, Icon, Spinner } from "@/components/atoms/button";
 import { Card, SearchBox, FormField } from "@/components/molecules/card";
 import { AuthHeader } from "@/components/organisms/auth-header";
-import { PageTemplate } from "@/components/templates/page-template";
 
 // 또는 메인 index에서 일괄 import
 import {
@@ -116,7 +101,6 @@ import {
   SearchBox,
   FormField, // Molecules
   AuthHeader, // Organisms
-  PageTemplate, // Templates
 } from "@/components";
 ```
 
@@ -162,8 +146,6 @@ import { Card } from "@/components/molecules/card";
 - **Atoms**: 명사형 (Button, Input, Label)
 - **Molecules**: 기능 중심 (SearchBox, FormField, AlertDialog)
 - **Organisms**: 섹션 중심 (Header, ProductList, CommentSection)
-- **Templates**: ~Template 접미사 (PageTemplate, DashboardTemplate)
-- **Pages**: ~Page 접미사 (HomePage, ProductDetailPage)
 
 ## 🔄 마이그레이션 가이드
 
@@ -296,9 +278,9 @@ const spacing = getSpacing(4);
 **📱 모바일 퍼스트 아토믹 시스템**
 
 - **아토믹 폴더 구조** - atoms, molecules, organisms, templates
-- **모바일 최적화 Atoms** - Button, Input, Label, Textarea, Avatar, Badge, Switch, Icon, Spinner, SafeHTML
-- **고급 Molecules 컴포넌트** - Card 변형들, Dialog, Alert, SearchBox, FormField, ReportModal
-- **상태 관리 Molecules** - Loading, BrandSpinner, Skeleton, EmptyState 컴포넌트들
+- **모바일 최적화 Atoms** - Button, Input, Label, Textarea, Avatar, Badge, Switch, Icon, Spinner, KakaoShareButton
+- **고급 Molecules 컴포넌트** - Card, Alert, SearchBox, FormField, ReportModal
+- **상태 관리 Molecules** - Loading, Skeleton, EmptyState 컴포넌트들
 - **터치 최적화 Organisms** - AuthHeader, MobileNav, NotificationBell, Board 관련 컴포넌트들
 - **반응형 Templates 시스템** - PageTemplate, AuthTemplate, DashboardTemplate
 

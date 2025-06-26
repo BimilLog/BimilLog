@@ -1,75 +1,190 @@
-import { Badge } from "@/components/ui/badge";
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ThumbsUp } from "lucide-react";
-import { Comment } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { SafeHTML } from "@/components/ui";
+import { ThumbsUp, MessageSquare, Flag, MoreHorizontal } from "lucide-react";
+import { Comment, userApi } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import { ReportModal } from "@/components/ui/ReportModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/molecules/dropdown-menu";
+import { useState } from "react";
 
 interface PopularCommentsProps {
-  popularComments: Comment[];
+  comments?: Comment[];
+  onLikeComment: (comment: Comment) => void;
+  onReplyTo: (comment: Comment) => void;
   onCommentClick: (commentId: number) => void;
 }
 
 export const PopularComments: React.FC<PopularCommentsProps> = ({
-  popularComments,
+  comments,
+  onLikeComment,
+  onReplyTo,
   onCommentClick,
 }) => {
-  if (popularComments.length === 0) {
+  const { user } = useAuth();
+  const [reportingCommentId, setReportingCommentId] = useState<number | null>(
+    null
+  );
+
+  const isMyComment = (comment: Comment) => {
+    return user?.userId === comment.userId;
+  };
+
+  const handleReportSubmit = async (reportReason: string) => {
+    if (!reportingCommentId) return;
+
+    try {
+      const reportData: {
+        reportType: "COMMENT";
+        targetId: number;
+        content: string;
+        userId?: number;
+      } = {
+        reportType: "COMMENT",
+        targetId: reportingCommentId,
+        content: reportReason,
+      };
+
+      // 회원인 경우에만 userId 추가
+      if (user?.userId) {
+        reportData.userId = user.userId;
+      }
+
+      const response = await userApi.submitSuggestion(reportData);
+
+      if (response.success) {
+        alert("신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다.");
+      } else {
+        alert(response.error || "신고 접수에 실패했습니다. 다시 시도해주세요.");
+      }
+    } catch (error) {
+      console.error("Report failed:", error);
+      alert("신고 접수 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setReportingCommentId(null);
+    }
+  };
+
+  if (!comments || comments.length === 0) {
     return null;
   }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-4">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <ThumbsUp className="w-5 h-5 text-orange-600" />
-          <span>인기 댓글 {popularComments.length}개</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {popularComments.map((comment) => (
+    <>
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-lg mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-blue-700">
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-base sm:text-lg">인기 댓글</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {comments.map((comment) => (
             <div
               key={comment.id}
-              className="p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border-l-4 border-orange-400 cursor-pointer hover:bg-gradient-to-r hover:from-orange-100 hover:to-yellow-100 transition-colors"
+              className="p-3 sm:p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 shadow-sm cursor-pointer hover:bg-white/90 transition-all duration-200 hover:shadow-md"
               onClick={() => onCommentClick(comment.id)}
             >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback>
-                      {comment.userName?.charAt(0) || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <p className="font-semibold">{comment.userName}</p>
-                      <Badge className="bg-orange-100 text-orange-800 text-xs">
-                        인기
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      {new Date(comment.createdAt).toLocaleString()}
-                    </p>
-                  </div>
+              {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <p className="font-semibold text-sm sm:text-base text-blue-800 truncate">
+                    {comment.userName}
+                  </p>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
-                <div className="flex items-center space-x-1 text-orange-600">
-                  <ThumbsUp className="w-4 h-4" />
-                  <span className="text-sm font-medium">{comment.likes}</span>
+
+                {/* 액션 버튼들 */}
+                <div className="flex items-center gap-1">
+                  {/* 추천 버튼 */}
+                  <Button
+                    size="sm"
+                    variant={comment.userLike ? "default" : "outline"}
+                    onClick={() => onLikeComment(comment)}
+                    className={`text-xs px-2 py-1 h-7 ${
+                      comment.userLike
+                        ? "bg-blue-500 hover:bg-blue-600 text-white"
+                        : "hover:bg-blue-50 border-blue-300 text-blue-600"
+                    }`}
+                  >
+                    <ThumbsUp
+                      className={`w-3 h-3 mr-1 ${
+                        comment.userLike ? "fill-current" : ""
+                      }`}
+                    />
+                    {comment.likes}
+                  </Button>
+
+                  {/* 답글 버튼 */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onReplyTo(comment)}
+                    className="text-xs px-2 py-1 h-7 border-blue-300 text-blue-600 hover:bg-blue-50"
+                  >
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    <span className="hidden sm:inline">답글</span>
+                  </Button>
+
+                  {/* 신고 버튼 (본인 댓글이 아닌 경우만) */}
+                  {!isMyComment(comment) && !comment.deleted && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs px-2 py-1 h-7 text-gray-500 hover:text-gray-700"
+                        >
+                          <MoreHorizontal className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-24">
+                        <DropdownMenuItem
+                          onClick={() => setReportingCommentId(comment.id)}
+                          className="text-red-600 hover:text-red-700 cursor-pointer"
+                        >
+                          <Flag className="w-3 h-3 mr-2" />
+                          신고
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
-              <div
-                className="prose max-w-none prose-sm"
-                dangerouslySetInnerHTML={{
-                  __html: comment.content,
-                }}
+
+              {/* 댓글 내용 */}
+              <SafeHTML
+                html={comment.content}
+                className="prose max-w-none prose-sm text-sm sm:text-base leading-relaxed text-gray-700"
               />
-              <div className="mt-2 text-xs text-orange-600 font-medium">
-                클릭하여 원본 댓글로 이동 →
+
+              {/* 클릭 안내 */}
+              <div className="mt-3 pt-2 border-t border-blue-100">
+                <p className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                  원본 댓글로 이동하기
+                </p>
               </div>
             </div>
           ))}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* 신고 모달 */}
+      <ReportModal
+        isOpen={reportingCommentId !== null}
+        onClose={() => setReportingCommentId(null)}
+        onSubmit={handleReportSubmit}
+        type="댓글"
+      />
+    </>
   );
 };

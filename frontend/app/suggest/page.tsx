@@ -3,29 +3,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AuthHeader } from "@/components/organisms/auth-header";
-import {
-  Heart,
-  MessageSquare,
-  AlertTriangle,
-  Lightbulb,
-  Send,
-  Bug,
-  ArrowLeft,
-} from "lucide-react";
+import { Lightbulb, Send, Bug } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
-import Link from "next/link";
 
 type SuggestionType = "ERROR" | "IMPROVEMENT";
 
@@ -72,10 +55,14 @@ export default function SuggestPage() {
     setIsSubmitting(true);
 
     try {
-      const suggestionData: any = {
+      const suggestionData: {
+        reportType: SuggestionType;
+        content: string;
+        userId?: number;
+      } = {
         reportType: suggestionType,
         content: content.trim(),
-        userId: isAuthenticated && user?.userId ? user.userId : null,
+        userId: isAuthenticated && user?.userId ? user.userId : undefined,
       };
 
       const response = await userApi.submitSuggestion(suggestionData);

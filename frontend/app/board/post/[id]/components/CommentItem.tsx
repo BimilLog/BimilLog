@@ -1,11 +1,19 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ThumbsUp, Reply, Flag } from "lucide-react";
+import { SafeHTML } from "@/components/ui";
+import { ThumbsUp, Reply, Flag, MoreHorizontal } from "lucide-react";
 import { Comment, userApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { ReportModal } from "@/components/ui/ReportModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/molecules/dropdown-menu";
 import { useState } from "react";
 
 interface CommentItemProps {
@@ -66,12 +74,17 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const { user } = useAuth();
   const maxDepth = 3; // 최대 들여쓰기 레벨
   const actualDepth = Math.min(depth, maxDepth);
-  const marginLeft = actualDepth * 24; // 24px씩 들여쓰기
+  const marginLeft = actualDepth * 16; // 16px씩 들여쓰기 (모바일 최적화)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const handleReportSubmit = async (reportReason: string) => {
     try {
-      const reportData: any = {
+      const reportData: {
+        reportType: "COMMENT";
+        targetId: number;
+        content: string;
+        userId?: number;
+      } = {
         reportType: "COMMENT",
         targetId: comment.id,
         content: reportReason,
@@ -99,16 +112,17 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     <div
       id={`comment-${comment.id}`}
       className={`${
-        depth > 0 ? "border-l-2 border-gray-200" : ""
+        depth > 0 ? "border-l-2 border-gray-200 pl-2" : ""
       } transition-colors duration-500`}
       style={{ marginLeft: `${marginLeft}px` }}
     >
-      <div className="p-4 bg-gray-50 rounded-lg mb-4 comment-content">
+      <div className="p-3 sm:p-4 bg-gray-50 rounded-lg mb-3 comment-content">
         {editingComment?.id === comment.id ? (
-          <div className="p-4 bg-gray-100 rounded-lg">
+          <div className="p-3 sm:p-4 bg-gray-100 rounded-lg">
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
+              className="min-h-[80px]"
             />
             {!isMyComment(comment) && (
               <Input
@@ -119,90 +133,123 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 onChange={(e) => setEditPassword(e.target.value)}
               />
             )}
-            <div className="flex justify-end space-x-2 mt-2">
-              <Button onClick={onUpdateComment}>수정완료</Button>
-              <Button variant="ghost" onClick={onCancelEdit}>
+            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-3">
+              <Button
+                onClick={onUpdateComment}
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                수정완료
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={onCancelEdit}
+                size="sm"
+                className="w-full sm:w-auto"
+              >
                 취소
               </Button>
             </div>
           </div>
         ) : (
           <div>
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback>
-                    {comment.userName?.charAt(0) || "?"}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold">{comment.userName}</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(comment.createdAt).toLocaleString()}
-                  </p>
-                </div>
+            {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <p className="font-semibold text-sm sm:text-base truncate">
+                  {comment.userName}
+                </p>
+                <span className="text-xs text-gray-500 whitespace-nowrap">
+                  {new Date(comment.createdAt).toLocaleDateString()}
+                </span>
               </div>
-              <div className="flex space-x-2">
+
+              {/* 모바일: 드롭다운 메뉴, 데스크톱: 버튼들 */}
+              <div className="flex items-center gap-1">
+                {/* 추천 버튼은 항상 표시 */}
                 <Button
                   size="sm"
                   variant={comment.userLike ? "default" : "outline"}
                   onClick={() => onLikeComment(comment)}
-                  className={`${
+                  className={`text-xs px-2 py-1 h-7 ${
                     comment.userLike
                       ? "bg-blue-500 hover:bg-blue-600 text-white"
                       : "hover:bg-blue-50"
                   }`}
                 >
                   <ThumbsUp
-                    className={`w-4 h-4 mr-1 ${
+                    className={`w-3 h-3 mr-1 ${
                       comment.userLike ? "fill-current" : ""
                     }`}
                   />
                   {comment.likes}
                 </Button>
+
+                {/* 답글 버튼 (모바일에서도 항상 표시) */}
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onReplyTo(comment)}
+                  className="text-xs px-2 py-1 h-7"
                 >
-                  <Reply className="w-4 h-4 mr-1" />
-                  답글
+                  <Reply className="w-3 h-3 mr-1" />
+                  <span className="hidden sm:inline">답글</span>
                 </Button>
-                {!isMyComment(comment) && !comment.deleted && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsReportModalOpen(true)}
-                    className="hover:bg-red-50 border-red-300 text-red-600 hover:text-red-700"
-                  >
-                    <Flag className="w-4 h-4 mr-1" />
-                    신고
-                  </Button>
-                )}
-                {canModifyComment(comment) && !comment.deleted && (
-                  <>
-                    <Button size="sm" onClick={() => onEditComment(comment)}>
-                      수정
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => onDeleteComment(comment)}
-                    >
-                      삭제
-                    </Button>
-                  </>
-                )}
+
+                {/* 추가 액션들 (드롭다운) */}
+                {(!isMyComment(comment) || canModifyComment(comment)) &&
+                  !comment.deleted && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs px-2 py-1 h-7 text-gray-500 hover:text-gray-700"
+                        >
+                          <MoreHorizontal className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-24">
+                        {!isMyComment(comment) && !comment.deleted && (
+                          <DropdownMenuItem
+                            onClick={() => setIsReportModalOpen(true)}
+                            className="text-red-600 hover:text-red-700 cursor-pointer"
+                          >
+                            <Flag className="w-3 h-3 mr-2" />
+                            신고
+                          </DropdownMenuItem>
+                        )}
+                        {canModifyComment(comment) && !comment.deleted && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => onEditComment(comment)}
+                              className="cursor-pointer"
+                            >
+                              수정
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => onDeleteComment(comment)}
+                              className="text-red-600 hover:text-red-700 cursor-pointer"
+                            >
+                              삭제
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
               </div>
             </div>
-            <div
-              className="prose max-w-none prose-sm"
-              dangerouslySetInnerHTML={{ __html: comment.content }}
+
+            {/* 댓글 내용 */}
+            <SafeHTML
+              html={comment.content}
+              className="prose max-w-none prose-sm text-sm sm:text-base leading-relaxed"
             />
 
             {/* 답글 작성 폼 */}
             {replyingTo?.id === comment.id && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <h4 className="text-sm font-semibold mb-3 text-blue-700">
                   {comment.userName}님에게 답글 작성
                 </h4>
@@ -216,22 +263,28 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                     />
                   </div>
                 )}
-                <div className="flex space-x-2">
+                <div className="space-y-3">
                   <Textarea
                     placeholder="답글을 입력하세요..."
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
-                    className="flex-1"
+                    className="min-h-[80px] resize-none"
                   />
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex gap-2">
                     <Button
                       size="sm"
                       onClick={onReplySubmit}
                       disabled={isSubmittingReply}
+                      className="flex-1 sm:flex-none"
                     >
                       작성
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={onCancelReply}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={onCancelReply}
+                      className="flex-1 sm:flex-none"
+                    >
                       취소
                     </Button>
                   </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Heart, MessageSquare, Sparkles, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface LoadingProps {
   className?: string;
@@ -35,19 +35,6 @@ export function Spinner({
   );
 }
 
-// 브랜드 로딩 애니메이션 (메인페이지 스타일)
-export function BrandSpinner({ className }: { className?: string }) {
-  return (
-    <div className={cn("relative", className)}>
-      <img
-        src="/log.png"
-        alt="비밀로그"
-        className="h-12 object-contain animate-pulse"
-      />
-    </div>
-  );
-}
-
 // 다양한 로딩 변형들
 export function Loading({
   className,
@@ -64,7 +51,7 @@ export function Loading({
         )}
       >
         <div className="text-center">
-          <BrandSpinner className="mx-auto mb-4" />
+          <Spinner size="lg" className="mx-auto mb-4" />
           <p className="text-gray-600 text-lg">{message || "로딩 중..."}</p>
         </div>
       </div>
@@ -79,7 +66,7 @@ export function Loading({
           className
         )}
       >
-        <BrandSpinner className="mx-auto mb-4" />
+        <Spinner size="lg" className="mx-auto mb-4" />
         <p className="text-gray-600">{message || "로딩 중..."}</p>
       </div>
     );
@@ -117,76 +104,6 @@ export function Skeleton({ className }: { className?: string }) {
         animation: "skeleton-loading 1.5s ease-in-out infinite",
       }}
     />
-  );
-}
-
-// 카드형 스켈레톤
-export function CardSkeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg p-6",
-        className
-      )}
-    >
-      <div className="space-y-4">
-        <div className="flex items-center space-x-3">
-          <Skeleton className="w-10 h-10 rounded-full" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-        </div>
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </div>
-    </div>
-  );
-}
-
-// 리스트형 스켈레톤
-export function ListSkeleton({
-  items = 3,
-  className,
-}: {
-  items?: number;
-  className?: string;
-}) {
-  return (
-    <div className={cn("space-y-3", className)}>
-      {Array.from({ length: items }).map((_, i) => (
-        <div
-          key={i}
-          className="bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg p-4"
-        >
-          <div className="flex items-center space-x-3">
-            <Skeleton className="w-8 h-8 rounded-full" />
-            <div className="space-y-2 flex-1">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-            <Skeleton className="w-6 h-6" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// Pull-to-refresh 로딩 (모바일 특화)
-export function PullToRefreshLoader({ isVisible }: { isVisible: boolean }) {
-  if (!isVisible) return null;
-
-  return (
-    <div className="flex justify-center py-4">
-      <div className="flex items-center space-x-2">
-        <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-          <Sparkles className="w-4 h-4 text-white animate-spin" />
-        </div>
-        <span className="text-sm text-gray-600">새로고침 중...</span>
-      </div>
-    </div>
   );
 }
 

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Heart, Check, AlertCircle } from "lucide-react";
+import { Check, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,9 +20,8 @@ import { validateNickname } from "@/util/inputValidation";
 import { useNotifications } from "@/hooks/useNotifications";
 
 export default function SignUpPage() {
-  const { login, isAuthenticated, isLoading, updateUserName, refreshUser } =
-    useAuth();
-  const { connectSSE, fetchNotifications } = useNotifications();
+  const { login, isAuthenticated, isLoading, refreshUser } = useAuth();
+  const { fetchNotifications } = useNotifications();
   const router = useRouter();
   const searchParams = useSearchParams();
   const needsNickname = searchParams.get("required") === "true";

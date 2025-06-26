@@ -51,7 +51,7 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
           setError(errorMessage);
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("카카오 친구 조회 예외:", err);
       setError("카카오 친구 조회 중 오류가 발생했습니다.");
     } finally {
@@ -71,11 +71,12 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
       if (confirmed) {
         logoutAndRedirectToConsent();
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("카카오 동의 처리 실패:", err);
       setError(
-        err.message ||
-          "동의 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+        err instanceof Error
+          ? err.message
+          : "동의 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
       );
     }
   };

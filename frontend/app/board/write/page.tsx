@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SafeHTML } from "@/components/ui";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
@@ -89,7 +90,7 @@ export default function WritePostPage() {
   };
 
   const formatPreviewContent = (htmlContent: string) => {
-    return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+    return <SafeHTML html={htmlContent} />;
   };
 
   return (

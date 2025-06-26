@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
+
 import { boardApi, type SimplePost } from "@/lib/api";
 
 import { AuthHeader } from "@/components/organisms/auth-header";
@@ -13,19 +13,10 @@ import { NoticeList } from "@/components/organisms/board/notice-list";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  MessageSquare,
-  TrendingUp,
-  Clock,
-  Crown,
-  Edit,
-  Zap,
-} from "lucide-react";
+import { MessageSquare, TrendingUp, Crown, Edit, Zap } from "lucide-react";
 import Link from "next/link";
 
 export default function BoardPage() {
-  const { isAuthenticated } = useAuth();
-
   // State declarations
   const [searchTerm, setSearchTerm] = useState("");
   const [searchType, setSearchType] = useState<
@@ -38,7 +29,7 @@ export default function BoardPage() {
   const [weeklyPosts, setWeeklyPosts] = useState<SimplePost[]>([]);
   const [legendPosts, setLegendPosts] = useState<SimplePost[]>([]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
   const [currentPage, setCurrentPage] = useState(0);

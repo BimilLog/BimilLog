@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/atoms/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
-import { Heart, Settings, MessageSquare } from "lucide-react";
+import { Settings } from "lucide-react";
 import { MobileNav } from "@/components/organisms/mobile-nav";
 import { NotificationBell } from "./notification-bell";
 

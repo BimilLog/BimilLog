@@ -83,45 +83,6 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function FeatureCard({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <Card
-      className={cn(
-        "text-center p-6 hover:scale-[1.02] active:scale-[0.98] cursor-pointer",
-        className
-      )}
-      {...props}
-    />
-  );
-}
-
-function CTACard({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="cta-card"
-      className={cn(
-        "bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 text-white flex flex-col gap-6 rounded-lg border-0 shadow-2xl p-8 md:p-12",
-        className
-      )}
-      {...props}
-    />
-  );
-}
-
-function BottomSheetCard({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="bottom-sheet-card"
-      className={cn(
-        "bg-white rounded-t-2xl border-0 shadow-2xl p-6 pb-8",
-        "pb-[calc(1.5rem+env(safe-area-inset-bottom))]",
-        className
-      )}
-      {...props}
-    />
-  );
-}
-
 export {
   Card,
   CardHeader,
@@ -130,7 +91,4 @@ export {
   CardAction,
   CardDescription,
   CardContent,
-  FeatureCard,
-  CTACard,
-  BottomSheetCard,
 };
