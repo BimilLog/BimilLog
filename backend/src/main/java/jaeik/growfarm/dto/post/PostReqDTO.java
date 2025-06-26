@@ -1,5 +1,7 @@
 package jaeik.growfarm.dto.post;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +33,7 @@ public class PostReqDTO {
     @Size(max = 1000, message = "글 내용은 최대 1000자 까지 입력 가능합니다.")
     private String content;
 
-    @Size(max = 8, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
+    @Min(value = 1000, message = "비밀번호는 4자리 숫자여야 합니다.")
+    @Max(value = 9999, message = "비밀번호는 4자리 숫자여야 합니다.")
     private Integer password;
 }

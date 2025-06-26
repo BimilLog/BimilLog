@@ -14,7 +14,6 @@
 /coverage
 
 # next.js
-.next
 /.next/
 /out/
 
@@ -40,3 +39,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/public/firebase/
+node_modules

@@ -128,6 +128,24 @@ public class UserController {
         return ResponseEntity.ok(likedComments);
     }
 
+
+    /**
+     * <h3>닉네임 중복 확인</h3>
+     *
+     * <p>
+     * 닉네임이 이미 존재하지는 확인한다.
+     * </p>
+     *
+     * @return 닉네임 중복 여부
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @GetMapping("/username/check")
+    public ResponseEntity<Boolean> checkUserName(@RequestParam String userName) {
+        boolean isAvailable = userService.isUserNameAvailable(userName);
+        return ResponseEntity.ok(isAvailable);
+    }
+
     /**
      * <h3>닉네임 변경 API</h3>
      *

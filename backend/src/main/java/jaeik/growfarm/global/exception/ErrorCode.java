@@ -43,12 +43,15 @@ public enum ErrorCode {
     PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글이 존재하지 않습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글이 존재하지 않습니다."),
     COMMENT_PASSWORD_NOT_MATCH(HttpStatus.FORBIDDEN, "댓글 비밀번호가 일치하지 않습니다."),
+    POST_PASSWORD_NOT_MATCH(HttpStatus.FORBIDDEN, "게시글 비밀번호가 일치하지 않습니다."),
     ONLY_COMMENT_OWNER_UPDATE(HttpStatus.FORBIDDEN, "댓글 작성자만 수정할 수 있습니다."),
     ONLY_COMMENT_OWNER_DELETE(HttpStatus.FORBIDDEN, "댓글 작성자만 삭제할 수 있습니다."),
     COMMENT_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),
     INCORRECT_SEARCH_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 검색 형식입니다."),
     POPULAR_COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "인기 댓글 조회에 실패했습니다."),
     COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 조회에 실패했습니다."),
+    POST_WRITE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 작성에 실패했습니다."),
+    POST_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 삭제에 실패했습니다."),
     POST_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "게시글 작성자만 수정 및 삭제할 수 있습니다."),
     REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 작성 중 오류가 발생했습니다."),
     REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다."),
@@ -79,6 +82,7 @@ public enum ErrorCode {
      */
     NOT_FOUND_REPORT(HttpStatus.NOT_FOUND, "해당 신고를 찾을 수 없습니다."),
     BAN_USER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "유저 차단 중 오류 발생"),
+    INVALID_REPORT_TARGET(HttpStatus.BAD_REQUEST, "신고 대상이 유효하지 않습니다."),
 
     /**
      * <h3>알림 에러 코드</h3>

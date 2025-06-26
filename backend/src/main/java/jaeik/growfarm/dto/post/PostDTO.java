@@ -2,6 +2,8 @@ package jaeik.growfarm.dto.post;
 
 import jaeik.growfarm.entity.post.PopularFlag;
 import jaeik.growfarm.entity.post.Post;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +47,8 @@ public class PostDTO {
 
     private boolean userLike;
 
-    @Size(max = 8, message = "비밀번호는 최대 8글자 까지 입력 가능합니다.")
+    @Min(value = 1000, message = "비밀번호는 4자리 숫자여야 합니다.")
+    @Max(value = 9999, message = "비밀번호는 4자리 숫자여야 합니다.")
     private Integer password;
 
     /**
@@ -59,12 +62,12 @@ public class PostDTO {
      * @since 1.0.0
      * @author Jaeik
      */
-    public static PostDTO newPost (Post post) {
+    public static PostDTO newPost(Post post) {
         PostDTO postDTO = new PostDTO();
         postDTO.setPostId(post.getId());
 
         Long userId = (post.getUser() != null) ? post.getUser().getId() : null;
-        String userName = (post.getUser() != null) ? post.getUser().getUserName() : "비회원";
+        String userName = (post.getUser() != null) ? post.getUser().getUserName() : "익명";
 
         postDTO.setUserId(userId);
         postDTO.setUserName(userName);
@@ -88,11 +91,15 @@ public class PostDTO {
      * @since 1.0.0
      * @author Jaeik
      */
-    public static PostDTO existedPost(Long postId, Long userId, String userName, String title, String content, int views, int likes, boolean isNotice, PopularFlag popularFlag, Instant createdAt, boolean userLike) {
+    public static PostDTO existedPost(Long postId, Long userId, String userName, String title, String content,
+            int views, int likes, boolean isNotice, PopularFlag popularFlag, Instant createdAt, boolean userLike) {
+
+        String nickName = userName != null ? userName : "익명";
+
         PostDTO postDTO = new PostDTO();
         postDTO.setPostId(postId);
         postDTO.setUserId(userId);
-        postDTO.setUserName(userName);
+        postDTO.setUserName(nickName);
         postDTO.setTitle(title);
         postDTO.setContent(content);
         postDTO.setViews(views);

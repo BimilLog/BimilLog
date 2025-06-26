@@ -2,7 +2,7 @@ package jaeik.growfarm.unit.controller;
 
 import jaeik.growfarm.controller.AuthController;
 import jaeik.growfarm.service.auth.AuthService;
-import jaeik.growfarm.service.auth.UserUpdateService;
+import jaeik.growfarm.service.auth.AuthUpdateService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +34,7 @@ public class AuthControllerTest {
     private AuthService authService;
 
     @Mock
-    private UserUpdateService userUpdateService;
+    private AuthUpdateService authUpdateService;
 
     @Test
     @DisplayName("헬스체크 테스트")

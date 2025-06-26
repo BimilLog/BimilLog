@@ -147,13 +147,19 @@ public class PostService {
      */
     public void updatePost(CustomUserDetails userDetails, PostDTO postDTO) {
         Post post = ValidatePost(userDetails, postDTO);
-        post.updatePost(postDTO);
+        postUpdateService.postUpdate(postDTO, post);
     }
 
     /**
      * <h3>게시글 삭제</h3>
      * <p>
      * 게시글 작성자만 게시글을 삭제할 수 있습니다다.
+     * </p>
+     * <p>
+     * 인기글인 경우 Redis 캐시에서도 즉시 삭제됩니다.
+     * </p>
+     * <p>
+     * 댓글은 CASCADE 설정으로 자동 삭제됩니다.
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
@@ -163,8 +169,7 @@ public class PostService {
      */
     public void deletePost(CustomUserDetails userDetails, PostDTO postDTO) {
         Post post = ValidatePost(userDetails, postDTO);
-        List<Long> commentIds = commentRepository.findCommentIdsByPostId(post.getId());
-        postUpdateService.postDelete(post, commentIds);
+        postUpdateService.postDelete(post.getId());
     }
 
     /**
@@ -223,7 +228,7 @@ public class PostService {
 
         if (userId == null) {
             if (!Objects.equals(postDTO.getPassword(), post.getPassword())) {
-                throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
+                throw new CustomException(ErrorCode.POST_PASSWORD_NOT_MATCH);
             }
         }
         return post;

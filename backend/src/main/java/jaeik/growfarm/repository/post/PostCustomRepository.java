@@ -4,6 +4,7 @@ import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.dto.post.SimplePostDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
  * @author jaeik
  * @version 1.0
  */
+@Repository
 public interface PostCustomRepository {
 
     /**
@@ -126,4 +128,17 @@ public interface PostCustomRepository {
      * @since 1.0.0
      */
     Page<SimplePostDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
+
+    /**
+     * <h3>게시글 삭제 및 Redis 캐시 동기화</h3>
+     * <p>
+     * 게시글을 삭제하고, 해당 게시글이 인기글(실시간/주간/레전드)인 경우
+     * Redis 캐시에서도 즉시 해당 인기글 목록을 삭제한다.
+     * </p>
+     *
+     * @param postId 삭제할 게시글 ID
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    void deletePostWithCacheSync(Long postId);
 }

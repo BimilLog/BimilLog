@@ -88,11 +88,13 @@ public class CommentService {
                 commentDTO.getPassword(),
                 commentDTO.getParentId());
 
-        eventPublisher.publishEvent(new CommentCreatedEvent(
-                post.getUser().getId(),
-                commentDTO.getUserName(),
-                commentDTO.getPostId(),
-                post.getUser()));
+        if (post.getUser() != null) {
+            eventPublisher.publishEvent(new CommentCreatedEvent(
+                    post.getUser().getId(),
+                    commentDTO.getUserName(),
+                    commentDTO.getPostId(),
+                    post.getUser()));
+        }
     }
 
     /**
@@ -135,10 +137,14 @@ public class CommentService {
                 try {
                     CommentDTO commentDTO = new CommentDTO(comment);
 
-                    Long likeCount = tuple.get(QCommentLike.commentLike.count().coalesce(0L));
+                    Long likeCount = tuple.get(1, Long.class);
                     commentDTO.setLikes(likeCount != null ? likeCount.intValue() : 0);
 
                     commentDTO.setUserLike(userLikedCommentIds.contains(comment.getId()));
+
+                    // parentId 설정 (tuple의 3번째 요소)
+                    Long parentId = tuple.get(2, Long.class);
+                    commentDTO.setParentId(parentId);
 
                     commentDTO.setPopular(true);
 
@@ -210,14 +216,18 @@ public class CommentService {
                 try {
                     CommentDTO dto = new CommentDTO(comment);
 
-                    Long likeCount = tuple.get(QCommentLike.commentLike.count().coalesce(0L));
+                    Long likeCount = tuple.get(1, Long.class);
                     dto.setLikes(likeCount != null ? likeCount.intValue() : 0);
 
                     dto.setUserLike(userLikedCommentIds.contains(commentId));
 
+                    // parentId 설정 (tuple의 5번째 요소)
+                    Long parentId = tuple.get(4, Long.class);
+                    dto.setParentId(parentId);
+
                     commentMap.put(commentId, dto);
 
-                    Integer depth = tuple.get(QCommentClosure.commentClosure.depth);
+                    Integer depth = tuple.get(3, Integer.class);
                     if (depth != null && depth == 0) {
                         rootComments.add(dto);
                     }
@@ -267,8 +277,9 @@ public class CommentService {
      */
     public void updateComment(CommentDTO commentDTO, CustomUserDetails userDetails) {
         Comment comment = ValidateComment(commentDTO, userDetails);
-        comment.updateComment(commentDTO.getContent());
+        commentUpdateService.commentUpdate(commentDTO, comment);
     }
+
 
     /**
      * <h3>댓글 삭제</h3>
@@ -294,12 +305,7 @@ public class CommentService {
 
         try {
             boolean hasDescendants = commentClosureRepository.hasDescendants(commentId);
-
-            if (hasDescendants) {
-                comment.softDelete();
-            } else {
-                commentUpdateService.hardDelete(commentId, comment);
-            }
+            commentUpdateService.commentDelete(hasDescendants, commentId, comment);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.COMMENT_DELETE_FAILED);
         }

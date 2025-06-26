@@ -33,7 +33,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/comment")
+@RequestMapping("/api/comment")
 public class CommentController {
 
     private final CommentService commentService;

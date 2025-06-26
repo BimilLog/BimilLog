@@ -3,13 +3,14 @@ package jaeik.growfarm.service.auth;
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
+import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
+import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -43,9 +44,9 @@ public class AuthService {
     private final BlackListRepository blackListRepository;
     private final EmitterRepository emitterRepository;
     private final TempUserDataManager tempUserDataManager;
-    private final UserUpdateService userUpdateService;
+    private final AuthUpdateService authUpdateService;
     private final UserJdbcRepository userJdbcRepository;
-    private final CommentRepository commentRepository;
+    private final TokenRepository tokenRepository;
 
     /**
      * <h3>카카오 로그인</h3>
@@ -146,7 +147,7 @@ public class AuthService {
      */
     private LoginResponseDTO<List<ResponseCookie>> existingUserLogin(Users user, KakaoInfoDTO kakaoInfoDTO,
             TokenDTO tokenDTO, String fcmToken) {
-        List<ResponseCookie> cookies = userUpdateService.saveExistUser(user, kakaoInfoDTO, tokenDTO, fcmToken);
+        List<ResponseCookie> cookies = authUpdateService.saveExistUser(user, kakaoInfoDTO, tokenDTO, fcmToken);
         return LoginResponseDTO.existingUser(cookies);
     }
 
@@ -188,7 +189,7 @@ public class AuthService {
         if (tempUserData == null) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         }
-        return userUpdateService.saveNewUser(userName, uuid, tempUserData.getKakaoInfoDTO(), tempUserData.getTokenDTO(),
+        return authUpdateService.saveNewUser(userName, uuid, tempUserData.getKakaoInfoDTO(), tempUserData.getTokenDTO(),
                 tempUserData.getFcmToken());
     }
 
@@ -205,9 +206,6 @@ public class AuthService {
      * @since 1.0.0
      */
     public List<ResponseCookie> logout(CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
-        }
         try {
             emitterRepository.deleteAllEmitterByUserId(userDetails.getUserId());
             SecurityContextHolder.clearContext();
@@ -236,7 +234,7 @@ public class AuthService {
         }
 
         kakaoService.unlink(userJdbcRepository.getKakaoAccessToken(userDetails.getTokenId()));
-        userUpdateService.performWithdrawProcess(userDetails.getUserId());
+        authUpdateService.performWithdrawProcess(userDetails.getUserId());
 
         return logout(userDetails);
     }
@@ -252,7 +250,31 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
+    @Transactional(readOnly = true)
     public void kakaoLogout(CustomUserDetails userDetails) {
-        kakaoService.logout(userJdbcRepository.getKakaoAccessToken(userDetails.getTokenId()));
+        Token token = tokenRepository.findById(userDetails.getTokenId()).orElseThrow();
+        kakaoService.logout(token.getKakaoAccessToken());
+    }
+
+    /**
+     * <h3>카카오 토큰 갱신</h3>
+     *
+     * <p>
+     * 카카오 액세스 토큰이 만료되었을 때, 리프레시 토큰을 사용하여 새로운 액세스 토큰을 갱신합니다.
+     * </p>
+     *
+     * @param token 현재 로그인한 사용자의 토큰 정보
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Transactional
+    public void renewalKaKaoToken(Token token) {
+        Token managedToken = tokenRepository.findById(token.getId()).orElseThrow(
+                () -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
+
+        TokenDTO tokenDTO = kakaoService.refreshToken(managedToken.getKakaoRefreshToken());
+        managedToken.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
+
+        tokenRepository.save(managedToken);
     }
 }

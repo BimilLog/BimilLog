@@ -15,7 +15,7 @@ import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.kakao.KakaoService;
 import jaeik.growfarm.service.auth.AuthService;
 import jaeik.growfarm.service.auth.TempUserDataManager;
-import jaeik.growfarm.service.auth.UserUpdateService;
+import jaeik.growfarm.service.auth.AuthUpdateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -65,7 +65,7 @@ public class AuthServiceTest {
     private TempUserDataManager tempUserDataManager;
 
     @Mock
-    private UserUpdateService userUpdateService;
+    private AuthUpdateService authUpdateService;
 
     @Mock
     private UserJdbcRepository userJdbcRepository;
@@ -83,7 +83,7 @@ public class AuthServiceTest {
     @BeforeEach
     void setUp() {
         authService = new AuthService(userRepository, kakaoService, jwtTokenProvider, blackListRepository,
-                emitterRepository, tempUserDataManager, userUpdateService, userJdbcRepository, commentRepository);
+                emitterRepository, tempUserDataManager, authUpdateService, userJdbcRepository, commentRepository);
         // Mock User 설정
         mockUser = mock(Users.class);
         when(mockUser.getId()).thenReturn(1L);
@@ -116,7 +116,7 @@ public class AuthServiceTest {
         when(userRepository.findByKakaoId(123456789L)).thenReturn(Optional.of(mockUser));
 
         List<ResponseCookie> mockCookies = List.of(mock(ResponseCookie.class));
-        when(userUpdateService.saveExistUser(any(), any(), any(), any())).thenReturn(mockCookies);
+        when(authUpdateService.saveExistUser(any(), any(), any(), any())).thenReturn(mockCookies);
 
         // When
         LoginResponseDTO<?> result = authService.processKakaoLogin(code, fcmToken);
@@ -127,7 +127,7 @@ public class AuthServiceTest {
         verify(kakaoService, times(1)).getToken(code);
         verify(kakaoService, times(1)).getUserInfo(mockTokenDTO.getKakaoAccessToken());
         verify(userRepository, times(1)).findByKakaoId(123456789L);
-        verify(userUpdateService, times(1)).saveExistUser(mockUser, mockKakaoInfoDTO, mockTokenDTO, fcmToken);
+        verify(authUpdateService, times(1)).saveExistUser(mockUser, mockKakaoInfoDTO, mockTokenDTO, fcmToken);
     }
 
     @Test
@@ -192,7 +192,7 @@ public class AuthServiceTest {
         when(tempUserDataManager.getTempData(uuid)).thenReturn(tempData);
 
         List<ResponseCookie> mockCookies = List.of(mock(ResponseCookie.class));
-        when(userUpdateService.saveNewUser(anyString(), anyString(), any(), any(), anyString()))
+        when(authUpdateService.saveNewUser(anyString(), anyString(), any(), any(), anyString()))
                 .thenReturn(mockCookies);
 
         // When
@@ -202,7 +202,7 @@ public class AuthServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         verify(tempUserDataManager, times(1)).getTempData(uuid);
-        verify(userUpdateService, times(1)).saveNewUser(userName, uuid, mockKakaoInfoDTO, mockTokenDTO,
+        verify(authUpdateService, times(1)).saveNewUser(userName, uuid, mockKakaoInfoDTO, mockTokenDTO,
                 "test-fcm-token");
     }
 
@@ -234,7 +234,7 @@ public class AuthServiceTest {
         when(mockUserDetails.getTokenId()).thenReturn(1L);
         when(userJdbcRepository.getKakaoAccessToken(eq(1L))).thenReturn("test-access-token");
         doNothing().when(kakaoService).unlink(eq("test-access-token"));
-        doNothing().when(userUpdateService).performWithdrawProcess(eq(1L));
+        doNothing().when(authUpdateService).performWithdrawProcess(eq(1L));
         doNothing().when(emitterRepository).deleteAllEmitterByUserId(eq(1L));
 
         List<ResponseCookie> mockCookies = List.of(mock(ResponseCookie.class));
@@ -248,7 +248,7 @@ public class AuthServiceTest {
         assertEquals(1, result.size());
         verify(userJdbcRepository, times(1)).getKakaoAccessToken(eq(1L));
         verify(kakaoService, times(1)).unlink(eq("test-access-token"));
-        verify(userUpdateService, times(1)).performWithdrawProcess(eq(1L));
+        verify(authUpdateService, times(1)).performWithdrawProcess(eq(1L));
         verify(emitterRepository, times(1)).deleteAllEmitterByUserId(eq(1L));
         verify(jwtTokenProvider, times(1)).getLogoutCookies();
     }

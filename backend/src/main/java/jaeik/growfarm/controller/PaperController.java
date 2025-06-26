@@ -32,7 +32,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/paper")
+@RequestMapping("/api/paper")
 public class PaperController {
 
     private final PaperService paperService;

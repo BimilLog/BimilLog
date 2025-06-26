@@ -51,6 +51,7 @@ public class UserService {
     private final KakaoService kakaoService;
     private final TokenRepository tokenRepository;
     private final SettingRepository settingRepository;
+    private final UserUpdateService userUpdateService;
 
     /**
      * <h3>유저 작성 글 목록 조회</h3>
@@ -144,13 +145,31 @@ public class UserService {
      * @since 1.0.0
      */
     public void updateUserName(String userName, CustomUserDetails userDetails) {
-        if (userRepository.existsByUserName(userName)) {
-            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
-        }
+        isUserNameAvailable(userName);
         Users user = userRepository.findById(userDetails.getClientDTO().getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        user.updateUserName(userName);
+        userUpdateService.userNameUpdate(userName, user);
+    }
+
+    /**
+     * <h3>닉네임 중복 확인</h3>
+     *
+     * <p>
+     * 주어진 닉네임이 이미 존재하는지 확인한다.
+     * </p>
+     *
+     * @param userName 닉네임
+     * @return 닉네임이 사용 가능한 경우 true
+     * @throws CustomException 닉네임이 이미 존재하는 경우
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public boolean isUserNameAvailable(String userName) {
+        if (userRepository.existsByUserName(userName)) {
+            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
+        }
+        return true;
     }
 
     /**
@@ -170,7 +189,6 @@ public class UserService {
         Report report = Report.DtoToReport(reportDTO, user);
         reportRepository.save(report);
     }
-
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
@@ -212,12 +230,7 @@ public class UserService {
         Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingDTO().getSettingId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
 
-        return new SettingDTO(
-                setting.getId(),
-                setting.isMessageNotification(),
-                setting.isCommentNotification(),
-                setting.isPostFeaturedNotification()
-        );
+        return new SettingDTO(setting);
     }
 
     /**
@@ -227,7 +240,7 @@ public class UserService {
      * 사용자의 알림 설정을 업데이트한다.
      * </p>
      *
-     * @param settingDTO 설정 정보 DTO
+     * @param settingDTO  설정 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
      * @since 1.0.0
@@ -236,7 +249,7 @@ public class UserService {
         Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingDTO().getSettingId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
 
-        setting.updateSetting(settingDTO);
+        userUpdateService.settingUpdate(settingDTO, setting);
     }
 
     /**

@@ -54,14 +54,14 @@ public class AdminController {
     /**
      * <h3>유저 차단 및 블랙 리스트 등록 API</h3>
      *
-     * @param userId 유저 ID
+     * @param reportDTO 신고 DTO
      * @return 차단 완료 메시지
      * @since 2025-04-28
      */
     @PostMapping("/user/ban")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> banUser(@RequestParam Long userId) {
-        adminService.banUser(userId);
+    public ResponseEntity<String> banUser(@RequestBody ReportDTO reportDTO) {
+        adminService.banUser(reportDTO);
         return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
     }
 }

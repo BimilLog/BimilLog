@@ -1,5 +1,6 @@
 package jaeik.growfarm.service.comment;
 
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.entity.comment.Comment;
 import jaeik.growfarm.entity.comment.CommentClosure;
 import jaeik.growfarm.entity.comment.CommentLike;
@@ -34,21 +35,6 @@ public class CommentUpdateService {
     private final CommentRepository commentRepository;
     private final CommentClosureRepository commentClosureRepository;
     private final CommentLikeRepository commentLikeRepository;
-
-    /**
-     * <h3>댓글 삭제</h3>
-     * <p>해당 댓글에 대댓글이 존재하지 않을 때 댓글 자체를 테이블에서 삭제한다.</p>
-     *
-     * @param commentId 댓글 ID
-     * @param comment   수정할 내용
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    @Transactional
-    public void hardDelete(Long commentId, Comment comment) {
-        commentClosureRepository.deleteByDescendantId(commentId);
-        commentRepository.delete(comment);
-    }
 
     /**
      * <h3>댓글 작성</h3>
@@ -87,6 +73,43 @@ public class CommentUpdateService {
             throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
     }
+
+    /**
+     * <h3>댓글 수정</h3>
+     * <p>댓글 내용을 수정한다.</p>
+     *
+     * @param commentDTO 댓글 DTO
+     * @param comment    수정할 댓글 엔티티
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Transactional
+    public void commentUpdate(CommentDTO commentDTO, Comment comment) {
+        comment.updateComment(commentDTO.getContent());
+    }
+
+    /**
+     * <h3>댓글 삭제</h3>
+     * <p>해당 댓글에 대댓글이 존재하지 않을 때 댓글 자체를 테이블에서 삭제한다.</p>
+     *
+     * @param commentId 댓글 ID
+     * @param comment   수정할 내용
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    @Transactional
+    public void commentDelete(boolean hasDescendants, Long commentId, Comment comment) {
+        if (hasDescendants) {
+            comment.softDelete();
+        } else {
+            commentClosureRepository.deleteByDescendantId(commentId);
+            commentRepository.delete(comment);
+        }
+    }
+
+
+
+
 
     /**
      * <h3>댓글 추천 / 추천 취소</h3>

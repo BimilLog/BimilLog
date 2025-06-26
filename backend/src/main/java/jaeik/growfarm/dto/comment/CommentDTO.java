@@ -1,7 +1,8 @@
 package jaeik.growfarm.dto.comment;
 
 import jaeik.growfarm.entity.comment.Comment;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,14 +28,13 @@ public class CommentDTO {
 
     private Long parentId;
 
-    @NotNull
     private Long postId;
 
-    @NotNull
+    private Long userId;
+
     @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
     private String userName;
 
-    @NotNull
     @Size(max = 255, message = "댓글은 최대 255자 까지 입력 가능합니다.")
     private String content;
 
@@ -42,6 +42,8 @@ public class CommentDTO {
 
     private boolean deleted;
 
+    @Min(value = 1000, message = "비밀번호는 4자리 숫자여야 합니다.")
+    @Max(value = 9999, message = "비밀번호는 4자리 숫자여야 합니다.")
     private Integer password;
 
     private int likes;
@@ -57,14 +59,14 @@ public class CommentDTO {
      * </p>
      *
      * @param comment 변환할 댓글 엔티티
-     * @return 변환된 CommentDTO 객체
      * @since 1.0.0
      * @author Jaeik
      */
     public CommentDTO(Comment comment) {
         this.id = comment.getId();
         this.postId = comment.getPost().getId();
-        this.userName = comment.getUser() != null ? comment.getUser().getUserName() : "비회원";
+        this.userName = comment.getUser() != null ? comment.getUser().getUserName() : "익명";
+        this.userId = comment.getUser() != null ? comment.getUser().getId() : null;
         this.content = comment.getContent();
         this.createdAt = comment.getCreatedAt();
         this.password = comment.getPassword();

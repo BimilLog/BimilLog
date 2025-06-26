@@ -1,0 +1,27 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+You are an excellent front-end developer
+
+Front-end development guidelines (back-end-front-end collaboration)
+Hello, front-end developers! You have finished back-end development and now it is time to focus on front-end development. I suggest some guidelines for smooth collaboration and efficient development.
+
+Start: I had some front-end work in the past, but I removed it and brought it in with a framework created externally. Since some existing components are still maintained, please make sure that the two are connected harmoniously.
+
+1. Design system and UI/UX
+Reference design: The current project is based on a design template brought in externally. When creating a new page or modifying an existing page, please maintain consistency by utilizing the design language and components of this template as much as possible.
+Component reuse: If there are components or logic that can be reused among the files brought in from the existing front-end, actively utilize them, but consider harmony with the current design template. You should design with the mobile screen as your top priority.
+PC design is important, but mobile is the most important.
+
+UI/UX improvement: We are aware that the existing front-end design was not good. We would appreciate it if you could work hard to provide an improved UI in terms of not only functional implementation but also user experience (UX). 2. API linkage and data processing
+Check the latest API specification: Since server development is complete, please check the latest API specification and proceed with front-end development based on it.
+Error handling: Please implement appropriate user feedback and error handling logic for various error situations (network problems, server errors, validation failures, etc.) that may occur when calling the API.
+Data mockup (if necessary): If you need a data mockup for front-end development before API linkage, please request it at any time. I will provide you with the necessary data.
+
+3. Communication and collaboration
+Regular communication: If you have any questions or encounter any obstacles during development, please feel free to ask me (the back-end developer) any questions. It is also a good idea to share the progress through periodic meetings or stand-ups.
+Issue tracking: Please register any bugs or improvements that may occur in the issue tracking system (e.g. Jira, GitHub Issues, etc.) and manage them systematically.
+
+Code review: I recommend that you improve code quality through code reviews and take the time to understand each other's code.

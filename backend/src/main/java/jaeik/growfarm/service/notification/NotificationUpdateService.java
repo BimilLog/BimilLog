@@ -4,7 +4,6 @@ import jaeik.growfarm.entity.notification.Notification;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.notification.NotificationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -63,10 +62,7 @@ public class NotificationUpdateService {
             return;
         }
 
-        int deletedCount = notificationRepository.deleteByIdInAndUserId(deleteIds, userId);
-        if (deletedCount != deleteIds.size()) {
-            throw new CustomException(ErrorCode.NOTIFICATION_DELETE_FORBIDDEN);
-        }
+        notificationRepository.deleteByIdInAndUserId(deleteIds, userId);
     }
 
     /**
@@ -87,9 +83,6 @@ public class NotificationUpdateService {
             return;
         }
 
-        int updatedCount = notificationRepository.markAsReadByIdInAndUserId(readIds, userId);
-        if (updatedCount != readIds.size()) {
-            throw new CustomException(ErrorCode.NOTIFICATION_READ_FORBIDDEN);
-        }
+        notificationRepository.markAsReadByIdInAndUserId(readIds, userId);
     }
 }
