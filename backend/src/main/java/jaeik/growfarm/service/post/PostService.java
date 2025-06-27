@@ -390,7 +390,6 @@ public class PostService {
                         simplePostDTO.getUserId(),
                         "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
                         simplePostDTO.getPostId(),
-                        simplePostDTO.getUser(),
                         "회원님의 글이 주간 인기글로 선정되었습니다!",
                         "지금 확인해보세요!"));
             }
@@ -423,7 +422,6 @@ public class PostService {
                     simplePostDTO.getUserId(),
                     "🎉 회원님의 글이 레전드글로 선정되었습니다!",
                     simplePostDTO.getPostId(),
-                    simplePostDTO.getUser(),
                     "회원님의 글이 레전드글로 선정되었습니다!",
                     "지금 확인해보세요!"));
         }

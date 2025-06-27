@@ -34,6 +34,7 @@ server:
 # 로깅 설정
 logging:
   level:
+    com.zaxxer.hikari.HikariConfig: debug
     root: info  # 기본 로그 레벨
   file:
     name: logs/log  # 로그 파일 경로

@@ -57,7 +57,7 @@ public class NotificationEventListener {
     @Async("fcmNotificationExecutor")
     public void handleCommentCreatedEventForFcm(CommentCreatedEvent event) {
         fcmService.sendCommentFcmNotificationAsync(
-                event.getPostOwner(),
+                event.getPostUserId(),
                 event.getCommenterName());
     }
 
@@ -86,7 +86,7 @@ public class NotificationEventListener {
     @EventListener
     @Async("fcmNotificationExecutor")
     public void handlePaperPlantEventForFcm(MessageEvent event) {
-        fcmService.sendPaperPlantFcmNotificationAsync(event.getPaperOwner());
+        fcmService.sendPaperPlantFcmNotificationAsync(event.getPaperOwnerId());
     }
 
     /**
@@ -116,7 +116,7 @@ public class NotificationEventListener {
     @Async("fcmNotificationExecutor")
     public void handlePostFeaturedEventForFcm(PostFeaturedEvent event) {
         fcmService.sendPostFeaturedFcmNotificationAsync(
-                event.getUser(),
+                event.getUserId(),
                 event.getFcmTitle(),
                 event.getFcmBody());
     }

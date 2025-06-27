@@ -13,6 +13,7 @@ import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -80,6 +81,7 @@ public class PaperService {
      * @author Jaeik
      * @since 1.0.0
      */
+    @Transactional
     public void writeMessage(String userName, MessageDTO messageDTO) {
         Users user = userRepository.findByUserName(userName);
 
@@ -92,8 +94,7 @@ public class PaperService {
 
         eventPublisher.publishEvent(new MessageEvent(
                 user.getId(),
-                userName,
-                user));
+                userName));
     }
 
 

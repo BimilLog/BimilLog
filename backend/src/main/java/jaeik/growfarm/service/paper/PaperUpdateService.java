@@ -33,7 +33,6 @@ public class PaperUpdateService {
      * @author Jaeik
      * @since 1.0.0
      */
-    @Transactional
     public void saveMessage(Message message) {
         messageRepository.save(message);
     }
