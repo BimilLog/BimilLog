@@ -2,8 +2,6 @@ package jaeik.growfarm.global.security;
 
 import jaeik.growfarm.global.filter.JwtFilter;
 import jaeik.growfarm.global.filter.LogFilter;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.context.annotation.Bean;
@@ -17,16 +15,13 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.*;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
-import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * <h2>보안 설정</h2>
@@ -74,9 +69,10 @@ public class SecurityConfig {
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
-                                .csrf(csrf -> csrf
-                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+//                                .csrf(csrf -> csrf
+//                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+//                                                .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+                        .csrf(AbstractHttpConfigurer::disable)
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .formLogin(AbstractHttpConfigurer::disable)
                                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -142,47 +138,47 @@ public class SecurityConfig {
         }
 }
 
-/**
- * <h2>SPA CSRF 토큰 요청 핸들러</h2>
- * <p>
- * 단일 페이지 애플리케이션(SPA)에서 CSRF 토큰을 처리하는 핸들러입니다.
- * </p>
- * <p>
- * BREACH 공격 보호를 위해 XorCsrfTokenRequestAttributeHandler를 사용합니다.
- * </p>
- *
- * @author Jaeik
- * @since 1.0.0
- */
-final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
-        private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
-        private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
-
-        @Override
-        public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
-                this.xor.handle(request, response, csrfToken);
-                csrfToken.get();
-        }
-
-        /**
-         * <h3>CSRF 토큰 값 해결</h3>
-         * <p>
-         * 요청에서 CSRF 토큰 값을 해결합니다.
-         * </p>
-         * <p>
-         * 헤더에 CSRF 토큰이 포함된 경우 plain 핸들러를 사용하고, 그렇지 않은 경우 xor 핸들러를 사용합니다.
-         * </p>
-         *
-         * @param request   HttpServletRequest 객체
-         * @param csrfToken CsrfToken 객체
-         * @return CSRF 토큰 값
-         * @author Jaeik
-         * @since 1.0.0
-         */
-        @Override
-        public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
-                String headerValue = request.getHeader(csrfToken.getHeaderName());
-                return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request,
-                                csrfToken);
-        }
-}
+///**
+// * <h2>SPA CSRF 토큰 요청 핸들러</h2>
+// * <p>
+// * 단일 페이지 애플리케이션(SPA)에서 CSRF 토큰을 처리하는 핸들러입니다.
+// * </p>
+// * <p>
+// * BREACH 공격 보호를 위해 XorCsrfTokenRequestAttributeHandler를 사용합니다.
+// * </p>
+// *
+// * @author Jaeik
+// * @since 1.0.0
+// */
+//final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
+//        private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
+//        private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
+//
+//        @Override
+//        public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
+//                this.xor.handle(request, response, csrfToken);
+//                csrfToken.get();
+//        }
+//
+//        /**
+//         * <h3>CSRF 토큰 값 해결</h3>
+//         * <p>
+//         * 요청에서 CSRF 토큰 값을 해결합니다.
+//         * </p>
+//         * <p>
+//         * 헤더에 CSRF 토큰이 포함된 경우 plain 핸들러를 사용하고, 그렇지 않은 경우 xor 핸들러를 사용합니다.
+//         * </p>
+//         *
+//         * @param request   HttpServletRequest 객체
+//         * @param csrfToken CsrfToken 객체
+//         * @return CSRF 토큰 값
+//         * @author Jaeik
+//         * @since 1.0.0
+//         */
+//        @Override
+//        public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+//                String headerValue = request.getHeader(csrfToken.getHeaderName());
+//                return (StringUtils.hasText(headerValue) ? this.plain : this.xor).resolveCsrfTokenValue(request,
+//                                csrfToken);
+//        }
+//}
