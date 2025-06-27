@@ -41,18 +41,19 @@ public class FcmService {
     @Async("fcmNotificationExecutor")
     public void sendCommentFcmNotificationAsync(Users postOwner, String commenterName) {
         try {
-            if (postOwner.getSetting().isCommentNotification()) {
-                List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(postOwner);
-                for (FcmToken fcmToken : fcmTokens) {
-                    notificationService.sendMessageTo(FcmSendDTO.builder()
-                            .token(fcmToken.getFcmRegistrationToken())
-                            .title(commenterName + "님이 댓글을 남겼습니다!")
-                            .body("지금 확인해보세요!")
-                            .build());
-                }
+            List<FcmToken> fcmTokens = fcmValidate(postOwner);
+            if (fcmTokens == null) return;
+
+            for (FcmToken fcmToken : fcmTokens) {
+                notificationService.sendMessageTo(FcmSendDTO.builder()
+                        .token(fcmToken.getFcmRegistrationToken())
+                        .title(commenterName + "님이 댓글을 남겼습니다!")
+                        .body("지금 확인해보세요!")
+                        .build());
             }
+
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.FCM_SEND_ERROR);
+            throw new CustomException(ErrorCode.FCM_SEND_ERROR, e);
         }
     }
 
@@ -66,18 +67,19 @@ public class FcmService {
     @Async("fcmNotificationExecutor")
     public void sendPaperPlantFcmNotificationAsync(Users farmOwner) {
         try {
-            if (farmOwner.getSetting().isMessageNotification()) {
-                List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(farmOwner);
-                for (FcmToken fcmToken : fcmTokens) {
-                    notificationService.sendMessageTo(FcmSendDTO.builder()
-                            .token(fcmToken.getFcmRegistrationToken())
-                            .title("롤링페이퍼에 메시지가 작성되었어요!")
-                            .body("지금 확인해보세요!")
-                            .build());
-                }
+            List<FcmToken> fcmTokens = fcmValidate(farmOwner);
+            if (fcmTokens == null) return;
+
+            for (FcmToken fcmToken : fcmTokens) {
+                notificationService.sendMessageTo(FcmSendDTO.builder()
+                        .token(fcmToken.getFcmRegistrationToken())
+                        .title("롤링페이퍼에 메시지가 작성되었어요!")
+                        .body("지금 확인해보세요!")
+                        .build());
             }
+
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.FCM_SEND_ERROR);
+            throw new CustomException(ErrorCode.FCM_SEND_ERROR, e);
         }
     }
 
@@ -93,19 +95,43 @@ public class FcmService {
     @Async("fcmNotificationExecutor")
     public void sendPostFeaturedFcmNotificationAsync(Users user, String title, String body) {
         try {
-            if (user.getSetting().isPostFeaturedNotification()) {
-                List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
-                for (FcmToken fcmToken : fcmTokens) {
-                    notificationService.sendMessageTo(FcmSendDTO.builder()
-                            .token(fcmToken.getFcmRegistrationToken())
-                            .title(title)
-                            .body(body)
-                            .build());
-                }
-            }
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.FCM_SEND_ERROR);
+            List<FcmToken> fcmTokens = fcmValidate(user);
+            if (fcmTokens == null) return;
 
+            for (FcmToken fcmToken : fcmTokens) {
+                notificationService.sendMessageTo(FcmSendDTO.builder()
+                        .token(fcmToken.getFcmRegistrationToken())
+                        .title(title)
+                        .body(body)
+                        .build());
+            }
+
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.FCM_SEND_ERROR, e);
         }
+    }
+
+    /**
+     * <h3>FCM 토큰 유효성 검사</h3>
+     * <p>
+     * 사용자 설정에 따라 FCM 토큰을 조회하고 유효성을 검사합니다.
+     * </p>
+     *
+     * @param user 사용자 정보
+     * @return 유효한 FCM 토큰 리스트 또는 null
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public List<FcmToken> fcmValidate(Users user) {
+        if (!user.getSetting().isMessageNotification()) {
+            return null;
+        }
+
+        List<FcmToken> fcmTokens = fcmTokenRepository.findByUsers(user);
+
+        if (fcmTokens == null || fcmTokens.isEmpty()) {
+            return null;
+        }
+        return fcmTokens;
     }
 }
