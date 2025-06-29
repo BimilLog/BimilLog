@@ -1,6 +1,5 @@
 package jaeik.growfarm.global.event;
 
-import jaeik.growfarm.entity.user.Users;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -33,8 +32,4 @@ public class CommentCreatedEvent {
      */
     private final Long postId;
 
-    /**
-     * 게시글 작성자 엔티티 (FCM 토큰 조회용)
-     */
-    private final Users postOwner;
 }

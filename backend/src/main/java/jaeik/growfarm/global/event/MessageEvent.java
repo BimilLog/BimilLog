@@ -1,6 +1,5 @@
 package jaeik.growfarm.global.event;
 
-import jaeik.growfarm.entity.user.Users;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -28,8 +27,4 @@ public class MessageEvent {
      */
     private final String userName;
 
-    /**
-     * 농장 주인 엔티티 (FCM 토큰 조회용)
-     */
-    private final Users paperOwner;
 }

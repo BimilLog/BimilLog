@@ -94,8 +94,7 @@ public class PaperService {
 
         eventPublisher.publishEvent(new MessageEvent(
                 user.getId(),
-                userName,
-                user));
+                userName));
     }
 
 
