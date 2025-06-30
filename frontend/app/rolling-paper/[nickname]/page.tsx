@@ -438,7 +438,7 @@ export default function PublicRollingPaperPage({
                       <div className="flex-1 min-w-0">
                         <p className="text-gray-800 text-sm md:text-base font-medium leading-relaxed">
                           {"content" in message && isOwner
-                            ? message.content
+                            ? (message as RollingPaperMessage).content
                             : "누군가 시원한 메시지를 남겼어요 🌊"}
                         </p>
                         <div className="flex items-center space-x-2 mt-2">
@@ -447,7 +447,7 @@ export default function PublicRollingPaperPage({
                             className="text-xs bg-white border-cyan-300"
                           >
                             {"anonymity" in message && isOwner
-                              ? message.anonymity
+                              ? (message as RollingPaperMessage).anonymity
                               : "익명"}
                           </Badge>
                           <span className="text-xs text-gray-500 font-medium">
@@ -503,8 +503,8 @@ function MessageView({
           id: message.id,
           userId: message.userId,
           decoType: message.decoType,
-          anonymity: message.anonymity,
-          content: message.content,
+          anonymity: (message as RollingPaperMessage).anonymity,
+          content: (message as RollingPaperMessage).content,
           width: message.width,
           height: message.height,
         });
@@ -543,7 +543,7 @@ function MessageView({
         </div>
         {"content" in message && isOwner ? (
           <p className="text-gray-800 leading-relaxed font-medium text-sm md:text-base">
-            {message.content}
+            {(message as RollingPaperMessage).content}
           </p>
         ) : (
           <p className="text-gray-500 italic font-medium text-sm md:text-base">
@@ -565,7 +565,7 @@ function MessageView({
               variant="outline"
               className="bg-cyan-50 border-cyan-300 text-cyan-800 font-semibold text-xs md:text-sm"
             >
-              {message.anonymity}
+              {(message as RollingPaperMessage).anonymity}
             </Badge>
           )}
           {!isOwner && (
