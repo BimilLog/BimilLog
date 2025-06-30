@@ -15,7 +15,6 @@ import {
   Plus,
   ArrowLeft,
   Share2,
-  Heart,
   Info,
   Lock,
 } from "lucide-react";
@@ -112,7 +111,7 @@ export default function PublicRollingPaperPage({
           text: "익명으로 따뜻한 메시지를 남겨보세요!",
           url: url,
         });
-      } catch (error) {
+      } catch {
         console.log("Share cancelled");
       }
     } else {

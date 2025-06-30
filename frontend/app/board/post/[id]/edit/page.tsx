@@ -7,10 +7,9 @@ import { boardApi, type Post } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, Eye, Loader2, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Save, Eye} from "lucide-react";
 import Link from "next/link";
 import Editor from "@/components/molecules/editor";
 

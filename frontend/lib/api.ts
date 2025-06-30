@@ -256,14 +256,14 @@ class ApiClient {
             success: false,
             error: errorMessage,
           };
-        } catch (jsonError) {
+        } catch {
           // JSON 파싱 실패 시 텍스트로 시도
           try {
             const errorText = await response.text();
             if (errorText) {
               errorMessage = errorText;
             }
-          } catch (textError) {
+          } catch {
             // 텍스트도 실패하면 기본 메시지 사용
           }
           return {
@@ -277,10 +277,10 @@ class ApiClient {
       try {
         // 먼저 JSON 파싱 시도 (clone 사용)
         data = await response.clone().json();
-      } catch (jsonError) {
+      } catch {
         try {
           data = await response.text();
-        } catch (textError) {
+        } catch {
           data = null;
         }
       }

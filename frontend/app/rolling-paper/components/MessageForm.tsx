@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Send } from "lucide-react";
-import { rollingPaperApi, getDecoInfo, decoTypeMap } from "@/lib/api";
+import { getDecoInfo, decoTypeMap } from "@/lib/api";
 
 interface MessageFormProps {
   onSubmit: (data: {

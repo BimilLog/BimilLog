@@ -8,7 +8,6 @@ import {
   Users,
   Sparkles,
   UserCheck,
-  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";

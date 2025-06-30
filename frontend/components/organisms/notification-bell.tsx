@@ -13,19 +13,12 @@ import {
   MessageSquare,
   Star,
   Shield,
-  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/atoms/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/molecules/card";
+import { Card, CardContent } from "@/components/molecules/card";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/molecules/sheet";
