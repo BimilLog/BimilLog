@@ -76,7 +76,7 @@ export async function getFCMToken(): Promise<string | null> {
     const messaging = getMessaging(app)
     
     // 서비스워커 등록
-    const registration = await navigator.serviceWorker.register('/firebase/firebase-messaging-sw.js')
+    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
     
     // FCM 토큰 가져오기 (서버->클라이언트 일방향이므로 VAPID 키 불필요)
     const token = await getToken(messaging, {
