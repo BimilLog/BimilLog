@@ -99,7 +99,7 @@ const PostCard = ({
                 <span className="text-sm font-medium text-gray-700">
                   {post.userName}
                 </span>
-                {post.is_notice && (
+                {post._notice && (
                   <Badge className="bg-red-100 text-red-700 border-red-200">
                     <Pin className="w-3 h-3 mr-1" />
                     공지
