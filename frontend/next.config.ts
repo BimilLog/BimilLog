@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
                             // 폰트 소스 허용
                             "font-src 'self' data: https://cdn.jsdelivr.net",
                             // API 연결 허용
-                            "connect-src 'self' https: http: https://grow-farm.com ws://grow-farm.com https://*.kakao.com https://dapi.kakao.com https://www.google-analytics.com https://analytics.google.com https://10.0.2.232 http://10.0.2.232",
+                            "connect-src 'self' https: http: https://grow-farm.com ws://grow-farm.com https://*.kakao.com https://dapi.kakao.com https://www.google-analytics.com https://analytics.google.com",
                             // 프레임 허용
                             "frame-src 'self' https://*.kakao.com https://postfiles.pstatic.net about: chrome-extension: https://accounts.kakao.com",
                             "object-src 'none'",
