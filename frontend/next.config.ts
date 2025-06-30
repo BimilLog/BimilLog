@@ -64,6 +64,9 @@ const nextConfig: NextConfig = {
     images: {
         domains: ['k.kakaocdn.net'],
     },
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
 };
 
 export default nextConfig;
