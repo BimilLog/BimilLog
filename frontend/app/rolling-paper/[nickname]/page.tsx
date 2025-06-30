@@ -48,7 +48,7 @@ export default function PublicRollingPaperPage({
   const { user, isAuthenticated } = useAuth();
   const { nickname } = React.use(params);
   const [messages, setMessages] = useState<{
-    [key: number]: VisitMessage;
+    [key: number]: VisitMessage | RollingPaperMessage;
   }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
@@ -60,15 +60,33 @@ export default function PublicRollingPaperPage({
       if (!nickname) return;
 
       try {
-        const response = await rollingPaperApi.getRollingPaper(
-          decodeURIComponent(nickname)
-        );
+        // 자신의 롤링페이퍼인지 확인
+        const isOwnerCheck =
+          isAuthenticated &&
+          user &&
+          user.userName === decodeURIComponent(nickname);
+
+        let response;
+        if (isOwnerCheck) {
+          // 자신의 롤링페이퍼 - 내용이 포함된 메시지 조회
+          response = await rollingPaperApi.getMyRollingPaper();
+        } else {
+          // 다른 사람의 롤링페이퍼 - 방문용 메시지 조회
+          response = await rollingPaperApi.getRollingPaper(
+            decodeURIComponent(nickname)
+          );
+        }
+
         if (response.success && response.data) {
-          const messageMap: { [key: number]: VisitMessage } = {};
-          response.data.forEach((message: VisitMessage) => {
-            const position = message.height * 6 + message.width; // 6칸으로 변경
-            messageMap[position] = message;
-          });
+          const messageMap: {
+            [key: number]: VisitMessage | RollingPaperMessage;
+          } = {};
+          response.data.forEach(
+            (message: VisitMessage | RollingPaperMessage) => {
+              const position = message.height * 6 + message.width; // 6칸으로 변경
+              messageMap[position] = message;
+            }
+          );
           setMessages(messageMap);
         }
       } catch (error) {
@@ -81,7 +99,7 @@ export default function PublicRollingPaperPage({
     if (nickname) {
       fetchMessages();
     }
-  }, [nickname]);
+  }, [nickname, isAuthenticated, user]);
 
   // 소유자 확인
   useEffect(() => {
