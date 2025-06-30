@@ -191,7 +191,16 @@ class ApiClient {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`
+    // URL 조합 시 프로토콜 확인
+    let url: string;
+    if (this.baseURL.startsWith('http://') || this.baseURL.startsWith('https://')) {
+      url = `${this.baseURL}${endpoint}`;
+    } else {
+      // 프로토콜이 없으면 http:// 추가
+      url = `http://${this.baseURL}${endpoint}`;
+    }
+    
+    console.log('API 요청 URL:', url); // 디버깅용
 
     const csrfToken = getCookie("XSRF-TOKEN");
 
