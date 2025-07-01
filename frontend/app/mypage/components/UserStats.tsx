@@ -216,7 +216,7 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
+            <div className="flex items-center justify-center space-x-1 mb-2">
               <Target className="w-5 h-5 text-blue-500" />
               <span className="font-medium text-gray-700">총 활동</span>
             </div>
@@ -227,7 +227,7 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
 
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
+            <div className="flex items-center justify-center space-x-1 mb-2">
               <Heart className="w-5 h-5 text-red-500" />
               <span className="font-medium text-gray-700">총 추천</span>
             </div>
@@ -238,7 +238,7 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
 
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
+            <div className="flex items-center justify-center space-x-1 mb-2">
               <Calendar className="w-5 h-5 text-purple-500" />
               <span className="font-medium text-gray-700">추천율</span>
             </div>

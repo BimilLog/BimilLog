@@ -12,6 +12,7 @@ export * from './atoms/switch';
 export * from './atoms/icon';
 export * from './atoms/spinner';
 export { default as SafeHTML } from './atoms/SafeHTML';
+export { KakaoShareButton } from './atoms/kakao-share-button';
 
 // Molecules Re-exports
 export * from './molecules/alert';
@@ -34,4 +35,22 @@ export {
   Skeleton,
   loadingStyles
 } from './molecules/loading';
-export * from './molecules/empty-state'; 
+export * from './molecules/empty-state';
+
+// Rolling Paper Components Re-exports (호환성용)
+export { RecentVisits } from '../app/rolling-paper/components/RecentVisits';
+export { RollingPaperHeader } from '../app/rolling-paper/components/RollingPaperHeader';
+export { MessageForm } from '../app/rolling-paper/components/MessageForm';
+export { MessageView } from '../app/rolling-paper/components/MessageView';
+export { RollingPaperGrid } from '../app/rolling-paper/components/RollingPaperGrid';
+export { RecentMessages } from '../app/rolling-paper/components/RecentMessages';
+
+// Organisms Re-exports
+export { AuthHeader } from './organisms/auth-header';
+export { MobileNav } from './organisms/mobile-nav';
+export { NotificationBell } from './organisms/notification-bell';
+export { BoardSearch } from './organisms/board/board-search';
+export { BoardPagination } from './organisms/board/board-pagination';
+export { PostList } from './organisms/board/post-list';
+export { PopularPostList } from './organisms/board/popular-post-list';
+export { NoticeList } from './organisms/board/notice-list'; 

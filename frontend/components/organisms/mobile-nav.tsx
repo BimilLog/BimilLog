@@ -132,8 +132,8 @@ export function MobileNav({ className }: MobileNavProps) {
                       href={item.href}
                       onClick={closeNav}
                       className={cn(
-                        "flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200",
-                        "min-h-[44px] touch-manipulation", // 터치 타겟 최적화
+                        "flex items-center space-x-3 px-4 py-4 rounded-lg text-lg font-medium transition-all duration-200",
+                        "min-h-[48px] touch-manipulation", // 터치 타겟 최적화 - 더 큰 높이
                         isActive
                           ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg"
                           : "text-gray-700 hover:bg-purple-50 hover:text-purple-600 active:scale-[0.98]"

@@ -214,14 +214,6 @@ export default function HomePage() {
                     건의하기
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/help"
-                    className="hover:text-white transition-colors"
-                  >
-                    도움말
-                  </Link>
-                </li>
               </ul>
             </div>
             <div>

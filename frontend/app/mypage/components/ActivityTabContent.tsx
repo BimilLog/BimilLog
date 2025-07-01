@@ -96,7 +96,7 @@ const PostCard = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
                 <User className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-base md:text-sm font-medium text-gray-700">
                   {post.userName}
                 </span>
                 {post._notice && (
@@ -107,8 +107,8 @@ const PostCard = ({
                 )}
                 <PopularityBadge popularFlag={post.popularFlag} />
               </div>
-              <div className="flex items-center space-x-2 text-xs text-gray-500">
-                <Clock className="w-3 h-3" />
+              <div className="flex items-center space-x-2 text-sm md:text-xs text-gray-500">
+                <Clock className="w-4 h-4 md:w-3 md:h-3" />
                 <span>{getRelativeTime(post.createdAt)}</span>
               </div>
             </div>
@@ -128,7 +128,7 @@ const PostCard = ({
             <div className="grid grid-cols-2 gap-4 mt-4 p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-2">
                 <Eye className="w-4 h-4 text-blue-500" />
-                <div className="text-sm">
+                <div className="text-base md:text-sm">
                   <span className="text-gray-600">조회수</span>
                   <span className="font-semibold text-gray-800 ml-1">
                     {post.views.toLocaleString()}
@@ -138,7 +138,7 @@ const PostCard = ({
 
               <div className="flex items-center space-x-2">
                 <Heart className="w-4 h-4 text-red-500" />
-                <div className="text-sm">
+                <div className="text-base md:text-sm">
                   <span className="text-gray-600">추천</span>
                   <span className="font-semibold text-gray-800 ml-1">
                     {post.likes.toLocaleString()}
@@ -148,7 +148,7 @@ const PostCard = ({
 
               <div className="flex items-center space-x-2">
                 <MessageCircle className="w-4 h-4 text-green-500" />
-                <div className="text-sm">
+                <div className="text-base md:text-sm">
                   <span className="text-gray-600">댓글</span>
                   <span className="font-semibold text-gray-800 ml-1">
                     {post.commentCount.toLocaleString()}
@@ -158,7 +158,7 @@ const PostCard = ({
 
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-purple-500" />
-                <div className="text-sm">
+                <div className="text-base md:text-sm">
                   <span className="text-gray-600">작성일</span>
                   <span className="font-semibold text-gray-800 ml-1">
                     {new Date(post.createdAt).toLocaleDateString("ko-KR")}
@@ -194,12 +194,12 @@ const CommentCard = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
                 <User className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-base md:text-sm font-medium text-gray-700">
                   {comment.userName}
                 </span>
               </div>
-              <div className="flex items-center space-x-2 text-xs text-gray-500">
-                <Clock className="w-3 h-3" />
+              <div className="flex items-center space-x-2 text-sm md:text-xs text-gray-500">
+                <Clock className="w-4 h-4 md:w-3 md:h-3" />
                 <span>{getRelativeTime(comment.createdAt)}</span>
               </div>
             </div>
@@ -224,20 +224,20 @@ const CommentCard = ({
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <ThumbsUp className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm font-semibold text-gray-800">
+                  <span className="text-base md:text-sm font-semibold text-gray-800">
                     {comment.likes.toLocaleString()}
                   </span>
-                  <span className="text-xs text-gray-600">추천</span>
+                  <span className="text-sm md:text-xs text-gray-600">추천</span>
                 </div>
 
                 {comment.userLike && (
-                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-sm md:text-xs">
                     내가 추천한 댓글
                   </Badge>
                 )}
               </div>
 
-              <div className="text-xs text-gray-500">
+              <div className="text-sm md:text-xs text-gray-500">
                 게시글 #{comment.postId}
               </div>
             </div>
@@ -337,7 +337,9 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
           )}
         </div>
 
-        <div className="text-sm text-gray-500">최근 활동 순으로 표시</div>
+        <div className="text-base md:text-sm text-gray-500">
+          최근 활동 순으로 표시
+        </div>
       </div>
 
       {/* 아이템 목록 */}
@@ -365,7 +367,7 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
       {/* 푸터 정보 */}
       {items.length > 5 && (
         <div className="text-center pt-6 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
+          <p className="text-base md:text-sm text-gray-500">
             더 많은 내용을 보시려면 각 항목을 클릭해주세요
           </p>
         </div>

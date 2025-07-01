@@ -87,15 +87,22 @@ export function AuthHeader() {
               <div className="flex items-center space-x-2 md:space-x-4">
                 <Link
                   href="/settings"
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="hidden md:flex p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                   title="설정"
                 >
                   <Settings className="w-5 h-5" />
                 </Link>
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={user.thumbnailImage} alt={user.userName} />
-                  <AvatarFallback>{getInitials(user.userName)}</AvatarFallback>
-                </Avatar>
+                <Link href="/rolling-paper" title="내 롤링페이퍼로 이동">
+                  <Avatar className="h-9 w-9 hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer">
+                    <AvatarImage
+                      src={user.thumbnailImage}
+                      alt={user.userName}
+                    />
+                    <AvatarFallback>
+                      {getInitials(user.userName)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
                 <span className="hidden sm:inline font-semibold text-sm text-gray-700">
                   {user.userName}님
                 </span>
