@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { Trash2, Clock } from "lucide-react";
 import {
   getDecoInfo,
   type RollingPaperMessage,
   rollingPaperApi,
 } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 interface MessageViewProps {
   message: RollingPaperMessage;
@@ -73,13 +74,19 @@ export const MessageView: React.FC<MessageViewProps> = ({
       </div>
 
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center space-x-2">
           <Badge
             variant="outline"
             className="bg-pink-50 border-pink-300 text-pink-800 font-semibold"
           >
             {message.anonymity}
           </Badge>
+          {message.createdAt && (
+            <div className="flex items-center space-x-1 text-xs text-gray-500">
+              <Clock className="w-3 h-3" />
+              <span>{formatDate(message.createdAt)}</span>
+            </div>
+          )}
         </div>
         {isOwner && (
           <Button

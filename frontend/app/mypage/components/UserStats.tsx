@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Mail,
   FileText,
   MessageCircle,
   Heart,
@@ -9,7 +8,6 @@ import {
   TrendingUp,
   Award,
   Target,
-  Calendar,
 } from "lucide-react";
 
 interface UserStatsProps {
@@ -22,25 +20,40 @@ interface UserStatsProps {
   };
 }
 
-// 활동 레벨 계산 함수
+// 활동 점수 계산 함수 (글 5점, 댓글 2점, 추천 1점)
+const calculateActivityScore = (stats: {
+  totalPosts: number;
+  totalComments: number;
+  totalLikedPosts: number;
+  totalLikedComments: number;
+}): number => {
+  return (
+    stats.totalPosts * 5 +
+    stats.totalComments * 2 +
+    stats.totalLikedPosts * 1 +
+    stats.totalLikedComments * 1
+  );
+};
+
+// 활동 레벨 계산 함수 (점수 기반)
 const getActivityLevel = (
-  totalActivity: number
+  totalScore: number
 ): { level: string; badge: string; color: string } => {
-  if (totalActivity >= 100) {
+  if (totalScore >= 500) {
     return {
       level: "전설급",
       badge: "🏆",
       color: "from-yellow-400 to-orange-500",
     };
-  } else if (totalActivity >= 50) {
+  } else if (totalScore >= 250) {
     return { level: "고수", badge: "🔥", color: "from-red-400 to-pink-500" };
-  } else if (totalActivity >= 20) {
+  } else if (totalScore >= 100) {
     return {
       level: "활발함",
       badge: "⭐",
       color: "from-blue-400 to-purple-500",
     };
-  } else if (totalActivity >= 5) {
+  } else if (totalScore >= 25) {
     return {
       level: "초보자",
       badge: "🌱",
@@ -101,9 +114,9 @@ const StatCard = ({
 );
 
 export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
-  const totalActivity = stats.totalPosts + stats.totalComments;
+  const totalScore = calculateActivityScore(stats);
   const totalLikes = stats.totalLikedPosts + stats.totalLikedComments;
-  const activityLevel = getActivityLevel(totalActivity);
+  const activityLevel = getActivityLevel(totalScore);
 
   return (
     <div className="space-y-6 mb-8">
@@ -122,7 +135,7 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
                   활동 레벨: {activityLevel.level}
                 </h3>
                 <p className="text-gray-600">
-                  총 {totalActivity}개의 활동 기록이 있습니다
+                  총 {totalScore}점의 활동 점수가 있습니다
                 </p>
               </div>
             </div>
@@ -140,48 +153,34 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
           <div className="mt-4">
             <div className="flex justify-between text-xs text-gray-600 mb-2">
               <span>활동 진행도</span>
-              <span>
-                {Math.min(100, (totalActivity / 100) * 100).toFixed(1)}%
-              </span>
+              <span>{Math.min(100, (totalScore / 500) * 100).toFixed(1)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`bg-gradient-to-r ${activityLevel.color} h-2 rounded-full transition-all duration-500`}
                 style={{
-                  width: `${Math.min(100, (totalActivity / 100) * 100)}%`,
+                  width: `${Math.min(100, (totalScore / 500) * 100)}%`,
                 }}
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
               다음 레벨까지{" "}
-              {Math.max(
-                0,
-                getNextLevelThreshold(totalActivity) - totalActivity
-              )}
-              개 활동 필요
+              {Math.max(0, getNextLevelThreshold(totalScore) - totalScore)}점
+              필요
             </p>
           </div>
         </CardContent>
       </Card>
 
       {/* 통계 카드들 */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard
-          icon={<Mail className="w-7 h-7" />}
-          value={stats.totalMessages}
-          label="받은 메시지"
-          color="text-pink-600"
-          gradient="from-pink-500 to-rose-600"
-          description="롤링페이퍼 메시지"
-        />
-
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon={<FileText className="w-7 h-7" />}
           value={stats.totalPosts}
           label="작성한 글"
           color="text-blue-600"
           gradient="from-blue-500 to-cyan-600"
-          description="게시판 활동"
+          description="게시판 활동 (5점)"
         />
 
         <StatCard
@@ -190,7 +189,7 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
           label="작성한 댓글"
           color="text-green-600"
           gradient="from-green-500 to-emerald-600"
-          description="소통 참여도"
+          description="소통 참여도 (2점)"
         />
 
         <StatCard
@@ -199,7 +198,7 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
           label="추천한 글"
           color="text-red-600"
           gradient="from-red-500 to-pink-600"
-          description="좋아요 표현"
+          description="좋아요 표현 (1점)"
         />
 
         <StatCard
@@ -208,20 +207,19 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
           label="추천한 댓글"
           color="text-purple-600"
           gradient="from-purple-500 to-indigo-600"
-          description="댓글 공감도"
+          description="댓글 공감도 (1점)"
         />
       </div>
 
       {/* 활동 요약 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center space-x-1 mb-2">
               <Target className="w-5 h-5 text-blue-500" />
-              <span className="font-medium text-gray-700">총 활동</span>
+              <span className="font-medium text-gray-700">총 활동 점수</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600">{totalActivity}</p>
-            <p className="text-xs text-gray-500">게시글 + 댓글</p>
+            <p className="text-2xl font-bold text-blue-600">{totalScore}점</p>
           </CardContent>
         </Card>
 
@@ -232,23 +230,6 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
               <span className="font-medium text-gray-700">총 추천</span>
             </div>
             <p className="text-2xl font-bold text-red-600">{totalLikes}</p>
-            <p className="text-xs text-gray-500">글 + 댓글 추천</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center space-x-1 mb-2">
-              <Calendar className="w-5 h-5 text-purple-500" />
-              <span className="font-medium text-gray-700">추천율</span>
-            </div>
-            <p className="text-2xl font-bold text-purple-600">
-              {totalActivity > 0
-                ? Math.round((totalLikes / totalActivity) * 100)
-                : 0}
-              %
-            </p>
-            <p className="text-xs text-gray-500">활동 대비 추천 비율</p>
           </CardContent>
         </Card>
       </div>
@@ -256,11 +237,11 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
   );
 };
 
-// 다음 레벨 임계값 계산
-function getNextLevelThreshold(currentActivity: number): number {
-  if (currentActivity < 5) return 5;
-  if (currentActivity < 20) return 20;
-  if (currentActivity < 50) return 50;
-  if (currentActivity < 100) return 100;
-  return Math.ceil(currentActivity / 100) * 100 + 100;
+// 다음 레벨 임계값 계산 (점수 기반)
+function getNextLevelThreshold(currentScore: number): number {
+  if (currentScore < 25) return 25;
+  if (currentScore < 100) return 100;
+  if (currentScore < 250) return 250;
+  if (currentScore < 500) return 500;
+  return Math.ceil(currentScore / 500) * 500 + 500;
 }

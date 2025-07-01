@@ -16,6 +16,7 @@ import {
   Heart,
   Edit,
   Sparkles,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
@@ -34,16 +35,23 @@ export function MobileNav({ className }: MobileNavProps) {
 
   const navItems = [
     { href: "/", label: "홈", icon: Home },
-    { href: "/board", label: "게시판", icon: MessageSquare },
+    ...(isAuthenticated
+      ? [{ href: "/rolling-paper", label: "내 롤링페이퍼", icon: Heart }]
+      : []),
     { href: "/visit", label: "롤링페이퍼 방문", icon: Users },
     ...(isAuthenticated
+      ? [{ href: "/mypage", label: "마이페이지", icon: User }]
+      : []),
+    { href: "/board", label: "게시판", icon: MessageSquare },
+    { href: "/suggest", label: "건의하기", icon: Sparkles },
+    ...(isAuthenticated
       ? [
-          { href: "/rolling-paper", label: "내 롤링페이퍼", icon: Heart },
-          { href: "/mypage", label: "마이페이지", icon: User },
           { href: "/settings", label: "설정", icon: Settings },
+          ...(user?.role === "ADMIN"
+            ? [{ href: "/admin", label: "관리자", icon: Shield }]
+            : []),
         ]
       : [{ href: "/login", label: "로그인", icon: User }]),
-    { href: "/suggest", label: "건의하기", icon: Sparkles },
   ];
 
   return (
@@ -125,6 +133,7 @@ export function MobileNav({ className }: MobileNavProps) {
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
+                  const isAdmin = item.href === "/admin";
 
                   return (
                     <Link
@@ -135,7 +144,11 @@ export function MobileNav({ className }: MobileNavProps) {
                         "flex items-center space-x-3 px-4 py-4 rounded-lg text-lg font-medium transition-all duration-200",
                         "min-h-[48px] touch-manipulation", // 터치 타겟 최적화 - 더 큰 높이
                         isActive
-                          ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg"
+                          ? isAdmin
+                            ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg"
+                            : "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg"
+                          : isAdmin
+                          ? "text-red-600 hover:bg-red-50 hover:text-red-700 active:scale-[0.98] font-semibold"
                           : "text-gray-700 hover:bg-purple-50 hover:text-purple-600 active:scale-[0.98]"
                       )}
                     >

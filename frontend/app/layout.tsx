@@ -15,16 +15,61 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "비밀로그",
-  description: "익명으로 친구의 롤링페이퍼에 메시지를 써보세요",
-  keywords: "롤링페이퍼, 비밀로그, 커뮤니티, 게시판, 메시지, 익명, 카카오톡",
-  authors: [{ name: "비밀로그 Team" }],
+  metadataBase: new URL("https://grow-farm.com"),
+  title: {
+    default: "비밀로그",
+    template: "%s | 비밀로그",
+  },
+  description:
+    "친구들과 익명으로 소통하는 새로운 공간, 비밀로그에서 솔직한 마음을 나눠보세요. 익명 롤링페이퍼와 커뮤니티 기능을 통해 일상의 재미를 더할 수 있습니다.",
+  keywords: [
+    "롤링페이퍼",
+    "비밀로그",
+    "커뮤니티",
+    "게시판",
+    "메시지",
+    "익명",
+    "카카오톡",
+    "친구",
+    "소통",
+  ],
+  authors: [{ name: "비밀로그 Team", url: "https://grow-farm.com" }],
   viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
+  openGraph: {
+    title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
+    description:
+      "친구들과 익명으로 소통하는 새로운 공간, 비밀로그에서 솔직한 마음을 나눠보세요.",
+    url: "https://grow-farm.com",
+    siteName: "비밀로그",
+    images: [
+      {
+        url: "/log.png",
+        width: 800,
+        height: 600,
+        alt: "비밀로그 로고",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
+    description:
+      "친구들과 익명으로 소통하는 새로운 공간, 비밀로그에서 솔직한 마음을 나눠보세요.",
+    images: ["/log.png"],
+  },
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
     apple: "/favicon.png",
+  },
+  verification: {
+    google: "h46_QB3B0te_apY6uiYRUUOuSEt-S8_nQgHo5Iwcv0E",
+    other: {
+      "naver-site-verification": "c97ee92e3cbcbdae8b09fa0a849758b0dd759675",
+    },
   },
 };
 
