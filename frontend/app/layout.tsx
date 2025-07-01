@@ -15,12 +15,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "시원한 농장 - Grow Farm",
-  description: "시원한 롤링페이퍼와 농장 커뮤니티 서비스",
-  keywords: "롤링페이퍼, 농장, 커뮤니티, 게시판, 메시지",
-  authors: [{ name: "Grow Farm Team" }],
+  title: "비밀로그",
+  description: "익명으로 친구의 롤링페이퍼에 메시지를 써보세요",
+  keywords: "롤링페이퍼, 비밀로그, 커뮤니티, 게시판, 메시지, 익명, 카카오톡",
+  authors: [{ name: "비밀로그 Team" }],
   viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

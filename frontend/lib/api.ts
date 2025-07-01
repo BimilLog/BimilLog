@@ -715,6 +715,7 @@ export const decoTypeMap = {
   APPLE: { name: "사과", color: "from-red-100 to-pink-100", emoji: "🍎" },
   GRAPE: { name: "포도", color: "from-purple-100 to-violet-100", emoji: "🍇" },
   BANANA: { name: "바나나", color: "from-yellow-100 to-amber-100", emoji: "🍌" },
+  BLUEBERRY: { name: "블루베리", color: "from-blue-100 to-indigo-100", emoji: "🫐" },
 
   // 몬스터
   GOBLIN: { name: "고블린", color: "from-green-100 to-emerald-100", emoji: "👹" },

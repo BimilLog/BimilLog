@@ -116,6 +116,21 @@ export { PopularPostList } from './organisms/board/popular-post-list';
 export { NoticeList } from './organisms/board/notice-list';
 
 // ==============================================
+// ROLLING PAPER COMPONENTS - 롤링페이퍼 전용 컴포넌트들
+// ==============================================
+export { RecentVisits } from '../app/rolling-paper/components/RecentVisits';
+export { RollingPaperHeader } from '../app/rolling-paper/components/RollingPaperHeader';
+export { MessageForm } from '../app/rolling-paper/components/MessageForm';
+export { MessageView } from '../app/rolling-paper/components/MessageView';
+export { RollingPaperGrid } from '../app/rolling-paper/components/RollingPaperGrid';
+export { RecentMessages } from '../app/rolling-paper/components/RecentMessages';
+
+// ==============================================
+// UTILITY FUNCTIONS
+// ==============================================
+export * from '../lib/cookies';
+
+// ==============================================
 // TYPE EXPORTS
 // ==============================================
 export type {

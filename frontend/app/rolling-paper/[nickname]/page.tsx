@@ -17,6 +17,8 @@ import {
   Share2,
   Info,
   Lock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Link from "next/link";
+import { addRecentVisit } from "@/lib/cookies";
 
 export default function PublicRollingPaperPage({
   params,
@@ -53,6 +56,13 @@ export default function PublicRollingPaperPage({
   const [isLoading, setIsLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // 페이지 설정
+  const totalPages = isMobile ? 3 : 2;
+  const colsPerPage = isMobile ? 4 : 6;
+  const rowsPerPage = 10;
+  const slotsPerPage = colsPerPage * rowsPerPage;
 
   // 메시지 조회
   useEffect(() => {
@@ -83,8 +93,15 @@ export default function PublicRollingPaperPage({
           } = {};
           response.data.forEach(
             (message: VisitMessage | RollingPaperMessage) => {
-              const position = message.height * 6 + message.width; // 6칸으로 변경
-              messageMap[position] = message;
+              // 새로운 좌표 시스템: width가 확장되어 있음
+              // 확장된 width를 페이지 내 위치로 변환
+              const pageWidth = message.width % colsPerPage;
+              const page = Math.floor(message.width / colsPerPage) + 1;
+              const position = message.height * colsPerPage + pageWidth;
+
+              // 메시지에 페이지 정보 추가
+              const messageWithPage = { ...message, page };
+              messageMap[position] = messageWithPage;
             }
           );
           setMessages(messageMap);
@@ -119,6 +136,20 @@ export default function PublicRollingPaperPage({
 
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
+
+  // 방문 기록 저장 (다른 사람의 롤링페이퍼인 경우에만)
+  useEffect(() => {
+    if (nickname && isAuthenticated !== null && user !== null) {
+      const currentNickname = decodeURIComponent(nickname);
+      const isOwnerCheck =
+        isAuthenticated && user && user.userName === currentNickname;
+
+      if (!isOwnerCheck) {
+        // 다른 사람의 롤링페이퍼를 방문한 경우 기록 저장
+        addRecentVisit(nickname);
+      }
+    }
+  }, [nickname, isAuthenticated, user]);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -212,31 +243,6 @@ export default function PublicRollingPaperPage({
       </header>
 
       <div className="container mx-auto px-2 md:px-4 py-4 md:py-8">
-        {/* 자기 자신의 롤링페이퍼 접근 안내 */}
-        {isOwner && (
-          <div className="mb-4 md:mb-6">
-            <Card className="bg-orange-50/80 backdrop-blur-sm border-2 border-orange-200 rounded-2xl">
-              <CardContent className="p-4">
-                <div className="flex items-start space-x-3">
-                  <Lock className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-orange-800 font-semibold text-sm md:text-base">
-                      자기 자신의 롤링페이퍼 입니다 🔒
-                    </p>
-                    <p className="text-orange-700 text-xs md:text-sm mt-1">
-                      본인의 롤링페이퍼에는 메시지를 남길 수 없어요.
-                      <span className="block md:inline">
-                        {" "}
-                        내 롤링페이퍼 메뉴에서 확인해보세요! 💌
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         {/* 방문자 환영 메시지 */}
         {!isOwner && (
           <div className="mb-4 md:mb-6">
@@ -321,12 +327,77 @@ export default function PublicRollingPaperPage({
             </div>
 
             {/* 메시지 그리드 - 모바일 최적화 */}
-            <div className="px-12 md:px-20 pb-8 md:pb-12">
+            <div className="px-12 md:px-20 pb-4 md:pb-6">
+              {/* 페이지 인디케이터 */}
+              <div className="flex justify-center items-center mb-4 space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 p-0 bg-white/80"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <Button
+                      key={i + 1}
+                      variant={currentPage === i + 1 ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`h-8 w-8 p-0 ${
+                        currentPage === i + 1
+                          ? "bg-gradient-to-r from-blue-500 to-cyan-600 text-white"
+                          : "bg-white/80"
+                      }`}
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 p-0 bg-white/80"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* 현재 페이지 표시 */}
+              <div className="text-center mb-4">
+                <p className="text-cyan-600 text-sm font-medium">
+                  페이지 {currentPage} / {totalPages}
+                </p>
+              </div>
+
               {/* 모바일: 4칸, 태블릿+: 6칸 */}
               <div className="grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-3 bg-white/30 p-3 md:p-6 rounded-xl md:rounded-2xl border border-dashed md:border-2 border-cyan-300">
-                {Array.from({ length: isMobile ? 40 : 84 }, (_, i) => {
-                  // 모바일: 4x10 = 40칸, 데스크톱: 6x14 = 84칸
-                  const hasMessage = messages[i];
+                {Array.from({ length: slotsPerPage }, (_, i) => {
+                  // 현재 페이지의 메시지만 필터링
+                  const pageMessages = Object.entries(messages).filter(
+                    ([_, message]) => {
+                      const messagePage =
+                        Math.floor(message.width / colsPerPage) + 1;
+                      return messagePage === currentPage;
+                    }
+                  );
+
+                  // 현재 슬롯에 해당하는 메시지 찾기
+                  const slotMessage = pageMessages.find(([_, message]) => {
+                    const pageWidth = message.width % colsPerPage;
+                    const position = message.height * colsPerPage + pageWidth;
+                    return position === i;
+                  });
+
+                  const hasMessage = slotMessage ? slotMessage[1] : null;
                   const decoInfo = hasMessage
                     ? getDecoInfo(hasMessage.decoType)
                     : null;
@@ -375,7 +446,7 @@ export default function PublicRollingPaperPage({
                         </div>
                       </DialogTrigger>
                       {(hasMessage || !isOwner) && (
-                        <DialogContent className="max-w-sm md:max-w-md mx-4 bg-gradient-to-br from-cyan-50 to-blue-50 border-2 md:border-4 border-cyan-200 rounded-2xl md:rounded-3xl">
+                        <DialogContent className="max-w-sm md:max-w-md mx-auto bg-gradient-to-br from-cyan-50 to-blue-50 border-2 md:border-4 border-cyan-200 rounded-2xl md:rounded-3xl">
                           <DialogHeader>
                             <DialogTitle className="text-center text-cyan-800 font-bold text-sm md:text-base">
                               {hasMessage
@@ -392,8 +463,10 @@ export default function PublicRollingPaperPage({
                             <MessageForm
                               nickname={nickname}
                               position={{
-                                x: i % (isMobile ? 4 : 6),
-                                y: Math.floor(i / (isMobile ? 4 : 6)),
+                                x:
+                                  (currentPage - 1) * colsPerPage +
+                                  (i % colsPerPage),
+                                y: Math.floor(i / colsPerPage),
                               }}
                               onSubmit={(newMessage) => {
                                 setMessages((prev) => ({

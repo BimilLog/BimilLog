@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { rollingPaperApi } from "@/lib/api";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import { RecentVisits } from "@/app/rolling-paper/components/RecentVisits";
+import { AuthHeader } from "@/components/organisms/auth-header";
 
 import {
   Dialog,
@@ -89,8 +91,11 @@ export default function VisitPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
-      {/* Header (모바일 최적화) */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+      {/* Auth Header */}
+      <AuthHeader />
+
+      {/* Page Header - 모바일 최적화 */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -175,6 +180,11 @@ export default function VisitPage() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* 최근 방문한 롤링페이퍼 */}
+        <div className="mb-8">
+          <RecentVisits />
+        </div>
 
         {/* Info Section */}
         <div className="mt-8 text-center">

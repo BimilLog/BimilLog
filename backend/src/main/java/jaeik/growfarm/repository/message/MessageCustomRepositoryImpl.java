@@ -77,11 +77,10 @@ public class MessageCustomRepositoryImpl implements MessageCustomRepository {
         QMessage message = QMessage.message;
         QUsers user = QUsers.users;
 
-
         return jpaQueryFactory
-                .select(Projections.bean(VisitMessageDTO.class,
+                .select(Projections.fields(VisitMessageDTO.class,
                         message.id,
-                        message.users.id,
+                        ExpressionUtils.as(message.users.id, "userId"),
                         message.decoType,
                         message.width,
                         message.height

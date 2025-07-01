@@ -866,6 +866,205 @@ from-orange-500 to-yellow-500 // Feature 4
 - ✅ **모서리**: 일관된 rounded-lg 적용
 - ✅ **애니메이션**: 부드러운 트랜지션 효과
 
+## 🎯 롤링페이퍼 전용 컴포넌트들
+
+### Rolling Paper Components
+
+별도의 기능적 컴포넌트들로 롤링페이퍼 시스템을 구성합니다.
+
+**핵심 컴포넌트들**
+
+- `RecentVisits` - 최근 방문한 롤링페이퍼 목록 (localStorage 기반)
+- `RollingPaperHeader` - 롤링페이퍼 페이지 헤더
+- `MessageForm` - 메시지 작성 폼
+- `MessageView` - 메시지 보기 컴포넌트
+- `RollingPaperGrid` - 롤링페이퍼 그리드 레이아웃
+- `RecentMessages` - 최근 메시지들 표시
+
+### 🍪 쿠키 및 로컬스토리지 시스템
+
+**최근 방문 기록 관리**
+
+```typescript
+import {
+  addRecentVisit,
+  getRecentVisits,
+  removeRecentVisit,
+  clearRecentVisits,
+  getRelativeTimeString,
+} from "@/lib/cookies";
+
+// 방문 기록 추가 (자동으로 호출됨)
+addRecentVisit(nickname);
+
+// 방문 기록 조회
+const visits = getRecentVisits(); // RecentVisit[] 반환
+
+// 개별 기록 삭제
+removeRecentVisit(nickname);
+
+// 모든 기록 삭제
+clearRecentVisits();
+
+// 상대 시간 문자열 생성
+const timeAgo = getRelativeTimeString("2024-01-15T10:30:00"); // "2시간 전"
+```
+
+**시스템 특징**
+
+- **저장소**: localStorage (`'recent_rolling_papers'`)
+- **최대 개수**: 5개 (FIFO 방식)
+- **생명주기**: 30일 자동 만료
+- **중복 처리**: 재방문시 최신으로 업데이트
+- **자동 정리**: 만료된 기록 자동 삭제
+
+### 📋 새로 추가된 컴포넌트 사용 예시
+
+```typescript
+import {
+  RecentVisits,
+  RollingPaperHeader,
+  MessageForm,
+  MessageView,
+  addRecentVisit,
+  getRecentVisits,
+} from "@/components";
+
+// 1. 최근 방문 목록 표시 (/visit 페이지)
+export function VisitPage() {
+  return (
+    <div className="container mx-auto p-4">
+      <h1>롤링페이퍼 방문</h1>
+
+      {/* 검색 섹션 */}
+      <SearchBox />
+
+      {/* 최근 방문한 롤링페이퍼 */}
+      <RecentVisits />
+    </div>
+  );
+}
+
+// 2. 방문 기록 자동 저장
+export function RollingPaperPage({ nickname }: { nickname: string }) {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const currentNickname = decodeURIComponent(nickname);
+    const isOwner = user?.userName === currentNickname;
+
+    // 다른 사람의 롤링페이퍼 방문시에만 기록 저장
+    if (!isOwner) {
+      addRecentVisit(nickname);
+    }
+  }, [nickname, user]);
+
+  return (
+    <div>
+      <RollingPaperHeader nickname={nickname} />
+      {/* 롤링페이퍼 콘텐츠 */}
+    </div>
+  );
+}
+
+// 3. 쿠키 시스템 커스터마이징
+export function CustomRecentVisits() {
+  const [visits, setVisits] = useState([]);
+
+  useEffect(() => {
+    setVisits(getRecentVisits());
+  }, []);
+
+  const handleRemove = (nickname: string) => {
+    removeRecentVisit(nickname);
+    setVisits(getRecentVisits());
+  };
+
+  return (
+    <div className="space-y-2">
+      {visits.map((visit) => (
+        <div key={visit.nickname} className="flex items-center justify-between">
+          <Link href={`/rolling-paper/${visit.nickname}`}>
+            {visit.displayName}님의 롤링페이퍼
+          </Link>
+          <span>{getRelativeTimeString(visit.visitedAt)}</span>
+          <Button onClick={() => handleRemove(visit.nickname)}>삭제</Button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### 🔄 컴포넌트 Export 구조
+
+**메인 Export (`@/components`)**
+
+```typescript
+// 모든 아토믹 컴포넌트 + 롤링페이퍼 컴포넌트 + 유틸리티
+import {
+  Button,
+  Card,
+  Editor, // 아토믹 컴포넌트들
+  RecentVisits,
+  MessageForm, // 롤링페이퍼 컴포넌트들
+  addRecentVisit,
+  getRecentVisits, // 쿠키 시스템
+} from "@/components";
+```
+
+**호환성 Export (`@/components/ui`)**
+
+```typescript
+// 기존 UI 경로 호환성 + 새로운 컴포넌트들
+import {
+  Button,
+  Card,
+  Dialog, // 기존 UI 컴포넌트들
+  RecentVisits,
+  MessageForm, // 새로 추가된 컴포넌트들
+  AuthHeader,
+  NotificationBell, // Organisms 포함
+} from "@/components/ui";
+```
+
+### 📊 현재 구현 현황 (업데이트)
+
+### ✅ 완료된 기능
+
+**🎯 게시판 UI 개선**
+
+- 게시글 목록에서 사용자 아이콘 제거 (게시글 상세는 유지)
+- 작성자 이름 클릭시 롤링페이퍼 이동 기능
+- 회원/익명 사용자 구분 표시
+
+**📱 롤링페이퍼 시스템 완성**
+
+- 페이지네이션 시스템 (PC: 2페이지, 모바일: 3페이지)
+- 좌표 시스템 확장 (x축 0~11)
+- 방문 기록 저장 및 관리 시스템
+- 최근 방문한 롤링페이퍼 컴포넌트
+
+**🍪 쿠키 시스템 (LocalStorage 기반)**
+
+- 자동 방문 기록 저장 (다른 사람 롤링페이퍼만)
+- 최대 5개, 30일 생명주기
+- FIFO 방식 자동 관리
+- 개별/전체 삭제 기능
+
+**🎨 디자인 시스템 일관성**
+
+- /visit 페이지 디자인에 맞는 RecentVisits 스타일링
+- 메인페이지 Pink-Purple-Indigo 테마 유지
+- 모바일 퍼스트 반응형 디자인
+
+**📋 Export 시스템 완성**
+
+- 아토믹 구조 기반 체계적 Export
+- 롤링페이퍼 컴포넌트들 통합
+- 쿠키 유틸리티 함수들 포함
+- 기존 호환성 완전 보장
+
 ---
 
 이 문서는 프로젝트의 아토믹 디자인 패턴 적용에 대한 가이드입니다. 질문이나 개선사항이 있으면 언제든 문의해 주세요! 🚀

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SafeHTML } from "@/components/ui";
-import { ThumbsUp, Reply, Flag, MoreHorizontal } from "lucide-react";
+import { ThumbsUp, Reply, Flag, MoreHorizontal, User } from "lucide-react";
 import { Comment, userApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { ReportModal } from "@/components/ui/ReportModal";
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/molecules/dropdown-menu";
 import { useState } from "react";
+import Link from "next/link";
 
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };
@@ -156,9 +157,16 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 min-w-0 flex-1">
-                <p className="font-semibold text-sm sm:text-base truncate">
-                  {comment.userName}
-                </p>
+                <Link
+                  href={`/rolling-paper/${encodeURIComponent(
+                    comment.userName
+                  )}`}
+                  className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors inline-flex items-center space-x-1 truncate"
+                  title={`${comment.userName}님의 롤링페이퍼 보기`}
+                >
+                  <User className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{comment.userName}</span>
+                </Link>
                 <span className="text-xs text-gray-500 whitespace-nowrap">
                   {new Date(comment.createdAt).toLocaleDateString()}
                 </span>

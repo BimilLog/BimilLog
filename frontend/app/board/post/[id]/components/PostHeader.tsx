@@ -1,10 +1,24 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, ThumbsUp, MessageSquare, Lock, Edit, Trash2 } from "lucide-react";
+import {
+  Eye,
+  ThumbsUp,
+  MessageSquare,
+  Lock,
+  Edit,
+  Trash2,
+  User,
+  ExternalLink,
+} from "lucide-react";
 import { Post } from "@/lib/api";
 import Link from "next/link";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/molecules/popover";
 
 interface PostHeaderProps {
   post: Post;
@@ -65,9 +79,38 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
           {/* 작성자와 시간 */}
           <div className="flex items-center space-x-3 text-sm text-gray-600">
             <div className="flex items-center space-x-2 min-w-0">
-              <span className="truncate max-w-[120px] md:max-w-none">
-                {post.userName}
-              </span>
+              {post.userName && post.userName !== "익명" ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="truncate max-w-[120px] md:max-w-none hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
+                      <User className="w-3 h-3" />
+                      <span>{post.userName}</span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-3" align="start">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span className="font-medium">{post.userName}</span>
+                      </div>
+                      <Link
+                        href={`/rolling-paper/${encodeURIComponent(
+                          post.userName
+                        )}`}
+                      >
+                        <Button size="sm" className="w-full justify-start">
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          롤링페이퍼 보기
+                        </Button>
+                      </Link>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <span className="truncate max-w-[120px] md:max-w-none text-gray-500">
+                  {post.userName || "익명"}
+                </span>
+              )}
             </div>
             <span className="text-xs text-gray-500 whitespace-nowrap">
               {formatDateTime(post.createdAt)}
