@@ -26,7 +26,7 @@ import { useRouter } from "next/navigation";
 import { AuthHeader } from "@/components/organisms/auth-header";
 
 export default function SettingsPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const [settings, setSettings] = useState<Setting | null>(null);
   const [loading, setLoading] = useState(true);

@@ -7328,3 +7328,4 @@ replay_pid*
 /node_modules/.package-lock.json
 /logs/**
 /.junie/
+/frontend/public/firebase-messaging-sw.js

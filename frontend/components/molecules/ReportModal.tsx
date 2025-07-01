@@ -44,7 +44,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     try {
       await onSubmit(reason.trim());
       handleClose();
-    } catch (error) {
+    } catch {
       setError("신고 접수 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
     setIsSubmitting(false);

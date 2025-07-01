@@ -6,7 +6,7 @@ import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {AlertCircle, Calendar, Check, Clock, Crown, Edit, Settings, Shield, Star,} from "lucide-react";
+import {AlertCircle, Check, Clock, Crown, Edit, Settings, Shield, Star,} from "lucide-react";
 import {User, userApi} from "@/lib/api";
 import {validateNickname} from "@/util/inputValidation";
 

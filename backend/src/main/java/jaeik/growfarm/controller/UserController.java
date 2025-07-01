@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
@@ -127,7 +127,6 @@ public class UserController {
         Page<SimpleCommentDTO> likedComments = userService.getLikedComments(page, size, userDetails);
         return ResponseEntity.ok(likedComments);
     }
-
 
     /**
      * <h3>닉네임 중복 확인</h3>

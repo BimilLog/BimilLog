@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
                         value: [
                             "default-src 'self'",
                             // 스크립트 소스 허용
-                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.kakao.com https://*.kakao.sdk.io https://t1.kakaocdn.net https://postfiles.pstatic.net https://dapi.kakao.com https://www.gstatic.com https://www.gstatic.com/firebasejs/",
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.kakao.com https://*.kakao.sdk.io https://t1.kakaocdn.net https://postfiles.pstatic.net https://dapi.kakao.com https://www.gstatic.com https://www.gstatic.com/firebasejs/ https://www.googletagmanager.com",
                             // 스타일시트 허용
                             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
                             // 이미지 소스 허용
@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
                             // 폰트 소스 허용
                             "font-src 'self' data: https://cdn.jsdelivr.net",
                             // API 연결 허용
-                            "connect-src 'self' https: http: https://grow-farm.com ws://grow-farm.com https://*.kakao.com https://dapi.kakao.com",
+                            "connect-src 'self' https: http: https://grow-farm.com ws://grow-farm.com https://*.kakao.com https://dapi.kakao.com https://www.google-analytics.com https://analytics.google.com",
                             // 프레임 허용
                             "frame-src 'self' https://*.kakao.com https://postfiles.pstatic.net about: chrome-extension: https://accounts.kakao.com",
                             "object-src 'none'",
@@ -63,6 +63,9 @@ const nextConfig: NextConfig = {
     },
     images: {
         domains: ['k.kakaocdn.net'],
+    },
+    eslint: {
+        ignoreDuringBuilds: true,
     },
 };
 

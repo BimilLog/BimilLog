@@ -230,7 +230,7 @@ const promptCopy = (text: string) => {
   try {
     document.execCommand('copy');
     alert('링크가 클립보드에 복사되었습니다!');
-  } catch (err) {
+  } catch {
     prompt('아래 링크를 복사해주세요:', text);
   }
   

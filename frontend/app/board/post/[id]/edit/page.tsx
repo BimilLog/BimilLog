@@ -7,10 +7,8 @@ import { boardApi, type Post } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, Eye, Loader2, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
 import Editor from "@/components/molecules/editor";
 
@@ -32,7 +30,6 @@ export default function EditPostPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +52,6 @@ export default function EditPostPage() {
           setPost(postData);
           setTitle(postData.title);
           setContent(postData.content);
-          setIsPrivate(!!postData.password);
           setPassword(postData.password?.toString() || "");
 
           const isGuestPost = postData.userId === null || postData.userId === 0;
@@ -273,48 +269,6 @@ export default function EditPostPage() {
                   <Editor value={content} onChange={setContent} />
                 </div>
 
-                {/* 비밀글 설정 */}
-                <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label
-                        htmlFor="private"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        비밀글로 작성
-                      </Label>
-                      <p className="text-xs text-gray-500">
-                        비밀번호를 설정하여 특정 사용자만 볼 수 있게 합니다
-                      </p>
-                    </div>
-                    <Switch
-                      id="private"
-                      checked={isPrivate}
-                      onCheckedChange={setIsPrivate}
-                    />
-                  </div>
-
-                  {isPrivate && (
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="password"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        비밀번호 (4자리 숫자)
-                      </Label>
-                      <Input
-                        id="password"
-                        type="number"
-                        placeholder="4자리 숫자 비밀번호"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        maxLength={4}
-                        className="border-2 border-gray-200 focus:border-purple-400"
-                      />
-                    </div>
-                  )}
-                </div>
-
                 {/* 작성자 정보 */}
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center space-x-2">
@@ -345,9 +299,6 @@ export default function EditPostPage() {
                     <span>작성자: {post.userName}</span>
                     <span>작성일: {post.createdAt}</span>
                     <span className="text-orange-600">수정됨</span>
-                    {isPrivate && (
-                      <span className="text-red-600">🔒 비밀글</span>
-                    )}
                   </div>
                 </div>
 

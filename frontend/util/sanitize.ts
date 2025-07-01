@@ -40,7 +40,7 @@ export const sanitizeHtml = (content: string, options?: SanitizeOptions): string
     config.FORBID_TAGS = [...config.FORBID_TAGS, ...options.forbiddenTags];
   }
 
-  return DOMPurify.sanitize(content, config);
+  return String(DOMPurify.sanitize(content, config));
 };
 
 /**

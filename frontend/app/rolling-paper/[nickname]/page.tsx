@@ -15,7 +15,6 @@ import {
   Plus,
   ArrowLeft,
   Share2,
-  Heart,
   Info,
   Lock,
 } from "lucide-react";
@@ -49,7 +48,7 @@ export default function PublicRollingPaperPage({
   const { user, isAuthenticated } = useAuth();
   const { nickname } = React.use(params);
   const [messages, setMessages] = useState<{
-    [key: number]: VisitMessage;
+    [key: number]: VisitMessage | RollingPaperMessage;
   }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
@@ -61,15 +60,33 @@ export default function PublicRollingPaperPage({
       if (!nickname) return;
 
       try {
-        const response = await rollingPaperApi.getRollingPaper(
-          decodeURIComponent(nickname)
-        );
+        // 자신의 롤링페이퍼인지 확인
+        const isOwnerCheck =
+          isAuthenticated &&
+          user &&
+          user.userName === decodeURIComponent(nickname);
+
+        let response;
+        if (isOwnerCheck) {
+          // 자신의 롤링페이퍼 - 내용이 포함된 메시지 조회
+          response = await rollingPaperApi.getMyRollingPaper();
+        } else {
+          // 다른 사람의 롤링페이퍼 - 방문용 메시지 조회
+          response = await rollingPaperApi.getRollingPaper(
+            decodeURIComponent(nickname)
+          );
+        }
+
         if (response.success && response.data) {
-          const messageMap: { [key: number]: VisitMessage } = {};
-          response.data.forEach((message: VisitMessage) => {
-            const position = message.height * 6 + message.width; // 6칸으로 변경
-            messageMap[position] = message;
-          });
+          const messageMap: {
+            [key: number]: VisitMessage | RollingPaperMessage;
+          } = {};
+          response.data.forEach(
+            (message: VisitMessage | RollingPaperMessage) => {
+              const position = message.height * 6 + message.width; // 6칸으로 변경
+              messageMap[position] = message;
+            }
+          );
           setMessages(messageMap);
         }
       } catch (error) {
@@ -82,7 +99,7 @@ export default function PublicRollingPaperPage({
     if (nickname) {
       fetchMessages();
     }
-  }, [nickname]);
+  }, [nickname, isAuthenticated, user]);
 
   // 소유자 확인
   useEffect(() => {
@@ -112,7 +129,7 @@ export default function PublicRollingPaperPage({
           text: "익명으로 따뜻한 메시지를 남겨보세요!",
           url: url,
         });
-      } catch (error) {
+      } catch {
         console.log("Share cancelled");
       }
     } else {
@@ -439,7 +456,7 @@ export default function PublicRollingPaperPage({
                       <div className="flex-1 min-w-0">
                         <p className="text-gray-800 text-sm md:text-base font-medium leading-relaxed">
                           {"content" in message && isOwner
-                            ? message.content
+                            ? (message as RollingPaperMessage).content
                             : "누군가 시원한 메시지를 남겼어요 🌊"}
                         </p>
                         <div className="flex items-center space-x-2 mt-2">
@@ -448,7 +465,7 @@ export default function PublicRollingPaperPage({
                             className="text-xs bg-white border-cyan-300"
                           >
                             {"anonymity" in message && isOwner
-                              ? message.anonymity
+                              ? (message as RollingPaperMessage).anonymity
                               : "익명"}
                           </Badge>
                           <span className="text-xs text-gray-500 font-medium">
@@ -504,8 +521,8 @@ function MessageView({
           id: message.id,
           userId: message.userId,
           decoType: message.decoType,
-          anonymity: message.anonymity,
-          content: message.content,
+          anonymity: (message as RollingPaperMessage).anonymity,
+          content: (message as RollingPaperMessage).content,
           width: message.width,
           height: message.height,
         });
@@ -544,7 +561,7 @@ function MessageView({
         </div>
         {"content" in message && isOwner ? (
           <p className="text-gray-800 leading-relaxed font-medium text-sm md:text-base">
-            {message.content}
+            {(message as RollingPaperMessage).content}
           </p>
         ) : (
           <p className="text-gray-500 italic font-medium text-sm md:text-base">
@@ -566,7 +583,7 @@ function MessageView({
               variant="outline"
               className="bg-cyan-50 border-cyan-300 text-cyan-800 font-semibold text-xs md:text-sm"
             >
-              {message.anonymity}
+              {(message as RollingPaperMessage).anonymity}
             </Badge>
           )}
           {!isOwner && (
