@@ -2,7 +2,6 @@ package jaeik.growfarm.repository.message;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
@@ -43,17 +42,19 @@ public class MessageCustomRepositoryImpl implements MessageCustomRepository {
         QMessage message = QMessage.message;
 
         return jpaQueryFactory
-                .select(Projections.bean(MessageDTO.class,
+                .select(Projections.fields(MessageDTO.class,
                         message.id,
-                        ExpressionUtils.as(Expressions.constant(userId), "userId"),
+                        message.users.id.as("userId"), // 실제 userId
                         message.decoType,
                         message.anonymity,
                         message.content,
                         message.width,
-                        message.height
+                        message.height,
+                        message.createdAt
                 ))
                 .from(message)
                 .where(message.users.id.eq(userId))
+                .orderBy(message.createdAt.desc())
                 .fetch();
     }
 

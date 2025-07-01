@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+
 /**
  * <h2>메시지 DTO</h2>
  * <p>
@@ -36,4 +38,6 @@ public class MessageDTO {
     private int width;
 
     private int height;
+
+    private Instant createdAt;
 }

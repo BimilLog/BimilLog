@@ -336,10 +336,6 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
             </Badge>
           )}
         </div>
-
-        <div className="text-base md:text-sm text-gray-500">
-          최근 활동 순으로 표시
-        </div>
       </div>
 
       {/* 아이템 목록 */}
