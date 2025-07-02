@@ -101,29 +101,16 @@ export default function PublicRollingPaperClient({
             [key: number]: VisitMessage | RollingPaperMessage;
           } = {};
 
-          // 백엔드 좌표를 항상 6열 기준으로 매핑 (일관성 유지)
-          const FIXED_COLS_PER_PAGE = 6;
-
           response.data.forEach(
             (message: VisitMessage | RollingPaperMessage) => {
-              // 백엔드 좌표를 6열 기준으로 해석
-              const backendRow = message.height;
-              const backendCol = message.width % FIXED_COLS_PER_PAGE;
-              const backendPage =
-                Math.floor(message.width / FIXED_COLS_PER_PAGE) + 1;
+              // 현재 화면의 colsPerPage에 맞춰 좌표 재계산
+              const pageWidth = message.width % colsPerPage;
+              const page = Math.floor(message.width / colsPerPage) + 1;
+              const position = message.height * colsPerPage + pageWidth;
 
-              // 현재 화면에서의 position 계산 (같은 페이지 내에서만)
-              const currentPagePosition = backendRow * colsPerPage + backendCol;
-
-              // 메시지에 페이지 정보 추가 (원본 좌표도 보존)
-              const messageWithPage = {
-                ...message,
-                page: backendPage,
-                currentPosition: currentPagePosition,
-                originalWidth: message.width,
-                originalHeight: message.height,
-              };
-              messageMap[currentPagePosition] = messageWithPage;
+              // 메시지에 페이지 정보 추가
+              const messageWithPage = { ...message, page };
+              messageMap[position] = messageWithPage;
             }
           );
           setMessages(messageMap);
@@ -138,7 +125,7 @@ export default function PublicRollingPaperClient({
     if (nickname) {
       fetchMessages();
     }
-  }, [nickname, isAuthenticated, user]);
+  }, [nickname, isAuthenticated, user, colsPerPage]);
 
   // 소유자 확인 및 리다이렉트
   useEffect(() => {
@@ -221,6 +208,19 @@ export default function PublicRollingPaperClient({
       {/* Auth Header */}
       <AuthHeader />
 
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="text-center mb-2">
+          <p className="text-xs text-gray-500">광고</p>
+        </div>
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="타인 롤링페이퍼 상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
+
       {/* Page Header - 모바일 최적화 */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-3 md:py-4">
@@ -267,16 +267,6 @@ export default function PublicRollingPaperClient({
           </div>
         </div>
       </header>
-
-      {/* Top Banner Advertisement */}
-      <div className="container mx-auto px-4 py-2">
-        <div className="flex justify-center">
-          <ResponsiveAdFitBanner
-            position="타인 롤링페이퍼 상단"
-            className="max-w-full"
-          />
-        </div>
-      </div>
 
       <div className="container mx-auto px-2 md:px-4 py-4 md:py-8">
         {/* 방문자 환영 메시지 */}
@@ -417,23 +407,20 @@ export default function PublicRollingPaperClient({
               {/* 모바일: 4칸, 태블릿+: 6칸 */}
               <div className="grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-3 bg-white/30 p-3 md:p-6 rounded-xl md:rounded-2xl border border-dashed md:border-2 border-cyan-300">
                 {Array.from({ length: slotsPerPage }, (_, i) => {
-                  // 현재 페이지의 메시지만 필터링 (6열 기준으로 페이지 계산)
-                  const FIXED_COLS_PER_PAGE = 6;
+                  // 현재 페이지의 메시지만 필터링
                   const pageMessages = Object.entries(messages).filter(
                     ([_, message]) => {
                       const messagePage =
-                        Math.floor(message.width / FIXED_COLS_PER_PAGE) + 1;
+                        Math.floor(message.width / colsPerPage) + 1;
                       return messagePage === currentPage;
                     }
                   );
 
                   // 현재 슬롯에 해당하는 메시지 찾기
                   const slotMessage = pageMessages.find(([_, message]) => {
-                    const backendRow = message.height;
-                    const backendCol = message.width % FIXED_COLS_PER_PAGE;
-                    const currentPagePosition =
-                      backendRow * colsPerPage + backendCol;
-                    return currentPagePosition === i;
+                    const pageWidth = message.width % colsPerPage;
+                    const position = message.height * colsPerPage + pageWidth;
+                    return position === i;
                   });
 
                   const hasMessage = slotMessage ? slotMessage[1] : null;
@@ -502,7 +489,9 @@ export default function PublicRollingPaperClient({
                             <MessageForm
                               nickname={nickname}
                               position={{
-                                x: (currentPage - 1) * 6 + (i % colsPerPage),
+                                x:
+                                  (currentPage - 1) * colsPerPage +
+                                  (i % colsPerPage),
                                 y: Math.floor(i / colsPerPage),
                               }}
                               onSubmit={(newMessage) => {
@@ -539,6 +528,9 @@ export default function PublicRollingPaperClient({
 
         {/* Mobile Advertisement */}
         <div className="mt-6 mb-4">
+          <div className="text-center mb-3">
+            <p className="text-xs text-gray-500">광고</p>
+          </div>
           <div className="flex justify-center px-2">
             {(() => {
               const adUnit = getAdUnit("MOBILE_BANNER");
@@ -547,6 +539,7 @@ export default function PublicRollingPaperClient({
                   adUnit={adUnit}
                   width={AD_SIZES.BANNER_320x50.width}
                   height={AD_SIZES.BANNER_320x50.height}
+                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
                   onAdFail={() =>
                     console.log("다른 사람 롤링페이퍼 페이지 광고 로딩 실패")
                   }

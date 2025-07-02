@@ -84,29 +84,14 @@ export default function RollingPaperClient() {
           setRecentMessages(response.data.slice(0, 3));
 
           const messageMap: { [key: number]: RollingPaperMessage } = {};
-
-          // 백엔드 좌표를 항상 6열 기준으로 매핑 (일관성 유지)
-          const FIXED_COLS_PER_PAGE = 6;
-
           response.data.forEach((message) => {
-            // 백엔드 좌표를 6열 기준으로 해석
-            const backendRow = message.height;
-            const backendCol = message.width % FIXED_COLS_PER_PAGE;
-            const backendPage =
-              Math.floor(message.width / FIXED_COLS_PER_PAGE) + 1;
+            // 현재 화면의 colsPerPage에 맞춰 좌표 재계산
+            const pageWidth = message.width % colsPerPage;
+            const page = Math.floor(message.width / colsPerPage) + 1;
+            const position = message.height * colsPerPage + pageWidth;
 
-            // 현재 화면에서의 position 계산 (같은 페이지 내에서만)
-            const currentPagePosition = backendRow * colsPerPage + backendCol;
-
-            // 메시지에 페이지 정보 추가 (원본 좌표도 보존)
-            const messageWithPage = {
-              ...message,
-              page: backendPage,
-              currentPosition: currentPagePosition,
-              originalWidth: message.width,
-              originalHeight: message.height,
-            };
-            messageMap[currentPagePosition] = messageWithPage;
+            const messageWithPage = { ...message, page };
+            messageMap[position] = messageWithPage;
           });
           setMessages(messageMap);
         }
@@ -118,31 +103,37 @@ export default function RollingPaperClient() {
     };
 
     fetchMessages();
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, isMobile]);
 
   const handleShare = async () => {
     if (!user) return;
-    const url = `${window.location.origin}/rolling-paper/${encodeURIComponent(
-      user.userName
-    )}`;
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${user.userName}님의 롤링페이퍼`,
-          text: `${user.userName}님에게 따뜻한 메시지를 남겨보세요!`,
-          url: url,
-        });
-      } catch (error) {
-        console.log("Share cancelled or failed", error);
+    const { shareRollingPaper, fallbackShare } = await import(
+      "@/lib/kakao-share"
+    );
+
+    try {
+      const success = await shareRollingPaper(user.userName, messageCount);
+      if (!success) {
+        const url = `${
+          window.location.origin
+        }/rolling-paper/${encodeURIComponent(user.userName)}`;
+        fallbackShare(
+          url,
+          `${user.userName}님의 롤링페이퍼`,
+          `${user.userName}님에게 따뜻한 메시지를 남겨보세요!`
+        );
       }
-    } else {
+    } catch (error) {
+      console.error("공유 중 오류 발생:", error);
       try {
+        const url = `${
+          window.location.origin
+        }/rolling-paper/${encodeURIComponent(user.userName)}`;
         await navigator.clipboard.writeText(url);
         alert("링크가 클립보드에 복사되었습니다!");
       } catch (clipboardError) {
         console.error("클립보드 복사 실패:", clipboardError);
-        alert("링크 복사에 실패했습니다.");
       }
     }
   };
@@ -169,6 +160,19 @@ export default function RollingPaperClient() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
       <AuthHeader />
+
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="text-center mb-2">
+          <p className="text-xs text-gray-500">광고</p>
+        </div>
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="내 롤링페이퍼 상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
 
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-3 md:py-4">
@@ -215,16 +219,6 @@ export default function RollingPaperClient() {
           </div>
         </div>
       </header>
-
-      {/* Top Banner Advertisement */}
-      <div className="container mx-auto px-4 py-2">
-        <div className="flex justify-center">
-          <ResponsiveAdFitBanner
-            position="내 롤링페이퍼 상단"
-            className="max-w-full"
-          />
-        </div>
-      </div>
 
       <div className="container mx-auto px-2 md:px-4 py-4 md:py-8">
         <div className="mb-4 md:mb-6">
@@ -349,23 +343,18 @@ export default function RollingPaperClient() {
 
               <div className="grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-3 bg-white/30 p-3 md:p-6 rounded-xl md:rounded-2xl border border-dashed md:border-2 border-cyan-300">
                 {Array.from({ length: slotsPerPage }, (_, i) => {
-                  // 현재 페이지의 메시지만 필터링 (6열 기준으로 페이지 계산)
-                  const FIXED_COLS_PER_PAGE = 6;
                   const pageMessages = Object.entries(messages).filter(
                     ([_, message]) => {
                       const messagePage =
-                        Math.floor(message.width / FIXED_COLS_PER_PAGE) + 1;
+                        Math.floor(message.width / colsPerPage) + 1;
                       return messagePage === currentPage;
                     }
                   );
 
-                  // 현재 슬롯에 해당하는 메시지 찾기
                   const slotMessage = pageMessages.find(([_, message]) => {
-                    const backendRow = message.height;
-                    const backendCol = message.width % FIXED_COLS_PER_PAGE;
-                    const currentPagePosition =
-                      backendRow * colsPerPage + backendCol;
-                    return currentPagePosition === i;
+                    const pageWidth = message.width % colsPerPage;
+                    const position = message.height * colsPerPage + pageWidth;
+                    return position === i;
                   });
 
                   const hasMessage = slotMessage ? slotMessage[1] : null;
