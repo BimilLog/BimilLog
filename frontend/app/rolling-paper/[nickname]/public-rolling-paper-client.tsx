@@ -210,9 +210,6 @@ export default function PublicRollingPaperClient({
 
       {/* Top Banner Advertisement */}
       <div className="container mx-auto px-4 py-2">
-        <div className="text-center mb-2">
-          <p className="text-xs text-gray-500">광고</p>
-        </div>
         <div className="flex justify-center">
           <ResponsiveAdFitBanner
             position="타인 롤링페이퍼 상단"
@@ -267,6 +264,25 @@ export default function PublicRollingPaperClient({
           </div>
         </div>
       </header>
+
+      {/* PC Header Advertisement */}
+      <div className="hidden md:block bg-white border-b">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex justify-center">
+            {(() => {
+              const adUnit = getAdUnit("PC_BANNER");
+              return adUnit ? (
+                <AdFitBanner
+                  adUnit={adUnit}
+                  width={AD_SIZES.BANNER_728x90.width}
+                  height={AD_SIZES.BANNER_728x90.height}
+                  className="max-w-full"
+                />
+              ) : null;
+            })()}
+          </div>
+        </div>
+      </div>
 
       <div className="container mx-auto px-2 md:px-4 py-4 md:py-8">
         {/* 방문자 환영 메시지 */}
