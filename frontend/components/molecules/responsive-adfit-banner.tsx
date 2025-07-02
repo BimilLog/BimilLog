@@ -60,7 +60,6 @@ export function ResponsiveAdFitBanner({
           adUnit={mobileAdUnit}
           width={AD_SIZES.BANNER_320x50.width}
           height={AD_SIZES.BANNER_320x50.height}
-          className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
           onAdFail={() => handleAdFail("mobile")}
         />
       </div>
@@ -71,7 +70,6 @@ export function ResponsiveAdFitBanner({
           adUnit={pcAdUnit}
           width={AD_SIZES.BANNER_728x90.width}
           height={AD_SIZES.BANNER_728x90.height}
-          className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
           onAdFail={() => handleAdFail("pc")}
         />
       </div>

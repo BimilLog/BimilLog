@@ -106,33 +106,27 @@ export default function RollingPaperClient() {
 
   const handleShare = async () => {
     if (!user) return;
+    const url = `${window.location.origin}/rolling-paper/${encodeURIComponent(
+      user.userName
+    )}`;
 
-    const { shareRollingPaper, fallbackShare } = await import(
-      "@/lib/kakao-share"
-    );
-
-    try {
-      const success = await shareRollingPaper(user.userName, messageCount);
-      if (!success) {
-        const url = `${
-          window.location.origin
-        }/rolling-paper/${encodeURIComponent(user.userName)}`;
-        fallbackShare(
-          url,
-          `${user.userName}님의 롤링페이퍼`,
-          `${user.userName}님에게 따뜻한 메시지를 남겨보세요!`
-        );
-      }
-    } catch (error) {
-      console.error("공유 중 오류 발생:", error);
+    if (navigator.share) {
       try {
-        const url = `${
-          window.location.origin
-        }/rolling-paper/${encodeURIComponent(user.userName)}`;
+        await navigator.share({
+          title: `${user.userName}님의 롤링페이퍼`,
+          text: `${user.userName}님에게 따뜻한 메시지를 남겨보세요!`,
+          url: url,
+        });
+      } catch (error) {
+        console.log("Share cancelled or failed", error);
+      }
+    } else {
+      try {
         await navigator.clipboard.writeText(url);
         alert("링크가 클립보드에 복사되었습니다!");
       } catch (clipboardError) {
         console.error("클립보드 복사 실패:", clipboardError);
+        alert("링크 복사에 실패했습니다.");
       }
     }
   };
@@ -159,16 +153,6 @@ export default function RollingPaperClient() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
       <AuthHeader />
-
-      {/* Top Banner Advertisement */}
-      <div className="container mx-auto px-4 py-2">
-        <div className="flex justify-center">
-          <ResponsiveAdFitBanner
-            position="내 롤링페이퍼 상단"
-            className="max-w-full"
-          />
-        </div>
-      </div>
 
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-3 md:py-4">
@@ -215,6 +199,16 @@ export default function RollingPaperClient() {
           </div>
         </div>
       </header>
+
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="내 롤링페이퍼 상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
 
       <div className="container mx-auto px-2 md:px-4 py-4 md:py-8">
         <div className="mb-4 md:mb-6">
@@ -495,7 +489,6 @@ export default function RollingPaperClient() {
                   adUnit={adUnit}
                   width={AD_SIZES.BANNER_320x50.width}
                   height={AD_SIZES.BANNER_320x50.height}
-                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
                   onAdFail={() =>
                     console.log("자신의 롤링페이퍼 페이지 광고 로딩 실패")
                   }

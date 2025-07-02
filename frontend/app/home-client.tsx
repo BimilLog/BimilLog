@@ -202,7 +202,6 @@ export default function HomeClient() {
                 adUnit={adUnit}
                 width={AD_SIZES.BANNER_320x50.width}
                 height={AD_SIZES.BANNER_320x50.height}
-                className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
                 onAdFail={() => console.log("메인 페이지 광고 로딩 실패")}
               />
             ) : null;

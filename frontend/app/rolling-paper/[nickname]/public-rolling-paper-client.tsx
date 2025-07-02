@@ -208,16 +208,6 @@ export default function PublicRollingPaperClient({
       {/* Auth Header */}
       <AuthHeader />
 
-      {/* Top Banner Advertisement */}
-      <div className="container mx-auto px-4 py-2">
-        <div className="flex justify-center">
-          <ResponsiveAdFitBanner
-            position="타인 롤링페이퍼 상단"
-            className="max-w-full"
-          />
-        </div>
-      </div>
-
       {/* Page Header - 모바일 최적화 */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-3 md:py-4">
@@ -264,6 +254,16 @@ export default function PublicRollingPaperClient({
           </div>
         </div>
       </header>
+
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="타인 롤링페이퍼 상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
 
       <div className="container mx-auto px-2 md:px-4 py-4 md:py-8">
         {/* 방문자 환영 메시지 */}
@@ -533,7 +533,6 @@ export default function PublicRollingPaperClient({
                   adUnit={adUnit}
                   width={AD_SIZES.BANNER_320x50.width}
                   height={AD_SIZES.BANNER_320x50.height}
-                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
                   onAdFail={() =>
                     console.log("다른 사람 롤링페이퍼 페이지 광고 로딩 실패")
                   }

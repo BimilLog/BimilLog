@@ -196,7 +196,6 @@ export default function BoardClient() {
                   adUnit={adUnit}
                   width={AD_SIZES.BANNER_320x50.width}
                   height={AD_SIZES.BANNER_320x50.height}
-                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
                   onAdFail={() => console.log("게시판 상단 광고 로딩 실패")}
                 />
               ) : null;
@@ -292,7 +291,6 @@ export default function BoardClient() {
                   adUnit={adUnit}
                   width={AD_SIZES.BANNER_320x50.width}
                   height={AD_SIZES.BANNER_320x50.height}
-                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
                   onAdFail={() => console.log("게시판 하단 광고 로딩 실패")}
                 />
               ) : null;

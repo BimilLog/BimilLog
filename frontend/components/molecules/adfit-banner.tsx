@@ -121,12 +121,11 @@ export function AdFitBanner({
       style={{
         width: "100%",
         maxWidth: `${width}px`,
-        minHeight: `${height}px`,
+        height: `${height}px`,
         margin: "0 auto",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#f0f0f0", // 로딩 중 배경색
       }}
     >
       <ins
