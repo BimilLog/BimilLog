@@ -8,6 +8,12 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
+import {
+  AdFitBanner,
+  AD_SIZES,
+  getAdUnit,
+  ResponsiveAdFitBanner,
+} from "@/components";
 
 // 분리된 컴포넌트들 import
 import { PostHeader } from "./components/PostHeader";
@@ -452,6 +458,20 @@ export default function PostDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100">
       <AuthHeader />
+
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="text-center mb-2">
+          <p className="text-xs text-gray-500">광고</p>
+        </div>
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="게시글 상세 상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
         {/* 뒤로가기 버튼 */}
         <div className="mb-6">
@@ -523,6 +543,29 @@ export default function PostDetailPage() {
           onLikeComment={handleLikeComment}
           canModifyComment={canModifyComment}
         />
+
+        {/* Mobile Advertisement */}
+        <div className="mt-8 mb-6">
+          <div className="text-center mb-3">
+            <p className="text-xs text-gray-500">광고</p>
+          </div>
+          <div className="flex justify-center px-2">
+            {(() => {
+              const adUnit = getAdUnit("MOBILE_BANNER");
+              return adUnit ? (
+                <AdFitBanner
+                  adUnit={adUnit}
+                  width={AD_SIZES.BANNER_320x50.width}
+                  height={AD_SIZES.BANNER_320x50.height}
+                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
+                  onAdFail={() =>
+                    console.log("게시글 상세 페이지 광고 로딩 실패")
+                  }
+                />
+              ) : null;
+            })()}
+          </div>
+        </div>
 
         {/* 비밀번호 모달 */}
         <PasswordModal

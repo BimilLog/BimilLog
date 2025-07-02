@@ -9,6 +9,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { KakaoFriendsModal } from "@/components/molecules/kakao-friends-modal";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import {
+  AdFitBanner,
+  AD_SIZES,
+  AD_UNITS,
+  getAdUnit,
+  ResponsiveAdFitBanner,
+} from "@/components";
 
 export default function HomeClient() {
   const { isAuthenticated } = useAuth();
@@ -22,6 +29,19 @@ export default function HomeClient() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       <AuthHeader />
+
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="text-center mb-2">
+          <p className="text-xs text-gray-500">광고</p>
+        </div>
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="메인페이지 상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 text-center">
@@ -172,6 +192,27 @@ export default function HomeClient() {
               </p>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      {/* Mobile Advertisement */}
+      <section className="container mx-auto px-4 py-6">
+        <div className="text-center mb-3">
+          <p className="text-xs text-gray-500">광고</p>
+        </div>
+        <div className="flex justify-center px-2">
+          {(() => {
+            const adUnit = getAdUnit("MOBILE_BANNER");
+            return adUnit ? (
+              <AdFitBanner
+                adUnit={adUnit}
+                width={AD_SIZES.BANNER_320x50.width}
+                height={AD_SIZES.BANNER_320x50.height}
+                className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
+                onAdFail={() => console.log("메인 페이지 광고 로딩 실패")}
+              />
+            ) : null;
+          })()}
         </div>
       </section>
 

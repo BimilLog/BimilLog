@@ -89,6 +89,10 @@ export { default as Editor } from './molecules/editor';
 export { ReportModal } from './molecules/ReportModal';
 export { KakaoFriendsModal } from './molecules/kakao-friends-modal';
 
+// Advertisement Components
+export { AdFitBanner, AD_SIZES, AD_UNITS, getAdUnit } from './molecules/adfit-banner';
+export { ResponsiveAdFitBanner } from './molecules/responsive-adfit-banner';
+
 // State Components
 export { 
   Loading,
