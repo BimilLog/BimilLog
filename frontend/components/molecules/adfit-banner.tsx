@@ -53,7 +53,11 @@ export function AdFitBanner({
 
     const loadAdScript = () => {
       // AdFit 스크립트가 이미 있는지 확인
-      if (document.querySelector('script[src*="kas/static/ba.min.js"]')) {
+      if (
+        document.querySelector(
+          'script[src*="t1.daumcdn.net/kas/static/ba.min.js"]'
+        )
+      ) {
         scriptLoadedRef.current = true;
         // 스크립트 로드 후 광고 렌더링 시도
         if (adRef.current && (window as any).adfit) {
@@ -66,7 +70,7 @@ export function AdFitBanner({
 
       const script = document.createElement("script");
       script.type = "text/javascript";
-      script.src = "//t1.daumcdn.net/kas/static/ba.min.js";
+      script.src = "https://t1.daumcdn.net/kas/static/ba.min.js";
       script.async = true;
 
       script.onload = () => {

@@ -1,4 +1,4 @@
-# 카카오톡 공유 기능 설정 가이드 (신규 - 간단한 방식)
+# 카카오 서비스 설정 가이드 (공유 기능 + 광고 기능)
 
 ## 1. 카카오 개발자 센터 설정
 
@@ -261,3 +261,211 @@ Kakao.Share.sendDefault({
 ---
 
 이 가이드는 카카오 공식 문서의 [피드 A형 템플릿](https://developers.kakao.com/docs/latest/ko/kakaotalk-share/js-link#default-template-msg-sample-default)을 기반으로 작성되었습니다.
+
+---
+
+# 카카오 AdFit 광고 설정 가이드
+
+## 1. AdFit 광고 단위 등록
+
+### 1.1 AdFit 개발자 센터 접속
+
+1. [AdFit 개발자 센터](https://adfit.kakao.com/)에 접속
+2. 카카오 계정으로 로그인
+
+### 1.2 매체 등록
+
+1. 매체 관리 → 매체 등록
+2. 매체 정보 입력:
+   - 매체명: 프로젝트 이름
+   - 매체 URL: 실제 서비스 도메인
+   - 카테고리: 적절한 카테고리 선택
+
+### 1.3 광고 단위 생성
+
+1. 광고 단위 관리 → 광고 단위 등록
+2. 모바일용 광고 단위:
+   - 크기: 320x50, 320x100, 또는 300x250
+   - 광고 위치: 상단/하단/중간 설정
+3. PC용 광고 단위:
+   - 크기: 728x90, 300x250, 또는 반응형
+   - 광고 위치: 사이드바/콘텐츠 내부 설정
+
+### 1.4 광고 단위 ID 복사
+
+생성된 각 광고 단위의 ID를 복사합니다.
+
+## 2. 환경 변수 설정
+
+프론트엔드 루트 디렉토리에 `.env` 파일에 추가:
+
+```bash
+# 카카오 JavaScript 앱 키 (기존)
+NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY=your_kakao_javascript_app_key_here
+
+# 카카오 AdFit 광고 단위 ID (신규 추가)
+NEXT_PUBLIC_MOBILE_AD=your_mobile_ad_unit_id_here
+NEXT_PUBLIC_PC_AD=your_pc_ad_unit_id_here
+```
+
+**주의**: 실제 광고 단위 ID로 교체해야 합니다.
+
+## 3. CSP (Content Security Policy) 설정
+
+`next.config.ts`에서 카카오 광고 도메인이 허용되도록 설정되어 있습니다:
+
+```typescript
+// 이미 설정 완료됨
+"script-src": "https://t1.daumcdn.net https://*.daumcdn.net",
+"connect-src": "https://analytics.ad.daum.net https://kaat.daum.net https://kuid-provider.ds.kakao.com",
+"img-src": "https://*.daumcdn.net https://t1.daumcdn.net",
+"frame-src": "https://*.daumcdn.net https://analytics.ad.daum.net"
+```
+
+## 4. 광고 컴포넌트 사용법
+
+### 4.1 기본 AdFit 배너
+
+```tsx
+import { AdFitBanner, AD_SIZES, getAdUnit } from "@/components/molecules/adfit-banner";
+
+// 모바일 광고
+<AdFitBanner
+  adUnit={getAdUnit("MOBILE_BANNER")!}
+  width={AD_SIZES.BANNER_320x50.width}
+  height={AD_SIZES.BANNER_320x50.height}
+  onAdFail={() => console.log("광고 로딩 실패")}
+/>
+
+// PC 광고
+<AdFitBanner
+  adUnit={getAdUnit("PC_BANNER")!}
+  width={AD_SIZES.BANNER_728x90.width}
+  height={AD_SIZES.BANNER_728x90.height}
+/>
+```
+
+### 4.2 반응형 AdFit 배너 (권장)
+
+```tsx
+import { ResponsiveAdFitBanner } from "@/components/molecules/responsive-adfit-banner";
+
+<ResponsiveAdFitBanner
+  mobileAdUnit={getAdUnit("MOBILE_BANNER")!}
+  pcAdUnit={getAdUnit("PC_BANNER")!}
+  onAdFail={() => console.log("광고 로딩 실패")}
+  className="my-4"
+/>;
+```
+
+## 5. 사용 가능한 광고 크기
+
+```typescript
+export const AD_SIZES = {
+  BANNER_320x50: { width: 320, height: 50 }, // 모바일 상단/하단
+  BANNER_320x100: { width: 320, height: 100 }, // 모바일 중간
+  BANNER_300x250: { width: 300, height: 250 }, // 모바일/PC 사각형
+  BANNER_728x90: { width: 728, height: 90 }, // PC 상단/하단
+} as const;
+```
+
+## 6. 광고 차단 및 오류 처리
+
+### 6.1 자동 처리되는 경우
+
+- 광고 차단기로 인한 스크립트 로딩 실패
+- AdFit 서버에서 광고가 없는 경우 (NO-AD)
+- CSP 정책에 의한 차단
+
+### 6.2 오류 콜백 활용
+
+```tsx
+<AdFitBanner
+  adUnit={adUnit}
+  width={320}
+  height={50}
+  onAdFail={() => {
+    // 광고 실패 시 대체 콘텐츠 표시
+    console.log("광고를 표시할 수 없습니다.");
+    // 분석 이벤트 전송 등
+  }}
+/>
+```
+
+## 7. 문제 해결
+
+### 7.1 광고가 표시되지 않는 경우
+
+1. **환경변수 확인**: `.env` 파일의 광고 단위 ID 확인
+2. **도메인 등록**: AdFit에서 서비스 도메인이 올바르게 등록되었는지 확인
+3. **개발자 도구**: 브라우저 콘솔에서 오류 메시지 확인
+4. **광고 차단기**: 광고 차단기 비활성화 후 테스트
+
+### 7.2 CSP 오류
+
+```
+Refused to load the script 'https://t1.daumcdn.net/kas/static/ba.min.js'
+because it violates the following Content Security Policy directive
+```
+
+**해결됨**: CSP 설정이 이미 업데이트되어 해결되었습니다.
+
+### 7.3 NO-AD 응답
+
+```javascript
+// AdFit에서 광고가 없을 때 자동으로 처리됨
+console.log("AdFit 광고 로딩 실패:", element);
+```
+
+이는 정상적인 동작이며, 광고 인벤토리가 부족하거나 타겟팅 조건에 맞지 않을 때 발생합니다.
+
+## 8. 성능 최적화
+
+### 8.1 지연 로딩
+
+AdFit 스크립트는 자동으로 비동기 로딩됩니다:
+
+```typescript
+script.async = true;
+script.src = "https://t1.daumcdn.net/kas/static/ba.min.js";
+```
+
+### 8.2 중복 로딩 방지
+
+같은 페이지에서 여러 광고를 사용할 때 스크립트 중복 로딩을 방지합니다:
+
+```typescript
+if (
+  document.querySelector('script[src*="t1.daumcdn.net/kas/static/ba.min.js"]')
+) {
+  // 이미 로드된 경우 재사용
+}
+```
+
+## 9. 테스트 환경
+
+### 9.1 로컬 개발 환경
+
+- AdFit에서 `localhost:3000` 도메인 등록 필요
+- 개발 환경에서도 실제 광고가 표시됨
+
+### 9.2 스테이징/프로덕션
+
+- 실제 도메인 등록 후 테스트
+- 광고 수익은 실제 서비스에서만 발생
+
+---
+
+## 통합 환경변수 설정 예시
+
+```bash
+# 카카오 공유 기능
+NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY=abcdef1234567890abcdef1234567890
+
+# 카카오 AdFit 광고
+NEXT_PUBLIC_MOBILE_AD=DAN-1234567890abcdef
+NEXT_PUBLIC_PC_AD=DAN-abcdef1234567890
+
+# 기타 환경설정
+NEXT_PUBLIC_API_URL=https://grow-farm.com/api
+```

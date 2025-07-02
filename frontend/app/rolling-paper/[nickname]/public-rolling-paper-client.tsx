@@ -495,9 +495,13 @@ export default function PublicRollingPaperClient({
                                 y: Math.floor(i / colsPerPage),
                               }}
                               onSubmit={(newMessage) => {
+                                // 올바른 position 계산
+                                const correctPosition =
+                                  newMessage.height * colsPerPage +
+                                  (newMessage.width % colsPerPage);
                                 setMessages((prev) => ({
                                   ...prev,
-                                  [i]: newMessage,
+                                  [correctPosition]: newMessage,
                                 }));
                               }}
                             />
