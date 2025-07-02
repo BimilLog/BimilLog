@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface AdFitBannerProps {
   /**
@@ -34,18 +34,33 @@ export function AdFitBanner({
 }: AdFitBannerProps) {
   const adRef = useRef<HTMLDivElement>(null);
   const scriptLoadedRef = useRef(false);
+  const [isAdFailed, setIsAdFailed] = useState(false);
 
   useEffect(() => {
     // SSR 환경에서는 실행하지 않음
     if (typeof window === "undefined") return;
 
     // 이미 스크립트가 로딩되었다면 재실행하지 않음
-    if (scriptLoadedRef.current) return;
+    if (scriptLoadedRef.current) {
+      // 스크립트가 이미 로드된 경우, 광고를 다시 시도할 수 있도록 처리
+      if (adRef.current && (window as any).adfit) {
+        (window as any).adfit.render(
+          adRef.current.querySelector(".kakao_ad_area")
+        );
+      }
+      return;
+    }
 
     const loadAdScript = () => {
       // AdFit 스크립트가 이미 있는지 확인
       if (document.querySelector('script[src*="kas/static/ba.min.js"]')) {
         scriptLoadedRef.current = true;
+        // 스크립트 로드 후 광고 렌더링 시도
+        if (adRef.current && (window as any).adfit) {
+          (window as any).adfit.render(
+            adRef.current.querySelector(".kakao_ad_area")
+          );
+        }
         return;
       }
 
@@ -56,11 +71,18 @@ export function AdFitBanner({
 
       script.onload = () => {
         scriptLoadedRef.current = true;
+        // 스크립트 로드 후 광고 렌더링 시도
+        if (adRef.current && (window as any).adfit) {
+          (window as any).adfit.render(
+            adRef.current.querySelector(".kakao_ad_area")
+          );
+        }
       };
 
       script.onerror = () => {
         console.error("AdFit 스크립트 로딩에 실패했습니다.");
         onAdFail?.();
+        setIsAdFailed(true);
       };
 
       document.head.appendChild(script);
@@ -73,6 +95,7 @@ export function AdFitBanner({
   const handleAdFail = (element: HTMLElement) => {
     console.log("AdFit 광고 로딩 실패:", element);
     onAdFail?.();
+    setIsAdFailed(true);
 
     // 광고 영역 숨기기
     if (element) {
@@ -87,6 +110,10 @@ export function AdFitBanner({
     }
   }, [adUnit, onAdFail]);
 
+  if (isAdFailed) {
+    return null;
+  }
+
   return (
     <div
       ref={adRef}
@@ -94,11 +121,12 @@ export function AdFitBanner({
       style={{
         width: "100%",
         maxWidth: `${width}px`,
-        height: `${height}px`,
+        minHeight: `${height}px`,
         margin: "0 auto",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        backgroundColor: "#f0f0f0", // 로딩 중 배경색
       }}
     >
       <ins
