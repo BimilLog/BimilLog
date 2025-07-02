@@ -502,6 +502,9 @@ export default function RollingPaperClient() {
 
         {/* Mobile Advertisement */}
         <div className="mt-6 mb-4">
+          <div className="text-center mb-3">
+            <p className="text-xs text-gray-500">광고</p>
+          </div>
           <div className="flex justify-center px-2">
             {(() => {
               const adUnit = getAdUnit("MOBILE_BANNER");
@@ -510,6 +513,7 @@ export default function RollingPaperClient() {
                   adUnit={adUnit}
                   width={AD_SIZES.BANNER_320x50.width}
                   height={AD_SIZES.BANNER_320x50.height}
+                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
                   onAdFail={() =>
                     console.log("자신의 롤링페이퍼 페이지 광고 로딩 실패")
                   }
