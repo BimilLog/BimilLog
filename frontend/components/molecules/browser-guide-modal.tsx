@@ -27,7 +27,7 @@ export function BrowserGuideModal({
   const copyToClipboard = async () => {
     try {
       if (typeof window !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText("https://grow-farm.com/install");
         setCopiedToClipboard(true);
         setTimeout(() => setCopiedToClipboard(false), 2000);
       }
