@@ -84,29 +84,14 @@ export default function RollingPaperClient() {
           setRecentMessages(response.data.slice(0, 3));
 
           const messageMap: { [key: number]: RollingPaperMessage } = {};
-
-          // 백엔드 좌표를 항상 6열 기준으로 매핑 (일관성 유지)
-          const FIXED_COLS_PER_PAGE = 6;
-
           response.data.forEach((message) => {
-            // 백엔드 좌표를 6열 기준으로 해석
-            const backendRow = message.height;
-            const backendCol = message.width % FIXED_COLS_PER_PAGE;
-            const backendPage =
-              Math.floor(message.width / FIXED_COLS_PER_PAGE) + 1;
+            // 현재 화면의 colsPerPage에 맞춰 좌표 재계산
+            const pageWidth = message.width % colsPerPage;
+            const page = Math.floor(message.width / colsPerPage) + 1;
+            const position = message.height * colsPerPage + pageWidth;
 
-            // 현재 화면에서의 position 계산 (같은 페이지 내에서만)
-            const currentPagePosition = backendRow * colsPerPage + backendCol;
-
-            // 메시지에 페이지 정보 추가 (원본 좌표도 보존)
-            const messageWithPage = {
-              ...message,
-              page: backendPage,
-              currentPosition: currentPagePosition,
-              originalWidth: message.width,
-              originalHeight: message.height,
-            };
-            messageMap[currentPagePosition] = messageWithPage;
+            const messageWithPage = { ...message, page };
+            messageMap[position] = messageWithPage;
           });
           setMessages(messageMap);
         }

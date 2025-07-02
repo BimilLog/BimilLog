@@ -100,10 +100,10 @@ export default function PublicRollingPaperClient({
           const messageMap: {
             [key: number]: VisitMessage | RollingPaperMessage;
           } = {};
+
           response.data.forEach(
             (message: VisitMessage | RollingPaperMessage) => {
-              // 새로운 좌표 시스템: width가 확장되어 있음
-              // 확장된 width를 페이지 내 위치로 변환
+              // 현재 화면의 colsPerPage에 맞춰 좌표 재계산
               const pageWidth = message.width % colsPerPage;
               const page = Math.floor(message.width / colsPerPage) + 1;
               const position = message.height * colsPerPage + pageWidth;
