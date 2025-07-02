@@ -51,8 +51,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/log.png",
-        width: 800,
-        height: 600,
+        width: 326,
+        height: 105,
         alt: "비밀로그 로고",
       },
     ],
@@ -67,9 +67,9 @@ export const metadata: Metadata = {
     images: ["/log.png"],
   },
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon192.png",
     shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    apple: "/favicon192.png",
   },
   manifest: "/manifest.json",
   appleWebApp: {

@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/atoms/button";
 import { useBrowserGuide } from "@/hooks/useBrowserGuide";
+import { useState } from "react";
+import { BrowserGuideModal } from "./browser-guide-modal";
 
 interface PWAInstallButtonProps {
   className?: string;
@@ -14,21 +16,37 @@ export function PWAInstallButton({
   variant = "default",
   size = "default",
 }: PWAInstallButtonProps) {
-  const { isPWAInstallable, installPWA } = useBrowserGuide();
+  const { isPWAInstallable, installPWA, getBrowserInfo } = useBrowserGuide();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const browserInfo = getBrowserInfo();
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
-  if (!isPWAInstallable) {
-    return null;
-  }
+  const handleButtonClick = () => {
+    if (isPWAInstallable) {
+      installPWA();
+    } else {
+      setIsModalOpen(true);
+    }
+  };
+
+  if (browserInfo.isInApp) return null;
 
   return (
-    <Button
-      onClick={installPWA}
-      variant={variant}
-      size={size}
-      className={className}
-    >
-      앱 설치
-    </Button>
+    <>
+      <Button
+        onClick={handleButtonClick}
+        variant={variant}
+        size={size}
+        className={className}
+      >
+        {isPWAInstallable
+          ? "앱 설치"
+          : isIOS
+          ? "홈 화면에 추가"
+          : "앱 설치 안내"}
+      </Button>
+      <BrowserGuideModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
+    </>
   );
 }
-

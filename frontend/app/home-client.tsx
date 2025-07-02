@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, MessageCircle, Users, Sparkles, UserCheck } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { KakaoFriendsModal } from "@/components/molecules/kakao-friends-modal";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
 import {
@@ -20,6 +21,24 @@ import {
 export default function HomeClient() {
   const { isAuthenticated } = useAuth();
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const url = searchParams.get("url");
+    if (url) {
+      try {
+        const decodedUrl = decodeURIComponent(url);
+        // "web+bimillog://" 부분을 제거하여 내부 경로를 추출합니다.
+        const path = decodedUrl.replace(/^web\+bimillog:\/\//, "");
+        if (path) {
+          router.replace(`/${path}`);
+        }
+      } catch (error) {
+        console.error("Failed to parse protocol URL:", error);
+      }
+    }
+  }, [searchParams, router]);
 
   const handleOpenFriendsModal = () => {
     if (!isAuthenticated) return;

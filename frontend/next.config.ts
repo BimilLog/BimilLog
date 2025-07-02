@@ -1,10 +1,12 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 
-const nextConfig = withPWA({
+const pwaConfig = {
     dest: "public",
     register: true,
     skipWaiting: true,
+    // @ts-ignore
+    importScripts: ["/firebase-messaging-sw.js"],
     runtimeCaching: [
         {
             urlPattern: /^https:\/\/grow-farm\.com\/api\//,
@@ -29,7 +31,9 @@ const nextConfig = withPWA({
             },
         },
     ],
-})({
+};
+
+const nextConfig = withPWA(pwaConfig)({
     headers: async () => {
         return [
             {
