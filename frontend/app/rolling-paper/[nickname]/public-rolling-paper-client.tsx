@@ -210,9 +210,6 @@ export default function PublicRollingPaperClient({
 
       {/* Top Banner Advertisement */}
       <div className="container mx-auto px-4 py-2">
-        <div className="text-center mb-2">
-          <p className="text-xs text-gray-500">광고</p>
-        </div>
         <div className="flex justify-center">
           <ResponsiveAdFitBanner
             position="타인 롤링페이퍼 상단"
@@ -528,9 +525,6 @@ export default function PublicRollingPaperClient({
 
         {/* Mobile Advertisement */}
         <div className="mt-6 mb-4">
-          <div className="text-center mb-3">
-            <p className="text-xs text-gray-500">광고</p>
-          </div>
           <div className="flex justify-center px-2">
             {(() => {
               const adUnit = getAdUnit("MOBILE_BANNER");
