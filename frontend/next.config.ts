@@ -1,6 +1,35 @@
 import type { NextConfig } from "next";
+import withPWA from "next-pwa";
 
-const nextConfig: NextConfig = {
+const nextConfig = withPWA({
+    dest: "public",
+    register: true,
+    skipWaiting: true,
+    runtimeCaching: [
+        {
+            urlPattern: /^https:\/\/grow-farm\.com\/api\//,
+            handler: "NetworkFirst",
+            options: {
+                cacheName: "api-cache",
+                expiration: {
+                    maxEntries: 32,
+                    maxAgeSeconds: 24 * 60 * 60, // 24 hours
+                },
+            },
+        },
+        {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: "CacheFirst",
+            options: {
+                cacheName: "images",
+                expiration: {
+                    maxEntries: 64,
+                    maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+                },
+            },
+        },
+    ],
+})({
     headers: async () => {
         return [
             {
@@ -67,6 +96,6 @@ const nextConfig: NextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
-};
+}) as NextConfig;
 
 export default nextConfig;

@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
+import { BrowserGuideWrapper } from "@/components/organisms/browser-guide-wrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,6 +14,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#000000",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://grow-farm.com"),
@@ -34,7 +41,6 @@ export const metadata: Metadata = {
     "소통",
   ],
   authors: [{ name: "비밀로그 Team", url: "https://grow-farm.com" }],
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
   openGraph: {
     title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
@@ -65,6 +71,13 @@ export const metadata: Metadata = {
     shortcut: "/favicon.png",
     apple: "/favicon.png",
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "비밀로그",
+  },
+  applicationName: "비밀로그",
   verification: {
     google: "h46_QB3B0te_apY6uiYRUUOuSEt-S8_nQgHo5Iwcv0E",
     other: {
@@ -97,7 +110,9 @@ export default function RootLayout({
           `}
         </Script>
 
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <BrowserGuideWrapper>{children}</BrowserGuideWrapper>
+        </AuthProvider>
       </body>
     </html>
   );

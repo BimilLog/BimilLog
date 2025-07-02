@@ -30,6 +30,12 @@ import {
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { MessageView } from "./components/MessageView";
+import {
+  AdFitBanner,
+  AD_SIZES,
+  getAdUnit,
+  ResponsiveAdFitBanner,
+} from "@/components";
 
 export default function RollingPaperClient() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -79,9 +85,9 @@ export default function RollingPaperClient() {
 
           const messageMap: { [key: number]: RollingPaperMessage } = {};
           response.data.forEach((message) => {
-            const pageWidth = message.width % (isMobile ? 4 : 6);
-            const page = Math.floor(message.width / (isMobile ? 4 : 6)) + 1;
-            const position = message.height * (isMobile ? 4 : 6) + pageWidth;
+            const pageWidth = message.width % colsPerPage;
+            const page = Math.floor(message.width / colsPerPage) + 1;
+            const position = message.height * colsPerPage + pageWidth;
 
             const messageWithPage = { ...message, page };
             messageMap[position] = messageWithPage;
@@ -153,6 +159,20 @@ export default function RollingPaperClient() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
       <AuthHeader />
+
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="text-center mb-2">
+          <p className="text-xs text-gray-500">광고</p>
+        </div>
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="내 롤링페이퍼 상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
+
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
@@ -467,6 +487,29 @@ export default function RollingPaperClient() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Mobile Advertisement */}
+        <div className="mt-6 mb-4">
+          <div className="text-center mb-3">
+            <p className="text-xs text-gray-500">광고</p>
+          </div>
+          <div className="flex justify-center px-2">
+            {(() => {
+              const adUnit = getAdUnit("MOBILE_BANNER");
+              return adUnit ? (
+                <AdFitBanner
+                  adUnit={adUnit}
+                  width={AD_SIZES.BANNER_320x50.width}
+                  height={AD_SIZES.BANNER_320x50.height}
+                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
+                  onAdFail={() =>
+                    console.log("자신의 롤링페이퍼 페이지 광고 로딩 실패")
+                  }
+                />
+              ) : null;
+            })()}
+          </div>
+        </div>
       </div>
     </div>
   );

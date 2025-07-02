@@ -42,6 +42,12 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { addRecentVisit } from "@/lib/cookies";
+import {
+  AdFitBanner,
+  AD_SIZES,
+  getAdUnit,
+  ResponsiveAdFitBanner,
+} from "@/components";
 
 export default function PublicRollingPaperClient({
   nickname,
@@ -201,6 +207,19 @@ export default function PublicRollingPaperClient({
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
       {/* Auth Header */}
       <AuthHeader />
+
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="text-center mb-2">
+          <p className="text-xs text-gray-500">광고</p>
+        </div>
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="타인 롤링페이퍼 상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
 
       {/* Page Header - 모바일 최적화 */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
@@ -504,6 +523,29 @@ export default function PublicRollingPaperClient({
             <div className="absolute bottom-16 md:bottom-32 left-4 md:left-8 text-base md:text-xl animate-bounce delay-700">
               🏄‍♂️
             </div>
+          </div>
+        </div>
+
+        {/* Mobile Advertisement */}
+        <div className="mt-6 mb-4">
+          <div className="text-center mb-3">
+            <p className="text-xs text-gray-500">광고</p>
+          </div>
+          <div className="flex justify-center px-2">
+            {(() => {
+              const adUnit = getAdUnit("MOBILE_BANNER");
+              return adUnit ? (
+                <AdFitBanner
+                  adUnit={adUnit}
+                  width={AD_SIZES.BANNER_320x50.width}
+                  height={AD_SIZES.BANNER_320x50.height}
+                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
+                  onAdFail={() =>
+                    console.log("다른 사람 롤링페이퍼 페이지 광고 로딩 실패")
+                  }
+                />
+              ) : null;
+            })()}
           </div>
         </div>
       </div>

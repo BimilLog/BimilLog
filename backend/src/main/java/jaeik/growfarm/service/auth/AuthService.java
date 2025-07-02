@@ -252,8 +252,8 @@ public class AuthService {
      */
     @Transactional(readOnly = true)
     public void kakaoLogout(CustomUserDetails userDetails) {
-        Token token = tokenRepository.findById(userDetails.getTokenId()).orElseThrow();
-        kakaoService.logout(token.getKakaoAccessToken());
+        tokenRepository.findById(userDetails.getTokenId())
+                .ifPresent(token -> kakaoService.logout(token.getKakaoAccessToken()));
     }
 
     /**

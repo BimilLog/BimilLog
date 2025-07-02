@@ -12,6 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare, TrendingUp, Crown, Edit, Zap } from "lucide-react";
 import Link from "next/link";
+import {
+  AdFitBanner,
+  AD_SIZES,
+  getAdUnit,
+  ResponsiveAdFitBanner,
+} from "@/components";
 
 export default function BoardClient() {
   // State declarations
@@ -129,6 +135,19 @@ export default function BoardClient() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       <AuthHeader />
 
+      {/* Top Banner Advertisement */}
+      <div className="container mx-auto px-4 py-2">
+        <div className="text-center mb-2">
+          <p className="text-xs text-gray-500">광고</p>
+        </div>
+        <div className="flex justify-center">
+          <ResponsiveAdFitBanner
+            position="게시판 최상단"
+            className="max-w-full"
+          />
+        </div>
+      </div>
+
       <header className="py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
@@ -167,6 +186,27 @@ export default function BoardClient() {
               setPostsPerPage={setPostsPerPage}
               handleSearch={handleSearch}
             />
+          </div>
+        </div>
+
+        {/* Mobile Advertisement */}
+        <div className="mb-6">
+          <div className="text-center mb-3">
+            <p className="text-xs text-gray-500">광고</p>
+          </div>
+          <div className="flex justify-center px-2">
+            {(() => {
+              const adUnit = getAdUnit("MOBILE_BANNER");
+              return adUnit ? (
+                <AdFitBanner
+                  adUnit={adUnit}
+                  width={AD_SIZES.BANNER_320x50.width}
+                  height={AD_SIZES.BANNER_320x50.height}
+                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
+                  onAdFail={() => console.log("게시판 상단 광고 로딩 실패")}
+                />
+              ) : null;
+            })()}
           </div>
         </div>
 
@@ -247,6 +287,27 @@ export default function BoardClient() {
             setCurrentPage={setCurrentPage}
           />
         )}
+
+        {/* Bottom Mobile Advertisement */}
+        <div className="mt-8 pt-6">
+          <div className="text-center mb-3">
+            <p className="text-xs text-gray-500">광고</p>
+          </div>
+          <div className="flex justify-center px-2">
+            {(() => {
+              const adUnit = getAdUnit("MOBILE_BANNER");
+              return adUnit ? (
+                <AdFitBanner
+                  adUnit={adUnit}
+                  width={AD_SIZES.BANNER_320x50.width}
+                  height={AD_SIZES.BANNER_320x50.height}
+                  className="border border-gray-200 rounded-lg bg-white/70 shadow-sm"
+                  onAdFail={() => console.log("게시판 하단 광고 로딩 실패")}
+                />
+              ) : null;
+            })()}
+          </div>
+        </div>
       </main>
     </div>
   );
