@@ -102,7 +102,7 @@ public class LoginResponseDTO<T> {
                 .maxAge(300)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(false)
+                .secure(true)
                 .build();
     }
 }

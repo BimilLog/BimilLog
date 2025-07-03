@@ -84,7 +84,7 @@ public class JwtTokenProvider {
                 .maxAge(MAX_AGE)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(false)
+                .secure(true)
                 .build();
     }
 
@@ -104,7 +104,7 @@ public class JwtTokenProvider {
                 .maxAge(MAX_AGE * 120L)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(false)
+                .secure(true)
                 .build();
     }
 
@@ -183,7 +183,7 @@ public class JwtTokenProvider {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(false)
+                .secure(true)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(JwtTokenProvider.REFRESH_TOKEN_COOKIE, "")
@@ -191,7 +191,7 @@ public class JwtTokenProvider {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(false)
+                .secure(true)
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);
