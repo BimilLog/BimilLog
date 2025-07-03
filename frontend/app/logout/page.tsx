@@ -1,79 +1,91 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { LogOut, Users } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 import { authApi } from "@/lib/api";
+import { AuthHeader } from "@/components/organisms/auth-header";
+import { HomeFooter } from "@/components/organisms/home/HomeFooter";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/molecules/toast";
 
 export default function LogoutPage() {
+  const { logout } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const isProcessing = useRef(false);
+  const { showError, toasts, removeToast } = useToast();
 
   useEffect(() => {
-    if (isProcessing.current) {
-      return;
-    }
-    isProcessing.current = true;
-
     const handleLogout = async () => {
-      const isForConsent = searchParams.get("consent") === "true";
-
       try {
-        // 로그아웃 API 호출
-        await authApi.logout();
+        // 카카오 연결 끊기 - 동의 철회 처리
+        if (window.Kakao && window.Kakao.isInitialized()) {
+          try {
+            // 동의 철회
+            const unlink = () => {
+              return new Promise((resolve, reject) => {
+                window.Kakao.API.request({
+                  url: "/v1/user/unlink",
+                  success: resolve,
+                  fail: reject,
+                });
+              });
+            };
 
-        if (isForConsent) {
-          // 카카오 동의를 위한 로그아웃인 경우
-          const kakaoConsentUrl = sessionStorage.getItem("kakaoConsentUrl");
-
-          if (kakaoConsentUrl) {
-            // 약간의 딜레이 후 카카오 동의 페이지로 이동
-            setTimeout(() => {
-              window.location.href = kakaoConsentUrl;
-            }, 1000);
-          } else {
-            console.error("저장된 카카오 동의 URL을 찾을 수 없습니다.");
-            alert("동의 URL을 찾을 수 없습니다. 다시 시도해주세요.");
-            router.push("/");
+            await unlink();
+            console.log("카카오 연결 끊기 성공");
+          } catch (kakaoError) {
+            console.error("카카오 연결 끊기 실패:", kakaoError);
+            showError(
+              "카카오 연결 끊기 실패",
+              "동의 URL을 찾을 수 없습니다. 다시 시도해주세요."
+            );
           }
-        } else {
-          // 일반 로그아웃인 경우
-          router.push("/");
         }
+
+        // 서버 로그아웃
+        await authApi.logout();
+        await logout();
+
+        // 홈으로 리다이렉트
+        router.replace("/");
       } catch (error) {
-        console.error("로그아웃 실패:", error);
-        // 로그아웃 실패해도 메인페이지로 이동
-        router.push("/");
+        console.error("Logout failed:", error);
+        // 에러가 발생해도 강제 로그아웃
+        await logout();
+        router.replace("/");
       }
     };
 
     handleLogout();
-  }, [router, searchParams]);
-
-  const isForConsent = searchParams.get("consent") === "true";
+  }, [logout, router, showError]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-          {isForConsent ? (
-            <Users className="w-7 h-7 text-white animate-pulse" />
-          ) : (
-            <LogOut className="w-7 h-7 text-white animate-pulse" />
-          )}
-        </div>
-        <p className="text-gray-600 mb-2">
-          {isForConsent
-            ? "카카오 친구 동의를 위해 로그아웃 중..."
-            : "로그아웃 중..."}
-        </p>
-        <p className="text-sm text-gray-500">
-          {isForConsent
-            ? "곧 카카오 동의 페이지로 이동합니다"
-            : "잠시만 기다려주세요"}
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      <AuthHeader />
+
+      <div className="flex items-center justify-center p-4 py-20">
+        <Card className="w-full max-w-md border-0 shadow-2xl bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center pb-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
+            </div>
+            <CardTitle className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              로그아웃 중...
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-600 mb-6">
+              안전하게 로그아웃 처리 중입니다.
+              <br />
+              잠시만 기다려주세요.
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      <HomeFooter />
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

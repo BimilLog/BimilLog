@@ -32,6 +32,8 @@ public enum ErrorCode {
     AUTH_JWT_ACCESS_TOKEN_ERROR(HttpStatus.FORBIDDEN, "JWT 엑세스 토큰 인증 중 오류 발생"),
     RENEWAL_JWT_ACCESS_TOKEN_ERROR(HttpStatus.FORBIDDEN, "JWT 엑세스 토큰 갱신 중 오류 발생"),
     INVALID_JWT_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT 리프레시 토큰입니다. 다시 로그인 해주세요."),
+    REPEAT_LOGIN(HttpStatus.FORBIDDEN,"다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요"),
+
 
     /**
      * <h3>게시판 관련 에러 코드</h3>

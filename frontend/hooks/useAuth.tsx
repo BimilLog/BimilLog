@@ -4,6 +4,7 @@ import type React from "react";
 
 import { useState, useEffect, createContext, useContext } from "react";
 import { authApi, userApi, type User } from "@/lib/api";
+import { useToastContext } from "@/hooks/useToast";
 
 interface AuthContextType {
   user: User | null;
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const toast = useToastContext();
 
   const isAuthenticated = !!user;
 
@@ -28,10 +30,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = async () => {
     try {
       const response = await authApi.getCurrentUser();
+
       if (response.success && response.data) {
         setUser(response.data);
       } else {
         setUser(null);
+        // needsRelogin인 경우 API 클라이언트에서 자동으로 이벤트가 발생함
       }
     } catch (error) {
       console.error("Failed to fetch user:", error);
@@ -40,6 +44,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   };
+
+  // needsRelogin 이벤트 리스너
+  useEffect(() => {
+    const handleNeedsRelogin = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { title, message } = customEvent.detail;
+
+      // 사용자 상태 초기화
+      setUser(null);
+
+      // 토스트 알림 표시
+      toast.showInfo(title, message, 5000);
+
+      // 바로 로그아웃 API 호출
+      try {
+        await authApi.logout();
+      } catch (error) {
+        console.error("Logout API failed:", error);
+      }
+
+      // 바로 로그인 페이지로 리다이렉트
+      window.location.href = "/login";
+    };
+
+    window.addEventListener("needsRelogin", handleNeedsRelogin);
+
+    return () => {
+      window.removeEventListener("needsRelogin", handleNeedsRelogin);
+    };
+  }, [toast]);
 
   // 카카오 로그인
   const login = (postAuthRedirectUrl?: string) => {

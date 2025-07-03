@@ -24,6 +24,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AuthHeader } from "@/components/organisms/auth-header";
+import { HomeFooter } from "@/components/organisms/home/HomeFooter";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/molecules/toast";
 
 export default function SettingsPage() {
   const { isAuthenticated } = useAuth();
@@ -32,6 +35,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
+  const { showSuccess, showError, toasts, removeToast } = useToast();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -112,15 +116,21 @@ export default function SettingsPage() {
       setWithdrawing(true);
       const response = await authApi.deleteAccount();
       if (response.success) {
-        alert("회원탈퇴가 완료되었습니다.");
+        showSuccess("회원탈퇴 완료", "회원탈퇴가 완료되었습니다.");
         router.push("/");
         window.location.reload();
       } else {
-        alert("회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.");
+        showError(
+          "회원탈퇴 실패",
+          "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
+        );
       }
     } catch (error) {
       console.error("회원탈퇴 실패:", error);
-      alert("회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.");
+      showError(
+        "회원탈퇴 실패",
+        "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
     } finally {
       setWithdrawing(false);
     }
@@ -337,6 +347,11 @@ export default function SettingsPage() {
           </Card>
         </div>
       </main>
+
+      {/* Footer */}
+      <HomeFooter />
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

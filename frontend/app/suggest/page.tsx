@@ -9,6 +9,9 @@ import { AuthHeader } from "@/components/organisms/auth-header";
 import { Lightbulb, Send, Bug } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
+import { HomeFooter } from "@/components/organisms/home/HomeFooter";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/molecules/toast";
 
 type SuggestionType = "ERROR" | "IMPROVEMENT";
 
@@ -34,6 +37,8 @@ export default function SuggestPage() {
   const [suggestionType, setSuggestionType] = useState<SuggestionType | "">("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showSuccess, showError, showWarning, toasts, removeToast } =
+    useToast();
 
   const selectedType = suggestionTypes.find(
     (type) => type.value === suggestionType
@@ -43,12 +48,12 @@ export default function SuggestPage() {
     e.preventDefault();
 
     if (!suggestionType || !content.trim()) {
-      alert("건의 종류와 내용을 모두 입력해주세요.");
+      showWarning("입력 확인", "건의 종류와 내용을 모두 입력해주세요.");
       return;
     }
 
     if (content.trim().length < 10) {
-      alert("건의 내용은 최소 10자 이상 입력해주세요.");
+      showWarning("입력 확인", "건의 내용은 최소 10자 이상 입력해주세요.");
       return;
     }
 
@@ -68,17 +73,24 @@ export default function SuggestPage() {
       const response = await userApi.submitSuggestion(suggestionData);
 
       if (response.success) {
-        alert("건의사항이 성공적으로 접수되었습니다. 소중한 의견 감사합니다!");
+        showSuccess(
+          "건의사항 접수 완료",
+          "건의사항이 성공적으로 접수되었습니다. 소중한 의견 감사합니다!"
+        );
         setSuggestionType("");
         setContent("");
       } else {
-        alert(
+        showError(
+          "건의사항 접수 실패",
           response.error || "건의사항 접수에 실패했습니다. 다시 시도해주세요."
         );
       }
     } catch (error) {
       console.error("Submit suggestion failed:", error);
-      alert("건의사항 접수 중 오류가 발생했습니다. 다시 시도해주세요.");
+      showError(
+        "건의사항 접수 실패",
+        "건의사항 접수 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -234,6 +246,11 @@ export default function SuggestPage() {
           </Card>
         </div>
       </main>
+
+      {/* Footer */}
+      <HomeFooter />
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

@@ -50,7 +50,8 @@ public class SecurityConfig {
         private final JwtFilter jwtFilter;
         private final LogFilter LogFilter;
 
-        private final String url = "https://grow-farm.com";
+        //private final String url = "https://grow-farm.com";
+        private final String url = "http://localhost:3000";
 
         /**
          * <h3>보안 필터 체인 설정</h3>

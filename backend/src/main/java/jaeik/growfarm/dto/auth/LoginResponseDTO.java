@@ -100,7 +100,7 @@ public class LoginResponseDTO<T> {
         return ResponseCookie.from("temp", uuid)
                 .path("/")
                 .maxAge(300)
-                .httpOnly(false)
+                .httpOnly(true)
                 .sameSite("Lax")
                 .secure(false)
                 .build();

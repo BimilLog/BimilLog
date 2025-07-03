@@ -37,6 +37,12 @@ export function AuthHeader() {
             >
               게시판
             </Link>
+            <Link
+              href="/visit"
+              className="text-gray-600 hover:text-gray-900 transition-colors text-sm xl:text-base"
+            >
+              다른 롤링페이퍼 방문
+            </Link>
             {isAuthenticated && (
               <Link
                 href="/rolling-paper"
@@ -85,6 +91,12 @@ export function AuthHeader() {
               className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
             >
               게시판
+            </Link>
+            <Link
+              href="/visit"
+              className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+            >
+              방문하기
             </Link>
             {isAuthenticated && (
               <Link

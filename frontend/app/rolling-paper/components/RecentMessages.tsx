@@ -15,6 +15,7 @@ interface RecentMessagesProps {
   messages: (RollingPaperMessage | VisitMessage)[];
   isOwner: boolean;
   onShare?: () => void;
+  onMessageClick?: (message: RollingPaperMessage | VisitMessage) => void;
   className?: string;
 }
 
@@ -22,6 +23,7 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
   messages,
   isOwner,
   onShare,
+  onMessageClick,
   className = "",
 }) => {
   // RollingPaperMessage 타입 가드
@@ -72,20 +74,23 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
     <Card
       className={`bg-white/80 backdrop-blur-sm border-0 shadow-lg md:shadow-xl rounded-2xl md:rounded-3xl border-2 md:border-4 border-cyan-200 ${className}`}
     >
-      <CardHeader className="bg-gradient-to-r from-cyan-100 to-blue-100 rounded-t-2xl md:rounded-t-3xl p-4 md:p-6">
+      <CardHeader className="bg-gradient-to-r from-cyan-100 to-blue-100 rounded-t-2xl md:rounded-t-3xl p-4 pb-2">
         <CardTitle className="flex items-center space-x-2 text-cyan-800 text-sm md:text-base">
           <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
           <span className="font-bold">최근 메시지들 🌊</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 md:p-6">
-        <div className="space-y-3 md:space-y-4">
+      <CardContent className="p-4 pt-3 pb-3">
+        <div className="space-y-3">
           {messages.map((message) => {
             const decoInfo = getDecoInfo(message.decoType);
             return (
               <div
                 key={message.id}
-                className="flex items-start space-x-3 p-3 md:p-4 rounded-xl md:rounded-2xl bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 md:border-2 transform hover:scale-105 transition-transform"
+                onClick={() => onMessageClick && onMessageClick(message)}
+                className={`flex items-start space-x-3 p-3 md:p-4 rounded-xl md:rounded-2xl bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 md:border-2 transform hover:scale-105 transition-transform ${
+                  onMessageClick ? "cursor-pointer" : ""
+                }`}
               >
                 <div
                   className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r ${decoInfo.color} flex items-center justify-center shadow-lg border-2 border-white flex-shrink-0`}

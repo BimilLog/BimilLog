@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { userApi, rollingPaperApi } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { AuthHeader } from "@/components/organisms/auth-header";
+import { HomeFooter } from "@/components/organisms/home/HomeFooter";
 
 // 분리된 컴포넌트들 import
 import { UserProfile } from "./components/UserProfile";
@@ -90,6 +91,9 @@ export default function MyPage() {
         <UserStats stats={userStats} />
         <ActivityTabs />
       </main>
+
+      {/* Footer */}
+      <HomeFooter />
     </div>
   );
 }

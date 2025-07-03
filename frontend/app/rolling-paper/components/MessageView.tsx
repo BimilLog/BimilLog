@@ -8,6 +8,8 @@ import {
   rollingPaperApi,
 } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/molecules/toast";
 
 interface MessageViewProps {
   message: RollingPaperMessage | VisitMessage;
@@ -18,6 +20,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
   message,
   isOwner,
 }) => {
+  const { showSuccess, showError, toasts, removeToast } = useToast();
   const decoInfo = getDecoInfo(message.decoType);
 
   // RollingPaperMessage 타입 가드
@@ -28,39 +31,43 @@ export const MessageView: React.FC<MessageViewProps> = ({
   };
 
   const handleDelete = async () => {
-    if (!isOwner || !isRollingPaperMessage(message)) return;
+    if (!isRollingPaperMessage(message)) return;
 
-    if (confirm("정말로 이 메시지를 삭제하시겠습니까?")) {
-      try {
-        const response = await rollingPaperApi.deleteMessage({
-          id: message.id,
-          userId: message.userId,
-          decoType: message.decoType,
-          anonymity: message.anonymity,
-          content: message.content,
-          width: message.width,
-          height: message.height,
-        });
-        if (response.success) {
-          window.location.reload();
-        }
-      } catch (error) {
-        console.error("Failed to delete message:", error);
-        alert("메시지 삭제에 실패했습니다.");
+    if (!window.confirm("정말로 이 메시지를 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const response = await rollingPaperApi.deleteMessage({
+        id: message.id,
+        userId: message.userId,
+        decoType: message.decoType,
+        anonymity: message.anonymity,
+        content: message.content,
+        width: message.width,
+        height: message.height,
+      });
+      if (response.success) {
+        window.location.reload();
+      } else {
+        showError("메시지 삭제 실패", "메시지 삭제에 실패했습니다.");
       }
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+      showError("메시지 삭제 실패", "메시지 삭제 중 오류가 발생했습니다.");
     }
   };
 
   return (
-    <div className="space-y-4">
+    <>
       <div
-        className={`p-6 rounded-2xl bg-gradient-to-br ${decoInfo.color} border-4 border-white shadow-xl relative overflow-hidden`}
+        className={`p-6 bg-gradient-to-br ${decoInfo.color} rounded-2xl border-2 border-white shadow-lg relative overflow-hidden`}
         style={{
           backgroundImage: `
-            radial-gradient(circle at 10px 10px, rgba(255,255,255,0.3) 1px, transparent 1px),
-            radial-gradient(circle at 30px 30px, rgba(255,255,255,0.2) 1px, transparent 1px)
+            radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
+            radial-gradient(circle at 24px 24px, rgba(255,255,255,0.2) 1px, transparent 1px)
           `,
-          backgroundSize: "20px 20px, 60px 60px",
+          backgroundSize: "16px 16px, 48px 48px",
         }}
       >
         <div className="flex items-center space-x-3 mb-4">
@@ -85,37 +92,22 @@ export const MessageView: React.FC<MessageViewProps> = ({
         {/* 반짝이는 효과 */}
         <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
         <div className="absolute bottom-3 left-3 w-2 h-2 bg-pink-300 rounded-full animate-pulse delay-500"></div>
-      </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          {isRollingPaperMessage(message) && (
-            <Badge
-              variant="outline"
-              className="bg-pink-50 border-pink-300 text-pink-800 font-semibold"
-            >
-              {message.anonymity}
-            </Badge>
-          )}
-          {isRollingPaperMessage(message) && message.createdAt && (
-            <div className="flex items-center space-x-1 text-xs text-gray-500">
-              <Clock className="w-3 h-3" />
-              <span>{formatDate(message.createdAt)}</span>
-            </div>
-          )}
-        </div>
         {isOwner && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-red-600 border-red-200 hover:bg-red-50 rounded-full font-semibold"
-            onClick={handleDelete}
-          >
-            <Trash2 className="w-4 h-4 mr-1" />
-            삭제
-          </Button>
+          <div className="flex justify-end pt-4 border-t border-white/30">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              className="bg-red-500/80 hover:bg-red-600/80 text-white border-0"
+            >
+              메시지 삭제
+            </Button>
+          </div>
         )}
       </div>
-    </div>
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+    </>
   );
 };
