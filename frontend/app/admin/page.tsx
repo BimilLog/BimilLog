@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, TrendingUp } from "lucide-react";
 import { adminApi, type Report, type PageResponse } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { AuthHeader } from "@/components/organisms/auth-header";
+import { HomeFooter } from "@/components/organisms/home/HomeFooter";
 
 // 분리된 컴포넌트들 import
 import { AdminHeader } from "./components/AdminHeader";
@@ -51,6 +53,8 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      <AuthHeader />
+
       <main className="container mx-auto px-4 py-8">
         <AdminHeader />
 
@@ -87,6 +91,8 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </main>
+
+      <HomeFooter />
     </div>
   );
 }

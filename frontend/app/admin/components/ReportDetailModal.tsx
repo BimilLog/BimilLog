@@ -10,6 +10,7 @@ import {
 import { CheckCircle, XCircle, UserX } from "lucide-react";
 import { type Report, adminApi } from "@/lib/api";
 import { useState } from "react";
+import { useToast } from "@/hooks/useToast";
 
 interface ReportDetailModalProps {
   report: Report | null;
@@ -23,6 +24,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   onOpenChange,
 }) => {
   const [isBanning, setIsBanning] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -72,14 +74,14 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
       });
 
       if (response.success) {
-        alert("사용자가 성공적으로 차단되었습니다.");
+        showSuccess("사용자 차단", "사용자가 성공적으로 차단되었습니다.");
         onOpenChange(false);
       } else {
-        alert(response.error || "사용자 차단에 실패했습니다.");
+        showError("차단 실패", response.error || "사용자 차단에 실패했습니다.");
       }
     } catch (error) {
       console.error("Ban user failed:", error);
-      alert("사용자 차단 중 오류가 발생했습니다.");
+      showError("차단 실패", "사용자 차단 중 오류가 발생했습니다.");
     } finally {
       setIsBanning(false);
     }

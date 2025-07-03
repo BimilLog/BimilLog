@@ -16,6 +16,7 @@ import {
 } from "@/components/molecules/dropdown-menu";
 import { useState } from "react";
 import Link from "next/link";
+import { useToast } from "@/hooks/useToast";
 
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };
@@ -73,39 +74,43 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   canModifyComment,
 }) => {
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   const maxDepth = 3; // 최대 들여쓰기 레벨
   const actualDepth = Math.min(depth, maxDepth);
   const marginLeft = actualDepth * 16; // 16px씩 들여쓰기 (모바일 최적화)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  const handleReportSubmit = async (reportReason: string) => {
+  const handleReport = async () => {
+    if (!isAuthenticated || !user) {
+      showError("로그인 필요", "로그인이 필요한 기능입니다.");
+      return;
+    }
+
     try {
-      const reportData: {
-        reportType: "COMMENT";
-        targetId: number;
-        content: string;
-        userId?: number;
-      } = {
+      const response = await userApi.submitSuggestion({
         reportType: "COMMENT",
+        userId: user.userId,
         targetId: comment.id,
-        content: reportReason,
-      };
-
-      // 회원인 경우에만 userId 추가
-      if (user?.userId) {
-        reportData.userId = user.userId;
-      }
-
-      const response = await userApi.submitSuggestion(reportData);
+        content: `댓글 신고: ${comment.content.substring(0, 50)}...`,
+      });
 
       if (response.success) {
-        alert("신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다.");
+        showSuccess(
+          "신고 접수",
+          "신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다."
+        );
       } else {
-        alert(response.error || "신고 접수에 실패했습니다. 다시 시도해주세요.");
+        showError(
+          "신고 실패",
+          response.error || "신고 접수에 실패했습니다. 다시 시도해주세요."
+        );
       }
     } catch (error) {
       console.error("Report failed:", error);
-      alert("신고 접수 중 오류가 발생했습니다. 다시 시도해주세요.");
+      showError(
+        "신고 실패",
+        "신고 접수 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
     }
   };
 
@@ -220,7 +225,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                       <DropdownMenuContent align="end" className="w-24">
                         {!isMyComment(comment) && !comment.deleted && (
                           <DropdownMenuItem
-                            onClick={() => setIsReportModalOpen(true)}
+                            onClick={handleReport}
                             className="text-red-600 hover:text-red-700 cursor-pointer"
                           >
                             <Flag className="w-3 h-3 mr-2" />
@@ -343,7 +348,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        onSubmit={handleReportSubmit}
+        onSubmit={handleReport}
         type="댓글"
       />
     </div>

@@ -20,6 +20,7 @@ import { rollingPaperApi } from "@/lib/api";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
 import { RecentVisits } from "@/app/rolling-paper/components/RecentVisits";
 import { AuthHeader } from "@/components/organisms/auth-header";
+import { HomeFooter } from "@/components/organisms/home/HomeFooter";
 
 import {
   Dialog,
@@ -99,20 +100,12 @@ export default function VisitPage() {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="pl-0">
-                  <ArrowLeft className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">홈</span>
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                </div>
-                <h1 className="text-base sm:text-xl font-bold text-gray-800 whitespace-nowrap">
-                  롤링페이퍼 방문
-                </h1>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
+              <h1 className="text-base sm:text-xl font-bold text-gray-800 whitespace-nowrap">
+                롤링페이퍼 방문
+              </h1>
             </div>
             <KakaoShareButton
               type="service"
@@ -241,6 +234,9 @@ export default function VisitPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Footer */}
+      <HomeFooter />
     </div>
   );
 }

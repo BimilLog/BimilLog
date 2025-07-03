@@ -1,7 +1,12 @@
+import { AuthHeader } from "@/components/organisms/auth-header";
+import { HomeFooter } from "@/components/organisms/home/HomeFooter";
+
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
+      <AuthHeader />
+
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-green-600 to-blue-600 px-8 py-6">
             <h1 className="text-3xl font-bold text-white text-center">
@@ -166,7 +171,9 @@ export default function TermsPage() {
             </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+
+      <HomeFooter />
+    </div>
   );
 }

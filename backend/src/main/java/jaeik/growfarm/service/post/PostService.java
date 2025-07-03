@@ -305,6 +305,7 @@ public class PostService {
                 viewCookie.setMaxAge(24 * 60 * 60);
                 viewCookie.setPath("/");
                 viewCookie.setHttpOnly(true);
+                viewCookie.setSecure(false);
                 response.addCookie(viewCookie);
             }
         } catch (Exception ignored) {

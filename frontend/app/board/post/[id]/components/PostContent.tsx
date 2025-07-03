@@ -6,6 +6,7 @@ import { Post, userApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { ReportModal } from "@/components/ui/ReportModal";
 import { useState } from "react";
+import { useToast } from "@/hooks/useToast";
 
 interface PostContentProps {
   post: Post;
@@ -21,35 +22,39 @@ export const PostContent: React.FC<PostContentProps> = ({
   const { user } = useAuth();
   const isOwnPost = user?.userId === post.userId;
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const { showSuccess, showError } = useToast();
 
-  const handleReportSubmit = async (reportReason: string) => {
+  const handleReport = async () => {
+    if (!isAuthenticated || !user) {
+      showError("로그인 필요", "로그인이 필요한 기능입니다.");
+      return;
+    }
+
     try {
-      const reportData: {
-        reportType: "POST";
-        targetId: number;
-        content: string;
-        userId?: number;
-      } = {
+      const response = await userApi.submitSuggestion({
         reportType: "POST",
+        userId: user.userId,
         targetId: post.postId,
-        content: reportReason,
-      };
-
-      // 회원인 경우에만 userId 추가
-      if (user?.userId) {
-        reportData.userId = user.userId;
-      }
-
-      const response = await userApi.submitSuggestion(reportData);
+        content: `게시글 신고: ${post.title}`,
+      });
 
       if (response.success) {
-        alert("신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다.");
+        showSuccess(
+          "신고 접수",
+          "신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다."
+        );
       } else {
-        alert(response.error || "신고 접수에 실패했습니다. 다시 시도해주세요.");
+        showError(
+          "신고 실패",
+          response.error || "신고 접수에 실패했습니다. 다시 시도해주세요."
+        );
       }
     } catch (error) {
       console.error("Report failed:", error);
-      alert("신고 접수 중 오류가 발생했습니다. 다시 시도해주세요.");
+      showError(
+        "신고 실패",
+        "신고 접수 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
     }
   };
 
@@ -97,7 +102,7 @@ export const PostContent: React.FC<PostContentProps> = ({
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        onSubmit={handleReportSubmit}
+        onSubmit={handleReport}
         type="게시글"
       />
     </CardContent>

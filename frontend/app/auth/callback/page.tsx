@@ -6,12 +6,15 @@ import { authApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { getFCMToken, isMobileOrTablet } from "@/lib/utils";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/molecules/toast";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshUser } = useAuth();
   const { connectSSE, fetchNotifications } = useNotifications();
+  const { showSuccess, showError, toasts, removeToast } = useToast();
   const isProcessing = useRef(false);
 
   useEffect(() => {
@@ -76,10 +79,11 @@ export default function AuthCallbackPage() {
                 sessionStorage.removeItem("returnUrl");
                 sessionStorage.removeItem("kakaoConsentUrl");
 
-                // 성공 알림 표시
+                // 성공 알림 표시 (Toast로 변경)
                 setTimeout(() => {
-                  alert(
-                    "카카오 친구 목록 동의가 완료되었습니다! 이제 친구 목록을 확인할 수 있습니다."
+                  showSuccess(
+                    "카카오 친구 목록 동의 완료",
+                    "이제 친구 목록을 확인할 수 있습니다."
                   );
                 }, 1000);
               } else if (state) {
@@ -112,7 +116,15 @@ export default function AuthCallbackPage() {
     };
 
     handleCallback();
-  }, [router, searchParams, refreshUser, connectSSE, fetchNotifications]);
+  }, [
+    router,
+    searchParams,
+    refreshUser,
+    connectSSE,
+    fetchNotifications,
+    showSuccess,
+    showError,
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
@@ -127,6 +139,7 @@ export default function AuthCallbackPage() {
           <p className="text-sm text-gray-500 mt-2">모바일 알림 설정 중...</p>
         )}
       </div>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

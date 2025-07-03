@@ -22,6 +22,7 @@ export interface ApiResponse<T = any> {
   data?: T | null
   message?: string
   error?: string
+  needsRelogin?: boolean // 다른 기기에서 로그아웃된 경우
 }
 
 // 사용자 정보 타입 (ClientDTO)
@@ -252,9 +253,25 @@ class ApiClient {
           } else if (errorData.error) {
             errorMessage = errorData.error;
           }
+          
+          // 다른 기기에서 로그아웃 에러 감지
+          const needsRelogin = errorMessage.includes("다른기기에서 로그아웃 하셨습니다");
+          
+          // needsRelogin이 true이면 전역 이벤트 발생
+          if (needsRelogin && typeof window !== 'undefined') {
+            const event = new CustomEvent('needsRelogin', {
+              detail: {
+                title: '로그인이 필요합니다',
+                message: '다른기기에서 로그아웃 하셨습니다 다시 로그인해주세요'
+              }
+            });
+            window.dispatchEvent(event);
+          }
+          
           return {
             success: false,
             error: errorMessage,
+            needsRelogin,
           };
         } catch {
           // JSON 파싱 실패 시 텍스트로 시도

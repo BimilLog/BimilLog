@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/molecules/dropdown-menu";
 import { useState } from "react";
+import { useToast } from "@/hooks/useToast";
 
 interface PopularCommentsProps {
   comments?: Comment[];
@@ -28,47 +29,47 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
   onReplyTo,
   onCommentClick,
 }) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [reportingCommentId, setReportingCommentId] = useState<number | null>(
     null
   );
+  const { showSuccess, showError } = useToast();
 
   const isMyComment = (comment: Comment) => {
     return user?.userId === comment.userId;
   };
 
-  const handleReportSubmit = async (reportReason: string) => {
-    if (!reportingCommentId) return;
+  const handleReport = async (comment: Comment) => {
+    if (!isAuthenticated || !user) {
+      showError("로그인 필요", "로그인이 필요한 기능입니다.");
+      return;
+    }
 
     try {
-      const reportData: {
-        reportType: "COMMENT";
-        targetId: number;
-        content: string;
-        userId?: number;
-      } = {
+      const response = await userApi.submitSuggestion({
         reportType: "COMMENT",
-        targetId: reportingCommentId,
-        content: reportReason,
-      };
-
-      // 회원인 경우에만 userId 추가
-      if (user?.userId) {
-        reportData.userId = user.userId;
-      }
-
-      const response = await userApi.submitSuggestion(reportData);
+        userId: user.userId,
+        targetId: comment.id,
+        content: `댓글 신고: ${comment.content.substring(0, 50)}...`,
+      });
 
       if (response.success) {
-        alert("신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다.");
+        showSuccess(
+          "신고 접수",
+          "신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다."
+        );
       } else {
-        alert(response.error || "신고 접수에 실패했습니다. 다시 시도해주세요.");
+        showError(
+          "신고 실패",
+          response.error || "신고 접수에 실패했습니다. 다시 시도해주세요."
+        );
       }
     } catch (error) {
       console.error("Report failed:", error);
-      alert("신고 접수 중 오류가 발생했습니다. 다시 시도해주세요.");
-    } finally {
-      setReportingCommentId(null);
+      showError(
+        "신고 실패",
+        "신고 접수 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
     }
   };
 
@@ -149,7 +150,7 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-24">
                         <DropdownMenuItem
-                          onClick={() => setReportingCommentId(comment.id)}
+                          onClick={() => handleReport(comment)}
                           className="text-red-600 hover:text-red-700 cursor-pointer"
                         >
                           <Flag className="w-3 h-3 mr-2" />
@@ -182,7 +183,7 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
       <ReportModal
         isOpen={reportingCommentId !== null}
         onClose={() => setReportingCommentId(null)}
-        onSubmit={handleReportSubmit}
+        onSubmit={() => {}}
         type="댓글"
       />
     </>

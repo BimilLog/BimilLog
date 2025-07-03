@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Lock } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   getDecoInfo,
   type RollingPaperMessage,
@@ -16,35 +16,51 @@ import {
 } from "@/lib/api";
 import { MessageForm } from "./MessageForm";
 import { MessageView } from "./MessageView";
-import { PageNavigation } from "./PageNavigation";
+import { Button } from "@/components/ui/button";
 
 interface RollingPaperGridProps {
-  messages: { [key: number]: RollingPaperMessage | VisitMessage };
+  messages: (RollingPaperMessage | VisitMessage)[];
   nickname: string;
-  currentPage: number;
-  totalPages: number;
-  colsPerPage: number;
-  rowsPerPage: number;
-  slotsPerPage: number;
   isOwner: boolean;
-  onPageChange: (page: number) => void;
+  isMobile: boolean;
+  totalPages: number;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
   onMessageSubmit?: (position: { x: number; y: number }, data: any) => void;
+  getMessageAt: (
+    x: number,
+    y: number
+  ) => RollingPaperMessage | VisitMessage | null;
+  getCoordsFromPageAndGrid: (
+    page: number,
+    gridX: number,
+    gridY: number
+  ) => { x: number; y: number };
+  highlightedPosition?: { x: number; y: number } | null;
+  onHighlightClear?: () => void;
   className?: string;
 }
 
 export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
   messages,
   nickname,
-  currentPage,
-  totalPages,
-  colsPerPage,
-  rowsPerPage,
-  slotsPerPage,
   isOwner,
-  onPageChange,
+  isMobile,
+  totalPages,
+  currentPage,
+  setCurrentPage,
   onMessageSubmit,
+  getMessageAt,
+  getCoordsFromPageAndGrid,
+  highlightedPosition,
+  onHighlightClear,
   className = "",
 }) => {
+  // 그리드 설정
+  const pageWidth = isMobile ? 4 : 6; // 페이지당 가로 칸 수
+  const pageHeight = 10; // 페이지당 세로 칸 수 (고정)
+  const totalSlots = pageWidth * pageHeight; // 페이지당 총 칸 수
+
   return (
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
       {/* 종이 배경 */}
@@ -96,7 +112,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
             </div>
 
             <p className="text-cyan-600 text-xs md:text-sm mt-2 transform rotate-1 font-medium">
-              총 {Object.keys(messages).length}개의 시원한 메시지 💌
+              총 {messages.length}개의 시원한 메시지 💌
             </p>
           </div>
         </div>
@@ -104,49 +120,75 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
         {/* 메시지 그리드 */}
         <div className="px-12 md:px-20 pb-4 md:pb-6">
           {/* 페이지 네비게이션 */}
-          <PageNavigation
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-            className="mb-4"
-          />
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="bg-white/80"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
 
-          {/* 그리드 */}
-          <div className="grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-3 bg-white/30 p-3 md:p-6 rounded-xl md:rounded-2xl border border-dashed md:border-2 border-cyan-300">
-            {Array.from({ length: slotsPerPage }, (_, i) => {
-              // 현재 페이지의 메시지만 필터링
-              const pageMessages = Object.entries(messages).filter(
-                ([_, message]) => {
-                  const messagePage =
-                    Math.floor(message.width / colsPerPage) + 1;
-                  return messagePage === currentPage;
+              <span className="text-sm font-medium text-cyan-700">
+                {currentPage} / {totalPages}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
                 }
+                disabled={currentPage === totalPages}
+                className="bg-white/80"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* 좌표 기반 그리드 */}
+          <div
+            className="grid gap-2 md:gap-3 bg-white/30 p-3 md:p-6 rounded-xl md:rounded-2xl border border-dashed md:border-2 border-cyan-300"
+            style={{ gridTemplateColumns: `repeat(${pageWidth}, 1fr)` }}
+          >
+            {Array.from({ length: totalSlots }, (_, i) => {
+              const gridX = i % pageWidth;
+              const gridY = Math.floor(i / pageWidth);
+
+              // 현재 페이지와 그리드 위치를 백엔드 좌표로 변환
+              const { x: actualX, y: actualY } = getCoordsFromPageAndGrid(
+                currentPage,
+                gridX,
+                gridY
               );
 
-              // 현재 슬롯에 해당하는 메시지 찾기
-              const slotMessage = pageMessages.find(([_, message]) => {
-                const pageWidth = message.width % colsPerPage;
-                const position = message.height * colsPerPage + pageWidth;
-                return position === i;
-              });
-
-              const hasMessage = slotMessage ? slotMessage[1] : null;
-              const decoInfo = hasMessage
-                ? getDecoInfo(hasMessage.decoType)
+              // 해당 좌표에 메시지가 있는지 확인
+              const messageAtPosition = getMessageAt(actualX, actualY);
+              const decoInfo = messageAtPosition
+                ? getDecoInfo(messageAtPosition.decoType)
                 : null;
 
-              // 좌표 계산
-              const x = (currentPage - 1) * colsPerPage + (i % colsPerPage);
-              const y = Math.floor(i / colsPerPage);
+              // 하이라이트 좌표인지 확인
+              const isHighlighted =
+                highlightedPosition &&
+                highlightedPosition.x === actualX &&
+                highlightedPosition.y === actualY;
 
               return (
-                <Dialog key={i}>
+                <Dialog key={`${actualX}-${actualY}`}>
                   <DialogTrigger asChild>
                     <div
+                      onClick={isHighlighted ? onHighlightClear : undefined}
                       className={`
-                        aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 
+                        aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative
                         ${
-                          hasMessage
+                          isHighlighted
+                            ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-xl shadow-green-200 cursor-pointer"
+                            : messageAtPosition
                             ? `bg-gradient-to-br ${decoInfo?.color} border-white shadow-md md:shadow-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
                             : isOwner
                             ? "border-dashed border-gray-300 cursor-not-allowed opacity-50"
@@ -154,43 +196,57 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
                         }
                       `}
                       style={{
-                        boxShadow: hasMessage
+                        boxShadow: messageAtPosition
                           ? "0 2px 8px rgba(91,192,222,0.3), inset 0 1px 0 rgba(255,255,255,0.5)"
                           : "0 1px 4px rgba(91,192,222,0.1)",
                       }}
                     >
-                      {hasMessage ? (
+                      {messageAtPosition ? (
                         <div className="relative">
                           <span className="text-lg md:text-2xl animate-bounce">
                             {decoInfo?.emoji}
                           </span>
                           <div className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-300 rounded-full animate-ping"></div>
+                          {isHighlighted && (
+                            <div className="absolute inset-0 bg-green-300 rounded-full opacity-50 animate-ping"></div>
+                          )}
                         </div>
                       ) : isOwner ? (
                         <div className="text-gray-400 text-xs md:text-sm text-center leading-tight opacity-0"></div>
                       ) : (
                         <div className="relative group">
-                          <Plus className="w-4 h-4 md:w-5 md:h-5 text-cyan-400 group-hover:text-cyan-600 transition-colors" />
-                          <div className="absolute inset-0 bg-cyan-200 rounded-full opacity-0 group-hover:opacity-30 transition-opacity animate-pulse"></div>
+                          <Plus
+                            className={`w-4 h-4 md:w-5 md:h-5 transition-colors text-cyan-400 group-hover:text-cyan-600`}
+                          />
+                          <div
+                            className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-30 transition-opacity animate-pulse bg-cyan-200`}
+                          ></div>
                         </div>
                       )}
                     </div>
                   </DialogTrigger>
-                  {(hasMessage || !isOwner) && (
+                  {(messageAtPosition || !isOwner) && (
                     <DialogContent className="max-w-sm md:max-w-md mx-auto bg-gradient-to-br from-cyan-50 to-blue-50 border-2 md:border-4 border-cyan-200 rounded-2xl md:rounded-3xl">
                       <DialogHeader>
                         <DialogTitle className="text-center text-cyan-800 font-bold text-sm md:text-base">
-                          {hasMessage ? "💌 메시지 보기" : "✨ 새 메시지 작성"}
+                          {messageAtPosition
+                            ? "💌 메시지 보기"
+                            : "✨ 새 메시지 작성"}
                         </DialogTitle>
                       </DialogHeader>
-                      {hasMessage ? (
-                        <MessageView message={hasMessage} isOwner={isOwner} />
+                      {messageAtPosition ? (
+                        <MessageView
+                          message={messageAtPosition}
+                          isOwner={isOwner}
+                        />
                       ) : (
                         onMessageSubmit && (
                           <MessageForm
                             nickname={nickname}
-                            position={{ x, y }}
-                            onSubmit={(data) => onMessageSubmit({ x, y }, data)}
+                            position={{ x: actualX, y: actualY }}
+                            onSubmit={(data) => {
+                              onMessageSubmit({ x: actualX, y: actualY }, data);
+                            }}
                           />
                         )
                       )}
