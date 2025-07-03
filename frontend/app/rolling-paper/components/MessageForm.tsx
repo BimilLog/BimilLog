@@ -13,6 +13,8 @@ import { Send } from "lucide-react";
 import { getDecoInfo, decoTypeMap } from "@/lib/api";
 
 interface MessageFormProps {
+  nickname?: string;
+  position?: { x: number; y: number };
   onSubmit: (data: {
     content: string;
     anonymousNickname: string;

@@ -4,12 +4,13 @@ import { Trash2, Clock } from "lucide-react";
 import {
   getDecoInfo,
   type RollingPaperMessage,
+  type VisitMessage,
   rollingPaperApi,
 } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 interface MessageViewProps {
-  message: RollingPaperMessage;
+  message: RollingPaperMessage | VisitMessage;
   isOwner: boolean;
 }
 
@@ -19,8 +20,15 @@ export const MessageView: React.FC<MessageViewProps> = ({
 }) => {
   const decoInfo = getDecoInfo(message.decoType);
 
+  // RollingPaperMessage 타입 가드
+  const isRollingPaperMessage = (
+    msg: RollingPaperMessage | VisitMessage
+  ): msg is RollingPaperMessage => {
+    return "content" in msg && "anonymity" in msg;
+  };
+
   const handleDelete = async () => {
-    if (!isOwner) return;
+    if (!isOwner || !isRollingPaperMessage(message)) return;
 
     if (confirm("정말로 이 메시지를 삭제하시겠습니까?")) {
       try {
@@ -64,9 +72,15 @@ export const MessageView: React.FC<MessageViewProps> = ({
             {decoInfo.name}
           </Badge>
         </div>
-        <p className="text-gray-800 leading-relaxed font-medium">
-          {message.content}
-        </p>
+        {isRollingPaperMessage(message) ? (
+          <p className="text-gray-800 leading-relaxed font-medium">
+            {message.content}
+          </p>
+        ) : (
+          <p className="text-gray-600 leading-relaxed font-medium italic">
+            메시지 내용은 작성자만 볼 수 있습니다 🔒
+          </p>
+        )}
 
         {/* 반짝이는 효과 */}
         <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
@@ -75,13 +89,15 @@ export const MessageView: React.FC<MessageViewProps> = ({
 
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Badge
-            variant="outline"
-            className="bg-pink-50 border-pink-300 text-pink-800 font-semibold"
-          >
-            {message.anonymity}
-          </Badge>
-          {message.createdAt && (
+          {isRollingPaperMessage(message) && (
+            <Badge
+              variant="outline"
+              className="bg-pink-50 border-pink-300 text-pink-800 font-semibold"
+            >
+              {message.anonymity}
+            </Badge>
+          )}
+          {isRollingPaperMessage(message) && message.createdAt && (
             <div className="flex items-center space-x-1 text-xs text-gray-500">
               <Clock className="w-3 h-3" />
               <span>{formatDate(message.createdAt)}</span>

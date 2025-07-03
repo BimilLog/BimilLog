@@ -128,11 +128,17 @@ export { MessageForm } from '../app/rolling-paper/components/MessageForm';
 export { MessageView } from '../app/rolling-paper/components/MessageView';
 export { RollingPaperGrid } from '../app/rolling-paper/components/RollingPaperGrid';
 export { RecentMessages } from '../app/rolling-paper/components/RecentMessages';
+export { RollingPaperLayout } from '../app/rolling-paper/components/RollingPaperLayout';
+export { PageNavigation } from '../app/rolling-paper/components/PageNavigation';
+export { InfoCard } from '../app/rolling-paper/components/InfoCard';
+export { RollingPaperClient } from '../app/rolling-paper/components/RollingPaperClient';
 
 // ==============================================
-// UTILITY FUNCTIONS
+// UTILITY FUNCTIONS & HOOKS
 // ==============================================
 export * from '../lib/cookies';
+export { useRollingPaper } from '../hooks/useRollingPaper';
+export { useRollingPaperShare } from '../hooks/useRollingPaperShare';
 
 // ==============================================
 // TYPE EXPORTS
