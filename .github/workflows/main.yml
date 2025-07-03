@@ -46,35 +46,18 @@ jobs:
       - name: Deploy Frontend via Bastion Host
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.BASTION_HOST }}
-          username: ${{ secrets.BASTION_USER }}
-          key: ${{ secrets.BASTION_SSH_KEY }}
-          script: |
-            ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-
-            # 현재 실행중인 이미지 ID 저장
-            CURRENT_IMAGE_ID=$(docker ps --filter "name=frontend" --format "{{.Image}}" | head -1)
-
-            docker pull jaeikjeong/growfarm:frontend
-            docker stop frontend || true
-            docker rm frontend || true
-            docker run -d --name frontend -p 3000:3000 jaeikjeong/growfarm:frontend
-
-            # 새 컨테이너가 정상 실행되는지 확인
-            if docker ps | grep -q "frontend"; then
-              echo "Frontend container started successfully"
-              # 이전 이미지만 삭제 (현재 실행중인 이미지 제외)
-              if [ ! -z "$CURRENT_IMAGE_ID" ] && [ "$CURRENT_IMAGE_ID" != "jaeikjeong/growfarm:frontend" ]; then
-                docker rmi $CURRENT_IMAGE_ID || true
-              fi
-              # dangling 이미지 정리
-              docker image prune -f
-            else
-              echo "Frontend container failed to start"
-              exit 1
-            fi
-            ENDSSH
+            host: ${{ secrets.BASTION_HOST }}
+            username: ${{ secrets.BASTION_USER }}
+            key: ${{ secrets.BASTION_SSH_KEY }}
+            script: |
+              ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
+              docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+              docker pull jaeikjeong/growfarm:frontend
+              docker stop frontend || true
+              docker rm frontend || true
+              docker run -d --name frontend -p 3000:3000 jaeikjeong/growfarm:frontend
+              docker images --filter "dangling=true" -q | xargs -r docker rmi
+              ENDSSH
 
       - name: Build and push backend image
         run: |
@@ -91,65 +74,43 @@ jobs:
       - name: Deploy Backend and Redis via Bastion Host
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.BASTION_HOST }}
-          username: ${{ secrets.BASTION_USER }}
-          key: ${{ secrets.BASTION_SSH_KEY }}
-          script: |
-            ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
-              docker network create growfarm-network || true
-              docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-
-              # 현재 실행중인 이미지 ID들 저장
-              CURRENT_BACKEND_IMAGE=$(docker ps --filter "name=backend" --format "{{.Image}}" | head -1)
-              CURRENT_REDIS_IMAGE=$(docker ps --filter "name=redis" --format "{{.Image}}" | head -1)
-
-              # Backend 배포
-              docker pull jaeikjeong/growfarm:backend
-              docker stop backend || true
-              docker rm backend || true
-              docker run -d \
-              --name backend \
-              --network growfarm-network \
-              -p 8080:8080 \
-              -v /home/ubuntu/scouter/agent.java:/scouter-agent \
-              -v /home/ubuntu/logs:/app/logs \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              --entrypoint java \
-              jaeikjeong/growfarm:backend \
-              -javaagent:/scouter-agent/scouter.agent.jar \
-              -Dscouter.config=/scouter-agent/conf/scouter.conf \
-              -Dobj_name=GrowFarm \
-              -Dfile.encoding=UTF-8 \
-              -Duser.timezone=Asia/Seoul \
-              -XX:+HeapDumpOnOutOfMemoryError \
-              -XX:HeapDumpPath=/app/logs/heapdump.hprof \
-              -Xlog:gc*:file=/app/logs/gc.log:time,uptime,level,tags \
-              -jar /app/app.jar
-
-              # Redis 배포
-              docker pull jaeikjeong/growfarm:redis
-              docker stop redis || true
-              docker rm redis || true
-              docker run -d --name redis --network growfarm-network -p 6379:6379 jaeikjeong/growfarm:redis --requirepass ${{ secrets.REDIS_PASSWORD }}
-
-              # 컨테이너들이 정상 실행되는지 확인
-              sleep 10
-              if docker ps | grep -q "backend\|redis"; then
-                echo "Containers started successfully"
-                # 이전 이미지들만 삭제
-                if [ ! -z "$CURRENT_BACKEND_IMAGE" ] && [ "$CURRENT_BACKEND_IMAGE" != "jaeikjeong/growfarm:backend" ]; then
-                  docker rmi $CURRENT_BACKEND_IMAGE || true
-                fi
-                if [ ! -z "$CURRENT_REDIS_IMAGE" ] && [ "$CURRENT_REDIS_IMAGE" != "jaeikjeong/growfarm:redis" ]; then
-                  docker rmi $CURRENT_REDIS_IMAGE || true
-                fi
-                # dangling 이미지 정리
-                docker image prune -f
-              else
-                echo "Some containers failed to start"
-                exit 1
-              fi
-              ENDSSH
+            host: ${{ secrets.BASTION_HOST }}
+            username: ${{ secrets.BASTION_USER }}
+            key: ${{ secrets.BASTION_SSH_KEY }}
+            script: |
+              ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
+                docker network create growfarm-network || true
+                docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+              
+              
+                docker pull jaeikjeong/growfarm:backend
+                docker stop backend || true
+                docker rm backend || true
+                docker run -d \
+                --name backend \
+                --network growfarm-network \
+                -p 8080:8080 \
+                -v /home/ubuntu/scouter/agent.java:/scouter-agent \
+                -v /home/ubuntu/logs:/app/logs \
+                -e SPRING_PROFILES_ACTIVE=prod \
+                --entrypoint java \
+                jaeikjeong/growfarm:backend \
+                -javaagent:/scouter-agent/scouter.agent.jar \
+                -Dscouter.config=/scouter-agent/conf/scouter.conf \
+                -Dobj_name=GrowFarm \
+                -Dfile.encoding=UTF-8 \
+                -Duser.timezone=Asia/Seoul \
+                -XX:+HeapDumpOnOutOfMemoryError \
+                -XX:HeapDumpPath=/app/logs/heapdump.hprof \
+                -Xlog:gc*:file=/app/logs/gc.log:time,uptime,level,tags \
+                -jar /app/app.jar
+              
+                docker pull jaeikjeong/growfarm:redis
+                docker stop redis || true
+                docker rm redis || true
+                docker run -d --name redis --network growfarm-network -p 6379:6379 jaeikjeong/growfarm:redis --requirepass ${{ secrets.REDIS_PASSWORD }}
+                docker images --filter "dangling=true" -q | xargs -r docker rmi
+                ENDSSH
       
 
       
