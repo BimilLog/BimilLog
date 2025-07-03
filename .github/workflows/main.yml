@@ -37,27 +37,6 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
 
-      - name: Build and push frontend image
-        run: |
-          docker build -t frontend ./frontend
-          docker tag frontend:latest $IMAGE_REPO:frontend
-          docker push $IMAGE_REPO:frontend
-
-      - name: Deploy Frontend via Bastion Host
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.BASTION_HOST }}
-          username: ${{ secrets.BASTION_USER }}
-          key: ${{ secrets.BASTION_SSH_KEY }}
-          script: |
-            ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-            docker pull jaeikjeong/growfarm:frontend
-            docker stop frontend || true
-            docker rm frontend || true
-            docker run -d --name frontend -p 3000:3000 jaeikjeong/growfarm:frontend
-            ENDSSH
-
       - name: Build and push backend image
         run: |
           docker build -t backend ./backend
@@ -101,12 +80,35 @@ jobs:
                 -XX:HeapDumpPath=/app/logs/heapdump.hprof \
                 -Xlog:gc*:file=/app/logs/gc.log:time,uptime,level,tags \
                 -jar /app/app.jar
-            
+
               docker pull jaeikjeong/growfarm:redis
               docker stop redis || true
               docker rm redis || true
               docker run -d --name redis --network growfarm-network -p 6379:6379 jaeikjeong/growfarm:redis --requirepass ${{ secrets.REDIS_PASSWORD }}
             ENDSSH
+
+      - name: Build and push frontend image
+        run: |
+          docker build -t frontend ./frontend
+          docker tag frontend:latest $IMAGE_REPO:frontend
+          docker push $IMAGE_REPO:frontend
+
+      - name: Deploy Frontend via Bastion Host
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BASTION_HOST }}
+          username: ${{ secrets.BASTION_USER }}
+          key: ${{ secrets.BASTION_SSH_KEY }}
+          script: |
+            ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+            docker pull jaeikjeong/growfarm:frontend
+            docker stop frontend || true
+            docker rm frontend || true
+            docker run -d --name frontend -p 3000:3000 jaeikjeong/growfarm:frontend
+            ENDSSH
+
+      
       
 
       

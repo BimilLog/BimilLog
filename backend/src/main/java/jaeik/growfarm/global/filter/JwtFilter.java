@@ -33,7 +33,7 @@ import java.util.Objects;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 1.0.9
  */
 @Component
 @RequiredArgsConstructor
@@ -43,6 +43,41 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
+
+    /**
+     * <h3>필터 제외 경로 설정</h3>
+     * <p>
+     * JWT 필터를 적용하지 않을 경로들을 설정합니다.
+     * permitAll()로 설정된 인증이 필요없는 경로들은 JWT 필터를 거치지 않도록 합니다.
+     * </p>
+     *
+     * @param request HTTP 요청 객체
+     * @return 필터를 적용하지 않을 경우 true, 적용할 경우 false
+     * @author Jaeik
+     * @since 1.0.9
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        // OPTIONS 요청은 JWT 필터를 거치지 않음
+        if ("OPTIONS".equals(method)) {
+            return true;
+        }
+
+        // permitAll로 설정된 경로들은 JWT 필터를 거치지 않음
+        return path.equals("/") ||
+                path.equals("/api/auth/login") ||
+                path.equals("/api/auth/health") ||
+                path.equals("/api/auth/me") ||
+                path.equals("/api/auth/signUp") ||
+                (path.startsWith("/api/comment/") && !"POST".equals(method) && !path.endsWith("/like")) ||
+                (path.startsWith("/api/post/") && !"POST".equals(method) && !path.endsWith("/like")) ||
+                path.matches("/api/paper/[^/]+") ||
+                path.equals("/api/user/suggestion") ||
+                path.equals("/api/user/username/check");
+    }
 
     /**
      * <h3>필터 내부 처리</h3>
@@ -79,7 +114,8 @@ public class JwtFilter extends OncePerRequestFilter {
             setAuthentication(accessToken);
         } else { // accessToken이 없거나 유효 하지 않을 때
             String refreshToken = extractTokenFromCookie(request, JwtTokenProvider.REFRESH_TOKEN_COOKIE);
-            // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을 검증
+            // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을
+            // 검증
             if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
                 Long tokenId = jwtTokenProvider.getTokenIdFromToken(refreshToken);
                 Long fcmTokenId = jwtTokenProvider.getFcmTokenIdFromToken(refreshToken);
@@ -104,7 +140,6 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-
 
     /**
      * <h3>인증 정보 설정</h3>
