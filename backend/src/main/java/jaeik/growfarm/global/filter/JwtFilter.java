@@ -66,17 +66,8 @@ public class JwtFilter extends OncePerRequestFilter {
             return true;
         }
 
-        // permitAll로 설정된 경로들은 JWT 필터를 거치지 않음
         return path.equals("/") ||
-                path.equals("/api/auth/login") ||
-                path.equals("/api/auth/health") ||
-                path.equals("/api/auth/me") ||
-                path.equals("/api/auth/signUp") ||
-                (path.startsWith("/api/comment/") && !"POST".equals(method) && !path.endsWith("/like")) ||
-                (path.startsWith("/api/post/") && !"POST".equals(method) && !path.endsWith("/like")) ||
-                path.matches("/api/paper/[^/]+") ||
-                path.equals("/api/user/suggestion") ||
-                path.equals("/api/user/username/check");
+                path.equals("/api/auth/login");
     }
 
     /**
