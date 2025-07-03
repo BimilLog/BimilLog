@@ -719,13 +719,11 @@ export const sseManager = new SSEManager()
 
 // 데코레이션 타입 매핑
 export const decoTypeMap = {
-  // 농작물
+  // 과일
   POTATO: { name: "감자", color: "from-yellow-100 to-amber-100", emoji: "🥔" },
   CARROT: { name: "당근", color: "from-orange-100 to-red-100", emoji: "🥕" },
   CABBAGE: { name: "양배추", color: "from-green-100 to-emerald-100", emoji: "🥬" },
   TOMATO: { name: "토마토", color: "from-red-100 to-pink-100", emoji: "🍅" },
-
-  // 과일
   STRAWBERRY: { name: "딸기", color: "from-pink-100 to-red-100", emoji: "🍓" },
   WATERMELON: { name: "수박", color: "from-green-100 to-red-100", emoji: "🍉" },
   PUMPKIN: { name: "호박", color: "from-orange-100 to-yellow-100", emoji: "🎃" },
@@ -744,6 +742,81 @@ export const decoTypeMap = {
   ZOMBIE: { name: "좀비", color: "from-gray-100 to-green-100", emoji: "🧟" },
   KRAKEN: { name: "크라켄", color: "from-blue-100 to-purple-100", emoji: "🐙" },
   CYCLOPS: { name: "사이클롭스", color: "from-purple-100 to-indigo-100", emoji: "👁️" },
+  DEVIL: { name: "악마", color: "from-red-100 to-orange-100", emoji: "😈" },
+  ANGEL: { name: "천사", color: "from-white to-yellow-100", emoji: "👼" },
+
+  // 음료
+  COFFEE: { name: "커피", color: "from-amber-100 to-brown-100", emoji: "☕" },
+  MILK: { name: "우유", color: "from-white to-gray-100", emoji: "🥛" },
+  WINE: { name: "와인", color: "from-purple-100 to-red-100", emoji: "🍷" },
+  SOJU: { name: "소주", color: "from-blue-50 to-slate-100", emoji: "🍶" },
+  BEER: { name: "맥주", color: "from-yellow-100 to-amber-100", emoji: "🍺" },
+  BUBBLETEA: { name: "버블티", color: "from-pink-100 to-purple-100", emoji: "🧋" },
+  SMOOTHIE: { name: "스무디", color: "from-pink-100 to-red-100", emoji: "🥤" },
+  BORICHA: { name: "보리차", color: "from-amber-100 to-yellow-100", emoji: "🍵" },
+  STRAWBERRYMILK: { name: "딸기우유", color: "from-pink-100 to-red-100", emoji: "🥛" },
+  BANANAMILK: { name: "바나나우유", color: "from-yellow-100 to-amber-100", emoji: "🥛" },
+
+  // 음식
+  BREAD: { name: "빵", color: "from-amber-100 to-yellow-100", emoji: "🍞" },
+  BURGER: { name: "햄버거", color: "from-yellow-100 to-red-100", emoji: "🍔" },
+  CAKE: { name: "케이크", color: "from-pink-100 to-yellow-100", emoji: "🎂" },
+  SUSHI: { name: "스시", color: "from-orange-100 to-red-100", emoji: "🍣" },
+  PIZZA: { name: "피자", color: "from-red-100 to-yellow-100", emoji: "🍕" },
+  CHICKEN: { name: "치킨", color: "from-yellow-100 to-orange-100", emoji: "🍗" },
+  NOODLE: { name: "라면", color: "from-yellow-100 to-red-100", emoji: "🍜" },
+  EGG: { name: "계란", color: "from-yellow-100 to-white", emoji: "🥚" },
+  SKEWER: { name: "꼬치", color: "from-red-100 to-orange-100", emoji: "🍢" },
+  KIMBAP: { name: "김밥", color: "from-green-100 to-yellow-100", emoji: "🍙" },
+  SUNDAE: { name: "순대", color: "from-gray-100 to-red-100", emoji: "🌭" },
+  MANDU: { name: "만두", color: "from-white to-yellow-100", emoji: "🥟" },
+  SAMGYEOPSAL: { name: "삼겹살", color: "from-pink-100 to-red-100", emoji: "🥓" },
+  FROZENFISH: { name: "동상걸린 붕어", color: "from-yellow-100 to-brown-100", emoji: "🐟" },
+  HOTTEOK: { name: "호떡", color: "from-brown-100 to-amber-100", emoji: "🥞" },
+  COOKIE: { name: "쿠키", color: "from-brown-100 to-yellow-100", emoji: "🍪" },
+  PICKLE: { name: "피클", color: "from-green-100 to-yellow-100", emoji: "🥒" },
+
+  // 동물
+  CAT: { name: "고양이", color: "from-gray-100 to-orange-100", emoji: "🐱" },
+  DOG: { name: "강아지", color: "from-yellow-100 to-brown-100", emoji: "🐶" },
+  RABBIT: { name: "토끼", color: "from-pink-100 to-white", emoji: "🐰" },
+  FOX: { name: "여우", color: "from-orange-100 to-red-100", emoji: "🦊" },
+  TIGER: { name: "호랑이", color: "from-orange-100 to-yellow-100", emoji: "🐯" },
+  PANDA: { name: "판다", color: "from-gray-100 to-white", emoji: "🐼" },
+  LION: { name: "사자", color: "from-yellow-100 to-amber-100", emoji: "🦁" },
+  ELEPHANT: { name: "코끼리", color: "from-gray-100 to-slate-100", emoji: "🐘" },
+  SQUIRREL: { name: "다람쥐", color: "from-brown-100 to-orange-100", emoji: "🐿️" },
+  HEDGEHOG: { name: "고슴도치", color: "from-brown-100 to-gray-100", emoji: "🦔" },
+  CRANE: { name: "두루미", color: "from-white to-gray-100", emoji: "🦢" },
+  SPARROW: { name: "참새", color: "from-brown-100 to-yellow-100", emoji: "🐦" },
+  CHIPMUNK: { name: "청설모", color: "from-gray-100 to-brown-100", emoji: "🐿️" },
+  GIRAFFE: { name: "기린", color: "from-yellow-100 to-orange-100", emoji: "🦒" },
+  HIPPO: { name: "하마", color: "from-gray-100 to-purple-100", emoji: "🦛" },
+  POLARBEAR: { name: "북극곰", color: "from-white to-blue-100", emoji: "🐻‍❄️" },
+  BEAR: { name: "곰", color: "from-red-100 to-rainbow-100", emoji: "🐻" },
+
+  // 자연
+  STAR: { name: "별", color: "from-yellow-100 to-amber-100", emoji: "⭐" },
+  SUN: { name: "태양", color: "from-yellow-100 to-orange-100", emoji: "☀️" },
+  MOON: { name: "달", color: "from-blue-100 to-indigo-100", emoji: "🌙" },
+  VOLCANO: { name: "화산", color: "from-red-100 to-orange-100", emoji: "🌋" },
+  CHERRY: { name: "벚꽃", color: "from-pink-100 to-white", emoji: "🌸" },
+  MAPLE: { name: "단풍", color: "from-red-100 to-orange-100", emoji: "🍁" },
+  BAMBOO: { name: "대나무", color: "from-green-100 to-emerald-100", emoji: "🎋" },
+  SUNFLOWER: { name: "해바라기", color: "from-yellow-100 to-orange-100", emoji: "🌻" },
+  STARLIGHT: { name: "별빛", color: "from-yellow-100 to-blue-100", emoji: "✨" },
+  CORAL: { name: "산호", color: "from-orange-100 to-pink-100", emoji: "🪸" },
+  ROCK: { name: "바위", color: "from-gray-100 to-slate-100", emoji: "🪨" },
+  WATERDROP: { name: "물방울", color: "from-blue-100 to-white", emoji: "💧" },
+  WAVE: { name: "파도", color: "from-blue-100 to-cyan-100", emoji: "🌊" },
+  RAINBOW: { name: "무지개", color: "from-pink-100 to-purple-100", emoji: "🌈" },
+
+  // 기타
+  DOLL: { name: "인형", color: "from-pink-100 to-purple-100", emoji: "🪆" },
+  BALLOON: { name: "풍선", color: "from-red-100 to-rainbow-100", emoji: "🎈" },
+  SNOWMAN: { name: "눈사람", color: "from-white to-blue-100", emoji: "⛄" },
+  FAIRY: { name: "요정", color: "from-pink-100 to-purple-100", emoji: "🧚" },
+  BUBBLE: { name: "비눗방울", color: "from-blue-100 to-white", emoji: "🫧" }
 }
 
 // 헬퍼 함수들
