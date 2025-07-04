@@ -31,17 +31,3 @@ server:
     mime-types: text/html,text/xml,text/plain,text/css,application/json  # 압축 대상 MIME 타입
     min-response-size: 1024  # 최소 압축 대상 크기 (1KB)
 
-# 로깅 설정
-logging:
-  level:
-    root: info
-    jaeik.growfarm: info
-  file:
-    name: logs/application.log  # 더 명확한 이름
-  logback:
-    rollingpolicy:
-      file-name-pattern: logs/application-%d{yyyy-MM-dd}.%i.log
-      max-file-size: 10MB
-      max-history: 30
-      total-size-cap: 1GB
-

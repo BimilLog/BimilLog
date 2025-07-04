@@ -25,10 +25,10 @@ repositories {
 
 dependencies {
     // ==== Spring Boot 기본 스타터 ====
-    implementation 'org.springframework.boot:spring-boot-starter-web' // 웹 어플리케이션 개발 (MVC)
-    implementation 'org.springframework.boot:spring-boot-starter-webflux' // 비동기 WebFlux 지원
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // JPA를 통한 DB 연동
-    implementation 'org.springframework.boot:spring-boot-starter-security' // Spring Security 보안
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // ==== 데이터베이스 관련 ====
     runtimeOnly 'com.mysql:mysql-connector-j' // MySQL JDBC 드라이버
@@ -63,7 +63,10 @@ dependencies {
 
     // ==== 알림 관련 ====
     implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
-    
+
+    // ==== 로깅 ====
+    implementation 'ca.pjer:logback-awslogs-appender:1.6.0'
+
     // ==== Commons Logging 충돌 해결 ====
     configurations.all {
         exclude group: 'commons-logging', module: 'commons-logging'

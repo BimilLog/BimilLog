@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 프로파일별 CloudWatch 설정 (운영환경만) -->
+    <springProfile name="prod | production">
+        <property name="LOG_GROUP" value="/growfarm/application"/>
+        <property name="LOG_STREAM" value="growfarm-${HOSTNAME:-localhost}-${PID:-unknown}"/>
+        <property name="AWS_REGION" value="ap-northeast-2"/>
+    </springProfile>
+
+    <!-- 콘솔 출력 appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n%xException</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 파일 출력 appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/application.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n%xException</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/application-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 🔴 운영환경에서만 AWS CloudWatch Logs appender -->
+    <springProfile name="prod | production">
+        <appender name="CLOUDWATCH" class="ca.pjer.logback.AwsLogsAppender">
+            <logGroupName>${LOG_GROUP}</logGroupName>
+            <logStreamUuidPrefix>${LOG_STREAM}-</logStreamUuidPrefix>
+            <logRegion>${AWS_REGION}</logRegion>
+            
+            <layout>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n%xException</pattern>
+            </layout>
+            
+            <maxBatchLogEvents>50</maxBatchLogEvents>
+            <maxFlushTimeMillis>10000</maxFlushTimeMillis>
+            <maxBlockTimeMillis>5000</maxBlockTimeMillis>
+            <createLogGroup>true</createLogGroup>
+            <createLogStream>true</createLogStream>
+            <retentionTimeDays>30</retentionTimeDays>
+            
+            <!-- INFO 레벨 이상만 CloudWatch로 전송 -->
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>INFO</level>
+            </filter>
+        </appender>
+
+        <!-- 비동기 CloudWatch Appender -->
+        <appender name="ASYNC_CLOUDWATCH" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="CLOUDWATCH"/>
+            <queueSize>1024</queueSize>
+            <discardingThreshold>20</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+        </appender>
+    </springProfile>
+
+    <!-- 🟢 개발환경 로거 설정 (모든 것 DEBUG 레벨) -->
+    <springProfile name="!prod &amp; !production">
+        <!-- 애플리케이션 로거 (DEBUG) -->
+        <logger name="jaeik.growfarm" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+
+        <!-- HTTP 요청 로거 (DEBUG) -->
+        <logger name="jaeik.growfarm.global.filter.LogFilter" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+
+        <!-- 외부 라이브러리들 (개발환경에서는 모두 DEBUG) -->
+        <logger name="com.zaxxer.hikari" level="DEBUG"/>
+        <logger name="org.springframework.security" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        
+        <!-- JPA 쿼리 로그 (개발환경에서만) -->
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+        <logger name="org.springframework.orm.jpa" level="DEBUG"/>
+
+        <!-- 루트 로거 (개발환경: DEBUG) -->
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- 🔴 운영환경 로거 설정 (INFO 레벨) -->
+    <springProfile name="prod | production">
+        <!-- 애플리케이션 로거 (INFO) -->
+        <logger name="jaeik.growfarm" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_CLOUDWATCH"/>
+        </logger>
+
+        <!-- HTTP 요청 로거 (INFO) -->
+        <logger name="jaeik.growfarm.global.filter.LogFilter" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_CLOUDWATCH"/>
+        </logger>
+
+        <!-- 외부 라이브러리들 (운영환경에서는 경고만) -->
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        
+        <!-- JPA 쿼리 로그 비활성화 (운영환경) -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+        <logger name="org.springframework.orm.jpa" level="WARN"/>
+
+        <!-- 루트 로거 (운영환경: INFO) -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_CLOUDWATCH"/>
+        </root>
+    </springProfile>
+</configuration> 
