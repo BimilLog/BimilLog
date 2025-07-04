@@ -219,7 +219,7 @@ public class KakaoService {
         Map<String, Object> responseMap = response.block();
 
         if (responseMap == null) {
-            throw new CustomException(ErrorCode.KAKAO_GET_USERINFO_FAIL);
+            throw new CustomException(ErrorCode.KAKAO_GET_USERINFO_FAIL, e);
         }
 
         KakaoInfoDTO kakaoInfoDTO = new KakaoInfoDTO();

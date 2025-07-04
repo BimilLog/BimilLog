@@ -149,7 +149,7 @@ public class CommentService {
 
                     popularComments.add(commentDTO);
                 } catch (Exception e) {
-                    throw new CustomException(ErrorCode.POPULAR_COMMENT_FAILED);
+                    throw new CustomException(ErrorCode.POPULAR_COMMENT_FAILED, e);
                 }
             }
 
@@ -231,7 +231,7 @@ public class CommentService {
                         rootComments.add(dto);
                     }
                 } catch (Exception e) {
-                    throw new CustomException(ErrorCode.COMMENT_FAILED);
+                    throw new CustomException(ErrorCode.COMMENT_FAILED, e);
                 }
             }
 
@@ -306,7 +306,7 @@ public class CommentService {
             boolean hasDescendants = commentClosureRepository.hasDescendants(commentId);
             commentUpdateService.commentDelete(hasDescendants, commentId, comment);
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.COMMENT_DELETE_FAILED);
+            throw new CustomException(ErrorCode.COMMENT_DELETE_FAILED, e);
         }
     }
 

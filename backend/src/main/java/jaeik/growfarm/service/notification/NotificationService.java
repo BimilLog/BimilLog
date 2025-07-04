@@ -97,7 +97,7 @@ public class NotificationService {
                         sendNotification(emitter, emitterId, type, data, url);
                     });
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.NOTIFICATION_SEND_ERROR);
+            throw new CustomException(ErrorCode.NOTIFICATION_SEND_ERROR, e);
         }
     }
 

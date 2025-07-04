@@ -131,7 +131,7 @@ public class RedisPostService {
         try {
             return redisTemplate.hasKey(type.getKey());
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_READ_ERROR);
+            throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
         }
     }
 

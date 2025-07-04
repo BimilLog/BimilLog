@@ -30,8 +30,9 @@ public class LogFilter extends OncePerRequestFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
 
-    private static final List<String> WHITELIST = List.of("/", "/post/", "/post/realtime", "/post/weekly",
-            "/post/fame", "/post/search", "/post/{postId}", "/message/{userName}", "/auth/login", "/auth/signUp", "/auth/me", "/auth/health");
+    private static final List<String> WHITELIST = List.of("/api/auth/me", "/api/auth/health", "/api/comment/{postId}", "/api/notification/subcribe",
+            "/api/paper", "/api/post", "/api/post/search", "/api/post/{postId}", "/api/post/realtime", "/api/post/weekly", "/api/post/legend",
+            "/api/user/posts", "/api/user/comments", "/api/user/likeposts", "/api/user/likecomments", "/api/user/username/check");
 
 
     @Override
@@ -49,7 +50,6 @@ public class LogFilter extends OncePerRequestFilter {
         String ip = getClientIp(request);
         String method = request.getMethod();
 
-        // 로그인 사용자 ID 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -58,16 +58,15 @@ public class LogFilter extends OncePerRequestFilter {
             String kakaoNickname = userDetails.getClientDTO().getKakaoNickname();
 
             if (uri.startsWith("/admin")) {
-                log.error("관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
+                log.error("회원 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
             }
-            log.info("IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
+            log.info("회원 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip, referer, uri, method, userId, kakaoId, kakaoNickname);
         } else {
             if (uri.startsWith("/admin")) {
-                log.error("관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
+                log.error("비회원 - 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
             }
-            log.error("미 인증자 서버 직접 접근 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
+            log.error("비회원 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
         }
-
         filterChain.doFilter(request, response);
     }
 

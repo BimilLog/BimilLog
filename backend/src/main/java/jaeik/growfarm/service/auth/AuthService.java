@@ -211,7 +211,7 @@ public class AuthService {
             SecurityContextHolder.clearContext();
             return jwtTokenProvider.getLogoutCookies();
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.LOGOUT_FAIL);
+            throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
         }
     }
 

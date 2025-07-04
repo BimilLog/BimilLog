@@ -21,7 +21,7 @@ spring:
 server:
   tomcat:
     threads:  # Tomcat 스레드 풀 설정
-      max: 400  # 최대 스레드 수
+      max: 300  # 최대 스레드 수
       min-spare: 25  # 최소 유지 스레드 수
     accept-count: 150  # 대기열 크기
     connection-timeout: 20000  # 커넥션 타임아웃 (20초)
@@ -34,14 +34,14 @@ server:
 # 로깅 설정
 logging:
   level:
-    com.zaxxer.hikari.HikariConfig: debug
-    root: info  # 기본 로그 레벨
+    root: info
+    jaeik.growfarm: info
   file:
-    name: logs/log  # 로그 파일 경로
-  pattern:  # 로그 출력 패턴
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"  # 콘솔 출력 패턴
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"  # 파일 출력 패턴
-  threshold:
-    file: error  # 파일에는 error 레벨 이상만 기록
-
+    name: logs/application.log  # 더 명확한 이름
+  logback:
+    rollingpolicy:
+      file-name-pattern: logs/application-%d{yyyy-MM-dd}.%i.log
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 1GB
 

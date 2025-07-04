@@ -49,7 +49,7 @@ public class SseService {
                     url + "/board/post/" + postId);
             notificationService.send(postUserId, eventDTO);
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.SSE_SEND_ERROR);
+            throw new CustomException(ErrorCode.SSE_SEND_ERROR, e);
         }
     }
 
@@ -70,7 +70,7 @@ public class SseService {
                     url + "/rolling-paper/" + userName);
             notificationService.send(farmOwnerId, eventDTO);
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.SSE_SEND_ERROR);
+            throw new CustomException(ErrorCode.SSE_SEND_ERROR, e);
         }
     }
 
@@ -90,7 +90,7 @@ public class SseService {
                     url + "/board/post/" + postId);
             notificationService.send(userId, eventDTO);
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.SSE_SEND_ERROR);
+            throw new CustomException(ErrorCode.SSE_SEND_ERROR, e);
 
         }
     }

@@ -131,7 +131,7 @@ public class AdminService {
             adminUpdateService.banUserProcess(userId, blackList);
             kakaoService.unlinkByAdmin(kakaoId);
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.BAN_USER_ERROR);
+            throw new CustomException(ErrorCode.BAN_USER_ERROR, e);
         }
     }
 
