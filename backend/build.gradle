@@ -23,6 +23,12 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom 'software.amazon.awssdk:bom:2.21.29' // AWS SDK BOM으로 버전 통일
+    }
+}
+
 dependencies {
     // ==== Spring Boot 기본 스타터 ====
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -46,8 +52,9 @@ dependencies {
 
     // ==== 유효성 검사 및 JSON 처리 ====
     implementation 'org.hibernate.validator:hibernate-validator' // Bean Validation (유효성 검사)
-    implementation 'com.fasterxml.jackson.core:jackson-databind' // Jackson Object Mapper (JSON 변환)
-    implementation 'org.json:json:20231013' // org.json 라이브러리 (JSON 파싱)
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.4'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.15.4'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.4'
 
     // ==== Lombok (코드 자동 생성) ====
     compileOnly 'org.projectlombok:lombok' // 컴파일 타임에만 필요한 Lombok
@@ -64,8 +71,9 @@ dependencies {
     // ==== 알림 관련 ====
     implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
 
-    // ==== 로깅 ====
+    // ==== 로깅 및 AWS ====
     implementation 'ca.pjer:logback-awslogs-appender:1.6.0'
+    implementation 'software.amazon.awssdk:cloudwatchlogs' // AWS CloudWatch Logs SDK
 
     // ==== Commons Logging 충돌 해결 ====
     configurations.all {
