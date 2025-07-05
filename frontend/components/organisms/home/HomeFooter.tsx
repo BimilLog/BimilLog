@@ -53,6 +53,7 @@ export const HomeFooter: React.FC = () => {
           <div>
             <div className="flex items-center mb-4">
               <h2 className="text-2xl font-bold text-white">비밀로그</h2>
+              <span className="ml-2 text-xs text-gray-500">v1.0.13</span>
             </div>
             <p className="text-gray-400">익명으로 마음을 전하는 특별한 공간</p>
           </div>
@@ -92,7 +93,6 @@ export const HomeFooter: React.FC = () => {
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
           <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
             <p>&copy; 2025 비밀로그. All rights reserved.</p>
-            <span className="text-xs text-gray-500">v1.0.12</span>
           </div>
         </div>
       </div>

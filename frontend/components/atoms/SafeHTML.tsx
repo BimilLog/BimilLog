@@ -23,8 +23,11 @@ const SafeHTML: React.FC<SafeHTMLProps> = ({
   // 빈 문자열이면 렌더링하지 않음
   if (!html) return null;
 
+  // 줄바꿈 문자를 <br> 태그로 변환
+  const htmlWithBreaks = html.replace(/\n/g, "<br>");
+
   // HTML 콘텐츠 정화 (사용자 정의 태그 설정 지원)
-  const sanitizedHtml = sanitizeHtml(html, {
+  const sanitizedHtml = sanitizeHtml(htmlWithBreaks, {
     allowedTags,
     forbiddenTags,
   });

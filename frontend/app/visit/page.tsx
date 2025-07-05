@@ -13,7 +13,24 @@ export const metadata: Metadata = {
     "메시지 남기기",
     "롤링페이퍼 검색",
     "닉네임 검색",
+    "친구 롤링페이퍼",
+    "익명 메시지",
+    "메시지 남기기",
+    "롤링페이퍼 메시지",
+    "카톡",
+    "카톡 친구",
+    "카톡 친구 익명",
+    "친구에게 익명 메시지",
+    "익명 롤링페이퍼",
+    "카톡 친구 익명메시지",
   ]),
+  robots: "index, follow",
+  alternates: {
+    canonical: "https://grow-farm.com/visit",
+  },
+  authors: [{ name: "비밀로그 Team", url: "https://grow-farm.com" }],
+  creator: "비밀로그",
+  publisher: "비밀로그",
   openGraph: {
     title: "롤링페이퍼 방문 | 비밀로그",
     description:
@@ -47,6 +64,12 @@ const jsonLd = {
   name: "롤링페이퍼 방문",
   description: "친구의 롤링페이퍼를 방문하여 따뜻한 익명 메시지를 남겨보세요",
   url: "https://grow-farm.com/visit",
+  inLanguage: "ko",
+  isPartOf: {
+    "@type": "WebSite",
+    name: "비밀로그",
+    url: "https://grow-farm.com",
+  },
   mainEntity: {
     "@type": "SearchAction",
     target: "https://grow-farm.com/rolling-paper/{nickname}",
@@ -69,6 +92,11 @@ const jsonLd = {
         item: "https://grow-farm.com/visit",
       },
     ],
+  },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://grow-farm.com/rolling-paper/{search_term_string}",
+    "query-input": "required name=search_term_string",
   },
 };
 

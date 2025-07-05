@@ -72,12 +72,24 @@ export const MessageView: React.FC<MessageViewProps> = ({
       >
         <div className="flex items-center space-x-3 mb-4">
           <span className="text-4xl animate-bounce">{decoInfo.emoji}</span>
-          <Badge
-            variant="secondary"
-            className="bg-white/80 text-pink-800 border-pink-300 font-semibold"
-          >
-            {decoInfo.name}
-          </Badge>
+          <div className="flex flex-col space-y-1">
+            <Badge
+              variant="secondary"
+              className="bg-white/80 text-pink-800 border-pink-300 font-semibold"
+            >
+              {decoInfo.name}
+            </Badge>
+            {isRollingPaperMessage(message) && (
+              <Badge
+                variant="outline"
+                className="bg-white/60 text-gray-700 border-gray-300 text-xs"
+              >
+                {message.anonymity && message.anonymity !== ""
+                  ? message.anonymity
+                  : "익명"}
+              </Badge>
+            )}
+          </div>
         </div>
         {isRollingPaperMessage(message) ? (
           <p className="text-gray-800 leading-relaxed font-medium">

@@ -63,7 +63,7 @@ export const PostContent: React.FC<PostContentProps> = ({
       <div className="prose max-w-none">
         <SafeHTML
           html={post.content}
-          className="text-gray-800 leading-relaxed"
+          className="text-gray-800 leading-relaxed whitespace-pre-wrap"
         />
       </div>
 

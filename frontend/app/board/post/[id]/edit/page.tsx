@@ -14,7 +14,17 @@ import Editor from "@/components/molecules/editor";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
 
-const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, "");
+const stripHtml = (html: string) => {
+  // <br> 태그를 줄바꿈으로 변환
+  let result = html.replace(/<br\s*\/?>/gi, "\n");
+  // <p> 태그 끝을 줄바꿈으로 변환
+  result = result.replace(/<\/p>/gi, "\n");
+  // 다른 HTML 태그들 제거
+  result = result.replace(/<[^>]*>?/gm, "");
+  // 연속된 줄바꿈을 정리 (3개 이상을 2개로)
+  result = result.replace(/\n{3,}/g, "\n\n");
+  return result;
+};
 
 export default function EditPostPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
