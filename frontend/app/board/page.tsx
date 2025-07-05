@@ -23,9 +23,7 @@ export const metadata: Metadata = {
     siteName: "비밀로그",
     images: [
       {
-        url: "https://grow-farm.com/log.png",
-        width: 326,
-        height: 105,
+        url: "/bimillog_board_mobile.png",
         alt: "비밀로그 게시판",
       },
     ],
@@ -36,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "비밀로그 커뮤니티 게시판",
     description: "다른 사용자들과 소통하고 인기글을 확인해보세요.",
-    images: ["https://grow-farm.com/log.png"],
+    images: ["/bimillog_board_mobile.png"],
   },
 };
 

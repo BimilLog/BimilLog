@@ -14,6 +14,10 @@ export const metadata: Metadata = {
     "카카오톡 공유",
     "메시지 모음",
     "롤링페이퍼 관리",
+    "카카오톡",
+    "카톡",
+    "카톡 친구 익명",
+    "카톡 익명",
   ]),
   openGraph: {
     title: "나의 비밀로그 롤링페이퍼",
@@ -22,9 +26,7 @@ export const metadata: Metadata = {
     siteName: "비밀로그",
     images: [
       {
-        url: "https://grow-farm.com/log.png",
-        width: 326,
-        height: 105,
+        url: "/bimillog_mypaper_mobile.png",
         alt: "비밀로그 롤링페이퍼",
       },
     ],
@@ -35,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "나의 비밀로그 롤링페이퍼",
     description: "친구들이 남긴 익명 메시지를 확인해보세요!",
-    images: ["https://grow-farm.com/log.png"],
+    images: ["/bimillog_mypaper_mobile.png"],
   },
 };
 

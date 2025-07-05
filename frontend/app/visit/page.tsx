@@ -39,9 +39,7 @@ export const metadata: Metadata = {
     siteName: "비밀로그",
     images: [
       {
-        url: "https://grow-farm.com/log.png",
-        width: 326,
-        height: 105,
+        url: "/bimillog_visit_mobile.png",
         alt: "비밀로그 롤링페이퍼 방문",
       },
     ],
@@ -53,7 +51,7 @@ export const metadata: Metadata = {
     title: "롤링페이퍼 방문 | 비밀로그",
     description:
       "친구의 롤링페이퍼를 방문하여 따뜻한 익명 메시지를 남겨보세요.",
-    images: ["https://grow-farm.com/log.png"],
+    images: ["/bimillog_visit_mobile.png"],
   },
 };
 

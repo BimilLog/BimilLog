@@ -25,16 +25,12 @@ export const metadata: Metadata = {
     siteName: "비밀로그",
     images: [
       {
-        url: "https://grow-farm.com/log.png",
-        width: 326,
-        height: 105,
-        alt: "비밀로그 로고",
+        url: "/bimillog_mainpage_pc.png",
+        alt: "비밀로그 메인 페이지",
       },
       {
-        url: "https://grow-farm.com/favicon512.png",
-        width: 512,
-        height: 512,
-        alt: "비밀로그 아이콘",
+        url: "/bimillog_mainpage_mobile.png",
+        alt: "비밀로그 모바일 메인 페이지",
       },
     ],
     locale: "ko_KR",
@@ -45,7 +41,7 @@ export const metadata: Metadata = {
     title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
     description:
       "친구들과 익명으로 소통하는 새로운 공간, 비밀로그에서 솔직한 마음을 나눠보세요.",
-    images: ["https://grow-farm.com/log.png"],
+    images: ["/bimillog_mainpage_pc.png"],
   },
 };
 
@@ -69,9 +65,9 @@ const jsonLd = {
     url: "https://grow-farm.com",
     logo: {
       "@type": "ImageObject",
-      url: "https://grow-farm.com/log.png",
-      width: 326,
-      height: 105,
+      url: "/bimillog_mainpage_pc.png",
+      width: 1200,
+      height: 630,
     },
   },
   mainEntity: {

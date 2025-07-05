@@ -53,16 +53,12 @@ export const metadata: Metadata = {
     siteName: "비밀로그",
     images: [
       {
-        url: "https://grow-farm.com/log.png",
-        width: 326,
-        height: 105,
-        alt: "비밀로그 로고",
+        url: "/bimillog_mainpage_pc.png",
+        alt: "비밀로그 PC 메인 페이지",
       },
       {
-        url: "https://grow-farm.com/favicon512.png",
-        width: 512,
-        height: 512,
-        alt: "비밀로그 아이콘",
+        url: "/bimillog_mainpage_mobile.png",
+        alt: "비밀로그 모바일 메인 페이지",
       },
     ],
     locale: "ko_KR",
@@ -73,17 +69,15 @@ export const metadata: Metadata = {
     title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
     description:
       "친구들과 익명으로 소통하는 새로운 공간, 비밀로그에서 솔직한 마음을 나눠보세요.",
-    images: ["https://grow-farm.com/log.png"],
+    images: ["/bimillog_mainpage_pc.png"],
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon48.png", sizes: "48x48", type: "image/png" },
       { url: "/favicon96.png", sizes: "96x96", type: "image/png" },
       { url: "/favicon192.png", sizes: "192x192", type: "image/png" },
       { url: "/favicon512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/favicon.ico",
     apple: [
       { url: "/favicon192.png", sizes: "192x192", type: "image/png" },
       { url: "/favicon512.png", sizes: "512x512", type: "image/png" },
@@ -119,7 +113,6 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon48.png" sizes="48x48" type="image/png" />
         <link rel="icon" href="/favicon96.png" sizes="96x96" type="image/png" />
         <link
