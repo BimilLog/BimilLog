@@ -7,13 +7,13 @@ interface CommentWithReplies extends Comment {
   replies?: CommentWithReplies[];
 }
 
-export const usePostDetail = (id: string | null) => {
+export const usePostDetail = (id: string | null, initialPost?: Post) => {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   
   // Post 상태
-  const [post, setPost] = useState<Post | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [post, setPost] = useState<Post | null>(initialPost || null);
+  const [loading, setLoading] = useState(!initialPost);
 
   // Comment 상태
   const [comments, setComments] = useState<CommentWithReplies[]>([]);

@@ -7,8 +7,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes = [
     "",
     "/board",
-    "/login",
-    "/signup",
+    "/rolling-paper",
+    "/visit",
     "/privacy",
     "/terms",
     "/suggest",
@@ -16,7 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${URL}${route}`,
     lastModified: new Date().toISOString(),
     changeFrequency: "weekly" as "weekly",
-    priority: route === "" ? 1 : 0.8,
+    priority: route === "" ? 1 : 
+             route === "/rolling-paper" ? 0.9 :
+             route === "/visit" ? 0.9 :
+             route === "/board" ? 0.8 : 0.7,
   }));
 
   // 개발 환경이나 빌드 시에 API 서버가 없는 경우 정적 페이지만 반환

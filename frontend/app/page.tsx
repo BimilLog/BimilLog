@@ -93,8 +93,7 @@ const jsonLd = {
 export default function HomePage() {
   return (
     <>
-      <Script
-        id="json-ld"
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd),

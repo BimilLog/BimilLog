@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://grow-farm.com"),
   title: {
-    default: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
+    default: "비밀로그",
     template: "%s | 비밀로그",
   },
   description:
