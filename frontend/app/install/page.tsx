@@ -270,133 +270,22 @@ export default function InstallPage() {
         <p className="text-center text-gray-600 mb-16 text-lg max-w-2xl mx-auto">
           실제 앱처럼 동작하는 비밀로그의 모습을 확인해보세요
         </p>
-        <div className="max-w-6xl mx-auto">
-          {/* 스크린샷 갤러리 */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {/* 메인 페이지 */}
-            <Card className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-              <div className="aspect-[9/16] relative">
-                <img
-                  src="/bimillog_mainpage_mobile.png"
-                  alt="비밀로그 메인 페이지"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <h3 className="font-bold text-lg mb-1">메인 페이지</h3>
-                  <p className="text-sm text-gray-200">
-                    깔끔하고 직관적인 홈 화면
-                  </p>
+        <div className="max-w-4xl mx-auto">
+          <Card className="overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300">
+            <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 p-12 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+              <div className="relative z-10">
+                <div className="w-32 h-32 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <span className="text-6xl">📱</span>
                 </div>
+                <h3 className="text-3xl font-bold text-white mb-2">비밀로그</h3>
+                <p className="text-cyan-100 text-lg">
+                  익명으로 마음을 전하는 특별한 공간
+                </p>
               </div>
-            </Card>
-
-            {/* 게시판 페이지 */}
-            <Card className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-              <div className="aspect-[9/16] relative">
-                <img
-                  src="/bimillog_board_mobile.png"
-                  alt="비밀로그 게시판"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <h3 className="font-bold text-lg mb-1">커뮤니티 게시판</h3>
-                  <p className="text-sm text-gray-200">
-                    익명으로 소통하는 공간
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* 마이페이지 */}
-            <Card className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-              <div className="aspect-[9/16] relative">
-                <img
-                  src="/bimillog_mypage_mobile.png"
-                  alt="비밀로그 마이페이지"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <h3 className="font-bold text-lg mb-1">마이페이지</h3>
-                  <p className="text-sm text-gray-200">내 활동을 한눈에 확인</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* 롤링페이퍼 */}
-            <Card className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-              <div className="aspect-[9/16] relative">
-                <img
-                  src="/bimillog_mypaper_mobile.png"
-                  alt="비밀로그 롤링페이퍼"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <h3 className="font-bold text-lg mb-1">롤링페이퍼</h3>
-                  <p className="text-sm text-gray-200">
-                    친구들의 따뜻한 메시지
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* 메시지 작성 */}
-            <Card className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-              <div className="aspect-[9/16] relative">
-                <img
-                  src="/bimillog_messageform.png"
-                  alt="비밀로그 메시지 작성"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <h3 className="font-bold text-lg mb-1">메시지 작성</h3>
-                  <p className="text-sm text-gray-200">
-                    다양한 디자인으로 메시지 전달
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* 방문 페이지 */}
-            <Card className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-              <div className="aspect-[9/16] relative">
-                <img
-                  src="/bimillog_visit_mobile.png"
-                  alt="비밀로그 방문 페이지"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <h3 className="font-bold text-lg mb-1">방문 페이지</h3>
-                  <p className="text-sm text-gray-200">
-                    친구의 롤링페이퍼 방문
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* 특별한 기능 강조 */}
-          <Card className="bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 p-8 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-            <div className="relative z-10">
-              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">✨</span>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">
-                모든 기능을 앱에서 더 편리하게!
-              </h3>
-              <p className="text-cyan-100 text-lg max-w-2xl mx-auto">
-                푸시 알림, 오프라인 지원, 빠른 실행 등 네이티브 앱과 같은 경험을
-                제공합니다
-              </p>
+              <div className="absolute top-4 right-4 w-6 h-6 bg-white/30 rounded-full"></div>
+              <div className="absolute bottom-8 left-8 w-4 h-4 bg-white/20 rounded-full"></div>
             </div>
-            <div className="absolute top-4 right-4 w-6 h-6 bg-white/30 rounded-full"></div>
-            <div className="absolute bottom-8 left-8 w-4 h-4 bg-white/20 rounded-full"></div>
           </Card>
         </div>
       </section>

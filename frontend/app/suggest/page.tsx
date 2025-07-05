@@ -244,42 +244,6 @@ export default function SuggestPage() {
               </ul>
             </CardContent>
           </Card>
-
-          {/* 미리보기 이미지 섹션 */}
-          <Card className="mt-8 border-0 shadow-xl bg-white/90 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-0">
-              <div className="grid md:grid-cols-2 gap-0">
-                <div className="p-8 flex flex-col justify-center">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                    더 나은 비밀로그를 만들어가요
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    여러분의 소중한 의견이 비밀로그를 더 좋은 서비스로
-                    만들어갑니다. 새로운 기능 제안부터 버그 신고까지, 모든
-                    피드백을 환영합니다.
-                  </p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span>빠른 응답</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span>적극 반영</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="relative aspect-[9/16] md:aspect-auto">
-                  <img
-                    src="/bimillog_suggestion_mobile.png"
-                    alt="비밀로그 건의하기 페이지"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10"></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </main>
 
