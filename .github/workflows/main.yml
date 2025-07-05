@@ -79,6 +79,9 @@ jobs:
                 -XX:+HeapDumpOnOutOfMemoryError \
                 -XX:HeapDumpPath=/app/logs/heapdump.hprof \
                 -Xlog:gc*:file=/app/logs/gc.log:time,uptime,level,tags \
+                -XX:+UseGCLogFileRotation \
+                -XX:NumberOfGCLogFiles=5 \
+                -XX:GCLogFileSize=50M \
                 -jar /app/app.jar
 
               docker pull jaeikjeong/growfarm:redis

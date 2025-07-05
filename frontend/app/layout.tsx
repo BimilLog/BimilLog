@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://grow-farm.com"),
   title: {
-    default: "비밀로그",
+    default: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
     template: "%s | 비밀로그",
   },
   description:
@@ -42,6 +42,8 @@ export const metadata: Metadata = {
     "소통",
   ],
   authors: [{ name: "비밀로그 Team", url: "https://grow-farm.com" }],
+  creator: "비밀로그 Team",
+  publisher: "비밀로그",
   robots: "index, follow",
   openGraph: {
     title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
@@ -51,10 +53,16 @@ export const metadata: Metadata = {
     siteName: "비밀로그",
     images: [
       {
-        url: "/log.png",
+        url: "https://grow-farm.com/log.png",
         width: 326,
         height: 105,
         alt: "비밀로그 로고",
+      },
+      {
+        url: "https://grow-farm.com/favicon512.png",
+        width: 512,
+        height: 512,
+        alt: "비밀로그 아이콘",
       },
     ],
     locale: "ko_KR",
@@ -65,12 +73,21 @@ export const metadata: Metadata = {
     title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
     description:
       "친구들과 익명으로 소통하는 새로운 공간, 비밀로그에서 솔직한 마음을 나눠보세요.",
-    images: ["/log.png"],
+    images: ["https://grow-farm.com/log.png"],
   },
   icons: {
-    icon: "/favicon192.png",
-    shortcut: "/favicon.png",
-    apple: "/favicon192.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon48.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/favicon192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon512.png", sizes: "512x512", type: "image/png" },
+    ],
   },
   manifest: "/manifest.json",
   appleWebApp: {
@@ -79,11 +96,18 @@ export const metadata: Metadata = {
     title: "비밀로그",
   },
   applicationName: "비밀로그",
+  category: "social",
   verification: {
     google: "h46_QB3B0te_apY6uiYRUUOuSEt-S8_nQgHo5Iwcv0E",
     other: {
       "naver-site-verification": "c97ee92e3cbcbdae8b09fa0a849758b0dd759675",
     },
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "비밀로그",
   },
 };
 
@@ -94,6 +118,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon48.png" sizes="48x48" type="image/png" />
+        <link rel="icon" href="/favicon96.png" sizes="96x96" type="image/png" />
+        <link
+          rel="icon"
+          href="/favicon192.png"
+          sizes="192x192"
+          type="image/png"
+        />
+        <link
+          rel="icon"
+          href="/favicon512.png"
+          sizes="512x512"
+          type="image/png"
+        />
+        <link rel="apple-touch-icon" href="/favicon192.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/favicon192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/favicon512.png" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="application-name" content="비밀로그" />
+        <meta name="apple-mobile-web-app-title" content="비밀로그" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
