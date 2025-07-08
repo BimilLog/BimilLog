@@ -262,7 +262,7 @@ public class JwtTokenProvider {
      * <p>JWT 리프레시 토큰에서 FCM 토큰 ID를 추출합니다.</p>
      * @since 1.0.0
      * @author Jaeik
-     * @param jwtRefreshToken
+     * @param jwtRefreshToken JWT 리프레시 토큰
      * @return FCM 토큰 ID
      */
     public Long getFcmTokenIdFromToken(String jwtRefreshToken) {

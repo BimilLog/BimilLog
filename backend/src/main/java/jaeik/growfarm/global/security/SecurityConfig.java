@@ -118,7 +118,6 @@ public class SecurityConfig {
      * Cross-Origin Resource Sharing(CORS) 정책을 정의합니다.
      * </p>
      * <ul>
-     * <li>허용된 오리진: http://localhost:3000</li>
      * <li>허용된 HTTP 메서드: GET, POST, PUT, DELETE, OPTIONS</li>
      * <li>허용된 헤더: 모든 헤더</li>
      * <li>자격 증명 허용</li>
