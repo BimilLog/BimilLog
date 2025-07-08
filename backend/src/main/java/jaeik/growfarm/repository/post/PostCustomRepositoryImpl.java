@@ -25,8 +25,7 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
 
         private final PostCustomSearchRepositoryImpl postSearchRepository;
         private final PostCustomPopularRepositoryImpl popularPostRepository;
-        private final PostCustomUserRepositoryImpl userPostRepository;
-        private final PostCustomManagementRepositoryImpl postManagementRepository;
+        private final PostCustomUserRepositoryImpl userManagementRepository;
 
         /**
          * <h3>게시글 목록 조회</h3>
@@ -150,7 +149,7 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
         @Override
         @Transactional(readOnly = true)
         public Page<SimplePostDTO> findPostsByUserId(Long userId, Pageable pageable) {
-                return userPostRepository.findPostsByUserId(userId, pageable);
+                return userManagementRepository.findPostsByUserId(userId, pageable);
         }
 
         /**
@@ -168,7 +167,7 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
         @Override
         @Transactional(readOnly = true)
         public Page<SimplePostDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
-                return userPostRepository.findLikedPostsByUserId(userId, pageable);
+                return userManagementRepository.findLikedPostsByUserId(userId, pageable);
         }
 
         /**
@@ -185,6 +184,6 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
         @Override
         @Transactional
         public void deletePostWithCacheSync(Long postId) {
-                postManagementRepository.deletePostWithCacheSync(postId);
+                userManagementRepository.deletePostWithCacheSync(postId);
         }
 }

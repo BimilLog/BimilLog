@@ -227,7 +227,7 @@ public class UserService {
      * @since 1.0.0
      */
     public SettingDTO getSetting(CustomUserDetails userDetails) {
-        Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingDTO().getSettingId())
+        Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
 
         return new SettingDTO(setting);
@@ -246,7 +246,7 @@ public class UserService {
      * @since 1.0.0
      */
     public void updateSetting(SettingDTO settingDTO, CustomUserDetails userDetails) {
-        Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingDTO().getSettingId())
+        Setting setting = settingRepository.findById(userDetails.getClientDTO().getSettingId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
 
         userUpdateService.settingUpdate(settingDTO, setting);

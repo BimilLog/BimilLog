@@ -4,7 +4,6 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.growfarm.dto.user.ClientDTO;
-import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.repository.token.TokenJdbcRepository;
 import jakarta.annotation.PostConstruct;
@@ -127,14 +126,11 @@ public class JwtTokenProvider {
                 .claim("tokenId", clientDTO.getTokenId())
                 .claim("kakaoId", clientDTO.getKakaoId())
                 .claim("fcmTokenId", clientDTO.getFcmTokenId())
-                .claim("settingId", clientDTO.getSettingDTO().getSettingId())
+                .claim("settingId", clientDTO.getSettingId())
                 .claim("userName", clientDTO.getUserName())
                 .claim("role", clientDTO.getRole().name())
                 .claim("kakaoNickname", clientDTO.getKakaoNickname())
                 .claim("thumbnailImage", clientDTO.getThumbnailImage())
-                .claim("postFeaturedNotification", clientDTO.getSettingDTO().isPostFeaturedNotification())
-                .claim("messageNotification", clientDTO.getSettingDTO().isMessageNotification())
-                .claim("commentNotification", clientDTO.getSettingDTO().isCommentNotification())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -233,12 +229,6 @@ public class JwtTokenProvider {
     public ClientDTO getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
-        SettingDTO settingDTO = new SettingDTO(
-                claims.get("settingId", Long.class),
-                claims.get("postFeaturedNotification", Boolean.class),
-                claims.get("messageNotification", Boolean.class),
-                claims.get("commentNotification", Boolean.class));
-
         return new ClientDTO(
                 Long.parseLong(claims.getSubject()),
                 claims.get("kakaoId", Long.class),
@@ -248,7 +238,7 @@ public class JwtTokenProvider {
                 claims.get("role", String.class).equals("USER") ? UserRole.USER : UserRole.ADMIN,
                 claims.get("tokenId", Long.class),
                 claims.get("fcmTokenId", Long.class),
-                settingDTO);
+                claims.get("settingId", Long.class));
     }
 
     /**

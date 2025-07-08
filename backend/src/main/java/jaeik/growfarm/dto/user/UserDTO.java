@@ -23,7 +23,7 @@ public class UserDTO {
 
     private Long kakaoId;
 
-    private SettingDTO settingDTO;
+    private Long settingId;
 
     private String kakaoNickname;
 
@@ -37,7 +37,7 @@ public class UserDTO {
     public UserDTO (Users user) {
         this.userId = user.getId();
         this.kakaoId = user.getKakaoId();
-        this.settingDTO = new SettingDTO(user.getSetting());
+        this.settingId = user.getSetting().getId();
         this.kakaoNickname = user.getKakaoNickname();
         this.thumbnailImage = user.getThumbnailImage();
         this.userName = user.getUserName();
@@ -47,20 +47,20 @@ public class UserDTO {
     public UserDTO (Users user, SettingDTO settingDTO) {
         this.userId = user.getId();
         this.kakaoId = user.getKakaoId();
-        this.settingDTO = settingDTO;
+        this.settingId = settingDTO.getSettingId();
         this.kakaoNickname = user.getKakaoNickname();
         this.thumbnailImage = user.getThumbnailImage();
         this.userName = user.getUserName();
         this.role = user.getRole();
     }
 
-    public UserDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String userName, UserRole role, SettingDTO settingDTO) {
+    public UserDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String userName, UserRole role, Long settingId) {
         this.userId = userId;
         this.kakaoId = kakaoId;
         this.kakaoNickname = kakaoNickname;
         this.thumbnailImage = thumbnailImage;
         this.userName = userName;
         this.role = role;
-        this.settingDTO = settingDTO;
+        this.settingId = settingId;
     }
 }

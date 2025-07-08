@@ -1,7 +1,6 @@
 package jaeik.growfarm.entity.user;
 
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
-import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -92,6 +91,18 @@ public class Users extends BaseEntity {
         this.userName = userName;
     }
 
+    /**
+     * <h3>사용자 생성</h3>
+     *
+     * <p>
+     * 카카오 정보와 사용자 이름, 설정 정보를 기반으로 새로운 사용자 엔티티를 생성한다.
+     * </p>
+     *
+     * @param kakaoInfoDTO 카카오 정보 DTO
+     * @param userName     사용자 이름
+     * @param setting      사용자 설정 정보
+     * @return 생성된 사용자 엔티티
+     */
     public static Users createUser(KakaoInfoDTO kakaoInfoDTO, String userName, Setting setting) {
         return Users.builder()
                 .kakaoId(kakaoInfoDTO.getKakaoId())
@@ -100,18 +111,6 @@ public class Users extends BaseEntity {
                 .userName(userName)
                 .role(UserRole.USER)
                 .setting(setting)
-                .build();
-    }
-
-    public static Users createUser(UserDTO userDTO) {
-        return Users.builder()
-                .id(userDTO.getUserId())
-                .kakaoId(userDTO.getKakaoId())
-                .userName(userDTO.getUserName())
-                .role(userDTO.getRole())
-                .kakaoNickname(userDTO.getKakaoNickname())
-                .thumbnailImage(userDTO.getThumbnailImage())
-                .setting(Setting.createSetting(userDTO.getSettingDTO()))
                 .build();
     }
 }
