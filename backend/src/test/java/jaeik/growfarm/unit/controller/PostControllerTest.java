@@ -178,13 +178,13 @@ public class PostControllerTest {
         when(postService.searchPost(anyString(), anyString(), anyInt(), anyInt())).thenReturn(postPage);
 
         // When
-        ResponseEntity<Page<SimplePostDTO>> response = postController.searchPost("title", "test", 0, 10);
+        ResponseEntity<Page<SimplePostDTO>> response = postController.searchPost("title", "getGptResponse", 0, 10);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getContent().size());
-        verify(postService, times(1)).searchPost("title", "test", 0, 10);
+        verify(postService, times(1)).searchPost("title", "getGptResponse", 0, 10);
     }
 
     @Test

@@ -60,7 +60,7 @@ public class NotificationControllerTest {
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .id(1L)
                 .data("Test notification")
-                .url("/test/url")
+                .url("/getGptResponse/url")
                 .type(NotificationType.COMMENT)
                 .isRead(false)
                 .createdAt(Instant.now())

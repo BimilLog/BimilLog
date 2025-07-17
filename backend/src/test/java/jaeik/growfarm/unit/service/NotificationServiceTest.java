@@ -97,7 +97,7 @@ public class NotificationServiceTest {
         eventDTO = new EventDTO();
         eventDTO.setType(NotificationType.COMMENT);
         eventDTO.setData("Test notification");
-        eventDTO.setUrl("/test/url");
+        eventDTO.setUrl("/getGptResponse/url");
 
         // Setup mock repositories
         when(userRepository.getReferenceById(anyLong())).thenReturn(user);
@@ -141,7 +141,7 @@ public class NotificationServiceTest {
                 eq(user),
                 eq(NotificationType.COMMENT),
                 eq("Test notification"),
-                eq("/test/url"));
+                eq("/getGptResponse/url"));
         verify(emitterRepository, times(1)).findAllEmitterByUserId(eq(1L));
     }
 

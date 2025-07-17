@@ -91,8 +91,8 @@ public class AuthServiceTest {
 
         // Mock TokenDTO 설정
         mockTokenDTO = mock(TokenDTO.class);
-        when(mockTokenDTO.getKakaoAccessToken()).thenReturn("test-access-token");
-        when(mockTokenDTO.getKakaoRefreshToken()).thenReturn("test-refresh-token");
+        when(mockTokenDTO.getKakaoAccessToken()).thenReturn("getGptResponse-access-token");
+        when(mockTokenDTO.getKakaoRefreshToken()).thenReturn("getGptResponse-refresh-token");
 
         // Mock KakaoInfoDTO 설정
         mockKakaoInfoDTO = mock(KakaoInfoDTO.class);
@@ -108,8 +108,8 @@ public class AuthServiceTest {
     @DisplayName("카카오 로그인 테스트 - 기존 회원")
     void testProcessKakaoLoginExistingUser() {
         // Given
-        String code = "test-code";
-        String fcmToken = "test-fcm-token";
+        String code = "getGptResponse-code";
+        String fcmToken = "getGptResponse-fcm-token";
 
         when(kakaoService.getToken(code)).thenReturn(mockTokenDTO);
         when(kakaoService.getUserInfo(mockTokenDTO.getKakaoAccessToken())).thenReturn(mockKakaoInfoDTO);
@@ -134,14 +134,14 @@ public class AuthServiceTest {
     @DisplayName("카카오 로그인 테스트 - 신규 회원")
     void testProcessKakaoLoginNewUser() {
         // Given
-        String code = "test-code";
-        String fcmToken = "test-fcm-token";
+        String code = "getGptResponse-code";
+        String fcmToken = "getGptResponse-fcm-token";
 
         when(kakaoService.getToken(code)).thenReturn(mockTokenDTO);
         when(kakaoService.getUserInfo(mockTokenDTO.getKakaoAccessToken())).thenReturn(mockKakaoInfoDTO);
         when(userRepository.findByKakaoId(123456789L)).thenReturn(Optional.empty());
         when(blackListRepository.existsByKakaoId(123456789L)).thenReturn(false);
-        when(tempUserDataManager.saveTempData(any(), any(), any())).thenReturn("test-uuid");
+        when(tempUserDataManager.saveTempData(any(), any(), any())).thenReturn("getGptResponse-uuid");
 
         // When
         LoginResponseDTO<?> result = authService.processKakaoLogin(code, fcmToken);
@@ -160,8 +160,8 @@ public class AuthServiceTest {
     @DisplayName("카카오 로그인 테스트 - 블랙리스트 사용자")
     void testProcessKakaoLoginBlacklistUser() {
         // Given
-        String code = "test-code";
-        String fcmToken = "test-fcm-token";
+        String code = "getGptResponse-code";
+        String fcmToken = "getGptResponse-fcm-token";
 
         when(kakaoService.getToken(code)).thenReturn(mockTokenDTO);
         when(kakaoService.getUserInfo(mockTokenDTO.getKakaoAccessToken())).thenReturn(mockKakaoInfoDTO);
@@ -182,12 +182,12 @@ public class AuthServiceTest {
     void testSignUp() {
         // Given
         String userName = "testUser";
-        String uuid = "test-uuid";
+        String uuid = "getGptResponse-uuid";
 
         TempUserDataManager.TempUserData tempData = mock(TempUserDataManager.TempUserData.class);
         when(tempData.getKakaoInfoDTO()).thenReturn(mockKakaoInfoDTO);
         when(tempData.getTokenDTO()).thenReturn(mockTokenDTO);
-        when(tempData.getFcmToken()).thenReturn("test-fcm-token");
+        when(tempData.getFcmToken()).thenReturn("getGptResponse-fcm-token");
 
         when(tempUserDataManager.getTempData(uuid)).thenReturn(tempData);
 
@@ -203,7 +203,7 @@ public class AuthServiceTest {
         assertEquals(1, result.size());
         verify(tempUserDataManager, times(1)).getTempData(uuid);
         verify(authUpdateService, times(1)).saveNewUser(userName, uuid, mockKakaoInfoDTO, mockTokenDTO,
-                "test-fcm-token");
+                "getGptResponse-fcm-token");
     }
 
     @Test
@@ -232,8 +232,8 @@ public class AuthServiceTest {
         // Given
         when(mockUserDetails.getUserId()).thenReturn(1L);
         when(mockUserDetails.getTokenId()).thenReturn(1L);
-        when(userJdbcRepository.getKakaoAccessToken(eq(1L))).thenReturn("test-access-token");
-        doNothing().when(kakaoService).unlink(eq("test-access-token"));
+        when(userJdbcRepository.getKakaoAccessToken(eq(1L))).thenReturn("getGptResponse-access-token");
+        doNothing().when(kakaoService).unlink(eq("getGptResponse-access-token"));
         doNothing().when(authUpdateService).performWithdrawProcess(eq(1L));
         doNothing().when(emitterRepository).deleteAllEmitterByUserId(eq(1L));
 
@@ -247,7 +247,7 @@ public class AuthServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         verify(userJdbcRepository, times(1)).getKakaoAccessToken(eq(1L));
-        verify(kakaoService, times(1)).unlink(eq("test-access-token"));
+        verify(kakaoService, times(1)).unlink(eq("getGptResponse-access-token"));
         verify(authUpdateService, times(1)).performWithdrawProcess(eq(1L));
         verify(emitterRepository, times(1)).deleteAllEmitterByUserId(eq(1L));
         verify(jwtTokenProvider, times(1)).getLogoutCookies();
@@ -257,14 +257,14 @@ public class AuthServiceTest {
     @DisplayName("카카오 로그아웃 테스트")
     void testKakaoLogout() {
         // Given
-        when(userJdbcRepository.getKakaoAccessToken(1L)).thenReturn("test-access-token");
-        doNothing().when(kakaoService).logout("test-access-token");
+        when(userJdbcRepository.getKakaoAccessToken(1L)).thenReturn("getGptResponse-access-token");
+        doNothing().when(kakaoService).logout("getGptResponse-access-token");
 
         // When
         authService.kakaoLogout(mockUserDetails);
 
         // Then
         verify(userJdbcRepository, times(1)).getKakaoAccessToken(1L);
-        verify(kakaoService, times(1)).logout("test-access-token");
+        verify(kakaoService, times(1)).logout("getGptResponse-access-token");
     }
 }

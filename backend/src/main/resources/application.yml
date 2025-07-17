@@ -3,7 +3,7 @@ spring:
   application:
     name: growfarm  # 애플리케이션 이름
   profiles:
-    include: prod  # secret 프로파일 포함 (환경별 설정 분리)
+    include: secret  # secret 프로파일 포함 (환경별 설정 분리)
   datasource:
     hikari:  # HikariCP 커넥션 풀 설정
       minimum-idle: 40  # 최소 유지 커넥션 수
@@ -12,6 +12,7 @@ spring:
       max-lifetime: 1800000  # 커넥션 최대 생명주기 (30분)
       idle-timeout: 600000  # 커넥션 유휴 시간 (10분)
       leak-detection-threshold: 60000  # 커넥션 누수 감지 임계값 (60초)
+      housekeeping-period-ms: 300000
   cache:  # 캐시 설정
     type: caffeine  # Caffeine 캐시 엔진 사용
     caffeine:

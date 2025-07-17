@@ -50,8 +50,8 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final LogFilter LogFilter;
 
-    private final String url = "https://grow-farm.com";
-    //private final String url = "http://localhost:3000";
+    //private final String url = "https://grow-farm.com";
+    private final String url = "http://localhost:3000";
 
     /**
      * <h3>보안 필터 체인 설정</h3>
@@ -77,7 +77,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+                        .ignoringRequestMatchers("/api/ai/**"))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -95,8 +96,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/post/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/paper/{userName}").permitAll()
-                        .requestMatchers("/api/user/suggestion", "/api/user/username/check")
-                        .permitAll()
+                        .requestMatchers("/api/user/suggestion", "/api/user/username/check").permitAll()
+                        .requestMatchers("/api/ai/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(LogFilter, UsernamePasswordAuthenticationFilter.class)
@@ -130,7 +131,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(url, url + "/"));
+//        configuration.setAllowedOrigins(List.of(url, url + "/"));
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
