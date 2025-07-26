@@ -6,7 +6,9 @@ import org.springframework.http.HttpStatus;
 
 /**
  * <h2>커스텀 예외 클래스</h2>
- * <p>애플리케이션에서 발생하는 다양한 예외를 처리하기 위한 커스텀 예외 클래스</p>
+ * <p>
+ * 애플리케이션에서 발생하는 다양한 예외를 처리하기 위한 커스텀 예외 클래스
+ * </p>
  *
  * @author Jaeik
  * @since 1.0.0
@@ -18,10 +20,11 @@ public class CustomException extends RuntimeException {
     private final HttpStatus status;
     private final String target;
     private final String message;
-
+    private final ErrorCode errorCode;
 
     public CustomException(ErrorCode errorCode) {
         super(errorCode.getMessage());
+        this.errorCode = errorCode;
         this.status = errorCode.getStatus();
         this.target = extractTarget();
         this.message = errorCode.getMessage();
@@ -29,6 +32,7 @@ public class CustomException extends RuntimeException {
 
     public CustomException(ErrorCode errorCode, Throwable cause) {
         super(errorCode.getMessage(), cause);
+        this.errorCode = errorCode;
         this.status = errorCode.getStatus();
         this.message = errorCode.getMessage();
         this.target = extractTarget();
@@ -36,13 +40,17 @@ public class CustomException extends RuntimeException {
 
     public CustomException(HttpStatus status, String message) {
         super(message);
+        this.errorCode = null;
         this.status = status;
         this.target = extractTarget();
         this.message = message;
     }
+
     /**
      * <h3>메소드 이름 추출</h3>
-     * <p>현재 예외가 발생한 메소드의 이름을 추출하여 반환</p>
+     * <p>
+     * 현재 예외가 발생한 메소드의 이름을 추출하여 반환
+     * </p>
      *
      * @return 현재 예외가 발생한 메소드의 이름
      * @since 1.0.0

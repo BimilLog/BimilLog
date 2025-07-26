@@ -61,10 +61,10 @@
         </appender>
     </springProfile>
 
-    <!-- 🟢 개발환경 로거 설정 (모든 것 DEBUG 레벨) -->
+    <!-- 🟢 개발환경 로거 설정 -->
     <springProfile name="!prod &amp; !production">
         <!-- 애플리케이션 로거 (DEBUG) -->
-        <logger name="jaeik.growfarm" level="DEBUG" additivity="false">
+        <logger name="jaeik.growfarm" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </logger>
@@ -75,18 +75,18 @@
             <appender-ref ref="FILE"/>
         </logger>
 
-        <!-- 외부 라이브러리들 (개발환경에서는 모두 DEBUG) -->
-        <logger name="com.zaxxer.hikari" level="DEBUG"/>
+        <!-- 외부 라이브러리들 -->
+        <logger name="com.zaxxer.hikari" level="INFO"/>
         <logger name="org.springframework.security" level="DEBUG"/>
         <logger name="org.springframework.web" level="DEBUG"/>
         
         <!-- JPA 쿼리 로그 (개발환경에서만) -->
-        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="INFO"/>
         <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
         <logger name="org.springframework.orm.jpa" level="DEBUG"/>
 
-        <!-- 루트 로거 (개발환경: DEBUG) -->
-        <root level="DEBUG">
+        <!-- 루트 로거  -->
+        <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </root>
