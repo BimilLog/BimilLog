@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version 1.0.16
  */
 @Slf4j
 @RestControllerAdvice
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
      *
      * @param e 발생한 커스텀 예외
      * @return 커스텀 예외에 대한 응답 엔티티
-     * @since 1.0.0
+     * @since 1.0.16
      * @author Jaeik
      */
     @ExceptionHandler(CustomException.class)
@@ -65,7 +65,7 @@ public class GlobalExceptionHandler {
      *
      * @param e 발생한 일반 예외
      * @return 일반 예외에 대한 응답 엔티티
-     * @since 1.0.0
+     * @since 1.0.16
      * @author Jaeik
      */
     @ExceptionHandler(Exception.class)
