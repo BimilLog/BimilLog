@@ -170,13 +170,13 @@ public class PostServiceTest {
         when(postRepository.searchPosts(anyString(), anyString(), any(Pageable.class))).thenReturn(postPage);
 
         // When
-        Page<SimplePostDTO> result = postService.searchPost("title", "getGptResponse", 0, 10);
+        Page<SimplePostDTO> result = postService.searchPost("title", "test", 0, 10);
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
         assertEquals("Test Post Title", result.getContent().getFirst().getTitle());
-        verify(postRepository, times(1)).searchPosts(eq("getGptResponse"), eq("title"), any(Pageable.class));
+        verify(postRepository, times(1)).searchPosts(eq("test"), eq("title"), any(Pageable.class));
     }
 
     @Test

@@ -75,9 +75,6 @@ dependencies {
     implementation 'ca.pjer:logback-awslogs-appender:1.6.0'
     implementation 'software.amazon.awssdk:cloudwatchlogs' // AWS CloudWatch Logs SDK
 
-    // ==== AI ====
-    implementation("com.openai:openai-java:2.14.0")
-
     // ==== Commons Logging 충돌 해결 ====
     configurations.all {
         exclude group: 'commons-logging', module: 'commons-logging'
