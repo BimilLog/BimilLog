@@ -331,7 +331,7 @@ export default function InstallPage() {
           </div>
           <div className="border-t border-gray-800 pt-8">
             <p className="text-gray-500 text-sm">
-              &copy; 2025 비밀로그. All rights reserved. v1.0.12
+              &copy; 2025 비밀로그. All rights reserved. v1.0.17
             </p>
           </div>
         </div>
