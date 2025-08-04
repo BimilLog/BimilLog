@@ -123,7 +123,7 @@ public class RedisPostService {
     /**
      * <h3>Redis에 인기글 캐시가 존재하는지 확인</h3>
      *
-     * @return 캐시 존재 여부
+     * @return 캐시 존재 여부.
      * @author Jaeik
      * @since 1.0.0
      */
