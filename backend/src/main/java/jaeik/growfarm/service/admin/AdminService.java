@@ -113,9 +113,9 @@ public class AdminService {
      * 사용자를 차단하고 블랙리스트에 등록하며 카카오 연결을 해제한다.
      * </p>
      *
-     * @param userId 차단할 사용자 ID
+     * @param reportDTO 차단할 사용자 정
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.0.18
      */
     @Transactional
     public void banUser(ReportDTO reportDTO) {

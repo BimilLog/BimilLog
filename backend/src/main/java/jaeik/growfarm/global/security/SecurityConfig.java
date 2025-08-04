@@ -38,7 +38,7 @@ import java.util.function.Supplier;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 1.0.18
  */
 @Getter
 @Configuration
@@ -70,15 +70,14 @@ public class SecurityConfig {
      * @return SecurityFilterChain 객체
      * @throws Exception 보안 설정 중 발생할 수 있는 예외
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.0.18
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
-                        .ignoringRequestMatchers("/api/ai/**"))
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -87,9 +86,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/health", "/api/auth/me",
-                                "/api/auth/signUp")
-                        .permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/health", "/api/auth/me", "/api/auth/signUp").permitAll()
                         .requestMatchers("/api/comment/like").authenticated()
                         .requestMatchers("/api/comment/**").permitAll()
                         .requestMatchers("/api/post/like").authenticated()
