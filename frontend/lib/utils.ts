@@ -48,7 +48,9 @@ export function isMobileOrTablet(): boolean {
 export async function getFCMToken(): Promise<string | null> {
   // 모바일/태블릿이 아니면 FCM 토큰을 가져오지 않음
   if (!isMobileOrTablet()) {
-    console.log('데스크톱 환경 - FCM 토큰 건너뛰기')
+    if (process.env.NODE_ENV === 'development') {
+      console.log('데스크톱 환경 - FCM 토큰 건너뛰기');
+    }
     return null
   }
 
@@ -86,10 +88,14 @@ export async function getFCMToken(): Promise<string | null> {
     })
 
     if (token) {
-      console.log('FCM 토큰 획득 성공:', token.substring(0, 20) + '...')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('FCM 토큰 획득 성공:', token.substring(0, 20) + '...');
+      }
       return token
     } else {
-      console.log('FCM 토큰 획득 실패 - 브라우저 알림 권한을 확인해주세요.')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('FCM 토큰 획득 실패 - 브라우저 알림 권한을 확인해주세요.');
+      }
       return null
     }
   } catch (error) {

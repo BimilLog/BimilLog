@@ -69,7 +69,7 @@ export default function ReportDetailPage({
   const handleAction = (action: string) => {
     setActionTaken(action);
     // 실제 구현 시 API 호출 추가
-    console.log(`Action taken: ${action}`);
+
   };
 
   const getReportTypeLabel = (type: string) => {

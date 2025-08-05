@@ -4,7 +4,6 @@ import jaeik.growfarm.global.filter.JwtFilter;
 import jaeik.growfarm.global.filter.LogFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
 
 import java.util.Arrays;
 import java.util.List;
@@ -78,7 +78,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRepository(createCsrfTokenRepository())
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -113,10 +113,29 @@ public class SecurityConfig {
                                         "default-src 'self'; " +
                                                 "script-src 'self'; " +
                                                 "style-src 'self'; " +
-                                                "img-src 'self' data:; " +
+                                                "img-src 'self'; " +
                                                 "frame-ancestors 'self';"
                                 )));
         return http.build();
+    }
+
+    /**
+     * <h3>CSRF 토큰 쿠키 저장소 설정</h3>
+     * <p>
+     * CSRF 토큰을 쿠키에 저장하는 저장소를 설정합니다.
+     * Secure 설정이 적용되어 HTTPS에서만 전송됩니다.
+     * </p>
+     *
+     * @return CsrfTokenRepository 객체
+     * @author Jaeik
+     * @since 1.0.19
+     */
+    private CsrfTokenRepository createCsrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieName("XSRF-TOKEN");
+        repository.setCookiePath("/");
+        repository.setCookieCustomizer(cookie -> cookie.secure(true).sameSite("LAX"));
+        return repository;
     }
 
     /**
@@ -146,6 +165,24 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    /**
+     * <h3>쿠키 SameSite 설정</h3>
+     * <p>
+     * 모든 쿠키(CSRF 토큰 포함)에 SameSite=Lax 속성을 적용합니다.
+     * </p>
+     * <p>
+     * 이 설정은 CSRF 공격을 방지하는 데 도움이 됩니다.
+     * </p>
+     *
+     * @return CookieSameSiteSupplier 객체
+     * @author Jaeik
+     * @since 1.0.19
+     */
+    @Bean
+    public CookieSameSiteSupplier cookieSameSiteSupplier() {
+        return CookieSameSiteSupplier.ofLax();
     }
 }
 

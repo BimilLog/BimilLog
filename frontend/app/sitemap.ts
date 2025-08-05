@@ -24,7 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 개발 환경이나 빌드 시에 API 서버가 없는 경우 정적 페이지만 반환
   if (process.env.NODE_ENV === 'development' || !process.env.NEXT_PUBLIC_API_URL) {
-    console.log("API server not available, returning static routes only");
+    
     return staticRoutes;
   }
 
@@ -45,10 +45,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
     
-    console.log(`Successfully fetched ${allPosts.length} posts for sitemap`);
+
   } catch (error) {
     console.error("Failed to fetch posts for sitemap:", error);
-    console.log("Returning static routes only due to API error");
+
     return staticRoutes;
   }
 

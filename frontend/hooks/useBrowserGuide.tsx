@@ -14,10 +14,12 @@ export function useBrowserGuide() {
       return;
     }
 
-    // 카카오톡 인앱 브라우저 감지
-    const detectKakaoInApp = () => {
-      const userAgent = navigator.userAgent;
-      console.log("User Agent:", userAgent); // 디버깅용
+      // 카카오톡 인앱 브라우저 감지
+  const detectKakaoInApp = () => {
+    const userAgent = navigator.userAgent;
+    if (process.env.NODE_ENV === 'development') {
+      console.log("User Agent:", userAgent);
+    }
 
       // 더 정확한 카카오톡 인앱 브라우저 감지
       const isKakao =
@@ -35,17 +37,21 @@ export function useBrowserGuide() {
       const guideHidden = localStorage.getItem("browser-guide-hidden");
       const hideUntil = localStorage.getItem("browser-guide-hide-until");
 
+          if (process.env.NODE_ENV === 'development') {
       console.log("Browser detection:", {
         isKakao,
         forceShow,
         guideHidden,
         hideUntil,
-      }); // 디버깅용
+      });
+    }
 
       if ((isKakao || forceShow) && !guideHidden) {
         // 숨김 기간 확인
         if (hideUntil && new Date().getTime() < parseInt(hideUntil)) {
-          console.log("Guide hidden until:", new Date(parseInt(hideUntil))); // 디버깅용
+          if (process.env.NODE_ENV === 'development') {
+            console.log("Guide hidden until:", new Date(parseInt(hideUntil)));
+          }
           return;
         }
         setShowGuide(true);
@@ -63,7 +69,9 @@ export function useBrowserGuide() {
     const handleAppInstalled = () => {
       setIsPWAInstallable(false);
       setDeferredPrompt(null);
-      console.log("PWA가 설치되었습니다!");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("PWA가 설치되었습니다!");
+      }
     };
 
     detectKakaoInApp();
@@ -84,7 +92,9 @@ export function useBrowserGuide() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
+              if (process.env.NODE_ENV === 'development') {
+          console.log(`User response to the install prompt: ${outcome}`);
+        }
       setDeferredPrompt(null);
       setIsPWAInstallable(false);
     }
