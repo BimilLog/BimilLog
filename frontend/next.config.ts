@@ -63,11 +63,11 @@ const nextConfig = withPWA(pwaConfig)({
                             // 스타일시트 허용
                             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
                             // 이미지 소스 허용 (카카오 광고 이미지 도메인 추가)
-                            "img-src 'self' data: https: http: https://postfiles.pstatic.net https://*.kakaocdn.net https://*.daumcdn.net https://t1.daumcdn.net",
+                            "img-src 'self' data: https: https://postfiles.pstatic.net https://*.kakaocdn.net https://*.daumcdn.net https://t1.daumcdn.net",
                             // 폰트 소스 허용
                             "font-src 'self' data: https://cdn.jsdelivr.net",
                             // API 연결 허용 (카카오 광고 분석 도메인 추가)
-                            "connect-src 'self' https: http: https://grow-farm.com ws://grow-farm.com https://*.kakao.com https://dapi.kakao.com https://analytics.ad.daum.net https://kaat.daum.net https://kuid-provider.ds.kakao.com https://*.daumcdn.net https://aem-kakao-collector.onkakao.net https://www.google-analytics.com https://analytics.google.com",
+                            "connect-src 'self' https: https://grow-farm.com ws://grow-farm.com https://*.kakao.com https://dapi.kakao.com https://analytics.ad.daum.net https://kaat.daum.net https://kuid-provider.ds.kakao.com https://*.daumcdn.net https://aem-kakao-collector.onkakao.net https://www.google-analytics.com https://analytics.google.com",
                             // 프레임 허용 (카카오 광고 프레임 도메인 추가)
                             "frame-src 'self' https://*.kakao.com https://postfiles.pstatic.net https://*.daumcdn.net https://analytics.ad.daum.net about: chrome-extension: https://accounts.kakao.com",
                             "object-src 'none'",
