@@ -595,23 +595,31 @@ export class SSEManager {
         ? `${notificationApi.subscribeToNotifications()}?token=${encodeURIComponent(token)}`
         : notificationApi.subscribeToNotifications()
 
-      console.log("SSE 연결 시도:", sseUrl.replace(token || '', '[TOKEN]'))
+      if (process.env.NODE_ENV === 'development') {
+        console.log("SSE 연결 시도:", sseUrl.replace(token || '', '[TOKEN]'));
+      }
 
       this.eventSource = new EventSource(sseUrl, {
         withCredentials: true, // httpOnly 쿠키 포함
       })
 
       this.eventSource.onopen = (event) => {
-        console.log("SSE connection opened successfully", event)
+        if (process.env.NODE_ENV === 'development') {
+          console.log("SSE connection opened successfully", event);
+        }
         this.reconnectAttempts = 0 // 성공 시 재연결 시도 횟수 초기화
       }
 
       // SSE 이벤트 리스너 등록 (백엔드에서 .name(type.toString())으로 전송하는 이벤트들)
       const handleSSEEvent = (event: MessageEvent) => {
-        console.log(`SSE ${event.type} event received:`, event.data)
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`SSE ${event.type} event received:`, event.data);
+        }
         try {
           const data = JSON.parse(event.data)
-          console.log("Parsed SSE data:", data)
+          if (process.env.NODE_ENV === 'development') {
+            console.log("Parsed SSE data:", data);
+          }
           
           // 백엔드 메시지 구조: { message: "내용", url: "URL" }
           // 프론트엔드 알림 구조로 변환
@@ -627,14 +635,18 @@ export class SSEManager {
           
           // INITIATE 이벤트는 연결 확인용이므로 알림으로 처리하지 않음
           if (event.type === "INITIATE") {
-            console.log("SSE 연결 초기화 완료:", data.message)
+            if (process.env.NODE_ENV === 'development') {
+          console.log("SSE 연결 초기화 완료:", data.message);
+        }
             return
           }
           
           // 리스너 실행
           const listener = this.listeners.get("notification")
           if (listener) {
-            console.log("SSE 알림 리스너 실행:", notificationData)
+            if (process.env.NODE_ENV === 'development') {
+          console.log("SSE 알림 리스너 실행:", notificationData);
+        }
             listener(notificationData)
           } else {
             console.warn("No listener found for SSE message")
@@ -679,7 +691,9 @@ export class SSEManager {
 
   disconnect() {
     if (this.eventSource) {
-      console.log("SSE 연결을 종료합니다.")
+      if (process.env.NODE_ENV === 'development') {
+      console.log("SSE 연결을 종료합니다.");
+    }
       this.eventSource.close()
       this.eventSource = null
       this.reconnectAttempts = 0
@@ -687,12 +701,16 @@ export class SSEManager {
   }
 
   addEventListener(type: string, listener: (data: any) => void) {
-    console.log(`SSE 리스너 등록: ${type}`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`SSE 리스너 등록: ${type}`);
+    }
     this.listeners.set(type, listener)
   }
 
   removeEventListener(type: string) {
-    console.log(`SSE 리스너 제거: ${type}`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`SSE 리스너 제거: ${type}`);
+    }
     this.listeners.delete(type)
   }
 

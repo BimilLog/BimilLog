@@ -26,7 +26,9 @@ export function useNotifications() {
 
     // 닉네임이 설정되지 않은 신규회원은 연결 불가
     if (!user.userName || user.userName.trim() === "") {
-      console.log("닉네임이 설정되지 않은 사용자 - SSE 연결 불가")
+      if (process.env.NODE_ENV === 'development') {
+      console.log("닉네임이 설정되지 않은 사용자 - SSE 연결 불가");
+    }
       return false
     }
 
@@ -78,13 +80,17 @@ export function useNotifications() {
         processBatch()
       }, 5 * 60 * 1000) // 5분
 
-      console.log("알림 배치 처리 타이머 시작 (5분 간격)")
+      if (process.env.NODE_ENV === 'development') {
+        console.log("알림 배치 처리 타이머 시작 (5분 간격)");
+      }
 
       return () => {
         if (batchTimerRef.current) {
           clearInterval(batchTimerRef.current)
           batchTimerRef.current = null
-          console.log("알림 배치 처리 타이머 정리")
+          if (process.env.NODE_ENV === 'development') {
+            console.log("알림 배치 처리 타이머 정리");
+          }
         }
       }
     }
@@ -128,23 +134,31 @@ export function useNotifications() {
   // SSE 연결 함수 (수동 트리거용)
   const connectSSE = useCallback(() => {
     if (!canConnectSSE()) {
-      console.log("SSE 연결 조건 미충족 - 연결 건너뛰기")
+      if (process.env.NODE_ENV === 'development') {
+      console.log("SSE 연결 조건 미충족 - 연결 건너뛰기");
+    }
       return
     }
 
     if (isSSEConnected) {
-      console.log("이미 SSE가 연결되어 있습니다.")
+      if (process.env.NODE_ENV === 'development') {
+        console.log("이미 SSE가 연결되어 있습니다.");
+      }
       return
     }
 
-    console.log(`SSE 연결을 시작합니다 (사용자: ${user?.userName})...`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`SSE 연결을 시작합니다 (사용자: ${user?.userName})...`);
+    }
     
     // 기존 리스너 제거
     sseManager.removeEventListener("notification")
     
     // 새 알림 수신 리스너 등록
     sseManager.addEventListener("notification", async (data) => {
-      console.log("새 알림 수신:", data)
+      if (process.env.NODE_ENV === 'development') {
+        console.log("새 알림 수신:", data);
+      }
       
       // 임시 알림을 즉시 표시 (사용자 경험 향상)
       const tempNotification: Notification = {
@@ -164,12 +178,16 @@ export function useNotifications() {
 
       // 서버에서 최신 알림 목록을 다시 조회하여 정확한 데이터로 업데이트
       try {
-        console.log("SSE 알림 수신 후 서버에서 최신 알림 목록 조회...")
+        if (process.env.NODE_ENV === 'development') {
+        console.log("SSE 알림 수신 후 서버에서 최신 알림 목록 조회...");
+      }
         const response = await notificationApi.getNotifications()
         if (response.success && response.data) {
           setNotifications(response.data)
           setUnreadCount(response.data.filter((n) => !n.read).length)
-          console.log("서버에서 최신 알림 목록 업데이트 완료")
+          if (process.env.NODE_ENV === 'development') {
+        console.log("서버에서 최신 알림 목록 업데이트 완료");
+      }
         }
       } catch (error) {
         console.error("SSE 알림 수신 후 알림 목록 조회 실패:", error)
@@ -192,7 +210,9 @@ export function useNotifications() {
       const state = sseManager.getConnectionState()
       const connected = sseManager.isConnected()
       
-      console.log(`SSE 연결 상태: ${state}, 연결됨: ${connected}`)
+      if (process.env.NODE_ENV === 'development') {
+      console.log(`SSE 연결 상태: ${state}, 연결됨: ${connected}`);
+    }
       setConnectionState(state)
       setIsSSEConnected(connected)
       
@@ -231,7 +251,9 @@ export function useNotifications() {
   // 인증 상태 및 사용자 정보가 변경될 때 SSE 연결 관리
   useEffect(() => {
     if (canConnectSSE()) {
-      console.log(`사용자 인증 완료 (${user?.userName}) - SSE 연결 준비`)
+      if (process.env.NODE_ENV === 'development') {
+      console.log(`사용자 인증 완료 (${user?.userName}) - SSE 연결 준비`);
+    }
       // 인증된 경우 자동으로 SSE 연결
       const cleanup = connectSSE()
       return cleanup
@@ -350,7 +372,9 @@ export function useNotifications() {
   const requestNotificationPermission = async () => {
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       const permission = await Notification.requestPermission()
-      console.log("브라우저 알림 권한:", permission)
+      if (process.env.NODE_ENV === 'development') {
+        console.log("브라우저 알림 권한:", permission);
+      }
       return permission
     }
     return Notification.permission

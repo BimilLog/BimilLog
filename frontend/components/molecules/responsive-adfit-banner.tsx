@@ -40,7 +40,9 @@ export function ResponsiveAdFitBanner({
   }, []);
 
   const handleAdFail = (type: "mobile" | "pc") => {
-    console.log(`${position} ${type} 광고 로딩 실패`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`${position} ${type} 광고 로딩 실패`);
+    }
     onAdFail?.(type);
   };
 

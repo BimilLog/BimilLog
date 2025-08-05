@@ -33,7 +33,9 @@ export default function LogoutPage() {
             };
 
             await unlink();
-            console.log("카카오 연결 끊기 성공");
+            if (process.env.NODE_ENV === 'development') {
+          console.log("카카오 연결 끊기 성공");
+        }
           } catch (kakaoError) {
             console.error("카카오 연결 끊기 실패:", kakaoError);
             showError(

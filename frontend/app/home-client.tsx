@@ -77,7 +77,11 @@ export default function HomeClient() {
                 adUnit={adUnit}
                 width={AD_SIZES.BANNER_320x50.width}
                 height={AD_SIZES.BANNER_320x50.height}
-                onAdFail={() => console.log("메인 페이지 광고 로딩 실패")}
+                onAdFail={() => {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log("메인 페이지 광고 로딩 실패");
+                  }
+                }}
               />
             ) : null;
           })()}

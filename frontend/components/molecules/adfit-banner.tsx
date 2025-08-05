@@ -97,7 +97,9 @@ export function AdFitBanner({
 
   // NO-AD 콜백 함수
   const handleAdFail = (element: HTMLElement) => {
-    console.log("AdFit 광고 로딩 실패:", element);
+    if (process.env.NODE_ENV === 'development') {
+      console.log("AdFit 광고 로딩 실패:", element);
+    }
     onAdFail?.();
     setIsAdFailed(true);
 

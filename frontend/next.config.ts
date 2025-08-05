@@ -35,6 +35,15 @@ const pwaConfig = {
 };
 
 const nextConfig = withPWA(pwaConfig)({
+    async redirects() {
+        return [
+            {
+                source: '/admin/',
+                destination: '/admin',
+                permanent: true,
+            },
+        ];
+    },
     headers: async () => {
         return [
             {
@@ -51,6 +60,16 @@ const nextConfig = withPWA(pwaConfig)({
                 ],
             },
             {
+                // admin 페이지에 Content-Type 헤더 명시적 설정
+                source: '/admin/:path*',
+                headers: [
+                    {
+                        key: 'Content-Type',
+                        value: 'text/html; charset=utf-8',
+                    },
+                ],
+            },
+            {
                 // 모든 페이지에 보안 헤더 적용
                 source: '/:path*',
                 headers: [
@@ -58,25 +77,31 @@ const nextConfig = withPWA(pwaConfig)({
                         key: 'Content-Security-Policy',
                         value: [
                             "default-src 'self'",
-                            // 스크립트 소스 허용 (카카오 광고 도메인 추가)
-                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.kakao.com https://*.kakao.sdk.io https://t1.kakaocdn.net https://t1.daumcdn.net https://*.daumcdn.net https://postfiles.pstatic.net https://dapi.kakao.com https://aem-kakao-collector.onkakao.net https://www.gstatic.com https://www.gstatic.com/firebasejs/ https://www.googletagmanager.com",
+                            // 스크립트 소스 허용 (개발환경에서만 unsafe-eval 허용)
+                            "script-src 'self' 'unsafe-inline'" + 
+                            (process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "") +
+                            " https://cdn.jsdelivr.net https://accounts.kakao.com https://dapi.kakao.com https://display.ad.daum.net https://t1.kakaocdn.net https://t1.daumcdn.net https://postfiles.pstatic.net https://aem-kakao-collector.onkakao.net https://www.gstatic.com https://www.gstatic.com/firebasejs/ https://www.googletagmanager.com https://accounts.google.com http://clients2.google.com",
                             // 스타일시트 허용
                             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
-                            // 이미지 소스 허용 (카카오 광고 이미지 도메인 추가)
-                            "img-src 'self' data: https: https://postfiles.pstatic.net https://*.kakaocdn.net https://*.daumcdn.net https://t1.daumcdn.net",
+                            // 이미지 소스 허용 (구체적 도메인만 명시)
+                            "img-src 'self' data: https://p.kakaocdn.net http://k.kakaocdn.net http://t1.kakaocdn.net https://t1.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net",
                             // 폰트 소스 허용
                             "font-src 'self' data: https://cdn.jsdelivr.net",
-                            // API 연결 허용 (카카오 광고 분석 도메인 추가)
-                            "connect-src 'self' https: https://grow-farm.com ws://grow-farm.com https://*.kakao.com https://dapi.kakao.com https://analytics.ad.daum.net https://kaat.daum.net https://kuid-provider.ds.kakao.com https://*.daumcdn.net https://aem-kakao-collector.onkakao.net https://www.google-analytics.com https://analytics.google.com",
-                            // 프레임 허용 (카카오 광고 프레임 도메인 추가)
-                            "frame-src 'self' https://*.kakao.com https://postfiles.pstatic.net https://*.daumcdn.net https://analytics.ad.daum.net about: chrome-extension: https://accounts.kakao.com",
+                            // API 연결 허용 (개발환경에서는 localhost 포함)
+                            "connect-src 'self' https://grow-farm.com ws://grow-farm.com" + 
+                            (process.env.NODE_ENV === "development" ? " http://localhost:* ws://localhost:*" : "") +
+                            " https://accounts.kakao.com https://dapi.kakao.com https://analytics.ad.daum.net https://display.ad.daum.net https://kaat.daum.net https://kuid-provider.ds.kakao.com https://t1.daumcdn.net https://aem-kakao-collector.onkakao.net https://www.google-analytics.com https://analytics.google.com https://accounts.google.com",
+                            // 프레임 허용 (구체적 도메인만 명시)
+                            "frame-src 'self' https://accounts.kakao.com https://postfiles.pstatic.net https://t1.daumcdn.net https://analytics.ad.daum.net https://display.ad.daum.net about: chrome-extension:",
                             "object-src 'none'",
                             "base-uri 'self'",
-                            "form-action 'self' https://*.kakao.com",
+                            "form-action 'self' https://accounts.kakao.com",
+                            // 클릭재킹 방지 (X-Frame-Options와 중복이지만 더 정확한 제어)
+                            "frame-ancestors 'self'",
                             // 미디어 소스 허용
                             "media-src 'self' https://t1.kakaocdn.net https://t1.daumcdn.net https://postfiles.pstatic.net",
                             // 카카오 공유 팝업 허용
-                            "child-src 'self' https://*.kakao.com about: chrome-extension:",
+                            "child-src 'self' https://accounts.kakao.com https://display.ad.daum.net about: chrome-extension:",
                         ].join('; '),
                     },
                     {
@@ -91,12 +116,22 @@ const nextConfig = withPWA(pwaConfig)({
                         key: 'Referrer-Policy',
                         value: 'strict-origin-when-cross-origin',
                     },
+                    {
+                        // 클릭재킹 방지
+                        key: 'X-Frame-Options',
+                        value: 'SAMEORIGIN',
+                    },
+                    // HTTPS 강제 (HSTS) - production에서만 적용
+                    ...(process.env.NODE_ENV === "production" ? [{
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains',
+                    }] : []),
                 ],
             },
         ];
     },
     images: {
-        domains: ['k.kakaocdn.net'],
+        domains: ['k.kakaocdn.net', 'p.kakaocdn.net', 't1.kakaocdn.net'],
     },
     eslint: {
         ignoreDuringBuilds: true,

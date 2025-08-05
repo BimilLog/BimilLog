@@ -93,9 +93,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 로그아웃
   const logout = async (): Promise<void> => {
     try {
+          if (process.env.NODE_ENV === 'development') {
       console.log("로그아웃 시작...");
-      const response = await authApi.logout();
+    }
+    const response = await authApi.logout();
+    if (process.env.NODE_ENV === 'development') {
       console.log("로그아웃 API 응답:", response);
+    }
       setUser(null);
       window.location.href = "/";
     } catch (error) {

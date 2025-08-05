@@ -35,7 +35,9 @@ const QuillEditor: React.FC<EditorProps> = ({
 
       try {
         isInitializing.current = true;
-        console.log("Quill 에디터 초기화를 시작합니다...");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Quill 에디터 초기화를 시작합니다...");
+        }
 
         // Quill을 동적으로 import
         const { default: Quill } = await import("quill");
@@ -152,7 +154,9 @@ const QuillEditor: React.FC<EditorProps> = ({
 
         setIsReady(true);
         setError(null);
-        console.log("Quill 에디터가 성공적으로 초기화되었습니다.");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Quill 에디터가 성공적으로 초기화되었습니다.");
+        }
       } catch (error) {
         console.error("Quill 로드 실패:", error);
         setError(

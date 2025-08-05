@@ -112,7 +112,11 @@ export default function BoardClient() {
                   adUnit={adUnit}
                   width={AD_SIZES.BANNER_320x50.width}
                   height={AD_SIZES.BANNER_320x50.height}
-                  onAdFail={() => console.log("게시판 중간 광고 로딩 실패")}
+                  onAdFail={() => {
+                if (process.env.NODE_ENV === 'development') {
+                  console.log("게시판 중간 광고 로딩 실패");
+                }
+              }}
                 />
               ) : null;
             })()}
@@ -129,7 +133,11 @@ export default function BoardClient() {
                   adUnit={adUnit}
                   width={AD_SIZES.BANNER_320x50.width}
                   height={AD_SIZES.BANNER_320x50.height}
-                  onAdFail={() => console.log("게시판 하단 광고 로딩 실패")}
+                  onAdFail={() => {
+                if (process.env.NODE_ENV === 'development') {
+                  console.log("게시판 하단 광고 로딩 실패");
+                }
+              }}
                 />
               ) : null;
             })()}
