@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description:
     "친구의 롤링페이퍼를 방문하여 따뜻한 익명 메시지를 남겨보세요. 닉네임을 검색하여 롤링페이퍼를 찾고 다양한 디자인으로 메시지를 꾸며보세요.",
   keywords: generateKeywords([
+      "롤링페이퍼",
+"생일축하메시지",
+
     "롤링페이퍼 방문",
     "익명 메시지",
     "친구 롤링페이퍼",

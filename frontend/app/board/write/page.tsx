@@ -6,7 +6,7 @@ import { AuthHeader } from "@/components/organisms/auth-header";
 
 // 분리된 훅과 컴포넌트들 import
 import { useWriteForm } from "./hooks/useWriteForm";
-import { WritePageHeader, WriteForm } from "@/components";
+import { WritePageHeader, WriteForm, Breadcrumb } from "@/components";
 
 export default function WritePostPage() {
   const { isLoading } = useAuth();
@@ -62,6 +62,15 @@ export default function WritePostPage() {
       />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-4">
+          <Breadcrumb
+            items={[
+              { title: "홈", href: "/" },
+              { title: "커뮤니티", href: "/board" },
+              { title: "글쓰기" },
+            ]}
+          />
+        </div>
         <WriteForm
           title={title}
           setTitle={setTitle}

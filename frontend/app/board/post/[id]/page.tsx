@@ -29,36 +29,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .replace(/<[^>]*>/g, "")
       .substring(0, 160);
 
-    return {
-      title: `${post.title} | 비밀로그`,
-      description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
-      keywords: generateKeywords(["게시글", post.title, post.userName]),
-      authors: [{ name: post.userName }],
-      openGraph: {
-        title: `${post.title} | 비밀로그`,
-        description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
-        url: `https://grow-farm.com/board/post/${postId}`,
-        siteName: "비밀로그",
-        images: [
-          {
-            url: "https://grow-farm.com/log.png",
-            width: 326,
-            height: 105,
-            alt: "비밀로그 로고",
-          },
-        ],
-        locale: "ko_KR",
-        type: "article",
-        publishedTime: post.createdAt,
-        authors: [post.userName],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: `${post.title} | 비밀로그`,
-        description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
-        images: ["https://grow-farm.com/log.png"],
-      },
-    };
+        const ogImageUrl = new URL(`/api/og`, "https://grow-farm.com");
+        ogImageUrl.searchParams.set("title", post.title);
+        ogImageUrl.searchParams.set("author", post.userName);
+
+        return {
+            title: `${post.title} | 비밀로그`,
+            description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
+            keywords: generateKeywords(["게시글", post.title, post.userName]),
+            authors: [{ name: post.userName }],
+            openGraph: {
+                title: `${post.title} | 비밀로그`,
+                description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
+                url: `https://grow-farm.com/board/post/${postId}`,
+                siteName: "비밀로그",
+                images: [
+                    {
+                        url: ogImageUrl.toString(),
+                        width: 1200,
+                        height: 630,
+                        alt: `${post.title} - 비밀로그`,
+                    },
+                ],
+                locale: "ko_KR",
+                type: "article",
+                publishedTime: post.createdAt,
+                authors: [post.userName],
+            },
+            twitter: {
+                card: "summary_large_image",
+                title: `${post.title} | 비밀로그`,
+                description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
+                images: [ogImageUrl.toString()],
+            },
+        };
   } catch (error) {
     return {
       title: "게시글을 찾을 수 없습니다 | 비밀로그",
