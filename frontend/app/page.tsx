@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     "카카오톡",
     "친구",
     "소통",
+
   ],
   openGraph: {
     title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
