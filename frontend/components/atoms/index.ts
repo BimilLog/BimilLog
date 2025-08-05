@@ -9,4 +9,4 @@ export { Switch } from './switch';
 export { Icon } from './icon';
 export { Spinner } from './spinner';
 export { default as SafeHTML } from './SafeHTML';
-export { KakaoShareButton } from './kakao-share-button'; 
+export { KakaoShareButton } from './kakao-share-button';

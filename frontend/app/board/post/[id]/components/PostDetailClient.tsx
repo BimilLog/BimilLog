@@ -10,6 +10,7 @@ import {
   AdFitBanner,
   AD_SIZES,
   getAdUnit,
+  Breadcrumb,
 } from "@/components";
 import { Post } from "@/lib/api";
 
@@ -123,6 +124,18 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        <div className="mb-4">
+          <Breadcrumb
+            items={[
+              { title: "홈", href: "/" },
+              { title: "커뮤니티", href: "/board" },
+              {
+                title: post.title,
+                href: `/board/post/${post.postId}`,
+              },
+            ]}
+          />
+        </div>
         {/* 뒤로가기 버튼 */}
         <div className="mb-6">
           <Link href="/board">

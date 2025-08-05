@@ -21,6 +21,8 @@ export async function generateMetadata(
     keywords: generateKeywords([
       `${decodedNickname}님의 롤링페이퍼`,
       `${decodedNickname} 롤링페이퍼`,
+      "생일축하메시지",
+
       "친구 롤링페이퍼",
       "익명 메시지",
       "메시지 남기기",

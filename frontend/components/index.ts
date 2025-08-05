@@ -111,6 +111,7 @@ export {
 export { AuthHeader } from './organisms/auth-header';
 export { MobileNav } from './organisms/mobile-nav';
 export { NotificationBell } from './organisms/notification-bell';
+export { Breadcrumb } from './organisms/breadcrumb';
 
 // Board Components
 export { BoardSearch } from './organisms/board/board-search';

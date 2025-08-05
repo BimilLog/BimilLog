@@ -8,6 +8,7 @@ import {
   AdFitBanner,
   AD_SIZES,
   getAdUnit,
+  Breadcrumb,
 } from "@/components";
 import { HomeFooter } from "@/components/organisms/home/HomeFooter";
 
@@ -67,6 +68,12 @@ export default function BoardClient() {
       <BoardHeader />
 
       <main className="container mx-auto px-4 pb-8">
+        <Breadcrumb
+          items={[
+            { title: "홈", href: "/" },
+            { title: "커뮤니티", href: "/board" },
+          ]}
+        />
         {/* 검색 섹션 */}
         <div className="mb-8">
           <div className="bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg p-6">
