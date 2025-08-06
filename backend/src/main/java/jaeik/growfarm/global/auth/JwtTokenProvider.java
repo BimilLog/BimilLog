@@ -22,7 +22,7 @@ import java.util.List;
  * <p>JWT 토큰을 생성하고 검증합니다.</p>
  *
  * @author Jaeik
- * @version  1.0.0
+ * @version  1.0.20
  */
 @Component
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class JwtTokenProvider {
     private final TokenJdbcRepository tokenJdbcRepository;
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
-    private static final int MAX_AGE = 21600;
+    private static final int MAX_AGE = 3600;
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -70,7 +70,7 @@ public class JwtTokenProvider {
     /**
      * <h3>JWT 액세스 토큰이 담긴 쿠키 생성</h3>
      *
-     * <p>사용자 정보를 포함한 JWT 액세스 토큰 쿠키를 생성합니다.</p>
+     * <p>사용자 정보를 포함한 JWT 액세스 토큰 쿠키를 생성합니다. 유효기간은 1시간 입니다.</p>
      *
      * @param clientDTO 클라이언트용 DTO
      * @return JWT 액세스 토큰이 담긴 쿠키
@@ -90,7 +90,7 @@ public class JwtTokenProvider {
     /**
      * <h3>JWT 리프레시 토큰이 담긴 쿠키 생성</h3>
      *
-     * <p>사용자 정보를 포함한 JWT 리프레시 토큰 쿠키를 생성합니다.</p>
+     * <p>사용자 정보를 포함한 JWT 리프레시 토큰 쿠키를 생성합니다. 유효기간은 30일 입니다.</p>
      *
      * @param clientDTO 클라이언트용 DTO
      * @return JWT 리프레시 토큰이 담긴 쿠키
@@ -100,7 +100,7 @@ public class JwtTokenProvider {
     public ResponseCookie generateJwtRefreshCookie(ClientDTO clientDTO) {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, generateRefreshToken(clientDTO))
                 .path("/")
-                .maxAge(MAX_AGE * 120L)
+                .maxAge(MAX_AGE * 720L)
                 .httpOnly(true)
                 .sameSite("Lax")
                 .secure(true)
@@ -110,7 +110,7 @@ public class JwtTokenProvider {
     /**
      * <h3>JWT 액세스 토큰 생성</h3>
      *
-     * <p>사용자 정보를 포함한 JWT 액세스 토큰을 생성한다. 유효기간은 6시간이다</p>
+     * <p>사용자 정보를 포함한 JWT 액세스 토큰을 생성한다. 유효기간은 1시간이다</p>
      *
      * @param clientDTO 클라이언트용 DTO
      * @return JWT 액세스 토큰
@@ -119,7 +119,7 @@ public class JwtTokenProvider {
      */
     private String generateAccessToken(ClientDTO clientDTO) {
         long now = (new Date()).getTime();
-        Date validity = new Date(now + 21600000);
+        Date validity = new Date(now + 3600000);
 
         return Jwts.builder()
                 .setSubject(String.valueOf(clientDTO.getUserId()))
@@ -150,7 +150,7 @@ public class JwtTokenProvider {
      */
     private String generateRefreshToken(ClientDTO clientDTO) {
         long now = (new Date()).getTime();
-        Date validity = new Date(now + (21600000L * 120));
+        Date validity = new Date(now + (3600000L * 720));
 
         String jwtRefreshToken = Jwts.builder()
                 .setSubject(String.valueOf(clientDTO.getTokenId()))

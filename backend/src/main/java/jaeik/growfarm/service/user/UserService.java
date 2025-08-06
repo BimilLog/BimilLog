@@ -20,6 +20,7 @@ import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
+import jaeik.growfarm.service.auth.AuthService;
 import jaeik.growfarm.service.kakao.KakaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -52,6 +53,7 @@ public class UserService {
     private final TokenRepository tokenRepository;
     private final SettingRepository settingRepository;
     private final UserUpdateService userUpdateService;
+    private final AuthService authService;
 
     /**
      * <h3>유저 작성 글 목록 조회</h3>
@@ -201,14 +203,14 @@ public class UserService {
      * @param offset      페이지 오프셋
      * @return 카카오 친구 목록 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.0.20
      */
     public KakaoFriendListDTO getFriendList(CustomUserDetails userDetails, int offset) {
         Token token = tokenRepository.findById(userDetails.getTokenId())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
-        validateKakaoConsent(token.getKakaoAccessToken());
+        String accessToken = authService.validateKakaoConsent(token);
 
-        KakaoFriendListDTO friendListDTO = kakaoService.getFriendList(token.getKakaoAccessToken(), offset);
+        KakaoFriendListDTO friendListDTO = kakaoService.getFriendList(accessToken, offset);
         mapUserNamesToFriends(friendListDTO.getElements());
 
         return friendListDTO;
@@ -252,24 +254,6 @@ public class UserService {
         userUpdateService.settingUpdate(settingDTO, setting);
     }
 
-    /**
-     * <h3>카카오 친구 목록 조회 동의 여부를 확인한다.</h3>
-     *
-     * @param kakaoAccessToken 카카오 액세스 토큰
-     * @throws CustomException 동의하지 않은 항목이 있는 경우
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private void validateKakaoConsent(String kakaoAccessToken) {
-        KakaoCheckConsentDTO consentInfo = kakaoService.checkConsent(kakaoAccessToken);
-
-        boolean hasUnagreedScope = Arrays.stream(consentInfo.getScopes())
-                .anyMatch(scope -> !scope.isAgreed());
-
-        if (hasUnagreedScope) {
-            throw new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
-        }
-    }
 
     /**
      * <h3>친구 목록에 닉네임을 매핑한다.</h3>

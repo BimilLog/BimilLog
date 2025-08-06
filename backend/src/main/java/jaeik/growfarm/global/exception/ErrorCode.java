@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
  * </p>
  *
  * @author Jaeik
- * @version  1.0.16
+ * @version  1.0.20
  */
 @Getter
 public enum ErrorCode {
@@ -27,6 +27,7 @@ public enum ErrorCode {
     KAKAO_GET_USERINFO_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 유저정보 가져오기 실패", LogLevel.ERROR),
     LOGOUT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "로그아웃 실패", LogLevel.ERROR),
     KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의을 해야 합니다.", LogLevel.INFO),
+    KAKAO_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "카카오 토큰이 만료되었습니다.", LogLevel.INFO),
     ALREADY_LOGIN(HttpStatus.FORBIDDEN, "이미 로그인 된 유저 입니다.", LogLevel.WARN),
     INVALID_TEMP_DATA(HttpStatus.BAD_REQUEST, "시간이 초과 되었습니다. 다시 카카오 로그인을 진행해주세요.", LogLevel.WARN),
     REPEAT_LOGIN(HttpStatus.FORBIDDEN, "다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요", LogLevel.INFO),
