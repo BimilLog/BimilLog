@@ -107,6 +107,51 @@ public class KakaoService {
         }
     }
 
+    /**
+     * <h3>카카오 동의목록 조회</h3>
+     *
+     * <p>
+     * 카카오 액세스토큰을 사용하여 사용자의 동의목록을 조회한다.
+     * </p>
+     *
+     * @param kakaoAccessToken 현재 로그인한 사용자 정보
+     * @return 사용자의 카카오 동의 목록
+     * @author Jaeik
+     * @since 1.0.20
+     */
+    public KakaoCheckConsentDTO checkConsent(String kakaoAccessToken) throws CustomException {
+        WebClient webClient = webClientBuilder.build();
+
+        String scopesJson = "[\"friends\"]"; // JSON 배열 문자열로 직접 설정
+
+        Mono<KakaoCheckConsentDTO> response = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("kapi.kakao.com")
+                        .path("/v2/user/scopes")
+                        .queryParam("scopes", scopesJson)
+                        .build())
+                .header("Authorization", "Bearer " + kakaoAccessToken)
+                .retrieve()
+                .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> {
+                            if (clientResponse.statusCode() == HttpStatus.UNAUTHORIZED) {
+                                return Mono.error(new CustomException(ErrorCode.KAKAO_TOKEN_EXPIRED));
+                            }
+                            return clientResponse.bodyToMono(String.class)
+                                    .flatMap(body -> {
+                                        log.error("카카오 동의 조회 실패 응답: {}", body);
+                                        return Mono.error(new RuntimeException(
+                                                "동의 내역 확인 실패: " + body));
+                                    });
+
+                        }
+                )
+                .bodyToMono(KakaoCheckConsentDTO.class);
+
+        return response.block();
+    }
 
 
     // 카카오계정과 함께 로그아웃
@@ -262,34 +307,6 @@ public class KakaoService {
                                 .error(new RuntimeException("친구 목록 가져오기가 실패 했습니다.: "
                                         + clientResponse.statusCode())))
                 .bodyToMono(KakaoFriendListDTO.class);
-
-        return response.block();
-    }
-
-    // 동의 내역 확인하기
-    public KakaoCheckConsentDTO checkConsent(String kakaoAccessToken) {
-        WebClient webClient = webClientBuilder.build();
-
-        String scopesJson = "[\"friends\"]"; // JSON 배열 문자열로 직접 설정
-
-        Mono<KakaoCheckConsentDTO> response = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .host("kapi.kakao.com")
-                        .path("/v2/user/scopes")
-                        .queryParam("scopes", scopesJson)
-                        .build())
-                .header("Authorization", "Bearer " + kakaoAccessToken)
-                .retrieve()
-                .onStatus(
-                        status -> status.is4xxClientError() || status.is5xxServerError(),
-                        clientResponse -> clientResponse.bodyToMono(String.class)
-                                .flatMap(body -> {
-                                    log.error("카카오 동의 조회 실패 응답: {}", body);
-                                    return Mono.error(new RuntimeException(
-                                            "동의 내역 확인 실패: " + body));
-                                }))
-                .bodyToMono(KakaoCheckConsentDTO.class);
 
         return response.block();
     }

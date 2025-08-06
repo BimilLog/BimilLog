@@ -1,6 +1,7 @@
 package jaeik.growfarm.service.auth;
 
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
+import jaeik.growfarm.dto.kakao.KakaoCheckConsentDTO;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.entity.user.Token;
@@ -23,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -257,6 +259,35 @@ public class AuthService {
     }
 
     /**
+     * <h3>카카오 친구 목록 조회 동의 여부를 확인한다.</h3>
+     *
+     * @param token 토큰
+     * @throws CustomException 동의하지 않은 항목이 있는 경우
+     * @author Jaeik
+     * @since 1.0.20
+     */
+    public String validateKakaoConsent(Token token) {
+        String accessToken = token.getKakaoAccessToken();
+        KakaoCheckConsentDTO consentInfo;
+
+        try {
+            consentInfo = kakaoService.checkConsent(accessToken);
+        } catch (CustomException e) {
+            accessToken = renewalKaKaoToken(token);
+            consentInfo = kakaoService.checkConsent(accessToken);
+        }
+
+        boolean hasUnagreedScope = Arrays.stream(consentInfo.getScopes())
+                .anyMatch(scope -> !scope.isAgreed());
+
+        if (hasUnagreedScope) {
+            throw new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
+        }
+
+        return accessToken;
+    }
+
+    /**
      * <h3>카카오 토큰 갱신</h3>
      *
      * <p>
@@ -265,10 +296,10 @@ public class AuthService {
      *
      * @param token 현재 로그인한 사용자의 토큰 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.0.20
      */
     @Transactional
-    public void renewalKaKaoToken(Token token) {
+    public String renewalKaKaoToken(Token token) {
         Token managedToken = tokenRepository.findById(token.getId()).orElseThrow(
                 () -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
 
@@ -276,5 +307,8 @@ public class AuthService {
         managedToken.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
 
         tokenRepository.save(managedToken);
+        return tokenDTO.getKakaoAccessToken();
     }
+
+
 }
