@@ -38,7 +38,6 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
