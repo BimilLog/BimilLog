@@ -91,7 +91,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * @throws ServletException 서블릿 예외
      * @throws IOException      입출력 예외
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.0.20
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -104,16 +104,13 @@ public class JwtFilter extends OncePerRequestFilter {
             setAuthentication(accessToken);
         } else { // accessToken이 없거나 유효 하지 않을 때
             String refreshToken = extractTokenFromCookie(request, JwtTokenProvider.REFRESH_TOKEN_COOKIE);
-            // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을
-            // 검증
+            // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을 검증
             if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
                 Long tokenId = jwtTokenProvider.getTokenIdFromToken(refreshToken);
                 Long fcmTokenId = jwtTokenProvider.getFcmTokenIdFromToken(refreshToken);
                 Token token = tokenRepository.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.REPEAT_LOGIN));
                 if (Objects.equals(token.getId(), tokenId)) {
-                    // 카카오 토큰 갱신
-                    authService.renewalKaKaoToken(token);
 
                     // 유저 정보 조회 (Setting 포함)
                     Users user = userRepository.findByIdWithSetting(token.getUsers().getId()).orElseThrow();

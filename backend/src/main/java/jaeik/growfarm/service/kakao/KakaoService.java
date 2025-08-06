@@ -78,23 +78,36 @@ public class KakaoService {
      *
      * @param kakaoAccessToken 카카오 액세스 토큰
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.0.20
      */
     public void logout(String kakaoAccessToken) {
         WebClient webClient = webClientBuilder.build();
 
-        Mono<String> response = webClient.post()
-                .uri(kakaoKeyVO.getLOGOUT_URL())
-                .header("Authorization", "Bearer " + kakaoAccessToken)
-                .retrieve()
-                .onStatus(
-                        status -> status.is4xxClientError() || status.is5xxServerError(),
-                        clientResponse -> Mono.error(
-                                new RuntimeException("로그아웃이 실패 했습니다.: " + clientResponse.statusCode())))
-                .bodyToMono(String.class);
-
-        String result = response.block();
+        try {
+            Mono<String> response = webClient.post()
+                    .uri(kakaoKeyVO.getLOGOUT_URL())
+                    .header("Authorization", "Bearer " + kakaoAccessToken)
+                    .retrieve()
+                    .onStatus(
+                            status -> status.is4xxClientError() || status.is5xxServerError(),
+                            clientResponse -> {
+                                // 토큰이 이미 만료된 경우(401 Unauthorized) 등은 정상적인 상황으로 처리
+                                if (clientResponse.statusCode() == HttpStatus.UNAUTHORIZED) {
+                                    log.info("카카오 액세스 토큰이 이미 만료되었거나 유효하지 않습니다. 로그아웃을 계속 진행합니다.");
+                                    return Mono.empty();
+                                }
+                                return Mono.error(
+                                        new RuntimeException("카카오 로그아웃이 실패 했습니다.: " + clientResponse.statusCode()));
+                            })
+                    .bodyToMono(String.class);
+            response.block();
+            log.info("카카오 로그아웃이 성공적으로 완료되었습니다.");
+        } catch (Exception e) {
+            log.warn("카카오 로그아웃 중 오류가 발생했지만 로그아웃을 계속 진행합니다: {}", e.getMessage());
+        }
     }
+
+
 
     // 카카오계정과 함께 로그아웃
     public String logoutWithKakao(String kakaoAccessToken) {
