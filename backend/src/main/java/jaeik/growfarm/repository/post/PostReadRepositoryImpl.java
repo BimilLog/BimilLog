@@ -39,9 +39,9 @@ public class PostReadRepositoryImpl extends PostBaseRepository implements PostRe
      * <h3>게시글 목록 조회</h3>
      * <p>
      * 최신순으로 페이징하여 게시글 목록을 조회한다. 공지글과 일반글을 모두 포함한다.
-     * 각 게시글의 댓글 수와 추천 수도 함께 반환한다.
      * </p>
-     *
+     * <p>각 게시글의 댓글 수와 추천 수도 함께 반환한다.</p>
+     * @param pageable 페이지 정보
      * @return 게시글 목록 페이지
      * @author Jaeik
      * @since 1.1.0
@@ -62,6 +62,11 @@ public class PostReadRepositoryImpl extends PostBaseRepository implements PostRe
      * <p>
      * 게시글 정보, 좋아요 수, 사용자 좋아요 여부를 조회한다.
      * </p>
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID (null일 경우 좋아요 여부는 조회하지 않음)
+     * @return 게시글 상세 정보 DTO
+     * @author Jaeik
+     * @since 1.1.0
      */
     @Transactional(readOnly = true)
     public PostDTO findPostById(Long postId, Long userId) {

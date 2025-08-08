@@ -12,9 +12,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <h2>게시글 캐시 관리 구현체</h2>
+ * <h2>게시글 삭제 관리 구현체</h2>
  * <p>
- * 게시글 삭제와 연관된 Redis 캐시 동기화를 담당한다.
+ * 게시글 삭제를 담당한다.
  * </p>
  *
  * @author Jaeik
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class PostCacheRepositoryImpl implements PostCacheRepository {
+public class PostDeleteRepositoryImpl implements PostDeleteRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
     private final RedisPostService redisPostService;

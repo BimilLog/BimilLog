@@ -19,7 +19,7 @@ import jaeik.growfarm.repository.post.PostReadRepository;
 import jaeik.growfarm.repository.post.PostSearchRepository;
 import jaeik.growfarm.repository.post.PostPopularRepository;
 import jaeik.growfarm.repository.post.PostUserRepository;
-import jaeik.growfarm.repository.post.PostCacheRepository;
+import jaeik.growfarm.repository.post.PostDeleteRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.redis.RedisPostService;
 import jakarta.servlet.http.Cookie;
@@ -66,7 +66,7 @@ public class PostService {
     private final PostSearchRepository postSearchRepository;
     private final PostPopularRepository postPopularRepository;
     private final PostUserRepository postUserRepository;
-    private final PostCacheRepository postCacheRepository;
+    private final PostDeleteRepository postDeleteRepository;
 
     /**
      * <h3>게시판 조회</h3>

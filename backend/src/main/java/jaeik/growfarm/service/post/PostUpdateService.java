@@ -5,7 +5,7 @@ import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.post.PostLikeRepository;
-import jaeik.growfarm.repository.post.PostCacheRepository;
+import jaeik.growfarm.repository.post.PostDeleteRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ import java.util.Optional;
 public class PostUpdateService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
-    private final PostCacheRepository postCacheRepository;
+    private final PostDeleteRepository postDeleteRepository;
 
     /**
      * <h3>게시글 삭제</h3>
@@ -45,7 +45,7 @@ public class PostUpdateService {
      */
     @Transactional
     public void postDelete(Long postId) {
-        postCacheRepository.deletePostWithCacheSync(postId);
+        postDeleteRepository.deletePostWithCacheSync(postId);
     }
 
     /**

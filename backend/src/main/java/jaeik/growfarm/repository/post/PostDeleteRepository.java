@@ -3,16 +3,16 @@ package jaeik.growfarm.repository.post;
 import org.springframework.stereotype.Repository;
 
 /**
- * <h2>게시글 캐시 관리 저장소</h2>
+ * <h2>게시글 삭제 관리 저장소</h2>
  * <p>
- * 게시글 관련 캐시 관리 기능을 담당한다.
+ * 게시글 관련 삭제 관리 기능을 담당한다.
  * </p>
  *
  * @author jaeik
  * @version 1.1.0
  */
 @Repository
-public interface PostCacheRepository {
+public interface PostDeleteRepository {
 
     /**
      * <h3>게시글 삭제 및 Redis 캐시 동기화</h3>

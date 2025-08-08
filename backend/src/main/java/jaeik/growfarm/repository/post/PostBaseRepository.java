@@ -72,24 +72,6 @@ public abstract class PostBaseRepository {
     }
 
     /**
-     * <h3>게시글 ID 추출</h3>
-     * <p>
-     * Tuple에서 게시글 ID를 추출한다.
-     * </p>
-     *
-     * @param postTuples 조회된 게시글 Tuple 리스트
-     * @param post       QPost 엔티티
-     * @return 게시글 ID 리스트
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    protected List<Long> extractPostIds(List<Tuple> postTuples, QPost post) {
-        return postTuples.stream()
-                .map(tuple -> tuple.get(post.id))
-                .collect(Collectors.toList());
-    }
-
-    /**
      * <h3>추천 수 조회</h3>
      * <p>
      * 게시글별 추천 수를 조회한다.
@@ -120,24 +102,34 @@ public abstract class PostBaseRepository {
     }
 
     /**
-     * <h3>SimplePostDTO 생성</h3>
+     * <h3>게시글 목록 처리 공통 로직</h3>
      * <p>
-     * Tuple에서 SimplePostDTO 리스트를 생성한다.
+     * 게시글 튜플 목록을 받아 댓글 수, 추천 수를 조회하고 SimplePostDTO로 변환한다.
      * </p>
      *
-     * @param postTuples    조회된 게시글 Tuple 리스트
-     * @param post          QPost 엔티티
-     * @param user          QUsers 엔티티
-     * @param commentCounts 댓글 수 맵
-     * @param likeCounts    추천 수 맵
-     * @param userLike      사용자 좋아요 여부
-     * @return SimplePostDTO 리스트
+     * @param postTuples 조회된 게시글 Tuple 리스트
+     * @param post       QPost 엔티티
+     * @param user       QUsers 엔티티
+     * @param pageable   페이지 정보
+     * @param userLike   사용자 좋아요 여부
+     * @return SimplePostDTO 페이지
      * @author Jaeik
      * @since 1.1.0
      */
-    protected List<SimplePostDTO> createSimplePostDTOs(List<Tuple> postTuples, QPost post, QUsers user,
-            Map<Long, Integer> commentCounts, Map<Long, Integer> likeCounts, boolean userLike) {
-        return postTuples.stream()
+    protected Page<SimplePostDTO> processPostTuples(List<Tuple> postTuples, QPost post, QUsers user,
+            Pageable pageable, boolean userLike, Long totalCount) {
+        if (postTuples.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        List<Long> postIds = postTuples.stream()
+                .map(tuple -> tuple.get(post.id))
+                .collect(Collectors.toList());
+
+        Map<Long, Integer> commentCounts = commentRepository.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> likeCounts = fetchLikeCounts(postIds);
+
+        List<SimplePostDTO> results = postTuples.stream()
                 .map(tuple -> {
                     Long postId = tuple.get(post.id);
                     Integer views = tuple.get(post.views.coalesce(0));
@@ -145,7 +137,6 @@ public abstract class PostBaseRepository {
                     String userName = tuple.get(user.userName);
                     Boolean isNotice = tuple.get(post.isNotice);
 
-                    // 안전한 공통 빌더 메서드 사용
                     return safeBuildSimplePostDTO(
                             postId,
                             userId,
@@ -159,36 +150,6 @@ public abstract class PostBaseRepository {
                             tuple.get(post.popularFlag));
                 })
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * <h3>게시글 목록 처리 공통 로직</h3>
-     * <p>
-     * 게시글 튜플 목록을 받아 댓글 수, 추천 수를 조회하고 SimplePostDTO로 변환한다.
-     * </p>
-     *
-     * @param postTuples 조회된 게시글 Tuple 리스트
-     * @param post       QPost 엔티티
-     * @param user       QUsers 엔티티
-     * @param pageable   페이지 정보
-     * @param userLike   사용자 좋아요 여부
-     * @return SimplePostDTO 페이지
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    protected Page<SimplePostDTO> processPostTuples(List<Tuple> postTuples, QPost post, QUsers user,
-            Pageable pageable, boolean userLike, Long totalCount) {
-        if (postTuples.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        List<Long> postIds = extractPostIds(postTuples, post);
-
-        Map<Long, Integer> commentCounts = commentRepository.findCommentCountsByPostIds(postIds);
-        Map<Long, Integer> likeCounts = fetchLikeCounts(postIds);
-
-        List<SimplePostDTO> results = createSimplePostDTOs(postTuples, post, user, commentCounts, likeCounts,
-                userLike);
 
         return new PageImpl<>(results, pageable, totalCount != null ? totalCount : 0L);
     }
