@@ -18,7 +18,6 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
  * @version 1.1.0
  */
 @Service

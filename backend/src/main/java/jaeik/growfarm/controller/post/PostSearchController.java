@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  * 
  * @author Jaeik
- * @version 1.0.21
+ * @version 1.1.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class PostSearchController {
      * 검색 유형과 검색어를 통해 게시글을 검색한다.
      * </p>
      * 
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
      * @param type  검색 유형
      * @param query 검색어

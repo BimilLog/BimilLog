@@ -20,7 +20,6 @@ import java.util.Optional;
  *
  * @author Jaeik
  * @version 1.1.0
- * @since 1.1.0
  */
 @Service
 @RequiredArgsConstructor

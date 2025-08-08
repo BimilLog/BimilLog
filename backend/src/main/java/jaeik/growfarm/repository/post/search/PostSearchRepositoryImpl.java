@@ -68,7 +68,6 @@ public class PostSearchRepositoryImpl extends PostSearchSupport implements PostS
     }
 
 
-
     /**
      * <h3>네이티브 쿼리를 이용한 게시글 검색</h3>
      *

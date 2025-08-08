@@ -15,7 +15,7 @@ import java.util.List;
  * </p>
  * 
  * @author Jaeik
- * @version 1.0.21
+ * @version 1.1.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class PostPopularController {
      * 실시간 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
      *
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
      * @return 실시간 인기글 목록
      */
@@ -49,7 +49,7 @@ public class PostPopularController {
      * 주간 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
      *
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
      * @return 주간 인기글 목록
      */
@@ -67,9 +67,9 @@ public class PostPopularController {
      * 레전드 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
      *
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
-     * @return 명예의 전당 게시글 목록
+     * @return 레전드 게시글 목록
      */
     @GetMapping("/legend")
     public ResponseEntity<List<SimplePostDTO>> getLegendBoard() {

@@ -11,7 +11,6 @@ import org.springframework.data.domain.Page;
  * 
  * @author Jaeik
  * @version 1.1.0
- * @since 1.1.0
  */
 public interface PostSearchService {
 
