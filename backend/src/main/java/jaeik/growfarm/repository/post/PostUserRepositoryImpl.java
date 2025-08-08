@@ -29,8 +29,7 @@ import java.util.List;
 @Repository
 public class PostUserRepositoryImpl extends PostBaseRepository implements PostUserRepository {
 
-    public PostUserRepositoryImpl(JPAQueryFactory jpaQueryFactory,
-                                  CommentRepository commentRepository) {
+    public PostUserRepositoryImpl(JPAQueryFactory jpaQueryFactory, CommentRepository commentRepository) {
         super(jpaQueryFactory, commentRepository);
     }
 

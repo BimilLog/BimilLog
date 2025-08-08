@@ -8,15 +8,11 @@ import org.springframework.stereotype.Repository;
 /**
  * <h2>게시글 사용자별 조회 저장소</h2>
  * <p>
- * ISP(Interface Segregation Principle) 적용으로 분리된 인터페이스
- * </p>
- * <p>
- * 사용자별 게시글 조회 기능만을 담당
+ * 사용자별 게시글 조회 기능을 담당
  * </p>
  * 
  * @author jaeik
- * @version 1.0.21
- * @since 1.0.21
+ * @version 1.1.0
  */
 @Repository
 public interface PostUserRepository {
@@ -31,7 +27,7 @@ public interface PostUserRepository {
      * @param pageable 페이지 정보
      * @return 사용자가 작성한 글 목록
      * @author Jaeik
-     * @since 1.0.21
+     * @since 1.1.0
      */
     Page<SimplePostDTO> findPostsByUserId(Long userId, Pageable pageable);
 
@@ -45,7 +41,7 @@ public interface PostUserRepository {
      * @param pageable 페이지 정보
      * @return 사용자가 추천한 글 목록
      * @author Jaeik
-     * @since 1.0.21
+     * @since 1.1.0
      */
     Page<SimplePostDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
 }

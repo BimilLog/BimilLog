@@ -15,7 +15,7 @@ import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
-import jaeik.growfarm.repository.post.PostQueryRepository;
+import jaeik.growfarm.repository.post.PostReadRepository;
 import jaeik.growfarm.repository.post.PostSearchRepository;
 import jaeik.growfarm.repository.post.PostPopularRepository;
 import jaeik.growfarm.repository.post.PostUserRepository;
@@ -62,7 +62,7 @@ public class PostService {
     private final PostUpdateService postUpdateService;
     private final RedisPostService redisPostService;
     
-    private final PostQueryRepository postQueryRepository;
+    private final PostReadRepository postReadRepository;
     private final PostSearchRepository postSearchRepository;
     private final PostPopularRepository postPopularRepository;
     private final PostUserRepository postUserRepository;
@@ -82,7 +82,7 @@ public class PostService {
      */
     public Page<SimplePostDTO> getBoard(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postQueryRepository.findPostsWithCommentAndLikeCounts(pageable);
+        return postReadRepository.findPostsWithCommentAndLikeCounts(pageable);
     }
 
     /**
@@ -96,11 +96,11 @@ public class PostService {
      * @return 게시글 상세 DTO
      * @author Jaeik
      * @since 1.0.0
-     * @version 1.0.21 - ISP 적용으로 PostQueryRepository 사용
+     * @version 1.0.21 - ISP 적용으로 PostReadRepository 사용
      */
     public PostDTO getPost(Long postId, CustomUserDetails userDetails) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        return postQueryRepository.findPostById(postId, userId);
+        return postReadRepository.findPostById(postId, userId);
     }
 
     /**

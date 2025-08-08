@@ -5,12 +5,11 @@ import org.springframework.stereotype.Repository;
 /**
  * <h2>게시글 캐시 관리 저장소</h2>
  * <p>
- * ISP(Interface Segregation Principle) 적용으로 분리된 인터페이스로, 게시글 관련 캐시 관리 기능만 담당한다.
+ * 게시글 관련 캐시 관리 기능을 담당한다.
  * </p>
  *
  * @author jaeik
  * @version 1.1.0
- * @since 1.1.0
  */
 @Repository
 public interface PostCacheRepository {

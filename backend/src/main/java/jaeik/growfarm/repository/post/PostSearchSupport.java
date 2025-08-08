@@ -29,8 +29,6 @@ public abstract class PostSearchSupport extends PostBaseRepository {
         super(jpaQueryFactory, commentRepository);
     }
 
-    
-
     /**
      * <h3>네이티브 쿼리 결과를 SimplePostDTO로 변환</h3>
      *
@@ -66,13 +64,17 @@ public abstract class PostSearchSupport extends PostBaseRepository {
     }
 
     /**
-     * <h3>네이티브 쿼리 결과 처리: 댓글/좋아요 집계 후 Page로 변환</h3>
+     * <h3>네이티브 쿼리 결과 처리</h3>
+     * <p>
+     * 네이티브 쿼리 결과를 SimplePostDTO로 변환하고 댓글 수/좋아요 수를 통합 조회한다.
+     * </p>
      *
-     * @param results 네이티브 쿼리 결과 배열 목록
-     * @param pageable 페이지 정보
+     * @param results    네이티브 쿼리 결과 배열 목록
+     * @param pageable   페이지 정보
      * @param totalCount 전체 결과 개수
      * @return 댓글/좋아요 수가 채워진 {@link SimplePostDTO} 페이지
      * @since 1.1.0
+     * @author Jaeik
      */
     protected Page<SimplePostDTO> processNativeQueryResults(List<Object[]> results, Pageable pageable, long totalCount) {
         List<SimplePostDTO> posts = convertNativeQueryResults(results);
@@ -97,10 +99,11 @@ public abstract class PostSearchSupport extends PostBaseRepository {
     /**
      * <h3>검색 조건 유효성 검증</h3>
      *
-     * @param keyword 검색어
+     * @param keyword    검색어
      * @param searchType 검색 타입
      * @return 유효한 검색 조건이면 true, 아니면 false
      * @since 1.1.0
+     * @author Jaeik
      */
     protected boolean hasValidSearchCondition(String keyword, String searchType) {
         return keyword != null && !keyword.trim().isEmpty() && searchType != null;
@@ -115,6 +118,7 @@ public abstract class PostSearchSupport extends PostBaseRepository {
      * @param keyword 원본 검색어
      * @return 정규화된 검색어 (null이면 빈 문자열)
      * @since 1.1.0
+     * @author Jaeik
      */
     protected String safeNormalizeKeyword(String keyword) {
         if (keyword == null) {
@@ -132,6 +136,7 @@ public abstract class PostSearchSupport extends PostBaseRepository {
      * @param keyword 정규화된 키워드
      * @return 너무 짧거나 전부 짧은 토큰으로만 구성된 경우 true
      * @since 1.1.0
+     * @author Jaeik
      */
     protected boolean isFullTextLikelyIneffective(String keyword) {
         if (keyword == null) {
@@ -158,6 +163,7 @@ public abstract class PostSearchSupport extends PostBaseRepository {
      * @param obj BigInteger, Long, Integer 등
      * @return 변환된 Long 값, 변환 불가 타입이면 예외
      * @since 1.1.0
+     * @author Jaeik
      */
     private Long convertToLong(Object obj) {
         return switch (obj) {

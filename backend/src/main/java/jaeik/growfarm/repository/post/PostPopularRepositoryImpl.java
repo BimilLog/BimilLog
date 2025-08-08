@@ -84,7 +84,6 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
         QComment comment = QComment.comment;
         QUsers user = QUsers.users;
 
-        // 공통 메서드 사용: 기존 레전드 플래그 초기화
         resetPopularFlag(PopularFlag.LEGEND);
 
         List<Tuple> legendPostsData = jpaQueryFactory
@@ -124,7 +123,6 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
                 .map(tuple -> tuple.get(post.id))
                 .collect(Collectors.toList());
 
-        // 공통 메서드 사용: 레전드 플래그 설정
         applyPopularFlag(legendPostIds, PopularFlag.LEGEND);
 
         return convertTuplesToSimplePostDTOs(legendPostsData, post, user, comment, postLike);
@@ -191,5 +189,75 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
         applyPopularFlag(popularPostIds, popularFlag);
 
         return convertTuplesToSimplePostDTOs(popularPostsData, post, user, comment, postLike);
+    }
+
+    /**
+     * <h3>인기글 플래그 초기화</h3>
+     * <p>
+     * 특정 인기글 플래그를 가진 게시글들의 플래그를 null로 초기화한다.
+     * </p>
+     *
+     * @param popularFlag 초기화할 인기글 플래그
+     * @author Jaeik
+     * @since 1.1.0
+     */
+    private void resetPopularFlag(PopularFlag popularFlag) {
+        QPost post = QPost.post;
+        jpaQueryFactory.update(post)
+                .set(post.popularFlag, (PopularFlag) null)
+                .where(post.popularFlag.eq(popularFlag))
+                .execute();
+    }
+    /**
+     * <h3>인기글 플래그 설정 </h3>
+     * <p>
+     * 지정된 게시글들에 인기글 플래그를 설정한다.
+     * </p>
+     *
+     * @param postIds     게시글 ID 목록
+     * @param popularFlag 설정할 인기글 플래그
+     * @author Jaeik
+     * @since 1.1.0
+     */
+    private void applyPopularFlag(List<Long> postIds, PopularFlag popularFlag) {
+        if (postIds == null || postIds.isEmpty()) {
+            return;
+        }
+        QPost post = QPost.post;
+        jpaQueryFactory.update(post)
+                .set(post.popularFlag, popularFlag)
+                .where(post.id.in(postIds))
+                .execute();
+    }
+    /**
+     * <h3>Tuple을 SimplePostDTO로 변환</h3>
+     * <p>
+     * 조회된 Tuple 데이터를 SimplePostDTO 리스트로 변환하는 공통 메서드
+     * </p>
+     *
+     * @param tuples   조회된 Tuple 리스트
+     * @param post     QPost 엔티티
+     * @param user     QUsers 엔티티
+     * @param comment  QComment 엔티티
+     * @param postLike QPostLike 엔티티
+     * @return SimplePostDTO 리스트
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private List<SimplePostDTO> convertTuplesToSimplePostDTOs(List<Tuple> tuples, QPost post, QUsers user,
+                                                              QComment comment, QPostLike postLike) {
+        return tuples.stream()
+                .map(tuple -> new SimplePostDTO(
+                        tuple.get(post.id),
+                        tuple.get(post.user.id),
+                        tuple.get(user.userName),
+                        tuple.get(post.title),
+                        tuple.get(comment.count()) != null ? tuple.get(comment.count()).intValue() : 0,
+                        tuple.get(postLike.count()) != null ? tuple.get(postLike.count()).intValue() : 0,
+                        tuple.get(post.views) != null ? tuple.get(post.views) : 0,
+                        tuple.get(post.createdAt),
+                        tuple.get(post.isNotice) != null && Boolean.TRUE.equals(tuple.get(post.isNotice)),
+                        tuple.get(user)))
+                .toList();
     }
 }

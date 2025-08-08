@@ -7,17 +7,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 /**
- * <h2>게시글 기본 조회 저장소</h2>
+ * <h2>게시글 조회 저장소</h2>
  * <p>
- * 기본적인 게시글 조회 기능 담당
+ * 기본적인 게시글 목록/상세 조회 기능을 담당한다.
  * </p>
- * 
- * @author jaeik
+ *
+ * @author Jaeik
  * @version 1.1.0
  * @since 1.1.0
  */
 @Repository
-public interface PostQueryRepository {
+public interface PostReadRepository {
 
     /**
      * <h3>게시글 목록 조회</h3>
@@ -35,7 +35,7 @@ public interface PostQueryRepository {
     /**
      * <h3>게시글 상세 조회</h3>
      * <p>
-     * 게시글 정보, 좋아요 수, 사용자 좋아요 여부를 한 번의 쿼리로 조회한다.
+     * 게시글 정보, 좋아요 수, 사용자 좋아요 여부를 조회한다.
      * </p>
      *
      * @param postId 게시글 ID
@@ -46,3 +46,5 @@ public interface PostQueryRepository {
      */
     PostDTO findPostById(Long postId, Long userId);
 }
+
+
