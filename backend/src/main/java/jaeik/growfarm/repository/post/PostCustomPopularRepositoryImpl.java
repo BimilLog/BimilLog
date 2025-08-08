@@ -26,11 +26,11 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Jaeik
- * @version 1.0
+ * @version 1.0.21
  */
 @Slf4j
 @Repository
-public class PostCustomPopularRepositoryImpl extends PostCustomBaseRepository {
+public class PostCustomPopularRepositoryImpl extends PostCustomBaseRepository implements PostPopularRepository {
 
     public PostCustomPopularRepositoryImpl(JPAQueryFactory jpaQueryFactory,
                                            CommentRepository commentRepository) {

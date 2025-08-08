@@ -17,6 +17,7 @@ import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostRepository;
+import jaeik.growfarm.repository.post.PostUserRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -39,14 +40,13 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 1.0.21
  */
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final ReportRepository reportRepository;
     private final KakaoService kakaoService;
@@ -54,6 +54,7 @@ public class UserService {
     private final SettingRepository settingRepository;
     private final UserUpdateService userUpdateService;
     private final AuthService authService;
+    private final PostUserRepository postUserRepository;
 
     /**
      * <h3>유저 작성 글 목록 조회</h3>
@@ -68,10 +69,11 @@ public class UserService {
      * @return 작성 글 목록 페이지
      * @author Jaeik
      * @since 1.0.0
+     * @version 1.0.21 - ISP 적용으로 PostUserRepository 사용
      */
     public Page<SimplePostDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postRepository.findPostsByUserId(userDetails.getUserId(), pageable);
+        return postUserRepository.findPostsByUserId(userDetails.getUserId(), pageable);
     }
 
     /**
@@ -106,10 +108,11 @@ public class UserService {
      * @return 좋아요한 글 목록 페이지
      * @author Jaeik
      * @since 1.0.0
+     * @version 1.0.21 - ISP 적용으로 PostUserRepository 사용
      */
     public Page<SimplePostDTO> getLikedPosts(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postRepository.findLikedPostsByUserId(userDetails.getUserId(), pageable);
+        return postUserRepository.findLikedPostsByUserId(userDetails.getUserId(), pageable);
     }
 
     /**

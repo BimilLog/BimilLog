@@ -221,7 +221,7 @@ class ApiClient {
         '/user',          // 마이페이지
         '/paper',         // 내 롤링페이퍼
         '/api/admin',     // 관리자
-        '/post/like',     // 글 추천
+        '/post/manage/like',     // 글 추천
         '/comment/like',  // 댓글 추천
         '/notification',  // 알림
         '/auth/logout',   // 로그아웃
@@ -457,10 +457,10 @@ export const rollingPaperApi = {
 // 게시판 관련 API
 export const boardApi = {
   // 게시글 목록 조회
-  getPosts: (page = 0, size = 10) => apiClient.get<PageResponse<SimplePost>>(`/post?page=${page}&size=${size}`),
+  getPosts: (page = 0, size = 10) => apiClient.get<PageResponse<SimplePost>>(`/post/query?page=${page}&size=${size}`),
 
   // 게시글 상세 조회
-  getPost: (postId: number) => apiClient.get<Post>(`/post/${postId}`),
+  getPost: (postId: number) => apiClient.get<Post>(`/post/query/${postId}`),
 
   // 게시글 검색
   searchPosts: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR", query: string, page = 0, size = 10) =>
@@ -474,10 +474,10 @@ export const boardApi = {
     title: string
     content: string
     password?: number
-  }) => apiClient.post<Post>("/post/write", post),
+  }) => apiClient.post<Post>("/post/manage/write", post),
 
   // 게시글 수정
-  updatePost: (post: Post) => apiClient.post("/post/update", post),
+  updatePost: (post: Post) => apiClient.post("/post/manage/update", post),
 
   // 게시글 삭제
   deletePost: (postId: number, userId?: number, password?: string, content?: string, title?: string) => {
@@ -486,20 +486,20 @@ export const boardApi = {
     if (password) payload.password = Number(password);
     if (content) payload.content = content;
     if (title) payload.title = title;
-    return apiClient.post("/post/delete", payload);
+    return apiClient.post("/post/manage/delete", payload);
   },
 
   // 게시글 추천/취소
-  likePost: (postId: number) => apiClient.post("/post/like", { postId }),
+  likePost: (postId: number) => apiClient.post("/post/manage/like", { postId }),
 
   // 실시간 인기글 조회
-  getRealtimePosts: () => apiClient.get<SimplePost[]>("/post/realtime"),
+  getRealtimePosts: () => apiClient.get<SimplePost[]>("/post/popular/realtime"),
 
   // 주간 인기글 조회
-  getWeeklyPosts: () => apiClient.get<SimplePost[]>("/post/weekly"),
+  getWeeklyPosts: () => apiClient.get<SimplePost[]>("/post/popular/weekly"),
 
   // 레전드 인기글 조회
-  getLegendPosts: () => apiClient.get<SimplePost[]>("/post/legend"),
+  getLegendPosts: () => apiClient.get<SimplePost[]>("/post/popular/legend"),
 }
 
 // 댓글 관련 API

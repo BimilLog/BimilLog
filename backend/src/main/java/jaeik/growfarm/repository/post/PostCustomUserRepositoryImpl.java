@@ -27,11 +27,11 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.15
+ * @version 1.0.21
  */
 @Slf4j
 @Repository
-public class PostCustomUserRepositoryImpl extends PostCustomBaseRepository {
+public class PostCustomUserRepositoryImpl extends PostCustomBaseRepository implements PostUserRepository, PostCacheRepository {
 
     private final RedisPostService redisPostService;
 

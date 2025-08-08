@@ -17,11 +17,12 @@ import java.util.List;
  * </p>
  *
  * @author jaeik
- * @version 1.0
+ * @version 1.0.21
  */
 @Repository
 @RequiredArgsConstructor
-public class PostCustomRepositoryImpl implements PostCustomRepository {
+public class PostCustomRepositoryImpl implements PostCustomRepository, 
+        PostQueryRepository, PostSearchRepository, PostPopularRepository, PostUserRepository, PostCacheRepository {
 
         private final PostCustomSearchRepositoryImpl postSearchRepository;
         private final PostCustomPopularRepositoryImpl popularPostRepository;

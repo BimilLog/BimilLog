@@ -15,6 +15,11 @@ import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
+import jaeik.growfarm.repository.post.PostQueryRepository;
+import jaeik.growfarm.repository.post.PostSearchRepository;
+import jaeik.growfarm.repository.post.PostPopularRepository;
+import jaeik.growfarm.repository.post.PostUserRepository;
+import jaeik.growfarm.repository.post.PostCacheRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.redis.RedisPostService;
 import jakarta.servlet.http.Cookie;
@@ -43,6 +48,7 @@ import java.util.*;
  *
  * @author Jaeik
  * @since 1.0.0
+ * @version 1.0.21
  */
 @Service
 @RequiredArgsConstructor
@@ -55,6 +61,12 @@ public class PostService {
     private final ApplicationEventPublisher eventPublisher;
     private final PostUpdateService postUpdateService;
     private final RedisPostService redisPostService;
+    
+    private final PostQueryRepository postQueryRepository;
+    private final PostSearchRepository postSearchRepository;
+    private final PostPopularRepository postPopularRepository;
+    private final PostUserRepository postUserRepository;
+    private final PostCacheRepository postCacheRepository;
 
     /**
      * <h3>게시판 조회</h3>
@@ -66,11 +78,11 @@ public class PostService {
      * @param size 페이지 사이즈
      * @return 게시글 목록 페이지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.0.21
      */
     public Page<SimplePostDTO> getBoard(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postRepository.findPostsWithCommentAndLikeCounts(pageable);
+        return postQueryRepository.findPostsWithCommentAndLikeCounts(pageable);
     }
 
     /**
@@ -84,10 +96,11 @@ public class PostService {
      * @return 게시글 상세 DTO
      * @author Jaeik
      * @since 1.0.0
+     * @version 1.0.21 - ISP 적용으로 PostQueryRepository 사용
      */
     public PostDTO getPost(Long postId, CustomUserDetails userDetails) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        return postRepository.findPostById(postId, userId);
+        return postQueryRepository.findPostById(postId, userId);
     }
 
     /**
@@ -103,10 +116,11 @@ public class PostService {
      * @return 검색된 게시글 목록 페이지
      * @author Jaeik
      * @since 1.0.0
+     * @version 1.0.21 - ISP 적용으로 PostSearchRepository 사용
      */
     public Page<SimplePostDTO> searchPost(String type, String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postRepository.searchPosts(query, type, pageable);
+        return postSearchRepository.searchPosts(query, type, pageable);
     }
 
     /**
@@ -358,10 +372,11 @@ public class PostService {
      *
      * @author Jaeik
      * @since 1.0.0
+     * @version 1.0.21 - ISP 적용으로 PostPopularRepository 사용
      */
     @Scheduled(fixedRate = 60000 * 30)
     public void updateRealtimePopularPosts() {
-        List<SimplePostDTO> realtimePosts = postRepository.updateRealtimePopularPosts();
+        List<SimplePostDTO> realtimePosts = postPopularRepository.updateRealtimePopularPosts();
         redisPostService.cachePopularPosts(RedisPostService.PopularPostType.REALTIME, realtimePosts);
     }
 
@@ -379,10 +394,11 @@ public class PostService {
      *
      * @author Jaeik
      * @since 1.0.0
+     * @version 1.0.21 - ISP 적용으로 PostPopularRepository 사용
      */
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateWeeklyPopularPosts() {
-        List<SimplePostDTO> weeklyPosts = postRepository.updateWeeklyPopularPosts();
+        List<SimplePostDTO> weeklyPosts = postPopularRepository.updateWeeklyPopularPosts();
         redisPostService.cachePopularPosts(RedisPostService.PopularPostType.WEEKLY, weeklyPosts);
 
         for (SimplePostDTO simplePostDTO : weeklyPosts) {
@@ -412,10 +428,11 @@ public class PostService {
      *
      * @author Jaeik
      * @since 1.0.0
+     * @version 1.0.21 - ISP 적용으로 PostPopularRepository 사용
      */
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateLegendPopularPosts() {
-        List<SimplePostDTO> legendPosts = postRepository.updateLegendPosts();
+        List<SimplePostDTO> legendPosts = postPopularRepository.updateLegendPosts();
         redisPostService.cachePopularPosts(RedisPostService.PopularPostType.LEGEND, legendPosts);
 
         for (SimplePostDTO simplePostDTO : legendPosts) {

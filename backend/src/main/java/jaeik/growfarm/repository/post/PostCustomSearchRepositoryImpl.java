@@ -31,11 +31,11 @@ import java.util.Map;
  * </p>
  *
  * @author Jaeik
- * @version 1.0
+ * @version 1.0.21
  */
 @Slf4j
 @Repository
-public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository {
+public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository implements PostQueryRepository, PostSearchRepository {
 
     private final PostCustomFullTextRepository postCustomFullTextRepository;
 
