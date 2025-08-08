@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.post;
+package jaeik.growfarm.repository.post.popular;
 
 import jaeik.growfarm.dto.post.SimplePostDTO;
 import org.springframework.stereotype.Repository;

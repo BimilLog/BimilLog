@@ -1,7 +1,7 @@
 package jaeik.growfarm.controller.post;
 
 import jaeik.growfarm.dto.post.SimplePostDTO;
-import jaeik.growfarm.service.post.PostService;
+import jaeik.growfarm.service.post.search.PostSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/post/search")
 public class PostSearchController {
 
-    private final PostService postService;
+    private final PostSearchService postSearchService;
 
     /**
      * <h3>게시글 검색 API</h3>
@@ -43,7 +43,7 @@ public class PostSearchController {
             @RequestParam String query,
             @RequestParam int page,
             @RequestParam int size) {
-        Page<SimplePostDTO> searchList = postService.searchPost(type, query, page, size);
+        Page<SimplePostDTO> searchList = postSearchService.searchPost(type, query, page, size);
         return ResponseEntity.ok(searchList);
     }
 }

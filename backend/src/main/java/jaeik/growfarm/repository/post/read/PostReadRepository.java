@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.post;
+package jaeik.growfarm.repository.post.read;
 
 import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.dto.post.SimplePostDTO;

@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.post;
+package jaeik.growfarm.repository.post.user;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -8,6 +8,7 @@ import jaeik.growfarm.entity.post.QPost;
 import jaeik.growfarm.entity.post.QPostLike;
 import jaeik.growfarm.entity.user.QUsers;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.post.PostBaseRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,7 +58,7 @@ public class PostUserRepositoryImpl extends PostBaseRepository implements PostUs
         List<Tuple> postTuples = fetchPosts(post, user, finalCondition, pageable);
         Long total = fetchTotalCount(post, user, finalCondition);
 
-        return processPostTuples(postTuples, post, user, pageable, false, total);
+        return processPostTuples(postTuples, post, user, pageable, total);
     }
 
     /**
@@ -104,6 +105,6 @@ public class PostUserRepositoryImpl extends PostBaseRepository implements PostUs
                 .where(postLike.user.id.eq(userId))
                 .fetchOne();
 
-        return processPostTuples(postTuples, post, user, pageable, true, total);
+        return processPostTuples(postTuples, post, user, pageable, total);
     }
 }

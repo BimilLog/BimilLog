@@ -2,7 +2,6 @@ package jaeik.growfarm.service.user;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
-import jaeik.growfarm.dto.kakao.KakaoCheckConsentDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.post.SimplePostDTO;
@@ -16,8 +15,7 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
-import jaeik.growfarm.repository.post.PostRepository;
-import jaeik.growfarm.repository.post.PostUserRepository;
+import jaeik.growfarm.repository.post.user.PostUserRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -30,7 +28,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**

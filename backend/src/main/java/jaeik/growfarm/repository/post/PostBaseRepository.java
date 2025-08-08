@@ -111,47 +111,34 @@ public abstract class PostBaseRepository {
      * @param post       QPost 엔티티
      * @param user       QUsers 엔티티
      * @param pageable   페이지 정보
-     * @param userLike   사용자 좋아요 여부
      * @return SimplePostDTO 페이지
      * @author Jaeik
      * @since 1.1.0
      */
     protected Page<SimplePostDTO> processPostTuples(List<Tuple> postTuples, QPost post, QUsers user,
-            Pageable pageable, boolean userLike, Long totalCount) {
+            Pageable pageable, Long totalCount) {
+
         if (postTuples.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
-        List<Long> postIds = postTuples.stream()
-                .map(tuple -> tuple.get(post.id))
+        List<SimplePostDTO> posts = postTuples.stream()
+                .map(tuple -> SimplePostDTO.fromTuple(tuple, post, user))
+                .collect(Collectors.toList());
+
+        List<Long> postIds = posts.stream()
+                .map(SimplePostDTO::getPostId)
                 .collect(Collectors.toList());
 
         Map<Long, Integer> commentCounts = commentRepository.findCommentCountsByPostIds(postIds);
         Map<Long, Integer> likeCounts = fetchLikeCounts(postIds);
 
-        List<SimplePostDTO> results = postTuples.stream()
-                .map(tuple -> {
-                    Long postId = tuple.get(post.id);
-                    Integer views = tuple.get(post.views.coalesce(0));
-                    Long userId = tuple.get(post.user.id);
-                    String userName = tuple.get(user.userName);
-                    Boolean isNotice = tuple.get(post.isNotice);
+        posts.forEach(simplePost -> simplePost.withCounts(
+                commentCounts.getOrDefault(simplePost.getPostId(), 0),
+                likeCounts.getOrDefault(simplePost.getPostId(), 0)
+        ));
 
-                    return safeBuildSimplePostDTO(
-                            postId,
-                            userId,
-                            userName,
-                            tuple.get(post.title),
-                            commentCounts.getOrDefault(postId, 0),
-                            likeCounts.getOrDefault(postId, 0),
-                            views != null ? views : 0,
-                            tuple.get(post.createdAt),
-                            Boolean.TRUE.equals(isNotice),
-                            tuple.get(post.popularFlag));
-                })
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(results, pageable, totalCount != null ? totalCount : 0L);
+        return new PageImpl<>(posts, pageable, totalCount != null ? totalCount : 0L);
     }
 
     /**
@@ -177,40 +164,5 @@ public abstract class PostBaseRepository {
         }
 
         return query.where(condition).fetchOne();
-    }
-
-
-    /**
-     * <h3>SimplePostDTO 빌더</h3>
-     *
-     * @param postId      게시글 ID
-     * @param userId      사용자 ID
-     * @param userName    사용자명
-     * @param title       제목
-     * @param commentCount 댓글 수
-     * @param likeCount   좋아요 수
-     * @param views       조회수
-     * @param createdAt   생성일시
-     * @param isNotice    공지글 여부
-     * @param popularFlag 인기글 플래그
-     * @return SimplePostDTO 인스턴스
-     * @author Jaeik
-     * @since 1.1.0
-     */
-    protected SimplePostDTO safeBuildSimplePostDTO(Long postId, Long userId, String userName, String title,
-            int commentCount, int likeCount, int views, java.time.Instant createdAt, boolean isNotice, 
-            jaeik.growfarm.entity.post.PopularFlag popularFlag) {
-        SimplePostDTO dto = new SimplePostDTO(
-                postId,
-                userId,
-                userName != null ? userName : "익명",
-                title,
-                commentCount,
-                likeCount,
-                views,
-                createdAt,
-                isNotice);
-        dto.setPopularFlag(popularFlag);
-        return dto;
     }
 }

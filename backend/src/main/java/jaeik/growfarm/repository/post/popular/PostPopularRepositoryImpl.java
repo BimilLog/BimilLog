@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.post;
+package jaeik.growfarm.repository.post.popular;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -9,6 +9,7 @@ import jaeik.growfarm.entity.post.QPost;
 import jaeik.growfarm.entity.post.QPostLike;
 import jaeik.growfarm.entity.user.QUsers;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.post.PostBaseRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,6 +114,7 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
                         user)
                 .having(postLike.count().goe(20))
                 .orderBy(postLike.count().desc())
+                .limit(50)
                 .fetch();
 
         if (legendPostsData.isEmpty()) {
@@ -247,17 +249,18 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
     private List<SimplePostDTO> convertTuplesToSimplePostDTOs(List<Tuple> tuples, QPost post, QUsers user,
                                                               QComment comment, QPostLike postLike) {
         return tuples.stream()
-                .map(tuple -> new SimplePostDTO(
-                        tuple.get(post.id),
-                        tuple.get(post.user.id),
-                        tuple.get(user.userName),
-                        tuple.get(post.title),
-                        tuple.get(comment.count()) != null ? tuple.get(comment.count()).intValue() : 0,
-                        tuple.get(postLike.count()) != null ? tuple.get(postLike.count()).intValue() : 0,
-                        tuple.get(post.views) != null ? tuple.get(post.views) : 0,
-                        tuple.get(post.createdAt),
-                        tuple.get(post.isNotice) != null && Boolean.TRUE.equals(tuple.get(post.isNotice)),
-                        tuple.get(user)))
+                .map(tuple -> SimplePostDTO.builder()
+                        .postId(tuple.get(post.id))
+                        .userId(tuple.get(post.user.id))
+                        .userName(tuple.get(user.userName))
+                        .title(tuple.get(post.title))
+                        .commentCount(tuple.get(comment.count()) != null ? tuple.get(comment.count()).intValue() : 0)
+                        .likes(tuple.get(postLike.count()) != null ? tuple.get(postLike.count()).intValue() : 0)
+                        .views(tuple.get(post.views) != null ? tuple.get(post.views) : 0)
+                        .createdAt(tuple.get(post.createdAt))
+                        .is_notice(tuple.get(post.isNotice) != null && Boolean.TRUE.equals(tuple.get(post.isNotice)))
+                        .user(tuple.get(user))
+                        .build())
                 .toList();
     }
 }

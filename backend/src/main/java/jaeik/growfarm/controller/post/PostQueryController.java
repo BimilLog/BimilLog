@@ -3,7 +3,7 @@ package jaeik.growfarm.controller.post;
 import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.dto.post.SimplePostDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.post.PostService;
+import jaeik.growfarm.service.post.read.PostReadService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/post/query")
 public class PostQueryController {
 
-    private final PostService postService;
+    private final PostReadService postReadService;
 
     /**
      * <h3>게시판 조회 API</h3>
@@ -43,7 +43,7 @@ public class PostQueryController {
      */
     @GetMapping
     public ResponseEntity<Page<SimplePostDTO>> getBoard(@RequestParam int page, @RequestParam int size) {
-        Page<SimplePostDTO> postList = postService.getBoard(page, size);
+        Page<SimplePostDTO> postList = postReadService.getBoard(page, size);
         return ResponseEntity.ok(postList);
     }
 
@@ -69,9 +69,9 @@ public class PostQueryController {
             HttpServletRequest request,
             HttpServletResponse response) {
         if (count) {
-            postService.incrementViewCount(postId, request, response);
+            postReadService.incrementViewCount(postId, request, response);
         }
-        PostDTO postDTO = postService.getPost(postId, userDetails);
+        PostDTO postDTO = postReadService.getPost(postId, userDetails);
         return ResponseEntity.ok(postDTO);
     }
 }

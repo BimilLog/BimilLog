@@ -1,14 +1,13 @@
-package jaeik.growfarm.repository.post;
+package jaeik.growfarm.repository.post.search;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.post.SimplePostDTO;
-import jaeik.growfarm.entity.post.PopularFlag;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.post.PostBaseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -38,28 +37,7 @@ public abstract class PostSearchSupport extends PostBaseRepository {
      */
     protected List<SimplePostDTO> convertNativeQueryResults(List<Object[]> results) {
         return results.stream()
-                .map(row -> {
-                    Long postId = convertToLong(row[0]);
-                    String title = (String) row[1];
-                    int views = row[2] != null ? (Integer) row[2] : 0;
-                    Boolean isNotice = (Boolean) row[3];
-                    PopularFlag popularFlag = row[4] != null ? PopularFlag.valueOf((String) row[4]) : null;
-                    java.sql.Timestamp createdAt = (java.sql.Timestamp) row[5];
-                    Long userId = row[6] != null ? convertToLong(row[6]) : null;
-                    String userName = row[7] != null ? (String) row[7] : "익명";
-
-                    return safeBuildSimplePostDTO(
-                            postId,
-                            userId,
-                            userName,
-                            title,
-                            0,
-                            0,
-                            views,
-                            createdAt.toInstant(),
-                            Boolean.TRUE.equals(isNotice),
-                            popularFlag);
-                })
+                .map(SimplePostDTO::fromNativeQuery)
                 .collect(Collectors.toList());
     }
 
@@ -88,10 +66,10 @@ public abstract class PostSearchSupport extends PostBaseRepository {
         Map<Long, Integer> commentCounts = commentRepository.findCommentCountsByPostIds(postIds);
         Map<Long, Integer> likeCounts = fetchLikeCounts(postIds);
 
-        posts.forEach(post -> {
-            post.setCommentCount(commentCounts.getOrDefault(post.getPostId(), 0));
-            post.setLikes(likeCounts.getOrDefault(post.getPostId(), 0));
-        });
+        posts.forEach(post -> post.withCounts(
+                commentCounts.getOrDefault(post.getPostId(), 0),
+                likeCounts.getOrDefault(post.getPostId(), 0)
+        ));
 
         return new PageImpl<>(posts, pageable, totalCount);
     }
@@ -157,22 +135,5 @@ public abstract class PostSearchSupport extends PostBaseRepository {
         return allTooShort;
     }
 
-    /**
-     * <h3>Object를 Long으로 안전하게 변환</h3>
-     *
-     * @param obj BigInteger, Long, Integer 등
-     * @return 변환된 Long 값, 변환 불가 타입이면 예외
-     * @since 1.1.0
-     * @author Jaeik
-     */
-    private Long convertToLong(Object obj) {
-        return switch (obj) {
-            case null -> null;
-            case BigInteger bigInteger -> bigInteger.longValue();
-            case Long l -> l;
-            case Integer i -> i.longValue();
-            default -> throw new IllegalArgumentException("Unsupported type for Long conversion: " + obj.getClass());
-        };
-    }
 }
 

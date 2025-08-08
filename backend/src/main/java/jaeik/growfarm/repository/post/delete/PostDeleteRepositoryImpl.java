@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.post;
+package jaeik.growfarm.repository.post.delete;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.entity.post.PopularFlag;

@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.post;
+package jaeik.growfarm.repository.post.search;
 
 import jaeik.growfarm.entity.post.Post;
 import org.springframework.data.jpa.repository.JpaRepository;

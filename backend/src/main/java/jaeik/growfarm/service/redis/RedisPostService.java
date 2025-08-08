@@ -3,7 +3,7 @@ package jaeik.growfarm.service.redis;
 import jaeik.growfarm.dto.post.SimplePostDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.service.post.PostService;
+import jaeik.growfarm.service.post.PostScheduledService;
 import lombok.Getter;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,17 +26,17 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 1.1.0
  */
 @Service
 public class RedisPostService {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final PostService postService;
+    private final PostScheduledService postScheduledService;
 
-    public RedisPostService(RedisTemplate<String, Object> redisTemplate, @Lazy PostService postService) {
+    public RedisPostService(RedisTemplate<String, Object> redisTemplate, @Lazy PostScheduledService postScheduledService) {
         this.redisTemplate = redisTemplate;
-        this.postService = postService;
+        this.postScheduledService = postScheduledService;
     }
 
     /**
@@ -92,7 +92,11 @@ public class RedisPostService {
     public List<SimplePostDTO> getCachedPopularPosts(PopularPostType type) {
 
         if (!hasPopularPostsCache(type)) {
-            postService.updateRealtimePopularPosts();
+            switch (type) {
+                case REALTIME -> postScheduledService.updateRealtimePopularPosts();
+                case WEEKLY -> postScheduledService.updateWeeklyPopularPosts();
+                case LEGEND -> postScheduledService.updateLegendPopularPosts();
+            }
         }
 
         try {

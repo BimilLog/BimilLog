@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.post;
+package jaeik.growfarm.repository.post.read;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -8,6 +8,7 @@ import jaeik.growfarm.entity.post.QPost;
 import jaeik.growfarm.entity.post.QPostLike;
 import jaeik.growfarm.entity.user.QUsers;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.post.PostBaseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -54,7 +55,7 @@ public class PostReadRepositoryImpl extends PostBaseRepository implements PostRe
         List<Tuple> postTuples = fetchPosts(post, user, null, pageable);
         Long total = fetchTotalCount(post, user, null);
 
-        return processPostTuples(postTuples, post, user, pageable, false, total);
+        return processPostTuples(postTuples, post, user, pageable, total);
     }
 
     /**

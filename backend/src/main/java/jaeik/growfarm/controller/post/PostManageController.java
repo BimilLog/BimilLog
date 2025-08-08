@@ -3,7 +3,7 @@ package jaeik.growfarm.controller.post;
 import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.post.PostService;
+import jaeik.growfarm.service.post.command.PostCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/post/manage")
 public class PostManageController {
 
-    private final PostService postService;
+    private final PostCommandService postCommandService;
 
     /**
      * <h3>게시글 작성 API</h3>
@@ -42,7 +42,7 @@ public class PostManageController {
     @PostMapping("/write")
     public ResponseEntity<PostDTO> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PostReqDTO postReqDTO) {
-        PostDTO postDTO = postService.writePost(userDetails, postReqDTO);
+        PostDTO postDTO = postCommandService.writePost(userDetails, postReqDTO);
         return ResponseEntity.ok(postDTO);
     }
 
@@ -63,7 +63,7 @@ public class PostManageController {
     public ResponseEntity<String> updatePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PostDTO postDTO) {
-        postService.updatePost(userDetails, postDTO);
+        postCommandService.updatePost(userDetails, postDTO);
         return ResponseEntity.ok("게시글 수정 완료");
     }
 
@@ -84,7 +84,7 @@ public class PostManageController {
     public ResponseEntity<String> deletePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PostDTO postDTO) {
-        postService.deletePost(userDetails, postDTO);
+        postCommandService.deletePost(userDetails, postDTO);
         return ResponseEntity.ok("게시글 삭제 완료");
     }
 
@@ -104,7 +104,7 @@ public class PostManageController {
     @PostMapping("/like")
     public ResponseEntity<String> likePost(@AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid PostDTO postDTO) {
-        postService.likePost(postDTO, userDetails);
+        postCommandService.likePost(postDTO, userDetails);
         return ResponseEntity.ok("추천 처리 완료");
     }
 }
