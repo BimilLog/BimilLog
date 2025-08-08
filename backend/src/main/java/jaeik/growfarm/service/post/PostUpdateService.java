@@ -5,6 +5,7 @@ import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.post.PostLikeRepository;
+import jaeik.growfarm.repository.post.PostCacheRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,33 +22,30 @@ import java.util.Optional;
  *
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 1.1.0
  */
 @Service
 @RequiredArgsConstructor
 public class PostUpdateService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
+    private final PostCacheRepository postCacheRepository;
 
     /**
      * <h3>게시글 삭제</h3>
      * <p>
-     * 게시글을 삭제한다.
-     * </p>
-     * <p>
-     * 인기글인 경우 Redis 캐시에서도 즉시 삭제한다.
-     * </p>
-     * <p>
+     * 게시글을 삭제한다. 삭제 대상이 인기글인 경우 Redis 캐시에서도 즉시 동기화 삭제한다.
      * 댓글은 CASCADE 설정으로 자동 삭제된다.
      * </p>
      *
      * @param postId 삭제할 게시글 ID
      * @author Jaeik
+     * @version 1.1.0
      * @since 1.0.0
      */
     @Transactional
     public void postDelete(Long postId) {
-        postRepository.deletePostWithCacheSync(postId);
+        postCacheRepository.deletePostWithCacheSync(postId);
     }
 
     /**

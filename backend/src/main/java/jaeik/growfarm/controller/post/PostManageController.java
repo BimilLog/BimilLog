@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  * 
  * @author Jaeik
- * @version 1.0.21
+ * @version 1.1.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class PostManageController {
      * 새로운 게시글을 작성하고 저장한다.
      * </p>
      * 
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
      * @param postReqDTO  게시글 작성 요청 DTO
      * @param userDetails 현재 로그인한 사용자 정보
@@ -57,7 +57,7 @@ public class PostManageController {
      * @param postDTO     수정할 게시글 정보
      * @return 수정된 게시글 정보
      * @author Jaeik
-     * @since 1.0.21
+     * @since 1.1.0
      */
     @PostMapping("/update")
     public ResponseEntity<String> updatePost(
@@ -74,7 +74,7 @@ public class PostManageController {
      * 게시글 작성자만 게시글을 삭제할 수 있다.
      * </p>
      * 
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
      * @param userDetails 현재 로그인한 사용자 정보
      * @param postDTO     삭제할 게시글 정보

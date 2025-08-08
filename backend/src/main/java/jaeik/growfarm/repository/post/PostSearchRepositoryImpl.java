@@ -1,7 +1,6 @@
 package jaeik.growfarm.repository.post;
 
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.dto.post.SimplePostDTO;
@@ -27,21 +26,22 @@ import java.util.Map;
 /**
  * <h2>게시글 검색 및 조회 구현체</h2>
  * <p>
- * 게시글 검색, 조회 관련 기능을 담당하는 레포지터리
+ * 게시글 검색과 조회 관련 기능을 담당한다.
  * </p>
  *
  * @author Jaeik
- * @version 1.0.21
+ * @version 1.1.0
+ * @since 1.1.0
  */
 @Slf4j
 @Repository
-public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository implements PostQueryRepository, PostSearchRepository {
+public class PostSearchRepositoryImpl extends PostSearchSupport implements PostQueryRepository, PostSearchRepository {
 
     private final PostCustomFullTextRepository postCustomFullTextRepository;
 
-    public PostCustomSearchRepositoryImpl(JPAQueryFactory jpaQueryFactory,
-            CommentRepository commentRepository,
-            PostCustomFullTextRepository postCustomFullTextRepository) {
+    public PostSearchRepositoryImpl(JPAQueryFactory jpaQueryFactory,
+                                    CommentRepository commentRepository,
+                                    PostCustomFullTextRepository postCustomFullTextRepository) {
         super(jpaQueryFactory, commentRepository);
         this.postCustomFullTextRepository = postCustomFullTextRepository;
     }
@@ -49,16 +49,13 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository imp
     /**
      * <h3>게시글 목록 조회</h3>
      * <p>
-     * 최신순으로 페이징하여 게시글 목록을 조회한다.
-     * </p>
-     * <p>
-     * 게시글 당 댓글 수, 추천 수를 반환한다.
-     * 공지글과 일반글 모두 포함한다.
+     * 최신순으로 페이징하여 게시글 목록을 조회한다. 공지글과 일반글을 모두 포함한다.
+     * 각 게시글의 댓글 수와 추천 수도 함께 반환한다.
      * </p>
      *
      * @return 게시글 목록 페이지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.1.0
      */
     @Transactional(readOnly = true)
     public Page<SimplePostDTO> findPostsWithCommentAndLikeCounts(Pageable pageable) {
@@ -75,11 +72,8 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository imp
     /**
      * <h3>게시글 검색</h3>
      * <p>
-     * 검색어와 검색 유형에 따라 게시글을 검색한다.
-     * </p>
-     * <p>
-     * 게시글 마다의 총 댓글 수, 총 추천 수를 반환한다.
-     * 검색 시에는 공지글을 제외한다.
+     * 검색어와 검색 유형에 따라 게시글을 검색한다. 검색 시에는 공지글을 제외한다.
+     * 각 게시글의 총 댓글 수와 총 추천 수를 반환한다.
      * </p>
      *
      * @param keyword    검색어
@@ -87,11 +81,12 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository imp
      * @param pageable   페이지 정보
      * @return 검색된 게시글 페이지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.1.0
      */
     @Transactional(readOnly = true)
     public Page<SimplePostDTO> searchPosts(String keyword, String searchType, Pageable pageable) {
-        if (keyword != null && !keyword.trim().isEmpty() && searchType != null) {
+        // 안전한 공통 검증 메서드 사용
+        if (hasValidSearchCondition(keyword, searchType)) {
             return switch (searchType) {
                 case "TITLE" -> searchPostsWithNativeQuery(keyword, "TITLE", pageable);
                 case "TITLE_CONTENT" -> searchPostsWithNativeQuery(keyword, "TITLE_CONTENT", pageable);
@@ -111,9 +106,9 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository imp
      *
      * @param postId 게시글 ID
      * @param userId 사용자 ID (null 가능)
-     * @return PostDTO 게시글 상세 정보
+     * @return 게시글 상세 정보 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.1.0
      */
     @Transactional(readOnly = true)
     public PostDTO findPostById(Long postId, Long userId) {
@@ -171,58 +166,25 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository imp
                 userLike);
     }
 
-    /**
-     * <h3>게시글 조회 공통 로직</h3>
-     * <p>
-     * 게시글 목록 조회와 검색 기능의 공통 로직을 처리한다.
-     * </p>
-     *
-     * @param keyword    검색어 (null 또는 빈 문자열이면 전체 조회)
-     * @param searchType 검색 유형 (null이면 전체 조회)
-     * @param pageable   페이지 정보
-     * @return 게시글 목록 페이지
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private Page<SimplePostDTO> findPostsInternal(String keyword, String searchType, Pageable pageable) {
-        QPost post = QPost.post;
-        QUsers user = QUsers.users;
 
-        BooleanExpression searchCondition = createSearchCondition(post, user, keyword, searchType);
-
-        // 검색 시에만 공지글 제외, 일반 조회 시에는 공지글도 포함
-        BooleanExpression finalCondition = searchCondition;
-        if (keyword != null && !keyword.trim().isEmpty() && searchType != null) {
-            // 검색 시에는 공지글 제외
-            BooleanExpression baseCondition = post.isNotice.eq(false);
-            finalCondition = searchCondition != null
-                    ? baseCondition.and(searchCondition)
-                    : baseCondition;
-        }
-
-        List<Tuple> postTuples = fetchPosts(post, user, finalCondition, pageable);
-        Long total = fetchTotalCount(post, user, finalCondition);
-
-        return processPostTuples(postTuples, post, user, pageable, false, total);
-    }
 
     /**
      * <h3>네이티브 쿼리를 이용한 게시글 검색</h3>
      * <p>
-     * 
      * @Query(nativeQuery = true)를 사용하여 게시글을 검색한다.
-     *                    </p>
+     * </p>
      *
      * @param keyword    검색어
      * @param searchType 검색 유형
      * @param pageable   페이지 정보
      * @return 검색된 게시글 페이지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.1.0
      */
     private Page<SimplePostDTO> searchPostsWithNativeQuery(String keyword, String searchType, Pageable pageable) {
         try {
-            String trimmedKeyword = keyword.trim();
+            // 안전한 공통 정규화 메서드 사용
+            String trimmedKeyword = safeNormalizeKeyword(keyword);
 
             // 네이티브 쿼리에 정렬 조건 추가 (최신순)
             Pageable sortedPageable = PageRequest.of(
@@ -235,19 +197,29 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository imp
 
             switch (searchType) {
                 case "TITLE" -> {
-                    results = postCustomFullTextRepository.findByTitleFullText(trimmedKeyword, sortedPageable);
-                    totalCount = postCustomFullTextRepository.countByTitleFullText(trimmedKeyword);
+                    if (isFullTextLikelyIneffective(trimmedKeyword)) {
+                        results = postCustomFullTextRepository.findByTitleLike(trimmedKeyword, sortedPageable.getPageSize(), (int) sortedPageable.getOffset());
+                        totalCount = postCustomFullTextRepository.countByTitleLike(trimmedKeyword);
+                    } else {
+                        results = postCustomFullTextRepository.findByTitleFullText(trimmedKeyword, sortedPageable.getPageSize(), (int) sortedPageable.getOffset());
+                        totalCount = postCustomFullTextRepository.countByTitleFullText(trimmedKeyword);
+                    }
                 }
                 case "TITLE_CONTENT" -> {
-                    results = postCustomFullTextRepository.findByTitleContentFullText(trimmedKeyword, sortedPageable);
-                    totalCount = postCustomFullTextRepository.countByTitleContentFullText(trimmedKeyword);
+                    if (isFullTextLikelyIneffective(trimmedKeyword)) {
+                        results = postCustomFullTextRepository.findByTitleContentLike(trimmedKeyword, sortedPageable.getPageSize(), (int) sortedPageable.getOffset());
+                        totalCount = postCustomFullTextRepository.countByTitleContentLike(trimmedKeyword);
+                    } else {
+                        results = postCustomFullTextRepository.findByTitleContentFullText(trimmedKeyword, sortedPageable.getPageSize(), (int) sortedPageable.getOffset());
+                        totalCount = postCustomFullTextRepository.countByTitleContentFullText(trimmedKeyword);
+                    }
                 }
                 case "AUTHOR" -> {
                     if (trimmedKeyword.length() >= 4) {
-                        results = postCustomFullTextRepository.findByAuthorStartsWith(trimmedKeyword, sortedPageable);
+                        results = postCustomFullTextRepository.findByAuthorStartsWith(trimmedKeyword, sortedPageable.getPageSize(), (int) sortedPageable.getOffset());
                         totalCount = postCustomFullTextRepository.countByAuthorStartsWith(trimmedKeyword);
                     } else {
-                        results = postCustomFullTextRepository.findByAuthorContains(trimmedKeyword, sortedPageable);
+                        results = postCustomFullTextRepository.findByAuthorContains(trimmedKeyword, sortedPageable.getPageSize(), (int) sortedPageable.getOffset());
                         totalCount = postCustomFullTextRepository.countByAuthorContains(trimmedKeyword);
                     }
                 }
@@ -258,24 +230,8 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository imp
                 return new PageImpl<>(Collections.emptyList(), pageable, totalCount);
             }
 
-            // 결과 변환
-            List<SimplePostDTO> posts = convertNativeQueryResults(results);
-
-            // 댓글 수와 좋아요 수 조회
-            List<Long> postIds = posts.stream()
-                    .map(SimplePostDTO::getPostId)
-                    .collect(java.util.stream.Collectors.toList());
-
-            Map<Long, Integer> commentCounts = commentRepository.findCommentCountsByPostIds(postIds);
-            Map<Long, Integer> likeCounts = fetchLikeCounts(postIds);
-
-            // DTO에 댓글 수와 좋아요 수 설정
-            posts.forEach(post -> {
-                post.setCommentCount(commentCounts.getOrDefault(post.getPostId(), 0));
-                post.setLikes(likeCounts.getOrDefault(post.getPostId(), 0));
-            });
-
-            return new PageImpl<>(posts, pageable, totalCount);
+            // 네이티브 쿼리 결과를 processPostTuples에서 처리할 수 있도록 변환
+            return processNativeQueryResults(results, pageable, totalCount);
 
         } catch (Exception e) {
             log.error("네이티브 쿼리 검색 중 오류 발생. keyword: {}, searchType: {}", keyword, searchType, e);
@@ -284,28 +240,18 @@ public class PostCustomSearchRepositoryImpl extends PostCustomBaseRepository imp
     }
 
     /**
-     * <h3>검색 조건 생성</h3>
+     * <h3>네이티브 쿼리 결과 처리</h3>
      * <p>
-     * 검색어와 검색 유형에 따라 검색 조건을 생성한다.
+     * 네이티브 쿼리 결과를 SimplePostDTO로 변환하고 댓글 수/좋아요 수를 통합 조회한다.
      * </p>
      *
-     * @param post       QPost 엔티티
-     * @param user       QUsers 엔티티
-     * @param keyword    검색어
-     * @param searchType 검색 유형
-     * @return BooleanExpression 검색 조건
+     * @param results    네이티브 쿼리 결과
+     * @param pageable   페이지 정보
+     * @param totalCount 전체 결과 수
+     * @return 처리된 게시글 페이지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.0.21
      */
-    private BooleanExpression createSearchCondition(QPost post, QUsers user, String keyword, String searchType) {
-        if (keyword == null || keyword.trim().isEmpty() || searchType == null) {
-            return null;
-        }
+    // 네이티브 결과 처리는 PostSearchSupport로 이동
 
-        // 네이티브 쿼리로 처리하지 않는 경우만 여기서 처리
-        return switch (searchType) {
-            case "AUTHOR" -> createAuthorSearchCondition(user, keyword);
-            default -> null; // 다른 검색 유형은 네이티브 쿼리에서 처리
-        };
-    }
 }

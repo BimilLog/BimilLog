@@ -13,14 +13,15 @@ import org.springframework.stereotype.Repository;
  * 게시글 관련 데이터베이스 작업을 수행하는 Repository
  * </p>
  * <p>
- * 커스텀 게시글 저장소를 상속받음
+ * 기본 CRUD와 일부 네이티브 쿼리 기능을 제공한다.
+ * ISP 분리 적용으로 커스텀 저장소는 더 이상 상속하지 않는다.
  * </p>
  *
  * @author Jaeik
  * @version 1.0.0
  */
 @Repository
-public interface PostRepository extends JpaRepository<Post, Long>, PostCustomRepository {
+public interface PostRepository extends JpaRepository<Post, Long> {
 
     /**
      * <h3>게시글 조회수 증가</h3>

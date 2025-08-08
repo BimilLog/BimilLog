@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +31,11 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Jaeik
- * @version 1.0
+ * @version 1.1.0
  */
 @Repository
 @RequiredArgsConstructor
-public abstract class PostCustomBaseRepository {
+public abstract class PostBaseRepository {
 
     protected final JPAQueryFactory jpaQueryFactory;
     protected final CommentRepository commentRepository;
@@ -137,32 +136,30 @@ public abstract class PostCustomBaseRepository {
      * @param userLike      사용자 좋아요 여부
      * @return SimplePostDTO 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.1.0
      */
     protected List<SimplePostDTO> createSimplePostDTOs(List<Tuple> postTuples, QPost post, QUsers user,
             Map<Long, Integer> commentCounts, Map<Long, Integer> likeCounts, boolean userLike) {
         return postTuples.stream()
                 .map(tuple -> {
+                    Long postId = tuple.get(post.id);
                     Integer views = tuple.get(post.views.coalesce(0));
                     Long userId = tuple.get(post.user.id);
                     String userName = tuple.get(user.userName);
                     Boolean isNotice = tuple.get(post.isNotice);
 
-                    SimplePostDTO dto = new SimplePostDTO(
-                            tuple.get(post.id),
+                    // 안전한 공통 빌더 메서드 사용
+                    return safeBuildSimplePostDTO(
+                            postId,
                             userId,
-                            userName != null ? userName : "익명",
+                            userName,
                             tuple.get(post.title),
-                            commentCounts.getOrDefault(tuple.get(post.id), 0),
-                            likeCounts.getOrDefault(tuple.get(post.id), 0),
+                            commentCounts.getOrDefault(postId, 0),
+                            likeCounts.getOrDefault(postId, 0),
                             views != null ? views : 0,
                             tuple.get(post.createdAt),
-                            Boolean.TRUE.equals(isNotice));
-
-                    // PopularFlag 설정
-                    dto.setPopularFlag(tuple.get(post.popularFlag));
-
-                    return dto;
+                            Boolean.TRUE.equals(isNotice),
+                            tuple.get(post.popularFlag));
                 })
                 .collect(Collectors.toList());
     }
@@ -225,94 +222,6 @@ public abstract class PostCustomBaseRepository {
     }
 
     /**
-     * <h3>작성자 검색 조건 생성</h3>
-     * <p>
-     * 작성자 검색을 위한 조건을 생성한다.
-     * </p>
-     *
-     * @param user    QUsers 엔티티
-     * @param keyword 검색어
-     * @return BooleanExpression 검색 조건
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    protected BooleanExpression createAuthorSearchCondition(QUsers user, String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return null;
-        }
-
-        String trimmedKeyword = keyword.trim();
-
-        if (trimmedKeyword.length() >= 4) {
-            return user.userName.startsWithIgnoreCase(trimmedKeyword);
-        } else {
-            return user.userName.containsIgnoreCase(trimmedKeyword);
-        }
-    }
-
-    /**
-     * <h3>네이티브 쿼리 결과를 SimplePostDTO로 변환</h3>
-     *
-     * @param results 네이티브 쿼리 결과
-     * @return SimplePostDTO 리스트
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    protected List<SimplePostDTO> convertNativeQueryResults(List<Object[]> results) {
-        return results.stream()
-                .map(row -> {
-                    // BigInteger 안전 변환
-                    Long postId = convertToLong(row[0]);
-                    String title = (String) row[1];
-                    int views = row[2] != null ? (Integer) row[2] : 0;
-                    Boolean isNotice = (Boolean) row[3];
-                    PopularFlag popularFlag = row[4] != null ? PopularFlag.valueOf((String) row[4])
-                            : null;
-                    java.sql.Timestamp createdAt = (java.sql.Timestamp) row[5];
-                    Long userId = row[6] != null ? convertToLong(row[6]) : null;
-                    String userName = row[7] != null ? (String) row[7] : "익명";
-
-                    SimplePostDTO dto = new SimplePostDTO(
-                            postId,
-                            userId,
-                            userName,
-                            title,
-                            0,
-                            0,
-                            views,
-                            createdAt.toInstant(),
-                            Boolean.TRUE.equals(isNotice));
-                    dto.setPopularFlag(popularFlag);
-                    return dto;
-                })
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * <h3>Object를 Long으로 안전하게 변환</h3>
-     * <p>
-     * BigInteger, Long, Integer 등을 Long 타입으로 안전하게 변환한다.
-     * </p>
-     *
-     * @param obj 변환할 객체
-     * @return Long 값
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private Long convertToLong(Object obj) {
-        if (obj == null)
-            return null;
-        if (obj instanceof BigInteger) {
-            return ((BigInteger) obj).longValue();
-        } else if (obj instanceof Long) {
-            return (Long) obj;
-        } else if (obj instanceof Integer) {
-            return ((Integer) obj).longValue();
-        }
-        throw new IllegalArgumentException("Unsupported type for Long conversion: " + obj.getClass());
-    }
-
-    /**
      * <h3>Tuple을 SimplePostDTO로 변환</h3>
      * <p>
      * 조회된 Tuple 데이터를 SimplePostDTO 리스트로 변환하는 공통 메서드
@@ -347,5 +256,80 @@ public abstract class PostCustomBaseRepository {
                                 && Boolean.TRUE.equals(tuple.get(post.isNotice)),
                         tuple.get(user)))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * <h3>인기글 플래그 초기화</h3>
+     * <p>
+     * 특정 인기글 플래그를 가진 게시글들의 플래그를 null로 초기화한다.
+     * </p>
+     *
+     * @param popularFlag 초기화할 인기글 플래그
+     * @author Jaeik
+     * @since 1.1.0
+     */
+    protected void resetPopularFlag(PopularFlag popularFlag) {
+        QPost post = QPost.post;
+        jpaQueryFactory.update(post)
+                .set(post.popularFlag, (PopularFlag) null)
+                .where(post.popularFlag.eq(popularFlag))
+                .execute();
+    }
+
+    /**
+     * <h3>인기글 플래그 설정 </h3>
+     * <p>
+     * 지정된 게시글들에 인기글 플래그를 설정한다.
+     * </p>
+     *
+     * @param postIds     게시글 ID 목록
+     * @param popularFlag 설정할 인기글 플래그
+     * @author Jaeik
+     * @since 1.1.0
+     */
+    protected void applyPopularFlag(List<Long> postIds, PopularFlag popularFlag) {
+        if (postIds == null || postIds.isEmpty()) {
+            return;
+        }
+        
+        QPost post = QPost.post;
+        jpaQueryFactory.update(post)
+                .set(post.popularFlag, popularFlag)
+                .where(post.id.in(postIds))
+                .execute();
+    }
+
+    /**
+     * <h3>SimplePostDTO 빌더</h3>
+     *
+     * @param postId      게시글 ID
+     * @param userId      사용자 ID
+     * @param userName    사용자명
+     * @param title       제목
+     * @param commentCount 댓글 수
+     * @param likeCount   좋아요 수
+     * @param views       조회수
+     * @param createdAt   생성일시
+     * @param isNotice    공지글 여부
+     * @param popularFlag 인기글 플래그
+     * @return SimplePostDTO 인스턴스
+     * @author Jaeik
+     * @since 1.1.0
+     */
+    protected SimplePostDTO safeBuildSimplePostDTO(Long postId, Long userId, String userName, String title,
+            int commentCount, int likeCount, int views, java.time.Instant createdAt, boolean isNotice, 
+            PopularFlag popularFlag) {
+        SimplePostDTO dto = new SimplePostDTO(
+                postId,
+                userId,
+                userName != null ? userName : "익명",
+                title,
+                commentCount,
+                likeCount,
+                views,
+                createdAt,
+                isNotice);
+        dto.setPopularFlag(popularFlag);
+        return dto;
     }
 }

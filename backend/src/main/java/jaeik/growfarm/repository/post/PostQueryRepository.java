@@ -9,15 +9,12 @@ import org.springframework.stereotype.Repository;
 /**
  * <h2>게시글 기본 조회 저장소</h2>
  * <p>
- * ISP(Interface Segregation Principle) 적용으로 분리된 인터페이스
- * </p>
- * <p>
- * 기본적인 게시글 조회 기능만을 담당
+ * 기본적인 게시글 조회 기능 담당
  * </p>
  * 
  * @author jaeik
- * @version 1.0.21
- * @since 1.0.21
+ * @version 1.1.0
+ * @since 1.1.0
  */
 @Repository
 public interface PostQueryRepository {
@@ -31,7 +28,7 @@ public interface PostQueryRepository {
      * @param pageable 페이지 정보
      * @return 게시글 목록
      * @author Jaeik
-     * @since 1.0.21
+     * @since 1.1.0
      */
     Page<SimplePostDTO> findPostsWithCommentAndLikeCounts(Pageable pageable);
 
@@ -44,7 +41,7 @@ public interface PostQueryRepository {
      * @param postId 게시글 ID
      * @param userId 사용자 ID (null 가능)
      * @return PostDTO 게시글 상세 정보
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
      */
     PostDTO findPostById(Long postId, Long userId);

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  * 
  * @author Jaeik
- * @version 1.0.21
+ * @version 1.1.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -35,7 +35,7 @@ public class PostQueryController {
      * 최신순으로 게시글 목록을 페이지네이션으로 조회한다.
      * </p>
      * 
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
      * @param page 페이지 번호
      * @param size 페이지 사이즈
@@ -54,7 +54,7 @@ public class PostQueryController {
      * 게시글 ID를 통해 게시글 상세 정보를 조회한다.
      * </p>
      * 
-     * @since 1.0.21
+     * @since 1.1.0
      * @author Jaeik
      * @param postId   게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보 (선택)
@@ -64,10 +64,13 @@ public class PostQueryController {
      */
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPost(@PathVariable Long postId,
+            @RequestParam(name = "count", defaultValue = "true") boolean count,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request,
             HttpServletResponse response) {
-        postService.incrementViewCount(postId, request, response);
+        if (count) {
+            postService.incrementViewCount(postId, request, response);
+        }
         PostDTO postDTO = postService.getPost(postId, userDetails);
         return ResponseEntity.ok(postDTO);
     }

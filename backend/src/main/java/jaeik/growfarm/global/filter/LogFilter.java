@@ -33,8 +33,9 @@ public class LogFilter extends OncePerRequestFilter {
 
     private static final List<String> WHITELIST = List.of("/api/auth/me", "/api/auth/health", "/api/comment/{postId}",
             "/api/notification/subscribe",
-            "/api/paper", "/api/post", "/api/post/search", "/api/post/{postId}", "/api/post/realtime",
-            "/api/post/weekly", "/api/post/legend",
+            "/api/paper", "/api/post/query", "api/post/query/{postId}", "/api/post/search", "api/post/manage/write",
+            "/api/post/manage/update", "/api/post/manage/delete",
+            "/api/post/popular/realtime", "/api/post/popular/weekly", "/api/post/popular/legend",
             "/api/user/posts", "/api/user/comments", "/api/user/likeposts", "/api/user/likecomments",
             "/api/user/username/check");
 

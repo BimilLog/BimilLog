@@ -119,10 +119,13 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
 
   // Effects
   useEffect(() => {
-    if (id) {
+    if (!id) return;
+    // 서버에서 initialPost가 내려온 경우 조회수는 이미 SSR 단계에서 증가하지 않았고,
+    // 브라우저 첫 렌더 시 한 번만 증가시키기 위해 상세 재조회는 initialPost 없을 때만 수행
+    if (!initialPost) {
       fetchPost();
-      fetchComments();
     }
+    fetchComments();
   }, [id]);
 
   return {

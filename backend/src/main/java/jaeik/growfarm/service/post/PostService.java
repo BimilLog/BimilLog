@@ -157,8 +157,9 @@ public class PostService {
      * @param userDetails 현재 로그인 한 사용자 정보
      * @param postDTO     수정할 게시글 정보 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 1.1.0
      */
+    @Transactional
     public void updatePost(CustomUserDetails userDetails, PostDTO postDTO) {
         Post post = ValidatePost(userDetails, postDTO);
         postUpdateService.postUpdate(postDTO, post);
@@ -346,8 +347,7 @@ public class PostService {
             return Arrays.stream(cookies).filter(cookie -> "post_views".equals(cookie.getName())).anyMatch(cookie -> {
                 try {
                     String jsonValue = new String(Base64.getDecoder().decode(cookie.getValue()));
-                    List<Long> viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<>() {
-                    });
+                    List<Long> viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<>() {});
                     return viewedPostIds.contains(postId);
                 } catch (Exception e) {
                     return false;

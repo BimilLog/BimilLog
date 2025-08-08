@@ -26,14 +26,14 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.21
+ * @version 1.1.0
  */
 @Slf4j
 @Repository
-public class PostCustomPopularRepositoryImpl extends PostCustomBaseRepository implements PostPopularRepository {
+public class PostPopularRepositoryImpl extends PostBaseRepository implements PostPopularRepository {
 
-    public PostCustomPopularRepositoryImpl(JPAQueryFactory jpaQueryFactory,
-                                           CommentRepository commentRepository) {
+    public PostPopularRepositoryImpl(JPAQueryFactory jpaQueryFactory,
+                                     CommentRepository commentRepository) {
         super(jpaQueryFactory, commentRepository);
     }
 
@@ -84,10 +84,8 @@ public class PostCustomPopularRepositoryImpl extends PostCustomBaseRepository im
         QComment comment = QComment.comment;
         QUsers user = QUsers.users;
 
-        jpaQueryFactory.update(post)
-                .set(post.popularFlag, (PopularFlag) null)
-                .where(post.popularFlag.eq(PopularFlag.LEGEND))
-                .execute();
+        // 공통 메서드 사용: 기존 레전드 플래그 초기화
+        resetPopularFlag(PopularFlag.LEGEND);
 
         List<Tuple> legendPostsData = jpaQueryFactory
                 .select(
@@ -126,10 +124,8 @@ public class PostCustomPopularRepositoryImpl extends PostCustomBaseRepository im
                 .map(tuple -> tuple.get(post.id))
                 .collect(Collectors.toList());
 
-        jpaQueryFactory.update(post)
-                .set(post.popularFlag, PopularFlag.LEGEND)
-                .where(post.id.in(legendPostIds))
-                .execute();
+        // 공통 메서드 사용: 레전드 플래그 설정
+        applyPopularFlag(legendPostIds, PopularFlag.LEGEND);
 
         return convertTuplesToSimplePostDTOs(legendPostsData, post, user, comment, postLike);
     }
@@ -152,10 +148,7 @@ public class PostCustomPopularRepositoryImpl extends PostCustomBaseRepository im
         QComment comment = QComment.comment;
         QUsers user = QUsers.users;
 
-        jpaQueryFactory.update(post)
-                .set(post.popularFlag, (PopularFlag) null)
-                .where(post.popularFlag.eq(popularFlag))
-                .execute();
+        resetPopularFlag(popularFlag);
 
         List<Tuple> popularPostsData = jpaQueryFactory
                 .select(
@@ -195,10 +188,7 @@ public class PostCustomPopularRepositoryImpl extends PostCustomBaseRepository im
                 .map(tuple -> tuple.get(post.id))
                 .collect(Collectors.toList());
 
-        jpaQueryFactory.update(post)
-                .set(post.popularFlag, popularFlag)
-                .where(post.id.in(popularPostIds))
-                .execute();
+        applyPopularFlag(popularPostIds, popularFlag);
 
         return convertTuplesToSimplePostDTOs(popularPostsData, post, user, comment, postLike);
     }

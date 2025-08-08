@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { boardApi } from "@/lib/api";
+import { boardApi, apiClient } from "@/lib/api";
 import { generateStructuredData, generateKeywords } from "@/lib/seo";
 import PostDetailClient from "./components/PostDetailClient";
 
@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id: postId } = await params;
 
   try {
-    const response = await boardApi.getPost(parseInt(postId));
+    const response = await apiClient.get<Post>(`/post/query/${postId}?count=false`);
 
     if (!response.success || !response.data) {
       return {
@@ -77,7 +77,7 @@ export default async function PostDetailPage({ params }: Props) {
 
   // 서버에서 초기 데이터 가져오기
   try {
-    const response = await boardApi.getPost(parseInt(postId));
+    const response = await apiClient.get<Post>(`/post/query/${postId}?count=false`);
 
     if (!response.success || !response.data) {
       notFound();
