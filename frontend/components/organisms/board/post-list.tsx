@@ -45,11 +45,11 @@ export const PostList = ({ posts }: PostListProps) => {
                     className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
                   >
                     <td className="p-4 md:p-3 hidden sm:table-cell">
-                      {post.popularFlag && (
+                      {post.postCacheFlag && (
                         <Badge className="bg-orange-400 hover:bg-orange-500 text-white">
-                          {post.popularFlag === "REALTIME" && "실시간"}
-                          {post.popularFlag === "WEEKLY" && "주간"}
-                          {post.popularFlag === "LEGEND" && "레전드"}
+                          {post.postCacheFlag === "REALTIME" && "실시간"}
+                          {post.postCacheFlag === "WEEKLY" && "주간"}
+                          {post.postCacheFlag === "LEGEND" && "레전드"}
                         </Badge>
                       )}
                     </td>

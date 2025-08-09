@@ -35,7 +35,7 @@ public class LogFilter extends OncePerRequestFilter {
             "/api/notification/subscribe",
             "/api/paper", "/api/post/query", "api/post/query/{postId}", "/api/post/search", "api/post/manage/write",
             "/api/post/manage/update", "/api/post/manage/delete",
-            "/api/post/popular/realtime", "/api/post/popular/weekly", "/api/post/popular/legend",
+            "/api/post/cache/realtime", "/api/post/cache/weekly", "/api/post/cache/legend", "/api/post/cache/notice",
             "/api/user/posts", "/api/user/comments", "/api/user/likeposts", "/api/user/likecomments",
             "/api/user/username/check");
 

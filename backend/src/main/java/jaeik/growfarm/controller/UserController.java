@@ -3,7 +3,7 @@ package jaeik.growfarm.controller;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.dto.user.UserNameDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
@@ -55,10 +55,10 @@ public class UserController {
      * @since 1.0.0
      */
     @GetMapping("/posts")
-    public ResponseEntity<Page<SimplePostDTO>> getPostList(@RequestParam int page,
-            @RequestParam int size,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Page<SimplePostDTO> postList = userService.getPostList(page, size, userDetails);
+    public ResponseEntity<Page<SimplePostResDTO>> getPostList(@RequestParam int page,
+                                                              @RequestParam int size,
+                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Page<SimplePostResDTO> postList = userService.getPostList(page, size, userDetails);
         return ResponseEntity.ok(postList);
     }
 
@@ -99,10 +99,10 @@ public class UserController {
      * @since 1.0.0
      */
     @GetMapping("/likeposts")
-    public ResponseEntity<Page<SimplePostDTO>> getLikedPosts(@RequestParam int page,
-            @RequestParam int size,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Page<SimplePostDTO> likedPosts = userService.getLikedPosts(page, size, userDetails);
+    public ResponseEntity<Page<SimplePostResDTO>> getLikedPosts(@RequestParam int page,
+                                                                @RequestParam int size,
+                                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Page<SimplePostResDTO> likedPosts = userService.getLikedPosts(page, size, userDetails);
         return ResponseEntity.ok(likedPosts);
     }
 

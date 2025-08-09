@@ -74,7 +74,7 @@ export interface Post {
   content: string
   views: number
   likes: number
-  popularFlag?: "REALTIME" | "WEEKLY" | "LEGEND"
+  postCacheFlag?: "REALTIME" | "WEEKLY" | "LEGEND"
   createdAt: string
   userLike: boolean
   password?: number
@@ -91,7 +91,7 @@ export interface SimplePost {
   likes: number
   views: number
   createdAt: string
-  popularFlag?: "REALTIME" | "WEEKLY" | "LEGEND"
+  postCacheFlag?: "REALTIME" | "WEEKLY" | "LEGEND"
   _notice: boolean
 }
 

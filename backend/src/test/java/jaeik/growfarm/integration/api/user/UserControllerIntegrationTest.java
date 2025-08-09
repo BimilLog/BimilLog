@@ -3,7 +3,7 @@ package jaeik.growfarm.integration.api.user;
 import jaeik.growfarm.controller.UserController;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.dto.user.UserNameDTO;
@@ -118,7 +118,7 @@ public class UserControllerIntegrationTest {
                                                 userDetails.getAuthorities()));
 
                 // When
-                ResponseEntity<Page<SimplePostDTO>> response = userController.getPostList(0, 10, userDetails);
+                ResponseEntity<Page<SimplePostResDTO>> response = userController.getPostList(0, 10, userDetails);
 
                 // Then
                 assertNotNull(response.getBody());
@@ -186,7 +186,7 @@ public class UserControllerIntegrationTest {
                                                 userDetails.getAuthorities()));
 
                 // When
-                ResponseEntity<Page<SimplePostDTO>> response = userController.getLikedPosts(0, 10, userDetails);
+                ResponseEntity<Page<SimplePostResDTO>> response = userController.getLikedPosts(0, 10, userDetails);
 
                 // Then
                 assertEquals(200, response.getStatusCodeValue());

@@ -1,6 +1,6 @@
 package jaeik.growfarm.service.post;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.repository.post.popular.PostPopularRepository;
 import jaeik.growfarm.service.redis.RedisPostService;
@@ -46,8 +46,8 @@ public class PostScheduledService {
      */
     @Scheduled(fixedRate = 60000 * 30)
     public void updateRealtimePopularPosts() {
-        List<SimplePostDTO> realtimePosts = postPopularRepository.updateRealtimePopularPosts();
-        redisPostService.cachePopularPosts(RedisPostService.PopularPostType.REALTIME, realtimePosts);
+        List<SimplePostResDTO> realtimePosts = postPopularRepository.updateRealtimePopularPosts();
+        redisPostService.cachePopularPosts(RedisPostService.CachePostType.REALTIME, realtimePosts);
     }
 
     /**
@@ -67,15 +67,15 @@ public class PostScheduledService {
      */
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateWeeklyPopularPosts() {
-        List<SimplePostDTO> weeklyPosts = postPopularRepository.updateWeeklyPopularPosts();
-        redisPostService.cachePopularPosts(RedisPostService.PopularPostType.WEEKLY, weeklyPosts);
+        List<SimplePostResDTO> weeklyPosts = postPopularRepository.updateWeeklyPopularPosts();
+        redisPostService.cachePopularPosts(RedisPostService.CachePostType.WEEKLY, weeklyPosts);
 
-        for (SimplePostDTO simplePostDTO : weeklyPosts) {
-            if (simplePostDTO.getUser() != null) {
+        for (SimplePostResDTO simplePostResDTO : weeklyPosts) {
+            if (simplePostResDTO.getUser() != null) {
                 eventPublisher.publishEvent(new PostFeaturedEvent(
-                        simplePostDTO.getUserId(),
+                        simplePostResDTO.getUserId(),
                         "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
-                        simplePostDTO.getPostId(),
+                        simplePostResDTO.getPostId(),
                         "회원님의 글이 주간 인기글로 선정되었습니다!",
                         "지금 확인해보세요!"));
             }
@@ -100,14 +100,14 @@ public class PostScheduledService {
      */
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateLegendPopularPosts() {
-        List<SimplePostDTO> legendPosts = postPopularRepository.updateLegendPosts();
-        redisPostService.cachePopularPosts(RedisPostService.PopularPostType.LEGEND, legendPosts);
+        List<SimplePostResDTO> legendPosts = postPopularRepository.updateLegendPosts();
+        redisPostService.cachePopularPosts(RedisPostService.CachePostType.LEGEND, legendPosts);
 
-        for (SimplePostDTO simplePostDTO : legendPosts) {
+        for (SimplePostResDTO simplePostResDTO : legendPosts) {
             eventPublisher.publishEvent(new PostFeaturedEvent(
-                    simplePostDTO.getUserId(),
+                    simplePostResDTO.getUserId(),
                     "🎉 회원님의 글이 레전드글로 선정되었습니다!",
-                    simplePostDTO.getPostId(),
+                    simplePostResDTO.getPostId(),
                     "회원님의 글이 레전드글로 선정되었습니다!",
                     "지금 확인해보세요!"));
         }

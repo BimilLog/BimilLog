@@ -2,8 +2,8 @@ package jaeik.growfarm.service.post.read;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.growfarm.dto.post.PostDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
@@ -52,9 +52,9 @@ public class PostReadServiceImpl implements PostReadService {
      * @since 1.1.0
      */
     @Override
-    public Page<SimplePostDTO> getBoard(int page, int size) {
+    public Page<SimplePostResDTO> getBoard(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postReadRepository.findPostsWithCommentAndLikeCounts(pageable);
+        return postReadRepository.findSimplePost(pageable);
     }
 
     /**
@@ -70,7 +70,7 @@ public class PostReadServiceImpl implements PostReadService {
      * @since 1.1.0
      */
     @Override
-    public PostDTO getPost(Long postId, CustomUserDetails userDetails) {
+    public FullPostResDTO getPost(Long postId, CustomUserDetails userDetails) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
         return postReadRepository.findPostById(postId, userId);
     }

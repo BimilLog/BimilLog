@@ -1,6 +1,6 @@
 package jaeik.growfarm.service.post.command;
 
-import jaeik.growfarm.dto.post.PostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
@@ -53,10 +53,10 @@ public class PostCommandServiceImpl implements PostCommandService {
      */
     @Transactional
     @Override
-    public PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
+    public FullPostResDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
         Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
         Post post = postRepository.save(Post.createPost(user, postReqDTO));
-        return PostDTO.newPost(post);
+        return FullPostResDTO.newPost(post);
     }
 
     /**
@@ -66,15 +66,15 @@ public class PostCommandServiceImpl implements PostCommandService {
      * </p>
      *
      * @param userDetails 현재 로그인 한 사용자 정보
-     * @param postDTO     수정할 게시글 정보 DTO
+     * @param fullPostResDTO     수정할 게시글 정보 DTO
      * @author Jaeik
      * @since 1.1.0
      */
     @Transactional
     @Override
-    public void updatePost(CustomUserDetails userDetails, PostDTO postDTO) {
-        Post post = validatePost(userDetails, postDTO);
-        postPersistenceService.updatePost(postDTO, post);
+    public void updatePost(CustomUserDetails userDetails, FullPostResDTO fullPostResDTO) {
+        Post post = validatePost(userDetails, fullPostResDTO);
+        postPersistenceService.updatePost(fullPostResDTO, post);
     }
 
     /**
@@ -84,13 +84,13 @@ public class PostCommandServiceImpl implements PostCommandService {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param postDTO     게시글 정보 DTO
+     * @param fullPostResDTO     게시글 정보 DTO
      * @author Jaeik
      * @since 1.1.0
      */
     @Override
-    public void deletePost(CustomUserDetails userDetails, PostDTO postDTO) {
-        Post post = validatePost(userDetails, postDTO);
+    public void deletePost(CustomUserDetails userDetails, FullPostResDTO fullPostResDTO) {
+        Post post = validatePost(userDetails, fullPostResDTO);
         postPersistenceService.deletePost(post.getId());
     }
 
@@ -100,14 +100,14 @@ public class PostCommandServiceImpl implements PostCommandService {
      * 게시글을 추천하거나 추천 취소한다.
      * </p>
      *
-     * @param postDTO     추천할 게시글 정보 DTO
+     * @param fullPostResDTO     추천할 게시글 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
      * @since 1.1.0
      */
     @Override
-    public void likePost(PostDTO postDTO, CustomUserDetails userDetails) {
-        Long postId = postDTO.getPostId();
+    public void likePost(FullPostResDTO fullPostResDTO, CustomUserDetails userDetails) {
+        Long postId = fullPostResDTO.getPostId();
         Long userId = userDetails.getUserId();
 
         Post post = postRepository.getReferenceById(postId);
@@ -124,23 +124,23 @@ public class PostCommandServiceImpl implements PostCommandService {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param postDTO     게시글 정보 DTO
+     * @param fullPostResDTO     게시글 정보 DTO
      * @return 유효한 게시글 엔티티
      * @throws CustomException 게시글이 존재하지 않거나 작성자가 일치하지 않는 경우
      * @author Jaeik
      * @since 1.1.0
      */
-    private Post validatePost(CustomUserDetails userDetails, PostDTO postDTO) {
+    private Post validatePost(CustomUserDetails userDetails, FullPostResDTO fullPostResDTO) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        Post post = postRepository.findById(postDTO.getPostId())
+        Post post = postRepository.findById(fullPostResDTO.getPostId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        if (!Objects.equals(postDTO.getUserId(), (userId))) {
+        if (!Objects.equals(fullPostResDTO.getUserId(), (userId))) {
             throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
         }
 
         if (userId == null) {
-            if (!Objects.equals(postDTO.getPassword(), post.getPassword())) {
+            if (!Objects.equals(fullPostResDTO.getPassword(), post.getPassword())) {
                 throw new CustomException(ErrorCode.POST_PASSWORD_NOT_MATCH);
             }
         }

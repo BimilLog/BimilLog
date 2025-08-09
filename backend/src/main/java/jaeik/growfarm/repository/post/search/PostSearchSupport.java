@@ -1,7 +1,7 @@
 package jaeik.growfarm.repository.post.search;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostBaseRepository;
 import org.springframework.data.domain.Page;
@@ -38,19 +38,19 @@ public abstract class PostSearchSupport extends PostBaseRepository {
      * @param results    네이티브 쿼리 결과 배열 목록
      * @param pageable   페이지 정보
      * @param totalCount 전체 결과 개수
-     * @return 댓글/좋아요 수가 채워진 {@link SimplePostDTO} 페이지
+     * @return 댓글/좋아요 수가 채워진 {@link SimplePostResDTO} 페이지
      * @since 1.1.0
      * @author Jaeik
      */
-    protected Page<SimplePostDTO> processNativeQueryResults(List<Object[]> results, Pageable pageable, long totalCount) {
-        List<SimplePostDTO> posts = results.stream()
-                .map(SimplePostDTO::fromNativeQuery)
+    protected Page<SimplePostResDTO> processNativeQueryResults(List<Object[]> results, Pageable pageable, long totalCount) {
+        List<SimplePostResDTO> posts = results.stream()
+                .map(SimplePostResDTO::fromNativeQuery)
                 .collect(Collectors.toList());
         if (posts.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, totalCount);
         }
         List<Long> postIds = posts.stream()
-                .map(SimplePostDTO::getPostId)
+                .map(SimplePostResDTO::getPostId)
                 .collect(Collectors.toList());
 
         Map<Long, Integer> commentCounts = commentRepository.findCommentCountsByPostIds(postIds);

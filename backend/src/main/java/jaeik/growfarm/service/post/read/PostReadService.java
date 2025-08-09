@@ -1,7 +1,7 @@
 package jaeik.growfarm.service.post.read;
 
-import jaeik.growfarm.dto.post.PostDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,7 +30,7 @@ public interface PostReadService {
      * @author Jaeik
      * @since 1.1.0
      */
-    Page<SimplePostDTO> getBoard(int page, int size);
+    Page<SimplePostResDTO> getBoard(int page, int size);
 
     /**
      * <h3>게시글 조회</h3>
@@ -44,7 +44,7 @@ public interface PostReadService {
      * @author Jaeik
      * @since 1.1.0
      */
-    PostDTO getPost(Long postId, CustomUserDetails userDetails);
+    FullPostResDTO getPost(Long postId, CustomUserDetails userDetails);
 
     /**
      * <h3>게시글 조회수 증가</h3>

@@ -1,6 +1,6 @@
 package jaeik.growfarm.service.redis;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.post.PostScheduledService;
@@ -49,18 +49,19 @@ public class RedisPostService {
      * </p>
      * 
      * @author Jaeik
-     * @version 1.0.0
+     * @version 2.0.0
      */
     @Getter
-    public enum PopularPostType {
+    public enum CachePostType {
         REALTIME("popular:posts:realtime", Duration.ofMinutes(30)),
         WEEKLY("popular:posts:weekly", Duration.ofDays(1)),
-        LEGEND("popular:posts:legend", Duration.ofDays(1));
+        LEGEND("popular:posts:legend", Duration.ofDays(1)),
+        NOTICE("popular:posts:notice", Duration.ofDays(7));
 
         private final String key;
         private final Duration ttl;
 
-        PopularPostType(String key, Duration ttl) {
+        CachePostType(String key, Duration ttl) {
             this.key = key;
             this.ttl = ttl;
         }
@@ -73,7 +74,7 @@ public class RedisPostService {
      * @author Jaeik
      * @since 1.0.0
      */
-    public void cachePopularPosts(PopularPostType type, List<SimplePostDTO> popularPosts) {
+    public void cachePopularPosts(CachePostType type, List<SimplePostResDTO> popularPosts) {
         try {
             redisTemplate.opsForValue().set(type.getKey(), popularPosts, type.getTtl());
         } catch (Exception e) {
@@ -89,7 +90,7 @@ public class RedisPostService {
      * @since 1.0.0
      */
     @SuppressWarnings("unchecked")
-    public List<SimplePostDTO> getCachedPopularPosts(PopularPostType type) {
+    public List<SimplePostResDTO> getCachedPopularPosts(CachePostType type) {
 
         if (!hasPopularPostsCache(type)) {
             switch (type) {
@@ -102,7 +103,7 @@ public class RedisPostService {
         try {
             Object cached = redisTemplate.opsForValue().get(type.getKey());
             if (cached instanceof List) {
-                return (List<SimplePostDTO>) cached;
+                return (List<SimplePostResDTO>) cached;
             }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
@@ -116,7 +117,7 @@ public class RedisPostService {
      * @author Jaeik
      * @since 1.0.0
      */
-    public void deletePopularPostsCache(PopularPostType type) {
+    public void deletePopularPostsCache(CachePostType type) {
         try {
             redisTemplate.delete(type.getKey());
         } catch (Exception e) {
@@ -131,7 +132,7 @@ public class RedisPostService {
      * @author Jaeik
      * @since 1.0.0
      */
-    public boolean hasPopularPostsCache(PopularPostType type) {
+    public boolean hasPopularPostsCache(CachePostType type) {
         try {
             return redisTemplate.hasKey(type.getKey());
         } catch (Exception e) {
@@ -146,7 +147,7 @@ public class RedisPostService {
      * @since 1.0.0
      */
     public void deleteAllPopularPostsCache() {
-        for (PopularPostType type : PopularPostType.values()) {
+        for (CachePostType type : CachePostType.values()) {
             deletePopularPostsCache(type);
         }
     }

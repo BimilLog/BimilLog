@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.post.search;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -31,5 +31,5 @@ public interface PostSearchRepository {
      * @author Jaeik
      * @since 1.1.0
      */
-    Page<SimplePostDTO> searchPosts(String keyword, String searchType, Pageable pageable);
+    Page<SimplePostResDTO> searchPosts(String keyword, String searchType, Pageable pageable);
 }

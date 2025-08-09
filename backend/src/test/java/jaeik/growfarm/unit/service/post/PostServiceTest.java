@@ -135,7 +135,7 @@
 //    void testGetBoard() {
 //        // Given
 //        Page<SimplePostDTO> postPage = new PageImpl<>(simplePostDTOList);
-//        when(postRepository.findPostsWithCommentAndLikeCounts(any(Pageable.class))).thenReturn(postPage);
+//        when(postRepository.findSimplePost(any(Pageable.class))).thenReturn(postPage);
 //
 //        // When
 //        Page<SimplePostDTO> result = postService.getBoard(0, 10);
@@ -144,7 +144,7 @@
 //        assertNotNull(result);
 //        assertEquals(1, result.getContent().size());
 //        assertEquals("Test Post Title", result.getContent().getFirst().getTitle());
-//        verify(postRepository, times(1)).findPostsWithCommentAndLikeCounts(any(Pageable.class));
+//        verify(postRepository, times(1)).findSimplePost(any(Pageable.class));
 //    }
 //
 //    @Test
@@ -368,7 +368,7 @@
 //
 //        // Then
 //        verify(postRepository, times(1)).updateRealtimePopularPosts();
-//        verify(redisPostService, times(1)).cachePopularPosts(any(RedisPostService.PopularPostType.class),
+//        verify(redisPostService, times(1)).cachePopularPosts(any(RedisPostService.CachePostType.class),
 //                anyList());
 //    }
 //}

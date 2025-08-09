@@ -1,6 +1,6 @@
 package jaeik.growfarm.service.post.command;
 
-import jaeik.growfarm.dto.post.PostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 
@@ -27,7 +27,7 @@ public interface PostCommandService {
      * @author Jaeik
      * @since 1.1.0
      */
-    PostDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO);
+    FullPostResDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO);
 
     /**
      * <h3>게시글 수정</h3>
@@ -36,11 +36,11 @@ public interface PostCommandService {
      * </p>
      *
      * @param userDetails 현재 로그인 한 사용자 정보
-     * @param postDTO     수정할 게시글 정보 DTO
+     * @param fullPostResDTO     수정할 게시글 정보 DTO
      * @author Jaeik
      * @since 1.1.0
      */
-    void updatePost(CustomUserDetails userDetails, PostDTO postDTO);
+    void updatePost(CustomUserDetails userDetails, FullPostResDTO fullPostResDTO);
 
     /**
      * <h3>게시글 삭제</h3>
@@ -49,11 +49,11 @@ public interface PostCommandService {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param postDTO     게시글 정보 DTO
+     * @param fullPostResDTO     게시글 정보 DTO
      * @author Jaeik
      * @since 1.1.0
      */
-    void deletePost(CustomUserDetails userDetails, PostDTO postDTO);
+    void deletePost(CustomUserDetails userDetails, FullPostResDTO fullPostResDTO);
 
     /**
      * <h3>게시글 추천</h3>
@@ -61,10 +61,10 @@ public interface PostCommandService {
      * 게시글을 추천하거나 추천 취소한다.
      * </p>
      *
-     * @param postDTO     추천할 게시글 정보 DTO
+     * @param fullPostResDTO     추천할 게시글 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
      * @since 1.1.0
      */
-    void likePost(PostDTO postDTO, CustomUserDetails userDetails);
+    void likePost(FullPostResDTO fullPostResDTO, CustomUserDetails userDetails);
 }

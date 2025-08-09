@@ -1,7 +1,7 @@
 package jaeik.growfarm.repository.post.read;
 
-import jaeik.growfarm.dto.post.PostDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -30,7 +30,7 @@ public interface PostReadRepository {
      * @author Jaeik
      * @since 1.1.0
      */
-    Page<SimplePostDTO> findPostsWithCommentAndLikeCounts(Pageable pageable);
+    Page<SimplePostResDTO> findSimplePost(Pageable pageable);
 
     /**
      * <h3>게시글 상세 조회</h3>
@@ -44,7 +44,7 @@ public interface PostReadRepository {
      * @since 1.1.0
      * @author Jaeik
      */
-    PostDTO findPostById(Long postId, Long userId);
+    FullPostResDTO findPostById(Long postId, Long userId);
 }
 
 

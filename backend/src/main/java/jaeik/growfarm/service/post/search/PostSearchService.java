@@ -1,6 +1,6 @@
 package jaeik.growfarm.service.post.search;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import org.springframework.data.domain.Page;
 
 /**
@@ -28,5 +28,5 @@ public interface PostSearchService {
      * @author Jaeik
      * @since 1.1.0
      */
-    Page<SimplePostDTO> searchPost(String type, String query, int page, int size);
+    Page<SimplePostResDTO> searchPost(String type, String query, int page, int size);
 }

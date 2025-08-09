@@ -1,6 +1,6 @@
 package jaeik.growfarm.controller.post;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.service.redis.RedisPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,18 +9,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * <h2>게시글 인기글 컨트롤러</h2>
+ * <h2>게시글 캐시 컨트롤러</h2>
  * <p>
- * 인기글 조회 기능만을 담당 (실시간, 주간, 레전드)
+ * 캐싱을 담당 (실시간, 주간, 레전드, 공지사항)
  * </p>
  * 
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/post/popular")
-public class PostPopularController {
+@RequestMapping("/api/post/cache")
+public class PostCacheController {
 
     private final RedisPostService redisPostService;
 
@@ -36,9 +36,9 @@ public class PostPopularController {
      * @return 실시간 인기글 목록
      */
     @GetMapping("/realtime")
-    public ResponseEntity<List<SimplePostDTO>> getRealtimeBoard() {
-        List<SimplePostDTO> realtimePopularPosts = redisPostService
-                .getCachedPopularPosts(RedisPostService.PopularPostType.REALTIME);
+    public ResponseEntity<List<SimplePostResDTO>> getRealtimeBoard() {
+        List<SimplePostResDTO> realtimePopularPosts = redisPostService
+                .getCachedPopularPosts(RedisPostService.CachePostType.REALTIME);
         return ResponseEntity.ok(realtimePopularPosts);
     }
 
@@ -54,9 +54,9 @@ public class PostPopularController {
      * @return 주간 인기글 목록
      */
     @GetMapping("/weekly")
-    public ResponseEntity<List<SimplePostDTO>> getWeeklyBoard() {
-        List<SimplePostDTO> weeklyPopularPosts = redisPostService
-                .getCachedPopularPosts(RedisPostService.PopularPostType.WEEKLY);
+    public ResponseEntity<List<SimplePostResDTO>> getWeeklyBoard() {
+        List<SimplePostResDTO> weeklyPopularPosts = redisPostService
+                .getCachedPopularPosts(RedisPostService.CachePostType.WEEKLY);
         return ResponseEntity.ok(weeklyPopularPosts);
     }
 
@@ -72,9 +72,26 @@ public class PostPopularController {
      * @return 레전드 게시글 목록
      */
     @GetMapping("/legend")
-    public ResponseEntity<List<SimplePostDTO>> getLegendBoard() {
-        List<SimplePostDTO> legendPopularPosts = redisPostService
-                .getCachedPopularPosts(RedisPostService.PopularPostType.LEGEND);
+    public ResponseEntity<List<SimplePostResDTO>> getLegendBoard() {
+        List<SimplePostResDTO> legendPopularPosts = redisPostService
+                .getCachedPopularPosts(RedisPostService.CachePostType.LEGEND);
         return ResponseEntity.ok(legendPopularPosts);
+    }
+
+    /**
+     * <h3>공지사항 조회 API</h3>
+     *
+     * <p>
+     * 공지사항으로 등록된 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @since 2.0.0
+     * @author Jaeik
+     * @return 공지사항 게시글 목록
+     */
+    @GetMapping("/notice")
+    public ResponseEntity<List<SimplePostResDTO>> getNoticeBoard() {
+        List<SimplePostResDTO> noticePosts = redisPostService.getCachedNoticePosts();
+        return ResponseEntity.ok(noticePosts);
     }
 }

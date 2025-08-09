@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.post.search;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -55,7 +55,7 @@ public class PostSearchRepositoryImpl extends PostSearchSupport implements PostS
      * @since 1.1.0
      */
     @Transactional(readOnly = true)
-    public Page<SimplePostDTO> searchPosts(String keyword, String searchType, Pageable pageable) {
+    public Page<SimplePostResDTO> searchPosts(String keyword, String searchType, Pageable pageable) {
         if (hasValidSearchCondition(keyword, searchType)) {
             return switch (searchType) {
                 case "TITLE" -> searchPostsWithNativeQuery(keyword, "TITLE", pageable);
@@ -82,7 +82,7 @@ public class PostSearchRepositoryImpl extends PostSearchSupport implements PostS
      * @author Jaeik
      * @since 1.1.0
      */
-    private Page<SimplePostDTO> searchPostsWithNativeQuery(String keyword, String searchType, Pageable pageable) {
+    private Page<SimplePostResDTO> searchPostsWithNativeQuery(String keyword, String searchType, Pageable pageable) {
         try {
             String trimmedKeyword = safeNormalizeKeyword(keyword);
 

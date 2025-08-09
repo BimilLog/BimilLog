@@ -123,7 +123,7 @@
 //    @DisplayName("실시간 인기글 조회 테스트")
 //    void testGetRealtimeBoard() {
 //        // Given
-//        when(redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.REALTIME))
+//        when(redisPostService.getCachedPopularPosts(RedisPostService.CachePostType.REALTIME))
 //                .thenReturn(simplePostDTOList);
 //
 //        // When
@@ -133,14 +133,14 @@
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals(1, response.getBody().size());
-//        verify(redisPostService, times(1)).getCachedPopularPosts(RedisPostService.PopularPostType.REALTIME);
+//        verify(redisPostService, times(1)).getCachedPopularPosts(RedisPostService.CachePostType.REALTIME);
 //    }
 //
 //    @Test
 //    @DisplayName("주간 인기글 조회 테스트")
 //    void testGetWeeklyBoard() {
 //        // Given
-//        when(redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.WEEKLY))
+//        when(redisPostService.getCachedPopularPosts(RedisPostService.CachePostType.WEEKLY))
 //                .thenReturn(simplePostDTOList);
 //
 //        // When
@@ -150,14 +150,14 @@
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals(1, response.getBody().size());
-//        verify(redisPostService, times(1)).getCachedPopularPosts(RedisPostService.PopularPostType.WEEKLY);
+//        verify(redisPostService, times(1)).getCachedPopularPosts(RedisPostService.CachePostType.WEEKLY);
 //    }
 //
 //    @Test
 //    @DisplayName("레전드 인기글 조회 테스트")
 //    void testGetLegendBoard() {
 //        // Given
-//        when(redisPostService.getCachedPopularPosts(RedisPostService.PopularPostType.LEGEND))
+//        when(redisPostService.getCachedPopularPosts(RedisPostService.CachePostType.LEGEND))
 //                .thenReturn(simplePostDTOList);
 //
 //        // When
@@ -167,7 +167,7 @@
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals(1, response.getBody().size());
-//        verify(redisPostService, times(1)).getCachedPopularPosts(RedisPostService.PopularPostType.LEGEND);
+//        verify(redisPostService, times(1)).getCachedPopularPosts(RedisPostService.CachePostType.LEGEND);
 //    }
 //
 //    @Test

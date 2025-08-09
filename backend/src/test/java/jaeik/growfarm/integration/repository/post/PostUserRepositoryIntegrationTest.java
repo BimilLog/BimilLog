@@ -1,6 +1,6 @@
 package jaeik.growfarm.integration.repository.post;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Users;
@@ -171,7 +171,7 @@ class PostUserRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -188,8 +188,8 @@ class PostUserRepositoryIntegrationTest {
         // 최신순 정렬 확인
         if (result.getContent().size() > 1) {
             for (int i = 0; i < result.getContent().size() - 1; i++) {
-                SimplePostDTO current = result.getContent().get(i);
-                SimplePostDTO next = result.getContent().get(i + 1);
+                SimplePostResDTO current = result.getContent().get(i);
+                SimplePostResDTO next = result.getContent().get(i + 1);
                 assertThat(current.getCreatedAt()).isAfterOrEqualTo(next.getCreatedAt());
             }
         }
@@ -203,7 +203,7 @@ class PostUserRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -219,7 +219,7 @@ class PostUserRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findLikedPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findLikedPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -244,7 +244,7 @@ class PostUserRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findLikedPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findLikedPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -272,7 +272,7 @@ class PostUserRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 3); // 첫 페이지, 3개씩
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(3);
@@ -290,13 +290,13 @@ class PostUserRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findLikedPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findLikedPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1); // testPost3에만 좋아요
 
-        SimplePostDTO likedPost = result.getContent().get(0);
+        SimplePostResDTO likedPost = result.getContent().get(0);
         assertThat(likedPost.getTitle()).isEqualTo("사용자2의 게시글");
         assertThat(likedPost.getUserName()).isEqualTo("사용자2"); // 다른 사용자가 작성
         assertThat(likedPost.getUserId()).isEqualTo(testUser2.getId());
@@ -310,7 +310,7 @@ class PostUserRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -334,20 +334,20 @@ class PostUserRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
         
         // testPost1에 대한 좋아요 수 확인 (testUser2가 좋아요)
-        SimplePostDTO post1 = result.getContent().stream()
+        SimplePostResDTO post1 = result.getContent().stream()
                 .filter(post -> post.getTitle().equals("사용자1의 첫 번째 게시글"))
                 .findFirst()
                 .orElseThrow();
         assertThat(post1.getLikes()).isEqualTo(1);
         
         // testPost2에 대한 좋아요 수 확인 (좋아요 없음)
-        SimplePostDTO post2 = result.getContent().stream()
+        SimplePostResDTO post2 = result.getContent().stream()
                 .filter(post -> post.getTitle().equals("사용자1의 두 번째 게시글"))
                 .findFirst()
                 .orElseThrow();

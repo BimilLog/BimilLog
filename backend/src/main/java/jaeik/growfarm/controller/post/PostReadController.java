@@ -1,7 +1,7 @@
 package jaeik.growfarm.controller.post;
 
-import jaeik.growfarm.dto.post.PostDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.post.read.PostReadService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/post/query")
-public class PostQueryController {
+public class PostReadController {
 
     private final PostReadService postReadService;
 
@@ -42,8 +42,8 @@ public class PostQueryController {
      * @since 1.1.0
      */
     @GetMapping
-    public ResponseEntity<Page<SimplePostDTO>> getBoard(@RequestParam int page, @RequestParam int size) {
-        Page<SimplePostDTO> postList = postReadService.getBoard(page, size);
+    public ResponseEntity<Page<SimplePostResDTO>> getBoard(@RequestParam int page, @RequestParam int size) {
+        Page<SimplePostResDTO> postList = postReadService.getBoard(page, size);
         return ResponseEntity.ok(postList);
     }
 
@@ -63,15 +63,15 @@ public class PostQueryController {
      * @since 1.1.0
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<PostDTO> getPost(@PathVariable Long postId,
-                                           @RequestParam(name = "count", defaultValue = "true") boolean count,
-                                           @AuthenticationPrincipal CustomUserDetails userDetails,
-                                           HttpServletRequest request,
-                                           HttpServletResponse response) {
+    public ResponseEntity<FullPostResDTO> getPost(@PathVariable Long postId,
+                                                  @RequestParam(name = "count", defaultValue = "true") boolean count,
+                                                  @AuthenticationPrincipal CustomUserDetails userDetails,
+                                                  HttpServletRequest request,
+                                                  HttpServletResponse response) {
         if (count) {
             postReadService.incrementViewCount(postId, request, response);
         }
-        PostDTO postDTO = postReadService.getPost(postId, userDetails);
-        return ResponseEntity.ok(postDTO);
+        FullPostResDTO fullPostResDTO = postReadService.getPost(postId, userDetails);
+        return ResponseEntity.ok(fullPostResDTO);
     }
 }

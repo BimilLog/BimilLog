@@ -85,6 +85,20 @@ dependencies {
     }
 }
 
+// ==== QueryDSL 설정 ====
+def generated = 'src/main/generated'
+sourceSets {
+    main.java.srcDirs += [ generated ]
+}
+
+tasks.withType(JavaCompile) {
+    options.annotationProcessorGeneratedSourcesDirectory = file(generated)
+}
+
+clean.doLast {
+    file(generated).deleteDir()
+}
+
 tasks.named('test') {
     useJUnitPlatform()
 }

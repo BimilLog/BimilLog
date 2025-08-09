@@ -1,6 +1,6 @@
 package jaeik.growfarm.integration.repository.post;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.post.search.PostSearchRepository;
@@ -137,7 +137,7 @@ class PostSearchRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
+        Page<SimplePostResDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -155,7 +155,7 @@ class PostSearchRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
+        Page<SimplePostResDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -176,7 +176,7 @@ class PostSearchRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
+        Page<SimplePostResDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -197,7 +197,7 @@ class PostSearchRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
+        Page<SimplePostResDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -214,7 +214,7 @@ class PostSearchRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
+        Page<SimplePostResDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -231,7 +231,7 @@ class PostSearchRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
+        Page<SimplePostResDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -274,7 +274,7 @@ class PostSearchRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 2); // 첫 페이지, 2개씩
 
         // When
-        Page<SimplePostDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
+        Page<SimplePostResDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
@@ -292,7 +292,7 @@ class PostSearchRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
+        Page<SimplePostResDTO> result = postSearchRepository.searchPosts(keyword, searchType, pageable);
 
         // Then
         assertThat(result.getContent()).isNotEmpty();
@@ -300,8 +300,8 @@ class PostSearchRepositoryIntegrationTest {
         // 최신순 정렬 확인 (createdAt 기준 내림차순)
         if (result.getContent().size() > 1) {
             for (int i = 0; i < result.getContent().size() - 1; i++) {
-                SimplePostDTO current = result.getContent().get(i);
-                SimplePostDTO next = result.getContent().get(i + 1);
+                SimplePostResDTO current = result.getContent().get(i);
+                SimplePostResDTO next = result.getContent().get(i + 1);
                 assertThat(current.getCreatedAt()).isAfterOrEqualTo(next.getCreatedAt());
             }
         }

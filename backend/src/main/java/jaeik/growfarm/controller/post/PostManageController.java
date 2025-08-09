@@ -1,6 +1,6 @@
 package jaeik.growfarm.controller.post;
 
-import jaeik.growfarm.dto.post.PostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.post.command.PostCommandService;
@@ -40,10 +40,10 @@ public class PostManageController {
      * @return 작성된 게시글 정보
      */
     @PostMapping("/write")
-    public ResponseEntity<PostDTO> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid PostReqDTO postReqDTO) {
-        PostDTO postDTO = postCommandService.writePost(userDetails, postReqDTO);
-        return ResponseEntity.ok(postDTO);
+    public ResponseEntity<FullPostResDTO> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                    @RequestBody @Valid PostReqDTO postReqDTO) {
+        FullPostResDTO fullPostResDTO = postCommandService.writePost(userDetails, postReqDTO);
+        return ResponseEntity.ok(fullPostResDTO);
     }
 
     /**
@@ -54,7 +54,7 @@ public class PostManageController {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param postDTO     수정할 게시글 정보
+     * @param fullPostResDTO     수정할 게시글 정보
      * @return 수정된 게시글 정보
      * @author Jaeik
      * @since 1.1.0
@@ -62,8 +62,8 @@ public class PostManageController {
     @PostMapping("/update")
     public ResponseEntity<String> updatePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid PostDTO postDTO) {
-        postCommandService.updatePost(userDetails, postDTO);
+            @RequestBody @Valid FullPostResDTO fullPostResDTO) {
+        postCommandService.updatePost(userDetails, fullPostResDTO);
         return ResponseEntity.ok("게시글 수정 완료");
     }
 
@@ -77,14 +77,14 @@ public class PostManageController {
      * @since 1.1.0
      * @author Jaeik
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param postDTO     삭제할 게시글 정보
+     * @param fullPostResDTO     삭제할 게시글 정보
      * @return 삭제 성공 메시지
      */
     @PostMapping("/delete")
     public ResponseEntity<String> deletePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid PostDTO postDTO) {
-        postCommandService.deletePost(userDetails, postDTO);
+            @RequestBody @Valid FullPostResDTO fullPostResDTO) {
+        postCommandService.deletePost(userDetails, fullPostResDTO);
         return ResponseEntity.ok("게시글 삭제 완료");
     }
 
@@ -98,13 +98,13 @@ public class PostManageController {
      * @since 1.0.21
      * @author Jaeik
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param postDTO     추천/추천 취소할 게시글 정보
+     * @param fullPostResDTO     추천/추천 취소할 게시글 정보
      * @return 좋아요 처리 결과 메시지
      */
     @PostMapping("/like")
     public ResponseEntity<String> likePost(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid PostDTO postDTO) {
-        postCommandService.likePost(postDTO, userDetails);
+            @RequestBody @Valid FullPostResDTO fullPostResDTO) {
+        postCommandService.likePost(fullPostResDTO, userDetails);
         return ResponseEntity.ok("추천 처리 완료");
     }
 }

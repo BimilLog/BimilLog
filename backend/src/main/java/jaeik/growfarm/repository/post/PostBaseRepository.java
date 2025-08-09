@@ -1,11 +1,14 @@
 package jaeik.growfarm.repository.post;
 
-import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
+import jaeik.growfarm.entity.comment.QComment;
 import jaeik.growfarm.entity.post.QPost;
 import jaeik.growfarm.entity.post.QPostLike;
 import jaeik.growfarm.entity.user.QUsers;
@@ -16,10 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 레포지터리 공통 기능</h2>
@@ -42,103 +42,110 @@ public abstract class PostBaseRepository {
      * <p>
      * 게시글 목록을 조회한다.
      * </p>
-     *
-     * @param post      QPost 엔티티
-     * @param user      QUsers 엔티티
+
      * @param condition 검색 조건
      * @param pageable  페이지 정보
      * @return 조회된 게시글 목록
      * @author Jaeik
      * @since 1.0.0
      */
-    protected List<Tuple> fetchPosts(QPost post, QUsers user, BooleanExpression condition, Pageable pageable) {
-        return jpaQueryFactory
-                .select(
+    protected Page<SimplePostResDTO> fetchPosts(BooleanExpression condition, Pageable pageable) {
+        QPost post = QPost.post;
+        QUsers user = QUsers.users;
+        QComment comment = QComment.comment;
+        QPostLike postLike = QPostLike.postLike;
+
+        BooleanExpression finalCondition = buildBaseCondition(condition, post);
+
+        List<SimplePostResDTO> posts = jpaQueryFactory
+                .select(Projections.constructor(SimplePostResDTO.class,
                         post.id,
                         post.title,
                         post.views.coalesce(0),
                         post.isNotice,
-                        post.popularFlag,
+                        post.postCacheFlag,
                         post.createdAt,
                         post.user.id,
-                        user.userName)
+                        user.userName,
+                        comment.countDistinct().intValue(),
+                        postLike.countDistinct().intValue()))
                 .from(post)
                 .leftJoin(post.user, user)
-                .where(condition)
+                .leftJoin(comment).on(comment.post.id.eq(post.id))
+                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
+                .where(finalCondition)
+                .groupBy(post.id, post.title, post.views, post.isNotice,
+                        post.postCacheFlag, post.createdAt, user.id, user.userName)
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        Long totalCount = fetchTotalCount(finalCondition);
+        return new PageImpl<>(posts, pageable, totalCount);
     }
 
     /**
-     * <h3>추천 수 조회</h3>
+     * <h3>게시글 상세 조회</h3>
      * <p>
-     * 게시글별 추천 수를 조회한다.
+     * 게시글 상세 정보를 조회한다. 사용자 ID가 주어지면 좋아요 여부도 함께 조회한다.
      * </p>
      *
-     * @param postIds 게시글 ID 리스트
-     * @return 게시글 ID와 추천 수의 맵
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID (null일 경우 좋아요 여부는 조회하지 않음)
+     * @return 게시글 상세 정보 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
-    protected Map<Long, Integer> fetchLikeCounts(List<Long> postIds) {
+    protected FullPostResDTO fetchPostDetail(Long postId, Long userId) {
+        QPost post = QPost.post;
+        QUsers user = QUsers.users;
         QPostLike postLike = QPostLike.postLike;
-        NumberExpression<Long> likeCountExpr = postLike.count().coalesce(0L).as("likeCount");
+
+        BooleanExpression userLikeCondition = (userId != null)
+                ? postLike.user.id.eq(userId)
+                : Expressions.asBoolean(false);
 
         return jpaQueryFactory
-                .select(postLike.post.id, likeCountExpr)
-                .from(postLike)
-                .where(postLike.post.id.in(postIds))
-                .groupBy(postLike.post.id)
-                .fetch()
-                .stream()
-                .collect(Collectors.toMap(
-                        tuple -> tuple.get(postLike.post.id),
-                        tuple -> {
-                            Long count = tuple.get(likeCountExpr);
-                            return count != null ? Math.toIntExact(count) : 0;
-                        }));
+                .select(Projections.constructor(FullPostResDTO.class,
+                        post.id,
+                        user.id,
+                        user.userName,
+                        post.title,
+                        post.content,
+                        post.views.coalesce(0),
+                        postLike.count().intValue(),
+                        post.isNotice,
+                        post.postCacheFlag,
+                        post.createdAt,
+                        new CaseBuilder()
+                                .when(userLikeCondition)
+                                .then(true)
+                                .otherwise(false)
+                ))
+                .from(post)
+                .leftJoin(post.user, user)
+                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
+                .where(post.id.eq(postId))
+                .groupBy(post.id, user.id, user.userName, post.title, post.content,
+                        post.views, post.isNotice, post.postCacheFlag, post.createdAt)
+                .fetchOne();
     }
 
     /**
-     * <h3>게시글 목록 처리 공통 로직</h3>
+     * <h3>기본 검색 조건 빌드</h3>
      * <p>
-     * 게시글 튜플 목록을 받아 댓글 수, 추천 수를 조회하고 SimplePostDTO로 변환한다.
+     * 게시글 조회 시 기본적으로 적용되는 조건을 빌드한다.
      * </p>
      *
-     * @param postTuples 조회된 게시글 Tuple 리스트
-     * @param post       QPost 엔티티
-     * @param user       QUsers 엔티티
-     * @param pageable   페이지 정보
-     * @return SimplePostDTO 페이지
+     * @param condition 추가적인 검색 조건
+     * @return 기본 조건과 추가 조건을 결합한 BooleanExpression
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
-    protected Page<SimplePostDTO> processPostTuples(List<Tuple> postTuples, QPost post, QUsers user,
-            Pageable pageable, Long totalCount) {
-
-        if (postTuples.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        List<SimplePostDTO> posts = postTuples.stream()
-                .map(tuple -> SimplePostDTO.fromTuple(tuple, post, user))
-                .collect(Collectors.toList());
-
-        List<Long> postIds = posts.stream()
-                .map(SimplePostDTO::getPostId)
-                .collect(Collectors.toList());
-
-        Map<Long, Integer> commentCounts = commentRepository.findCommentCountsByPostIds(postIds);
-        Map<Long, Integer> likeCounts = fetchLikeCounts(postIds);
-
-        posts.forEach(simplePost -> simplePost.withCounts(
-                commentCounts.getOrDefault(simplePost.getPostId(), 0),
-                likeCounts.getOrDefault(simplePost.getPostId(), 0)
-        ));
-
-        return new PageImpl<>(posts, pageable, totalCount != null ? totalCount : 0L);
+    private BooleanExpression buildBaseCondition(BooleanExpression condition, QPost post) {
+        BooleanExpression baseCondition = post.isNotice.isFalse();
+        return condition != null ? baseCondition.and(condition) : baseCondition;
     }
 
     /**
@@ -147,14 +154,15 @@ public abstract class PostBaseRepository {
      * 검색 조건에 맞는 전체 게시글 수를 조회한다.
      * </p>
      *
-     * @param post      QPost 엔티티
-     * @param user      QUsers 엔티티
      * @param condition 검색 조건
      * @return 전체 게시글 수
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
-    protected Long fetchTotalCount(QPost post, QUsers user, BooleanExpression condition) {
+    protected Long fetchTotalCount(BooleanExpression condition) {
+        QPost post = QPost.post;
+        QUsers user = QUsers.users;
+
         JPAQuery<Long> query = jpaQueryFactory
                 .select(post.count())
                 .from(post);

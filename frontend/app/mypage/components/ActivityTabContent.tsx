@@ -41,8 +41,8 @@ const getRelativeTime = (dateString: string): string => {
 };
 
 // 인기도 배지 컴포넌트
-const PopularityBadge = ({ popularFlag }: { popularFlag?: string }) => {
-  if (!popularFlag) return null;
+const PopularityBadge = ({ postCacheFlag }: { postCacheFlag?: string }) => {
+  if (!postCacheFlag) return null;
 
   const badges = {
     REALTIME: {
@@ -62,7 +62,7 @@ const PopularityBadge = ({ popularFlag }: { popularFlag?: string }) => {
     },
   };
 
-  const badge = badges[popularFlag as keyof typeof badges];
+  const badge = badges[postCacheFlag as keyof typeof badges];
   if (!badge) return null;
 
   return (
@@ -105,7 +105,7 @@ const PostCard = ({
                     공지
                   </Badge>
                 )}
-                <PopularityBadge popularFlag={post.popularFlag} />
+                <PopularityBadge postCacheFlag={post.postCacheFlag} />
               </div>
               <div className="flex items-center space-x-2 text-sm md:text-xs text-gray-500">
                 <Clock className="w-4 h-4 md:w-3 md:h-3" />

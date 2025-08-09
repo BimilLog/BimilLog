@@ -58,11 +58,11 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
           {post.notice && (
             <Badge className="bg-red-500 text-white text-xs">공지</Badge>
           )}
-          {post.popularFlag && (
+          {post.postCacheFlag && (
             <Badge className="bg-orange-500 text-white text-xs">
-              {post.popularFlag === "REALTIME"
+              {post.postCacheFlag === "REALTIME"
                 ? "실시간"
-                : post.popularFlag === "WEEKLY"
+                : post.postCacheFlag === "WEEKLY"
                 ? "주간"
                 : "레전드"}
             </Badge>

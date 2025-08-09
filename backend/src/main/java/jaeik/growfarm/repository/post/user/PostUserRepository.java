@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.post.user;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -29,7 +29,7 @@ public interface PostUserRepository {
      * @author Jaeik
      * @since 1.1.0
      */
-    Page<SimplePostDTO> findPostsByUserId(Long userId, Pageable pageable);
+    Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable);
 
     /**
      * <h3>사용자가 추천한 글 목록 조회</h3>
@@ -43,5 +43,5 @@ public interface PostUserRepository {
      * @author Jaeik
      * @since 1.1.0
      */
-    Page<SimplePostDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
+    Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
 }

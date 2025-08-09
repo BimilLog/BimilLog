@@ -1,11 +1,11 @@
 package jaeik.growfarm.integration.repository.post;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.dto.post.PostDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.entity.comment.Comment;
 import jaeik.growfarm.entity.post.Post;
-import jaeik.growfarm.entity.post.PopularFlag;
+import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.repository.comment.CommentRepository;
@@ -31,7 +31,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import jakarta.persistence.EntityManager;
-import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -130,7 +129,7 @@ class PostRepositoryIntegrationTest {
                 .content("첫 번째 게시글 내용입니다.")
                 .views(100)
                 .isNotice(false)
-                .popularFlag(null)
+                .postCacheFlag(null)
                 .user(testUser1)
                 .build();
         entityManager.persistAndFlush(testPost1);
@@ -140,7 +139,7 @@ class PostRepositoryIntegrationTest {
                 .content("두 번째 게시글 내용입니다.")
                 .views(200)
                 .isNotice(false)
-                .popularFlag(PopularFlag.WEEKLY)
+                .postCacheFlag(PostCacheFlag.WEEKLY)
                 .user(testUser2)
                 .build();
         entityManager.persistAndFlush(testPost2);
@@ -150,7 +149,7 @@ class PostRepositoryIntegrationTest {
                 .content("공지사항 내용입니다.")
                 .views(50)
                 .isNotice(true)
-                .popularFlag(null)
+                .postCacheFlag(null)
                 .user(testUser1)
                 .build();
         entityManager.persistAndFlush(testPost3);
@@ -175,12 +174,12 @@ class PostRepositoryIntegrationTest {
 
     @Test
     @DisplayName("PostReadRepository - 게시글 목록 조회 성공")
-    void postReadRepository_findPostsWithCommentAndLikeCounts_Success() {
+    void postReadRepository_findSimplePost_Success() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postReadRepository.findPostsWithCommentAndLikeCounts(pageable);
+        Page<SimplePostResDTO> result = postReadRepository.findSimplePost(pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -188,7 +187,7 @@ class PostRepositoryIntegrationTest {
         assertThat(result.getTotalElements()).isEqualTo(3);
         
         // 좋아요 수 확인 (testPost1에 1개 좋아요)
-        SimplePostDTO firstPost = result.getContent().stream()
+        SimplePostResDTO firstPost = result.getContent().stream()
                 .filter(post -> post.getTitle().equals("첫 번째 테스트 게시글"))
                 .findFirst()
                 .orElseThrow();
@@ -210,7 +209,7 @@ class PostRepositoryIntegrationTest {
         Long userId = testUser2.getId(); // 좋아요를 누른 사용자
 
         // When
-        PostDTO result = postReadRepository.findPostById(postId, userId);
+        FullPostResDTO result = postReadRepository.findPostById(postId, userId);
 
         // Then
         assertThat(result).isNotNull();
@@ -232,14 +231,14 @@ class PostRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1); // 공지사항 제외하고 일반 게시글 1개
         assertThat(result.getTotalElements()).isEqualTo(1);
         
-        SimplePostDTO post = result.getContent().get(0);
+        SimplePostResDTO post = result.getContent().get(0);
         assertThat(post.getUserName()).isEqualTo("테스트사용자1");
         assertThat(post.is_notice()).isFalse(); // 공지사항 제외 확인
         
@@ -255,14 +254,14 @@ class PostRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<SimplePostDTO> result = postUserRepository.findLikedPostsByUserId(userId, pageable);
+        Page<SimplePostResDTO> result = postUserRepository.findLikedPostsByUserId(userId, pageable);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1); // 1개 게시글에 좋아요
         assertThat(result.getTotalElements()).isEqualTo(1);
 
-        SimplePostDTO likedPost = result.getContent().get(0);
+        SimplePostResDTO likedPost = result.getContent().get(0);
         assertThat(likedPost.getTitle()).isEqualTo("첫 번째 테스트 게시글");
         
         System.out.println("=== 사용자 좋아요한 글 조회 쿼리 실행 성공 ===");
@@ -297,10 +296,10 @@ class PostRepositoryIntegrationTest {
 
         // When
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimplePostDTO> result = postReadRepository.findPostsWithCommentAndLikeCounts(pageable);
+        Page<SimplePostResDTO> result = postReadRepository.findSimplePost(pageable);
 
         // Then
-        SimplePostDTO targetPost = result.getContent().stream()
+        SimplePostResDTO targetPost = result.getContent().stream()
                 .filter(post -> post.getTitle().equals("첫 번째 테스트 게시글"))
                 .findFirst()
                 .orElseThrow();
@@ -366,7 +365,7 @@ class PostRepositoryIntegrationTest {
         // When - 성능 측정
         long startTime = System.currentTimeMillis();
         Pageable pageable = PageRequest.of(0, 20);
-        Page<SimplePostDTO> result = postReadRepository.findPostsWithCommentAndLikeCounts(pageable);
+        Page<SimplePostResDTO> result = postReadRepository.findSimplePost(pageable);
         long endTime = System.currentTimeMillis();
 
         // Then

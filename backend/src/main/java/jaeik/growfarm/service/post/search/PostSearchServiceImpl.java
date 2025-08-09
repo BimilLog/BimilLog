@@ -1,6 +1,6 @@
 package jaeik.growfarm.service.post.search;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.repository.post.search.PostSearchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,7 +39,7 @@ public class PostSearchServiceImpl implements PostSearchService {
      * @since 1.1.0
      */
     @Override
-    public Page<SimplePostDTO> searchPost(String type, String query, int page, int size) {
+    public Page<SimplePostResDTO> searchPost(String type, String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return postSearchRepository.searchPosts(query, type, pageable);
     }

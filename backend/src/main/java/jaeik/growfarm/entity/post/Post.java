@@ -1,6 +1,6 @@
 package jaeik.growfarm.entity.post;
 
-import jaeik.growfarm.dto.post.PostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.entity.BaseEntity;
 import jaeik.growfarm.entity.user.Users;
@@ -63,7 +63,7 @@ public class Post extends BaseEntity {
     private boolean isNotice;
 
     @Enumerated(EnumType.STRING)
-    private PopularFlag popularFlag;
+    private PostCacheFlag postCacheFlag;
 
     private Integer password;
 
@@ -88,7 +88,7 @@ public class Post extends BaseEntity {
                 .views(0)
                 .isNotice(false)
                 .password(postReqDTO.getPassword())
-                .popularFlag(null)
+                .postCacheFlag(null)
                 .build();
     }
 
@@ -101,11 +101,11 @@ public class Post extends BaseEntity {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param postDTO 업데이트할 게시글 정보
+     * @param fullPostResDTO 업데이트할 게시글 정보
      */
-    public void updatePost(PostDTO postDTO) {
-        this.title = postDTO.getTitle();
-        this.content = postDTO.getContent();
+    public void updatePost(FullPostResDTO fullPostResDTO) {
+        this.title = fullPostResDTO.getTitle();
+        this.content = fullPostResDTO.getContent();
     }
 
     /**
@@ -117,10 +117,10 @@ public class Post extends BaseEntity {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param postDTO 게시글 정보
+     * @param fullPostResDTO 게시글 정보
      */
-    public void updateWeeklyPopular(PostDTO postDTO) {
-        this.popularFlag = PopularFlag.WEEKLY;
+    public void updateWeeklyPopular(FullPostResDTO fullPostResDTO) {
+        this.postCacheFlag = PostCacheFlag.WEEKLY;
     }
 
     /**
@@ -132,9 +132,9 @@ public class Post extends BaseEntity {
      * 
      * @since 1.0.0
      * @author Jaeik
-     * @param postDTO 게시글 정보
+     * @param fullPostResDTO 게시글 정보
      */
-    public void setHallOfFame(PostDTO postDTO) {
-        this.popularFlag = PopularFlag.LEGEND;
+    public void setHallOfFame(FullPostResDTO fullPostResDTO) {
+        this.postCacheFlag = PostCacheFlag.LEGEND;
     }
 }

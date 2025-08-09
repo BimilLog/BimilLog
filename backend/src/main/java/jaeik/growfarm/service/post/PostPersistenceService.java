@@ -1,6 +1,6 @@
 package jaeik.growfarm.service.post;
 
-import jaeik.growfarm.dto.post.PostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.repository.post.delete.PostDeleteRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +29,14 @@ public class PostPersistenceService {
      * 게시글 엔티티를 수정한다. JPA 더티 체킹을 이용한 업데이트.
      * </p>
      *
-     * @param postDTO 수정할 게시글 정보
+     * @param fullPostResDTO 수정할 게시글 정보
      * @param post    수정 대상 게시글 엔티티
      * @author Jaeik
      * @since 1.1.0
      */
     @Transactional
-    public void updatePost(PostDTO postDTO, Post post) {
-        post.updatePost(postDTO);
+    public void updatePost(FullPostResDTO fullPostResDTO, Post post) {
+        post.updatePost(fullPostResDTO);
     }
 
     /**

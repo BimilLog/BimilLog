@@ -1,6 +1,6 @@
 package jaeik.growfarm.unit.service.post;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.post.PostScheduledService;
@@ -45,14 +45,14 @@ public class RedisPostServiceTest {
     @InjectMocks
     private RedisPostService redisPostService;
 
-    private List<SimplePostDTO> mockPosts;
-    private SimplePostDTO mockPost;
+    private List<SimplePostResDTO> mockPosts;
+    private SimplePostResDTO mockPost;
 
     @BeforeEach
     void setUp() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         
-        mockPost = SimplePostDTO.builder()
+        mockPost = SimplePostResDTO.builder()
                 .postId(1L)
                 .userId(1L)
                 .userName("testUser")
@@ -71,7 +71,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 저장 테스트 - REALTIME")
     void testCachePopularPosts_Realtime() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
 
         // When
         redisPostService.cachePopularPosts(type, mockPosts);
@@ -88,7 +88,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 저장 테스트 - WEEKLY")
     void testCachePopularPosts_Weekly() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.WEEKLY;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.WEEKLY;
 
         // When
         redisPostService.cachePopularPosts(type, mockPosts);
@@ -105,7 +105,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 저장 테스트 - LEGEND")
     void testCachePopularPosts_Legend() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.LEGEND;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.LEGEND;
 
         // When
         redisPostService.cachePopularPosts(type, mockPosts);
@@ -122,7 +122,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 저장 실패 테스트")
     void testCachePopularPosts_Failure() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         doThrow(new RuntimeException("Redis connection error"))
                 .when(valueOperations).set(anyString(), any(), any());
 
@@ -137,12 +137,12 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 조회 테스트 - 캐시 존재")
     void testGetCachedPopularPosts_CacheExists() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(true);
         when(valueOperations.get("popular:posts:realtime")).thenReturn(mockPosts);
 
         // When
-        List<SimplePostDTO> result = redisPostService.getCachedPopularPosts(type);
+        List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
 
         // Then
         assertNotNull(result);
@@ -155,12 +155,12 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 조회 테스트 - 캐시 미존재 (REALTIME)")
     void testGetCachedPopularPosts_CacheMiss_Realtime() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(false);
         when(valueOperations.get("popular:posts:realtime")).thenReturn(mockPosts);
 
         // When
-        List<SimplePostDTO> result = redisPostService.getCachedPopularPosts(type);
+        List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
 
         // Then
         assertNotNull(result);
@@ -172,12 +172,12 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 조회 테스트 - 캐시 미존재 (WEEKLY)")
     void testGetCachedPopularPosts_CacheMiss_Weekly() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.WEEKLY;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.WEEKLY;
         when(redisTemplate.hasKey("popular:posts:weekly")).thenReturn(false);
         when(valueOperations.get("popular:posts:weekly")).thenReturn(mockPosts);
 
         // When
-        List<SimplePostDTO> result = redisPostService.getCachedPopularPosts(type);
+        List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
 
         // Then
         assertNotNull(result);
@@ -188,12 +188,12 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 조회 테스트 - 캐시 미존재 (LEGEND)")
     void testGetCachedPopularPosts_CacheMiss_Legend() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.LEGEND;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.LEGEND;
         when(redisTemplate.hasKey("popular:posts:legend")).thenReturn(false);
         when(valueOperations.get("popular:posts:legend")).thenReturn(mockPosts);
 
         // When
-        List<SimplePostDTO> result = redisPostService.getCachedPopularPosts(type);
+        List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
 
         // Then
         assertNotNull(result);
@@ -204,12 +204,12 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 조회 테스트 - 빈 캐시")
     void testGetCachedPopularPosts_EmptyCache() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(true);
         when(valueOperations.get("popular:posts:realtime")).thenReturn(null);
 
         // When
-        List<SimplePostDTO> result = redisPostService.getCachedPopularPosts(type);
+        List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
 
         // Then
         assertNotNull(result);
@@ -220,7 +220,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 조회 실패 테스트")
     void testGetCachedPopularPosts_Failure() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(true);
         when(valueOperations.get("popular:posts:realtime"))
                 .thenThrow(new RuntimeException("Redis connection error"));
@@ -236,7 +236,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 삭제 테스트")
     void testDeletePopularPostsCache() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
 
         // When
         redisPostService.deletePopularPostsCache(type);
@@ -249,7 +249,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 삭제 실패 테스트")
     void testDeletePopularPostsCache_Failure() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         doThrow(new RuntimeException("Redis connection error"))
                 .when(redisTemplate).delete(anyString());
 
@@ -264,7 +264,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 존재 확인 테스트 - 존재")
     void testHasPopularPostsCache_Exists() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(true);
 
         // When
@@ -279,7 +279,7 @@ public class RedisPostServiceTest {
     @DisplayName("인기글 캐시 존재 확인 테스트 - 미존재")
     void testHasPopularPostsCache_NotExists() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(false);
 
         // When
@@ -306,7 +306,7 @@ public class RedisPostServiceTest {
     @DisplayName("캐시 존재 확인 실패 테스트")
     void testHasPopularPostsCache_Failure() {
         // Given
-        RedisPostService.PopularPostType type = RedisPostService.PopularPostType.REALTIME;
+        RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
         when(redisTemplate.hasKey("popular:posts:realtime"))
                 .thenThrow(new RuntimeException("Redis connection error"));
 

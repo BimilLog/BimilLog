@@ -1,7 +1,7 @@
 package jaeik.growfarm.unit.service.post;
 
-import jaeik.growfarm.dto.post.PostDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
@@ -63,7 +63,7 @@ public class PostReadServiceTest {
 
     private CustomUserDetails userDetails;
     private Post post;
-    private PostDTO postDTO;
+    private FullPostResDTO fullPostResDTO;
 
     @BeforeEach
     void setUp() {
@@ -80,7 +80,7 @@ public class PostReadServiceTest {
         when(post.getContent()).thenReturn("Test Post Content");
         when(post.getCreatedAt()).thenReturn(Instant.now());
 
-        postDTO = PostDTO.existedPost(
+        fullPostResDTO = FullPostResDTO.existedPost(
                 1L,
                 1L,
                 "testUser",
@@ -98,10 +98,10 @@ public class PostReadServiceTest {
     @DisplayName("게시글 상세 조회 테스트 - 로그인 사용자")
     void testGetPostWithUser() {
         // Given
-        when(postReadRepository.findPostById(1L, 1L)).thenReturn(postDTO);
+        when(postReadRepository.findPostById(1L, 1L)).thenReturn(fullPostResDTO);
 
         // When
-        PostDTO result = postQueryService.getPost(1L, userDetails);
+        FullPostResDTO result = postQueryService.getPost(1L, userDetails);
 
         // Then
         assertNotNull(result);
@@ -114,10 +114,10 @@ public class PostReadServiceTest {
     @DisplayName("게시글 상세 조회 테스트 - 비로그인 사용자")
     void testGetPostWithoutUser() {
         // Given
-        when(postReadRepository.findPostById(1L, null)).thenReturn(postDTO);
+        when(postReadRepository.findPostById(1L, null)).thenReturn(fullPostResDTO);
 
         // When
-        PostDTO result = postQueryService.getPost(1L, null);
+        FullPostResDTO result = postQueryService.getPost(1L, null);
 
         // Then
         assertNotNull(result);
@@ -133,7 +133,7 @@ public class PostReadServiceTest {
 
         // When & Then
         assertDoesNotThrow(() -> {
-            PostDTO result = postQueryService.getPost(999L, userDetails);
+            FullPostResDTO result = postQueryService.getPost(999L, userDetails);
             assertNull(result);
         });
         
@@ -190,7 +190,7 @@ public class PostReadServiceTest {
     @DisplayName("게시판 목록 조회 테스트")
     void testGetBoard() {
         // Given
-        SimplePostDTO mockSimplePost = SimplePostDTO.builder()
+        SimplePostResDTO mockSimplePost = SimplePostResDTO.builder()
                 .postId(1L)
                 .userId(1L)
                 .userName("testUser")
@@ -202,15 +202,15 @@ public class PostReadServiceTest {
                 .is_notice(false)
                 .build();
         
-        Page<SimplePostDTO> mockPage = new PageImpl<>(List.of(mockSimplePost));
-        when(postReadRepository.findPostsWithCommentAndLikeCounts(any(Pageable.class))).thenReturn(mockPage);
+        Page<SimplePostResDTO> mockPage = new PageImpl<>(List.of(mockSimplePost));
+        when(postReadRepository.findSimplePost(any(Pageable.class))).thenReturn(mockPage);
 
         // When
-        Page<SimplePostDTO> result = postQueryService.getBoard(0, 10);
+        Page<SimplePostResDTO> result = postQueryService.getBoard(0, 10);
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
-        verify(postReadRepository, times(1)).findPostsWithCommentAndLikeCounts(any(Pageable.class));
+        verify(postReadRepository, times(1)).findSimplePost(any(Pageable.class));
     }
 }

@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.post.popular;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
@@ -30,7 +30,7 @@ public interface PostPopularRepository {
      * @author Jaeik
      * @since 1.0.21
      */
-    List<SimplePostDTO> updateRealtimePopularPosts();
+    List<SimplePostResDTO> updateRealtimePopularPosts();
 
     /**
      * <h3>주간 인기글 선정</h3>
@@ -42,7 +42,7 @@ public interface PostPopularRepository {
      * @author Jaeik
      * @since 1.0.21
      */
-    List<SimplePostDTO> updateWeeklyPopularPosts();
+    List<SimplePostResDTO> updateWeeklyPopularPosts();
 
     /**
      * <h3>레전드 인기글 선정</h3>
@@ -54,5 +54,5 @@ public interface PostPopularRepository {
      * @author Jaeik
      * @since 1.0.21
      */
-    List<SimplePostDTO> updateLegendPosts();
+    List<SimplePostResDTO> updateLegendPosts();
 }

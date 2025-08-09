@@ -1,6 +1,6 @@
 package jaeik.growfarm.controller.post;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.service.post.search.PostSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,11 +39,11 @@ public class PostSearchController {
      * @return 검색된 게시글 목록 페이지
      */
     @GetMapping
-    public ResponseEntity<Page<SimplePostDTO>> searchPost(@RequestParam String type,
-            @RequestParam String query,
-            @RequestParam int page,
-            @RequestParam int size) {
-        Page<SimplePostDTO> searchList = postSearchService.searchPost(type, query, page, size);
+    public ResponseEntity<Page<SimplePostResDTO>> searchPost(@RequestParam String type,
+                                                             @RequestParam String query,
+                                                             @RequestParam int page,
+                                                             @RequestParam int size) {
+        Page<SimplePostResDTO> searchList = postSearchService.searchPost(type, query, page, size);
         return ResponseEntity.ok(searchList);
     }
 }

@@ -1,6 +1,6 @@
 package jaeik.growfarm.unit.service.post;
 
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.repository.post.search.PostSearchRepository;
 import jaeik.growfarm.service.post.search.PostSearchServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,11 +38,11 @@ public class PostSearchServiceTest {
     @InjectMocks
     private PostSearchServiceImpl postSearchService;
 
-    private SimplePostDTO simplePostDTO;
+    private SimplePostResDTO simplePostResDTO;
 
     @BeforeEach
     void setUp() {
-        simplePostDTO = SimplePostDTO.builder()
+        simplePostResDTO = SimplePostResDTO.builder()
                 .postId(1L)
                 .userId(1L)
                 .userName("testUser")
@@ -59,12 +59,12 @@ public class PostSearchServiceTest {
     @DisplayName("게시글 검색 테스트 - 제목 검색")
     void testSearchPostByTitle() {
         // Given
-        Page<SimplePostDTO> mockPage = new PageImpl<>(List.of(simplePostDTO));
+        Page<SimplePostResDTO> mockPage = new PageImpl<>(List.of(simplePostResDTO));
         when(postSearchRepository.searchPosts("test", "title", any(Pageable.class)))
                 .thenReturn(mockPage);
 
         // When
-        Page<SimplePostDTO> result = postSearchService.searchPost("title", "test", 0, 10);
+        Page<SimplePostResDTO> result = postSearchService.searchPost("title", "test", 0, 10);
 
         // Then
         assertNotNull(result);
@@ -78,12 +78,12 @@ public class PostSearchServiceTest {
     @DisplayName("게시글 검색 테스트 - 제목+내용 검색")
     void testSearchPostByTitleContent() {
         // Given
-        Page<SimplePostDTO> mockPage = new PageImpl<>(List.of(simplePostDTO));
+        Page<SimplePostResDTO> mockPage = new PageImpl<>(List.of(simplePostResDTO));
         when(postSearchRepository.searchPosts("test", "title_content", any(Pageable.class)))
                 .thenReturn(mockPage);
 
         // When
-        Page<SimplePostDTO> result = postSearchService.searchPost("title_content", "test", 0, 10);
+        Page<SimplePostResDTO> result = postSearchService.searchPost("title_content", "test", 0, 10);
 
         // Then
         assertNotNull(result);
@@ -97,12 +97,12 @@ public class PostSearchServiceTest {
     @DisplayName("게시글 검색 테스트 - 작성자 검색")
     void testSearchPostByAuthor() {
         // Given
-        Page<SimplePostDTO> mockPage = new PageImpl<>(List.of(simplePostDTO));
+        Page<SimplePostResDTO> mockPage = new PageImpl<>(List.of(simplePostResDTO));
         when(postSearchRepository.searchPosts("testUser", "author", any(Pageable.class)))
                 .thenReturn(mockPage);
 
         // When
-        Page<SimplePostDTO> result = postSearchService.searchPost("author", "testUser", 0, 10);
+        Page<SimplePostResDTO> result = postSearchService.searchPost("author", "testUser", 0, 10);
 
         // Then
         assertNotNull(result);
@@ -116,12 +116,12 @@ public class PostSearchServiceTest {
     @DisplayName("게시글 검색 테스트 - 빈 검색 결과")
     void testSearchPostEmpty() {
         // Given
-        Page<SimplePostDTO> emptyPage = new PageImpl<>(List.of());
+        Page<SimplePostResDTO> emptyPage = new PageImpl<>(List.of());
         when(postSearchRepository.searchPosts("nonexistent", "title", any(Pageable.class)))
                 .thenReturn(emptyPage);
 
         // When
-        Page<SimplePostDTO> result = postSearchService.searchPost("title", "nonexistent", 0, 10);
+        Page<SimplePostResDTO> result = postSearchService.searchPost("title", "nonexistent", 0, 10);
 
         // Then
         assertNotNull(result);
@@ -135,14 +135,14 @@ public class PostSearchServiceTest {
     @DisplayName("게시글 검색 테스트 - 페이징")
     void testSearchPostWithPaging() {
         // Given
-        List<SimplePostDTO> posts = List.of(simplePostDTO);
-        Page<SimplePostDTO> mockPage = new PageImpl<>(posts, 
+        List<SimplePostResDTO> posts = List.of(simplePostResDTO);
+        Page<SimplePostResDTO> mockPage = new PageImpl<>(posts,
                 org.springframework.data.domain.PageRequest.of(1, 5), 20);
         when(postSearchRepository.searchPosts("test", "title", any(Pageable.class)))
                 .thenReturn(mockPage);
 
         // When
-        Page<SimplePostDTO> result = postSearchService.searchPost("title", "test", 1, 5);
+        Page<SimplePostResDTO> result = postSearchService.searchPost("title", "test", 1, 5);
 
         // Then
         assertNotNull(result);
@@ -160,12 +160,12 @@ public class PostSearchServiceTest {
     void testSearchPostWithWhitespace() {
         // Given
         String searchQuery = "  test  ";
-        Page<SimplePostDTO> mockPage = new PageImpl<>(List.of(simplePostDTO));
+        Page<SimplePostResDTO> mockPage = new PageImpl<>(List.of(simplePostResDTO));
         when(postSearchRepository.searchPosts("test", "title", any(Pageable.class)))
                 .thenReturn(mockPage);
 
         // When
-        Page<SimplePostDTO> result = postSearchService.searchPost("title", searchQuery, 0, 10);
+        Page<SimplePostResDTO> result = postSearchService.searchPost("title", searchQuery, 0, 10);
 
         // Then
         assertNotNull(result);

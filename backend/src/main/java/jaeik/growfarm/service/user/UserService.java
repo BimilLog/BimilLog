@@ -4,7 +4,7 @@ import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.user.Setting;
@@ -68,7 +68,7 @@ public class UserService {
      * @since 1.0.0
      * @version 1.0.21 - ISP 적용으로 PostUserRepository 사용
      */
-    public Page<SimplePostDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
+    public Page<SimplePostResDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return postUserRepository.findPostsByUserId(userDetails.getUserId(), pageable);
     }
@@ -107,7 +107,7 @@ public class UserService {
      * @since 1.0.0
      * @version 1.0.21 - ISP 적용으로 PostUserRepository 사용
      */
-    public Page<SimplePostDTO> getLikedPosts(int page, int size, CustomUserDetails userDetails) {
+    public Page<SimplePostResDTO> getLikedPosts(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return postUserRepository.findLikedPostsByUserId(userDetails.getUserId(), pageable);
     }

@@ -1,7 +1,7 @@
 package jaeik.growfarm.repository.post.delete;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.entity.post.PopularFlag;
+import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.entity.post.QPost;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
@@ -45,8 +45,8 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
         QPost post = QPost.post;
 
         try {
-            PopularFlag popularFlag = jpaQueryFactory
-                    .select(post.popularFlag)
+            PostCacheFlag postCacheFlag = jpaQueryFactory
+                    .select(post.postCacheFlag)
                     .from(post)
                     .where(post.id.eq(postId))
                     .fetchOne();
@@ -56,8 +56,8 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
                     .where(post.id.eq(postId))
                     .execute();
 
-            if (deletedCount > 0 && popularFlag != null) {
-                deleteRelatedRedisCache(popularFlag);
+            if (deletedCount > 0 && postCacheFlag != null) {
+                deleteRelatedRedisCache(postCacheFlag);
             }
 
         } catch (Exception e) {
@@ -73,29 +73,29 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
      * 삭제된 게시글이 인기글인 경우, 해당 인기글 목록의 Redis 캐시를 삭제한다.
      * </p>
      *
-     * @param popularFlag 삭제된 게시글의 인기글 플래그
+     * @param postCacheFlag 삭제된 게시글의 인기글 플래그
      * @author Jaeik
      * @since 1.1.0
      */
-    private void deleteRelatedRedisCache(PopularFlag popularFlag) {
+    private void deleteRelatedRedisCache(PostCacheFlag postCacheFlag) {
         try {
-            switch (popularFlag) {
+            switch (postCacheFlag) {
                 case REALTIME -> {
-                    redisPostService.deletePopularPostsCache(RedisPostService.PopularPostType.REALTIME);
+                    redisPostService.deletePopularPostsCache(RedisPostService.CachePostType.REALTIME);
                     log.info("실시간 인기글 Redis 캐시 삭제 완료");
                 }
                 case WEEKLY -> {
-                    redisPostService.deletePopularPostsCache(RedisPostService.PopularPostType.WEEKLY);
+                    redisPostService.deletePopularPostsCache(RedisPostService.CachePostType.WEEKLY);
                     log.info("주간 인기글 Redis 캐시 삭제 완료");
                 }
                 case LEGEND -> {
-                    redisPostService.deletePopularPostsCache(RedisPostService.PopularPostType.LEGEND);
+                    redisPostService.deletePopularPostsCache(RedisPostService.CachePostType.LEGEND);
                     log.info("레전드 게시글 Redis 캐시 삭제 완료");
                 }
                 default -> log.debug("PopularFlag가 없는 게시글이므로 캐시 삭제 불필요");
             }
         } catch (Exception e) {
-            log.error("Redis 캐시 삭제 중 오류 발생. popularFlag: {}", popularFlag, e);
+            log.error("Redis 캐시 삭제 중 오류 발생. popularFlag: {}", postCacheFlag, e);
             throw new CustomException(ErrorCode.REDIS_DELETE_ERROR, e);
         }
     }

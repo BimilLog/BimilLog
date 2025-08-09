@@ -1,10 +1,11 @@
 package jaeik.growfarm.repository.post.popular;
 
-import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.dto.post.SimplePostDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.entity.comment.QComment;
-import jaeik.growfarm.entity.post.PopularFlag;
+import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.entity.post.QPost;
 import jaeik.growfarm.entity.post.QPostLike;
 import jaeik.growfarm.entity.user.QUsers;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Slf4j
 @Repository
@@ -46,11 +47,12 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
      *
      * @return 실시간 인기글 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
+    @Override
     @Transactional
-    public List<SimplePostDTO> updateRealtimePopularPosts() {
-        return updatePopularPosts(1, PopularFlag.REALTIME);
+    public List<SimplePostResDTO> updateRealtimePopularPosts() {
+        return updatePopularPosts(1, PostCacheFlag.REALTIME);
     }
 
     /**
@@ -61,11 +63,12 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
      *
      * @return 주간 인기글 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
+    @Override
     @Transactional
-    public List<SimplePostDTO> updateWeeklyPopularPosts() {
-        return updatePopularPosts(7, PopularFlag.WEEKLY);
+    public List<SimplePostResDTO> updateWeeklyPopularPosts() {
+        return updatePopularPosts(7, PostCacheFlag.WEEKLY);
     }
 
     /**
@@ -76,122 +79,119 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
      *
      * @return 레전드 게시글 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
+    @Override
     @Transactional
-    public List<SimplePostDTO> updateLegendPosts() {
-        QPost post = QPost.post;
+    public List<SimplePostResDTO> updateLegendPosts() {
         QPostLike postLike = QPostLike.postLike;
-        QComment comment = QComment.comment;
-        QUsers user = QUsers.users;
 
-        resetPopularFlag(PopularFlag.LEGEND);
+        resetPopularFlag(PostCacheFlag.LEGEND);
 
-        List<Tuple> legendPostsData = jpaQueryFactory
-                .select(
-                        post.id,
-                        post.user.id,
-                        user.userName,
-                        post.title,
-                        post.views,
-                        post.createdAt,
-                        post.isNotice,
-                        postLike.count().coalesce(0L),
-                        comment.count().coalesce(0L),
-                        user)
-                .from(post)
-                .leftJoin(user).on(post.user.id.eq(user.id))
-                .join(postLike).on(post.id.eq(postLike.post.id))
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .groupBy(
-                        post.id,
-                        post.user.id,
-                        user.userName,
-                        post.title,
-                        post.views,
-                        post.createdAt,
-                        post.isNotice,
-                        user)
+        List<SimplePostResDTO> legendPosts = createBasePopularPostsQuery()
                 .having(postLike.count().goe(20))
                 .orderBy(postLike.count().desc())
                 .limit(50)
                 .fetch();
 
-        if (legendPostsData.isEmpty()) {
+        if (legendPosts.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<Long> legendPostIds = legendPostsData.stream()
-                .map(tuple -> tuple.get(post.id))
+        List<Long> legendPostIds = legendPosts.stream()
+                .map(SimplePostResDTO::getPostId)
                 .collect(Collectors.toList());
 
-        applyPopularFlag(legendPostIds, PopularFlag.LEGEND);
+        applyPopularFlag(legendPostIds, PostCacheFlag.LEGEND);
 
-        return convertTuplesToSimplePostDTOs(legendPostsData, post, user, comment, postLike);
+        return legendPosts;
     }
 
     /**
      * <h3>인기글 선정 공통 로직</h3>
      * <p>
-     * 지정된 기간 이내의 글 중 추천 수가 가장 높은 상위 5개를 인기글로 등록한다.
+     * 지정된 기간 이내의 글 중 추천 수가 가장 높은 상위 N개를 인기글로 등록한다.
      * </p>
      *
      * @param days        조회 기간 (일 단위)
-     * @param popularFlag 설정할 인기글 플래그
+     * @param postCacheFlag 설정할 인기글 플래그
      * @return 인기글 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
-    private List<SimplePostDTO> updatePopularPosts(int days, PopularFlag popularFlag) {
+    private List<SimplePostResDTO> updatePopularPosts(int days, PostCacheFlag postCacheFlag) {
         QPost post = QPost.post;
-        QPostLike postLike = QPostLike.postLike;
-        QComment comment = QComment.comment;
-        QUsers user = QUsers.users;
+        QPostLike postLike = QPostLike.postLike; // For orderBy clause
 
-        resetPopularFlag(popularFlag);
+        resetPopularFlag(postCacheFlag); // 인기글 플래그 초기화
 
-        List<Tuple> popularPostsData = jpaQueryFactory
-                .select(
-                        post.id,
-                        post.user.id,
-                        user.userName,
-                        post.title,
-                        post.views,
-                        post.createdAt,
-                        post.isNotice,
-                        postLike.count().coalesce(0L),
-                        comment.count().coalesce(0L),
-                        user)
-                .from(post)
-                .leftJoin(user).on(post.user.id.eq(user.id))
-                .join(postLike).on(post.id.eq(postLike.post.id))
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS)))
-                .groupBy(
-                        post.id,
-                        post.user.id,
-                        user.userName,
-                        post.title,
-                        post.views,
-                        post.createdAt,
-                        post.isNotice,
-                        user)
-                .orderBy(postLike.count().desc())
-                .limit(5)
+        List<SimplePostResDTO> popularPosts = createBasePopularPostsQuery() // 공통 쿼리 빌더 사용
+                .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS))) // 기간 조건
+                .orderBy(postLike.count().desc()) // 추천 수 내림차순 정렬
+                .limit(5) // 상위 5개 제한
                 .fetch();
 
-        if (popularPostsData.isEmpty()) {
+        if (popularPosts.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<Long> popularPostIds = popularPostsData.stream()
-                .map(tuple -> tuple.get(post.id))
+        List<Long> popularPostIds = popularPosts.stream()
+                .map(SimplePostResDTO::getPostId)
                 .collect(Collectors.toList());
 
-        applyPopularFlag(popularPostIds, popularFlag);
+        applyPopularFlag(popularPostIds, postCacheFlag);
 
-        return convertTuplesToSimplePostDTOs(popularPostsData, post, user, comment, postLike);
+        return popularPosts;
     }
+
+    /**
+     * <h3>인기글 공통 쿼리 빌더</h3>
+     * <p>
+     * 인기글 조회에 필요한 공통 SELECT, FROM, JOIN, GROUP BY 절을 구성한다.
+     * 이 메서드는 {@link #updatePopularPosts(int, PostCacheFlag)}와
+     * {@link #updateLegendPosts()}에서 재사용된다.
+     * </p>
+     *
+     * @return {@link SimplePostResDTO}를 반환하는 JPAQuery 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private JPAQuery<SimplePostResDTO> createBasePopularPostsQuery() {
+        QPost post = QPost.post;
+        QUsers user = QUsers.users;
+        QPostLike postLike = QPostLike.postLike;
+        QComment comment = QComment.comment;
+
+        return jpaQueryFactory
+                .select(Projections.constructor(SimplePostResDTO.class,
+                        post.id,
+                        post.title,
+                        post.views.coalesce(0),
+                        post.isNotice,
+                        post.postCacheFlag,
+                        post.createdAt,
+                        post.user.id,
+                        user.userName,
+                        // 인기글에서는 좋아요/댓글 수를 기준으로 집계하므로 DISTINCT가 필요 없음 (post.id로 그룹화되어 있기 때문)
+                        comment.count().intValue(),
+                        postLike.count().intValue()))
+                .from(post)
+                .leftJoin(post.user, user)
+                // 인기글은 좋아요 수를 기반으로 하므로 PostLike와는 INNER JOIN (좋아요가 없는 글은 제외)
+                .join(postLike).on(post.id.eq(postLike.post.id))
+                .leftJoin(comment).on(post.id.eq(comment.post.id))
+                .groupBy(
+                        post.id,
+                        post.title,
+                        post.views,
+                        post.isNotice,
+                        post.postCacheFlag,
+                        post.createdAt,
+                        post.user.id,
+                        user.userName
+                );
+    }
+
 
     /**
      * <h3>인기글 플래그 초기화</h3>
@@ -199,15 +199,15 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
      * 특정 인기글 플래그를 가진 게시글들의 플래그를 null로 초기화한다.
      * </p>
      *
-     * @param popularFlag 초기화할 인기글 플래그
+     * @param postCacheFlag 초기화할 인기글 플래그
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
-    private void resetPopularFlag(PopularFlag popularFlag) {
+    private void resetPopularFlag(PostCacheFlag postCacheFlag) {
         QPost post = QPost.post;
         jpaQueryFactory.update(post)
-                .set(post.popularFlag, (PopularFlag) null)
-                .where(post.popularFlag.eq(popularFlag))
+                .set(post.postCacheFlag, (PostCacheFlag) null)
+                .where(post.postCacheFlag.eq(postCacheFlag))
                 .execute();
     }
     /**
@@ -217,50 +217,18 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
      * </p>
      *
      * @param postIds     게시글 ID 목록
-     * @param popularFlag 설정할 인기글 플래그
+     * @param postCacheFlag 설정할 인기글 플래그
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
-    private void applyPopularFlag(List<Long> postIds, PopularFlag popularFlag) {
+    private void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag) {
         if (postIds == null || postIds.isEmpty()) {
             return;
         }
         QPost post = QPost.post;
         jpaQueryFactory.update(post)
-                .set(post.popularFlag, popularFlag)
+                .set(post.postCacheFlag, postCacheFlag)
                 .where(post.id.in(postIds))
                 .execute();
-    }
-    /**
-     * <h3>Tuple을 SimplePostDTO로 변환</h3>
-     * <p>
-     * 조회된 Tuple 데이터를 SimplePostDTO 리스트로 변환하는 공통 메서드
-     * </p>
-     *
-     * @param tuples   조회된 Tuple 리스트
-     * @param post     QPost 엔티티
-     * @param user     QUsers 엔티티
-     * @param comment  QComment 엔티티
-     * @param postLike QPostLike 엔티티
-     * @return SimplePostDTO 리스트
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private List<SimplePostDTO> convertTuplesToSimplePostDTOs(List<Tuple> tuples, QPost post, QUsers user,
-                                                              QComment comment, QPostLike postLike) {
-        return tuples.stream()
-                .map(tuple -> SimplePostDTO.builder()
-                        .postId(tuple.get(post.id))
-                        .userId(tuple.get(post.user.id))
-                        .userName(tuple.get(user.userName))
-                        .title(tuple.get(post.title))
-                        .commentCount(tuple.get(comment.count()) != null ? tuple.get(comment.count()).intValue() : 0)
-                        .likes(tuple.get(postLike.count()) != null ? tuple.get(postLike.count()).intValue() : 0)
-                        .views(tuple.get(post.views) != null ? tuple.get(post.views) : 0)
-                        .createdAt(tuple.get(post.createdAt))
-                        .is_notice(tuple.get(post.isNotice) != null && Boolean.TRUE.equals(tuple.get(post.isNotice)))
-                        .user(tuple.get(user))
-                        .build())
-                .toList();
     }
 }
