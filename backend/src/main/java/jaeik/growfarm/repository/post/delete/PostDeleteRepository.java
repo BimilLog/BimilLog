@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
  * </p>
  *
  * @author jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Repository
 public interface PostDeleteRepository {
@@ -22,7 +22,7 @@ public interface PostDeleteRepository {
      *
      * @param postId 삭제할 게시글 ID
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     void deletePostWithCacheSync(Long postId);
 }

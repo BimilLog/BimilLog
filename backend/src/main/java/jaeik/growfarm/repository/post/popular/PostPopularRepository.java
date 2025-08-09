@@ -7,15 +7,11 @@ import java.util.List;
 /**
  * <h2>게시글 인기글 저장소</h2>
  * <p>
- * ISP(Interface Segregation Principle) 적용으로 분리된 인터페이스
- * </p>
- * <p>
- * 인기글 선정 및 관리 기능만을 담당
+ * 인기글 선정 및 관리 기능을 담당
  * </p>
  * 
  * @author jaeik
- * @version 1.0.21
- * @since 1.0.21
+ * @version 2.0.0
  */
 @Repository
 public interface PostPopularRepository {
@@ -28,7 +24,7 @@ public interface PostPopularRepository {
      * 
      * @return 실시간 인기글 목록
      * @author Jaeik
-     * @since 1.0.21
+     * @since 2.0.0
      */
     List<SimplePostResDTO> updateRealtimePopularPosts();
 
@@ -40,7 +36,7 @@ public interface PostPopularRepository {
      * 
      * @return 주간 인기글 목록
      * @author Jaeik
-     * @since 1.0.21
+     * @since 2.0.0
      */
     List<SimplePostResDTO> updateWeeklyPopularPosts();
 
@@ -52,7 +48,7 @@ public interface PostPopularRepository {
      * 
      * @return 레전드 인기글 목록
      * @author Jaeik
-     * @since 1.0.21
+     * @since 2.0.0
      */
     List<SimplePostResDTO> updateLegendPosts();
 }

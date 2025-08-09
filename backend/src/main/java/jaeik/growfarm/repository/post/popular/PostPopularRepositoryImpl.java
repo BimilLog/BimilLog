@@ -110,7 +110,7 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
     /**
      * <h3>인기글 선정 공통 로직</h3>
      * <p>
-     * 지정된 기간 이내의 글 중 추천 수가 가장 높은 상위 N개를 인기글로 등록한다.
+     * 지정된 기간 이내의 글 중 추천 수가 가장 높은 상위 5개를 인기글로 등록한다.
      * </p>
      *
      * @param days        조회 기간 (일 단위)
@@ -121,14 +121,14 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
      */
     private List<SimplePostResDTO> updatePopularPosts(int days, PostCacheFlag postCacheFlag) {
         QPost post = QPost.post;
-        QPostLike postLike = QPostLike.postLike; // For orderBy clause
+        QPostLike postLike = QPostLike.postLike;
 
-        resetPopularFlag(postCacheFlag); // 인기글 플래그 초기화
+        resetPopularFlag(postCacheFlag);
 
-        List<SimplePostResDTO> popularPosts = createBasePopularPostsQuery() // 공통 쿼리 빌더 사용
-                .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS))) // 기간 조건
-                .orderBy(postLike.count().desc()) // 추천 수 내림차순 정렬
-                .limit(5) // 상위 5개 제한
+        List<SimplePostResDTO> popularPosts = createBasePopularPostsQuery()
+                .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS)))
+                .orderBy(postLike.count().desc())
+                .limit(5)
                 .fetch();
 
         if (popularPosts.isEmpty()) {
@@ -191,8 +191,7 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
                         user.userName
                 );
     }
-
-
+    
     /**
      * <h3>인기글 플래그 초기화</h3>
      * <p>
@@ -210,6 +209,7 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
                 .where(post.postCacheFlag.eq(postCacheFlag))
                 .execute();
     }
+    
     /**
      * <h3>인기글 플래그 설정 </h3>
      * <p>

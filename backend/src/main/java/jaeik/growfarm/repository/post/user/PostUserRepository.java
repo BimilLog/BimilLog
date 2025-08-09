@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
  * </p>
  * 
  * @author jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Repository
 public interface PostUserRepository {
@@ -27,7 +27,7 @@ public interface PostUserRepository {
      * @param pageable 페이지 정보
      * @return 사용자가 작성한 글 목록
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable);
 
@@ -41,7 +41,7 @@ public interface PostUserRepository {
      * @param pageable 페이지 정보
      * @return 사용자가 추천한 글 목록
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
 }

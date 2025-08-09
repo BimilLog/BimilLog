@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
  * </p>
  *
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Slf4j
 @Repository
@@ -36,8 +36,7 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
      *
      * @param postId 삭제할 게시글 ID
      * @author Jaeik
-     * @version 1.1.0
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Override
     @Transactional
@@ -75,7 +74,7 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
      *
      * @param postCacheFlag 삭제된 게시글의 인기글 플래그
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     private void deleteRelatedRedisCache(PostCacheFlag postCacheFlag) {
         try {
