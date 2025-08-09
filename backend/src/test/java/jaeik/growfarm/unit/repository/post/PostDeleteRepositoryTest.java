@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
  * <p>
  * 게시글 삭제 관련 Repository의 메서드들을 테스트합니다.
  * </p>
- * @version 1.0.0
+ * @version 1.1.0
  * @author Jaeik
  */
 @ExtendWith(MockitoExtension.class)
