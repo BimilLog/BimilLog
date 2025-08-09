@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.controller;
+package jaeik.growfarm.unit.controller.comment;
 
 import jaeik.growfarm.controller.CommentController;
 import jaeik.growfarm.dto.comment.CommentDTO;

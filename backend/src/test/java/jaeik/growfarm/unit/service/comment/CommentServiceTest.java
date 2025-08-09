@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.service;
+package jaeik.growfarm.unit.service.comment;
 
 import com.querydsl.core.Tuple;
 import jaeik.growfarm.dto.comment.CommentDTO;

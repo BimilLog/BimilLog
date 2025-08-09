@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.controller;
+package jaeik.growfarm.unit.controller.paper;
 
 import jaeik.growfarm.controller.PaperController;
 import jaeik.growfarm.dto.paper.MessageDTO;

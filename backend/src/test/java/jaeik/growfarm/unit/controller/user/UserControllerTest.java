@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.controller;
+package jaeik.growfarm.unit.controller.user;
 
 import jaeik.growfarm.controller.UserController;
 import jaeik.growfarm.dto.admin.ReportDTO;

@@ -1,4 +1,4 @@
-package jaeik.growfarm.integration.post;
+package jaeik.growfarm.integration.api.post;
 
 import jaeik.growfarm.dto.post.PostDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;

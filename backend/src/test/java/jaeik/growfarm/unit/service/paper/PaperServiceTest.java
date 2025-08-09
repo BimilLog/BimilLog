@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.service;
+package jaeik.growfarm.unit.service.paper;
 
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;

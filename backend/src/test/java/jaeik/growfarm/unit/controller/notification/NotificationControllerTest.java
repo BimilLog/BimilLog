@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.controller;
+package jaeik.growfarm.unit.controller.notification;
 
 import jaeik.growfarm.controller.NotificationController;
 import jaeik.growfarm.dto.notification.NotificationDTO;

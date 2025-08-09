@@ -1,4 +1,4 @@
-package jaeik.growfarm.integration;
+package jaeik.growfarm.integration.api.user;
 
 import jaeik.growfarm.controller.UserController;
 import jaeik.growfarm.dto.admin.ReportDTO;

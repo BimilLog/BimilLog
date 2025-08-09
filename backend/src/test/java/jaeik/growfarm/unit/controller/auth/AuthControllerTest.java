@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.controller;
+package jaeik.growfarm.unit.controller.auth;
 
 import jaeik.growfarm.controller.AuthController;
 import jaeik.growfarm.service.auth.AuthService;

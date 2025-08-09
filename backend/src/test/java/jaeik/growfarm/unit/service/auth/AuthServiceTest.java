@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.service;
+package jaeik.growfarm.unit.service.auth;
 
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
@@ -7,7 +7,6 @@ import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;

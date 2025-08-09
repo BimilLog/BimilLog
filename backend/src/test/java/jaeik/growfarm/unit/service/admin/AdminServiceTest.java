@@ -1,4 +1,4 @@
-package jaeik.growfarm.unit.service;
+package jaeik.growfarm.unit.service.admin;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.report.Report;
