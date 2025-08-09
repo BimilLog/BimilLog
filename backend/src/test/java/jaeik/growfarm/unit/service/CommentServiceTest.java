@@ -239,14 +239,14 @@ public class CommentServiceTest {
         // Given
         when(comment.getPassword()).thenReturn(null); // 회원 댓글
         when(commentClosureRepository.hasDescendants(anyLong())).thenReturn(false);
-        doNothing().when(commentUpdateService).hardDelete(anyLong(), any(Comment.class));
+        doNothing().when(commentUpdateService).commentDelete(anyBoolean(), anyLong(), any(Comment.class));
 
         // When
         commentService.deleteComment(commentDTO, userDetails);
 
         // Then
         verify(comment, never()).softDelete();
-        verify(commentUpdateService, times(1)).hardDelete(anyLong(), any(Comment.class));
+        verify(commentUpdateService, times(1)).commentDelete(eq(false), anyLong(), any(Comment.class));
     }
 
     @Test
@@ -256,13 +256,13 @@ public class CommentServiceTest {
         when(commentDTO.getPassword()).thenReturn(1234);
         when(comment.getPassword()).thenReturn(1234); // 동일한 비밀번호
         when(commentClosureRepository.hasDescendants(anyLong())).thenReturn(false);
-        doNothing().when(commentUpdateService).hardDelete(anyLong(), any(Comment.class));
+        doNothing().when(commentUpdateService).commentDelete(anyBoolean(), anyLong(), any(Comment.class));
 
         // When
         commentService.deleteComment(commentDTO, userDetails);
 
         // Then
         verify(comment, never()).softDelete();
-        verify(commentUpdateService, times(1)).hardDelete(anyLong(), any(Comment.class));
+        verify(commentUpdateService, times(1)).commentDelete(eq(false), anyLong(), any(Comment.class));
     }
 }

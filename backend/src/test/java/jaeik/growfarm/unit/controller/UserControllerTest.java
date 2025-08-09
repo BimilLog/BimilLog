@@ -70,17 +70,19 @@ public class UserControllerTest {
     void testGetPostList() {
         // Given
         // Create SimplePostDTO with required parameters
-        SimplePostDTO simplePostDTO = new SimplePostDTO(
-                1L, // postId
-                1L, // userId
-                "testPaper", // userName
-                "Test Title", // title
-                0, // commentCount
-                0, // likes
-                0, // views
-                Instant.now(), // createdAt
-                false // is_notice
-        );
+        SimplePostDTO simplePostDTO = SimplePostDTO.builder()
+                .postId(1L)
+                .userId(1L)
+                .userName("testPaper")
+                .title("Test Title")
+                .commentCount(0)
+                .likes(0)
+                .views(0)
+                .createdAt(Instant.now())
+                .is_notice(false)
+                .popularFlag(null)
+                .user(null)
+                .build();
 
         List<SimplePostDTO> simplePostDTOList = new ArrayList<>();
         simplePostDTOList.add(simplePostDTO);
@@ -130,17 +132,19 @@ public class UserControllerTest {
     @DisplayName("유저가 추천한 게시글 목록 조회 테스트")
     void testGetLikedPosts() {
         // Given
-        SimplePostDTO simplePostDTO = new SimplePostDTO(
-                1L, // postId
-                1L, // userId
-                "testPaper", // userName
-                "Test Title", // title
-                0, // commentCount
-                0, // likes
-                0, // views
-                Instant.now(), // createdAt
-                false // is_notice
-        );
+        SimplePostDTO simplePostDTO = SimplePostDTO.builder()
+                .postId(1L)
+                .userId(1L)
+                .userName("testPaper")
+                .title("Test Title")
+                .commentCount(0)
+                .likes(0)
+                .views(0)
+                .createdAt(Instant.now())
+                .is_notice(false)
+                .popularFlag(null)
+                .user(null)
+                .build();
 
         List<SimplePostDTO> simplePostDTOList = new ArrayList<>();
         simplePostDTOList.add(simplePostDTO);

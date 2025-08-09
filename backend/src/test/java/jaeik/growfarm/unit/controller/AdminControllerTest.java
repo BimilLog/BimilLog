@@ -107,8 +107,17 @@ public class AdminControllerTest {
     @DisplayName("유저 차단 테스트")
     @WithMockUser(roles = "ADMIN")
     void testBanUser() {
+        // Given
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportId(1L)
+                .reportType(ReportType.POST)
+                .userId(1L)
+                .targetId(2L)
+                .content("Test ban reason")
+                .build();
+        
         // When
-        ResponseEntity<String> response = adminController.banUser(1L);
+        ResponseEntity<String> response = adminController.banUser(reportDTO);
 
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());

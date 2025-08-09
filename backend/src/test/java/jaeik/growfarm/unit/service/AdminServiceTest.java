@@ -55,6 +55,12 @@ public class AdminServiceTest {
     @Mock
     private AdminUpdateService adminUpdateService;
 
+    @Mock
+    private jaeik.growfarm.repository.comment.CommentRepository commentRepository;
+
+    @Mock
+    private jaeik.growfarm.repository.post.PostRepository postRepository;
+
     private AdminService adminService;
 
     private Report mockReport;
@@ -64,7 +70,7 @@ public class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminService(reportRepository, userRepository, kakaoService, adminUpdateService);
+        adminService = new AdminService(reportRepository, userRepository, kakaoService, adminUpdateService, commentRepository, postRepository);
         // Mock Report 설정
         mockReport = mock(Report.class);
         when(mockReport.getId()).thenReturn(1L);
@@ -162,7 +168,12 @@ public class AdminServiceTest {
         when(kakaoService.unlinkByAdmin(eq(123456789L))).thenReturn("OK");
 
         // When
-        adminService.banUser(1L);
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportId(1L)
+                .targetId(1L)
+                .reportType(ReportType.POST)
+                .build();
+        adminService.banUser(reportDTO);
 
         // Then
         verify(userRepository, times(1)).findById(1L);
@@ -177,7 +188,12 @@ public class AdminServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(CustomException.class, () -> adminService.banUser(1L));
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportId(1L)
+                .targetId(1L)
+                .reportType(ReportType.POST)
+                .build();
+        assertThrows(CustomException.class, () -> adminService.banUser(reportDTO));
         verify(userRepository, times(1)).findById(1L);
         verify(adminUpdateService, never()).banUserProcess(anyLong(), any(BlackList.class));
         verify(kakaoService, never()).unlinkByAdmin(anyLong());
@@ -192,7 +208,12 @@ public class AdminServiceTest {
         doThrow(new RuntimeException("Kakao Unlink Failed")).when(kakaoService).unlinkByAdmin(anyLong());
 
         // When & Then
-        CustomException exception = assertThrows(CustomException.class, () -> adminService.banUser(1L));
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportId(1L)
+                .targetId(1L)
+                .reportType(ReportType.POST)
+                .build();
+        CustomException exception = assertThrows(CustomException.class, () -> adminService.banUser(reportDTO));
         assertEquals(ErrorCode.BAN_USER_ERROR.getMessage(), exception.getMessage());
 
         verify(userRepository, times(1)).findById(1L);

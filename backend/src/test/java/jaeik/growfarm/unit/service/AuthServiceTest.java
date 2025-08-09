@@ -71,7 +71,7 @@ public class AuthServiceTest {
     private UserJdbcRepository userJdbcRepository;
 
     @Mock
-    private CommentRepository commentRepository;
+    private jaeik.growfarm.repository.token.TokenRepository tokenRepository;
 
     private AuthService authService;
 
@@ -83,7 +83,7 @@ public class AuthServiceTest {
     @BeforeEach
     void setUp() {
         authService = new AuthService(userRepository, kakaoService, jwtTokenProvider, blackListRepository,
-                emitterRepository, tempUserDataManager, authUpdateService, userJdbcRepository, commentRepository);
+                emitterRepository, tempUserDataManager, authUpdateService, userJdbcRepository, tokenRepository);
         // Mock User 설정
         mockUser = mock(Users.class);
         when(mockUser.getId()).thenReturn(1L);

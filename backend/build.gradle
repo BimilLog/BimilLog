@@ -67,6 +67,10 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test' // 테스트용 스타터
     testImplementation 'org.springframework.security:spring-security-test' // Spring Security 테스트 지원
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // JUnit Platform 런처
+    
+    // ==== TestContainers (실제 DB 테스트) ====
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.3' // TestContainers JUnit 지원
+    testImplementation 'org.testcontainers:mysql:1.19.3' // MySQL TestContainer
 
     // ==== 알림 관련 ====
     implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
