@@ -28,18 +28,6 @@ public abstract class PostSearchSupport extends PostBaseRepository {
         super(jpaQueryFactory, commentRepository);
     }
 
-    /**
-     * <h3>네이티브 쿼리 결과를 SimplePostDTO로 변환</h3>
-     *
-     * @param results 네이티브 쿼리 결과 배열 목록
-     * @return 변환된 {@link SimplePostDTO} 목록
-     * @since 1.1.0
-     */
-    protected List<SimplePostDTO> convertNativeQueryResults(List<Object[]> results) {
-        return results.stream()
-                .map(SimplePostDTO::fromNativeQuery)
-                .collect(Collectors.toList());
-    }
 
     /**
      * <h3>네이티브 쿼리 결과 처리</h3>
@@ -55,7 +43,9 @@ public abstract class PostSearchSupport extends PostBaseRepository {
      * @author Jaeik
      */
     protected Page<SimplePostDTO> processNativeQueryResults(List<Object[]> results, Pageable pageable, long totalCount) {
-        List<SimplePostDTO> posts = convertNativeQueryResults(results);
+        List<SimplePostDTO> posts = results.stream()
+                .map(SimplePostDTO::fromNativeQuery)
+                .collect(Collectors.toList());
         if (posts.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, totalCount);
         }
