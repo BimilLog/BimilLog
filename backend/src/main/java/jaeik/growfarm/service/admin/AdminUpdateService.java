@@ -1,11 +1,14 @@
 package jaeik.growfarm.service.admin;
 
 import jaeik.growfarm.entity.user.BlackList;
+import jaeik.growfarm.global.event.UserBannedEvent;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import jaeik.growfarm.service.auth.AuthUpdateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>관리자 업데이트 서비스 클래스</h2>
@@ -24,9 +27,12 @@ public class AdminUpdateService {
     private final EmitterRepository emitterRepository;
     private final AuthUpdateService authUpdateService;
 
-    public void banUserProcess(Long userId, BlackList blackList) {
+    @Transactional
+    @EventListener
+    public void handleUserBannedEvent(UserBannedEvent event) {
+        BlackList blackList = BlackList.createBlackList(event.getKakaoId());
         blackListRepository.save(blackList);
-        emitterRepository.deleteAllEmitterByUserId(userId);
-        authUpdateService.performWithdrawProcess(userId);
+        emitterRepository.deleteAllEmitterByUserId(event.getUserId());
+        authUpdateService.performWithdrawProcess(event.getUserId());
     }
 }

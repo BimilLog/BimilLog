@@ -1,4 +1,4 @@
-package jaeik.growfarm.controller;
+package jaeik.growfarm.controller.user;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;

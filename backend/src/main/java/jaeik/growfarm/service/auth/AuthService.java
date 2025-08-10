@@ -8,6 +8,7 @@ import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtTokenProvider;
+import jaeik.growfarm.global.event.UserBannedEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.notification.EmitterRepository;
@@ -17,7 +18,9 @@ import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.kakao.KakaoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseCookie;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,6 +52,12 @@ public class AuthService {
     private final AuthUpdateService authUpdateService;
     private final UserJdbcRepository userJdbcRepository;
     private final TokenRepository tokenRepository;
+
+    @Async
+    @EventListener
+    public void handleUserBannedEvent(UserBannedEvent event) {
+        kakaoService.unlinkByAdmin(event.getKakaoId());
+    }
 
     /**
      * <h3>카카오 로그인</h3>

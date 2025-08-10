@@ -1,4 +1,4 @@
-package jaeik.growfarm.controller;
+package jaeik.growfarm.controller.user;
 
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.dto.user.UserNameDTO;

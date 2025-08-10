@@ -30,6 +30,10 @@ public interface PostCommandService {
      */
     FullPostResDTO writePost(CustomUserDetails userDetails, PostReqDTO postReqDTO);
 
+    void setPostAsNotice(Long postId);
+
+    void unsetPostAsNotice(Long postId);
+
     /**
      * <h3>게시글 수정</h3>
      * <p>

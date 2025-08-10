@@ -14,6 +14,7 @@ import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.post.PostInteractionService;
 import jaeik.growfarm.service.post.PostPersistenceService;
+import jaeik.growfarm.service.redis.RedisPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,7 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final UserRepository userRepository;
     private final PostPersistenceService postPersistenceService;
     private final PostInteractionService postInteractionService;
+    private final RedisPostService redisPostService;
 
     /**
      * <h3>게시글 작성</h3>
@@ -58,6 +60,73 @@ public class PostCommandServiceImpl implements PostCommandService {
         Users user = (userDetails != null) ? userRepository.getReferenceById(userDetails.getUserId()) : null;
         Post post = postRepository.save(Post.createPost(user, postReqDTO));
         return FullPostResDTO.newPost(post);
+    }
+
+    /**
+     * <h3>공지사항 설정</h3>
+     *
+     * <p>
+     * 게시글을 공지사항으로 설정하고 캐시를 업데이트한다.
+     * 상세 정보(FullPostResDTO)와 목록(SimplePostResDTO)을 모두 캐싱한다.
+     * </p>
+     *
+     * @param postId 공지사항으로 설정할 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional
+    @Override
+    public void setPostAsNotice(Long postId) {
+        Post post = postRepository.findByIdWithUserV2(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        post.setAsNotice();
+
+        // 좋아요 수 조회
+        long likeCount = postLikeRepository.countByPostId(post.getId());
+
+        // 상세 정보 캐싱 (FullPostResDTO)
+        FullPostResDTO fullPostDto = FullPostResDTO.existedPost(
+                post.getId(),
+                post.getUser() != null ? post.getUser().getId() : null,
+                post.getUser() != null ? post.getUser().getUserName() : "익명",
+                post.getTitle(),
+                post.getContent(),
+                post.getViews(),
+                (int) likeCount,
+                post.isNotice(),
+                null,
+                post.getCreatedAt(),
+                false
+        );
+        redisPostService.cacheFullPost(fullPostDto);
+
+        // 목록 캐시는 삭제하여, 다음 조회 시 DB에서 최신 데이터를 가져와 다시 캐싱하도록 유도
+        redisPostService.deleteNoticePostsCache();
+    }
+
+    /**
+     * <h3>공지사항 해제</h3>
+     *
+     * <p>
+     * 게시글의 공지사항 설정을 해제하고 관련 캐시를 모두 삭제한다.
+     * </p>
+     *
+     * @param postId 공지사항을 해제할 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional
+    @Override
+    public void unsetPostAsNotice(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        post.unsetAsNotice();
+
+        // 관련 캐시 모두 삭제
+        redisPostService.deleteNoticePostsCache();
+        redisPostService.deleteFullPostCache(postId);
     }
 
     /**

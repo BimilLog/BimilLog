@@ -1,4 +1,4 @@
-package jaeik.growfarm.controller;
+package jaeik.growfarm.controller.user;
 
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;

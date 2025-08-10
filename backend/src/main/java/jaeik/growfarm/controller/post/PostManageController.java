@@ -8,6 +8,7 @@ import jaeik.growfarm.service.post.command.PostCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,36 @@ import org.springframework.web.bind.annotation.*;
 public class PostManageController {
 
     private final PostCommandService postCommandService;
+
+    /**
+     * <h3>공지사항 설정 API</h3>
+     *
+     * @param postId 공지사항으로 설정할 게시글 ID
+     * @return 설정 완료 메시지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @PostMapping("/{postId}/notice")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> setPostAsNotice(@PathVariable Long postId) {
+        postCommandService.setPostAsNotice(postId);
+        return ResponseEntity.ok("게시글을 공지사항으로 설정했습니다.");
+    }
+
+    /**
+     * <h3>공지사항 해제 API</h3>
+     *
+     * @param postId 공지사항을 해제할 게시글 ID
+     * @return 해제 완료 메시지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @DeleteMapping("/{postId}/notice")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> unsetPostAsNotice(@PathVariable Long postId) {
+        postCommandService.unsetPostAsNotice(postId);
+        return ResponseEntity.ok("게시글의 공지사항을 해제했습니다.");
+    }
 
     /**
      * <h3>게시글 작성 API</h3>
