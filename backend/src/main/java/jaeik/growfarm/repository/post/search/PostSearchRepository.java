@@ -7,13 +7,11 @@ import org.springframework.stereotype.Repository;
 
 /**
  * <h2>게시글 검색 저장소</h2>
- * <p>
- * ISP(Interface Segregation Principle) 적용으로 분리된 인터페이스로, 게시글 검색 기능만 담당한다.
+ * <p>게시글 검색 기능만 담당한다.
  * </p>
  *
  * @author jaeik
- * @version 1.1.0
- * @since 1.1.0
+ * @version 2.0.0
  */
 @Repository
 public interface PostSearchRepository {
@@ -29,7 +27,7 @@ public interface PostSearchRepository {
      * @param pageable   페이지 정보
      * @return 검색된 게시글 페이지
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     Page<SimplePostResDTO> searchPosts(String keyword, String searchType, Pageable pageable);
 }

@@ -4,7 +4,6 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -50,38 +49,8 @@ public abstract class PostBaseRepository {
      * @since 1.0.0
      */
     protected Page<SimplePostResDTO> fetchPosts(BooleanExpression condition, Pageable pageable) {
-        QPost post = QPost.post;
-        QUsers user = QUsers.users;
-        QComment comment = QComment.comment;
-        QPostLike postLike = QPostLike.postLike;
-
-        BooleanExpression finalCondition = buildBaseCondition(condition, post);
-
-        List<SimplePostResDTO> posts = jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        post.user.id,
-                        user.userName,
-                        comment.countDistinct().intValue(),
-                        postLike.countDistinct().intValue()))
-                .from(post)
-                .leftJoin(post.user, user)
-                .leftJoin(comment).on(comment.post.id.eq(post.id))
-                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
-                .where(finalCondition)
-                .groupBy(post.id, post.title, post.views, post.isNotice,
-                        post.postCacheFlag, post.createdAt, user.id, user.userName)
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        Long totalCount = fetchTotalCount(finalCondition);
+        List<SimplePostResDTO> posts = createPostListQuery(condition, pageable);
+        Long totalCount = createPostCountQuery(condition);
         return new PageImpl<>(posts, pageable, totalCount);
     }
 
@@ -132,21 +101,6 @@ public abstract class PostBaseRepository {
                 .fetchOne();
     }
 
-    /**
-     * <h3>기본 검색 조건 빌드</h3>
-     * <p>
-     * 게시글 조회 시 기본적으로 적용되는 조건을 빌드한다.
-     * </p>
-     *
-     * @param condition 추가적인 검색 조건
-     * @return 기본 조건과 추가 조건을 결합한 BooleanExpression
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private BooleanExpression buildBaseCondition(BooleanExpression condition, QPost post) {
-        BooleanExpression baseCondition = post.isNotice.isFalse();
-        return condition != null ? baseCondition.and(condition) : baseCondition;
-    }
 
     /**
      * <h3>전체 게시글 수 조회</h3>
@@ -159,18 +113,52 @@ public abstract class PostBaseRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    protected Long fetchTotalCount(BooleanExpression condition) {
+    protected Long createPostCountQuery(BooleanExpression condition) {
+        QPost post = QPost.post;
+
+        return jpaQueryFactory
+                .select(post.count())
+                .from(post)
+                .leftJoin(post.user, QUsers.users)
+                .where(post.isNotice.isFalse().and(condition)) // 기본 조건을 명시적으로 추가
+                .fetchOne();
+    }
+
+    /**
+     * <h3>게시글 목록 조회 공통 쿼리</h3>
+     * <p>
+     * 동적 검색 조건과 페이징 정보를 받아 게시글 목록을 조회한다.
+     * </p>
+     *
+     * @param condition 검색 조건
+     * @param pageable  페이지 정보
+     * @return 조회된 게시글 목록
+     */
+    protected List<SimplePostResDTO> createPostListQuery(BooleanExpression condition, Pageable pageable) {
         QPost post = QPost.post;
         QUsers user = QUsers.users;
+        QComment comment = QComment.comment;
+        QPostLike postLike = QPostLike.postLike;
 
-        JPAQuery<Long> query = jpaQueryFactory
-                .select(post.count())
-                .from(post);
+        BooleanExpression finalCondition = post.isNotice.isFalse().and(condition); // 기본 조건을 명시적으로 추가
 
-        if (condition != null && condition.toString().contains("users")) {
-            query = query.leftJoin(post.user, user);
-        }
-
-        return query.where(condition).fetchOne();
+        return jpaQueryFactory
+                .select(Projections.constructor(SimplePostResDTO.class,
+                        post.id, post.title, post.views.coalesce(0), post.isNotice, post.postCacheFlag,
+                        post.createdAt, post.user.id, user.userName,
+                        comment.countDistinct().intValue(), postLike.countDistinct().intValue()))
+                .from(post)
+                .leftJoin(post.user, user)
+                .leftJoin(comment).on(comment.post.id.eq(post.id))
+                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
+                .where(finalCondition)
+                .groupBy(post.id, post.title, post.views, post.isNotice, post.postCacheFlag,
+                        post.createdAt, user.id, user.userName)
+                .orderBy(post.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
     }
+
+
 }
