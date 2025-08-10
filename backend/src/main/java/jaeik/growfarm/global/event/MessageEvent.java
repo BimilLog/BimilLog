@@ -2,6 +2,7 @@ package jaeik.growfarm.global.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * <h2>메시지 작성 이벤트</h2>
@@ -15,7 +16,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class MessageEvent {
+public class MessageEvent extends ApplicationEvent {
 
     /**
      * 롤링페이퍼 주인 ID (알림을 받을 사용자)

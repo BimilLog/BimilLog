@@ -2,6 +2,7 @@ package jaeik.growfarm.global.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * <h2>인기글 등극 이벤트</h2>
@@ -15,7 +16,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class PostFeaturedEvent {
+public class PostFeaturedEvent extends ApplicationEvent {
 
     /**
      * 게시글 작성자 ID (알림을 받을 사용자)
