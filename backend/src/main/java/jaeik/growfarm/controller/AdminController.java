@@ -64,4 +64,34 @@ public class AdminController {
         adminService.banUser(reportDTO);
         return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
     }
+
+    /**
+     * <h3>공지사항 설정 API</h3>
+     *
+     * @param postId 공지사항으로 설정할 게시글 ID
+     * @return 설정 완료 메시지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @PostMapping("/post/{postId}/notice")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> setPostAsNotice(@PathVariable Long postId) {
+        adminService.setPostAsNotice(postId);
+        return ResponseEntity.ok("게시글을 공지사항으로 설정했습니다.");
+    }
+
+    /**
+     * <h3>공지사항 해제 API</h3>
+     *
+     * @param postId 공지사항을 해제할 게시글 ID
+     * @return 해제 완료 메시지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @DeleteMapping("/post/{postId}/notice")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> unsetPostAsNotice(@PathVariable Long postId) {
+        adminService.unsetPostAsNotice(postId);
+        return ResponseEntity.ok("게시글의 공지사항을 해제했습니다.");
+    }
 }

@@ -24,6 +24,8 @@ import lombok.Setter;
 @Builder
 public class PostReqDTO {
 
+    private Long postId;
+
     private Long userId;
 
     @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")

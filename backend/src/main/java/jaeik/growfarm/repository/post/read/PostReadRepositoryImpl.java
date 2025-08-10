@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * <h2>게시글 조회 구현체</h2>
  * <p>
@@ -57,6 +59,7 @@ public class PostReadRepositoryImpl extends PostBaseRepository implements PostRe
     public FullPostResDTO findPostById(Long postId, Long userId) {
         return fetchPostDetail(postId, userId);
     }
+
 }
 
 

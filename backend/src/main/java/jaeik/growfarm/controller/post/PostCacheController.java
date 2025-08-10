@@ -31,7 +31,7 @@ public class PostCacheController {
      * 실시간 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
      *
-     * @since 1.1.0
+     * @since 2.0.0
      * @author Jaeik
      * @return 실시간 인기글 목록
      */
@@ -49,7 +49,7 @@ public class PostCacheController {
      * 주간 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
      *
-     * @since 1.1.0
+     * @since 2.0.0
      * @author Jaeik
      * @return 주간 인기글 목록
      */
@@ -67,7 +67,7 @@ public class PostCacheController {
      * 레전드 인기글로 선정된 게시글 목록을 조회한다.
      * </p>
      *
-     * @since 1.1.0
+     * @since 2.0.0
      * @author Jaeik
      * @return 레전드 게시글 목록
      */

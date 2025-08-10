@@ -1,8 +1,9 @@
 package jaeik.growfarm.service.post;
 
-import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.repository.post.delete.PostDeleteRepository;
+import jaeik.growfarm.service.redis.RedisPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,28 +16,36 @@ import org.springframework.transaction.annotation.Transactional;
  * </p>
  *
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
 public class PostPersistenceService {
     
     private final PostDeleteRepository postDeleteRepository;
+    private final RedisPostService redisPostService;
 
     /**
      * <h3>게시글 수정</h3>
      * <p>
      * 게시글 엔티티를 수정한다. JPA 더티 체킹을 이용한 업데이트.
+     * 공지사항이 수정된 경우 캐시를 갱신한다.
      * </p>
      *
-     * @param fullPostResDTO 수정할 게시글 정보
+     * @param postReqDTO 수정할 게시글 정보
      * @param post    수정 대상 게시글 엔티티
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Transactional
-    public void updatePost(FullPostResDTO fullPostResDTO, Post post) {
-        post.updatePost(fullPostResDTO);
+    public void updatePost(PostReqDTO postReqDTO, Post post) {
+        boolean wasNotice = post.isNotice();
+        post.updatePost(postReqDTO);
+        
+        // 공지사항이 수정된 경우 캐시 갱신
+        if (wasNotice) {
+            redisPostService.deleteNoticePostsCache();
+        }
     }
 
     /**
@@ -48,7 +57,7 @@ public class PostPersistenceService {
      *
      * @param postId 삭제할 게시글 ID
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Transactional
     public void deletePost(Long postId) {

@@ -3,6 +3,7 @@ package jaeik.growfarm.service.redis;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.repository.post.cache.PostCacheRepository;
 import jaeik.growfarm.service.post.PostScheduledService;
 import lombok.Getter;
 import org.springframework.context.annotation.Lazy;
@@ -26,23 +27,27 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Service
 public class RedisPostService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final PostScheduledService postScheduledService;
+    private final PostCacheRepository postCacheRepository;
 
-    public RedisPostService(RedisTemplate<String, Object> redisTemplate, @Lazy PostScheduledService postScheduledService) {
+    public RedisPostService(RedisTemplate<String, Object> redisTemplate, 
+                            @Lazy PostScheduledService postScheduledService,
+                            PostCacheRepository postCacheRepository) {
         this.redisTemplate = redisTemplate;
         this.postScheduledService = postScheduledService;
+        this.postCacheRepository = postCacheRepository;
     }
 
     /**
-     * <h3>인기글 유형</h3>
+     * <h3>캐시 유형</h3>
      * <p>
-     * Redis에 저장되는 인기글 목록의 유형을 정의한다.
+     * Redis에 저장되는 캐시글 목록의 유형을 정의한다.
      * </p>
      * <p>
      * 각 유형은 Redis 키와 TTL(유효 기간)을 포함한다.
@@ -53,10 +58,10 @@ public class RedisPostService {
      */
     @Getter
     public enum CachePostType {
-        REALTIME("popular:posts:realtime", Duration.ofMinutes(30)),
-        WEEKLY("popular:posts:weekly", Duration.ofDays(1)),
-        LEGEND("popular:posts:legend", Duration.ofDays(1)),
-        NOTICE("popular:posts:notice", Duration.ofDays(7));
+        REALTIME("cache:posts:realtime", Duration.ofMinutes(30)),
+        WEEKLY("cache:posts:weekly", Duration.ofDays(1)),
+        LEGEND("cache:posts:legend", Duration.ofDays(1)),
+        NOTICE("cache:posts:notice", Duration.ofDays(7));
 
         private final String key;
         private final Duration ttl;
@@ -97,6 +102,11 @@ public class RedisPostService {
                 case REALTIME -> postScheduledService.updateRealtimePopularPosts();
                 case WEEKLY -> postScheduledService.updateWeeklyPopularPosts();
                 case LEGEND -> postScheduledService.updateLegendPopularPosts();
+                case NOTICE -> {
+                    // 공지사항은 DB에서 직접 조회하여 캐시에 저장
+                    List<SimplePostResDTO> noticePosts = postCacheRepository.findNoticePost();
+                    cachePopularPosts(CachePostType.NOTICE, noticePosts);
+                }
             }
         }
 
@@ -109,6 +119,20 @@ public class RedisPostService {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * <h3>Redis에서 공지사항 목록 조회 (통합 메서드 사용)</h3>
+     * <p>
+     * getCachedPopularPosts(CachePostType.NOTICE)를 사용하도록 변경
+     * </p>
+     *
+     * @return 캐시된 공지사항 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public List<SimplePostResDTO> getCachedNoticePosts() {
+        return getCachedPopularPosts(CachePostType.NOTICE);
     }
 
     /**
@@ -138,6 +162,16 @@ public class RedisPostService {
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
         }
+    }
+
+    /**
+     * <h3>공지사항 캐시 삭제 (통합 메서드 사용)</h3>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void deleteNoticePostsCache() {
+        deletePopularPostsCache(CachePostType.NOTICE);
     }
 
     /**

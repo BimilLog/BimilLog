@@ -240,7 +240,7 @@ class PostRepositoryIntegrationTest {
         
         SimplePostResDTO post = result.getContent().get(0);
         assertThat(post.getUserName()).isEqualTo("테스트사용자1");
-        assertThat(post.is_notice()).isFalse(); // 공지사항 제외 확인
+        assertThat(post.isNotice()).isFalse(); // 공지사항 제외 확인
         
         System.out.println("=== 사용자 작성글 조회 쿼리 실행 성공 ===");
         System.out.println(String.format("사용자 %s의 작성글 %d개", post.getUserName(), result.getTotalElements()));

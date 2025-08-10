@@ -199,7 +199,7 @@ public class PostReadServiceTest {
                 .likes(0)
                 .views(0)
                 .createdAt(Instant.now())
-                .is_notice(false)
+                .isNotice(false)
                 .build();
         
         Page<SimplePostResDTO> mockPage = new PageImpl<>(List.of(mockSimplePost));

@@ -61,6 +61,9 @@ public class AdminServiceTest {
     @Mock
     private jaeik.growfarm.repository.post.PostRepository postRepository;
 
+    @Mock
+    private jaeik.growfarm.service.redis.RedisPostService redisPostService;
+
     private AdminService adminService;
 
     private Report mockReport;

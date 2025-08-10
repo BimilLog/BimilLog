@@ -182,7 +182,7 @@ class PostUserRepositoryIntegrationTest {
         result.getContent().forEach(post -> {
             assertThat(post.getUserName()).isEqualTo("사용자1");
             assertThat(post.getUserId()).isEqualTo(userId);
-            assertThat(post.is_notice()).isFalse(); // 공지사항 제외 확인
+            assertThat(post.isNotice()).isFalse(); // 공지사항 제외 확인
         });
 
         // 최신순 정렬 확인
@@ -322,7 +322,7 @@ class PostUserRepositoryIntegrationTest {
 
         // 모든 게시글이 일반 게시글인지 확인
         result.getContent().forEach(post -> 
-            assertThat(post.is_notice()).isFalse()
+            assertThat(post.isNotice()).isFalse()
         );
     }
 

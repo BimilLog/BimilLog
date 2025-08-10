@@ -7,7 +7,8 @@ import jaeik.growfarm.entity.post.PostLike;
 import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.repository.post.popular.PostPopularRepository;
+import jaeik.growfarm.repository.post.cache.PostCacheRepository;
+import jaeik.growfarm.repository.post.cache.PostCacheRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,7 @@ import static org.assertj.core.api.Assertions.*;
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({
-    jaeik.growfarm.repository.post.popular.PostPopularRepositoryImpl.class,
+    PostCacheRepositoryImpl.class,
     jaeik.growfarm.global.config.QueryDSLConfig.class,
     jaeik.growfarm.global.security.EncryptionUtil.class
 })
@@ -55,7 +56,7 @@ import static org.assertj.core.api.Assertions.*;
     "message.secret=testkey1234567890testkey1234567890"
 })
 @DisplayName("PostPopularRepository 통합 테스트")
-class PostPopularRepositoryIntegrationTest {
+class PostCacheRepositoryIntegrationTest {
 
     @Container
     static final MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
@@ -82,7 +83,7 @@ class PostPopularRepositoryIntegrationTest {
     private TestEntityManager entityManager;
 
     @Autowired
-    private PostPopularRepository postPopularRepository;
+    private PostCacheRepository postCacheRepository;
 
     private Users testUser1;
     private Users testUser2;
@@ -147,7 +148,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateRealtimePopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateRealtimePopularPosts();
 
         // Then
         assertThat(result).isNotNull();
@@ -185,7 +186,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateWeeklyPopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateWeeklyPopularPosts();
 
         // Then
         assertThat(result).isNotNull();
@@ -214,7 +215,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateLegendPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateLegendPosts();
 
         // Then
         assertThat(result).isNotNull();
@@ -243,7 +244,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateRealtimePopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateRealtimePopularPosts();
 
         // Then
         assertThat(result).isEmpty();
@@ -266,7 +267,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateLegendPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateLegendPosts();
 
         // Then
         assertThat(result).isEmpty();
@@ -291,7 +292,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateRealtimePopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateRealtimePopularPosts();
 
         // Then
         assertThat(result).isNotNull();
@@ -318,7 +319,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateRealtimePopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateRealtimePopularPosts();
 
         // Then
         assertThat(result).hasSize(5); // 정확히 5개만 선정
@@ -354,7 +355,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateWeeklyPopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateWeeklyPopularPosts();
 
         // Then
         assertThat(result).hasSize(1);
@@ -372,7 +373,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateLegendPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateLegendPosts();
 
         // Then
         assertThat(result).hasSize(2); // 20개와 21개만 포함
@@ -392,7 +393,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateWeeklyPopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateWeeklyPopularPosts();
 
         // Then
         assertThat(result).isEmpty();
@@ -426,7 +427,7 @@ class PostPopularRepositoryIntegrationTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    List<SimplePostResDTO> result = postPopularRepository.updateRealtimePopularPosts();
+                    List<SimplePostResDTO> result = postCacheRepository.updateRealtimePopularPosts();
                     if (result != null) {
                         successCount.incrementAndGet();
                     }
@@ -469,7 +470,7 @@ class PostPopularRepositoryIntegrationTest {
         long startTime = System.currentTimeMillis();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateRealtimePopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateRealtimePopularPosts();
 
         long endTime = System.currentTimeMillis();
         long executionTime = endTime - startTime;
@@ -523,7 +524,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateRealtimePopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateRealtimePopularPosts();
 
         // Then
         assertThat(result).isNotNull();
@@ -578,7 +579,7 @@ class PostPopularRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<SimplePostResDTO> result = postPopularRepository.updateRealtimePopularPosts();
+        List<SimplePostResDTO> result = postCacheRepository.updateRealtimePopularPosts();
 
         // Then
         assertThat(result).hasSize(1);

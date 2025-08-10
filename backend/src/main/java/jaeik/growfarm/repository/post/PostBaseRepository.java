@@ -27,7 +27,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Repository
 @RequiredArgsConstructor
@@ -163,5 +163,37 @@ public abstract class PostBaseRepository {
                 .fetch();
     }
 
+    /**
+     * <h3>공지사항 목록 조회</h3>
+     * <p>
+     * 공지사항으로 설정된 게시글 목록을 최신순으로 조회한다.
+     * fetchPosts 메서드를 재사용하여 중복 코드를 제거한다.
+     * </p>
+     *
+     * @return 공지사항 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    protected List<SimplePostResDTO> fetchNotices() {
+        QPost post = QPost.post;
+        QUsers user = QUsers.users;
+        QComment comment = QComment.comment;
+        QPostLike postLike = QPostLike.postLike;
 
+        // fetchPosts와 동일한 로직이지만 isNotice.isTrue() 조건 사용
+        return jpaQueryFactory
+                .select(Projections.constructor(SimplePostResDTO.class,
+                        post.id, post.title, post.views.coalesce(0), post.isNotice, post.postCacheFlag,
+                        post.createdAt, post.user.id, user.userName,
+                        comment.countDistinct().intValue(), postLike.countDistinct().intValue()))
+                .from(post)
+                .leftJoin(post.user, user)
+                .leftJoin(comment).on(comment.post.id.eq(post.id))
+                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
+                .where(post.isNotice.isTrue())
+                .groupBy(post.id, post.title, post.views, post.isNotice, post.postCacheFlag,
+                        post.createdAt, user.id, user.userName)
+                .orderBy(post.createdAt.desc())
+                .fetch();
+    }
 }

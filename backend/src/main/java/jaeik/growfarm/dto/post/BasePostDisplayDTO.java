@@ -34,20 +34,4 @@ public abstract class BasePostDisplayDTO {
     protected Instant createdAt;
     protected boolean isNotice;
     protected PostCacheFlag postCacheFlag;
-
-    /**
-     * <h3>댓글 및 좋아요 수 설정</h3>
-     * <p>
-     * 댓글 수와 좋아요 수를 설정합니다.
-     * </p>
-     *
-     * @param commentCount 댓글 수
-     * @param likeCount    좋아요 수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void withCounts(int commentCount, int likeCount) {
-        this.commentCount = commentCount;
-        this.likes = likeCount;
-    }
 }

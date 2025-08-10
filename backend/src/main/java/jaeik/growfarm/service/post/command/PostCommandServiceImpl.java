@@ -27,7 +27,7 @@ import java.util.Optional;
  * </p>
  * 
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -49,7 +49,7 @@ public class PostCommandServiceImpl implements PostCommandService {
      * @param postReqDTO  게시글 작성 요청 DTO
      * @return 작성된 게시글 DTO
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Transactional
     @Override
@@ -66,15 +66,15 @@ public class PostCommandServiceImpl implements PostCommandService {
      * </p>
      *
      * @param userDetails 현재 로그인 한 사용자 정보
-     * @param fullPostResDTO     수정할 게시글 정보 DTO
+     * @param postReqDTO     수정할 게시글 정보 DTO
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Transactional
     @Override
-    public void updatePost(CustomUserDetails userDetails, FullPostResDTO fullPostResDTO) {
-        Post post = validatePost(userDetails, fullPostResDTO);
-        postPersistenceService.updatePost(fullPostResDTO, post);
+    public void updatePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
+        Post post = validatePost(userDetails, postReqDTO);
+        postPersistenceService.updatePost(postReqDTO, post);
     }
 
     /**
@@ -84,13 +84,13 @@ public class PostCommandServiceImpl implements PostCommandService {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param fullPostResDTO     게시글 정보 DTO
+     * @param postReqDTO     게시글 정보 DTO
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Override
-    public void deletePost(CustomUserDetails userDetails, FullPostResDTO fullPostResDTO) {
-        Post post = validatePost(userDetails, fullPostResDTO);
+    public void deletePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
+        Post post = validatePost(userDetails, postReqDTO);
         postPersistenceService.deletePost(post.getId());
     }
 
@@ -103,7 +103,7 @@ public class PostCommandServiceImpl implements PostCommandService {
      * @param fullPostResDTO     추천할 게시글 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Override
     public void likePost(FullPostResDTO fullPostResDTO, CustomUserDetails userDetails) {
@@ -124,23 +124,23 @@ public class PostCommandServiceImpl implements PostCommandService {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param fullPostResDTO     게시글 정보 DTO
+     * @param postReqDTO     게시글 정보 DTO
      * @return 유효한 게시글 엔티티
      * @throws CustomException 게시글이 존재하지 않거나 작성자가 일치하지 않는 경우
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
-    private Post validatePost(CustomUserDetails userDetails, FullPostResDTO fullPostResDTO) {
+    private Post validatePost(CustomUserDetails userDetails, PostReqDTO postReqDTO) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        Post post = postRepository.findById(fullPostResDTO.getPostId())
+        Post post = postRepository.findById(postReqDTO.getPostId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        if (!Objects.equals(fullPostResDTO.getUserId(), (userId))) {
+        if (!Objects.equals(postReqDTO.getUserId(), (userId))) {
             throw new CustomException(ErrorCode.POST_UPDATE_FORBIDDEN);
         }
 
         if (userId == null) {
-            if (!Objects.equals(fullPostResDTO.getPassword(), post.getPassword())) {
+            if (!Objects.equals(postReqDTO.getPassword(), post.getPassword())) {
                 throw new CustomException(ErrorCode.POST_PASSWORD_NOT_MATCH);
             }
         }

@@ -19,7 +19,7 @@ import java.util.Optional;
  * </p>
  *
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -38,7 +38,7 @@ public class PostInteractionService {
      * @param post         대상 게시글 엔티티
      * @param user         사용자 엔티티
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Transactional
     public void toggleLike(Optional<PostLike> existingLike, Post post, Users user) {
@@ -61,7 +61,7 @@ public class PostInteractionService {
      *
      * @param postId 조회수를 증가시킬 게시글 ID
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Transactional
     public void incrementViewCount(Long postId) {

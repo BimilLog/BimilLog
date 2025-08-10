@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  * 
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class PostManageController {
      * 새로운 게시글을 작성하고 저장한다.
      * </p>
      * 
-     * @since 1.1.0
+     * @since 2.0.0
      * @author Jaeik
      * @param postReqDTO  게시글 작성 요청 DTO
      * @param userDetails 현재 로그인한 사용자 정보
@@ -54,16 +54,16 @@ public class PostManageController {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param fullPostResDTO     수정할 게시글 정보
+     * @param postReqDTO     수정할 게시글 정보
      * @return 수정된 게시글 정보
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @PostMapping("/update")
     public ResponseEntity<String> updatePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid FullPostResDTO fullPostResDTO) {
-        postCommandService.updatePost(userDetails, fullPostResDTO);
+            @RequestBody @Valid PostReqDTO postReqDTO) {
+        postCommandService.updatePost(userDetails, postReqDTO);
         return ResponseEntity.ok("게시글 수정 완료");
     }
 
@@ -74,17 +74,17 @@ public class PostManageController {
      * 게시글 작성자만 게시글을 삭제할 수 있다.
      * </p>
      * 
-     * @since 1.1.0
+     * @since 2.0.0
      * @author Jaeik
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param fullPostResDTO     삭제할 게시글 정보
+     * @param postReqDTO     삭제할 게시글 정보
      * @return 삭제 성공 메시지
      */
     @PostMapping("/delete")
     public ResponseEntity<String> deletePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid FullPostResDTO fullPostResDTO) {
-        postCommandService.deletePost(userDetails, fullPostResDTO);
+            @RequestBody @Valid PostReqDTO postReqDTO) {
+        postCommandService.deletePost(userDetails, postReqDTO);
         return ResponseEntity.ok("게시글 삭제 완료");
     }
 

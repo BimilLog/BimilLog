@@ -79,7 +79,7 @@
 //                .likes(0)
 //                .views(0)
 //                .createdAt(Instant.now())
-//                .is_notice(false)
+//                .isNotice(false)
 //                .popularFlag(null)
 //                .user(null)
 //                .build();
@@ -141,7 +141,7 @@
 //                .likes(0)
 //                .views(0)
 //                .createdAt(Instant.now())
-//                .is_notice(false)
+//                .isNotice(false)
 //                .popularFlag(null)
 //                .user(null)
 //                .build();

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
  * </p>
  * 
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class PostSearchServiceImpl implements PostSearchService {
      * @param size  페이지 사이즈
      * @return 검색된 게시글 목록 페이지
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Override
     public Page<SimplePostResDTO> searchPost(String type, String query, int page, int size) {

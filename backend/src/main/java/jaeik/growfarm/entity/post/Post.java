@@ -1,6 +1,5 @@
 package jaeik.growfarm.entity.post;
 
-import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.entity.BaseEntity;
 import jaeik.growfarm.entity.user.Users;
@@ -74,11 +73,11 @@ public class Post extends BaseEntity {
      * 게시글을 생성하는 정적 팩토리 메서드이다.
      * </p>
      *
-     * @since 1.0.0
-     * @author Jaeik
      * @param user       작성자 정보
      * @param postReqDTO 게시글 작성 요청 DTO
      * @return 생성된 Post 엔티티
+     * @author Jaeik
+     * @since 1.0.0
      */
     public static Post createPost(Users user, PostReqDTO postReqDTO) {
         return Post.builder()
@@ -98,43 +97,41 @@ public class Post extends BaseEntity {
      * <p>
      * 게시글의 제목과 내용을 업데이트한다.
      * </p>
-     * 
-     * @since 1.0.0
-     * @author Jaeik
+     *
      * @param fullPostResDTO 업데이트할 게시글 정보
+     * @author Jaeik
+     * @since 1.0.0
      */
-    public void updatePost(FullPostResDTO fullPostResDTO) {
-        this.title = fullPostResDTO.getTitle();
-        this.content = fullPostResDTO.getContent();
+    public void updatePost(PostReqDTO postReqDTO) {
+        this.title = postReqDTO.getTitle();
+        this.content = postReqDTO.getContent();
     }
 
     /**
-     * <h3>주간 인기글 설정</h3>
+     * <h3>공지사항 설정</h3>
      *
      * <p>
-     * 게시글을 주간 인기글로 설정한다.
+     * 게시글을 공지사항으로 설정한다.
      * </p>
-     * 
-     * @since 1.0.0
+     *
      * @author Jaeik
-     * @param fullPostResDTO 게시글 정보
+     * @since 2.0.0
      */
-    public void updateWeeklyPopular(FullPostResDTO fullPostResDTO) {
-        this.postCacheFlag = PostCacheFlag.WEEKLY;
+    public void setAsNotice() {
+        this.isNotice = true;
     }
 
     /**
-     * <h3>레전더리 글 설정</h3>
+     * <h3>공지사항 해제</h3>
      *
      * <p>
-     * 게시글을 레전더리로 설정한다.
+     * 게시글의 공지사항을 해제한다.
      * </p>
-     * 
-     * @since 1.0.0
+     *
      * @author Jaeik
-     * @param fullPostResDTO 게시글 정보
+     * @since 2.0.0
      */
-    public void setHallOfFame(FullPostResDTO fullPostResDTO) {
-        this.postCacheFlag = PostCacheFlag.LEGEND;
+    public void unsetAsNotice() {
+        this.isNotice = false;
     }
 }

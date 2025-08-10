@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  *
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class PostReadController {
      * @param size 페이지 사이즈
      * @return 게시글 목록 페이지
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @GetMapping
     public ResponseEntity<Page<SimplePostResDTO>> getBoard(@RequestParam int page, @RequestParam int size) {
@@ -60,7 +60,7 @@ public class PostReadController {
      * @param response    HTTP 응답 객체
      * @return 게시글 정보
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @GetMapping("/{postId}")
     public ResponseEntity<FullPostResDTO> getPost(@PathVariable Long postId,

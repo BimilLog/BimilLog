@@ -29,7 +29,7 @@ import java.util.*;
  * </p>
  * 
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -49,7 +49,7 @@ public class PostReadServiceImpl implements PostReadService {
      * @param size 페이지 사이즈
      * @return 게시글 목록 페이지
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Override
     public Page<SimplePostResDTO> getBoard(int page, int size) {
@@ -67,7 +67,7 @@ public class PostReadServiceImpl implements PostReadService {
      * @param userDetails 현재 로그인 한 사용자 정보
      * @return 게시글 상세 DTO
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Override
     public FullPostResDTO getPost(Long postId, CustomUserDetails userDetails) {
@@ -85,7 +85,7 @@ public class PostReadServiceImpl implements PostReadService {
      * @param request  HTTP 요청 객체
      * @param response HTTP 응답 객체
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Override
     public void incrementViewCount(Long postId, HttpServletRequest request, HttpServletResponse response) {
@@ -111,7 +111,7 @@ public class PostReadServiceImpl implements PostReadService {
      * @param cookies  현재 요청의 쿠키 배열
      * @param postId   현재 조회한 게시글 ID
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     private void updateViewCookie(HttpServletResponse response, Cookie[] cookies, Long postId) {
         try {
@@ -154,6 +154,7 @@ public class PostReadServiceImpl implements PostReadService {
         }
     }
 
+
     /**
      * <h3>사용자가 게시글을 본 적 있는지 확인</h3>
      * <p>
@@ -164,7 +165,7 @@ public class PostReadServiceImpl implements PostReadService {
      * @param postId  게시글 ID
      * @return true: 본 적 있음, false: 본 적 없음
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     private boolean hasViewedPost(Cookie[] cookies, Long postId) {
         if (cookies == null)

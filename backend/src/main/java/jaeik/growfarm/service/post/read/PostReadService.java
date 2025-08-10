@@ -14,7 +14,7 @@ import org.springframework.data.domain.Page;
  * </p>
  * 
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 public interface PostReadService {
 
@@ -28,7 +28,7 @@ public interface PostReadService {
      * @param size 페이지 사이즈
      * @return 게시글 목록 페이지
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     Page<SimplePostResDTO> getBoard(int page, int size);
 
@@ -42,7 +42,7 @@ public interface PostReadService {
      * @param userDetails 현재 로그인 한 사용자 정보
      * @return 게시글 상세 DTO
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     FullPostResDTO getPost(Long postId, CustomUserDetails userDetails);
 
@@ -56,7 +56,8 @@ public interface PostReadService {
      * @param request  HTTP 요청 객체
      * @param response HTTP 응답 객체
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     void incrementViewCount(Long postId, HttpServletRequest request, HttpServletResponse response);
+
 }

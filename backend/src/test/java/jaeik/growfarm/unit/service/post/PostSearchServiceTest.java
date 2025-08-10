@@ -51,7 +51,7 @@ public class PostSearchServiceTest {
                 .likes(10)
                 .views(100)
                 .createdAt(Instant.now())
-                .is_notice(false)
+                .isNotice(false)
                 .build();
     }
 

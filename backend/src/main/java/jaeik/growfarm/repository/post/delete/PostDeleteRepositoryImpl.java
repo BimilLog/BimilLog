@@ -31,7 +31,7 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
     /**
      * <h3>게시글 삭제 및 Redis 캐시 동기화</h3>
      * <p>
-     * 게시글을 삭제하고, 삭제된 게시글이 인기글인 경우 관련 Redis 캐시를 즉시 삭제한다.
+     * 게시글을 삭제하고, 삭제된 게시글이 캐시된 글일 경우 관련 Redis 캐시를 즉시 삭제한다.
      * </p>
      *
      * @param postId 삭제할 게시글 ID
@@ -44,19 +44,34 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
         QPost post = QPost.post;
 
         try {
-            PostCacheFlag postCacheFlag = jpaQueryFactory
-                    .select(post.postCacheFlag)
+            var postInfo = jpaQueryFactory
+                    .select(post.postCacheFlag, post.isNotice)
                     .from(post)
                     .where(post.id.eq(postId))
                     .fetchOne();
+
+            if (postInfo == null) {
+                throw new CustomException(ErrorCode.POST_NOT_FOUND);
+            }
+
+            PostCacheFlag postCacheFlag = postInfo.get(post.postCacheFlag);
+            Boolean isNotice = postInfo.get(post.isNotice);
 
             long deletedCount = jpaQueryFactory
                     .delete(post)
                     .where(post.id.eq(postId))
                     .execute();
 
-            if (deletedCount > 0 && postCacheFlag != null) {
-                deleteRelatedRedisCache(postCacheFlag);
+            if (deletedCount > 0) {
+                // 인기글인 경우 해당 캐시 삭제
+                if (postCacheFlag != null) {
+                    deleteRelatedRedisCache(postCacheFlag);
+                }
+                // 공지사항인 경우 공지사항 캐시 삭제
+                if (Boolean.TRUE.equals(isNotice)) {
+                    redisPostService.deleteNoticePostsCache();
+                    log.info("공지사항 Redis 캐시 삭제 완료");
+                }
             }
 
         } catch (Exception e) {
@@ -69,7 +84,7 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
      * <h3>관련 Redis 캐시 삭제</h3>
      *
      * <p>
-     * 삭제된 게시글이 인기글인 경우, 해당 인기글 목록의 Redis 캐시를 삭제한다.
+     * 삭제된 게시글이 캐시된 글 경우, 해당 글 목록의 Redis 캐시를 삭제한다.
      * </p>
      *
      * @param postCacheFlag 삭제된 게시글의 인기글 플래그

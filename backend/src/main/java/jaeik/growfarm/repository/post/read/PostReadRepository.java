@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * <h2>게시글 조회 저장소</h2>
  * <p>
@@ -44,6 +46,7 @@ public interface PostReadRepository {
      * @author Jaeik
      */
     FullPostResDTO findPostById(Long postId, Long userId);
+
 }
 
 

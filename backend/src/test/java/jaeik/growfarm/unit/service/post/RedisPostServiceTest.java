@@ -61,7 +61,7 @@ public class RedisPostServiceTest {
                 .likes(10)
                 .views(100)
                 .createdAt(Instant.now())
-                .is_notice(false)
+                .isNotice(false)
                 .build();
         
         mockPosts = List.of(mockPost);
@@ -78,7 +78,7 @@ public class RedisPostServiceTest {
 
         // Then
         verify(valueOperations, times(1)).set(
-                eq("popular:posts:realtime"),
+                eq("cache:posts:realtime"),
                 eq(mockPosts),
                 eq(type.getTtl())
         );
@@ -95,7 +95,7 @@ public class RedisPostServiceTest {
 
         // Then
         verify(valueOperations, times(1)).set(
-                eq("popular:posts:weekly"),
+                eq("cache:posts:weekly"),
                 eq(mockPosts),
                 eq(type.getTtl())
         );
@@ -112,7 +112,7 @@ public class RedisPostServiceTest {
 
         // Then
         verify(valueOperations, times(1)).set(
-                eq("popular:posts:legend"),
+                eq("cache:posts:legend"),
                 eq(mockPosts),
                 eq(type.getTtl())
         );
@@ -138,8 +138,8 @@ public class RedisPostServiceTest {
     void testGetCachedPopularPosts_CacheExists() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
-        when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(true);
-        when(valueOperations.get("popular:posts:realtime")).thenReturn(mockPosts);
+        when(redisTemplate.hasKey("cache:posts:realtime")).thenReturn(true);
+        when(valueOperations.get("cache:posts:realtime")).thenReturn(mockPosts);
 
         // When
         List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
@@ -156,8 +156,8 @@ public class RedisPostServiceTest {
     void testGetCachedPopularPosts_CacheMiss_Realtime() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
-        when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(false);
-        when(valueOperations.get("popular:posts:realtime")).thenReturn(mockPosts);
+        when(redisTemplate.hasKey("cache:posts:realtime")).thenReturn(false);
+        when(valueOperations.get("cache:posts:realtime")).thenReturn(mockPosts);
 
         // When
         List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
@@ -173,8 +173,8 @@ public class RedisPostServiceTest {
     void testGetCachedPopularPosts_CacheMiss_Weekly() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.WEEKLY;
-        when(redisTemplate.hasKey("popular:posts:weekly")).thenReturn(false);
-        when(valueOperations.get("popular:posts:weekly")).thenReturn(mockPosts);
+        when(redisTemplate.hasKey("cache:posts:weekly")).thenReturn(false);
+        when(valueOperations.get("cache:posts:weekly")).thenReturn(mockPosts);
 
         // When
         List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
@@ -189,8 +189,8 @@ public class RedisPostServiceTest {
     void testGetCachedPopularPosts_CacheMiss_Legend() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.LEGEND;
-        when(redisTemplate.hasKey("popular:posts:legend")).thenReturn(false);
-        when(valueOperations.get("popular:posts:legend")).thenReturn(mockPosts);
+        when(redisTemplate.hasKey("cache:posts:legend")).thenReturn(false);
+        when(valueOperations.get("cache:posts:legend")).thenReturn(mockPosts);
 
         // When
         List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
@@ -205,8 +205,8 @@ public class RedisPostServiceTest {
     void testGetCachedPopularPosts_EmptyCache() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
-        when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(true);
-        when(valueOperations.get("popular:posts:realtime")).thenReturn(null);
+        when(redisTemplate.hasKey("cache:posts:realtime")).thenReturn(true);
+        when(valueOperations.get("cache:posts:realtime")).thenReturn(null);
 
         // When
         List<SimplePostResDTO> result = redisPostService.getCachedPopularPosts(type);
@@ -221,8 +221,8 @@ public class RedisPostServiceTest {
     void testGetCachedPopularPosts_Failure() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
-        when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(true);
-        when(valueOperations.get("popular:posts:realtime"))
+        when(redisTemplate.hasKey("cache:posts:realtime")).thenReturn(true);
+        when(valueOperations.get("cache:posts:realtime"))
                 .thenThrow(new RuntimeException("Redis connection error"));
 
         // When & Then
@@ -242,7 +242,7 @@ public class RedisPostServiceTest {
         redisPostService.deletePopularPostsCache(type);
 
         // Then
-        verify(redisTemplate, times(1)).delete("popular:posts:realtime");
+        verify(redisTemplate, times(1)).delete("cache:posts:realtime");
     }
 
     @Test
@@ -265,14 +265,14 @@ public class RedisPostServiceTest {
     void testHasPopularPostsCache_Exists() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
-        when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(true);
+        when(redisTemplate.hasKey("cache:posts:realtime")).thenReturn(true);
 
         // When
         boolean result = redisPostService.hasPopularPostsCache(type);
 
         // Then
         assertTrue(result);
-        verify(redisTemplate, times(1)).hasKey("popular:posts:realtime");
+        verify(redisTemplate, times(1)).hasKey("cache:posts:realtime");
     }
 
     @Test
@@ -280,14 +280,14 @@ public class RedisPostServiceTest {
     void testHasPopularPostsCache_NotExists() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
-        when(redisTemplate.hasKey("popular:posts:realtime")).thenReturn(false);
+        when(redisTemplate.hasKey("cache:posts:realtime")).thenReturn(false);
 
         // When
         boolean result = redisPostService.hasPopularPostsCache(type);
 
         // Then
         assertFalse(result);
-        verify(redisTemplate, times(1)).hasKey("popular:posts:realtime");
+        verify(redisTemplate, times(1)).hasKey("cache:posts:realtime");
     }
 
     @Test
@@ -297,9 +297,9 @@ public class RedisPostServiceTest {
         redisPostService.deleteAllPopularPostsCache();
 
         // Then
-        verify(redisTemplate, times(1)).delete("popular:posts:realtime");
-        verify(redisTemplate, times(1)).delete("popular:posts:weekly");
-        verify(redisTemplate, times(1)).delete("popular:posts:legend");
+        verify(redisTemplate, times(1)).delete("cache:posts:realtime");
+        verify(redisTemplate, times(1)).delete("cache:posts:weekly");
+        verify(redisTemplate, times(1)).delete("cache:posts:legend");
     }
 
     @Test
@@ -307,7 +307,7 @@ public class RedisPostServiceTest {
     void testHasPopularPostsCache_Failure() {
         // Given
         RedisPostService.CachePostType type = RedisPostService.CachePostType.REALTIME;
-        when(redisTemplate.hasKey("popular:posts:realtime"))
+        when(redisTemplate.hasKey("cache:posts:realtime"))
                 .thenThrow(new RuntimeException("Redis connection error"));
 
         // When & Then

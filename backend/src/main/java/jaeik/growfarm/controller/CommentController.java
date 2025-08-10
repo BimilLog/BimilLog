@@ -69,7 +69,7 @@ public class CommentController {
      * @since 1.0.0
      * @author Jaeik
      */
-    @GetMapping("/{postId}/popular")
+    @GetMapping("/{postId}/cache")
     public ResponseEntity<List<CommentDTO>> getPopularComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId) {

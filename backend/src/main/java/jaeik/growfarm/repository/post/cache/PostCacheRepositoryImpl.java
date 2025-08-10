@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.post.popular;
+package jaeik.growfarm.repository.post.cache;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * <h2>인기글 관리 구현체</h2>
+ * <h2>캐시글 관리 구현체</h2>
  * <p>
- * 인기글 선정 및 관리 기능을 담당하는 레포지터리
+ * 캐시글 선정 및 관리 기능을 담당하는 레포지터리
  * </p>
  *
  * @author Jaeik
@@ -32,10 +32,10 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Repository
-public class PostPopularRepositoryImpl extends PostBaseRepository implements PostPopularRepository {
+public class PostCacheRepositoryImpl extends PostBaseRepository implements PostCacheRepository {
 
-    public PostPopularRepositoryImpl(JPAQueryFactory jpaQueryFactory,
-                                     CommentRepository commentRepository) {
+    public PostCacheRepositoryImpl(JPAQueryFactory jpaQueryFactory,
+                                   CommentRepository commentRepository) {
         super(jpaQueryFactory, commentRepository);
     }
 
@@ -142,6 +142,21 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
         applyPopularFlag(popularPostIds, postCacheFlag);
 
         return popularPosts;
+    }
+
+    /**
+     * <h3>공지사항 목록 조회</h3>
+     * <p>
+     * 공지사항으로 설정된 게시글 목록을 최신순으로 조회한다.
+     * </p>
+     *
+     * @return 공지사항 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<SimplePostResDTO> findNoticePost() {
+        return fetchNotices();
     }
 
     /**

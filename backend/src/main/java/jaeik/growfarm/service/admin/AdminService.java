@@ -1,6 +1,7 @@
 package jaeik.growfarm.service.admin;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
+import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.BlackList;
@@ -12,6 +13,7 @@ import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.kakao.KakaoService;
+import jaeik.growfarm.service.redis.RedisPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +41,7 @@ public class AdminService {
     private final AdminUpdateService adminUpdateService;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final RedisPostService redisPostService;
 
     /**
      * <h3>신고 목록 조회</h3>
@@ -132,6 +135,54 @@ public class AdminService {
             kakaoService.unlinkByAdmin(kakaoId);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.BAN_USER_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>공지사항 설정</h3>
+     *
+     * <p>
+     * 게시글을 공지사항으로 설정하고 캐시를 업데이트한다.
+     * </p>
+     *
+     * @param postId 공지사항으로 설정할 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional
+    public void setPostAsNotice(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        
+        boolean wasNotice = post.isNotice();
+        post.setAsNotice();
+        
+        if (!wasNotice) {
+            redisPostService.deleteNoticePostsCache();
+        }
+    }
+
+    /**
+     * <h3>공지사항 해제</h3>
+     *
+     * <p>
+     * 게시글의 공지사항을 해제하고 캐시를 업데이트한다.
+     * </p>
+     *
+     * @param postId 공지사항을 해제할 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional
+    public void unsetPostAsNotice(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        
+        boolean wasNotice = post.isNotice();
+        post.unsetAsNotice();
+        
+        if (wasNotice) {
+            redisPostService.deleteNoticePostsCache();
         }
     }
 

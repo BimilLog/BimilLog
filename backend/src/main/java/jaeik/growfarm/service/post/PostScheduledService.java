@@ -2,7 +2,7 @@ package jaeik.growfarm.service.post;
 
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
-import jaeik.growfarm.repository.post.popular.PostPopularRepository;
+import jaeik.growfarm.repository.post.cache.PostCacheRepository;
 import jaeik.growfarm.service.redis.RedisPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,7 +18,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.1.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -26,7 +26,7 @@ public class PostScheduledService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final RedisPostService redisPostService;
-    private final PostPopularRepository postPopularRepository;
+    private final PostCacheRepository postCacheRepository;
 
 
     /**
@@ -42,11 +42,11 @@ public class PostScheduledService {
      * </p>
      *
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Scheduled(fixedRate = 60000 * 30)
     public void updateRealtimePopularPosts() {
-        List<SimplePostResDTO> realtimePosts = postPopularRepository.updateRealtimePopularPosts();
+        List<SimplePostResDTO> realtimePosts = postCacheRepository.updateRealtimePopularPosts();
         redisPostService.cachePopularPosts(RedisPostService.CachePostType.REALTIME, realtimePosts);
     }
 
@@ -63,11 +63,11 @@ public class PostScheduledService {
      * </p>
      *
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateWeeklyPopularPosts() {
-        List<SimplePostResDTO> weeklyPosts = postPopularRepository.updateWeeklyPopularPosts();
+        List<SimplePostResDTO> weeklyPosts = postCacheRepository.updateWeeklyPopularPosts();
         redisPostService.cachePopularPosts(RedisPostService.CachePostType.WEEKLY, weeklyPosts);
 
         for (SimplePostResDTO simplePostResDTO : weeklyPosts) {
@@ -96,11 +96,11 @@ public class PostScheduledService {
      * </p>
      *
      * @author Jaeik
-     * @since 1.1.0
+     * @since 2.0.0
      */
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateLegendPopularPosts() {
-        List<SimplePostResDTO> legendPosts = postPopularRepository.updateLegendPosts();
+        List<SimplePostResDTO> legendPosts = postCacheRepository.updateLegendPosts();
         redisPostService.cachePopularPosts(RedisPostService.CachePostType.LEGEND, legendPosts);
 
         for (SimplePostResDTO simplePostResDTO : legendPosts) {
