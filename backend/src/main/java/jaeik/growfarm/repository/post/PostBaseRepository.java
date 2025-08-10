@@ -93,7 +93,7 @@ public abstract class PostBaseRepository {
                         post.title,
                         post.content,
                         post.views.coalesce(0),
-                        likesCountSubquery.intValue(), // 스칼라 서브쿼리 사용
+                        Expressions.numberTemplate(Integer.class, "COALESCE(({0}), 0)", likesCountSubquery), // 스칼라 서브쿼리 사용
                         post.isNotice,
                         post.postCacheFlag,
                         post.createdAt,
@@ -166,8 +166,8 @@ public abstract class PostBaseRepository {
                         post.createdAt,
                         post.user.id,
                         user.userName,
-                        commentCountSubquery.intValue(), // 스칼라 서브쿼리 사용
-                        likeCountSubquery.intValue()   // 스칼라 서브쿼리 사용
+                        Expressions.numberTemplate(Integer.class, "COALESCE(({0}), 0)", commentCountSubquery), // 스칼라 서브쿼리 사용
+                        Expressions.numberTemplate(Integer.class, "COALESCE(({0}), 0)", likeCountSubquery)   // 스칼라 서브쿼리 사용
                 ))
                 .from(post)
                 .leftJoin(post.user, user)

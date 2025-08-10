@@ -44,16 +44,6 @@ public class UserDTO {
         this.role = user.getRole();
     }
 
-    public UserDTO (Users user, SettingDTO settingDTO) {
-        this.userId = user.getId();
-        this.kakaoId = user.getKakaoId();
-        this.settingId = settingDTO.getSettingId();
-        this.kakaoNickname = user.getKakaoNickname();
-        this.thumbnailImage = user.getThumbnailImage();
-        this.userName = user.getUserName();
-        this.role = user.getRole();
-    }
-
     public UserDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String userName, UserRole role, Long settingId) {
         this.userId = userId;
         this.kakaoId = kakaoId;

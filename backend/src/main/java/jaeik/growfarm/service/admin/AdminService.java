@@ -3,9 +3,7 @@ package jaeik.growfarm.service.admin;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
-import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.entity.post.Post;
-import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.BlackList;
@@ -14,6 +12,7 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import jaeik.growfarm.service.kakao.KakaoService;
@@ -45,6 +44,7 @@ public class AdminService {
     private final AdminUpdateService adminUpdateService;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final RedisPostService redisPostService;
 
     /**
@@ -161,6 +161,9 @@ public class AdminService {
 
         post.setAsNotice();
 
+        // 좋아요 수 조회
+        long likeCount = postLikeRepository.countByPostId(post.getId());
+        
         // 상세 정보 캐싱 (FullPostResDTO)
         FullPostResDTO fullPostDto = FullPostResDTO.existedPost(
                 post.getId(),
@@ -169,7 +172,7 @@ public class AdminService {
                 post.getTitle(),
                 post.getContent(),
                 post.getViews(),
-                post.getLikes(),
+                (int) likeCount,
                 post.isNotice(),
                 null, 
                 post.getCreatedAt(),
@@ -177,8 +180,8 @@ public class AdminService {
         );
         redisPostService.cacheFullPost(fullPostDto);
 
+        // 목록 캐시는 삭제하여, 다음 조회 시 DB에서 최신 데이터를 가져와 다시 캐싱하도록 유도
         redisPostService.deleteNoticePostsCache();
-        redisPostService.getCachedNoticePosts();
     }
 
     /**

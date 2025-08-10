@@ -28,4 +28,15 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
      * @since 1.0.0
      */
     Optional<PostLike> findByPostIdAndUserId(Long postId, Long userId);
+
+    /**
+     * <h3>글 추천 수 조회</h3>
+     * <p>특정 글의 총 추천 수를 조회한다.</p>
+     *
+     * @param postId 글 ID
+     * @return 추천 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    long countByPostId(Long postId);
 }

@@ -33,11 +33,4 @@ public class SettingDTO {
         commentNotification = setting.isCommentNotification();
         postFeaturedNotification = setting.isPostFeaturedNotification();
     }
-
-    public SettingDTO(Long settingId, boolean messageNotification, boolean commentNotification, boolean postFeaturedNotification) {
-        this.settingId = settingId;
-        this.messageNotification = messageNotification;
-        this.commentNotification = commentNotification;
-        this.postFeaturedNotification = postFeaturedNotification;
-    }
 }

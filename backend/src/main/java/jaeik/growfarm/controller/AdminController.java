@@ -69,7 +69,7 @@ public class AdminController {
     /**
      * <h3>공지사항 설정 API</h3>
      *
-     * @param postId 공지사항으로 설정할 게시글 ID
+     * @param postReqDTO 공지사항으로 설정할 게시글 ID
      * @return 설정 완료 메시지
      * @author Jaeik
      * @since 2.0.0
@@ -84,7 +84,7 @@ public class AdminController {
     /**
      * <h3>공지사항 해제 API</h3>
      *
-     * @param postId 공지사항을 해제할 게시글 ID
+     * @param postReqDTO 공지사항을 해제할 게시글 ID
      * @return 해제 완료 메시지
      * @author Jaeik
      * @since 2.0.0

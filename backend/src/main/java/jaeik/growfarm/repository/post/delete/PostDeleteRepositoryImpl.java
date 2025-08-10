@@ -56,7 +56,7 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
             }
 
             PostCacheFlag postCacheFlag = postToDelete.getPostCacheFlag();
-            Boolean isNotice = postToDelete.isNotice();
+            boolean isNotice = postToDelete.isNotice();
 
             // 2. 게시글 삭제
             jpaQueryFactory
@@ -73,7 +73,7 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
                 deleteRelatedRedisCache(postCacheFlag);
             }
             // 공지사항 목록 캐시 삭제
-            if (Boolean.TRUE.equals(isNotice)) {
+            if (isNotice) {
                 redisPostService.deleteNoticePostsCache();
                 log.info("공지사항 Redis 캐시 삭제 완료");
             }

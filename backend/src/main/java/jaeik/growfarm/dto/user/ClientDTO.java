@@ -25,12 +25,6 @@ public class ClientDTO extends UserDTO{
         this.fcmTokenId = fcmTokenId;
     }
 
-    public ClientDTO(Users user, SettingDTO settingDTO, Long tokenId, Long fcmTokenId) {
-        super(user, settingDTO);
-        this.tokenId = tokenId;
-        this.fcmTokenId = fcmTokenId;
-    }
-
     public ClientDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String userName, UserRole role, Long tokenId, Long fcmTokenId, Long settingId) {
         super(userId, kakaoId, kakaoNickname, thumbnailImage, userName, role, settingId);
         this.tokenId = tokenId;
