@@ -5,6 +5,8 @@ import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.repository.notification.NotificationRepository;
+import jaeik.growfarm.repository.notification.delete.NotificationDeleteRepository;
+import jaeik.growfarm.repository.notification.update.NotificationUpdateRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ import java.util.List;
 public class NotificationUpdateService {
 
     private final NotificationRepository notificationRepository;
+    private final NotificationDeleteRepository notificationDeleteRepository;
+    private final NotificationUpdateRepository notificationUpdateRepository;
 
     /**
      * <h3>알림 저장</h3>
@@ -62,7 +66,7 @@ public class NotificationUpdateService {
             return;
         }
 
-        notificationRepository.deleteByIdInAndUserId(deleteIds, userId);
+        notificationDeleteRepository.deleteByIdInAndUserId(deleteIds, userId);
     }
 
     /**
@@ -83,6 +87,6 @@ public class NotificationUpdateService {
             return;
         }
 
-        notificationRepository.markAsReadByIdInAndUserId(readIds, userId);
+        notificationUpdateRepository.markAsReadByIdInAndUserId(readIds, userId);
     }
 }

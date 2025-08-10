@@ -1,4 +1,4 @@
-package jaeik.growfarm.util;
+package jaeik.growfarm.service.notification;
 
 import jaeik.growfarm.dto.notification.EventDTO;
 import jaeik.growfarm.entity.notification.NotificationType;

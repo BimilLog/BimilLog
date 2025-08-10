@@ -1,8 +1,5 @@
 package jaeik.growfarm.service.notification;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.growfarm.dto.notification.*;
 import jaeik.growfarm.entity.notification.NotificationType;
 import jaeik.growfarm.entity.user.Users;
@@ -10,28 +7,23 @@ import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.notification.EmitterRepository;
-import jaeik.growfarm.repository.notification.NotificationRepository;
+import jaeik.growfarm.repository.notification.read.NotificationReadRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.util.NotificationUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.*;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 /**
- * <h2>알림 서비스</h2>
+ * <h2>SSE 알림 서비스</h2>
  *
  * <p>
- * 사용자에게 실시간 알림을 제공하고, 알림을 데이터베이스에 저장하는 서비스.
+ * SSE를 통한 실시간 알림 전송 및 알림 데이터 관리를 담당하는 서비스.
+ * SRP: SSE 알림 전송과 기본적인 알림 관리만 담당
  * </p>
  *
  * @author Jaeik
@@ -39,9 +31,9 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
+public class NotificationService implements NotificationSender {
 
-    private final NotificationRepository notificationRepository;
+    private final NotificationReadRepository notificationReadRepository;
     private final EmitterRepository emitterRepository;
     private final NotificationUtil notificationUtil;
     private final UserRepository userRepository;
@@ -71,10 +63,10 @@ public class NotificationService {
     }
 
     /**
-     * <h3>실시간 알림 발송</h3>
+     * <h3>SSE 실시간 알림 발송</h3>
      *
      * <p>
-     * 특정 사용자에게 실시간 알림을 발송하고 DB에 저장한다.
+     * 특정 사용자에게 SSE를 통한 실시간 알림을 발송하고 DB에 저장한다.
      * </p>
      *
      * @param userId   사용자 ID
@@ -82,6 +74,7 @@ public class NotificationService {
      * @author Jaeik
      * @since 1.0.0
      */
+    @Override
     public void send(Long userId, EventDTO eventDTO) {
         try {
             NotificationType type = eventDTO.getType();
@@ -142,7 +135,7 @@ public class NotificationService {
      */
     @Transactional(readOnly = true)
     public List<NotificationDTO> getNotificationList(CustomUserDetails userDetails) {
-        return notificationRepository.findNotificationsByUserIdOrderByLatest(userDetails.getUserId());
+        return notificationReadRepository.findNotificationsByUserIdOrderByLatest(userDetails.getUserId());
     }
 
     /**
@@ -169,86 +162,15 @@ public class NotificationService {
         notificationUpdateService.markNotificationsAsRead(readIds, userId);
     }
 
-/**
-     * <h3>FCM 메시지 전송</h3>
-     *
-     * <p>
-     * Firebase Cloud Messaging(FCM)을 통해 푸시 알림을 전송합니다.
-     * </p>
-     *
-     * @param fcmSendDto FCM 전송 정보 DTO
-     * @throws IOException FCM 전송 중 발생할 수 있는 예외
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    public void sendMessageTo(FcmSendDTO fcmSendDto) throws IOException {
-
-        String message = makeMessage(fcmSendDto);
-        RestTemplate restTemplate = new RestTemplate();
-
-        restTemplate.getMessageConverters()
-                .addFirst(new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + getAccessToken());
-
-        HttpEntity<String> entity = new HttpEntity<>(message, headers);
-
-        String API_URL = "https://fcm.googleapis.com/v1/projects/growfarm-6cd79/messages:send";
-        ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.POST, entity, String.class);
-
-        System.out.println(response.getStatusCode());
-    }
-
     /**
-     * <h3>Firebase Access Token 획득</h3>
+     * <h3>알림 전송 타입 반환</h3>
      *
-     * <p>
-     * Firebase Admin SDK를 사용하여 FCM 전송에 필요한 Access Token을 획득합니다.
-     * </p>
-     *
-     * @return String Firebase Access Token
-     * @throws IOException Firebase 설정 파일을 읽는 중 발생할 수 있는 예외
+     * @return SSE 알림 타입
      * @author Jaeik
      * @since 1.0.0
      */
-    private String getAccessToken() throws IOException {
-        String firebaseConfigPath = "firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-7d4ebe98d2.json";
-
-        GoogleCredentials googleCredentials = GoogleCredentials
-                .fromStream(new ClassPathResource(firebaseConfigPath).getInputStream())
-                .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
-
-        googleCredentials.refreshIfExpired();
-        return googleCredentials.getAccessToken().getTokenValue();
-    }
-
-    /**
-     * <h3>FCM 메시지 생성</h3>
-     *
-     * <p>
-     * FCM 전송을 위한 메시지 형식으로 변환합니다.
-     * </p>
-     *
-     * @param fcmSendDto FCM 전송 정보 DTO
-     * @return String FCM 메시지 JSON 문자열
-     * @throws JsonProcessingException JSON 변환 중 발생할 수 있는 예외
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private String makeMessage(FcmSendDTO fcmSendDto) throws JsonProcessingException {
-        ObjectMapper om = new ObjectMapper();
-        FcmMessageDto fcmMessageDto = FcmMessageDto.builder()
-                .message(FcmMessageDto.Message.builder()
-                        .token(fcmSendDto.getToken())
-                        .notification(FcmMessageDto.Notification.builder()
-                                .title(fcmSendDto.getTitle())
-                                .body(fcmSendDto.getBody())
-                                .image(null)
-                                .build())
-                        .build())
-                .validateOnly(false).build();
-        return om.writeValueAsString(fcmMessageDto);
+    @Override
+    public String getType() {
+        return "SSE";
     }
 }
