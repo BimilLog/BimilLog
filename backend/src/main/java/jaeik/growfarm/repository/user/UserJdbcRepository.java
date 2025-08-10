@@ -28,25 +28,7 @@ public class UserJdbcRepository {
      * @since 1.0.0
      */
     public void deleteAllTokensByUserId(Long userId) {
-        String deleteTokenSql = "DELETE FROM token WHERE user_id = ?";
-        String deleteFcmTokenSql = "DELETE FROM fcm_token WHERE user_id = ?";
-
-        jdbcTemplate.update(deleteTokenSql, userId);
-        jdbcTemplate.update(deleteFcmTokenSql, userId);
-    }
-
-    /**
-     * <h3>카카오 엑세스 토큰 가져오기</h3>
-     *
-     * <p>사용자의 카카오 엑세스 토큰을 반환합니다.</p>
-     *
-     * @param tokenId 토큰 ID
-     * @return 카카오 엑세스 토큰
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    public String getKakaoAccessToken(Long tokenId) {
-        String getKakaoAccessTokenSql = "SELECT kakao_access_token FROM token WHERE token_id = ?";
-        return jdbcTemplate.queryForObject(getKakaoAccessTokenSql, String.class, tokenId);
+        String sql = "DELETE FROM token WHERE user_id = ?";
+        jdbcTemplate.update(sql, userId);
     }
 }

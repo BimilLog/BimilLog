@@ -35,27 +35,21 @@ public class Token extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private Users users;
 
-    @NotNull
-    @Column(nullable = false)
-    private String kakaoAccessToken;
+    private String accessToken;
 
-    @NotNull
-    @Column(nullable = false)
-    private String kakaoRefreshToken;
-
-    private String jwtRefreshToken;
+    private String refreshToken;
 
     /**
      * <h3>카카오 토큰 업데이트</h3>
      * <p>카카오 액세스 토큰과 리프레시 토큰을 업데이트합니다.</p>
      *
-     * @param kakaoAccessToken 카카오 액세스 토큰
-     * @param kakaoRefreshToken 카카오 리프레시 토큰 (null 또는 빈 문자열인 경우 업데이트하지 않음)
+     * @param accessToken 카카오 액세스 토큰
+     * @param refreshToken 카카오 리프레시 토큰 (null 또는 빈 문자열인 경우 업데이트하지 않음)
      */
-    public void updateKakaoToken(String kakaoAccessToken, String kakaoRefreshToken) {
-        this.kakaoAccessToken = kakaoAccessToken;
-        if (kakaoRefreshToken != null && !kakaoRefreshToken.isBlank()) {
-            this.kakaoRefreshToken = kakaoRefreshToken;
+    public void updateToken(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        if (refreshToken != null) {
+            this.refreshToken = refreshToken;
         }
     }
 
@@ -69,10 +63,9 @@ public class Token extends BaseEntity {
      */
     public static Token createToken(TokenDTO tokenDTO, Users user) {
         return Token.builder()
+                .accessToken(tokenDTO.getAccessToken())
+                .refreshToken(tokenDTO.getRefreshToken())
                 .users(user)
-                .kakaoAccessToken(tokenDTO.getKakaoAccessToken())
-                .kakaoRefreshToken(tokenDTO.getKakaoRefreshToken())
-                .jwtRefreshToken(tokenDTO.getJwtRefreshToken())
                 .build();
     }
 }

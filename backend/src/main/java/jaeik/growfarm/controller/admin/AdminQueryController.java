@@ -1,4 +1,4 @@
-package jaeik.growfarm.controller;
+package jaeik.growfarm.controller.admin;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.entity.report.ReportType;
@@ -10,29 +10,24 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * <h2>관리자 관련 컨트롤러</h2>
- * <p>
- * 신고 목록 조회
- * </p>
- * <p>
- * 신고 상세 조회
- * </p>
- * <p>
- * 유저 차단 및 블랙 리스트 등록
- * </p>
+ * <h2>관리자 관련 Query 컨트롤러</h2>
+ * <p>신고 목록 조회 등 관리자 권한의 조회 요청을 처리합니다.</p>
+ *
+ * @author Jaeik
+ * @version 1.0.0
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin")
-public class AdminController {
+@RequestMapping("/api/admin/reports")
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminQueryController {
 
     private final AdminService adminService;
 
-    @GetMapping("/report")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
     public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam int page,
-            @RequestParam int size,
-            @RequestParam(required = false) ReportType reportType) {
+                                                         @RequestParam int size,
+                                                         @RequestParam(required = false) ReportType reportType) {
         Page<ReportDTO> reportList = adminService.getReportList(page, size, reportType);
         return ResponseEntity.ok(reportList);
     }
@@ -44,24 +39,9 @@ public class AdminController {
      * @return 신고 상세 정보
      * @since 2025-04-28
      */
-    @GetMapping("/report/{reportId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{reportId}")
     public ResponseEntity<ReportDTO> getReportDetail(@PathVariable Long reportId) {
         ReportDTO reportDetail = adminService.getReportDetail(reportId);
         return ResponseEntity.ok(reportDetail);
-    }
-
-    /**
-     * <h3>유저 차단 및 블랙 리스트 등록 API</h3>
-     *
-     * @param reportDTO 신고 DTO
-     * @return 차단 완료 메시지
-     * @since 2025-04-28
-     */
-    @PostMapping("/user/ban")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> banUser(@RequestBody ReportDTO reportDTO) {
-        adminService.banUser(reportDTO);
-        return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
     }
 }

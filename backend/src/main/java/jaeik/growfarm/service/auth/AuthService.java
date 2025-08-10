@@ -1,9 +1,10 @@
 package jaeik.growfarm.service.auth;
 
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
+import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.kakao.KakaoCheckConsentDTO;
-import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
+import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
@@ -44,7 +45,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
-    private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
     private final BlackListRepository blackListRepository;
     private final EmitterRepository emitterRepository;
@@ -52,43 +52,51 @@ public class AuthService {
     private final AuthUpdateService authUpdateService;
     private final UserJdbcRepository userJdbcRepository;
     private final TokenRepository tokenRepository;
+    private final SocialLoginManager socialLoginManager;
 
     @Async
     @EventListener
     public void handleUserBannedEvent(UserBannedEvent event) {
-        kakaoService.unlinkByAdmin(event.getKakaoId());
+        socialLoginManager.unlink(event.getProvider(), event.getSocialId());
     }
 
     /**
-     * <h3>카카오 로그인</h3>
+     * <h3>소셜 로그인</h3>
      *
      * <p>
      * 기존 회원은 Jwt가 담긴 쿠키 쌍을 반환하고, 신규 회원은 UUID가 담긴 임시 쿠키를 반환한다.
      * </p>
      *
-     * @param code     프론트에서 반환된 카카오 인가 코드
+     * @param provider 소셜 로그인 제공자
+     * @param code     프론트에서 반환된 인가 코드
      * @param fcmToken Firebase Cloud Messaging 토큰
      * @return Jwt가 삽입된 쿠키 또는 토큰 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 3.0.0
      */
-    public LoginResponseDTO<?> processKakaoLogin(String code, String fcmToken) {
+    public LoginResponseDTO<?> processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
-        TokenDTO tokenDTO = kakaoService.getToken(code);
-        KakaoInfoDTO kakaoInfoDTO = kakaoService.getUserInfo(tokenDTO.getKakaoAccessToken());
+        SocialLoginStrategy.LoginResult loginResult = socialLoginManager.login(provider, code);
+        SocialLoginUserData userData = loginResult.userData();
+        TokenDTO tokenDTO = loginResult.tokenDTO();
 
-        Long kakaoId = kakaoInfoDTO.getKakaoId();
-        Optional<Users> existingUser = checkExistingUser(kakaoId);
+        Optional<Users> existingUser = checkExistingUser(provider, userData.getSocialId());
 
-        if (existingUser.isPresent()) {
-            return existingUserLogin(existingUser.get(), kakaoInfoDTO, tokenDTO, fcmToken);
-        } else {
-            if (checkBlackList(kakaoId)) {
-                throw new CustomException(ErrorCode.BLACKLIST_USER);
-            }
-            return newUserLogin(kakaoInfoDTO, tokenDTO, fcmToken);
+        return existingUser
+                .map(user -> handleExistingUserLogin(user, userData, tokenDTO, fcmToken))
+                .orElseGet(() -> handleNewUserLogin(userData, tokenDTO, fcmToken));
+    }
+
+    private LoginResponseDTO<?> handleExistingUserLogin(Users user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+        return existingUserLogin(user, userData, tokenDTO, fcmToken);
+    }
+
+    private LoginResponseDTO<?> handleNewUserLogin(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+        if (checkBlackList(userData.getSocialId(), userData.getProvider())) {
+            throw new CustomException(ErrorCode.BLACKLIST_USER);
         }
+        return newUserLogin(userData, tokenDTO, fcmToken);
     }
 
     /**
@@ -109,36 +117,25 @@ public class AuthService {
         }
     }
 
-    /**
-     * <h3>기존 사용자 조회</h3>
-     *
-     * <p>
-     * 카카오 ID로 기존 사용자를 조회한다.
-     * </p>
-     *
-     * @param kakaoId 카카오 ID
-     * @return Optional<Users> 기존 사용자 정보
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private Optional<Users> checkExistingUser(Long kakaoId) {
-        return userRepository.findByKakaoId(kakaoId);
+    private Optional<Users> checkExistingUser(SocialProvider provider, String socialId) {
+        return userRepository.findByProviderAndSocialId(provider, socialId);
     }
 
     /**
      * <h3>블랙리스트 사용자 확인</h3>
      *
      * <p>
-     * 카카오 ID가 블랙리스트에 있는지 확인한다.
+     * 소셜 ID와 제공자 정보로 블랙리스트에 있는지 확인한다.
      * </p>
      *
-     * @param kakaoId 카카오 ID
+     * @param socialId 소셜 ID
+     * @param provider 제공자 정보
      * @return boolean 블랙리스트 여부
      * @author Jaeik
-     * @since 1.0.0
+     * @since 3.0.0
      */
-    private boolean checkBlackList(Long kakaoId) {
-        return blackListRepository.existsByKakaoId(kakaoId);
+    private boolean checkBlackList(String socialId, SocialProvider provider) {
+        return blackListRepository.existsByProviderAndSocialId(provider, socialId);
     }
 
     /**
@@ -156,9 +153,8 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
-    private LoginResponseDTO<List<ResponseCookie>> existingUserLogin(Users user, KakaoInfoDTO kakaoInfoDTO,
-            TokenDTO tokenDTO, String fcmToken) {
-        List<ResponseCookie> cookies = authUpdateService.saveExistUser(user, kakaoInfoDTO, tokenDTO, fcmToken);
+    private LoginResponseDTO<List<ResponseCookie>> existingUserLogin(Users user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+        List<ResponseCookie> cookies = authUpdateService.saveExistUser(user, userData, tokenDTO, fcmToken);
         return LoginResponseDTO.existingUser(cookies);
     }
 
@@ -176,9 +172,8 @@ public class AuthService {
      * @author Jaeik
      * @since 1.0.0
      */
-    private LoginResponseDTO<ResponseCookie> newUserLogin(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO,
-            String fcmToken) {
-        String uuid = tempUserDataManager.saveTempData(kakaoInfoDTO, tokenDTO, fcmToken);
+    private LoginResponseDTO<ResponseCookie> newUserLogin(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+        String uuid = tempUserDataManager.saveTempData(userData, tokenDTO, fcmToken);
         return LoginResponseDTO.newUser(uuid);
     }
 
@@ -200,7 +195,7 @@ public class AuthService {
         if (tempUserData == null) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         }
-        return authUpdateService.saveNewUser(userName, uuid, tempUserData.getKakaoInfoDTO(), tempUserData.getTokenDTO(),
+        return authUpdateService.saveNewUser(userName, uuid, tempUserData.getSocialLoginUserData(), tempUserData.getTokenDTO(),
                 tempUserData.getFcmToken());
     }
 
@@ -208,18 +203,25 @@ public class AuthService {
      * <h3>로그아웃</h3>
      *
      * <p>
-     * SSE연결과 ContextHolder를 삭제하고 로그아웃 쿠키를 반한합니다.
+     * 소셜 로그아웃, DB 토큰 삭제, SSE 연결 삭제, SecurityContext 클리어 등 모든 로그아웃 처리를 수행한다.
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 로그아웃 쿠키 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 3.0.0
      */
     public List<ResponseCookie> logout(CustomUserDetails userDetails) {
         try {
+            // 1. 소셜 로그아웃
+            logoutSocial(userDetails);
+            // 2. DB에서 사용자 토큰 정보 삭제 (FCM 토큰 포함)
+            authUpdateService.logoutUser(userDetails.getUserId());
+            // 3. SSE 연결 삭제
             emitterRepository.deleteAllEmitterByUserId(userDetails.getUserId());
+            // 4. SecurityContext 클리어
             SecurityContextHolder.clearContext();
+            // 5. 로그아웃 쿠키 반환
             return jwtTokenProvider.getLogoutCookies();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
@@ -244,80 +246,34 @@ public class AuthService {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
 
-        kakaoService.unlink(userJdbcRepository.getKakaoAccessToken(userDetails.getTokenId()));
+        Users user = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        socialLoginManager.unlink(user.getProvider(), user.getSocialId());
         authUpdateService.performWithdrawProcess(userDetails.getUserId());
 
         return logout(userDetails);
     }
 
     /**
-     * <h3>카카오 로그아웃</h3>
+     * <h3>소셜 로그아웃</h3>
      *
      * <p>
-     * 카카오 서버와 통신하여 카카오 로그아웃을 수행합니다.
+     * 각 소셜 서버와 통신하여 로그아웃을 수행합니다.
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 3.0.0
      */
     @Transactional(readOnly = true)
-    public void kakaoLogout(CustomUserDetails userDetails) {
+    public void logoutSocial(CustomUserDetails userDetails) {
         tokenRepository.findById(userDetails.getTokenId())
-                .ifPresent(token -> kakaoService.logout(token.getKakaoAccessToken()));
+                .ifPresent(token -> {
+                    Users user = token.getUser();
+                    if (user != null) {
+                        socialLoginManager.logout(user.getProvider(), token.getAccessToken());
+                    }
+                });
     }
-
-    /**
-     * <h3>카카오 친구 목록 조회 동의 여부를 확인한다.</h3>
-     *
-     * @param token 토큰
-     * @throws CustomException 동의하지 않은 항목이 있는 경우
-     * @author Jaeik
-     * @since 1.0.20
-     */
-    public String validateKakaoConsent(Token token) {
-        String accessToken = token.getKakaoAccessToken();
-        KakaoCheckConsentDTO consentInfo;
-
-        try {
-            consentInfo = kakaoService.checkConsent(accessToken);
-        } catch (CustomException e) {
-            accessToken = renewalKaKaoToken(token);
-            consentInfo = kakaoService.checkConsent(accessToken);
-        }
-
-        boolean hasUnagreedScope = Arrays.stream(consentInfo.getScopes())
-                .anyMatch(scope -> !scope.isAgreed());
-
-        if (hasUnagreedScope) {
-            throw new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
-        }
-
-        return accessToken;
-    }
-
-    /**
-     * <h3>카카오 토큰 갱신</h3>
-     *
-     * <p>
-     * 카카오 액세스 토큰이 만료되었을 때, 리프레시 토큰을 사용하여 새로운 액세스 토큰을 갱신합니다.
-     * </p>
-     *
-     * @param token 현재 로그인한 사용자의 토큰 정보
-     * @author Jaeik
-     * @since 1.0.20
-     */
-    @Transactional
-    public String renewalKaKaoToken(Token token) {
-        Token managedToken = tokenRepository.findById(token.getId()).orElseThrow(
-                () -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
-
-        TokenDTO tokenDTO = kakaoService.refreshToken(managedToken.getKakaoRefreshToken());
-        managedToken.updateKakaoToken(tokenDTO.getKakaoAccessToken(), tokenDTO.getKakaoRefreshToken());
-
-        tokenRepository.save(managedToken);
-        return tokenDTO.getKakaoAccessToken();
-    }
-
-
 }

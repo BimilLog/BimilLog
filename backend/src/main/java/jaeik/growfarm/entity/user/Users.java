@@ -1,5 +1,6 @@
 package jaeik.growfarm.entity.user;
 
+import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -26,7 +27,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Table(indexes = {
         @Index(name = "idx_user_username", columnList = "userName"),
-        @Index(name = "idx_user_kakao_id_username", columnList = "kakao_id, userName"),
+        @Index(name = "uk_provider_social_id", columnList = "provider, social_id", unique = true),
 })
 public class Users extends BaseEntity {
 
@@ -41,8 +42,13 @@ public class Users extends BaseEntity {
     private Setting setting;
 
     @NotNull
-    @Column(name = "kakao_id", unique = true, nullable = false) // 카카오 회원 번호
-    private Long kakaoId;
+    @Column(name = "social_id", nullable = false)
+    private String socialId;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider", nullable = false)
+    private SocialProvider provider;
 
     @NotNull
     @Column(name = "user_name", unique = true, nullable = false)
@@ -53,8 +59,8 @@ public class Users extends BaseEntity {
     @Column(name = "role", nullable = false) // 권한
     private UserRole role;
 
-    @Column(name = "kakao_nickname") // 카카오 닉네임
-    private String kakaoNickname;
+    @Column(name = "social_nickname") // 소셜 프로필 닉네임
+    private String socialNickname;
 
     @Column(name = "thumbnail_image") // 카카오 프로필 이미지
     private String thumbnailImage;
@@ -66,13 +72,13 @@ public class Users extends BaseEntity {
      * 카카오 닉네임과 프로필 이미지를 업데이트한다.
      * </p>
      *
-     * @param kakaoNickname  카카오 닉네임
+     * @param socialNickname  카카오 닉네임
      * @param thumbnailImage 프로필 이미지 URL
      * @author Jaeik
      * @since 1.0.0
      */
-    public void updateUserInfo(String kakaoNickname, String thumbnailImage) {
-        this.kakaoNickname = kakaoNickname;
+    public void updateUserInfo(String socialNickname, String thumbnailImage) {
+        this.socialNickname = socialNickname;
         this.thumbnailImage = thumbnailImage;
     }
 
@@ -98,16 +104,17 @@ public class Users extends BaseEntity {
      * 카카오 정보와 사용자 이름, 설정 정보를 기반으로 새로운 사용자 엔티티를 생성한다.
      * </p>
      *
-     * @param kakaoInfoDTO 카카오 정보 DTO
+     * @param userData 카카오 정보 DTO
      * @param userName     사용자 이름
      * @param setting      사용자 설정 정보
      * @return 생성된 사용자 엔티티
      */
-    public static Users createUser(KakaoInfoDTO kakaoInfoDTO, String userName, Setting setting) {
+    public static Users createUser(SocialLoginUserData userData, String userName, Setting setting) {
         return Users.builder()
-                .kakaoId(kakaoInfoDTO.getKakaoId())
-                .kakaoNickname(kakaoInfoDTO.getKakaoNickname())
-                .thumbnailImage(kakaoInfoDTO.getThumbnailImage())
+                .socialId(userData.getSocialId())
+                .provider(userData.getProvider())
+                .socialNickname(userData.getNickname())
+                .thumbnailImage(userData.getProfileImageUrl())
                 .userName(userName)
                 .role(UserRole.USER)
                 .setting(setting)

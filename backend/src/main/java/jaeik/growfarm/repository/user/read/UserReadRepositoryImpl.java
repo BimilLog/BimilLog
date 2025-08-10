@@ -1,8 +1,13 @@
 package jaeik.growfarm.repository.user.read;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.repository.user.UserBaseRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
@@ -23,19 +28,17 @@ import java.util.stream.Collectors;
  * @since 2.0.0
  */
 @Repository
-public class UserReadRepositoryImpl extends UserBaseRepository implements UserReadRepository {
+public class UserReadRepositoryImpl implements UserReadRepository {
 
-    public UserReadRepositoryImpl(com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory) {
-        super(jpaQueryFactory);
-    }
+    private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Optional<Users> findByKakaoId(Long kakaoId) {
-        Users result = jpaQueryFactory
-                .selectFrom(user)
-                .where(user.kakaoId.eq(kakaoId))
-                .fetchOne();
-        return Optional.ofNullable(result);
+    public Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+        return Optional.ofNullable(jpaQueryFactory
+                .selectFrom(users)
+                .where(users.provider.eq(provider)
+                        .and(users.socialId.eq(socialId)))
+                .fetchOne());
     }
 
     @Override

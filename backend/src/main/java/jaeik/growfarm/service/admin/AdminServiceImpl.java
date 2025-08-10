@@ -53,6 +53,6 @@ public class AdminServiceImpl implements AdminService {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
-        eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getKakaoId()));
+        eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider()));
     }
 }

@@ -1,6 +1,7 @@
 package jaeik.growfarm.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,21 +15,14 @@ import lombok.Setter;
  * @author Jaeik
  */
 @Getter
-@Setter
 public class TokenDTO {
 
-    private Long tokenId;
+    private final String accessToken;
+    private final String refreshToken;
 
-    private Long userId;
-
-    @JsonProperty("access_token")
-    private String kakaoAccessToken;
-
-    @JsonProperty("refresh_token")
-    private String kakaoRefreshToken;
-
-    private String jwtAccessToken;
-
-    private String jwtRefreshToken;
-
+    @Builder
+    public TokenDTO(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+    }
 }

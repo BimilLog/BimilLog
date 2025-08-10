@@ -1,5 +1,6 @@
 package jaeik.growfarm.service.auth;
 
+import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 /**
  * <h2>사용자 데이터 임시 관리 클래스</h2>
@@ -26,16 +28,21 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class TempUserDataManager {
-    private final ConcurrentHashMap<String, TempUserData> tempDataMap = new ConcurrentHashMap<>();
+    private final Map<String, TempUserData> tempUserDataStore = new ConcurrentHashMap<>();
 
     @Setter
     @Getter
     @AllArgsConstructor
     public static class TempUserData {
-        private TokenDTO tokenDTO;
-        private KakaoInfoDTO kakaoInfoDTO;
-        private String fcmToken;
-        private LocalDateTime createdTime;
+        private final SocialLoginUserData socialLoginUserData;
+        private final TokenDTO tokenDTO;
+        private final String fcmToken;
+
+        public TempUserData(SocialLoginUserData socialLoginUserData, TokenDTO tokenDTO, String fcmToken) {
+            this.socialLoginUserData = socialLoginUserData;
+            this.tokenDTO = tokenDTO;
+            this.fcmToken = fcmToken;
+        }
     }
 
     /**
@@ -44,18 +51,16 @@ public class TempUserDataManager {
      * <p>신규 회원 가입시 사용자 데이터를 임시로 저장한다.</p>
      * <p>UUID를 키로 사용하여 데이터를 저장하며, 5분 후 자동으로 삭제된다.</p>
      *
-     * @param kakaoInfoDTO 카카오 정보 DTO
+     * @param socialLoginUserData 소셜 로그인 사용자 정보 DTO
      * @param tokenDTO 토큰 DTO
      * @param fcmToken FCM 토큰 (선택)
      * @return UUID 키
      * @since 1.0.0
      * @author Jaeik
      */
-    public String saveTempData(KakaoInfoDTO kakaoInfoDTO, TokenDTO tokenDTO, String fcmToken) {
+    public String saveTempData(SocialLoginUserData socialLoginUserData, TokenDTO tokenDTO, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
-        TempUserData tempUserData = new TempUserData(tokenDTO, kakaoInfoDTO, fcmToken, LocalDateTime.now());
-        tempDataMap.put(uuid, tempUserData);
-        scheduleCleanup(uuid);
+        tempUserDataStore.put(uuid, new TempUserData(socialLoginUserData, tokenDTO, fcmToken));
         return uuid;
     }
 
@@ -70,7 +75,7 @@ public class TempUserDataManager {
      * @author Jaeik
      */
     public TempUserData getTempData(String uuid) {
-        return tempDataMap.get(uuid);
+        return tempUserDataStore.get(uuid);
     }
 
     /**
@@ -83,7 +88,7 @@ public class TempUserDataManager {
      * @author Jaeik
      */
     public void removeTempData(String uuid) {
-        tempDataMap.remove(uuid);
+        tempUserDataStore.remove(uuid);
     }
 
     /**
@@ -97,6 +102,6 @@ public class TempUserDataManager {
      */
     private void scheduleCleanup(String uuid) {
         CompletableFuture.delayedExecutor(5, TimeUnit.MINUTES)
-                .execute(() -> tempDataMap.remove(uuid));
+                .execute(() -> tempUserDataStore.remove(uuid));
     }
 }

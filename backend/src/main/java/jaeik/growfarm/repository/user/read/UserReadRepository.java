@@ -1,6 +1,10 @@
 package jaeik.growfarm.repository.user.read;
 
+import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.Users;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,20 +23,7 @@ import java.util.Optional;
  */
 public interface UserReadRepository {
 
-    /**
-     * <h3>카카오 ID로 사용자 조회</h3>
-     *
-     * <p>
-     * 카카오 ID를 통해 사용자를 조회한다.
-     * </p>
-     *
-     * @param kakaoId 카카오 ID
-     * @return 사용자 정보 (Optional)
-     * @author Jaeik
-     * @version 2.0.0
-     * @since 2.0.0
-     */
-    Optional<Users> findByKakaoId(Long kakaoId);
+    Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId);
 
     /**
      * <h3>닉네임으로 사용자 조회</h3>
@@ -63,6 +54,21 @@ public interface UserReadRepository {
      * @since 2.0.0
      */
     Optional<Users> findByIdWithSetting(Long id);
+
+    /**
+     * <h3>ID로 사용자 클라이언트 정보 조회</h3>
+     *
+     * <p>
+     * 사용자 ID를 통해 사용자의 클라이언트 정보를 조회한다.
+     * </p>
+     *
+     * @param id 사용자 ID
+     * @return 사용자 클라이언트 정보
+     * @author Jaeik
+     * @version 2.0.0
+     * @since 2.0.0
+     */
+    ClientDTO findClientInfoById(Long id);
 
     /**
      * <h3>카카오 ID 목록으로 닉네임 조회</h3>
