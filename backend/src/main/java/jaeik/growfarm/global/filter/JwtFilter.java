@@ -3,13 +3,13 @@ package jaeik.growfarm.global.filter;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.global.auth.AuthCookieManager;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.global.auth.JwtTokenProvider;
+import jaeik.growfarm.global.auth.JwtHandler;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.auth.AuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -40,8 +40,8 @@ import java.util.Objects;
 public class JwtFilter extends OncePerRequestFilter {
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final AuthService authService;
+    private final JwtHandler jwtHandler;
+    private final AuthCookieManager authCookieManager;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -97,17 +97,17 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String accessToken = extractTokenFromCookie(request, JwtTokenProvider.ACCESS_TOKEN_COOKIE);
+        String accessToken = extractTokenFromCookie(request, AuthCookieManager.ACCESS_TOKEN_COOKIE);
 
         // Access Token이 유효할 때
-        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+        if (accessToken != null && jwtHandler.validateToken(accessToken)) {
             setAuthentication(accessToken);
         } else { // accessToken이 없거나 유효 하지 않을 때
-            String refreshToken = extractTokenFromCookie(request, JwtTokenProvider.REFRESH_TOKEN_COOKIE);
+            String refreshToken = extractTokenFromCookie(request, AuthCookieManager.REFRESH_TOKEN_COOKIE);
             // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을 검증
-            if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
-                Long tokenId = jwtTokenProvider.getTokenIdFromToken(refreshToken);
-                Long fcmTokenId = jwtTokenProvider.getFcmTokenIdFromToken(refreshToken);
+            if (refreshToken != null && jwtHandler.validateToken(refreshToken)) {
+                Long tokenId = jwtHandler.getTokenIdFromToken(refreshToken);
+                Long fcmTokenId = jwtHandler.getFcmTokenIdFromToken(refreshToken);
                 Token token = tokenRepository.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.REPEAT_LOGIN));
                 if (Objects.equals(token.getId(), tokenId)) {
@@ -117,7 +117,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     ClientDTO clientDTO = new ClientDTO(user, tokenId, fcmTokenId);
 
                     // 새로운 accessTokenCookie 발급
-                    ResponseCookie cookie = jwtTokenProvider.generateJwtAccessCookie(clientDTO);
+                    ResponseCookie cookie = authCookieManager.generateJwtAccessCookie(clientDTO);
                     response.addHeader("Set-Cookie", cookie.toString());
 
                     // 사용자 인증 정보 설정
@@ -137,7 +137,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        ClientDTO clientDTO = jwtTokenProvider.getUserInfoFromToken(jwtAccessToken);
+        ClientDTO clientDTO = jwtHandler.getUserInfoFromToken(jwtAccessToken);
         CustomUserDetails customUserDetails = new CustomUserDetails(clientDTO);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails,

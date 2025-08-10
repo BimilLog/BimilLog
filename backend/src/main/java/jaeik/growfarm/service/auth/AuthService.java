@@ -6,8 +6,8 @@ import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.global.auth.AuthCookieManager;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.global.auth.JwtTokenProvider;
 import jaeik.growfarm.global.event.UserBannedEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
@@ -44,7 +44,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthCookieManager authCookieManager;
     private final BlackListRepository blackListRepository;
     private final EmitterRepository emitterRepository;
     private final TempUserDataManager tempUserDataManager;
@@ -223,7 +223,7 @@ public class AuthService {
             // 4. SecurityContext 클리어
             SecurityContextHolder.clearContext();
             // 5. 로그아웃 쿠키 반환
-            return jwtTokenProvider.getLogoutCookies();
+            return authCookieManager.getLogoutCookies();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
         }
