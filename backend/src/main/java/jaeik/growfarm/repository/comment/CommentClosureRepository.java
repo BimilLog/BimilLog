@@ -36,7 +36,7 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      * @since 1.0.0
      * @author Jaeik
      */
-    Optional<List<CommentClosure>> findByDescendantId(Long id);
+    Optional<List<CommentClosure>> findByDescendantId(Long descendantId);
 
     /**
      * <h3>댓글 클로저 관계 삭제</h3>
@@ -69,7 +69,7 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      * @since 1.0.0
      * @author Jaeik
      */
-    @Query("SELECT COUNT(cc) > 0 FROM CommentClosure cc WHERE cc.ancestor.id = :commentId AND cc.descendant.id != :commentId")
+    @Query("SELECT COUNT(cc) > 1 FROM CommentClosure cc WHERE cc.ancestor.id = :commentId")
     boolean hasDescendants(@Param("commentId") Long commentId);
 
     /**
@@ -83,6 +83,6 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      * @author Jaeik
      */
     @Modifying
-    @Query("DELETE FROM CommentClosure cc WHERE cc.descendant.id IN :commentIds OR cc.ancestor.id IN :commentIds")
-    void deleteByCommentIds(@Param("commentIds") List<Long> commentIds);
+    @Query("DELETE FROM CommentClosure cc WHERE cc.descendant.id IN :commentIds")
+    void deleteByDescendantIds(@Param("commentIds") List<Long> commentIds);
 }

@@ -17,7 +17,7 @@ import java.util.List;
  * @version 1.0.0
  */
 @Repository
-public interface CommentRepository extends JpaRepository<Comment, Long>, CommentCustomRepository {
+public interface CommentRepository extends JpaRepository<Comment, Long> {
 
         /**
          * <h3>사용자가 추천한 댓글 배치 조회</h3>

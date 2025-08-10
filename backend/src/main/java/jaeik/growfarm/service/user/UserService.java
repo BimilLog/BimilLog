@@ -15,6 +15,7 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.comment.user.CommentUserRepository;
 import jaeik.growfarm.repository.post.user.PostUserRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.SettingRepository;
@@ -45,6 +46,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final CommentUserRepository commentUserRepository;
     private final ReportRepository reportRepository;
     private final KakaoService kakaoService;
     private final TokenRepository tokenRepository;
@@ -89,7 +91,7 @@ public class UserService {
      */
     public Page<SimpleCommentDTO> getCommentList(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return commentRepository.findCommentsByUserId(userDetails.getUserId(), pageable);
+        return commentUserRepository.findCommentsByUserId(userDetails.getUserId(), pageable);
     }
 
     /**
@@ -128,7 +130,7 @@ public class UserService {
      */
     public Page<SimpleCommentDTO> getLikedComments(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return commentRepository.findLikedCommentsByUserId(userDetails.getUserId(), pageable);
+        return commentUserRepository.findLikedCommentsByUserId(userDetails.getUserId(), pageable);
     }
 
     /**

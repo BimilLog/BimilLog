@@ -12,6 +12,7 @@ import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.comment.CommentRepository;
+import jaeik.growfarm.repository.comment.admin.CommentAdminRepository;
 import jaeik.growfarm.repository.post.PostLikeRepository;
 import jaeik.growfarm.repository.post.PostRepository;
 import jaeik.growfarm.repository.user.UserRepository;
@@ -43,6 +44,7 @@ public class AdminService {
     private final KakaoService kakaoService;
     private final AdminUpdateService adminUpdateService;
     private final CommentRepository commentRepository;
+    private final CommentAdminRepository commentAdminRepository;
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
     private final RedisPostService redisPostService;
@@ -103,7 +105,7 @@ public class AdminService {
         }
 
         if (reportDTO.getReportType() == ReportType.COMMENT) {
-            return commentRepository.findUserIdByCommentId(reportDTO.getTargetId());
+            return commentAdminRepository.findUserIdByCommentId(reportDTO.getTargetId());
         }
 
         if (reportDTO.getReportType() == ReportType.POST) {
