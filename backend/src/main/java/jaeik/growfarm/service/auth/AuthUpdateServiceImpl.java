@@ -1,7 +1,6 @@
 package jaeik.growfarm.service.auth;
 
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
-import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.entity.notification.FcmToken;
@@ -26,8 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import java.util.List;
-import jaeik.growfarm.exception.CustomException;
-import jaeik.growfarm.exception.ErrorCode;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +55,8 @@ public class AuthUpdateServiceImpl implements AuthUpdateService {
     public List<ResponseCookie> saveExistUser(Users user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
         user.updateUserInfo(userData.getNickname(), userData.getProfileImageUrl());
         
-        Token token = user.getToken();
+        Token token = tokenRepository.findByUsers(user)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
         token.updateToken(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());
 
         return jwtTokenProvider.generateJwtCookie(new ClientDTO(user,
@@ -85,7 +85,7 @@ public class AuthUpdateServiceImpl implements AuthUpdateService {
     @Override
     @Transactional
     public void performWithdrawProcess(Long userId) {
-        commentRepository.processUserCommentsOnWithdrawal(userId);
+        commentRepository.anonymizeUserComments(userId);
 
         entityManager.flush();
         entityManager.clear();

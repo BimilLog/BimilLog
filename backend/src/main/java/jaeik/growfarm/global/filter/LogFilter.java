@@ -58,16 +58,17 @@ public class LogFilter extends OncePerRequestFilter {
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             Long userId = userDetails.getClientDTO().getUserId();
-            Long kakaoId = userDetails.getClientDTO().getKakaoId();
-            String kakaoNickname = userDetails.getClientDTO().getKakaoNickname();
+            String socialId = userDetails.getClientDTO().getSocialId();
+            String socialNickname = userDetails.getClientDTO().getSocialNickname();
+            String provider = userDetails.getClientDTO().getProvider().name();
 
             if (uri.startsWith("/admin")) {
                 log.error(
-                        "회원 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}",
-                        ip, referer, uri, method, userId, kakaoId, kakaoNickname);
+                        "회원 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 제공자: {}, 소셜 ID: {}, 소셜 닉네임: {}",
+                        ip, referer, uri, method, userId, provider, socialId, socialNickname);
             }
-            log.info("회원 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 카카오 ID: {}, 카카오 닉네임: {}", ip,
-                    referer, uri, method, userId, kakaoId, kakaoNickname);
+            log.info("회원 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 제공자: {}, 소셜 ID: {}, 소셜 닉네임: {}", ip,
+                    referer, uri, method, userId, provider, socialId, socialNickname);
         } else {
             if (uri.startsWith("/admin")) {
                 log.error("비회원 - 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri,

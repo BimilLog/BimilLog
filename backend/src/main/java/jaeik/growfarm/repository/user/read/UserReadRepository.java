@@ -82,5 +82,5 @@ public interface UserReadRepository {
      * @version 2.0.0
      * @since 2.0.0
      */
-    List<String> findUserNamesInOrder(List<Long> ids);
+    List<String> findUserNamesInOrder(List<String> ids);
 }

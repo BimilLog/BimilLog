@@ -1,5 +1,6 @@
 package jaeik.growfarm.dto.user;
 
+import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import jakarta.validation.constraints.Size;
@@ -11,7 +12,7 @@ import lombok.Setter;
  * <p>
  * 사용자의 기본 정보를 담는 데이터 전송 객체
  * </p>
- * 
+ *
  * @version  1.0.0
  * @author Jaeik
  */
@@ -21,11 +22,13 @@ public class UserDTO {
 
     private Long userId;
 
-    private Long kakaoId;
+    private String socialId;
+
+    private SocialProvider provider;
 
     private Long settingId;
 
-    private String kakaoNickname;
+    private String socialNickname;
 
     private String thumbnailImage;
 
@@ -36,18 +39,20 @@ public class UserDTO {
 
     public UserDTO (Users user) {
         this.userId = user.getId();
-        this.kakaoId = user.getKakaoId();
+        this.socialId = user.getSocialId();
+        this.provider = user.getProvider();
         this.settingId = user.getSetting().getId();
-        this.kakaoNickname = user.getKakaoNickname();
+        this.socialNickname = user.getSocialNickname();
         this.thumbnailImage = user.getThumbnailImage();
         this.userName = user.getUserName();
         this.role = user.getRole();
     }
 
-    public UserDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String userName, UserRole role, Long settingId) {
+    public UserDTO(Long userId, String socialId, SocialProvider provider, String socialNickname, String thumbnailImage, String userName, UserRole role, Long settingId) {
         this.userId = userId;
-        this.kakaoId = kakaoId;
-        this.kakaoNickname = kakaoNickname;
+        this.socialId = socialId;
+        this.provider = provider;
+        this.socialNickname = socialNickname;
         this.thumbnailImage = thumbnailImage;
         this.userName = userName;
         this.role = role;

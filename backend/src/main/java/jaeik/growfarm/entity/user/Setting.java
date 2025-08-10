@@ -2,6 +2,7 @@ package jaeik.growfarm.entity.user;
 
 import jaeik.growfarm.dto.user.SettingDTO;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -29,12 +30,15 @@ public class Setting {
     @Column(name = "setting_id")
     private Long id;
 
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean messageNotification = true;
 
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean commentNotification = true;
 
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean postFeaturedNotification = true;
 

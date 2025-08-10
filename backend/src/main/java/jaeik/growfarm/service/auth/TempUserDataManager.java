@@ -1,7 +1,6 @@
 package jaeik.growfarm.service.auth;
 
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
-import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,12 +36,6 @@ public class TempUserDataManager {
         private final SocialLoginUserData socialLoginUserData;
         private final TokenDTO tokenDTO;
         private final String fcmToken;
-
-        public TempUserData(SocialLoginUserData socialLoginUserData, TokenDTO tokenDTO, String fcmToken) {
-            this.socialLoginUserData = socialLoginUserData;
-            this.tokenDTO = tokenDTO;
-            this.fcmToken = fcmToken;
-        }
     }
 
     /**

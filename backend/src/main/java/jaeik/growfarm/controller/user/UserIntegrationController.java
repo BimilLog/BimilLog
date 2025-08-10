@@ -1,7 +1,7 @@
 package jaeik.growfarm.controller.user;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
+import jaeik.growfarm.dto.auth.KakaoFriendsResponse;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -68,7 +68,7 @@ public class UserIntegrationController {
      * @since 2.0.0
      */
     @PostMapping("/friendlist")
-    public ResponseEntity<KakaoFriendListDTO> getFriendList(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<KakaoFriendsResponse> getFriendList(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                              @RequestParam int offset) {
         return ResponseEntity.ok(userService.getFriendList(userDetails, offset));
     }

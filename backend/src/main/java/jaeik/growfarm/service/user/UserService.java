@@ -1,8 +1,8 @@
 package jaeik.growfarm.service.user;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
+import jaeik.growfarm.dto.auth.KakaoFriendsResponse;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
-import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
@@ -173,7 +173,7 @@ public class UserService {
      * @version 2.0.0
      * @since 2.0.0
      */
-    public KakaoFriendListDTO getFriendList(CustomUserDetails userDetails, int offset) {
+    public KakaoFriendsResponse getFriendList(CustomUserDetails userDetails, int offset) {
         return userIntegrationService.getFriendList(userDetails, offset);
     }
 

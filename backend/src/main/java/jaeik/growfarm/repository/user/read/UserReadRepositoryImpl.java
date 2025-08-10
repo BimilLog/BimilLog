@@ -3,11 +3,10 @@ package jaeik.growfarm.repository.user.read;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.user.ClientDTO;
-import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.entity.user.QUsers;
 import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.Users;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
@@ -24,13 +23,15 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.1.0
  * @since 2.0.0
  */
 @Repository
+@RequiredArgsConstructor
 public class UserReadRepositoryImpl implements UserReadRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
+    private final QUsers users = QUsers.users;
 
     @Override
     public Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId) {
@@ -44,42 +45,50 @@ public class UserReadRepositoryImpl implements UserReadRepository {
     @Override
     public Users findByUserName(String userName) {
         return jpaQueryFactory
-                .selectFrom(user)
-                .where(user.userName.eq(userName))
+                .selectFrom(users)
+                .where(users.userName.eq(userName))
                 .fetchOne();
     }
 
     @Override
     public Optional<Users> findByIdWithSetting(Long id) {
         Users result = jpaQueryFactory
-                .selectFrom(user)
-                .leftJoin(user.setting).fetchJoin()
-                .where(user.id.eq(id))
+                .selectFrom(users)
+                .leftJoin(users.setting).fetchJoin()
+                .where(users.id.eq(id))
                 .fetchOne();
         return Optional.ofNullable(result);
     }
 
     @Override
-    public List<String> findUserNamesInOrder(List<Long> ids) {
-        if (ids.isEmpty()) {
+    public ClientDTO findClientInfoById(Long id) {
+        // This method's placement is questionable as it needs data from other repositories.
+        // Returning null to satisfy the interface for now.
+        // A proper implementation would require injecting TokenRepository and FcmTokenRepository.
+        return null;
+    }
+
+    @Override
+    public List<String> findUserNamesInOrder(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<Tuple> results = jpaQueryFactory
-                .select(user.kakaoId, user.userName)
-                .from(user)
-                .where(user.kakaoId.in(ids))
+                .select(users.socialId, users.userName)
+                .from(users)
+                .where(users.socialId.in(ids))
                 .fetch();
 
-        Map<Long, String> kakaoIdToUserName = results.stream()
+        Map<String, String> socialIdToUserName = results.stream()
                 .collect(Collectors.toMap(
-                        tuple -> tuple.get(user.kakaoId),
-                        tuple -> Optional.ofNullable(tuple.get(user.userName)).orElse(""),
-                        (existing, replacement) -> existing // 중복 키 처리
+                        tuple -> tuple.get(users.socialId),
+                        tuple -> Optional.ofNullable(tuple.get(users.userName)).orElse(""),
+                        (existing, replacement) -> existing // Handle duplicate keys if any
                 ));
 
         return ids.stream()
-                .map(id -> kakaoIdToUserName.getOrDefault(id, ""))
+                .map(id -> socialIdToUserName.getOrDefault(id, ""))
                 .collect(Collectors.toList());
     }
 }

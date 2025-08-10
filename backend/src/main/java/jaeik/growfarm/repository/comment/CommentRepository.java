@@ -2,6 +2,7 @@ package jaeik.growfarm.repository.comment;
 
 import jaeik.growfarm.entity.comment.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,6 +19,20 @@ import java.util.List;
  */
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
+
+        /**
+         * <h3>사용자 댓글 익명화</h3>
+         * <p>
+         * 회원 탈퇴 시, 사용자가 작성한 모든 댓글의 작성자 정보를 null로 변경하고 삭제 처리합니다.
+         * </p>
+         *
+         * @param userId 사용자 ID
+         * @author Jaeik
+         * @since 2.1.0
+         */
+        @Modifying
+        @Query("UPDATE Comment c SET c.user = null, c.deleted = true, c.content = '삭제된 댓글 입니다.' WHERE c.user.id = :userId")
+        void anonymizeUserComments(@Param("userId") Long userId);
 
         /**
          * <h3>사용자가 추천한 댓글 배치 조회</h3>

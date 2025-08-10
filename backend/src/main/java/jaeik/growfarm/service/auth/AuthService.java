@@ -2,7 +2,6 @@ package jaeik.growfarm.service.auth;
 
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
-import jaeik.growfarm.dto.kakao.KakaoCheckConsentDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.Token;
@@ -17,7 +16,7 @@ import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import jaeik.growfarm.repository.user.UserJdbcRepository;
 import jaeik.growfarm.repository.user.UserRepository;
-import jaeik.growfarm.service.kakao.KakaoService;
+import jaeik.growfarm.service.auth.strategy.SocialLoginStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseCookie;
@@ -83,16 +82,18 @@ public class AuthService {
 
         Optional<Users> existingUser = checkExistingUser(provider, userData.getSocialId());
 
-        return existingUser
-                .map(user -> handleExistingUserLogin(user, userData, tokenDTO, fcmToken))
-                .orElseGet(() -> handleNewUserLogin(userData, tokenDTO, fcmToken));
+        if (existingUser.isPresent()) {
+            return handleExistingUserLogin(existingUser.get(), userData, tokenDTO, fcmToken);
+        } else {
+            return handleNewUserLogin(userData, tokenDTO, fcmToken);
+        }
     }
 
-    private LoginResponseDTO<?> handleExistingUserLogin(Users user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+    private LoginResponseDTO<List<ResponseCookie>> handleExistingUserLogin(Users user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
         return existingUserLogin(user, userData, tokenDTO, fcmToken);
     }
 
-    private LoginResponseDTO<?> handleNewUserLogin(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+    private LoginResponseDTO<ResponseCookie> handleNewUserLogin(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
         if (checkBlackList(userData.getSocialId(), userData.getProvider())) {
             throw new CustomException(ErrorCode.BLACKLIST_USER);
         }
@@ -270,7 +271,7 @@ public class AuthService {
     public void logoutSocial(CustomUserDetails userDetails) {
         tokenRepository.findById(userDetails.getTokenId())
                 .ifPresent(token -> {
-                    Users user = token.getUser();
+                    Users user = token.getUsers();
                     if (user != null) {
                         socialLoginManager.logout(user.getProvider(), token.getAccessToken());
                     }

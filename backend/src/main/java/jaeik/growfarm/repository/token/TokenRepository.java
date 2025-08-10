@@ -1,8 +1,11 @@
 package jaeik.growfarm.repository.token;
 
 import jaeik.growfarm.entity.user.Token;
+import jaeik.growfarm.entity.user.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 /**
  * <h2>토큰 Jpa Repository</h2>
@@ -15,4 +18,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TokenRepository extends JpaRepository<Token, Long> {
 
+    Optional<Token> findByUsers(Users users);
 }

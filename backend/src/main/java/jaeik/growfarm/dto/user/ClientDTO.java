@@ -1,5 +1,6 @@
 package jaeik.growfarm.dto.user;
 
+import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.entity.user.Users;
 import lombok.Getter;
@@ -25,8 +26,8 @@ public class ClientDTO extends UserDTO{
         this.fcmTokenId = fcmTokenId;
     }
 
-    public ClientDTO(Long userId, Long kakaoId, String kakaoNickname, String thumbnailImage, String userName, UserRole role, Long tokenId, Long fcmTokenId, Long settingId) {
-        super(userId, kakaoId, kakaoNickname, thumbnailImage, userName, role, settingId);
+    public ClientDTO(Long userId, String socialId, SocialProvider provider, String socialNickname, String thumbnailImage, String userName, UserRole role, Long tokenId, Long fcmTokenId, Long settingId) {
+        super(userId, socialId, provider, socialNickname, thumbnailImage, userName, role, settingId);
         this.tokenId = tokenId;
         this.fcmTokenId = fcmTokenId;
     }

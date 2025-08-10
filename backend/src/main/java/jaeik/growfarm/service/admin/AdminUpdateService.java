@@ -30,7 +30,7 @@ public class AdminUpdateService {
     @Transactional
     @EventListener
     public void handleUserBannedEvent(UserBannedEvent event) {
-        BlackList blackList = BlackList.createBlackList(event.getKakaoId());
+        BlackList blackList = BlackList.createBlackList(event.getSocialId(), event.getProvider());
         blackListRepository.save(blackList);
         emitterRepository.deleteAllEmitterByUserId(event.getUserId());
         authUpdateService.performWithdrawProcess(event.getUserId());

@@ -1,8 +1,8 @@
 package jaeik.growfarm.service.user;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.dto.kakao.KakaoFriendDTO;
-import jaeik.growfarm.dto.kakao.KakaoFriendListDTO;
+import jaeik.growfarm.dto.auth.KakaoFriendDTO;
+import jaeik.growfarm.dto.auth.KakaoFriendsResponse;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
@@ -12,8 +12,7 @@ import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.admin.ReportRepository;
 import jaeik.growfarm.repository.token.TokenRepository;
 import jaeik.growfarm.repository.user.read.UserReadRepository;
-import jaeik.growfarm.service.auth.AuthService;
-import jaeik.growfarm.service.kakao.KakaoService;
+import jaeik.growfarm.service.auth.strategy.KakaoLoginStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +27,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.1.0
  * @since 2.0.0
  */
 @Service
@@ -37,9 +36,8 @@ public class UserIntegrationService {
 
     private final UserReadRepository userReadRepository;
     private final ReportRepository reportRepository;
-    private final KakaoService kakaoService;
+    private final KakaoLoginStrategy kakaoLoginStrategy;
     private final TokenRepository tokenRepository;
-    private final AuthService authService;
 
     /**
      * <h3>건의 하기</h3>
@@ -73,19 +71,18 @@ public class UserIntegrationService {
      * @param offset      페이지 오프셋
      * @return 카카오 친구 목록 DTO
      * @author Jaeik
-     * @version 2.0.0
+     * @version 2.1.0
      * @since 2.0.0
      */
     @Transactional(readOnly = true)
-    public KakaoFriendListDTO getFriendList(CustomUserDetails userDetails, int offset) {
+    public KakaoFriendsResponse getFriendList(CustomUserDetails userDetails, int offset) {
         Token token = tokenRepository.findById(userDetails.getTokenId())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
-        String accessToken = authService.validateKakaoConsent(token);
 
-        KakaoFriendListDTO friendListDTO = kakaoService.getFriendList(accessToken, offset);
-        mapUserNamesToFriends(friendListDTO.getElements());
+        KakaoFriendsResponse friendsResponse = kakaoLoginStrategy.getFriendList(token.getAccessToken(), offset, 100);
+        mapUserNamesToFriends(friendsResponse.getElements());
 
-        return friendListDTO;
+        return friendsResponse;
     }
 
     /**
@@ -101,15 +98,15 @@ public class UserIntegrationService {
      * @since 2.0.0
      */
     private void mapUserNamesToFriends(List<KakaoFriendDTO> friendList) {
-        if (friendList.isEmpty()) {
+        if (friendList == null || friendList.isEmpty()) {
             return;
         }
 
-        List<Long> friendIds = friendList.stream()
-                .map(KakaoFriendDTO::getId)
+        List<String> friendSocialIds = friendList.stream()
+                .map(friend -> String.valueOf(friend.getId()))
                 .toList();
 
-        List<String> userNames = userReadRepository.findUserNamesInOrder(friendIds);
+        List<String> userNames = userReadRepository.findUserNamesInOrder(friendSocialIds);
 
         for (int i = 0; i < friendList.size(); i++) {
             friendList.get(i).setUserName(userNames.get(i));

@@ -1,7 +1,6 @@
 package jaeik.growfarm.entity.user;
 
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
-import jaeik.growfarm.dto.kakao.KakaoInfoDTO;
 import jaeik.growfarm.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.UserRole;
 import jaeik.growfarm.repository.token.TokenJdbcRepository;
 import jakarta.annotation.PostConstruct;
@@ -124,12 +125,13 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(String.valueOf(clientDTO.getUserId()))
                 .claim("tokenId", clientDTO.getTokenId())
-                .claim("kakaoId", clientDTO.getKakaoId())
+                .claim("socialId", clientDTO.getSocialId())
+                .claim("provider", clientDTO.getProvider().name())
                 .claim("fcmTokenId", clientDTO.getFcmTokenId())
                 .claim("settingId", clientDTO.getSettingId())
                 .claim("userName", clientDTO.getUserName())
                 .claim("role", clientDTO.getRole().name())
-                .claim("kakaoNickname", clientDTO.getKakaoNickname())
+                .claim("socialNickname", clientDTO.getSocialNickname())
                 .claim("thumbnailImage", clientDTO.getThumbnailImage())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
@@ -231,11 +233,12 @@ public class JwtTokenProvider {
 
         return new ClientDTO(
                 Long.parseLong(claims.getSubject()),
-                claims.get("kakaoId", Long.class),
-                claims.get("kakaoNickname", String.class),
+                claims.get("socialId", String.class),
+                SocialProvider.valueOf(claims.get("provider", String.class)),
+                claims.get("socialNickname", String.class),
                 claims.get("thumbnailImage", String.class),
                 claims.get("userName", String.class),
-                claims.get("role", String.class).equals("USER") ? UserRole.USER : UserRole.ADMIN,
+                UserRole.valueOf(claims.get("role", String.class)),
                 claims.get("tokenId", Long.class),
                 claims.get("fcmTokenId", Long.class),
                 claims.get("settingId", Long.class));
