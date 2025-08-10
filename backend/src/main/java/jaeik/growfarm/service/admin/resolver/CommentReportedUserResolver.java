@@ -18,7 +18,7 @@ public class CommentReportedUserResolver implements ReportedUserResolver {
     @Override
     public Users resolve(Long targetId) {
         Comment comment = commentRepository.findById(targetId)
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_FAILED));
         return comment.getUser();
     }
 
