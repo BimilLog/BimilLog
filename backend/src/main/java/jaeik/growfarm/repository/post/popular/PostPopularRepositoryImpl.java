@@ -89,8 +89,8 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
         resetPopularFlag(PostCacheFlag.LEGEND);
 
         List<SimplePostResDTO> legendPosts = createBasePopularPostsQuery()
-                .having(postLike.count().goe(20))
-                .orderBy(postLike.count().desc())
+                .having(postLike.countDistinct().goe(20))
+                .orderBy(postLike.countDistinct().desc())
                 .limit(50)
                 .fetch();
 
@@ -127,7 +127,7 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
 
         List<SimplePostResDTO> popularPosts = createBasePopularPostsQuery()
                 .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS)))
-                .orderBy(postLike.count().desc())
+                .orderBy(postLike.countDistinct().desc())
                 .limit(5)
                 .fetch();
 
@@ -172,12 +172,10 @@ public class PostPopularRepositoryImpl extends PostBaseRepository implements Pos
                         post.createdAt,
                         post.user.id,
                         user.userName,
-                        // 인기글에서는 좋아요/댓글 수를 기준으로 집계하므로 DISTINCT가 필요 없음 (post.id로 그룹화되어 있기 때문)
-                        comment.count().intValue(),
-                        postLike.count().intValue()))
+                        comment.countDistinct().intValue(),
+                        postLike.countDistinct().intValue()))
                 .from(post)
                 .leftJoin(post.user, user)
-                // 인기글은 좋아요 수를 기반으로 하므로 PostLike와는 INNER JOIN (좋아요가 없는 글은 제외)
                 .join(postLike).on(post.id.eq(postLike.post.id))
                 .leftJoin(comment).on(post.id.eq(comment.post.id))
                 .groupBy(

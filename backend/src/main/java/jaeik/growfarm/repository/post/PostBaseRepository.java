@@ -2,8 +2,8 @@ package jaeik.growfarm.repository.post;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -71,8 +71,12 @@ public abstract class PostBaseRepository {
         QUsers user = QUsers.users;
         QPostLike postLike = QPostLike.postLike;
 
-        BooleanExpression userLikeCondition = (userId != null)
-                ? postLike.user.id.eq(userId)
+        BooleanExpression isLikedSubquery = (userId != null)
+                ? JPAExpressions
+                .selectOne()
+                .from(postLike)
+                .where(postLike.post.id.eq(post.id).and(postLike.user.id.eq(userId)))
+                .exists()
                 : Expressions.asBoolean(false);
 
         return jpaQueryFactory
@@ -87,17 +91,16 @@ public abstract class PostBaseRepository {
                         post.isNotice,
                         post.postCacheFlag,
                         post.createdAt,
-                        new CaseBuilder()
-                                .when(userLikeCondition)
-                                .then(true)
-                                .otherwise(false)
+                        isLikedSubquery
                 ))
                 .from(post)
                 .leftJoin(post.user, user)
                 .leftJoin(postLike).on(postLike.post.id.eq(post.id))
                 .where(post.id.eq(postId))
-                .groupBy(post.id, user.id, user.userName, post.title, post.content,
-                        post.views, post.isNotice, post.postCacheFlag, post.createdAt)
+                .groupBy(
+                        post.id, user.id, user.userName, post.title, post.content,
+                        post.views, post.isNotice, post.postCacheFlag, post.createdAt
+                )
                 .fetchOne();
     }
 
