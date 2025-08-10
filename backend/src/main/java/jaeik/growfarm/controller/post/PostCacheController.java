@@ -1,6 +1,7 @@
 package jaeik.growfarm.controller.post;
 
 import jaeik.growfarm.dto.post.SimplePostResDTO;
+import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.service.redis.RedisPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +38,7 @@ public class PostCacheController {
      */
     @GetMapping("/realtime")
     public ResponseEntity<List<SimplePostResDTO>> getRealtimeBoard() {
-        List<SimplePostResDTO> realtimePopularPosts = redisPostService
-                .getCachedPopularPosts(RedisPostService.CachePostType.REALTIME);
+        List<SimplePostResDTO> realtimePopularPosts = redisPostService.getCachedPopularPosts(PostCacheFlag.REALTIME);
         return ResponseEntity.ok(realtimePopularPosts);
     }
 
@@ -55,8 +55,7 @@ public class PostCacheController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<List<SimplePostResDTO>> getWeeklyBoard() {
-        List<SimplePostResDTO> weeklyPopularPosts = redisPostService
-                .getCachedPopularPosts(RedisPostService.CachePostType.WEEKLY);
+        List<SimplePostResDTO> weeklyPopularPosts = redisPostService.getCachedPopularPosts(PostCacheFlag.WEEKLY);
         return ResponseEntity.ok(weeklyPopularPosts);
     }
 
@@ -73,8 +72,7 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<List<SimplePostResDTO>> getLegendBoard() {
-        List<SimplePostResDTO> legendPopularPosts = redisPostService
-                .getCachedPopularPosts(RedisPostService.CachePostType.LEGEND);
+        List<SimplePostResDTO> legendPopularPosts = redisPostService.getCachedPopularPosts(PostCacheFlag.LEGEND);
         return ResponseEntity.ok(legendPopularPosts);
     }
 

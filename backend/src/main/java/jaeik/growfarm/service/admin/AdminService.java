@@ -1,7 +1,11 @@
 package jaeik.growfarm.service.admin;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
+import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.PostReqDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.entity.post.Post;
+import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.entity.report.Report;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.entity.user.BlackList;
@@ -143,47 +147,60 @@ public class AdminService {
      *
      * <p>
      * 게시글을 공지사항으로 설정하고 캐시를 업데이트한다.
+     * 상세 정보(FullPostResDTO)와 목록(SimplePostResDTO)을 모두 캐싱한다.
      * </p>
      *
-     * @param postId 공지사항으로 설정할 게시글 ID
+     * @param postReqDTO 공지사항으로 설정할 게시글 ID를 담은 DTO
      * @author Jaeik
      * @since 2.0.0
      */
     @Transactional
-    public void setPostAsNotice(Long postId) {
-        Post post = postRepository.findById(postId)
+    public void setPostAsNotice(PostReqDTO postReqDTO) {
+        Post post = postRepository.findByIdWithUserV2(postReqDTO.getPostId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        
-        boolean wasNotice = post.isNotice();
+
         post.setAsNotice();
-        
-        if (!wasNotice) {
-            redisPostService.deleteNoticePostsCache();
-        }
+
+        // 상세 정보 캐싱 (FullPostResDTO)
+        FullPostResDTO fullPostDto = FullPostResDTO.existedPost(
+                post.getId(),
+                post.getUser() != null ? post.getUser().getId() : null,
+                post.getUser() != null ? post.getUser().getUserName() : "익명",
+                post.getTitle(),
+                post.getContent(),
+                post.getViews(),
+                post.getLikes(),
+                post.isNotice(),
+                null, 
+                post.getCreatedAt(),
+                false 
+        );
+        redisPostService.cacheFullPost(fullPostDto);
+
+        redisPostService.deleteNoticePostsCache();
+        redisPostService.getCachedNoticePosts();
     }
 
     /**
      * <h3>공지사항 해제</h3>
      *
      * <p>
-     * 게시글의 공지사항을 해제하고 캐시를 업데이트한다.
+     * 게시글의 공지사항 설정을 해제하고 관련 캐시를 모두 삭제한다.
      * </p>
      *
-     * @param postId 공지사항을 해제할 게시글 ID
+     * @param postReqDTO 공지사항을 해제할 게시글 ID를 담은 DTO
      * @author Jaeik
      * @since 2.0.0
      */
     @Transactional
-    public void unsetPostAsNotice(Long postId) {
-        Post post = postRepository.findById(postId)
+    public void unsetPostAsNotice(PostReqDTO postReqDTO) {
+        Post post = postRepository.findById(postReqDTO.getPostId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
-        boolean wasNotice = post.isNotice();
         post.unsetAsNotice();
         
-        if (wasNotice) {
-            redisPostService.deleteNoticePostsCache();
-        }
+        // 관련 캐시 모두 삭제
+        redisPostService.deleteNoticePostsCache();
+        redisPostService.deleteFullPostCache(postReqDTO.getPostId());
     }
-
 }

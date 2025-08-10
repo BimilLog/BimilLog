@@ -71,13 +71,19 @@ public abstract class PostBaseRepository {
         QUsers user = QUsers.users;
         QPostLike postLike = QPostLike.postLike;
 
-        BooleanExpression isLikedSubquery = (userId != null)
-                ? JPAExpressions
-                .selectOne()
+        // 좋아요 여부 확인을 위한 서브쿼리
+        BooleanExpression userLikedSubquery = (userId != null)
+                ? JPAExpressions.selectOne()
                 .from(postLike)
                 .where(postLike.post.id.eq(post.id).and(postLike.user.id.eq(userId)))
                 .exists()
                 : Expressions.asBoolean(false);
+
+        // 좋아요 수 계산을 위한 스칼라 서브쿼리
+        var likesCountSubquery = JPAExpressions
+                .select(postLike.count())
+                .from(postLike)
+                .where(postLike.post.id.eq(post.id));
 
         return jpaQueryFactory
                 .select(Projections.constructor(FullPostResDTO.class,
@@ -87,20 +93,15 @@ public abstract class PostBaseRepository {
                         post.title,
                         post.content,
                         post.views.coalesce(0),
-                        postLike.count().intValue(),
+                        likesCountSubquery.intValue(), // 스칼라 서브쿼리 사용
                         post.isNotice,
                         post.postCacheFlag,
                         post.createdAt,
-                        isLikedSubquery
+                        userLikedSubquery
                 ))
                 .from(post)
                 .leftJoin(post.user, user)
-                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
                 .where(post.id.eq(postId))
-                .groupBy(
-                        post.id, user.id, user.userName, post.title, post.content,
-                        post.views, post.isNotice, post.postCacheFlag, post.createdAt
-                )
                 .fetchOne();
     }
 
@@ -143,20 +144,34 @@ public abstract class PostBaseRepository {
         QComment comment = QComment.comment;
         QPostLike postLike = QPostLike.postLike;
 
-        BooleanExpression finalCondition = post.isNotice.isFalse().and(condition); // 기본 조건을 명시적으로 추가
+        // 댓글 수 계산을 위한 스칼라 서브쿼리
+        var commentCountSubquery = JPAExpressions
+                .select(comment.count())
+                .from(comment)
+                .where(comment.post.id.eq(post.id));
+
+        // 좋아요 수 계산을 위한 스칼라 서브쿼리
+        var likeCountSubquery = JPAExpressions
+                .select(postLike.count())
+                .from(postLike)
+                .where(postLike.post.id.eq(post.id));
 
         return jpaQueryFactory
                 .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id, post.title, post.views.coalesce(0), post.isNotice, post.postCacheFlag,
-                        post.createdAt, post.user.id, user.userName,
-                        comment.countDistinct().intValue(), postLike.countDistinct().intValue()))
+                        post.id,
+                        post.title,
+                        post.views.coalesce(0),
+                        post.isNotice,
+                        post.postCacheFlag,
+                        post.createdAt,
+                        post.user.id,
+                        user.userName,
+                        commentCountSubquery.intValue(), // 스칼라 서브쿼리 사용
+                        likeCountSubquery.intValue()   // 스칼라 서브쿼리 사용
+                ))
                 .from(post)
                 .leftJoin(post.user, user)
-                .leftJoin(comment).on(comment.post.id.eq(post.id))
-                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
-                .where(finalCondition)
-                .groupBy(post.id, post.title, post.views, post.isNotice, post.postCacheFlag,
-                        post.createdAt, user.id, user.userName)
+                .where(condition) // isNotice 조건은 호출하는 쪽에서 제어
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -176,24 +191,7 @@ public abstract class PostBaseRepository {
      */
     protected List<SimplePostResDTO> fetchNotices() {
         QPost post = QPost.post;
-        QUsers user = QUsers.users;
-        QComment comment = QComment.comment;
-        QPostLike postLike = QPostLike.postLike;
-
-        // fetchPosts와 동일한 로직이지만 isNotice.isTrue() 조건 사용
-        return jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id, post.title, post.views.coalesce(0), post.isNotice, post.postCacheFlag,
-                        post.createdAt, post.user.id, user.userName,
-                        comment.countDistinct().intValue(), postLike.countDistinct().intValue()))
-                .from(post)
-                .leftJoin(post.user, user)
-                .leftJoin(comment).on(comment.post.id.eq(post.id))
-                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
-                .where(post.isNotice.isTrue())
-                .groupBy(post.id, post.title, post.views, post.isNotice, post.postCacheFlag,
-                        post.createdAt, user.id, user.userName)
-                .orderBy(post.createdAt.desc())
-                .fetch();
+        // fetchPosts와 동일한 로직이지만 isNotice.isTrue() 조건 사용 -> createPostListQuery 재사용으로 변경
+        return createPostListQuery(post.isNotice.isTrue(), Pageable.unpaged());
     }
 }

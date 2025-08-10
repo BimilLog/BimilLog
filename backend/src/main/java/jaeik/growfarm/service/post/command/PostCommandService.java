@@ -1,6 +1,7 @@
 package jaeik.growfarm.service.post.command;
 
 import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.PostLikeRequestDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 
@@ -61,10 +62,10 @@ public interface PostCommandService {
      * 게시글을 추천하거나 추천 취소한다.
      * </p>
      *
-     * @param fullPostResDTO     추천할 게시글 정보 DTO
+     * @param likeRequestDTO     추천할 게시글 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    void likePost(FullPostResDTO fullPostResDTO, CustomUserDetails userDetails);
+    void likePost(PostLikeRequestDTO likeRequestDTO, CustomUserDetails userDetails);
 }

@@ -1,6 +1,7 @@
 package jaeik.growfarm.controller;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
+import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.service.admin.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -75,8 +76,8 @@ public class AdminController {
      */
     @PostMapping("/post/{postId}/notice")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> setPostAsNotice(@PathVariable Long postId) {
-        adminService.setPostAsNotice(postId);
+    public ResponseEntity<String> setPostAsNotice(@PathVariable PostReqDTO postReqDTO) {
+        adminService.setPostAsNotice(postReqDTO);
         return ResponseEntity.ok("게시글을 공지사항으로 설정했습니다.");
     }
 
@@ -90,8 +91,8 @@ public class AdminController {
      */
     @DeleteMapping("/post/{postId}/notice")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> unsetPostAsNotice(@PathVariable Long postId) {
-        adminService.unsetPostAsNotice(postId);
+    public ResponseEntity<String> unsetPostAsNotice(@PathVariable PostReqDTO postReqDTO) {
+        adminService.unsetPostAsNotice(postReqDTO);
         return ResponseEntity.ok("게시글의 공지사항을 해제했습니다.");
     }
 }

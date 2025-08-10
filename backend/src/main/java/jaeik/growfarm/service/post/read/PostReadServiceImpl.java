@@ -89,10 +89,6 @@ public class PostReadServiceImpl implements PostReadService {
      */
     @Override
     public void incrementViewCount(Long postId, HttpServletRequest request, HttpServletResponse response) {
-        if (!postRepository.existsById(postId)) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
-
         Cookie[] cookies = request.getCookies();
 
         if (!hasViewedPost(cookies, postId)) {

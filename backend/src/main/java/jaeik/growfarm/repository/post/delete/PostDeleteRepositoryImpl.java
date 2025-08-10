@@ -1,6 +1,7 @@
 package jaeik.growfarm.repository.post.delete;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.entity.post.Post;
 import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.entity.post.QPost;
 import jaeik.growfarm.global.exception.CustomException;
@@ -44,34 +45,37 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
         QPost post = QPost.post;
 
         try {
-            var postInfo = jpaQueryFactory
-                    .select(post.postCacheFlag, post.isNotice)
-                    .from(post)
+            // 1. 게시글 엔티티 조회
+            Post postToDelete = jpaQueryFactory
+                    .selectFrom(post)
                     .where(post.id.eq(postId))
                     .fetchOne();
 
-            if (postInfo == null) {
+            if (postToDelete == null) {
                 throw new CustomException(ErrorCode.POST_NOT_FOUND);
             }
 
-            PostCacheFlag postCacheFlag = postInfo.get(post.postCacheFlag);
-            Boolean isNotice = postInfo.get(post.isNotice);
+            PostCacheFlag postCacheFlag = postToDelete.getPostCacheFlag();
+            Boolean isNotice = postToDelete.isNotice();
 
-            long deletedCount = jpaQueryFactory
+            // 2. 게시글 삭제
+            jpaQueryFactory
                     .delete(post)
                     .where(post.id.eq(postId))
                     .execute();
+            
+            // 3. 관련 캐시 모두 삭제
+            // 상세 정보 캐시 삭제
+            redisPostService.deleteFullPostCache(postId);
 
-            if (deletedCount > 0) {
-                // 인기글인 경우 해당 캐시 삭제
-                if (postCacheFlag != null) {
-                    deleteRelatedRedisCache(postCacheFlag);
-                }
-                // 공지사항인 경우 공지사항 캐시 삭제
-                if (Boolean.TRUE.equals(isNotice)) {
-                    redisPostService.deleteNoticePostsCache();
-                    log.info("공지사항 Redis 캐시 삭제 완료");
-                }
+            // 인기글 목록 캐시 삭제
+            if (postCacheFlag != null) {
+                deleteRelatedRedisCache(postCacheFlag);
+            }
+            // 공지사항 목록 캐시 삭제
+            if (Boolean.TRUE.equals(isNotice)) {
+                redisPostService.deleteNoticePostsCache();
+                log.info("공지사항 Redis 캐시 삭제 완료");
             }
 
         } catch (Exception e) {
@@ -95,15 +99,15 @@ public class PostDeleteRepositoryImpl implements PostDeleteRepository {
         try {
             switch (postCacheFlag) {
                 case REALTIME -> {
-                    redisPostService.deletePopularPostsCache(RedisPostService.CachePostType.REALTIME);
+                    redisPostService.deletePopularPostsCache(PostCacheFlag.REALTIME);
                     log.info("실시간 인기글 Redis 캐시 삭제 완료");
                 }
                 case WEEKLY -> {
-                    redisPostService.deletePopularPostsCache(RedisPostService.CachePostType.WEEKLY);
+                    redisPostService.deletePopularPostsCache(PostCacheFlag.WEEKLY);
                     log.info("주간 인기글 Redis 캐시 삭제 완료");
                 }
                 case LEGEND -> {
-                    redisPostService.deletePopularPostsCache(RedisPostService.CachePostType.LEGEND);
+                    redisPostService.deletePopularPostsCache(PostCacheFlag.LEGEND);
                     log.info("레전드 게시글 Redis 캐시 삭제 완료");
                 }
                 default -> log.debug("PopularFlag가 없는 게시글이므로 캐시 삭제 불필요");

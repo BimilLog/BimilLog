@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * <h3>게시글 Repository</h3>
  * <p>
@@ -22,6 +24,21 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
+
+    /**
+     * <h3>ID로 게시글과 작성자 정보 함께 조회 (v2)</h3>
+     * <p>
+     *     게시글을 조회할 때 Fetch Join을 사용하여 작성자(User) 정보도 함께 조회한다.
+     *     N+1 문제를 방지하고 성능을 최적화한다.
+     * </p>
+     *
+     * @param postId 조회할 게시글의 ID
+     * @return 게시글과 작성자 정보가 포함된 Optional<Post>
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.user WHERE p.id = :postId")
+    Optional<Post> findByIdWithUserV2(@Param("postId") Long postId);
 
     /**
      * <h3>게시글 조회수 증가</h3>

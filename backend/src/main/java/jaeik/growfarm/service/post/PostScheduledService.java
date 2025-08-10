@@ -1,6 +1,7 @@
 package jaeik.growfarm.service.post;
 
 import jaeik.growfarm.dto.post.SimplePostResDTO;
+import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.repository.post.cache.PostCacheRepository;
 import jaeik.growfarm.service.redis.RedisPostService;
@@ -47,7 +48,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 30)
     public void updateRealtimePopularPosts() {
         List<SimplePostResDTO> realtimePosts = postCacheRepository.updateRealtimePopularPosts();
-        redisPostService.cachePopularPosts(RedisPostService.CachePostType.REALTIME, realtimePosts);
+        redisPostService.cachePosts(PostCacheFlag.REALTIME, realtimePosts);
     }
 
     /**
@@ -68,7 +69,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateWeeklyPopularPosts() {
         List<SimplePostResDTO> weeklyPosts = postCacheRepository.updateWeeklyPopularPosts();
-        redisPostService.cachePopularPosts(RedisPostService.CachePostType.WEEKLY, weeklyPosts);
+        redisPostService.cachePosts(PostCacheFlag.WEEKLY, weeklyPosts);
 
         for (SimplePostResDTO simplePostResDTO : weeklyPosts) {
             if (simplePostResDTO.getUser() != null) {
@@ -101,7 +102,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440)
     public void updateLegendPopularPosts() {
         List<SimplePostResDTO> legendPosts = postCacheRepository.updateLegendPosts();
-        redisPostService.cachePopularPosts(RedisPostService.CachePostType.LEGEND, legendPosts);
+        redisPostService.cachePosts(PostCacheFlag.LEGEND, legendPosts);
 
         for (SimplePostResDTO simplePostResDTO : legendPosts) {
             eventPublisher.publishEvent(new PostFeaturedEvent(

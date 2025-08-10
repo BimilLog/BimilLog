@@ -1,6 +1,7 @@
 package jaeik.growfarm.controller.post;
 
 import jaeik.growfarm.dto.post.FullPostResDTO;
+import jaeik.growfarm.dto.post.PostLikeRequestDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.service.post.command.PostCommandService;
@@ -98,13 +99,13 @@ public class PostManageController {
      * @since 1.0.21
      * @author Jaeik
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param fullPostResDTO     추천/추천 취소할 게시글 정보
+     * @param likeRequestDTO     추천/추천 취소할 게시글 정보
      * @return 좋아요 처리 결과 메시지
      */
     @PostMapping("/like")
     public ResponseEntity<String> likePost(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid FullPostResDTO fullPostResDTO) {
-        postCommandService.likePost(fullPostResDTO, userDetails);
+            @RequestBody @Valid PostLikeRequestDTO likeRequestDTO) {
+        postCommandService.likePost(likeRequestDTO, userDetails);
         return ResponseEntity.ok("추천 처리 완료");
     }
 }
