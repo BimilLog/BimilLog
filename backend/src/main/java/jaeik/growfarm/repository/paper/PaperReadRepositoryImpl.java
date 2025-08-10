@@ -1,4 +1,4 @@
-package jaeik.growfarm.repository.message;
+package jaeik.growfarm.repository.paper;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
@@ -13,9 +13,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * <h2>메시지 커스텀 저장소 구현 클래스</h2>
+ * <h2>롤링페이퍼 조회 레포지토리 구현 클래스</h2>
  * <p>
- * 메시지 관련 데이터베이스 작업을 수행하며 커스텀한 쿼리메소드가 포함되어 있습니다.
+ * QueryDSL을 사용하여 롤링페이퍼 조회 관련 데이터베이스 작업을 수행합니다.
  * </p>
  *
  * @author Jaeik
@@ -23,19 +23,12 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class MessageCustomRepositoryImpl implements MessageCustomRepository {
+public class PaperReadRepositoryImpl implements PaperReadRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
     /**
-     * <h3>사용자 ID로 메시지 DTO 리스트 조회</h3>
-     *
-     * <p>
-     * 사용자 ID를 통해 해당 사용자의 메시지 DTO 리스트를 조회합니다.
-     * </p>
-     *
-     * @param userId 사용자 ID
-     * @return List<MessageDTO> 해당 사용자의 메시지 DTO 리스트
+     * {@inheritDoc}
      */
     @Override
     public List<MessageDTO> findMessageDTOsByUserId(Long userId) {
@@ -59,19 +52,7 @@ public class MessageCustomRepositoryImpl implements MessageCustomRepository {
     }
 
     /**
-     * <h3>닉네임로 방문 메시지 DTO 리스트 조회</h3>
-     *
-     * <p>
-     * 닉네임을 통해 해당 사용자의 방문 메시지 DTO 리스트를 조회합니다.
-     * </p>
-     * <P>
-     * 다른 사람의 롤링페이퍼를 방문할 때 사용됩니다.
-     * </P>
-     *
-     * @param userName 사용자 닉네임
-     * @return List<VisitMessageDTO> 해당 사용자의 방문 메시지 DTO 리스트
-     * @since 1.0.0
-     * @author Jaeik
+     * {@inheritDoc}
      */
     @Override
     public List<VisitMessageDTO> findVisitMessageDTOsByUserName(String userName) {
