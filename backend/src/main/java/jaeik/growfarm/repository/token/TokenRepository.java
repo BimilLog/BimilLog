@@ -13,7 +13,7 @@ import java.util.Optional;
  * <p>토큰 관련 데이터베이스 작업을 수행합니다.</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Repository
 public interface TokenRepository extends JpaRepository<Token, Long> {

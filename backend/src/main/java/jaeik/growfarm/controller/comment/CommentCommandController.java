@@ -43,7 +43,7 @@ public class CommentCommandController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 댓글 작성 성공 메시지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @PostMapping("/write")
     public ResponseEntity<String> writeComment(
@@ -64,7 +64,7 @@ public class CommentCommandController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 댓글 수정 성공 메시지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @PostMapping("/update")
     public ResponseEntity<String> updateComment(
@@ -84,7 +84,7 @@ public class CommentCommandController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 댓글 삭제 성공 메시지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @PostMapping("/delete")
     public ResponseEntity<String> deleteComment(
@@ -108,7 +108,7 @@ public class CommentCommandController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 추천 처리 메시지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @PostMapping("/like")
     public ResponseEntity<String> likeComment(

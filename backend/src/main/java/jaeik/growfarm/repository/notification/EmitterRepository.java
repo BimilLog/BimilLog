@@ -10,7 +10,7 @@ import java.util.Map;
  * <p>사용자의 실시간 알림 기능을 구현하기 위한 Emitter 저장소</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 public interface EmitterRepository {
 

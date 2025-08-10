@@ -18,7 +18,7 @@ import java.util.List;
  * <p>롤링페이퍼 조회 관련 서비스 클래스</p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Service
 @Transactional(readOnly = true)

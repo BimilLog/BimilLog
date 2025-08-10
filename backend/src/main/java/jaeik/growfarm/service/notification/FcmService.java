@@ -30,7 +30,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -46,7 +46,7 @@ public class FcmService {
      * @param postOwnerId 게시글 작성자 ID
      * @param commenterName 댓글 작성자 이름
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Async("fcmNotificationExecutor")
     public void sendCommentFcmNotificationAsync(Long postOwnerId, String commenterName) {
@@ -72,7 +72,7 @@ public class FcmService {
      *
      * @param paperOwnerId 롤링페이퍼 주인 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Async("fcmNotificationExecutor")
     public void sendPaperPlantFcmNotificationAsync(Long paperOwnerId) {
@@ -100,7 +100,7 @@ public class FcmService {
      * @param title 알림 제목
      * @param body  알림 내용
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Async("fcmNotificationExecutor")
     public void sendPostFeaturedFcmNotificationAsync(Long userId, String title, String body) {
@@ -130,7 +130,7 @@ public class FcmService {
      * @param userId 사용자 ID
      * @return 유효한 FCM 토큰 리스트 또는 null
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public List<FcmToken> fcmValidate(Long userId) {
         List<FcmToken> fcmTokens = fcmTokenRepository.findValidFcmTokensByUserId(userId);
@@ -147,7 +147,7 @@ public class FcmService {
      * @param fcmSendDto FCM 전송 정보 DTO
      * @throws IOException FCM 전송 중 발생할 수 있는 예외
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void sendMessageTo(FcmSendDTO fcmSendDto) throws IOException {
 
@@ -179,7 +179,7 @@ public class FcmService {
      * @return String Firebase Access Token
      * @throws IOException Firebase 설정 파일을 읽는 중 발생할 수 있는 예외
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private String getAccessToken() throws IOException {
         String firebaseConfigPath = "firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-7d4ebe98d2.json";
@@ -203,7 +203,7 @@ public class FcmService {
      * @return String FCM 메시지 JSON 문자열
      * @throws JsonProcessingException JSON 변환 중 발생할 수 있는 예외
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private String makeMessage(FcmSendDTO fcmSendDto) throws JsonProcessingException {
         ObjectMapper om = new ObjectMapper();

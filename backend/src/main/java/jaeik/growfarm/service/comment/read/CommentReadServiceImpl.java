@@ -23,7 +23,7 @@ import java.util.*;
  * <p>댓글 조회 관련 서비스를 담당하는 클래스입니다.</p>
  *
  * @author jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -43,7 +43,7 @@ public class CommentReadServiceImpl implements CommentReadService {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 인기댓글 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
@@ -111,7 +111,7 @@ public class CommentReadServiceImpl implements CommentReadService {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 댓글 목록 페이지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
@@ -193,7 +193,7 @@ public class CommentReadServiceImpl implements CommentReadService {
      * @param userDetails 사용자 정보
      * @return 사용자가 추천한 댓글 ID 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private List<Long> getUserLikedCommentIds(List<Long> commentIds, CustomUserDetails userDetails) {
         return (userDetails != null)

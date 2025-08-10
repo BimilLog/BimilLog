@@ -8,7 +8,7 @@ import lombok.Getter;
  * <p>API 요청 처리 중 발생한 오류에 대한 응답을 정의하는 클래스</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Getter
 @AllArgsConstructor

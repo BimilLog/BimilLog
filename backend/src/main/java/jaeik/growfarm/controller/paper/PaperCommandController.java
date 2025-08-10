@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -34,7 +34,7 @@ public class PaperCommandController {
      * @param messageDTO 작성할 메시지 정보
      * @return ResponseEntity<String> 메시지 작성 완료 메시지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @PostMapping("{userName}")
     public ResponseEntity<String> writeMessage(
@@ -51,7 +51,7 @@ public class PaperCommandController {
      * @param messageDTO  삭제할 메시지 정보
      * @return ResponseEntity<String> 농작물 삭제 완료 메시지
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @PostMapping("/delete")
     public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,

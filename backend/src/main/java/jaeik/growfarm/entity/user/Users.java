@@ -18,7 +18,7 @@ import lombok.experimental.SuperBuilder;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Entity
 @Getter
@@ -74,7 +74,7 @@ public class Users extends BaseEntity {
      * @param socialNickname  카카오 닉네임
      * @param thumbnailImage 프로필 이미지 URL
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void updateUserInfo(String socialNickname, String thumbnailImage) {
         this.socialNickname = socialNickname;
@@ -90,7 +90,7 @@ public class Users extends BaseEntity {
      *
      * @param userName 새로운 닉네임
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void updateUserName(String userName) {
         this.userName = userName;

@@ -27,7 +27,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Repository
 @RequiredArgsConstructor
@@ -51,7 +51,7 @@ public class ReportCustomRepositoryImpl implements ReportCustomRepository {
      * @param pageable   페이징 정보 객체
      * @return Page<ReportDTO> 신고 DTO 페이지 객체
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public Page<ReportDTO> findReportsWithPaging(ReportType reportType, Pageable pageable) {

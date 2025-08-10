@@ -21,7 +21,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class PaperQueryController {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return ResponseEntity<List < MessageDTO>> 내 롤링 페이퍼 메시지 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @GetMapping
     public ResponseEntity<List<MessageDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -50,7 +50,7 @@ public class PaperQueryController {
      * @param userName 닉네임
      * @return ResponseEntity<List < VisitMessageDTO>> 방문한 롤링페이퍼의 메시지 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @GetMapping("{userName}")
     public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String userName) {

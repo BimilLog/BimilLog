@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * <p>사용자 ID와 토큰 ID와 생성 시간을 조합하여 고유한 Emitter ID를 생성하고, 이를 통해 SseEmitter 객체를 저장 및 조회합니다.</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Repository
 public class EmitterRepositoryImpl implements EmitterRepository {
@@ -32,7 +32,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
      * @param sseEmitter SseEmitter 객체
      * @return 저장된 SseEmitter 객체
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public SseEmitter save(String emitterId, SseEmitter sseEmitter) {
@@ -49,7 +49,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
      * @param userId 유저 ID
      * @return 사용자 ID에 해당하는 모든 Emitter Map
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public Map<String, SseEmitter> findAllEmitterByUserId(Long userId) {
@@ -66,7 +66,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
      *
      * @param emitterId emitter ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public void deleteById(String emitterId) {
@@ -81,7 +81,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
      *
      * @param userId 유저 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public void deleteAllEmitterByUserId(Long userId) {

@@ -20,7 +20,7 @@ import lombok.experimental.SuperBuilder;
  * <p>카카오 ID를 기반으로 블랙리스트에 등록</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Entity
 @Getter

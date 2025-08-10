@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 관리자 관련 업데이트 작업을 처리하는 서비스 클래스
  * </p>
  * 
- * @since 1.0.0
+ * @since 2.0.0
  * @author Jaeik
  */
 @Service

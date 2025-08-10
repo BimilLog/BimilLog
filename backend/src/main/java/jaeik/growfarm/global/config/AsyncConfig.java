@@ -14,7 +14,7 @@ import java.util.concurrent.Executor;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Configuration
 @EnableAsync

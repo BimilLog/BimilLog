@@ -46,7 +46,7 @@ public abstract class PostBaseRepository {
      * @param pageable  페이지 정보
      * @return 조회된 게시글 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     protected Page<SimplePostResDTO> fetchPosts(BooleanExpression condition, Pageable pageable) {
         List<SimplePostResDTO> posts = createPostListQuery(condition, pageable);

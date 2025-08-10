@@ -11,7 +11,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 public interface NotificationUpdateRepository {
 
@@ -24,7 +24,7 @@ public interface NotificationUpdateRepository {
      * @param ids    읽음 처리할 알림 ID 목록
      * @param userId 사용자 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     void markAsReadByIdInAndUserId(List<Long> ids, Long userId);
 

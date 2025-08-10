@@ -11,7 +11,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 public interface NotificationDeleteRepository {
 
@@ -24,7 +24,7 @@ public interface NotificationDeleteRepository {
      * @param ids    삭제할 알림 ID 목록
      * @param userId 사용자 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     void deleteByIdInAndUserId(List<Long> ids, Long userId);
 

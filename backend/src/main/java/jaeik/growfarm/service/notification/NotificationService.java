@@ -27,7 +27,7 @@ import java.util.Map;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -47,7 +47,7 @@ public class NotificationService implements NotificationSender {
      * @param tokenId 사용자 토큰 ID
      * @return SSE Emitter 객체
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public SseEmitter subscribe(Long userId, Long tokenId) {
         String emitterId = notificationUtil.makeTimeIncludeId(userId, tokenId);
@@ -72,7 +72,7 @@ public class NotificationService implements NotificationSender {
      * @param userId   사용자 ID
      * @param eventDTO 이벤트 정보 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public void send(Long userId, EventDTO eventDTO) {
@@ -107,7 +107,7 @@ public class NotificationService implements NotificationSender {
      * @param data      알림 데이터
      * @param url       알림 URL
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private void sendNotification(SseEmitter emitter, String emitterId, NotificationType type, String data, String url) {
         String jsonData = String.format("{\"message\": \"%s\", \"url\": \"%s\"}",
@@ -131,7 +131,7 @@ public class NotificationService implements NotificationSender {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return List<NotificationDTO> 알림 DTO 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Transactional(readOnly = true)
     public List<NotificationDTO> getNotificationList(CustomUserDetails userDetails) {
@@ -151,7 +151,7 @@ public class NotificationService implements NotificationSender {
      * @param userDetails 현재 로그인한 사용자 정보
      * @param updateNotificationDTO 알림 업데이트 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void batchUpdate(CustomUserDetails userDetails, UpdateNotificationDTO updateNotificationDTO) {
         Long userId = userDetails.getUserId();
@@ -167,7 +167,7 @@ public class NotificationService implements NotificationSender {
      *
      * @return SSE 알림 타입
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public String getType() {

@@ -51,7 +51,7 @@ public class PostSearchRepositoryImpl extends PostBaseRepository implements Post
      * @param searchType 검색 유형 (TITLE, TITLE_CONTENT, AUTHOR 등)
      * @param isFullText 전체 텍스트 검색 여부
      * @author Jaeik
-     * @version 1.0.0
+     * @version 2.0.0
      */
     private record SearchMethod(String searchType, String keyword, boolean isFullText) {
 

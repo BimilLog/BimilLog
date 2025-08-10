@@ -13,7 +13,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 public interface NotificationReadRepository {
 
@@ -26,7 +26,7 @@ public interface NotificationReadRepository {
      * @param userId 사용자 ID
      * @return List<NotificationDTO> 알림 DTO 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     List<NotificationDTO> findNotificationsByUserIdOrderByLatest(Long userId);
 

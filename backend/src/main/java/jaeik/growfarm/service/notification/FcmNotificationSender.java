@@ -20,7 +20,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class FcmNotificationSender implements NotificationSender {
      * @param userId   사용자 ID
      * @param eventDTO 이벤트 정보 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     @Async("fcmNotificationExecutor")
@@ -65,7 +65,7 @@ public class FcmNotificationSender implements NotificationSender {
      *
      * @return FCM 알림 타입
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public String getType() {

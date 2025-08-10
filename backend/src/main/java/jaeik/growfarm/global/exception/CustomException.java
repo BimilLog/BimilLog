@@ -53,7 +53,7 @@ public class CustomException extends RuntimeException {
      * </p>
      *
      * @return 현재 예외가 발생한 메소드의 이름
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     private String extractTarget() {

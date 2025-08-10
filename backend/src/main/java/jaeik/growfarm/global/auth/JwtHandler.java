@@ -20,7 +20,7 @@ import java.util.Date;
  * <p>JWT 토큰의 생성, 검증, 정보 추출 등 순수한 JWT 관련 로직을 담당합니다.</p>
  *
  * @author jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class JwtHandler {
      * @param clientDTO 클라이언트용 DTO
      * @return JWT 액세스 토큰
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public String generateAccessToken(ClientDTO clientDTO) {
         long now = (new Date()).getTime();
@@ -75,7 +75,7 @@ public class JwtHandler {
      * @param clientDTO 클라이언트용 DTO
      * @return JWT 리프레시 토큰
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public String generateRefreshToken(ClientDTO clientDTO) {
         long now = (new Date()).getTime();
@@ -98,7 +98,7 @@ public class JwtHandler {
      * @param token JWT 토큰
      * @return boolean 토큰 유효성 여부
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public boolean validateToken(String token) {
         try {
@@ -121,7 +121,7 @@ public class JwtHandler {
      * @param jwtAccessToken JWT 엑세스 토큰
      * @return 클라이언트 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public ClientDTO getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
@@ -147,7 +147,7 @@ public class JwtHandler {
      * @param jwtRefreshToken JWT 리프레시 토큰
      * @return 토큰 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public Long getTokenIdFromToken(String jwtRefreshToken) {
         Claims claims = getClaims(jwtRefreshToken);
@@ -158,7 +158,7 @@ public class JwtHandler {
     /**
      * <h3>JWT 리프레시 토큰에서 FCM 토큰 ID 추출</h3>
      * <p>JWT 리프레시 토큰에서 FCM 토큰 ID를 추출합니다.</p>
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @param jwtRefreshToken JWT 리프레시 토큰
      * @return FCM 토큰 ID
@@ -177,7 +177,7 @@ public class JwtHandler {
      * @param token JWT 토큰
      * @return Claims 객체
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private Claims getClaims(String token) {
         return Jwts.parserBuilder()

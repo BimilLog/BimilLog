@@ -25,7 +25,7 @@ import java.time.Duration;
  * <p>Redis 데이터베이스와의 연결 및 캐시 관리를 위한 설정을 정의합니다.</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Configuration
 @EnableCaching
@@ -38,7 +38,7 @@ public class RedisConfig {
      * @param connectionFactory RedisConnectionFactory
      * @return template RedisTemplate<String, Object>
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
@@ -69,7 +69,7 @@ public class RedisConfig {
      * @param connectionFactory RedisConnectionFactory
      * @return cacheManager CacheManager
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
@@ -85,7 +85,7 @@ public class RedisConfig {
      *
      * @return RedisCacheConfiguration
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private RedisCacheConfiguration cacheConfiguration() {
         // ObjectMapper 설정 (캐시용)

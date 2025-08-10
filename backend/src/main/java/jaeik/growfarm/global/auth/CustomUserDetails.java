@@ -20,7 +20,7 @@ import java.util.List;
  * ClientDTO 객체를 사용하여 사용자 정보를 저장하고, 권한을 설정하는 기능을 제공
  * </p>
  * 
- * @since 1.0.0
+ * @since 2.0.0
  * @author Jaeik
  */
 @Getter
@@ -36,7 +36,7 @@ public class CustomUserDetails implements UserDetails {
      * ClientDTO를 받아서 CustomUserDetails 객체를 생성한다.
      * </p>
      * 
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @param clientDTO 사용자 정보 DTO
      */
@@ -52,7 +52,7 @@ public class CustomUserDetails implements UserDetails {
      * 사용자 역할을 기반으로 권한을 생성한다.
      * </p>
      * 
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @param role 사용자 역할
      * @return 권한 컬렉션
@@ -70,7 +70,7 @@ public class CustomUserDetails implements UserDetails {
      * 사용자의 유저 ID를 반환한다.
      * </p>
      * 
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @return 유저 ID
      */
@@ -82,7 +82,7 @@ public class CustomUserDetails implements UserDetails {
      * <h3>사용자 토큰 ID 조회</h3>
      *
      * <p>사용자의 토큰 ID를 반환한다.</p>
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @return 토큰 ID
      */
@@ -95,7 +95,7 @@ public class CustomUserDetails implements UserDetails {
      *
      * <p>사용자의 FCM 토큰 ID를 반환한다.</p>
      *
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @return FCM 토큰 ID
      */
@@ -108,7 +108,7 @@ public class CustomUserDetails implements UserDetails {
      *
      * <p>사용자의 닉네임을 반환한다.</p>
      *
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @return 사용자 닉네임
      */

@@ -11,7 +11,7 @@ import org.springframework.context.ApplicationEvent;
  *
  * @param <E> 처리할 이벤트의 타입, ApplicationEvent를 상속해야 합니다.
  * @author jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 public interface NotificationEventHandler<E extends ApplicationEvent> {
 

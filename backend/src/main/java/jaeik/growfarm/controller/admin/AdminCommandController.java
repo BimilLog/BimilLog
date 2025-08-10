@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>사용자 차단 등 관리자 권한의 상태 변경 요청을 처리합니다.</p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor

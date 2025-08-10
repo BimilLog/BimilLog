@@ -22,7 +22,7 @@ import java.util.Map;
  * <p>UUID를 키로 사용하여 임시 데이터를 저장하며, 5분 후 자동으로 삭제된다</p>
  * <p>UUID는 사용자 브라우저에 쿠키로 전달된다.</p>
  *
- * @since 1.0.0
+ * @since 2.0.0
  * @author Jaeik
  */
 @Component
@@ -48,7 +48,7 @@ public class TempUserDataManager {
      * @param tokenDTO 토큰 DTO
      * @param fcmToken FCM 토큰 (선택)
      * @return UUID 키
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     public String saveTempData(SocialLoginUserData socialLoginUserData, TokenDTO tokenDTO, String fcmToken) {
@@ -64,7 +64,7 @@ public class TempUserDataManager {
      *
      * @param uuid UUID 키
      * @return TempUserData 임시 사용자 데이터
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     public TempUserData getTempData(String uuid) {
@@ -77,7 +77,7 @@ public class TempUserDataManager {
      * <p>UUID를 사용하여 임시 사용자 데이터를 삭제한다.</p>
      *
      * @param uuid UUID 키
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     public void removeTempData(String uuid) {
@@ -90,7 +90,7 @@ public class TempUserDataManager {
      * <p>5분 후에 임시 사용자 데이터를 자동으로 삭제하도록 스케줄링한다.</p>
      *
      * @param uuid UUID 키
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     private void scheduleCleanup(String uuid) {

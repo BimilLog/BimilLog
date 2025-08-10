@@ -14,7 +14,7 @@ import java.util.List;
  * <p>정적 팩토리 메서드 방식을 활용했다.</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Getter
 @Setter
@@ -34,7 +34,7 @@ public class LoginResponseDTO<T> {
      * @param loginType 로그인 타입 (기존 사용자/신규 사용자)
      * @param data      응답 데이터
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public LoginResponseDTO(LoginType loginType, T data) {
         this.type = loginType;
@@ -61,7 +61,7 @@ public class LoginResponseDTO<T> {
      * @param cookies JWT 쿠키 리스트
      * @return 기존 사용자 로그인 응답
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public static LoginResponseDTO<List<ResponseCookie>> existingUser(List<ResponseCookie> cookies) {
         return new LoginResponseDTO<>(LoginType.EXISTING_USER, cookies);
@@ -77,7 +77,7 @@ public class LoginResponseDTO<T> {
      * @param uuid 임시 쿠키에 사용할 UUID
      * @return 신규 사용자 로그인 응답
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public static LoginResponseDTO<ResponseCookie> newUser(String uuid) {
         ResponseCookie cookie = getTempCookie(uuid);
@@ -94,7 +94,7 @@ public class LoginResponseDTO<T> {
      * @param uuid 임시 쿠키에 사용할 UUID
      * @return ResponseCookie 임시 쿠키
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public static ResponseCookie getTempCookie(String uuid) {
         return ResponseCookie.from("temp", uuid)

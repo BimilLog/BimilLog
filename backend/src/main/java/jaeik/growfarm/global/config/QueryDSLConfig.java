@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * <p>JPAQueryFactory를 Bean으로 등록하여 QueryDSL을 사용할 수 있도록 설정</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Configuration
 @RequiredArgsConstructor

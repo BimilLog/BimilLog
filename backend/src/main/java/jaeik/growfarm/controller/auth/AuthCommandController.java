@@ -17,7 +17,7 @@ import java.util.List;
  * <p>로그인, 회원가입, 로그아웃, 회원탈퇴 등 인증 관련 상태 변경 요청을 처리합니다.</p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -60,7 +60,7 @@ public class AuthCommandController {
      * @param uuid 임시 쿠키에 저장된 UUID
      * @return JWT가 삽입된 쿠키
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @PostMapping("/signUp")
     public ResponseEntity<String> SignUp(@RequestParam String userName,
@@ -93,7 +93,7 @@ public class AuthCommandController {
      * @param userDetails 인증된 사용자 정보
      * @return 로그아웃 쿠키
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {

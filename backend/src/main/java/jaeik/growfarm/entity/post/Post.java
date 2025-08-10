@@ -21,7 +21,7 @@ import org.hibernate.annotations.OnDeleteAction;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Entity
 @Getter
@@ -77,7 +77,7 @@ public class Post extends BaseEntity {
      * @param postReqDTO 게시글 작성 요청 DTO
      * @return 생성된 Post 엔티티
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public static Post createPost(Users user, PostReqDTO postReqDTO) {
         return Post.builder()
@@ -100,7 +100,7 @@ public class Post extends BaseEntity {
      *
      * @param fullPostResDTO 업데이트할 게시글 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void updatePost(PostReqDTO postReqDTO) {
         this.title = postReqDTO.getTitle();

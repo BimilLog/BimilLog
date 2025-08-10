@@ -35,7 +35,7 @@ public class CommentQueryController {
      * @param page   페이지 번호
      * @return 댓글 목록 페이지 (최신순)
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @GetMapping("/{postId}")
     public ResponseEntity<Page<CommentDTO>> getComments(
@@ -54,7 +54,7 @@ public class CommentQueryController {
      * @param postId 게시글 ID
      * @return 인기댓글 리스트 (최대 3개)
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @GetMapping("/{postId}/cache")
     public ResponseEntity<List<CommentDTO>> getPopularComments(

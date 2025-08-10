@@ -20,7 +20,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -41,7 +41,7 @@ public class NotificationUpdateService {
      * @param data 알림 데이터
      * @param url  알림 URL
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Transactional
     public void saveNotification(Users user, NotificationType type, String data, String url) {
@@ -58,7 +58,7 @@ public class NotificationUpdateService {
      * @param userId    사용자 ID
      * @throws CustomException 권한이 없는 알림이 포함된 경우
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Transactional
     public void deleteNotifications(List<Long> deleteIds, Long userId) {
@@ -79,7 +79,7 @@ public class NotificationUpdateService {
      * @param userId  사용자 ID
      * @throws CustomException 권한이 없는 알림이 포함된 경우
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Transactional
     public void markNotificationsAsRead(List<Long> readIds, Long userId) {

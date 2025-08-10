@@ -20,7 +20,7 @@ import java.util.Optional;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -48,7 +48,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      *
      * @param postId 게시글 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Modifying
     @Query(nativeQuery = true, value = "UPDATE post SET views = views + 1 WHERE post_id = :postId")
@@ -63,7 +63,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
      * @param postId 글 ID
      * @return 사용자 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Query("SELECT p.user.userName FROM Post p WHERE p.id = :postId")
     String findUsernameByPostId(@Param("postId") Long postId);

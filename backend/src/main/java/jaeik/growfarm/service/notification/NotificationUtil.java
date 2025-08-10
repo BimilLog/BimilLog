@@ -18,7 +18,7 @@ public class NotificationUtil {
      *
      * <p>유저 ID와 토큰 ID를 조합하여 고유한 Emitter ID를 생성한다.</p>
      * 
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @param userId 사용자 ID
      * @param tokenId 토큰 ID
@@ -35,7 +35,7 @@ public class NotificationUtil {
      * 알림 타입, 데이터, URL을 포함한 이벤트 DTO를 생성한다.
      * </p>
      * 
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @param type 알림 타입
      * @param data 알림 데이터

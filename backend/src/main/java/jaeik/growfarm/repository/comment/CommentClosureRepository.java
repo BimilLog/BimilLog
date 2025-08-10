@@ -20,7 +20,7 @@ import java.util.Optional;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Repository
 public interface CommentClosureRepository extends JpaRepository<CommentClosure, Long> {
@@ -33,7 +33,7 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      *
      * @param id 댓글 ID
      * @return 조상 댓글 리스트
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     Optional<List<CommentClosure>> findByDescendantId(Long descendantId);
@@ -48,7 +48,7 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      * </p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     @Modifying
@@ -66,7 +66,7 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      *
      * @param commentId 확인할 댓글 ID
      * @return 자손 댓글이 존재하면 true, 없으면 false
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     @Query("SELECT COUNT(cc) > 1 FROM CommentClosure cc WHERE cc.ancestor.id = :commentId")
@@ -79,7 +79,7 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      * </p>
      *
      * @param commentIds 삭제할 댓글 ID 리스트
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     @Modifying

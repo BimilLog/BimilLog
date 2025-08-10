@@ -11,7 +11,7 @@ import lombok.Setter;
  * 사용자의 알림 설정 정보를 담는 데이터 전송 객체
  * </p>
  * 
- * @since 1.0.0
+ * @since 2.0.0
  * @author Jaeik
  */
 @Getter

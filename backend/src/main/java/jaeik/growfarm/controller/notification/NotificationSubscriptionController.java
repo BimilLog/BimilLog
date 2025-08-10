@@ -19,7 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Slf4j
 @RestController
@@ -34,7 +34,7 @@ public class NotificationSubscriptionController {
      *
      * @param userDetails 현재 로그인한 유저 정보
      * @return SSE 구독 객체
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

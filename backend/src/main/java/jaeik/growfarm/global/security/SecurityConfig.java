@@ -40,7 +40,7 @@ import java.util.function.Supplier;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.19
+ * @version 2.0.0
  */
 @Getter
 @Configuration
@@ -72,7 +72,7 @@ public class SecurityConfig {
      * @return SecurityFilterChain 객체
      * @throws Exception 보안 설정 중 발생할 수 있는 예외
      * @author Jaeik
-     * @since 1.0.19
+     * @since 2.0.0
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -128,7 +128,7 @@ public class SecurityConfig {
      *
      * @return CsrfTokenRepository 객체
      * @author Jaeik
-     * @since 1.0.19
+     * @since 2.0.0
      */
     private CsrfTokenRepository createCsrfTokenRepository() {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
@@ -178,7 +178,7 @@ public class SecurityConfig {
      *
      * @return CookieSameSiteSupplier 객체
      * @author Jaeik
-     * @since 1.0.19
+     * @since 2.0.0
      */
     @Bean
     public CookieSameSiteSupplier cookieSameSiteSupplier() {

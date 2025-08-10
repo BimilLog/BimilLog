@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * <h2>FCM 토큰 Repository</h2>
  * <p>FCM 토큰 관련 데이터베이스 작업을 수행하는 Repository</p>
- * @since 1.0.0
+ * @since 2.0.0
  * @author Jaeik
  */
 @Repository
@@ -26,7 +26,7 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
      * @param userId 사용자 ID
      * @return 유효한 FCM 토큰 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Query("""
         SELECT f FROM FcmToken f

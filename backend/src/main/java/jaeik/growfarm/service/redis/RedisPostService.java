@@ -109,7 +109,7 @@ public class RedisPostService {
      * @param type 조회할 게시글 캐시 플래그
      * @return 캐시된 인기글 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
     public List<SimplePostResDTO> getCachedPopularPosts(PostCacheFlag type) {
@@ -158,7 +158,7 @@ public class RedisPostService {
      *
      * @param type 삭제할 게시글 캐시 플래그
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void deletePopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
@@ -175,7 +175,7 @@ public class RedisPostService {
      * @param type 확인할 게시글 캐시 플래그
      * @return 캐시 존재 여부.
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public boolean hasPopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
@@ -200,7 +200,7 @@ public class RedisPostService {
      * <h3>모든 인기글 캐시 삭제</h3>
      *
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void deleteAllPopularPostsCache() {
         for (PostCacheFlag type : PostCacheFlag.values()) {

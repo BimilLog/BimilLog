@@ -19,7 +19,7 @@ import java.util.Optional;
  * <p>댓글 추천 관련 서비스를 담당하는 클래스입니다.</p>
  *
  * @author jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -43,7 +43,7 @@ public class CommentLikeServiceImpl implements CommentLikeService {
      * @param commentDTO  추천할 댓글 정보 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public void likeComment(CommentDTO commentDTO, CustomUserDetails userDetails) {

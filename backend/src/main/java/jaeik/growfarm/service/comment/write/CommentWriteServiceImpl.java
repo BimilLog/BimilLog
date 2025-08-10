@@ -25,7 +25,7 @@ import java.util.List;
  * <p>댓글 작성 관련 서비스를 담당하는 클래스입니다.</p>
  *
  * @author jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -54,7 +54,7 @@ public class CommentWriteServiceImpl implements CommentWriteService {
      * @param userDetails 현재 로그인한 사용자 정보
      * @param commentDTO  댓글 정보 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public void writeComment(CustomUserDetails userDetails, CommentDTO commentDTO) {
@@ -86,7 +86,7 @@ public class CommentWriteServiceImpl implements CommentWriteService {
      * @param password 댓글 비밀번호 (선택적)
      * @param parentId 부모 댓글 ID (대댓글인 경우)
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private void saveCommentWithClosure(Post post, Users user, String content, Integer password, Long parentId) {
         try {

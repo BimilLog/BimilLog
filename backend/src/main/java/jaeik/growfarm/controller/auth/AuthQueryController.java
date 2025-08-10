@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>사용자 정보 조회, 서버 상태 조회 등 인증 관련 조회 요청을 처리합니다.</p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class AuthQueryController {
      * @param userDetails 인증된 사용자 정보
      * @return 현재 로그인한 사용자 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {

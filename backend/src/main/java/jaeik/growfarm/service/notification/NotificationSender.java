@@ -16,7 +16,7 @@ import jaeik.growfarm.dto.notification.EventDTO;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 public interface NotificationSender {
 
@@ -29,7 +29,7 @@ public interface NotificationSender {
      * @param userId   사용자 ID
      * @param eventDTO 이벤트 정보 DTO
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     void send(Long userId, EventDTO eventDTO);
 
@@ -41,7 +41,7 @@ public interface NotificationSender {
      *
      * @return 알림 전송 타입
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     String getType();
 }

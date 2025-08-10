@@ -15,7 +15,7 @@ import java.util.List;
  * <p>댓글 CRUD 및 커스텀 쿼리 메소드를 포함한다.</p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
@@ -28,7 +28,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
          *
          * @param userId 사용자 ID
          * @author Jaeik
-         * @since 2.1.0
+         * @since 2.0.0
          */
         @Modifying
         @Query("UPDATE Comment c SET c.user = null, c.deleted = true, c.content = '삭제된 댓글 입니다.' WHERE c.user.id = :userId")
@@ -44,7 +44,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
          * @param userId     사용자 ID
          * @return 추천한 댓글 ID 리스트
          * @author Jaeik
-         * @since 1.0.0
+         * @since 2.0.0
          */
         @Query("""
                         SELECT cl.comment.id
@@ -63,7 +63,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
          * @param postId 게시글 ID
          * @return 댓글 ID 리스트
          * @author Jaeik
-         * @since 1.0.0
+         * @since 2.0.0
          */
         List<Long> findCommentIdsByPostId(Long postId);
 
@@ -76,7 +76,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
          * @param commentId 댓글 ID
          * @return 사용자 ID
          * @author Jaeik
-         * @since 1.0.0
+         * @since 2.0.0
          */
         @Query("SELECT c.user.id FROM Comment c WHERE c.id = :commentId")
         Long findUserIdByCommentId(@Param("commentId") Long commentId);

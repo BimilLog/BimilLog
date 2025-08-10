@@ -23,7 +23,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class NotificationFacadeService {
      * @param tokenId 토큰 ID
      * @return SSE Emitter
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public SseEmitter subscribe(Long userId, Long tokenId) {
         return notificationService.subscribe(userId, tokenId);
@@ -56,7 +56,7 @@ public class NotificationFacadeService {
      * @param userDetails 사용자 정보
      * @return 알림 목록
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public List<NotificationDTO> getNotificationList(CustomUserDetails userDetails) {
         return notificationService.getNotificationList(userDetails);
@@ -68,7 +68,7 @@ public class NotificationFacadeService {
      * @param userDetails           사용자 정보
      * @param updateNotificationDTO 업데이트 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void batchUpdate(CustomUserDetails userDetails, UpdateNotificationDTO updateNotificationDTO) {
         notificationService.batchUpdate(userDetails, updateNotificationDTO);
@@ -81,7 +81,7 @@ public class NotificationFacadeService {
      * @param commenterName 댓글 작성자 이름
      * @param postId        게시글 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
         EventDTO eventDTO = notificationUtil.createEventDTO(
@@ -99,7 +99,7 @@ public class NotificationFacadeService {
      * @param farmOwnerId 롤링페이퍼 주인 ID
      * @param userName    사용자 이름
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
         EventDTO eventDTO = notificationUtil.createEventDTO(
@@ -118,7 +118,7 @@ public class NotificationFacadeService {
      * @param message 알림 메시지
      * @param postId  게시글 ID
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void sendPostFeaturedNotification(Long userId, String message, Long postId) {
         EventDTO eventDTO = notificationUtil.createEventDTO(
@@ -140,7 +140,7 @@ public class NotificationFacadeService {
      * @param userId   사용자 ID
      * @param eventDTO 이벤트 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private void sendNotificationToAll(Long userId, EventDTO eventDTO) {
         for (NotificationSender sender : notificationSenders) {

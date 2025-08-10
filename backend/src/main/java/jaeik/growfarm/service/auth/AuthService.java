@@ -38,7 +38,7 @@ import java.util.Optional;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -108,7 +108,7 @@ public class AuthService {
      * </p>
      *
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private static void validateLogin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -152,7 +152,7 @@ public class AuthService {
      * @param fcmToken     Firebase Cloud Messaging 토큰
      * @return LoginResponse<List < ResponseCookie>> JWT가 삽입된 쿠키 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private LoginResponseDTO<List<ResponseCookie>> existingUserLogin(Users user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
         List<ResponseCookie> cookies = authUpdateService.saveExistUser(user, userData, tokenDTO, fcmToken);
@@ -171,7 +171,7 @@ public class AuthService {
      * @param fcmToken     Firebase Cloud Messaging 토큰
      * @return LoginResponse<ResponseCookie> UUID가 삽입된 쿠키
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private LoginResponseDTO<ResponseCookie> newUserLogin(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
         String uuid = tempUserDataManager.saveTempData(userData, tokenDTO, fcmToken);
@@ -189,7 +189,7 @@ public class AuthService {
      * @param uuid     임시 저장된 사용자 정보의 UUID
      * @return JWT가 삽입된 쿠키 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public List<ResponseCookie> signUp(String userName, String uuid) {
         TempUserDataManager.TempUserData tempUserData = tempUserDataManager.getTempData(uuid);
@@ -239,7 +239,7 @@ public class AuthService {
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 탈퇴 처리 쿠키 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Transactional
     public List<ResponseCookie> withdraw(CustomUserDetails userDetails) {

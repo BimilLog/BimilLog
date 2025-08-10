@@ -17,7 +17,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Repository
 public class NotificationReadRepositoryImpl extends NotificationBaseRepository implements NotificationReadRepository {

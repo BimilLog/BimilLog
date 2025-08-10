@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * <p>신고 목록 조회 등 관리자 권한의 조회 요청을 처리합니다.</p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @RestController
 @RequiredArgsConstructor

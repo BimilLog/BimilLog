@@ -21,7 +21,7 @@ import java.util.List;
  * </p>
  * 
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Slf4j
 @RestController
@@ -39,7 +39,7 @@ public class NotificationQueryController {
      * 
      * @param userDetails 현재 로그인한 유저 정보
      * @return ResponseEntity<List<NotificationDTO>> 알림 리스트
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     @GetMapping("/list")

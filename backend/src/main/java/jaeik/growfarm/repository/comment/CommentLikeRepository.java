@@ -12,7 +12,7 @@ import java.util.Optional;
  * <p>댓글과 사용자 간의 추천 관계를 저장하고 조회하는 기능을 제공한다.</p>
  *
  * @author Jaeik
- * @version  1.0.0
+ * @version  2.0.0
  */
 @Repository
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
@@ -24,7 +24,7 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
      * @param commentId 댓글 ID
      * @param userId    사용자 ID
      * @return 추천 정보가 존재하면 Optional에 포함된 CommentLike 객체, 없으면 Optional.empty()
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId);

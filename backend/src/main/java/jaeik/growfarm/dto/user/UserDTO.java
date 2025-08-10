@@ -13,7 +13,7 @@ import lombok.Setter;
  * 사용자의 기본 정보를 담는 데이터 전송 객체
  * </p>
  *
- * @version  1.0.0
+ * @version  2.0.0
  * @author Jaeik
  */
 @Setter

@@ -23,7 +23,7 @@ import java.util.List;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Component
 public class LogFilter extends OncePerRequestFilter {

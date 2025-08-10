@@ -16,7 +16,7 @@ import org.hibernate.annotations.OnDeleteAction;
  * <p>카카오 액세스 토큰, 카카오 리프레시 토큰, JWT 리프레시 토큰을 포함</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Entity
 @SuperBuilder

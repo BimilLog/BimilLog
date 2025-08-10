@@ -13,7 +13,7 @@ import java.util.List;
  * <p>JWT 토큰을 사용하여 인증 관련 쿠키를 생성하고 관리합니다.</p>
  *
  * @author jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class AuthCookieManager {
      * @param clientDTO 클라이언트용 DTO
      * @return 응답 쿠키 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public List<ResponseCookie> generateJwtCookie(ClientDTO clientDTO) {
         return List.of(generateJwtAccessCookie(clientDTO), generateJwtRefreshCookie(clientDTO));
@@ -46,7 +46,7 @@ public class AuthCookieManager {
      *
      * @return 로그아웃 쿠키 리스트
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public List<ResponseCookie> getLogoutCookies() {
         ResponseCookie accessTokenCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE, "")

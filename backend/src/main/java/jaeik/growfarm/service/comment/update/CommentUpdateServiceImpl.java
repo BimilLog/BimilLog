@@ -20,7 +20,7 @@ import java.util.Objects;
  *
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -35,7 +35,7 @@ public class CommentUpdateServiceImpl implements CommentUpdateService {
      * @param commentDTO 댓글 DTO
      * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Transactional
     @Override

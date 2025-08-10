@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  * 
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Slf4j
 @RestController
@@ -36,7 +36,7 @@ public class NotificationCommandController {
      * @param userDetails           현재 로그인한 유저 정보
      * @param updateNotificationDTO 알림 업데이트 정보
      * @return ResponseEntity<Void> HTTP 응답
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      */
     @PostMapping("/update")

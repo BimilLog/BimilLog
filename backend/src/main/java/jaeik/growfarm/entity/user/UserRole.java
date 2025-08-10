@@ -5,7 +5,7 @@ package jaeik.growfarm.entity.user;
  * <p>사용자의 역할을 정의하는 열거형</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 public enum UserRole {
     USER,
