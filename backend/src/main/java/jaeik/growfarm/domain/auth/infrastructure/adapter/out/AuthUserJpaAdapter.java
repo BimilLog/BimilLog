@@ -1,11 +1,11 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.LoadUserPort;
+import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -16,19 +16,19 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-@Repository
+@Component
 @RequiredArgsConstructor
 public class AuthUserJpaAdapter implements LoadUserPort {
 
-    private final UserRepository userRepository;
+    private final UserQueryUseCase userQueryUseCase;
 
     @Override
     public Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-        return userRepository.findByProviderAndSocialId(provider, socialId);
+        return userQueryUseCase.findByProviderAndSocialId(provider, socialId);
     }
 
     @Override
     public Optional<Users> findById(Long userId) {
-        return userRepository.findById(userId);
+        return userQueryUseCase.findById(userId);
     }
 }

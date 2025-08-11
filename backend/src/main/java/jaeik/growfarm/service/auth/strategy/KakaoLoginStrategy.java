@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import jaeik.growfarm.dto.auth.KakaoFriendsResponse;
+import jaeik.growfarm.dto.auth.LoginResultDTO;
 
 @Component
 @RequiredArgsConstructor
@@ -27,10 +28,13 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     private final WebClient.Builder webClientBuilder;
 
     @Override
-    public LoginResult login(String code) {
+    public LoginResultDTO login(String code) {
         TokenDTO tokenDTO = getToken(code);
         SocialLoginUserData userData = getUserInfo(tokenDTO.getAccessToken());
-        return new LoginResult(userData, tokenDTO);
+        return LoginResultDTO.builder()
+                .userData(userData)
+                .tokenDTO(tokenDTO)
+                .build();
     }
 
     @Override

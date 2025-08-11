@@ -5,7 +5,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.entity.post.QPost;
 import jaeik.growfarm.entity.post.QPostLike;
-import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.post.PostBaseRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

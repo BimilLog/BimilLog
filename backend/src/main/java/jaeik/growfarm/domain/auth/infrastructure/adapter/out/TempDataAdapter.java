@@ -2,10 +2,15 @@ package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
+import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.service.auth.TempUserDataManager;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <h2>임시 데이터 어댑터</h2>
@@ -15,18 +20,29 @@ import org.springframework.stereotype.Component;
  * @version 2.0.0
  */
 @Component
-@RequiredArgsConstructor
 public class TempDataAdapter implements ManageTemporaryDataPort {
 
-    private final TempUserDataManager tempUserDataManager;
+    private final Map<String, TemporaryUserDataDTO> tempUserDataStore = new ConcurrentHashMap<>();
 
     @Override
     public String saveTempData(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
-        return tempUserDataManager.saveTempData(userData, tokenDTO, fcmToken);
+        String uuid = UUID.randomUUID().toString();
+        tempUserDataStore.put(uuid, new TemporaryUserDataDTO(userData, tokenDTO, fcmToken));
+        scheduleCleanup(uuid);
+        return uuid;
     }
 
     @Override
-    public TempUserDataManager.TempUserData getTempData(String uuid) {
-        return tempUserDataManager.getTempData(uuid);
+    public TemporaryUserDataDTO getTempData(String uuid) {
+        return tempUserDataStore.get(uuid);
+    }
+
+    public void removeTempData(String uuid) {
+        tempUserDataStore.remove(uuid);
+    }
+
+    private void scheduleCleanup(String uuid) {
+        CompletableFuture.delayedExecutor(5, TimeUnit.MINUTES)
+                .execute(() -> tempUserDataStore.remove(uuid));
     }
 }

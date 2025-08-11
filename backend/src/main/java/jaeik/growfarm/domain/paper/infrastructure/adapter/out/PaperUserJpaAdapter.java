@@ -1,10 +1,10 @@
 package jaeik.growfarm.domain.paper.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
+import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 /**
  * <h2>사용자 JPA 어댑터</h2>
@@ -16,11 +16,11 @@ import org.springframework.stereotype.Repository;
  * @author Jaeik
  * @version 2.0.0 (헥사고날 아키텍처 적용)
  */
-@Repository
+@Component
 @RequiredArgsConstructor
 public class PaperUserJpaAdapter implements LoadUserPort {
 
-    private final UserRepository userRepository;
+    private final UserQueryUseCase userQueryUseCase;
 
     /**
      * {@inheritDoc}
@@ -33,7 +33,7 @@ public class PaperUserJpaAdapter implements LoadUserPort {
      */
     @Override
     public boolean existsByUserName(String userName) {
-        return userRepository.existsByUserName(userName);
+        return userQueryUseCase.existsByUserName(userName);
     }
 
     /**
@@ -48,6 +48,6 @@ public class PaperUserJpaAdapter implements LoadUserPort {
      */
     @Override
     public Users findByUserName(String userName) {
-        return userRepository.findByUserName(userName);
+        return userQueryUseCase.findByUserName(userName);
     }
 }

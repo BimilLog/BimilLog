@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
+import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.service.auth.TempUserDataManager;
 
 /**
  * <h2>임시 데이터 관리 포트</h2>
@@ -29,5 +29,5 @@ public interface ManageTemporaryDataPort {
      * @param uuid UUID 키
      * @return 임시 사용자 데이터
      */
-    TempUserDataManager.TempUserData getTempData(String uuid);
+    TemporaryUserDataDTO getTempData(String uuid);
 }

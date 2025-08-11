@@ -1,12 +1,18 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.notification.application.port.out.LoadNotificationPort;
+import jaeik.growfarm.domain.notification.application.port.out.SaveNotificationPort;
 import jaeik.growfarm.domain.notification.application.port.out.UpdateNotificationPort;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
+import jaeik.growfarm.entity.notification.Notification;
+import jaeik.growfarm.entity.notification.NotificationType;
+import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.repository.notification.NotificationRepository;
+import jaeik.growfarm.repository.notification.delete.NotificationDeleteRepository;
 import jaeik.growfarm.repository.notification.read.NotificationReadRepository;
-import jaeik.growfarm.service.notification.NotificationUpdateService;
+import jaeik.growfarm.repository.notification.update.NotificationUpdateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +28,12 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class NotificationJpaAdapter implements LoadNotificationPort, UpdateNotificationPort {
+public class NotificationJpaAdapter implements LoadNotificationPort, UpdateNotificationPort, SaveNotificationPort {
 
+    private final NotificationRepository notificationRepository;
     private final NotificationReadRepository notificationReadRepository;
-    private final NotificationUpdateService notificationUpdateService;
+    private final NotificationDeleteRepository notificationDeleteRepository;
+    private final NotificationUpdateRepository notificationUpdateRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -39,7 +47,17 @@ public class NotificationJpaAdapter implements LoadNotificationPort, UpdateNotif
         List<Long> deleteIds = updateNotificationDTO.getDeletedIds();
         List<Long> readIds = updateNotificationDTO.getReadIds();
 
-        notificationUpdateService.deleteNotifications(deleteIds, userId);
-        notificationUpdateService.markNotificationsAsRead(readIds, userId);
+        if (deleteIds != null && !deleteIds.isEmpty()) {
+            notificationDeleteRepository.deleteByIdInAndUserId(deleteIds, userId);
+        }
+
+        if (readIds != null && !readIds.isEmpty()) {
+            notificationUpdateRepository.markAsReadByIdInAndUserId(readIds, userId);
+        }
+    }
+
+    @Override
+    public void save(Users user, NotificationType type, String data, String url) {
+        notificationRepository.save(Notification.createNotification(user, type, data, url));
     }
 }

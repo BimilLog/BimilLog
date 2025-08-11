@@ -1,7 +1,7 @@
 package jaeik.growfarm.global.listener.handler;
 
+import jaeik.growfarm.domain.notification.application.port.in.NotificationEventUseCase;
 import jaeik.growfarm.global.event.MessageEvent;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.NotificationEventAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MessageEventHandler implements NotificationEventHandler<MessageEvent> {
 
-    private final NotificationEventAdapter notificationEventAdapter;
+    private final NotificationEventUseCase notificationEventUseCase;
 
     @Override
     public boolean supports(ApplicationEvent event) {
@@ -28,7 +28,7 @@ public class MessageEventHandler implements NotificationEventHandler<MessageEven
 
     @Override
     public void handle(MessageEvent event) {
-        notificationEventAdapter.sendPaperPlantNotification(
+        notificationEventUseCase.sendPaperPlantNotification(
                 event.getPaperOwnerId(),
                 event.getUserName());
     }

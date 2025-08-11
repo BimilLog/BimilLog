@@ -1,10 +1,10 @@
 package jaeik.growfarm.service.admin;
 
+import jaeik.growfarm.domain.auth.infrastructure.adapter.out.AuthDataAdapter;
 import jaeik.growfarm.entity.user.BlackList;
 import jaeik.growfarm.global.event.UserBannedEvent;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;
-import jaeik.growfarm.service.auth.AuthUpdateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class AdminUpdateService {
 
     private final BlackListRepository blackListRepository;
     private final EmitterRepository emitterRepository;
-    private final AuthUpdateService authUpdateService;
+    private final AuthDataAdapter authDataAdapter;
 
     @Transactional
     @EventListener
@@ -33,6 +33,6 @@ public class AdminUpdateService {
         BlackList blackList = BlackList.createBlackList(event.getSocialId(), event.getProvider());
         blackListRepository.save(blackList);
         emitterRepository.deleteAllEmitterByUserId(event.getUserId());
-        authUpdateService.performWithdrawProcess(event.getUserId());
+        authDataAdapter.performWithdrawProcess(event.getUserId());
     }
 }

@@ -1,30 +1,41 @@
 package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationEventUseCase;
-import jaeik.growfarm.domain.notification.application.port.out.NotificationSenderPort;
+import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.growfarm.dto.notification.EventDTO;
 import jaeik.growfarm.entity.notification.NotificationType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-/**
- * <h2>알림 이벤트 서비스</h2>
- * <p>다양한 이벤트 기반 알림 전송 비즈니스 로직을 처리하는 Use Case 구현</p>
- *
- * @author Jaeik
- * @version 2.0.0
- */
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationEventService implements NotificationEventUseCase {
 
-    private final NotificationSenderPort notificationSenderPort;
+    private final List<NotificationSender> notificationSenders;
     private final NotificationUtilPort notificationUtilPort;
 
     @Value("${url}")
     private String url;
+
+    private void sendNotificationToAll(Long userId, EventDTO eventDTO) {
+        if (notificationUtilPort.isEligibleForNotification(userId, eventDTO.getType())) {
+            for (NotificationSender sender : notificationSenders) {
+                try {
+                    sender.send(userId, eventDTO);
+                    log.debug("알림 전송 성공 - Sender: {}, UserId: {}", sender.getClass().getSimpleName(), userId);
+                } catch (Exception e) {
+                    log.error("알림 전송 실패 - Sender: {}, UserId: {}, Error: {}",
+                            sender.getClass().getSimpleName(), userId, e.getMessage(), e);
+                }
+            }
+        }
+    }
 
     @Override
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
@@ -34,7 +45,7 @@ public class NotificationEventService implements NotificationEventUseCase {
                 url + "/board/post/" + postId
         );
 
-        notificationSenderPort.sendNotificationToAll(postUserId, eventDTO);
+        sendNotificationToAll(postUserId, eventDTO);
     }
 
     @Override
@@ -45,7 +56,7 @@ public class NotificationEventService implements NotificationEventUseCase {
                 url + "/rolling-paper/" + userName
         );
 
-        notificationSenderPort.sendNotificationToAll(farmOwnerId, eventDTO);
+        sendNotificationToAll(farmOwnerId, eventDTO);
     }
 
     @Override
@@ -56,6 +67,6 @@ public class NotificationEventService implements NotificationEventUseCase {
                 url + "/board/post/" + postId
         );
 
-        notificationSenderPort.sendNotificationToAll(userId, eventDTO);
+        sendNotificationToAll(userId, eventDTO);
     }
 }

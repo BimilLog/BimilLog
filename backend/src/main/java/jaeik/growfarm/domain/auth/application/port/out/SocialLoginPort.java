@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
+import jaeik.growfarm.dto.auth.LoginResultDTO;
 import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.service.auth.strategy.SocialLoginStrategy;
 
@@ -19,7 +20,7 @@ public interface SocialLoginPort {
      * @param code     인가 코드
      * @return 로그인 결과
      */
-    SocialLoginStrategy.LoginResult login(SocialProvider provider, String code);
+    LoginResultDTO login(SocialProvider provider, String code);
 
     /**
      * <h3>소셜 연결 해제</h3>

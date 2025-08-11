@@ -3,14 +3,15 @@ package jaeik.growfarm.domain.auth.application.service;
 import jaeik.growfarm.domain.auth.application.port.in.AuthLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.*;
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
+import jaeik.growfarm.dto.auth.LoginResultDTO;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
+import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.service.auth.TempUserDataManager;
 import jaeik.growfarm.service.auth.strategy.SocialLoginStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -55,7 +56,7 @@ public class AuthLoginService implements AuthLoginUseCase {
     public LoginResponseDTO<?> processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
-        SocialLoginStrategy.LoginResult loginResult = socialLoginPort.login(provider, code);
+        LoginResultDTO loginResult = socialLoginPort.login(provider, code);
         SocialLoginUserData userData = loginResult.userData();
         TokenDTO tokenDTO = loginResult.tokenDTO();
 
@@ -92,11 +93,11 @@ public class AuthLoginService implements AuthLoginUseCase {
 
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
-        TempUserDataManager.TempUserData tempUserData = manageTemporaryDataPort.getTempData(uuid);
+        TemporaryUserDataDTO tempUserData = manageTemporaryDataPort.getTempData(uuid);
         if (tempUserData == null) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         }
-        return manageAuthDataPort.saveNewUser(userName, uuid, tempUserData.getSocialLoginUserData(), 
+        return manageAuthDataPort.saveNewUser(userName, uuid, tempUserData.getSocialLoginUserData(),
                 tempUserData.getTokenDTO(), tempUserData.getFcmToken());
     }
 

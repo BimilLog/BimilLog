@@ -1,7 +1,7 @@
 package jaeik.growfarm.global.listener.handler;
 
+import jaeik.growfarm.domain.notification.application.port.in.NotificationEventUseCase;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.NotificationEventAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PostFeaturedEventHandler implements NotificationEventHandler<PostFeaturedEvent> {
 
-    private final NotificationEventAdapter notificationEventAdapter;
+    private final NotificationEventUseCase notificationEventUseCase;
 
     @Override
     public boolean supports(ApplicationEvent event) {
@@ -28,7 +28,7 @@ public class PostFeaturedEventHandler implements NotificationEventHandler<PostFe
 
     @Override
     public void handle(PostFeaturedEvent event) {
-        notificationEventAdapter.sendPostFeaturedNotification(
+        notificationEventUseCase.sendPostFeaturedNotification(
                 event.getUserId(),
                 event.getSseMessage(),
                 event.getPostId());

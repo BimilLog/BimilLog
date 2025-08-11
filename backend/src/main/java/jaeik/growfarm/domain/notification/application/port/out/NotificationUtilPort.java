@@ -30,4 +30,13 @@ public interface NotificationUtilPort {
      * @return Emitter ID
      */
     String makeTimeIncludeId(Long userId, Long tokenId);
+
+    /**
+     * <h3>알림 수신 자격 확인</h3>
+     *
+     * @param userId 사용자 ID
+     * @param type   알림 타입
+     * @return 알림 수신 가능 여부
+     */
+    boolean isEligibleForNotification(Long userId, NotificationType type);
 }
