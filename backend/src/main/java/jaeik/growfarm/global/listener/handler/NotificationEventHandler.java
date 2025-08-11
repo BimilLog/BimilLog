@@ -34,3 +34,4 @@ public interface NotificationEventHandler<E extends ApplicationEvent> {
      */
     void handle(E event);
 }
+

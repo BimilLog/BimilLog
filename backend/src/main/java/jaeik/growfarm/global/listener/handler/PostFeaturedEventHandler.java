@@ -34,3 +34,4 @@ public class PostFeaturedEventHandler implements NotificationEventHandler<PostFe
                 event.getPostId());
     }
 }
+
