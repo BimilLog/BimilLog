@@ -1,7 +1,7 @@
 package jaeik.growfarm.global.listener.handler;
 
 import jaeik.growfarm.global.event.CommentCreatedEvent;
-import jaeik.growfarm.service.notification.NotificationFacadeService;
+import jaeik.growfarm.domain.notification.infrastructure.adapter.out.NotificationEventAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CommentCreatedEventHandler implements NotificationEventHandler<CommentCreatedEvent> {
 
-    private final NotificationFacadeService notificationFacadeService;
+    private final NotificationEventAdapter notificationEventAdapter;
 
     @Override
     public boolean supports(ApplicationEvent event) {
@@ -28,7 +28,7 @@ public class CommentCreatedEventHandler implements NotificationEventHandler<Comm
 
     @Override
     public void handle(CommentCreatedEvent event) {
-        notificationFacadeService.sendCommentNotification(
+        notificationEventAdapter.sendCommentNotification(
                 event.getPostUserId(),
                 event.getCommenterName(),
                 event.getPostId());
