@@ -1,9 +1,7 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageNotificationPort;
-import jaeik.growfarm.domain.auth.application.port.out.SendEventPort;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.EmitterRepository;
-import jaeik.growfarm.dto.notification.EventDTO;
 import jaeik.growfarm.global.auth.AuthCookieManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;

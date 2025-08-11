@@ -1,6 +1,5 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
-import jaeik.growfarm.domain.auth.application.port.out.AuthUserPort;
 import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;

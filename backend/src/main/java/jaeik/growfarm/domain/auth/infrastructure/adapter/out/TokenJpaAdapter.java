@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
-import jaeik.growfarm.domain.auth.domain.Token;
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
+import jaeik.growfarm.domain.user.domain.Token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
