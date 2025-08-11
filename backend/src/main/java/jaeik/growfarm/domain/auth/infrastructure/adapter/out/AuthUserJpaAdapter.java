@@ -18,7 +18,7 @@ import java.util.Optional;
  */
 @Repository
 @RequiredArgsConstructor
-public class UserJpaAdapter implements LoadUserPort {
+public class AuthUserJpaAdapter implements LoadUserPort {
 
     private final UserRepository userRepository;
 

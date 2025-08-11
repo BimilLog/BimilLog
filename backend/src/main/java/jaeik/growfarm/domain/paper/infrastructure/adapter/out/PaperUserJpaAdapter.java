@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-public class UserJpaAdapter implements LoadUserPort {
+public class PaperUserJpaAdapter implements LoadUserPort {
 
     private final UserRepository userRepository;
 

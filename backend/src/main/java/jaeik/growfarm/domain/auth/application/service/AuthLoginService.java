@@ -19,6 +19,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import jaeik.growfarm.global.event.UserBannedEvent;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +44,12 @@ public class AuthLoginService implements AuthLoginUseCase {
     private final ManageTemporaryDataPort manageTemporaryDataPort;
     private final ManageNotificationPort manageNotificationPort;
     private final LoadTokenPort loadTokenPort;
+
+    @Async
+    @EventListener
+    public void handleUserBannedEvent(UserBannedEvent event) {
+        socialLoginPort.unlink(event.getProvider(), event.getSocialId());
+    }
 
     @Override
     public LoginResponseDTO<?> processSocialLogin(SocialProvider provider, String code, String fcmToken) {

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/paper/v2")
+@RequestMapping("/api/paper")
 public class PaperCommandController {
 
     private final WritePaperUseCase writePaperUseCase;

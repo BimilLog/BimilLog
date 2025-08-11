@@ -27,7 +27,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/paper/v2")
+@RequestMapping("/api/paper")
 public class PaperQueryController {
 
     private final ReadPaperUseCase readPaperUseCase;
