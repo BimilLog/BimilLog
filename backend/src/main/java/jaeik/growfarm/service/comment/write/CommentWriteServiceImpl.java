@@ -70,6 +70,7 @@ public class CommentWriteServiceImpl implements CommentWriteService {
 
         if (post.getUser() != null) {
             eventPublisher.publishEvent(new CommentCreatedEvent(
+                    this,
                     post.getUser().getId(),
                     commentDTO.getUserName(),
                     commentDTO.getPostId()));

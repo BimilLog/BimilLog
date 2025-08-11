@@ -372,7 +372,9 @@ export const authApi = {
   deleteAccount: () => apiClient.post("/auth/withdraw"),
 
   // 회원가입 (닉네임 설정)
-  signUp: (userName: string) => apiClient.get(`/auth/signUp?userName=${encodeURIComponent(userName)}`),
+  signUp: (userName: string) => apiClient.post('/auth/signUp', null, { 
+    params: { userName } 
+  }),
 
   // 서버 상태 확인
   healthCheck: () => apiClient.get<string>("/auth/health"),

@@ -8,7 +8,8 @@ import jaeik.growfarm.entity.user.BlackList;
 import jaeik.growfarm.entity.user.Setting;
 import jaeik.growfarm.entity.user.Token;
 import jaeik.growfarm.entity.user.Users;
-import jaeik.growfarm.global.auth.JwtTokenProvider;
+import jaeik.growfarm.global.auth.JwtHandler;
+import jaeik.growfarm.global.auth.AuthCookieManager;
 import jaeik.growfarm.global.event.UserBannedEvent;
 import jaeik.growfarm.repository.comment.CommentRepository;
 import jaeik.growfarm.repository.notification.FcmTokenRepository;
@@ -33,7 +34,8 @@ import jaeik.growfarm.global.exception.ErrorCode;
 public class AuthUpdateServiceImpl implements AuthUpdateService {
 
     private final TokenRepository tokenRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtHandler jwtHandler;
+    private final AuthCookieManager authCookieManager;
     private final TempUserDataManager tempUserDataManager;
     private final UserRepository userRepository;
     private final SettingRepository settingRepository;
@@ -59,7 +61,7 @@ public class AuthUpdateServiceImpl implements AuthUpdateService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
         token.updateToken(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());
 
-        return jwtTokenProvider.generateJwtCookie(new ClientDTO(user,
+        return authCookieManager.generateJwtCookie(new ClientDTO(user,
                 tokenRepository.save(token).getId(),
                 fcmToken != null ? fcmTokenRepository.save(FcmToken.create(user, fcmToken)).getId() : null));
     }
@@ -70,7 +72,7 @@ public class AuthUpdateServiceImpl implements AuthUpdateService {
         Users user = userRepository
                 .save(Users.createUser(userData, userName, settingRepository.save(Setting.createSetting())));
         tempUserDataManager.removeTempData(uuid);
-        return jwtTokenProvider.generateJwtCookie(new ClientDTO(user,
+        return authCookieManager.generateJwtCookie(new ClientDTO(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
                 fcmToken != null ? fcmTokenRepository.save(FcmToken.create(user, fcmToken)).getId() : null));
     }

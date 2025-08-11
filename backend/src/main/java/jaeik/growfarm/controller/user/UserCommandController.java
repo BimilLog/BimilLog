@@ -3,6 +3,8 @@ package jaeik.growfarm.controller.user;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.dto.user.UserNameDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,12 @@ public class UserCommandController {
     @PostMapping("/username")
     public ResponseEntity<String> updateUserName(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                   @RequestBody @Valid UserNameDTO userNameDTO) {
+        // 보안 강화: userId가 제공된 경우 현재 사용자와 일치하는지 검증
+        if (userNameDTO.getUserId() != null && 
+            !userNameDTO.getUserId().equals(userDetails.getUserId())) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
+        }
+        
         userService.updateUserName(userNameDTO.getUserName(), userDetails);
         return ResponseEntity.ok("닉네임이 변경되었습니다.");
     }

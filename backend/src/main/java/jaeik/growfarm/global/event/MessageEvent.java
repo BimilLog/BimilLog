@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationEvent;
  * @since 2.0.0
  */
 @Getter
-@AllArgsConstructor
 public class MessageEvent extends ApplicationEvent {
 
     /**
@@ -27,5 +26,23 @@ public class MessageEvent extends ApplicationEvent {
      * 닉네임
      */
     private final String userName;
+
+    /**
+     * <h3>MessageEvent 생성자</h3>
+     * <p>
+     * 메시지 작성 이벤트를 생성한다.
+     * </p>
+     *
+     * @param source 이벤트를 발생시킨 객체
+     * @param paperOwnerId 롤링페이퍼 주인 ID (알림을 받을 사용자)
+     * @param userName 닉네임
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public MessageEvent(Object source, Long paperOwnerId, String userName) {
+        super(source);
+        this.paperOwnerId = paperOwnerId;
+        this.userName = userName;
+    }
 
 }

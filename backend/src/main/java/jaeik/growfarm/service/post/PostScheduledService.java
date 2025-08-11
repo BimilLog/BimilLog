@@ -74,6 +74,7 @@ public class PostScheduledService {
         for (SimplePostResDTO simplePostResDTO : weeklyPosts) {
             if (simplePostResDTO.getUser() != null) {
                 eventPublisher.publishEvent(new PostFeaturedEvent(
+                        this,
                         simplePostResDTO.getUserId(),
                         "🎉 회원님의 글이 주간 인기글로 선정되었습니다!",
                         simplePostResDTO.getPostId(),
@@ -106,6 +107,7 @@ public class PostScheduledService {
 
         for (SimplePostResDTO simplePostResDTO : legendPosts) {
             eventPublisher.publishEvent(new PostFeaturedEvent(
+                    this,
                     simplePostResDTO.getUserId(),
                     "🎉 회원님의 글이 레전드글로 선정되었습니다!",
                     simplePostResDTO.getPostId(),

@@ -44,6 +44,7 @@ public class PaperWriteServiceImpl implements PaperWriteService {
         paperCommandRepository.save(message);
 
         eventPublisher.publishEvent(new MessageEvent(
+                this,
                 user.getId(),
                 userName));
     }

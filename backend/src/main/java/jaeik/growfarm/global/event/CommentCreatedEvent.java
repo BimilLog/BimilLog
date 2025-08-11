@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationEvent;
  * @since 2.0.0
  */
 @Getter
-@AllArgsConstructor
 public class CommentCreatedEvent extends ApplicationEvent {
 
     /**
@@ -32,5 +31,25 @@ public class CommentCreatedEvent extends ApplicationEvent {
      * 게시글 ID
      */
     private final Long postId;
+
+    /**
+     * <h3>CommentCreatedEvent 생성자</h3>
+     * <p>
+     * 댓글 작성 이벤트를 생성한다.
+     * </p>
+     *
+     * @param source 이벤트를 발생시킨 객체
+     * @param postUserId 게시글 작성자 ID (알림을 받을 사용자)
+     * @param commenterName 댓글 작성자 이름
+     * @param postId 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public CommentCreatedEvent(Object source, Long postUserId, String commenterName, Long postId) {
+        super(source);
+        this.postUserId = postUserId;
+        this.commenterName = commenterName;
+        this.postId = postId;
+    }
 
 }
