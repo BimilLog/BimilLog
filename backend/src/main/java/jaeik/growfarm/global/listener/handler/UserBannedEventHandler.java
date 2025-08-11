@@ -1,8 +1,9 @@
 package jaeik.growfarm.global.listener.handler;
 
 import jaeik.growfarm.domain.user.domain.BlackList;
+import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.BlackListRepository;
 import jaeik.growfarm.global.event.UserBannedEvent;
-import jaeik.growfarm.repository.user.BlackListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

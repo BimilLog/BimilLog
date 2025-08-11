@@ -1,11 +1,13 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
+import jaeik.growfarm.domain.notification.application.port.out.LoadEmitterPort;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
+import jaeik.growfarm.domain.notification.application.port.out.SaveEmitterPort;
 import jaeik.growfarm.domain.notification.application.port.out.SseEmitterPort;
 import jaeik.growfarm.domain.notification.domain.NotificationType;
-import jaeik.growfarm.repository.notification.EmitterRepository;
+import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.EmitterRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -17,7 +19,7 @@ import java.io.IOException;
  * @author Jaeik
  * @version 2.0.0
  */
-@Repository
+@Component
 @RequiredArgsConstructor
 public class SseEmitterAdapter implements SseEmitterPort {
 

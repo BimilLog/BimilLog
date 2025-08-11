@@ -1,11 +1,13 @@
 package jaeik.growfarm.domain.paper.infrastructure.adapter.out;
 
-import jaeik.growfarm.domain.paper.domain.Message;
 import jaeik.growfarm.domain.paper.application.port.out.DeletePaperPort;
 import jaeik.growfarm.domain.paper.application.port.out.SavePaperPort;
-import jaeik.growfarm.repository.paper.MessageRepository;
+import jaeik.growfarm.domain.paper.application.port.out.WriteMessagePort;
+import jaeik.growfarm.domain.paper.domain.Message;
+import jaeik.growfarm.domain.paper.infrastructure.adapter.out.persistence.MessageRepository;
+import jaeik.growfarm.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 /**
  * <h2>롤링페이퍼 명령 어댑터</h2>
@@ -17,7 +19,7 @@ import org.springframework.stereotype.Repository;
  * @author Jaeik
  * @version 2.1.0
  */
-@Repository
+@Component
 @RequiredArgsConstructor
 public class PaperCommandAdapter implements SavePaperPort, DeletePaperPort {
 

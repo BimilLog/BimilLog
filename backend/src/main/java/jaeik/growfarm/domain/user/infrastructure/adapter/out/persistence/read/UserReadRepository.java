@@ -1,0 +1,86 @@
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.read;
+
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.SettingDTO;
+import org.springframework.data.domain.Page;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * <h2>사용자 조회 레포지토리 인터페이스</h2>
+ * <p>
+ * 사용자 조회 관련 기능만 담당하는 인터페이스
+ * SRP: 사용자 조회만 담당
+ * ISP: 조회 기능만 노출
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ * @since 2.0.0
+ */
+public interface UserReadRepository {
+
+    Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
+
+    /**
+     * <h3>닉네임으로 사용자 조회</h3>
+     *
+     * <p>
+     * 닉네임을 통해 사용자를 조회한다.
+     * </p>
+     *
+     * @param userName 유저 닉네임
+     * @return 사용자 정보
+     * @author Jaeik
+     * @version 2.0.0
+     * @since 2.0.0
+     */
+    User findByUserName(String userName);
+
+    /**
+     * <h3>ID로 사용자와 설정 조회</h3>
+     *
+     * <p>
+     * 사용자 ID를 통해 사용자와 설정 정보를 함께 조회한다.
+     * </p>
+     *
+     * @param id 사용자 ID
+     * @return 사용자 정보 (Setting 포함)
+     * @author Jaeik
+     * @version 2.0.0
+     * @since 2.0.0
+     */
+    Optional<User> findByIdWithSetting(Long id);
+
+    /**
+     * <h3>ID로 사용자 클라이언트 정보 조회</h3>
+     *
+     * <p>
+     * 사용자 ID를 통해 사용자의 클라이언트 정보를 조회한다.
+     * </p>
+     *
+     * @param id 사용자 ID
+     * @return 사용자 클라이언트 정보
+     * @author Jaeik
+     * @version 2.0.0
+     * @since 2.0.0
+     */
+    ClientDTO findClientInfoById(Long id);
+
+    /**
+     * <h3>카카오 ID 목록으로 닉네임 조회</h3>
+     * <p>
+     * 카카오 ID 목록의 순서대로 닉네임을 조회한다.
+     * </p>
+     *
+     * @param ids 카카오 ID 목록
+     * @return 닉네임 리스트
+     * @author Jaeik
+     * @version 2.0.0
+     * @since 2.0.0
+     */
+    List<String> findUserNamesInOrder(List<String> ids);
+}

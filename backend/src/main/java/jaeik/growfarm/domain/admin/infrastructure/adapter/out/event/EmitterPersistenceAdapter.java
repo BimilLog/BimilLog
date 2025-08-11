@@ -1,7 +1,8 @@
 package jaeik.growfarm.domain.admin.infrastructure.adapter.out.event;
 
 import jaeik.growfarm.domain.admin.application.port.out.ManageEmitterPort;
-import jaeik.growfarm.repository.notification.EmitterRepository;
+import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.EmitterRepository;
+import jaeik.growfarm.global.listener.handler.EmitterHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

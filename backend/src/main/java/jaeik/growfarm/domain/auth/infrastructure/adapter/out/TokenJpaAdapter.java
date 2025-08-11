@@ -1,10 +1,10 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
-import jaeik.growfarm.domain.user.domain.Token;
-import jaeik.growfarm.repository.token.TokenRepository;
+import jaeik.growfarm.domain.auth.domain.Token;
+import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-@Component
+@Repository
 @RequiredArgsConstructor
 public class TokenJpaAdapter implements LoadTokenPort {
 
