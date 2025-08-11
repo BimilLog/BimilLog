@@ -1,9 +1,9 @@
-package jaeik.growfarm.controller.paper;
+package jaeik.growfarm.domain.paper.infrastructure.adapter.in;
 
+import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.service.paper.read.PaperReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,23 +15,26 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * <h2>롤링 페이퍼 조회 컨트롤러</h2>
+ * <h2>롤링 페이퍼 조회 컨트롤러 V2 (헥사고날)</h2>
  * <p>
- * 롤링 페이퍼 조회 관련 API를 관리합니다.
+ * Primary Adapter: 롤링 페이퍼 조회 관련 웹 API를 관리합니다.
+ * 헥사고날 아키텍처 적용 - UseCase 기반 구현
+ * 기존 PaperQueryController와 동일한 API 스펙 보장
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.0.0 (헥사고날 아키텍처 적용)
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/paper")
+@RequestMapping("/api/paper/v2")
 public class PaperQueryController {
 
-    private final PaperReadService paperReadService;
+    private final ReadPaperUseCase readPaperUseCase;
 
     /**
      * <h3>내 롤링페이퍼 조회 API</h3>
+     * <p>기존 PaperQueryController.myPaper()와 동일한 기능</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @return ResponseEntity<List < MessageDTO>> 내 롤링 페이퍼 메시지 리스트
@@ -40,12 +43,13 @@ public class PaperQueryController {
      */
     @GetMapping
     public ResponseEntity<List<MessageDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<MessageDTO> messageDTOs = paperReadService.myPaper(userDetails);
+        List<MessageDTO> messageDTOs = readPaperUseCase.getMyPaper(userDetails);
         return ResponseEntity.ok(messageDTOs);
     }
 
     /**
      * <h3>다른 롤링페이퍼 방문 API</h3>
+     * <p>기존 PaperQueryController.visitPaper()와 동일한 기능</p>
      *
      * @param userName 닉네임
      * @return ResponseEntity<List < VisitMessageDTO>> 방문한 롤링페이퍼의 메시지 목록
@@ -54,7 +58,7 @@ public class PaperQueryController {
      */
     @GetMapping("{userName}")
     public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String userName) {
-        List<VisitMessageDTO> visitMessageDTOs = paperReadService.visitPaper(userName);
+        List<VisitMessageDTO> visitMessageDTOs = readPaperUseCase.visitPaper(userName);
         return ResponseEntity.ok(visitMessageDTOs);
     }
 }
