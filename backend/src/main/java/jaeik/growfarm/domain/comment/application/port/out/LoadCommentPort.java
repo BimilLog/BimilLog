@@ -9,10 +9,12 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import jaeik.growfarm.domain.post.domain.Post;
 
 public interface LoadCommentPort {
 
-    Optional<Comment> findById(Long commentId);
+    List<Comment> findByPost(Post post);
+    Optional<Comment> findById(Long id);
 
     List<Tuple> findCommentsWithLatestOrder(Long postId, Pageable pageable);
 
@@ -27,4 +29,6 @@ public interface LoadCommentPort {
     Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable);
 
     Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
+
+    boolean isLikedByUser(Long commentId, Long userId);
 }

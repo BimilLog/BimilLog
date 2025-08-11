@@ -1,21 +1,15 @@
 package jaeik.growfarm.repository.admin;
 
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.PathBuilder;
-import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.report.domain.QReport;
-import jaeik.growfarm.domain.report.domain.Report;
-import jaeik.growfarm.domain.report.domain.ReportType;
+import jaeik.growfarm.domain.admin.domain.QReport;
+import jaeik.growfarm.domain.admin.domain.ReportType;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -33,7 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReportCustomRepositoryImpl implements ReportCustomRepository {
 
-    private final JPAQueryFactory jpaQueryFactory;
+    private final JPAQueryFactory queryFactory;
 
     /**
      * <h3>신고 목록 페이징 조회</h3>
@@ -56,46 +50,30 @@ public class ReportCustomRepositoryImpl implements ReportCustomRepository {
     @Override
     public Page<ReportDTO> findReportsWithPaging(ReportType reportType, Pageable pageable) {
         QReport report = QReport.report;
+        BooleanExpression whereClause = (reportType != null) ? report.reportType.eq(reportType) : null;
 
-        BooleanBuilder builder = new BooleanBuilder();
-        if (reportType != null) {
-            builder.and(report.reportType.eq(reportType));
-        }
-
-        JPAQuery<ReportDTO> query = jpaQueryFactory
+        List<ReportDTO> content = queryFactory
                 .select(Projections.bean(ReportDTO.class,
-                        report.id.as("reportId"),
+                        report.id,
+                        report.reporter.id.as("reporterId"),
+                        report.reporter.userName.as("reporterName"),
                         report.reportType,
-                        report.users.id.as("userId"),
                         report.targetId,
-                        report.content))
+                        report.content,
+                        report.createdAt))
                 .from(report)
-                .where(builder);
-
-        if (pageable.getSort().isSorted()) {
-            for (Sort.Order order : pageable.getSort()) {
-                PathBuilder<Report> pathBuilder = new PathBuilder<>(Report.class, "report");
-                query.orderBy(new OrderSpecifier<>(
-                        order.isAscending() ? Order.ASC : Order.DESC,
-                        pathBuilder.get(order.getProperty(), Comparable.class)));
-            }
-        } else {
-            query.orderBy(report.createdAt.desc());
-        }
-
-        List<ReportDTO> content = query
+                .where(whereClause)
+                .orderBy(report.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        Long totalCount = jpaQueryFactory
+        Long count = queryFactory
                 .select(report.count())
                 .from(report)
-                .where(builder)
+                .where(whereClause)
                 .fetchOne();
 
-        long total = totalCount != null ? totalCount : 0L;
-
-        return new PageImpl<>(content, pageable, total);
+        return new PageImpl<>(content, pageable, count == null ? 0 : count);
     }
 }

@@ -46,8 +46,9 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<FullPostResDTO> getPost(@PathVariable Long postId,
                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        postCommandUseCase.incrementViewCount(postId); // 조회수 증가 (Command)
         User user = authQueryUseCase.getUserFromUserDetails(userDetails);
-        FullPostResDTO fullPostResDTO = postQueryUseCase.getPost(postId, user);
+        FullPostResDTO fullPostResDTO = postQueryUseCase.getPost(postId, user); // 게시글 조회 (Query)
         return ResponseEntity.ok(fullPostResDTO);
     }
 

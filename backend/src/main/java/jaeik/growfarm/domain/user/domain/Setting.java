@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import lombok.AllArgsConstructor;
 
 /**
  * <h2>설정 엔티티</h2>
@@ -21,8 +21,9 @@ import lombok.experimental.SuperBuilder;
  */
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
-@SuperBuilder
+@Builder
 public class Setting {
 
     @Id
@@ -43,9 +44,9 @@ public class Setting {
     private boolean postFeaturedNotification = true;
 
     public void updateSetting(SettingDTO settingDTO) {
-        messageNotification = settingDTO.isMessageNotification();
-        commentNotification = settingDTO.isCommentNotification();
-        postFeaturedNotification = settingDTO.isPostFeaturedNotification();
+        messageNotification = settingDTO.messageNotification();
+        commentNotification = settingDTO.commentNotification();
+        postFeaturedNotification = settingDTO.postFeaturedNotification();
     }
 
     public static Setting createSetting() {
@@ -58,9 +59,9 @@ public class Setting {
 
     public static Setting createSetting(SettingDTO settingDTO) {
         return Setting.builder()
-                .messageNotification(settingDTO.isMessageNotification())
-                .commentNotification(settingDTO.isCommentNotification())
-                .postFeaturedNotification(settingDTO.isPostFeaturedNotification())
+                .messageNotification(settingDTO.messageNotification())
+                .commentNotification(settingDTO.commentNotification())
+                .postFeaturedNotification(settingDTO.postFeaturedNotification())
                 .build();
     }
 }

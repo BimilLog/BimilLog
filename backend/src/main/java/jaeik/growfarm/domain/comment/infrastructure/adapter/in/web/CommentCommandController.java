@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.comment.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
-import jaeik.growfarm.dto.comment.CommentDto;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class CommentCommandController {
      */
     @PostMapping("/write")
     public ResponseEntity<String> writeComment(
-            @Valid @RequestBody CommentDto commentDto,
+            @Valid @RequestBody CommentDTO commentDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         commentCommandUseCase.writeComment(userDetails, commentDto);
         return ResponseEntity.ok("댓글 작성 완료");
@@ -63,7 +63,7 @@ public class CommentCommandController {
     @PostMapping("/update")
     public ResponseEntity<String> updateComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid CommentDto commentDto) {
+            @RequestBody @Valid CommentDTO commentDto) {
         commentCommandUseCase.updateComment(commentDto, userDetails);
         return ResponseEntity.ok("댓글 수정 완료");
     }
@@ -83,7 +83,7 @@ public class CommentCommandController {
     @PostMapping("/delete")
     public ResponseEntity<String> deleteComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid CommentDto commentDto) {
+            @RequestBody @Valid CommentDTO commentDto) {
         commentCommandUseCase.deleteComment(commentDto, userDetails);
         return ResponseEntity.ok("댓글 삭제 완료");
     }
@@ -106,7 +106,7 @@ public class CommentCommandController {
      */
     @PostMapping("/like")
     public ResponseEntity<String> likeComment(
-            @RequestBody @Valid CommentDto commentDto,
+            @RequestBody @Valid CommentDTO commentDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         commentCommandUseCase.likeComment(commentDto, userDetails);
         return ResponseEntity.ok("추천 처리 완료");

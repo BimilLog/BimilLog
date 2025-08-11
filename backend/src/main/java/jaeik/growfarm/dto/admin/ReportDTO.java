@@ -1,14 +1,13 @@
 package jaeik.growfarm.dto.admin;
 
-import jaeik.growfarm.domain.report.domain.Report;
-import jaeik.growfarm.domain.report.domain.ReportType;
+import jaeik.growfarm.domain.admin.domain.Report;
+import jaeik.growfarm.domain.admin.domain.ReportType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,8 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReportDTO {
     private Long id;
-    private Long userId;
-    private String userName;
+    private Long reporterId;
+    private String reporterName;
     private ReportType reportType;
     private Long targetId;
     private String content;
@@ -26,8 +25,8 @@ public class ReportDTO {
     public static ReportDTO from(Report report) {
         return ReportDTO.builder()
                 .id(report.getId())
-                .userId(report.getUsers().getId())
-                .userName(report.getUsers().getUserName())
+                .reporterId(report.getReporter().getId())
+                .reporterName(report.getReporter().getUserName())
                 .reportType(report.getReportType())
                 .targetId(report.getTargetId())
                 .content(report.getContent())

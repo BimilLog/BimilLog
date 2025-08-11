@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Optional;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
+import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.post.domain.Post;
 
 @Repository
 @RequiredArgsConstructor
@@ -60,12 +63,26 @@ public class CommentPersistenceAdapter implements
 
     @Override
     public Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable) {
-        return null;
+        return commentReadRepository.findCommentsByUserId(userId, pageable);
     }
 
     @Override
     public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
         return commentReadRepository.findLikedCommentsByUserId(userId, pageable);
+    }
+    
+    @Override
+    public List<Comment> findByPost(Post post) {
+        return commentRepository.findByPost(post);
+    }
+
+    @Override
+    public boolean isLikedByUser(Long commentId, Long userId) {
+        // 이 로직은 userId와 commentId만으로 처리하는 것이 더 효율적일 수 있습니다.
+        // 현재는 CommentService에서 이미 User와 Comment 엔티티를 조회하고 있어,
+        // 그 엔티티를 활용하는 것이 추가적인 쿼리를 줄일 수 있습니다.
+        // 하지만 포트의 의미를 명확히 하기 위해 이대로 구현합니다.
+        return commentLikeRepository.findByCommentIdAndUserId(commentId, userId).isPresent();
     }
 
     // ================== SaveCommentPort ==================
@@ -88,6 +105,12 @@ public class CommentPersistenceAdapter implements
     @Override
     public void deleteById(Long commentId) {
         commentRepository.deleteById(commentId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteLike(Comment comment, User user) {
+        commentLikeRepository.deleteByCommentAndUser(comment, user);
     }
 
     // ================== LoadCommentLikePort ==================

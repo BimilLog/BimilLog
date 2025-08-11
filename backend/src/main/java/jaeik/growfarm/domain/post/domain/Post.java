@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.post.domain;
 
-import jaeik.growfarm.dto.post.PostReqDTO;
-import jaeik.growfarm.entity.BaseEntity;
 import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.global.domain.BaseEntity;
+import jaeik.growfarm.dto.post.PostReqDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -61,6 +61,9 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private boolean isNotice;
 
+    @Enumerated(EnumType.STRING)
+    private PostCacheFlag postCacheFlag;
+
     private Integer password;
 
     /**
@@ -84,6 +87,7 @@ public class Post extends BaseEntity {
                 .views(0)
                 .isNotice(false)
                 .password(postReqDTO.getPassword())
+                .postCacheFlag(null)
                 .build();
     }
 
@@ -129,6 +133,10 @@ public class Post extends BaseEntity {
      */
     public void unsetAsNotice() {
         this.isNotice = false;
+    }
+    
+    public void setPostCacheFlag(PostCacheFlag postCacheFlag) {
+        this.postCacheFlag = postCacheFlag;
     }
 
     /**

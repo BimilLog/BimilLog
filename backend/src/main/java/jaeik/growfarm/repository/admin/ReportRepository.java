@@ -1,8 +1,7 @@
 package jaeik.growfarm.repository.admin;
 
-import jaeik.growfarm.domain.report.domain.Report;
+import jaeik.growfarm.domain.admin.domain.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 /**
  * <h2>신고 Repository</h2>
@@ -13,7 +12,5 @@ import org.springframework.stereotype.Repository;
  * @author Jaeik
  * @version 2.0.0
  */
-@Repository
-public interface ReportRepository extends JpaRepository<Report, Long> , ReportCustomRepository {
-
+public interface ReportRepository extends JpaRepository<Report, Long>, ReportCustomRepository {
 }

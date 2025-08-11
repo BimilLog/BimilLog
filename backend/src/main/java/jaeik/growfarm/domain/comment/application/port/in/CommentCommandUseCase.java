@@ -1,17 +1,17 @@
 package jaeik.growfarm.domain.comment.application.port.in;
 
-import jaeik.growfarm.dto.comment.CommentDto;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 
 public interface CommentCommandUseCase {
 
-    void writeComment(CustomUserDetails userDetails, CommentDto commentDto);
+    void writeComment(CustomUserDetails userDetails, CommentDTO commentDto);
 
-    void updateComment(CommentDto commentDto, CustomUserDetails userDetails);
+    void updateComment(CommentDTO commentDto, CustomUserDetails userDetails);
 
-    void deleteComment(CommentDto commentDto, CustomUserDetails userDetails);
+    void deleteComment(CommentDTO commentDto, CustomUserDetails userDetails);
 
-    void likeComment(CommentDto commentDto, CustomUserDetails userDetails);
+    void likeComment(CommentDTO commentDto, CustomUserDetails userDetails);
 
     void anonymizeUserComments(Long userId);
 }

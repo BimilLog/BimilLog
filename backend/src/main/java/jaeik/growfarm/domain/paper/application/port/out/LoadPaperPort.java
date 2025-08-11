@@ -1,9 +1,11 @@
 package jaeik.growfarm.domain.paper.application.port.out;
 
+import jaeik.growfarm.domain.paper.domain.Message;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>롤링페이퍼 조회 포트</h2>
@@ -16,6 +18,8 @@ import java.util.List;
  * @version 2.0.0 (헥사고날 아키텍처 적용)
  */
 public interface LoadPaperPort {
+
+    Optional<Message> findMessageById(Long messageId);
 
     /**
      * <h3>사용자 ID로 메시지 조회</h3>

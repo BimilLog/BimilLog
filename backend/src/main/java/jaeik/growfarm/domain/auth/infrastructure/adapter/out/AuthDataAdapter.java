@@ -55,7 +55,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
         token.updateToken(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());
 
-        return authCookieManager.generateJwtCookie(new ClientDTO(user,
+        return authCookieManager.generateJwtCookie(ClientDTO.of(user,
                 tokenRepository.save(token).getId(),
                 fcmToken != null ? fcmTokenRepository.save(FcmToken.create(user, fcmToken)).getId() : null));
     }
@@ -66,7 +66,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
         User user = userRepository
                 .save(User.createUser(userData, userName, settingRepository.save(Setting.createSetting())));
         tempDataAdapter.removeTempData(uuid);
-        return authCookieManager.generateJwtCookie(new ClientDTO(user,
+        return authCookieManager.generateJwtCookie(ClientDTO.of(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
                 fcmToken != null ? fcmTokenRepository.save(FcmToken.create(user, fcmToken)).getId() : null));
     }

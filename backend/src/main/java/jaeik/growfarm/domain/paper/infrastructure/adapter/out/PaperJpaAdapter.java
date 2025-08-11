@@ -3,8 +3,9 @@ package jaeik.growfarm.domain.paper.infrastructure.adapter.out;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.message.domain.QMessage;
 import jaeik.growfarm.domain.paper.application.port.out.LoadPaperPort;
+import jaeik.growfarm.domain.paper.domain.Message;
+import jaeik.growfarm.domain.paper.domain.QMessage;
 import jaeik.growfarm.domain.user.domain.QUser;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>롤링페이퍼 JPA 어댑터</h2>
@@ -28,6 +30,17 @@ import java.util.List;
 public class PaperJpaAdapter implements LoadPaperPort {
 
     private final JPAQueryFactory jpaQueryFactory;
+
+    @Override
+    public Optional<Message> findMessageById(Long messageId) {
+        QMessage message = QMessage.message;
+        return Optional.ofNullable(
+                jpaQueryFactory
+                        .selectFrom(message)
+                        .where(message.id.eq(messageId))
+                        .fetchOne()
+        );
+    }
 
     /**
      * {@inheritDoc}
@@ -47,7 +60,7 @@ public class PaperJpaAdapter implements LoadPaperPort {
         return jpaQueryFactory
                 .select(Projections.fields(MessageDTO.class,
                         message.id,
-                        message.user.id.as("userId"), // 실제 userId
+                        message.user.id.as("userId"),
                         message.decoType,
                         message.anonymity,
                         message.content,

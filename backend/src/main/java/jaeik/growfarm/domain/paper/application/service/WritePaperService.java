@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.paper.application.service;
 
-import jaeik.growfarm.domain.message.domain.Message;
+import jaeik.growfarm.domain.paper.domain.Message;
 import jaeik.growfarm.domain.paper.application.port.in.WritePaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PublishEventPort;

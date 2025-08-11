@@ -7,9 +7,11 @@ import jaeik.growfarm.domain.user.domain.Setting;
 import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import java.util.Optional;
 public class UserService implements UserQueryUseCase, UserCommandUseCase {
 
     private final UserPort userPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Optional<User> findById(Long userId) {
@@ -45,8 +48,11 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
     @Override
     @Transactional
     public void withdrawUser(Long userId) {
-        // TO-DO: 다른 도메인(auth, comment, notification 등)과의 연동 로직 필요 (Event-driven으로 변경 예정)
-        userPort.deleteById(userId);
+        User user = userPort.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.withdraw();
+        eventPublisher.publishEvent(new UserWithdrawnEvent(this, userId));
+        userPort.save(user);
     }
 
     @Override

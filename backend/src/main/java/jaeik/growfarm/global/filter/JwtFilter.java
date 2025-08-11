@@ -114,7 +114,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     // 유저 정보 조회 (Setting 포함)
                     User user = userRepository.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
-                    ClientDTO clientDTO = new ClientDTO(user, tokenId, fcmTokenId);
+                    ClientDTO clientDTO = ClientDTO.of(user, tokenId, fcmTokenId);
 
                     // 새로운 accessTokenCookie 발급
                     ResponseCookie cookie = authCookieManager.generateJwtAccessCookie(clientDTO);

@@ -1,61 +1,38 @@
 package jaeik.growfarm.dto.user;
 
 import jaeik.growfarm.domain.user.domain.SocialProvider;
-import jaeik.growfarm.domain.user.domain.UserRole;
 import jaeik.growfarm.domain.user.domain.User;
-import jakarta.validation.constraints.Size;
+import jaeik.growfarm.domain.user.domain.UserRole;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
-/**
- * <h3>사용자 정보 DTO</h3>
- * <p>
- * 사용자의 기본 정보를 담는 데이터 전송 객체
- * </p>
- *
- * @version  2.0.0
- * @author Jaeik
- */
-@Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDTO {
 
     private Long userId;
-
     private String socialId;
-
     private SocialProvider provider;
-
     private Long settingId;
-
     private String socialNickname;
-
     private String thumbnailImage;
-
-    @Size(max = 8, message = "닉네임 은 최대 8글자 까지 입력 가능합니다.")
     private String userName;
-
     private UserRole role;
 
-    public UserDTO (User user) {
-        this.userId = user.getId();
-        this.socialId = user.getSocialId();
-        this.provider = user.getProvider();
-        this.settingId = user.getSetting().getId();
-        this.socialNickname = user.getSocialNickname();
-        this.thumbnailImage = user.getThumbnailImage();
-        this.userName = user.getUserName();
-        this.role = user.getRole();
-    }
-
-    public UserDTO(Long userId, String socialId, SocialProvider provider, String socialNickname, String thumbnailImage, String userName, UserRole role, Long settingId) {
-        this.userId = userId;
-        this.socialId = socialId;
-        this.provider = provider;
-        this.socialNickname = socialNickname;
-        this.thumbnailImage = thumbnailImage;
-        this.userName = userName;
-        this.role = role;
-        this.settingId = settingId;
+    public static UserDTO from(User user) {
+        return UserDTO.builder()
+                .userId(user.getId())
+                .socialId(user.getSocialId())
+                .provider(user.getProvider())
+                .settingId(user.getSetting().getId())
+                .socialNickname(user.getSocialNickname())
+                .thumbnailImage(user.getThumbnailImage())
+                .userName(user.getUserName())
+                .role(user.getRole())
+                .build();
     }
 }

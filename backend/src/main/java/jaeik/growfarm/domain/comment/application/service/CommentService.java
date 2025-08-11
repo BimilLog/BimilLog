@@ -1,23 +1,22 @@
 package jaeik.growfarm.domain.comment.application.service;
 
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.dsl.Expressions;
+
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.application.port.out.*;
 import jaeik.growfarm.domain.comment.domain.Comment;
 import jaeik.growfarm.domain.comment.domain.CommentClosure;
 import jaeik.growfarm.domain.comment.domain.CommentLike;
-import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
 import jaeik.growfarm.domain.post.domain.Post;
-import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.domain.User;
-import jaeik.growfarm.dto.comment.CommentDto;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.event.CommentCreatedEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,23 +25,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.Optional;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class CommentService implements CommentCommandUseCase, CommentQueryUseCase {
 
     private final LoadCommentPort loadCommentPort;
     private final SaveCommentPort saveCommentPort;
     private final DeleteCommentPort deleteCommentPort;
-    private final LoadCommentLikePort loadCommentLikePort;
     private final SaveCommentLikePort saveCommentLikePort;
-    private final DeleteCommentLikePort deleteCommentLikePort;
     private final LoadCommentClosurePort loadCommentClosurePort;
     private final SaveCommentClosurePort saveCommentClosurePort;
     private final DeleteCommentClosurePort deleteCommentClosurePort;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserQueryUseCase userQueryUseCase;
+    private final LoadUserPort loadUserPort;
     private final LoadPostPort loadPostPort;
 
 
@@ -50,7 +49,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentDto> getPopularComments(Long postId, CustomUserDetails userDetails) {
+    public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
         try {
             List<Tuple> popularTuples = loadCommentPort.findPopularComments(postId);
 
@@ -68,14 +67,14 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
             List<Long> userLikedCommentIds = getUserLikedCommentIds(popularCommentIds, userDetails);
 
-            List<CommentDto> popularComments = new ArrayList<>();
+            List<CommentDTO> popularComments = new ArrayList<>();
             for (Tuple tuple : popularTuples) {
                 Comment comment = tuple.get(0, Comment.class);
                 if (comment == null)
                     continue;
 
                 try {
-                    CommentDto commentDTO = new CommentDto(comment);
+                    CommentDTO commentDTO = new CommentDTO(comment);
 
                     Long likeCount = tuple.get(1, Long.class);
                     commentDTO.setLikes(likeCount != null ? likeCount.intValue() : 0);
@@ -95,13 +94,14 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
             return popularComments;
         } catch (Exception e) {
-            return List.of();
+            log.error("인기 댓글 조회에 실패했습니다. postId: {}", postId, e);
+            throw new CustomException(ErrorCode.POPULAR_COMMENT_FAILED, e);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<CommentDto> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
+    public Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
         if (page < 0) {
             return Page.empty();
         }
@@ -126,8 +126,8 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
             List<Long> userLikedCommentIds = getUserLikedCommentIds(commentIds, userDetails);
 
-            Map<Long, CommentDto> commentMap = new HashMap<>();
-            List<CommentDto> rootComments = new ArrayList<>();
+            Map<Long, CommentDTO> commentMap = new HashMap<>();
+            List<CommentDTO> rootComments = new ArrayList<>();
 
             for (Tuple tuple : commentTuples) {
                 Comment comment = tuple.get(0, Comment.class);
@@ -139,7 +139,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
                     continue;
 
                 try {
-                    CommentDto dto = new CommentDto(comment);
+                    CommentDTO dto = new CommentDTO(comment);
 
                     Long likeCount = tuple.get(1, Long.class);
                     dto.setLikes(likeCount != null ? likeCount.intValue() : 0);
@@ -165,21 +165,28 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
             return new PageImpl<>(rootComments, pageable, totalCount != null ? totalCount : 0L);
 
         } catch (Exception e) {
-            return Page.empty(pageable);
+            log.error("최신순 댓글 조회에 실패했습니다. postId: {}, page: {}", postId, page, e);
+            throw new CustomException(ErrorCode.COMMENT_FAILED, e);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Comment> findById(Long commentId) {
+        return loadCommentPort.findById(commentId);
     }
 
 
     // ============== Command ==============
 
     @Override
-    public void writeComment(CustomUserDetails userDetails, CommentDto commentDto) {
+    public void writeComment(CustomUserDetails userDetails, CommentDTO commentDto) {
         Post post = loadPostPort.findById(commentDto.getPostId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
         User user = null;
         if (userDetails != null) {
-            user = userQueryUseCase.findById(userDetails.getUserId())
+            user = loadUserPort.findById(userDetails.getUserId())
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         }
 
@@ -226,13 +233,13 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     }
 
     @Override
-    public void updateComment(CommentDto commentDto, CustomUserDetails userDetails) {
+    public void updateComment(CommentDTO commentDto, CustomUserDetails userDetails) {
         Comment comment = validateComment(commentDto, userDetails);
         comment.updateComment(commentDto.getContent());
         saveCommentPort.save(comment);
     }
 
-    private Comment validateComment(CommentDto commentDto, CustomUserDetails userDetails) {
+    private Comment validateComment(CommentDTO commentDto, CustomUserDetails userDetails) {
         Comment comment = loadCommentPort.findById(commentDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
@@ -248,7 +255,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     }
 
     @Override
-    public void deleteComment(CommentDto commentDto, CustomUserDetails userDetails) {
+    public void deleteComment(CommentDTO commentDto, CustomUserDetails userDetails) {
         Comment comment = validateComment(commentDto, userDetails);
         Long commentId = commentDto.getId();
 
@@ -267,20 +274,17 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     }
 
     @Override
-    public void likeComment(CommentDto commentDto, CustomUserDetails userDetails) {
+    public void likeComment(CommentDTO commentDto, CustomUserDetails userDetails) {
         Long commentId = commentDto.getId();
         Long userId = userDetails.getUserId();
 
-        // TODO: Port로 변경해야 함
         Comment comment = loadCommentPort.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        User user = userQueryUseCase.findById(userId)
+        User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Optional<CommentLike> existingLike = loadCommentLikePort.findByCommentIdAndUserId(commentId, userId);
-
-        if (existingLike.isPresent()) {
-            deleteCommentLikePort.delete(existingLike.get());
+        if (loadCommentPort.isLikedByUser(commentId, userId)) {
+            deleteCommentPort.deleteLike(comment, user);
         } else {
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)

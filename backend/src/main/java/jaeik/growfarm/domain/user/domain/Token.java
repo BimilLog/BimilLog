@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.user.domain;
 
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.entity.BaseEntity;
+import jaeik.growfarm.global.domain.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

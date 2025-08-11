@@ -51,7 +51,9 @@ public enum ErrorCode {
     INCORRECT_SEARCH_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 검색 형식입니다.", LogLevel.INFO),
     POPULAR_COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "인기 댓글 조회에 실패했습니다.", LogLevel.ERROR),
     COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 조회에 실패했습니다.", LogLevel.ERROR),
-    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글이 존재하지 않습니다.", LogLevel.INFO),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다."),
+    EMPTY_FILE(HttpStatus.BAD_REQUEST, "파일이 비어있습니다."),
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다."),
     POST_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 삭제에 실패했습니다.", LogLevel.ERROR),
     POST_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "게시글 작성자만 수정 및 삭제할 수 있습니다.", LogLevel.INFO),
     FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다.", LogLevel.WARN),
@@ -76,6 +78,7 @@ public enum ErrorCode {
      * </p>
      */
     USERNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 닉네임의 롤링페이퍼를 찾을 수 없습니다.", LogLevel.INFO),
+    NOT_FOUND_ROLLING_PAPER(HttpStatus.NOT_FOUND, "해당 롤링페이퍼 메시지를 찾을 수 없습니다.", LogLevel.INFO),
     MESSAGE_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인 롤링페이퍼의 메시지만 삭제할 수 있습니다.", LogLevel.INFO),
 
     /**
@@ -107,6 +110,12 @@ public enum ErrorCode {
         this.status = status;
         this.message = message;
         this.logLevel = logLevel;
+    }
+
+    ErrorCode(HttpStatus status, String message) {
+        this.status = status;
+        this.message = message;
+        this.logLevel = LogLevel.ERROR; // Default to ERROR for new constructors
     }
 
     /**

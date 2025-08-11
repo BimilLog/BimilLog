@@ -14,6 +14,7 @@ public interface CommentReadRepository {
     Long countRootCommentsByPostId(Long postId);
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
     Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
+    Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable);
 }
 
 

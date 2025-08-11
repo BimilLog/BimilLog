@@ -73,4 +73,13 @@ public interface PostCommandUseCase {
      * @param postId 추천할 게시글 ID
      */
     void likePost(User user, Long postId);
+
+    /**
+     * <h3>게시글 조회수 증가</h3>
+     * <p>
+     *     게시글의 조회수를 1 증가시킵니다.
+     * </p>
+     * @param postId 조회수를 증가시킬 게시글 ID
+     */
+    void incrementViewCount(Long postId);
 }

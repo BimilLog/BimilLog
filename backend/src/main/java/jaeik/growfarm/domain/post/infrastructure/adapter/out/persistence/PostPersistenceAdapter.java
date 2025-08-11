@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostPersistenceAdapter implements
         SavePostPort, LoadPostPort, DeletePostPort,
-        SavePostLikePort, DeletePostLikePort, ExistPostLikePort {
+        SavePostLikePort, DeletePostLikePort, ExistPostLikePort, CountPostLikePort {
 
     private final PostJpaRepository postJpaRepository;
     private final PostLikeJpaRepository postLikeJpaRepository;
-    // private final PostQueryDslRepository postQueryDslRepository; // QueryDSL을 위한 리포지토리
+    private final PostQueryDslRepository postQueryDslRepository;
 
     @Override
     public Post save(Post post) {
@@ -36,14 +36,12 @@ public class PostPersistenceAdapter implements
 
     @Override
     public Page<SimplePostResDTO> findByPage(Pageable pageable) {
-        // return postQueryDslRepository.findSimplePost(pageable);
-        return Page.empty(); // 임시
+        return postQueryDslRepository.findSimplePost(pageable);
     }
 
     @Override
     public Page<SimplePostResDTO> findBySearch(String type, String query, Pageable pageable) {
-        // return postQueryDslRepository.searchPosts(query, type, pageable);
-        return Page.empty(); // 임시
+        return postQueryDslRepository.searchPosts(query, type, pageable);
     }
 
     @Override
@@ -73,13 +71,18 @@ public class PostPersistenceAdapter implements
     }
 
     @Override
+    public long countByPost(Post post) {
+        return postLikeJpaRepository.countByPost(post);
+    }
+
+    @Override
     public Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable) {
-        return Page.empty(); // 임시 구현
+        return postQueryDslRepository.findPostsByUserId(userId, pageable);
     }
 
     @Override
     public Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
-        return Page.empty(); // 임시 구현
+        return postQueryDslRepository.findLikedPostsByUserId(userId, pageable);
     }
 
     @Override

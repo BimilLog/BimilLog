@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.comment.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
-import jaeik.growfarm.dto.comment.CommentDto;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +38,7 @@ public class CommentQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<Page<CommentDto>> getComments(
+    public ResponseEntity<Page<CommentDTO>> getComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
@@ -57,7 +57,7 @@ public class CommentQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{postId}/cache")
-    public ResponseEntity<List<CommentDto>> getPopularComments(
+    public ResponseEntity<List<CommentDTO>> getPopularComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId) {
         return ResponseEntity.ok(commentQueryUseCase.getPopularComments(postId, userDetails));

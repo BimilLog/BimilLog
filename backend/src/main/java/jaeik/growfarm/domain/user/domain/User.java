@@ -1,12 +1,14 @@
 package jaeik.growfarm.domain.user.domain;
 
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
-import jaeik.growfarm.entity.BaseEntity;
+import jaeik.growfarm.global.domain.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import java.time.Instant;
 
 /**
  * <h2>사용자 엔티티</h2>
@@ -64,6 +66,9 @@ public class User extends BaseEntity {
     @Column(name = "thumbnail_image") // 카카오 프로필 이미지
     private String thumbnailImage;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     /**
      * <h3>사용자 정보 업데이트</h3>
      *
@@ -94,6 +99,16 @@ public class User extends BaseEntity {
      */
     public void updateUserName(String userName) {
         this.userName = userName;
+    }
+
+    public void withdraw() {
+        this.userName = "탈퇴한사용자" + this.id;
+        this.socialId = null;
+        this.provider = null;
+        this.socialNickname = null;
+        this.thumbnailImage = null;
+        this.role = UserRole.WITHDRAWN;
+        this.deletedAt = Instant.now();
     }
 
     /**

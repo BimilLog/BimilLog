@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.paper;
 
-import jaeik.growfarm.domain.message.domain.DecoType;
+import jaeik.growfarm.domain.paper.domain.DecoType;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;

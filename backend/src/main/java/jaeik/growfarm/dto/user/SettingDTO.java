@@ -1,9 +1,8 @@
 package jaeik.growfarm.dto.user;
 
 import jaeik.growfarm.domain.user.domain.Setting;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.Accessors;
 
 /**
  * <h3>사용자 설정 DTO</h3>
@@ -17,6 +16,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Accessors(fluent = true)
 public class SettingDTO {
 
     private Long settingId;

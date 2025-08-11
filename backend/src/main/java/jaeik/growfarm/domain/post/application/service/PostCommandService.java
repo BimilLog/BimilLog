@@ -35,9 +35,9 @@ public class PostCommandService implements PostCommandUseCase {
     private final SavePostLikePort savePostLikePort;
     private final DeletePostLikePort deletePostLikePort;
     private final ExistPostLikePort existPostLikePort;
+    private final PostCacheManageService postCacheManageService;
 
-    // private final LoadUserPort loadUserPort; // user 도메인의 out-port, 주입 필요
-    // private final RedisPostService redisPostService; // 캐시 서비스, 주입 필요
+
 
     @Override
     public Long writePost(User user, PostReqDTO postReqDTO) {
@@ -51,7 +51,7 @@ public class PostCommandService implements PostCommandUseCase {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         post.setAsNotice();
-        // 캐시 로직 추가 필요
+        postCacheManageService.deleteNoticeCache();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class PostCommandService implements PostCommandUseCase {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         post.unsetAsNotice();
-        // 캐시 로직 추가 필요
+        postCacheManageService.deleteNoticeCache();
     }
 
     @Override
@@ -86,6 +86,14 @@ public class PostCommandService implements PostCommandUseCase {
             PostLike postLike = PostLike.builder().user(user).post(post).build();
             savePostLikePort.save(postLike);
         }
+    }
+
+    @Override
+    public void incrementViewCount(Long postId) {
+        Post post = loadPostPort.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        post.incrementView();
+        // savePostPort.save(post)는 @Transactional에 의해 더티 체킹되므로 명시적으로 호출할 필요가 없습니다.
     }
 
     private Post validatePostOwner(User user, Long postId) {

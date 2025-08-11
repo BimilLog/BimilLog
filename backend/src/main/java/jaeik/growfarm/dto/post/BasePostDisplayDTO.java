@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.post;
 
-import jaeik.growfarm.entity.post.PostCacheFlag;
+import jaeik.growfarm.domain.post.domain.PostCacheFlag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

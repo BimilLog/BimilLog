@@ -8,9 +8,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import jaeik.growfarm.domain.post.domain.Post;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long>, CommentReadRepository {
+
+    List<Comment> findByPost(Post post);
 
     @Query("SELECT cl.comment.id FROM CommentLike cl WHERE cl.comment.id IN :commentIds AND cl.user.id = :userId")
     List<Long> findUserLikedCommentIds(@Param("commentIds") List<Long> commentIds, @Param("userId") Long userId);
@@ -19,6 +22,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
     @Query("UPDATE Comment c SET c.user = null, c.content = '탈퇴한 사용자의 댓글입니다.' WHERE c.user.id = :userId")
     void anonymizeUserComments(@Param("userId") Long userId);
 }
+
 
 
 

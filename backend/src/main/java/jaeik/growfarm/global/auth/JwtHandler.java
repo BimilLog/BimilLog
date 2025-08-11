@@ -126,17 +126,18 @@ public class JwtHandler {
     public ClientDTO getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
-        return new ClientDTO(
-                Long.parseLong(claims.getSubject()),
-                claims.get("socialId", String.class),
-                SocialProvider.valueOf(claims.get("provider", String.class)),
-                claims.get("socialNickname", String.class),
-                claims.get("thumbnailImage", String.class),
-                claims.get("userName", String.class),
-                UserRole.valueOf(claims.get("role", String.class)),
-                claims.get("tokenId", Long.class),
-                claims.get("fcmTokenId", Long.class),
-                claims.get("settingId", Long.class));
+        return ClientDTO.builder()
+                .userId(Long.parseLong(claims.getSubject()))
+                .socialId(claims.get("socialId", String.class))
+                .provider(SocialProvider.valueOf(claims.get("provider", String.class)))
+                .socialNickname(claims.get("socialNickname", String.class))
+                .thumbnailImage(claims.get("thumbnailImage", String.class))
+                .userName(claims.get("userName", String.class))
+                .role(UserRole.valueOf(claims.get("role", String.class)))
+                .tokenId(claims.get("tokenId", Long.class))
+                .fcmTokenId(claims.get("fcmTokenId", Long.class))
+                .settingId(claims.get("settingId", Long.class))
+                .build();
     }
 
     /**

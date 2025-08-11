@@ -1,43 +1,42 @@
 package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.domain.comment.domain.QComment;
 import jaeik.growfarm.domain.comment.domain.QCommentClosure;
 import jaeik.growfarm.domain.comment.domain.QCommentLike;
+import jaeik.growfarm.domain.user.domain.QUser;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 public class CommentReadRepositoryImpl implements CommentReadRepository {
 
-    private final JPAQueryFactory queryFactory;
+    private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public List<Tuple> findCommentsWithLatestOrder(Long postId, Pageable pageable) {
         QComment comment = QComment.comment;
-        QCommentLike commentLike = QCommentLike.commentLike;
         QCommentClosure closure = QCommentClosure.commentClosure;
+        QCommentLike commentLike = QCommentLike.commentLike;
 
-        return queryFactory
-                .select(
-                        comment,
-                        commentLike.id.count(),
-                        closure.ancestor.id,
-                        closure.depth
-                )
+        return jpaQueryFactory
+                .select(comment, commentLike.countDistinct(), comment.id, closure.depth, closure.ancestor.id)
                 .from(comment)
-                .leftJoin(commentLike).on(commentLike.comment.id.eq(comment.id))
-                .join(closure).on(closure.descendant.id.eq(comment.id))
+                .leftJoin(closure).on(comment.id.eq(closure.descendant.id))
+                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id)
+                .groupBy(comment.id, closure.depth, closure.ancestor.id)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -50,21 +49,16 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
         QCommentLike commentLike = QCommentLike.commentLike;
         QCommentClosure closure = QCommentClosure.commentClosure;
 
-        return queryFactory
-                .select(
-                        comment,
-                        commentLike.id.countDistinct(),
-                        closure.ancestor.id
-                )
+        return jpaQueryFactory
+                .select(comment, commentLike.countDistinct(), closure.ancestor.id)
                 .from(comment)
-                .join(closure).on(closure.descendant.id.eq(comment.id))
-                .leftJoin(commentLike).on(commentLike.comment.id.eq(comment.id))
-                .where(comment.post.id.eq(postId)
-                        .and(closure.depth.eq(0))
-                        .and(comment.deleted.isFalse()))
-                .groupBy(comment.id)
-                .orderBy(commentLike.id.countDistinct().desc())
-                .limit(3)
+                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
+                .leftJoin(closure).on(comment.id.eq(closure.descendant.id).and(closure.depth.eq(0)))
+                .where(comment.post.id.eq(postId))
+                .groupBy(comment.id, closure.ancestor.id)
+                .having(commentLike.countDistinct().goe(5)) // 좋아요 5개 이상
+                .orderBy(commentLike.countDistinct().desc())
+                .limit(5)
                 .fetch();
     }
 
@@ -73,23 +67,92 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
         QComment comment = QComment.comment;
         QCommentClosure closure = QCommentClosure.commentClosure;
 
-        return queryFactory
-                .select(comment.id.count())
+        return jpaQueryFactory
+                .select(comment.countDistinct())
                 .from(comment)
-                .join(closure).on(closure.descendant.id.eq(comment.id))
-                .where(comment.post.id.eq(postId)
-                        .and(closure.depth.eq(0))
-                        .and(comment.deleted.isFalse()))
+                .join(closure).on(comment.id.eq(closure.descendant.id))
+                .where(comment.post.id.eq(postId).and(closure.depth.eq(0)))
                 .fetchOne();
     }
 
     @Override
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
-        return null;
+        QComment comment = QComment.comment;
+
+        List<Tuple> results = jpaQueryFactory
+                .select(comment.post.id, comment.count())
+                .from(comment)
+                .where(comment.post.id.in(postIds))
+                .groupBy(comment.post.id)
+                .fetch();
+
+        return results.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(comment.post.id),
+                        tuple -> tuple.get(comment.count()).intValue()
+                ));
     }
 
     @Override
     public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
-        return null;
+        QComment comment = QComment.comment;
+        QCommentLike commentLike = QCommentLike.commentLike;
+        QUser user = QUser.user;
+
+        List<SimpleCommentDTO> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleCommentDTO.class,
+                        comment.id,
+                        comment.content,
+                        user.userName,
+                        comment.createdAt,
+                        comment.post.id,
+                        comment.post.title))
+                .from(comment)
+                .join(commentLike).on(comment.id.eq(commentLike.comment.id))
+                .leftJoin(comment.user, user)
+                .where(commentLike.user.id.eq(userId))
+                .orderBy(comment.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(comment.countDistinct())
+                .from(comment)
+                .join(commentLike).on(comment.id.eq(commentLike.comment.id))
+                .where(commentLike.user.id.eq(userId))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    @Override
+    public Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable) {
+        QComment comment = QComment.comment;
+        QUser user = QUser.user;
+
+        List<SimpleCommentDTO> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleCommentDTO.class,
+                        comment.id,
+                        comment.content,
+                        user.userName,
+                        comment.createdAt,
+                        comment.post.id,
+                        comment.post.title))
+                .from(comment)
+                .leftJoin(comment.user, user)
+                .where(comment.user.id.eq(userId))
+                .orderBy(comment.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(comment.count())
+                .from(comment)
+                .where(comment.user.id.eq(userId))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 }
