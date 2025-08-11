@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.user;
 
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.repository.user.read.UserReadRepository;
 import jaeik.growfarm.repository.user.validation.UserValidationRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,7 +23,7 @@ import java.util.Optional;
  * @since 2.0.0
  */
 @Repository
-public interface UserRepository extends JpaRepository<Users, Long>, UserReadRepository, UserValidationRepository {
+public interface UserRepository extends JpaRepository<User, Long>, UserReadRepository, UserValidationRepository {
 
     // 모든 메서드는 UserReadRepository와 UserValidationRepository에서 상속
 }

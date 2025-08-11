@@ -32,7 +32,7 @@ public class AuthQueryController {
      */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok(authQueryUseCase.getCurrentUser(userDetails));
+        return ResponseEntity.ok(authQueryUseCase.getUserFromUserDetails(userDetails));
     }
 
     /**

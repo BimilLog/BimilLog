@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.paper.application.service;
 
 import jaeik.growfarm.domain.paper.application.port.in.DeletePaperUseCase;
-import jaeik.growfarm.domain.paper.application.port.out.SavePaperPort;
+import jaeik.growfarm.domain.paper.application.port.out.DeletePaperPort;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DeletePaperService implements DeletePaperUseCase {
 
-    private final SavePaperPort savePaperPort;
+    private final DeletePaperPort deletePaperPort;
 
     /**
      * {@inheritDoc}
@@ -42,6 +42,6 @@ public class DeletePaperService implements DeletePaperUseCase {
         if (!messageDTO.getUserId().equals(userDetails.getUserId())) {
             throw new CustomException(ErrorCode.MESSAGE_DELETE_FORBIDDEN);
         }
-        savePaperPort.deleteById(messageDTO.getId());
+        deletePaperPort.deleteById(messageDTO.getId());
     }
 }

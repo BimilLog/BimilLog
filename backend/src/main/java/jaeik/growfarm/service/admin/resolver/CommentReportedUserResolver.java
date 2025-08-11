@@ -1,11 +1,11 @@
 package jaeik.growfarm.service.admin.resolver;
 
-import jaeik.growfarm.entity.comment.Comment;
-import jaeik.growfarm.entity.report.ReportType;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.comment.application.port.out.LoadCommentPort;
+import jaeik.growfarm.domain.comment.domain.Comment;
+import jaeik.growfarm.domain.report.domain.ReportType;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.repository.comment.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CommentReportedUserResolver implements ReportedUserResolver {
 
-    private final CommentRepository commentRepository;
+    private final LoadCommentPort loadCommentPort;
 
     @Override
-    public Users resolve(Long targetId) {
-        Comment comment = commentRepository.findById(targetId)
+    public User resolve(Long targetId) {
+        Comment comment = loadCommentPort.findById(targetId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_FAILED));
         return comment.getUser();
     }

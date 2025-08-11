@@ -1,7 +1,7 @@
 package jaeik.growfarm.repository.admin;
 
 import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.entity.report.ReportType;
+import jaeik.growfarm.domain.report.domain.ReportType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;

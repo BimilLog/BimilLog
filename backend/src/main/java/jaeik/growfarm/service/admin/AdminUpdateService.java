@@ -1,7 +1,7 @@
 package jaeik.growfarm.service.admin;
 
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.AuthDataAdapter;
-import jaeik.growfarm.entity.user.BlackList;
+import jaeik.growfarm.domain.user.domain.BlackList;
 import jaeik.growfarm.global.event.UserBannedEvent;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import jaeik.growfarm.repository.user.BlackListRepository;

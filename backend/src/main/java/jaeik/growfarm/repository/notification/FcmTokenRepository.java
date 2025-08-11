@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.notification;
 
-import jaeik.growfarm.entity.notification.FcmToken;
+import jaeik.growfarm.domain.notification.domain.FcmToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,13 +30,13 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
      */
     @Query("""
         SELECT f FROM FcmToken f
-        JOIN f.users u
+        JOIN f.user u
         JOIN u.setting s
         WHERE u.id = :userId
         AND s.messageNotification = true
         """)
     List<FcmToken> findValidFcmTokensByUserId(@Param("userId") Long userId);
 
-    void deleteByUsers_Id(Long userId);
+    void deleteByUser_Id(Long userId);
 
 }

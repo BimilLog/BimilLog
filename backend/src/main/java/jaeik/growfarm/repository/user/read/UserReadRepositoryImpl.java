@@ -2,10 +2,10 @@ package jaeik.growfarm.repository.user.read;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.domain.user.domain.QUser;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.ClientDTO;
-import jaeik.growfarm.entity.user.QUsers;
-import jaeik.growfarm.entity.user.SocialProvider;
-import jaeik.growfarm.entity.user.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -31,31 +31,31 @@ import java.util.stream.Collectors;
 public class UserReadRepositoryImpl implements UserReadRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
-    private final QUsers users = QUsers.users;
+    private final QUser user = QUser.user;
 
     @Override
-    public Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return Optional.ofNullable(jpaQueryFactory
-                .selectFrom(users)
-                .where(users.provider.eq(provider)
-                        .and(users.socialId.eq(socialId)))
+                .selectFrom(user)
+                .where(user.provider.eq(provider)
+                        .and(user.socialId.eq(socialId)))
                 .fetchOne());
     }
 
     @Override
-    public Users findByUserName(String userName) {
+    public User findByUserName(String userName) {
         return jpaQueryFactory
-                .selectFrom(users)
-                .where(users.userName.eq(userName))
+                .selectFrom(user)
+                .where(user.userName.eq(userName))
                 .fetchOne();
     }
 
     @Override
-    public Optional<Users> findByIdWithSetting(Long id) {
-        Users result = jpaQueryFactory
-                .selectFrom(users)
-                .leftJoin(users.setting).fetchJoin()
-                .where(users.id.eq(id))
+    public Optional<User> findByIdWithSetting(Long id) {
+        User result = jpaQueryFactory
+                .selectFrom(user)
+                .leftJoin(user.setting).fetchJoin()
+                .where(user.id.eq(id))
                 .fetchOne();
         return Optional.ofNullable(result);
     }
@@ -75,15 +75,15 @@ public class UserReadRepositoryImpl implements UserReadRepository {
         }
 
         List<Tuple> results = jpaQueryFactory
-                .select(users.socialId, users.userName)
-                .from(users)
-                .where(users.socialId.in(ids))
+                .select(user.socialId, user.userName)
+                .from(user)
+                .where(user.socialId.in(ids))
                 .fetch();
 
         Map<String, String> socialIdToUserName = results.stream()
                 .collect(Collectors.toMap(
-                        tuple -> tuple.get(users.socialId),
-                        tuple -> Optional.ofNullable(tuple.get(users.userName)).orElse(""),
+                        tuple -> tuple.get(user.socialId),
+                        tuple -> Optional.ofNullable(tuple.get(user.userName)).orElse(""),
                         (existing, replacement) -> existing // Handle duplicate keys if any
                 ));
 

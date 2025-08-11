@@ -1,12 +1,12 @@
 package jaeik.growfarm.domain.paper.application.service;
 
+import jaeik.growfarm.domain.message.domain.Message;
 import jaeik.growfarm.domain.paper.application.port.in.WritePaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PublishEventPort;
 import jaeik.growfarm.domain.paper.application.port.out.SavePaperPort;
-import jaeik.growfarm.entity.message.Message;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.paper.MessageDTO;
-import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.event.MessageEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
@@ -47,7 +47,7 @@ public class WritePaperService implements WritePaperUseCase {
      */
     @Override
     public void writeMessage(String userName, MessageDTO messageDTO) {
-        Users user = loadUserPort.findByUserName(userName);
+        User user = loadUserPort.findByUserName(userName);
 
         if (user == null) {
             throw new CustomException(ErrorCode.USERNAME_NOT_FOUND);

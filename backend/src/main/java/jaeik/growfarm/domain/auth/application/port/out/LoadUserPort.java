@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
-import jaeik.growfarm.entity.user.SocialProvider;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
 
 import java.util.Optional;
 
@@ -21,7 +21,7 @@ public interface LoadUserPort {
      * @param socialId 소셜 ID
      * @return 사용자 정보 (없으면 Optional.empty())
      */
-    Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId);
+    Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
 
     /**
      * <h3>사용자 ID로 조회</h3>
@@ -29,5 +29,5 @@ public interface LoadUserPort {
      * @param userId 사용자 ID
      * @return 사용자 정보 (없으면 Optional.empty())
      */
-    Optional<Users> findById(Long userId);
+    Optional<User> findById(Long userId);
 }

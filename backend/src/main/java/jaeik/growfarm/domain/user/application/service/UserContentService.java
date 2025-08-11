@@ -1,10 +1,10 @@
-package jaeik.growfarm.service.user;
+package jaeik.growfarm.domain.user.application.service;
 
+import jaeik.growfarm.domain.comment.application.port.out.LoadCommentPort;
+import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.repository.comment.user.CommentUserRepository;
-import jaeik.growfarm.repository.post.user.PostUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,8 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class UserContentService {
 
-    private final PostUserRepository postUserRepository;
-    private final CommentUserRepository commentUserRepository;
+    private final LoadPostPort loadPostPort;
+    private final LoadCommentPort loadCommentPort;
 
     /**
      * <h3>유저 작성 글 목록 조회</h3>
@@ -49,7 +49,7 @@ public class UserContentService {
      */
     public Page<SimplePostResDTO> getPostList(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postUserRepository.findPostsByUserId(userDetails.getUserId(), pageable);
+        return loadPostPort.findPostsByUserId(userDetails.getUserId(), pageable);
     }
 
     /**
@@ -69,7 +69,7 @@ public class UserContentService {
      */
     public Page<SimpleCommentDTO> getCommentList(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return commentUserRepository.findCommentsByUserId(userDetails.getUserId(), pageable);
+        return loadCommentPort.findCommentsByUserId(userDetails.getUserId(), pageable);
     }
 
     /**
@@ -89,7 +89,7 @@ public class UserContentService {
      */
     public Page<SimplePostResDTO> getLikedPosts(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postUserRepository.findLikedPostsByUserId(userDetails.getUserId(), pageable);
+        return loadPostPort.findLikedPostsByUserId(userDetails.getUserId(), pageable);
     }
 
     /**
@@ -109,6 +109,6 @@ public class UserContentService {
      */
     public Page<SimpleCommentDTO> getLikedComments(int page, int size, CustomUserDetails userDetails) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return commentUserRepository.findLikedCommentsByUserId(userDetails.getUserId(), pageable);
+        return loadCommentPort.findLikedCommentsByUserId(userDetails.getUserId(), pageable);
     }
 }

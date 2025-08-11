@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.auth.application.port.in;
 
-import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 
 /**
@@ -19,5 +19,5 @@ public interface AuthQueryUseCase {
      * @param userDetails 인증된 사용자 정보
      * @return 현재 로그인한 사용자 정보
      */
-    ClientDTO getCurrentUser(CustomUserDetails userDetails);
+    User getUserFromUserDetails(CustomUserDetails userDetails);
 }

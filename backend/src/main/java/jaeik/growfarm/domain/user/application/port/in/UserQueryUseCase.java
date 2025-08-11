@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
-import jaeik.growfarm.entity.user.SocialProvider;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
 import java.util.Optional;
 
 /**
@@ -12,8 +12,8 @@ import java.util.Optional;
  * @version 1.0
  */
 public interface UserQueryUseCase {
-    Optional<Users> findById(Long userId);
-    Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId);
+    Optional<User> findById(Long userId);
+    Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
     boolean existsByUserName(String userName);
-    Users findByUserName(String userName);
+    User findByUserName(String userName);
 }

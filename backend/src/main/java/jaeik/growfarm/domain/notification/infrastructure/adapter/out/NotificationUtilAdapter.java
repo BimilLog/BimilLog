@@ -1,11 +1,11 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
+import jaeik.growfarm.domain.notification.domain.NotificationType;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.notification.EventDTO;
-import jaeik.growfarm.entity.notification.NotificationType;
-import jaeik.growfarm.entity.user.Setting;
-import jaeik.growfarm.entity.user.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -44,18 +44,18 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
             return true;
         }
 
-        Optional<Users> userOptional = userQueryUseCase.findById(userId);
+        Optional<User> userOptional = userQueryUseCase.findById(userId);
         if (userOptional.isEmpty()) {
             return false;
         }
 
         Setting setting = userOptional.get().getSetting();
         return switch (type) {
-            case FARM -> setting.isMessageNotification();
+            case MESSAGE -> setting.isMessageNotification();
             case COMMENT -> setting.isCommentNotification();
             case POST_FEATURED -> setting.isPostFeaturedNotification();
             case COMMENT_FEATURED ->
-                // COMMENT_FEATURED에 대한 설정은 현재 없으므로, 댓글 알림 설정을 따르도록 합니다.
+                // 인기댓글에 대한 설정은 현재 없으므로, 댓글 알림 설정을 따르도록 합니다.
                     setting.isCommentNotification();
             default -> false; // ADMIN, INITIATE는 위에서 처리했으므로 사실상 도달하지 않음
         };

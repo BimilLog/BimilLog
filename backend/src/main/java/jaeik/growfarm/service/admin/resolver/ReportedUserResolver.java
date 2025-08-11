@@ -1,9 +1,9 @@
 package jaeik.growfarm.service.admin.resolver;
 
-import jaeik.growfarm.entity.report.ReportType;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.report.domain.ReportType;
+import jaeik.growfarm.domain.user.domain.User;
 
 public interface ReportedUserResolver {
-    Users resolve(Long targetId);
+    User resolve(Long targetId);
     ReportType supports();
 }

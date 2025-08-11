@@ -1,8 +1,8 @@
 package jaeik.growfarm.global.filter;
 
+import jaeik.growfarm.domain.user.domain.Token;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.ClientDTO;
-import jaeik.growfarm.entity.user.Token;
-import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.AuthCookieManager;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.auth.JwtHandler;
@@ -113,7 +113,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (Objects.equals(token.getId(), tokenId)) {
 
                     // 유저 정보 조회 (Setting 포함)
-                    Users user = userRepository.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
+                    User user = userRepository.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
                     ClientDTO clientDTO = new ClientDTO(user, tokenId, fcmTokenId);
 
                     // 새로운 accessTokenCookie 발급

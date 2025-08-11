@@ -1,7 +1,7 @@
 package jaeik.growfarm.repository.user;
 
-import jaeik.growfarm.entity.user.BlackList;
-import jaeik.growfarm.entity.user.SocialProvider;
+import jaeik.growfarm.domain.user.domain.BlackList;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

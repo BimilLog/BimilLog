@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.user.application.port.out;
 
-import jaeik.growfarm.entity.user.Setting;
-import jaeik.growfarm.entity.user.SocialProvider;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
 
 import java.util.Optional;
 
@@ -14,11 +14,11 @@ import java.util.Optional;
  * @version 1.0
  */
 public interface UserPort {
-    Optional<Users> findById(Long id);
-    Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId);
+    Optional<User> findById(Long id);
+    Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
     boolean existsByUserName(String userName);
-    Users findByUserName(String userName);
+    User findByUserName(String userName);
     void deleteById(Long id);
     Setting save(Setting setting);
-    Users save(Users user);
+    User save(User user);
 }

@@ -2,13 +2,13 @@ package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.growfarm.domain.notification.domain.FcmToken;
+import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.user.domain.Token;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.entity.notification.FcmToken;
-import jaeik.growfarm.entity.user.Setting;
-import jaeik.growfarm.entity.user.Token;
-import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.AuthCookieManager;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
@@ -48,10 +48,10 @@ public class AuthDataAdapter implements ManageAuthDataPort {
 
     @Override
     @Transactional
-    public List<ResponseCookie> saveExistUser(Users user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+    public List<ResponseCookie> saveExistUser(User user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
         user.updateUserInfo(userData.getNickname(), userData.getProfileImageUrl());
 
-        Token token = tokenRepository.findByUsers(user)
+        Token token = tokenRepository.findByUser(user)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
         token.updateToken(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());
 
@@ -63,8 +63,8 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     @Override
     @Transactional
     public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
-        Users user = userRepository
-                .save(Users.createUser(userData, userName, settingRepository.save(Setting.createSetting())));
+        User user = userRepository
+                .save(User.createUser(userData, userName, settingRepository.save(Setting.createSetting())));
         tempDataAdapter.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(new ClientDTO(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
@@ -75,7 +75,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     @Transactional
     public void logoutUser(Long userId) {
         userJdbcRepository.deleteAllTokensByUserId(userId);
-        fcmTokenRepository.deleteByUsers_Id(userId);
+        fcmTokenRepository.deleteByUser_Id(userId);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
         entityManager.clear();
 
         userJdbcRepository.deleteAllTokensByUserId(userId);
-        fcmTokenRepository.deleteByUsers_Id(userId);
+        fcmTokenRepository.deleteByUser_Id(userId);
 
         userRepository.deleteById(userId);
     }

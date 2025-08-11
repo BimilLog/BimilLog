@@ -3,11 +3,11 @@ package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 import jaeik.growfarm.domain.notification.application.port.out.LoadNotificationPort;
 import jaeik.growfarm.domain.notification.application.port.out.SaveNotificationPort;
 import jaeik.growfarm.domain.notification.application.port.out.UpdateNotificationPort;
+import jaeik.growfarm.domain.notification.domain.Notification;
+import jaeik.growfarm.domain.notification.domain.NotificationType;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
-import jaeik.growfarm.entity.notification.Notification;
-import jaeik.growfarm.entity.notification.NotificationType;
-import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.repository.notification.NotificationRepository;
 import jaeik.growfarm.repository.notification.delete.NotificationDeleteRepository;
@@ -57,7 +57,7 @@ public class NotificationJpaAdapter implements LoadNotificationPort, UpdateNotif
     }
 
     @Override
-    public void save(Users user, NotificationType type, String data, String url) {
-        notificationRepository.save(Notification.createNotification(user, type, data, url));
+    public void save(User user, NotificationType type, String content, String url) {
+        notificationRepository.save(Notification.create(user, type, content, url));
     }
 }

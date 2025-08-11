@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.paper;
 
-import jaeik.growfarm.entity.message.Message;
+import jaeik.growfarm.domain.message.domain.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

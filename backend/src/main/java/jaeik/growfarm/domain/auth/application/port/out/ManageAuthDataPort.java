@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.entity.user.Users;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public interface ManageAuthDataPort {
      * @param fcmToken FCM 토큰
      * @return JWT가 삽입된 쿠키 리스트
      */
-    List<ResponseCookie> saveExistUser(Users user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken);
+    List<ResponseCookie> saveExistUser(User user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken);
 
     /**
      * <h3>신규 사용자 정보 저장</h3>

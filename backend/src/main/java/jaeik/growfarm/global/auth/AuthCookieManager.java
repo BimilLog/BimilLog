@@ -23,7 +23,28 @@ public class AuthCookieManager {
 
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
+    public static final String TEMP_USER_ID_COOKIE = "temp_user_id";
     private static final int MAX_AGE = 3600;
+
+    /**
+     * <h3>임시 사용자 ID 쿠키 생성</h3>
+     *
+     * <p>신규 회원가입 시 사용자의 임시 UUID를 담는 쿠키를 생성합니다.</p>
+     *
+     * @param uuid 임시 사용자 ID
+     * @return 임시 사용자 ID 쿠키
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public ResponseCookie createTempCookie(String uuid) {
+        return ResponseCookie.from(TEMP_USER_ID_COOKIE, uuid)
+                .path("/")
+                .maxAge(600) // 10분
+                .httpOnly(true)
+                .sameSite("Lax")
+                .secure(true)
+                .build();
+    }
 
     /**
      * <h3>JWT 토큰 쿠키 생성</h3>

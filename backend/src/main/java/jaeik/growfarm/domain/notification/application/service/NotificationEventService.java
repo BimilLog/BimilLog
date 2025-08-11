@@ -3,8 +3,8 @@ package jaeik.growfarm.domain.notification.application.service;
 import jaeik.growfarm.domain.notification.application.port.in.NotificationEventUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
+import jaeik.growfarm.domain.notification.domain.NotificationType;
 import jaeik.growfarm.dto.notification.EventDTO;
-import jaeik.growfarm.entity.notification.NotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +51,7 @@ public class NotificationEventService implements NotificationEventUseCase {
     @Override
     public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
         EventDTO eventDTO = notificationUtilPort.createEventDTO(
-                NotificationType.FARM,
+                NotificationType.MESSAGE,
                 "롤링페이퍼에 메시지가 작성되었어요!",
                 url + "/rolling-paper/" + userName
         );

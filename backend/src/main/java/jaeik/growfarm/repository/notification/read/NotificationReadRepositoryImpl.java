@@ -1,9 +1,8 @@
 package jaeik.growfarm.repository.notification.read;
 
 import com.querydsl.core.types.Projections;
+import jaeik.growfarm.domain.user.domain.QUser;
 import jaeik.growfarm.dto.notification.NotificationDTO;
-import jaeik.growfarm.entity.notification.QNotification;
-import jaeik.growfarm.entity.user.QUsers;
 import jaeik.growfarm.repository.notification.NotificationBaseRepository;
 import org.springframework.stereotype.Repository;
 
@@ -28,13 +27,13 @@ public class NotificationReadRepositoryImpl extends NotificationBaseRepository i
 
     @Override
     public List<NotificationDTO> findNotificationsByUserIdOrderByLatest(Long userId) {
-        QUsers user = QUsers.users;
+        QUser user = QUser.user;
 
         return jpaQueryFactory
                 .select(Projections.constructor(NotificationDTO.class,
                         notification.id,
                         notification.notificationType,
-                        notification.data,
+                        notification.content,
                         notification.url,
                         notification.isRead,
                         notification.createdAt))

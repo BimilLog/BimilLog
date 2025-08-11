@@ -3,10 +3,10 @@ package jaeik.growfarm.domain.user.application.service;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.SettingDTO;
-import jaeik.growfarm.entity.user.Setting;
-import jaeik.growfarm.entity.user.SocialProvider;
-import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +23,12 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
     private final UserPort userPort;
 
     @Override
-    public Optional<Users> findById(Long userId) {
+    public Optional<User> findById(Long userId) {
         return userPort.findById(userId);
     }
 
     @Override
-    public Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return userPort.findByProviderAndSocialId(provider, socialId);
     }
 
@@ -38,7 +38,7 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
     }
 
     @Override
-    public Users findByUserName(String userName) {
+    public User findByUserName(String userName) {
         return userPort.findByUserName(userName);
     }
 
@@ -52,7 +52,7 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
     @Override
     @Transactional
     public void updateUserSettings(Long userId, SettingDTO settingDTO) {
-        Users user = userPort.findById(userId)
+        User user = userPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Setting setting = user.getSetting();
         setting.updateSetting(settingDTO);
@@ -65,7 +65,7 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
         if (userPort.existsByUserName(newUserName)) {
             throw new CustomException(ErrorCode.EXISTED_NICKNAME);
         }
-        Users user = userPort.findById(userId)
+        User user = userPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.updateUserName(newUserName);
         userPort.save(user);

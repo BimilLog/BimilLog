@@ -1,13 +1,17 @@
 package jaeik.growfarm.controller.admin;
 
+import jaeik.growfarm.domain.report.domain.ReportType;
 import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.entity.report.ReportType;
 import jaeik.growfarm.service.admin.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <h2>관리자 관련 Query 컨트롤러</h2>
@@ -18,15 +22,14 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/reports")
-@PreAuthorize("hasRole('ADMIN')")
+@RequestMapping("/api/admin/query")
 public class AdminQueryController {
 
     private final AdminService adminService;
 
-    @GetMapping
-    public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam int page,
-                                                         @RequestParam int size,
+    @GetMapping("/reports")
+    public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "10") int size,
                                                          @RequestParam(required = false) ReportType reportType) {
         Page<ReportDTO> reportList = adminService.getReportList(page, size, reportType);
         return ResponseEntity.ok(reportList);

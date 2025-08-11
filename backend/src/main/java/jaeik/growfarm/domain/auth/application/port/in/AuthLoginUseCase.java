@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.auth.application.port.in;
 
+import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
-import jaeik.growfarm.entity.user.SocialProvider;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import org.springframework.http.ResponseCookie;
 

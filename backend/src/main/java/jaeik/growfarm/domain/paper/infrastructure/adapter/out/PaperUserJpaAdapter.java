@@ -1,10 +1,14 @@
 package jaeik.growfarm.domain.paper.infrastructure.adapter.out;
 
-import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
-import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * <h2>사용자 JPA 어댑터</h2>
@@ -18,36 +22,42 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class PaperUserJpaAdapter implements LoadUserPort {
+public class PaperUserJpaAdapter implements UserPort {
 
-    private final UserQueryUseCase userQueryUseCase;
+    private final UserRepository userRepository;
 
-    /**
-     * {@inheritDoc}
-     * 
-     * <p>기존 UserRepository.existsByUserName() 메서드를 완전히 위임:</p>
-     * <ul>
-     *   <li>JPA의 existsBy 쿼리 메서드 그대로 사용</li>
-     *   <li>동일한 성능 특성 보존</li>
-     * </ul>
-     */
     @Override
-    public boolean existsByUserName(String userName) {
-        return userQueryUseCase.existsByUserName(userName);
+    public Optional<User> findById(Long id) {
+        throw new UnsupportedOperationException("PaperUserJpaAdapter는 findById를 지원하지 않습니다.");
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * <p>기존 UserRepository.findByUserName() 메서드를 완전히 위임:</p>
-     * <ul>
-     *   <li>JPA의 findBy 쿼리 메서드 그대로 사용</li>
-     *   <li>null 반환 가능성 보존</li>
-     *   <li>LAZY 로딩 등 모든 특성 보존</li>
-     * </ul>
-     */
     @Override
-    public Users findByUserName(String userName) {
-        return userQueryUseCase.findByUserName(userName);
+    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+        throw new UnsupportedOperationException("PaperUserJpaAdapter는 findByProviderAndSocialId를 지원하지 않습니다.");
+    }
+
+    @Override
+    public boolean existsByUserName(String userName) {
+        return userRepository.existsByUserName(userName);
+    }
+
+    @Override
+    public User findByUserName(String userName) {
+        return userRepository.findByUserName(userName);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        throw new UnsupportedOperationException("PaperUserJpaAdapter는 deleteById를 지원하지 않습니다.");
+    }
+
+    @Override
+    public Setting save(Setting setting) {
+        throw new UnsupportedOperationException("PaperUserJpaAdapter는 save(Setting)를 지원하지 않습니다.");
+    }
+
+    @Override
+    public User save(User user) {
+        throw new UnsupportedOperationException("PaperUserJpaAdapter는 save(User)를 지원하지 않습니다.");
     }
 }

@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
-import jaeik.growfarm.domain.notification.application.port.out.SseEmitterPort;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
-import jaeik.growfarm.entity.notification.NotificationType;
+import jaeik.growfarm.domain.notification.application.port.out.SseEmitterPort;
+import jaeik.growfarm.domain.notification.domain.NotificationType;
 import jaeik.growfarm.repository.notification.EmitterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

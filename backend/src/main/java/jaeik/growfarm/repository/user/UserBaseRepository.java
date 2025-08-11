@@ -1,7 +1,8 @@
 package jaeik.growfarm.repository.user;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.entity.user.QUsers;
+import jaeik.growfarm.domain.user.domain.QUser;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * <h2>사용자 기본 레포지토리</h2>
@@ -16,10 +17,10 @@ import jaeik.growfarm.entity.user.QUsers;
  */
 public abstract class UserBaseRepository {
 
-    protected final JPAQueryFactory jpaQueryFactory;
-    protected final QUsers user = QUsers.users;
+    protected final JPAQueryFactory queryFactory;
+    protected final QUser user = QUser.user;
 
-    protected UserBaseRepository(JPAQueryFactory jpaQueryFactory) {
-        this.jpaQueryFactory = jpaQueryFactory;
+    public UserBaseRepository(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
     }
 }

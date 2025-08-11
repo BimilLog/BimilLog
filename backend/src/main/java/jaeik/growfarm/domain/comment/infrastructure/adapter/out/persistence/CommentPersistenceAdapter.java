@@ -2,13 +2,9 @@ package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
 
 import com.querydsl.core.Tuple;
 import jaeik.growfarm.domain.comment.application.port.out.*;
-import jaeik.growfarm.entity.comment.Comment;
-import jaeik.growfarm.entity.comment.CommentClosure;
-import jaeik.growfarm.entity.comment.CommentLike;
-import jaeik.growfarm.repository.comment.CommentClosureRepository;
-import jaeik.growfarm.repository.comment.CommentLikeRepository;
-import jaeik.growfarm.repository.comment.CommentRepository;
-import jaeik.growfarm.repository.comment.read.CommentReadRepository;
+import jaeik.growfarm.domain.comment.domain.Comment;
+import jaeik.growfarm.domain.comment.domain.CommentClosure;
+import jaeik.growfarm.domain.comment.domain.CommentLike;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -16,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
+import org.springframework.data.domain.Page;
 
 @Repository
 @RequiredArgsConstructor
@@ -58,6 +56,16 @@ public class CommentPersistenceAdapter implements
     @Override
     public List<Long> findUserLikedCommentIds(List<Long> commentIds, Long userId) {
         return commentRepository.findUserLikedCommentIds(commentIds, userId);
+    }
+
+    @Override
+    public Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
+        return commentReadRepository.findLikedCommentsByUserId(userId, pageable);
     }
 
     // ================== SaveCommentPort ==================

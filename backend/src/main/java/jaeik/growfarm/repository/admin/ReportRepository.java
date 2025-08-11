@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.admin;
 
-import jaeik.growfarm.entity.report.Report;
+import jaeik.growfarm.domain.report.domain.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

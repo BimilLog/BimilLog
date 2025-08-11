@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.paper.application.service;
 
 import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.LoadPaperPort;
-import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
+import jaeik.growfarm.domain.user.application.port.out.UserPort;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
@@ -30,7 +30,7 @@ import java.util.List;
 public class ReadPaperService implements ReadPaperUseCase {
 
     private final LoadPaperPort loadPaperPort;
-    private final LoadUserPort loadUserPort;
+    private final UserPort userPort;
 
     /**
      * {@inheritDoc}
@@ -54,7 +54,7 @@ public class ReadPaperService implements ReadPaperUseCase {
      */
     @Override
     public List<VisitMessageDTO> visitPaper(String userName) {
-        boolean exists = loadUserPort.existsByUserName(userName);
+        boolean exists = userPort.existsByUserName(userName);
         if (!exists) {
             throw new CustomException(ErrorCode.USERNAME_NOT_FOUND);
         }

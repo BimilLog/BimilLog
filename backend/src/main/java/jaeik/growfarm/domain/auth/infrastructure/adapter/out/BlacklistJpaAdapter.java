@@ -1,10 +1,10 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.CheckBlacklistPort;
-import jaeik.growfarm.entity.user.SocialProvider;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 /**
  * <h2>블랙리스트 JPA 어댑터</h2>
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
  * @author Jaeik
  * @version 2.0.0
  */
-@Repository
+@Component
 @RequiredArgsConstructor
 public class BlacklistJpaAdapter implements CheckBlacklistPort {
 

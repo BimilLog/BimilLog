@@ -23,7 +23,7 @@ public class UserValidationRepositoryImpl extends UserBaseRepository implements 
 
     @Override
     public boolean existsByUserName(String userName) {
-        Integer count = jpaQueryFactory
+        Integer count = queryFactory
                 .selectOne()
                 .from(user)
                 .where(user.userName.eq(userName))

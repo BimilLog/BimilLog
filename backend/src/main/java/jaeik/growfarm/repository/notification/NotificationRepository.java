@@ -1,6 +1,6 @@
 package jaeik.growfarm.repository.notification;
 
-import jaeik.growfarm.entity.notification.Notification;
+import jaeik.growfarm.domain.notification.domain.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

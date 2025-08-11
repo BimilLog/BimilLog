@@ -1,6 +1,6 @@
 package jaeik.growfarm.global.listener.handler;
 
-import jaeik.growfarm.entity.user.BlackList;
+import jaeik.growfarm.domain.user.domain.BlackList;
 import jaeik.growfarm.global.event.UserBannedEvent;
 import jaeik.growfarm.repository.user.BlackListRepository;
 import lombok.RequiredArgsConstructor;

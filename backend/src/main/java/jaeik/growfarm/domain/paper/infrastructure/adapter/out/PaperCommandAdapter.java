@@ -1,7 +1,8 @@
 package jaeik.growfarm.domain.paper.infrastructure.adapter.out;
 
+import jaeik.growfarm.domain.message.domain.Message;
+import jaeik.growfarm.domain.paper.application.port.out.DeletePaperPort;
 import jaeik.growfarm.domain.paper.application.port.out.SavePaperPort;
-import jaeik.growfarm.entity.message.Message;
 import jaeik.growfarm.repository.paper.PaperCommandRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-public class PaperCommandAdapter implements SavePaperPort {
+public class PaperCommandAdapter implements SavePaperPort, DeletePaperPort {
 
     private final PaperCommandRepository paperCommandRepository;
 

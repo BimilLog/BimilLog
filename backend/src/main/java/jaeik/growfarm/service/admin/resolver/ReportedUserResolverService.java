@@ -1,7 +1,7 @@
 package jaeik.growfarm.service.admin.resolver;
 
-import jaeik.growfarm.entity.report.ReportType;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.report.domain.ReportType;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class ReportedUserResolverService {
         }
     }
 
-    public Users resolveUser(ReportType reportType, Long targetId) {
+    public User resolveUser(ReportType reportType, Long targetId) {
         ReportedUserResolver resolver = resolvers.get(reportType);
         if (resolver == null) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);

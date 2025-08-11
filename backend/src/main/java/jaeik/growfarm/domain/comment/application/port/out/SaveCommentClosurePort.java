@@ -1,8 +1,7 @@
 package jaeik.growfarm.domain.comment.application.port.out;
 
-import jaeik.growfarm.entity.comment.CommentClosure;
+import jaeik.growfarm.domain.comment.domain.CommentClosure;
 
 public interface SaveCommentClosurePort {
-
     void save(CommentClosure commentClosure);
 }

@@ -1,13 +1,13 @@
 package jaeik.growfarm.dto.auth;
 
-import jaeik.growfarm.entity.user.SocialProvider;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 public class SocialLoginUserData {
-
     private final String socialId;
+    private final String email;
     private final SocialProvider provider;
     private final String nickname;
     private final String profileImageUrl;
@@ -18,5 +18,6 @@ public class SocialLoginUserData {
         this.provider = provider;
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
+        this.email = null;
     }
 }

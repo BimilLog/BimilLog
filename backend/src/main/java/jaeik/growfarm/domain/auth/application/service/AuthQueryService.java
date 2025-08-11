@@ -1,29 +1,28 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.AuthQueryUseCase;
-import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.domain.auth.application.port.out.LoadUserPort;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <h2>인증 조회 서비스</h2>
- * <p>사용자 정보 조회 관련 비즈니스 로직 구현</p>
- *
- * @author Jaeik
- * @version 2.0.0
- */
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AuthQueryService implements AuthQueryUseCase {
 
+    private final LoadUserPort loadUserPort;
+
     @Override
-    public ClientDTO getCurrentUser(CustomUserDetails userDetails) {
+    public User getUserFromUserDetails(CustomUserDetails userDetails) {
         if (userDetails == null) {
-            throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
+            return null;
         }
-        return userDetails.getClientDTO();
+        return loadUserPort.findById(userDetails.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }

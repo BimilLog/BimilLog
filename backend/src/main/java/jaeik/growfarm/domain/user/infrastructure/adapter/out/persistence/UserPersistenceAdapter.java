@@ -1,9 +1,9 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
-import jaeik.growfarm.entity.user.Setting;
-import jaeik.growfarm.entity.user.SocialProvider;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.repository.user.SettingRepository;
 import jaeik.growfarm.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +26,12 @@ public class UserPersistenceAdapter implements UserPort {
     private final SettingRepository settingRepository;
 
     @Override
-    public Optional<Users> findById(Long id) {
+    public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
 
     @Override
-    public Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return userRepository.findByProviderAndSocialId(provider, socialId);
     }
 
@@ -41,7 +41,7 @@ public class UserPersistenceAdapter implements UserPort {
     }
 
     @Override
-    public Users findByUserName(String userName) {
+    public User findByUserName(String userName) {
         return userRepository.findByUserName(userName);
     }
 
@@ -56,7 +56,7 @@ public class UserPersistenceAdapter implements UserPort {
     }
 
     @Override
-    public Users save(Users user) {
+    public User save(User user) {
         return userRepository.save(user);
     }
 }

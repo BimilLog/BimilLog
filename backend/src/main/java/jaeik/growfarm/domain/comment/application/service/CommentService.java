@@ -1,16 +1,18 @@
 package jaeik.growfarm.domain.comment.application.service;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.Expressions;
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.application.port.out.*;
+import jaeik.growfarm.domain.comment.domain.Comment;
+import jaeik.growfarm.domain.comment.domain.CommentClosure;
+import jaeik.growfarm.domain.comment.domain.CommentLike;
 import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.domain.Post;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.comment.CommentDto;
-import jaeik.growfarm.entity.comment.Comment;
-import jaeik.growfarm.entity.comment.CommentClosure;
-import jaeik.growfarm.entity.comment.QComment;
-import jaeik.growfarm.entity.post.Post;
-import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.event.CommentCreatedEvent;
 import jaeik.growfarm.global.exception.CustomException;
@@ -23,9 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.querydsl.core.Tuple;
 import java.util.*;
-import jaeik.growfarm.entity.comment.CommentLike;
 
 @Service
 @Transactional
@@ -60,7 +60,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
             List<Long> popularCommentIds = popularTuples.stream()
                     .map(tuple -> {
-                        Comment comment = tuple.get(QComment.comment);
+                        Comment comment = tuple.get(0, Comment.class);
                         return comment != null ? comment.getId() : null;
                     })
                     .filter(Objects::nonNull)
@@ -70,7 +70,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
             List<CommentDto> popularComments = new ArrayList<>();
             for (Tuple tuple : popularTuples) {
-                Comment comment = tuple.get(QComment.comment);
+                Comment comment = tuple.get(0, Comment.class);
                 if (comment == null)
                     continue;
 
@@ -117,7 +117,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
             List<Long> commentIds = commentTuples.stream()
                     .map(tuple -> {
-                        Comment comment = tuple.get(QComment.comment);
+                        Comment comment = tuple.get(0, Comment.class);
                         return comment != null ? comment.getId() : null;
                     })
                     .filter(Objects::nonNull)
@@ -130,7 +130,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
             List<CommentDto> rootComments = new ArrayList<>();
 
             for (Tuple tuple : commentTuples) {
-                Comment comment = tuple.get(QComment.comment);
+                Comment comment = tuple.get(0, Comment.class);
                 if (comment == null)
                     continue;
 
@@ -177,7 +177,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         Post post = loadPostPort.findById(commentDto.getPostId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
-        Users user = null;
+        User user = null;
         if (userDetails != null) {
             user = userQueryUseCase.findById(userDetails.getUserId())
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -199,7 +199,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         }
     }
 
-    private void saveCommentWithClosure(Post post, Users user, String content, Integer password, Long parentId) {
+    private void saveCommentWithClosure(Post post, User user, String content, Integer password, Long parentId) {
         try {
             Comment comment = saveCommentPort.save(Comment.createComment(post, user, content, password));
 
@@ -274,7 +274,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         // TODO: Port로 변경해야 함
         Comment comment = loadCommentPort.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        Users user = userQueryUseCase.findById(userId)
+        User user = userQueryUseCase.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Optional<CommentLike> existingLike = loadCommentLikePort.findByCommentIdAndUserId(commentId, userId);

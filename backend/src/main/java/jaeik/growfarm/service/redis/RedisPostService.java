@@ -1,21 +1,19 @@
 package jaeik.growfarm.service.redis;
 
+import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
+import jaeik.growfarm.entity.post.PostCacheFlag;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.repository.post.cache.PostCacheRepository;
-import jaeik.growfarm.service.post.PostScheduledService;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import jaeik.growfarm.entity.post.PostCacheFlag; // 기존 엔티티의 PostCacheFlag 임포트
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.EnumMap; // EnumMap을 사용하여 Enum과 값 매핑
 
 /**
  * <h2>Redis 게시글 서비스</h2>
@@ -36,8 +34,7 @@ import java.util.EnumMap; // EnumMap을 사용하여 Enum과 값 매핑
 public class RedisPostService {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final PostScheduledService postScheduledService;
-    private final PostCacheRepository postCacheRepository;
+    private final LoadPostPort loadPostPort;
 
     // Redis 키와 TTL을 저장할 내부 맵
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
@@ -46,11 +43,9 @@ public class RedisPostService {
 
 
     public RedisPostService(RedisTemplate<String, Object> redisTemplate,
-                            @Lazy PostScheduledService postScheduledService,
-                            PostCacheRepository postCacheRepository) {
+                            LoadPostPort loadPostPort) {
         this.redisTemplate = redisTemplate;
-        this.postScheduledService = postScheduledService;
-        this.postCacheRepository = postCacheRepository;
+        this.loadPostPort = loadPostPort;
 
         // PostCacheFlag enum에 따른 Redis 키와 TTL 초기화
         this.cacheMetadataMap = new EnumMap<>(PostCacheFlag.class);
@@ -118,11 +113,12 @@ public class RedisPostService {
         if (!hasPopularPostsCache(type)) {
             // 캐시가 없으면 해당 유형에 따라 업데이트 로직 수행
             switch (type) {
-                case REALTIME -> postScheduledService.updateRealtimePopularPosts();
-                case WEEKLY -> postScheduledService.updateWeeklyPopularPosts();
-                case LEGEND -> postScheduledService.updateLegendPopularPosts();
+                case REALTIME, WEEKLY, LEGEND -> {
+                    // 캐시가 없으면 비어있는 리스트를 반환, 캐시 채우는 것은 스케줄러 담당
+                    return Collections.emptyList();
+                }
                 case NOTICE -> {
-                    List<SimplePostResDTO> noticePosts = postCacheRepository.findNoticePost();
+                    List<SimplePostResDTO> noticePosts = loadPostPort.findNoticePosts();
                     cachePosts(PostCacheFlag.NOTICE, noticePosts);
                 }
             }
@@ -216,7 +212,7 @@ public class RedisPostService {
      * @since 2.0.0
      */
     public void cacheFullPost(FullPostResDTO post) {
-        String key = FULL_POST_CACHE_PREFIX + post.getPostId();
+        String key = FULL_POST_CACHE_PREFIX + post.getId();
         try {
             redisTemplate.opsForValue().set(key, post, FULL_POST_CACHE_TTL);
         } catch (Exception e) {

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
-import jaeik.growfarm.entity.user.SocialProvider;
+import jaeik.growfarm.domain.user.domain.SocialProvider;
 
 /**
  * <h2>블랙리스트 확인 포트</h2>

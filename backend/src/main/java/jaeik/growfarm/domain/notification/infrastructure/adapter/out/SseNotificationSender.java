@@ -2,10 +2,10 @@ package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
 import jaeik.growfarm.domain.notification.application.port.out.SaveNotificationPort;
+import jaeik.growfarm.domain.notification.domain.NotificationType;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.notification.EventDTO;
-import jaeik.growfarm.entity.notification.NotificationType;
-import jaeik.growfarm.entity.user.Users;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.repository.notification.EmitterRepository;
@@ -31,7 +31,7 @@ public class SseNotificationSender implements NotificationSender {
             String data = eventDTO.getData();
             String url = eventDTO.getUrl();
 
-            Users user = userQueryUseCase.findById(userId)
+            User user = userQueryUseCase.findById(userId)
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             saveNotificationPort.save(user, type, data, url);
             Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);

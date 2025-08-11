@@ -1,9 +1,9 @@
 package jaeik.growfarm.repository.user.read;
 
+import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.dto.user.SettingDTO;
-import jaeik.growfarm.entity.user.SocialProvider;
-import jaeik.growfarm.entity.user.Users;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 public interface UserReadRepository {
 
-    Optional<Users> findByProviderAndSocialId(SocialProvider provider, String socialId);
+    Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
 
     /**
      * <h3>닉네임으로 사용자 조회</h3>
@@ -38,7 +38,7 @@ public interface UserReadRepository {
      * @version 2.0.0
      * @since 2.0.0
      */
-    Users findByUserName(String userName);
+    User findByUserName(String userName);
 
     /**
      * <h3>ID로 사용자와 설정 조회</h3>
@@ -53,7 +53,7 @@ public interface UserReadRepository {
      * @version 2.0.0
      * @since 2.0.0
      */
-    Optional<Users> findByIdWithSetting(Long id);
+    Optional<User> findByIdWithSetting(Long id);
 
     /**
      * <h3>ID로 사용자 클라이언트 정보 조회</h3>

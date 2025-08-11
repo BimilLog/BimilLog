@@ -1,11 +1,11 @@
 package jaeik.growfarm.service.admin.resolver;
 
-import jaeik.growfarm.entity.post.Post;
-import jaeik.growfarm.entity.report.ReportType;
-import jaeik.growfarm.entity.user.Users;
+import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.report.domain.ReportType;
+import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.repository.post.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PostReportedUserResolver implements ReportedUserResolver {
 
-    private final PostRepository postRepository;
+    private final LoadPostPort loadPostPort;
 
     @Override
-    public Users resolve(Long targetId) {
-        Post post = postRepository.findById(targetId)
+    public User resolve(Long targetId) {
+        Post post = loadPostPort.findById(targetId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         return post.getUser();
     }
