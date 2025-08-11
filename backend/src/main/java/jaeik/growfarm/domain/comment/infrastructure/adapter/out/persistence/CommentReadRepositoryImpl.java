@@ -2,11 +2,13 @@ package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.domain.QComment;
 import jaeik.growfarm.domain.comment.domain.QCommentClosure;
 import jaeik.growfarm.domain.comment.domain.QCommentLike;
 import jaeik.growfarm.domain.user.domain.QUser;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,41 +27,80 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public List<Tuple> findCommentsWithLatestOrder(Long postId, Pageable pageable) {
+    public Page<CommentDTO> findCommentsWithLatestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds) {
         QComment comment = QComment.comment;
-        QCommentClosure closure = QCommentClosure.commentClosure;
         QCommentLike commentLike = QCommentLike.commentLike;
+        QCommentClosure closure = QCommentClosure.commentClosure;
+        QUser user = QUser.user;
 
-        return jpaQueryFactory
-                .select(comment, commentLike.countDistinct(), comment.id, closure.depth, closure.ancestor.id)
+        List<CommentDTO> content = jpaQueryFactory
+                .select(Projections.constructor(CommentDTO.class,
+                        comment.id,
+                        comment.post.id,
+                        comment.user.id,
+                        user.userName,
+                        comment.content,
+                        comment.deleted,
+                        comment.password,
+                        comment.createdAt,
+                        closure.ancestor.id
+                ))
                 .from(comment)
+                .leftJoin(comment.user, user)
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id))
-                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, closure.depth, closure.ancestor.id)
+                .groupBy(comment.id, user.userName, closure.ancestor.id)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        content.forEach(dto -> {
+            dto.setUserLike(likedCommentIds.contains(dto.getId()));
+            // like count는 별도로 조회해야 함
+        });
+
+        Long total = countRootCommentsByPostId(postId);
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     @Override
-    public List<Tuple> findPopularComments(Long postId) {
+    public List<CommentDTO> findPopularComments(Long postId, List<Long> likedCommentIds) {
         QComment comment = QComment.comment;
         QCommentLike commentLike = QCommentLike.commentLike;
         QCommentClosure closure = QCommentClosure.commentClosure;
+        QUser user = QUser.user;
 
-        return jpaQueryFactory
-                .select(comment, commentLike.countDistinct(), closure.ancestor.id)
+        List<CommentDTO> popularComments = jpaQueryFactory
+                .select(Projections.constructor(CommentDTO.class,
+                        comment.id,
+                        comment.post.id,
+                        comment.user.id,
+                        user.userName,
+                        comment.content,
+                        comment.deleted,
+                        comment.password,
+                        comment.createdAt,
+                        closure.ancestor.id
+                ))
                 .from(comment)
+                .leftJoin(comment.user, user)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id).and(closure.depth.eq(0)))
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, closure.ancestor.id)
+                .groupBy(comment.id, user.userName, closure.ancestor.id)
                 .having(commentLike.countDistinct().goe(5)) // 좋아요 5개 이상
                 .orderBy(commentLike.countDistinct().desc())
                 .limit(5)
                 .fetch();
+
+        popularComments.forEach(dto -> {
+            dto.setUserLike(likedCommentIds.contains(dto.getId()));
+            dto.setPopular(true);
+            // like count는 별도로 조회해야 함
+        });
+        return popularComments;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.exception;
+package jaeik.growfarm.infrastructure.advice;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

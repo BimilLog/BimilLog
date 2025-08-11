@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.admin.application.service.resolver;
 
-import jaeik.growfarm.domain.paper.application.port.in.PaperQueryUseCase;
+import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
 import jaeik.growfarm.domain.paper.domain.Message;
 import jaeik.growfarm.domain.admin.domain.ReportType;
 import jaeik.growfarm.domain.user.domain.User;
@@ -13,17 +13,17 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PaperReportedUserResolver implements ReportedUserResolver {
 
-    private final PaperQueryUseCase paperQueryUseCase;
-
-    @Override
-    public User resolve(Long targetId) {
-        Message message = paperQueryUseCase.findMessageById(targetId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_ROLLING_PAPER));
-        return message.getUser();
-    }
+    private final ReadPaperUseCase readPaperUseCase;
 
     @Override
     public ReportType supports() {
         return ReportType.PAPER;
+    }
+
+    @Override
+    public User resolve(Long targetId) {
+        Message message = readPaperUseCase.findMessageById(targetId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MESSAGE_NOT_FOUND));
+        return message.getUser();
     }
 }

@@ -80,6 +80,7 @@ public enum ErrorCode {
     USERNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 닉네임의 롤링페이퍼를 찾을 수 없습니다.", LogLevel.INFO),
     NOT_FOUND_ROLLING_PAPER(HttpStatus.NOT_FOUND, "해당 롤링페이퍼 메시지를 찾을 수 없습니다.", LogLevel.INFO),
     MESSAGE_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인 롤링페이퍼의 메시지만 삭제할 수 있습니다.", LogLevel.INFO),
+    MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다."),
 
     /**
      * <h3>관리자 에러 코드</h3>
@@ -99,7 +100,8 @@ public enum ErrorCode {
      */
     SSE_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "SSE 알림 전송 중 오류 발생", LogLevel.ERROR),
     FCM_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "FCM 알림 전송 중 오류 발생", LogLevel.ERROR),
-    NOTIFICATION_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송 중 오류 발생", LogLevel.ERROR);
+    NOTIFICATION_CONNECTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알림 연결 중 오류가 발생했습니다."),
+    NOTIFICATION_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송 중 오류가 발생했습니다.");
 
 
     private final HttpStatus status;

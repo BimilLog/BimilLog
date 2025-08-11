@@ -10,4 +10,6 @@ public interface DeleteCommentPort {
     void deleteById(Long commentId);
 
     void deleteLike(Comment comment, User user);
+
+    void deleteAllByPostId(Long postId);
 }

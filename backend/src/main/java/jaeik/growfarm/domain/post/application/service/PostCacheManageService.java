@@ -4,9 +4,14 @@ import jaeik.growfarm.domain.post.application.port.out.LoadPopularPostPort;
 import jaeik.growfarm.domain.post.application.port.out.ManagePostCachePort;
 import jaeik.growfarm.domain.post.domain.PostCacheFlag;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
-
+import jaeik.growfarm.global.event.PostFeaturedEvent;
+import jaeik.growfarm.global.event.PostSetAsNoticeEvent;
+import jaeik.growfarm.global.event.PostUnsetAsNoticeEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +21,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostCacheManageService {
 
     private final LoadPopularPostPort loadPopularPostPort;
     private final ManagePostCachePort managePostCachePort;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Scheduled(fixedRate = 60000 * 30) // 30분마다
@@ -43,8 +50,18 @@ public class PostCacheManageService {
             managePostCachePort.cachePosts(PostCacheFlag.WEEKLY, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
             loadPopularPostPort.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
-            // 각 게시글의 작성자에게 알림을 보내려면 게시글 정보를 조회해야 함
-            // 현재는 간단한 형태로 구현
+            posts.forEach(post -> {
+                if (post.getUserId() != null) {
+                    eventPublisher.publishEvent(new PostFeaturedEvent(
+                            this,
+                            post.getUserId(),
+                            "주간 인기 게시글로 선정되었어요!",
+                            post.getId(),
+                            "주간 인기 게시글 선정",
+                            "회원님의 게시글 '" + post.getTitle() + "'이 주간 인기 게시글로 선정되었습니다."
+                    ));
+                }
+            });
         }
     }
     
@@ -57,12 +74,36 @@ public class PostCacheManageService {
             managePostCachePort.cachePosts(PostCacheFlag.LEGEND, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
             loadPopularPostPort.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
-            // 각 게시글의 작성자에게 알림을 보내려면 게시글 정보를 조회해야 함
-            // 현재는 간단한 형태로 구현
+            posts.forEach(post -> {
+                if (post.getUserId() != null) {
+                    eventPublisher.publishEvent(new PostFeaturedEvent(
+                            this,
+                            post.getUserId(),
+                            "명예의 전당에 등극했어요!",
+                            post.getId(),
+                            "명예의 전당 등극",
+                            "회원님의 게시글 '" + post.getTitle() + "'이 명예의 전당에 등극했습니다."
+                    ));
+                }
+            });
         }
     }
 
     public void deleteNoticeCache() {
         managePostCachePort.deletePopularPostsCache(PostCacheFlag.NOTICE);
+    }
+
+    @Async
+    @EventListener
+    public void handlePostSetAsNotice(PostSetAsNoticeEvent event) {
+        log.info("Post (ID: {}) set as notice event received. Deleting notice cache.", event.getPostId());
+        deleteNoticeCache();
+    }
+
+    @Async
+    @EventListener
+    public void handlePostUnsetAsNotice(PostUnsetAsNoticeEvent event) {
+        log.info("Post (ID: {}) unset as notice event received. Deleting notice cache.", event.getPostId());
+        deleteNoticeCache();
     }
 }

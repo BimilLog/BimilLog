@@ -5,6 +5,8 @@ import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 
 import java.util.List;
+import java.util.Optional;
+import jaeik.growfarm.domain.paper.domain.Message;
 
 /**
  * <h2>롤링페이퍼 조회 유스케이스</h2>
@@ -45,4 +47,6 @@ public interface ReadPaperUseCase {
      * @since 2.0.0
      */
     List<VisitMessageDTO> visitPaper(String userName);
+
+    Optional<Message> findMessageById(Long messageId);
 }

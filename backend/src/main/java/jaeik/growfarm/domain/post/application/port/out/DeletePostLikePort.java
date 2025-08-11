@@ -23,5 +23,7 @@ public interface DeletePostLikePort {
      * @param post 게시글
      */
     void deleteByUserAndPost(User user, Post post);
+
+    void deleteAllByPostId(Long postId);
 }
 

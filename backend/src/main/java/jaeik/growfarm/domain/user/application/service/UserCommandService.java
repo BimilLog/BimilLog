@@ -1,15 +1,12 @@
+
 package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.growfarm.domain.user.application.port.out.SaveBlacklistPort;
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
-import jaeik.growfarm.domain.user.domain.BlackList;
 import jaeik.growfarm.domain.user.domain.Setting;
-import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.SettingDTO;
-import jaeik.growfarm.global.event.UserBannedEvent;
+import jaeik.growfarm.global.event.UserSignedUpEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
@@ -21,37 +18,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
-@Transactional(readOnly = true)
+@Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class UserService implements UserQueryUseCase, UserCommandUseCase {
+public class UserCommandService implements UserCommandUseCase {
 
     private final UserPort userPort;
     private final ApplicationEventPublisher eventPublisher;
-    private final SaveBlacklistPort saveBlacklistPort;
-
-    @Override
-    public Optional<User> findById(Long userId) {
-        return userPort.findById(userId);
-    }
-
-    @Override
-    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-        return userPort.findByProviderAndSocialId(provider, socialId);
-    }
-
-    @Override
-    public boolean existsByUserName(String userName) {
-        return userPort.existsByUserName(userName);
-    }
-
-    @Override
-    public User findByUserName(String userName) {
-        return userPort.findByUserName(userName);
-    }
 
     @Override
     @Transactional
@@ -61,7 +35,6 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
     }
 
     @Override
-    @Transactional
     public void updateUserSettings(Long userId, SettingDTO settingDTO) {
         User user = userPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -71,7 +44,6 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
     }
 
     @Override
-    @Transactional
     public void updateUserName(Long userId, String newUserName) {
         if (userPort.existsByUserName(newUserName)) {
             throw new CustomException(ErrorCode.EXISTED_NICKNAME);
@@ -85,10 +57,13 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
     @Async
     @Transactional
     @EventListener
-    public void handleUserBannedEvent(UserBannedEvent event) {
-        log.info("User (Social ID: {}, Provider: {}) banned event received. Adding to blacklist.",
-                event.getSocialId(), event.getProvider());
-        BlackList blackList = BlackList.createBlackList(event.getSocialId(), event.getProvider());
-        saveBlacklistPort.save(blackList);
+    public void handleUserSignedUpEvent(UserSignedUpEvent event) {
+        User user = userPort.findById(event.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        
+        Setting setting = Setting.createSetting();
+        user.updateSetting(setting);
+        userPort.save(user);
+        log.info("Initialized default settings for new user (ID: {})", event.getUserId());
     }
 }

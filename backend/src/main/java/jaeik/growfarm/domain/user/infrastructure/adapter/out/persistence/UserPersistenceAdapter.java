@@ -1,6 +1,8 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
+import jaeik.growfarm.domain.user.application.port.out.SaveBlacklistPort;
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.domain.BlackList;
 import jaeik.growfarm.domain.user.domain.Setting;
 import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
@@ -18,10 +20,11 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class UserPersistenceAdapter implements UserPort {
+public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort {
 
     private final UserRepository userRepository;
     private final SettingRepository settingRepository;
+    private final BlacklistRepository blacklistRepository;
 
     @Override
     public Optional<User> findById(Long id) {
@@ -56,5 +59,10 @@ public class UserPersistenceAdapter implements UserPort {
     @Override
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    @Override
+    public void save(BlackList blackList) {
+        blacklistRepository.save(blackList);
     }
 }

@@ -12,6 +12,4 @@ public interface CommentCommandUseCase {
     void deleteComment(CommentDTO commentDto, CustomUserDetails userDetails);
 
     void likeComment(CommentDTO commentDto, CustomUserDetails userDetails);
-
-    void anonymizeUserComments(Long userId);
 }

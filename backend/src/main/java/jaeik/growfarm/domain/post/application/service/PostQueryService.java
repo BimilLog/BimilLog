@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.post.application.service;
 
+import jaeik.growfarm.domain.post.application.assembler.PostAssembler;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.growfarm.domain.post.application.port.out.CountPostLikePort;
 import jaeik.growfarm.domain.post.application.port.out.ExistPostLikePort;
@@ -43,6 +44,7 @@ public class PostQueryService implements PostQueryUseCase {
     private final LoadPostCachePort loadPostCachePort;
     private final ManagePostCachePort managePostCachePort;
     private final PostCacheManageService postCacheManageService;
+    private final PostAssembler postAssembler;
 
 
     @Override
@@ -58,22 +60,10 @@ public class PostQueryService implements PostQueryUseCase {
         // 조회수 증가 로직은 PostController로 이동 (Command와 Query 분리)
         // loadPostPort.incrementView(post);
 
-        // 좋아요 수, 현재 사용자 좋아요 여부 등 추가 정보 조합
         long likeCount = countPostLikePort.countByPost(post);
         boolean isLiked = user != null && existPostLikePort.existsByUserAndPost(user, post);
 
-        return FullPostResDTO.builder()
-                .id(post.getId())
-                .userId(post.getUser() != null ? post.getUser().getId() : null)
-                .userName(post.getUser() != null ? post.getUser().getUserName() : "익명")
-                .title(post.getTitle())
-                .content(post.getContent())
-                .views(post.getViews())
-                .likes((int) likeCount)
-                .isNotice(post.isNotice())
-                .createdAt(post.getCreatedAt())
-                .isLiked(isLiked)
-                .build();
+        return postAssembler.toFullPostResDTO(post, likeCount, isLiked);
     }
 
     @Override

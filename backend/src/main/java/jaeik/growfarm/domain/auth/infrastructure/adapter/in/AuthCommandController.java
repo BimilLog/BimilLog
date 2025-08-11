@@ -1,6 +1,9 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.in;
 
-import jaeik.growfarm.domain.auth.application.port.in.AuthLoginUseCase;
+import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
+import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
+import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
+import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import jaeik.growfarm.global.auth.AuthCookieManager;
@@ -20,13 +23,16 @@ import org.springframework.http.ResponseCookie;
 @RequestMapping("/api/auth")
 public class AuthCommandController {
 
-    private final AuthLoginUseCase authLoginUseCase;
+    private final SocialLoginUseCase socialLoginUseCase;
+    private final SignUpUseCase signUpUseCase;
+    private final LogoutUseCase logoutUseCase;
+    private final WithdrawUseCase withdrawUseCase;
     private final AuthCookieManager authCookieManager;
 
     @PostMapping("/login")
     public ResponseEntity<?> socialLogin(@RequestParam String provider, @RequestParam String code,
                                                       @RequestParam(required = false) String fcmToken) {
-        LoginResponseDTO<?> loginResponse = authLoginUseCase.processSocialLogin(SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
+        LoginResponseDTO<?> loginResponse = socialLoginUseCase.processSocialLogin(SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
 
         if (loginResponse.getType() == LoginResponseDTO.LoginType.NEW_USER) {
             Map<String, String> uuidData = new HashMap<>();
@@ -41,16 +47,16 @@ public class AuthCommandController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestParam String userName, @CookieValue String uuid) {
-        return ResponseEntity.ok().headers(headers -> authLoginUseCase.signUp(userName, uuid).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
+        return ResponseEntity.ok().headers(headers -> signUpUseCase.signUp(userName, uuid).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok().headers(headers -> authLoginUseCase.logout(userDetails).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
+        return ResponseEntity.ok().headers(headers -> logoutUseCase.logout(userDetails).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
     }
 
     @DeleteMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok().headers(headers -> authLoginUseCase.withdraw(userDetails).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
+        return ResponseEntity.ok().headers(headers -> withdrawUseCase.withdraw(userDetails).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
     }
 }

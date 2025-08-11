@@ -37,16 +37,6 @@ public class CommentPersistenceAdapter implements
     }
 
     @Override
-    public List<Tuple> findCommentsWithLatestOrder(Long postId, Pageable pageable) {
-        return commentReadRepository.findCommentsWithLatestOrder(postId, pageable);
-    }
-
-    @Override
-    public List<Tuple> findPopularComments(Long postId) {
-        return commentReadRepository.findPopularComments(postId);
-    }
-
-    @Override
     public Long countRootCommentsByPostId(Long postId) {
         return commentReadRepository.countRootCommentsByPostId(postId);
     }
@@ -85,6 +75,11 @@ public class CommentPersistenceAdapter implements
         return commentLikeRepository.findByCommentIdAndUserId(commentId, userId).isPresent();
     }
 
+    @Override
+    public List<Long> findUserLikedCommentIdsByPostId(Long postId, Long userId) {
+        return commentRepository.findUserLikedCommentIdsByPostId(postId, userId);
+    }
+
     // ================== SaveCommentPort ==================
     @Override
     public Comment save(Comment comment) {
@@ -113,10 +108,20 @@ public class CommentPersistenceAdapter implements
         commentLikeRepository.deleteByCommentAndUser(comment, user);
     }
 
+    @Override
+    public void deleteAllByPostId(Long postId) {
+        commentRepository.deleteAllByPostId(postId);
+    }
+
     // ================== LoadCommentLikePort ==================
     @Override
     public Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId) {
         return commentLikeRepository.findByCommentIdAndUserId(commentId, userId);
+    }
+
+    @Override
+    public Map<Long, Long> countByCommentIds(List<Long> commentIds) {
+        return commentLikeRepository.countByCommentIds(commentIds);
     }
 
     // ================== SaveCommentLikePort ==================

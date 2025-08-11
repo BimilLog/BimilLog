@@ -3,6 +3,7 @@ package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
+import jaeik.growfarm.domain.auth.application.port.out.LoadUserPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class AuthUserJpaAdapter implements AuthUserPort {
+public class AuthUserJpaAdapter implements LoadUserPort {
 
     private final UserRepository userRepository;
 

@@ -6,9 +6,16 @@ import jaeik.growfarm.domain.post.domain.Post;
 import jaeik.growfarm.domain.post.domain.PostLike;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.post.PostReqDTO;
+import jaeik.growfarm.global.event.PostDeletedEvent;
+import jaeik.growfarm.global.event.PostSetAsNoticeEvent;
+import jaeik.growfarm.global.event.PostUnsetAsNoticeEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +34,7 @@ import java.util.Objects;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class PostCommandService implements PostCommandUseCase {
 
     private final SavePostPort savePostPort;
@@ -35,7 +43,7 @@ public class PostCommandService implements PostCommandUseCase {
     private final SavePostLikePort savePostLikePort;
     private final DeletePostLikePort deletePostLikePort;
     private final ExistPostLikePort existPostLikePort;
-    private final PostCacheManageService postCacheManageService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
 
@@ -51,7 +59,7 @@ public class PostCommandService implements PostCommandUseCase {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         post.setAsNotice();
-        postCacheManageService.deleteNoticeCache();
+        eventPublisher.publishEvent(new PostSetAsNoticeEvent(postId));
     }
 
     @Override
@@ -59,7 +67,7 @@ public class PostCommandService implements PostCommandUseCase {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         post.unsetAsNotice();
-        postCacheManageService.deleteNoticeCache();
+        eventPublisher.publishEvent(new PostUnsetAsNoticeEvent(postId));
     }
 
     @Override
@@ -73,6 +81,7 @@ public class PostCommandService implements PostCommandUseCase {
     public void deletePost(User user, Long postId) {
         Post post = validatePostOwner(user, postId);
         deletePostPort.delete(post);
+        eventPublisher.publishEvent(new PostDeletedEvent(postId));
     }
 
     @Override
@@ -104,5 +113,13 @@ public class PostCommandService implements PostCommandUseCase {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
         return post;
+    }
+
+    @Async
+    @Transactional
+    @EventListener
+    public void handlePostDeletedEvent(PostDeletedEvent event) {
+        log.info("Post (ID: {}) deleted event received. Deleting all post likes.", event.getPostId());
+        deletePostLikePort.deleteAllByPostId(event.getPostId());
     }
 }

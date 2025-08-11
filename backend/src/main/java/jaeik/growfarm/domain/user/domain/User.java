@@ -4,9 +4,7 @@ import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.global.domain.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import lombok.*;
 
 import java.time.Instant;
 
@@ -24,8 +22,9 @@ import java.time.Instant;
  */
 @Entity
 @Getter
-@SuperBuilder
-@NoArgsConstructor
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "users", indexes = {
         @Index(name = "idx_user_username", columnList = "userName"),
         @Index(name = "uk_provider_social_id", columnList = "provider, social_id", unique = true),
@@ -38,8 +37,8 @@ public class User extends BaseEntity {
     private Long id;
 
     @NotNull
-    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "setting_id", unique = true, nullable = false)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "setting_id")
     private Setting setting;
 
     @NotNull
@@ -101,6 +100,10 @@ public class User extends BaseEntity {
         this.userName = userName;
     }
 
+    public void updateSetting(Setting setting) {
+        this.setting = setting;
+    }
+
     public void withdraw() {
         this.userName = "탈퇴한사용자" + this.id;
         this.socialId = null;
@@ -123,7 +126,7 @@ public class User extends BaseEntity {
      * @param setting      사용자 설정 정보
      * @return 생성된 사용자 엔티티
      */
-    public static User createUser(SocialLoginUserData userData, String userName, Setting setting) {
+    public static User createUser(SocialLoginUserData userData, String userName) {
         return User.builder()
                 .socialId(userData.getSocialId())
                 .provider(userData.getProvider())
@@ -131,7 +134,7 @@ public class User extends BaseEntity {
                 .thumbnailImage(userData.getProfileImageUrl())
                 .userName(userName)
                 .role(UserRole.USER)
-                .setting(setting)
+                .setting(Setting.createSetting()) // Setting 정보 없이 생성
                 .build();
     }
 }

@@ -1,6 +1,5 @@
 package jaeik.growfarm.domain.post.application.port.in;
 
-import jaeik.growfarm.dto.post.PostLikeRequestDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.domain.user.domain.User;
 

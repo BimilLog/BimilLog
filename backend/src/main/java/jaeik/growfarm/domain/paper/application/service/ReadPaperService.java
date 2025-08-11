@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.paper.application.service;
 
 import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.LoadPaperPort;
-import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import jaeik.growfarm.domain.paper.domain.Message;
 
 /**
  * <h2>롤링페이퍼 조회 서비스</h2>
@@ -30,7 +32,7 @@ import java.util.List;
 public class ReadPaperService implements ReadPaperUseCase {
 
     private final LoadPaperPort loadPaperPort;
-    private final UserPort userPort;
+    private final LoadUserPort loadUserPort;
 
     /**
      * {@inheritDoc}
@@ -54,10 +56,15 @@ public class ReadPaperService implements ReadPaperUseCase {
      */
     @Override
     public List<VisitMessageDTO> visitPaper(String userName) {
-        boolean exists = userPort.existsByUserName(userName);
+        boolean exists = loadUserPort.existsByUserName(userName);
         if (!exists) {
             throw new CustomException(ErrorCode.USERNAME_NOT_FOUND);
         }
         return loadPaperPort.findVisitMessageDTOsByUserName(userName);
+    }
+
+    @Override
+    public Optional<Message> findMessageById(Long messageId) {
+        return loadPaperPort.findMessageById(messageId);
     }
 }

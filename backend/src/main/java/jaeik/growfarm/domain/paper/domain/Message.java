@@ -70,5 +70,12 @@ public class Message extends BaseEntity {
                 .height(messageDTO.getHeight())
                 .build();
     }
+
+    public boolean isOwner(Long userId) {
+        if (this.user == null || userId == null) {
+            return false;
+        }
+        return this.user.getId().equals(userId);
+    }
 }
 

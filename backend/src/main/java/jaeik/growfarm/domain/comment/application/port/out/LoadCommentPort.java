@@ -16,10 +16,6 @@ public interface LoadCommentPort {
     List<Comment> findByPost(Post post);
     Optional<Comment> findById(Long id);
 
-    List<Tuple> findCommentsWithLatestOrder(Long postId, Pageable pageable);
-
-    List<Tuple> findPopularComments(Long postId);
-
     Long countRootCommentsByPostId(Long postId);
 
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
@@ -31,4 +27,6 @@ public interface LoadCommentPort {
     Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
 
     boolean isLikedByUser(Long commentId, Long userId);
+
+    List<Long> findUserLikedCommentIdsByPostId(Long postId, Long userId);
 }

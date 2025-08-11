@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
-import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.notification.domain.FcmToken;
 import jaeik.growfarm.domain.user.domain.Setting;
 import jaeik.growfarm.domain.user.domain.Token;
@@ -10,15 +9,16 @@ import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.global.auth.AuthCookieManager;
+import jaeik.growfarm.global.event.UserSignedUpEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.FcmTokenRepository;
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
-import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.SettingRepository;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserJdbcRepository;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,12 +39,11 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     private final TokenRepository tokenRepository;
     private final AuthCookieManager authCookieManager;
     private final UserRepository userRepository;
-    private final SettingRepository settingRepository;
     private final FcmTokenRepository fcmTokenRepository;
     private final UserJdbcRepository userJdbcRepository;
-    private final CommentCommandUseCase commentCommandUseCase;
     private final EntityManager entityManager;
     private final TempDataAdapter tempDataAdapter;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -63,8 +62,8 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     @Override
     @Transactional
     public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
-        User user = userRepository
-                .save(User.createUser(userData, userName, settingRepository.save(Setting.createSetting())));
+        User user = userRepository.save(User.createUser(userData, userName));
+        eventPublisher.publishEvent(new UserSignedUpEvent(user.getId()));
         tempDataAdapter.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(ClientDTO.of(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
@@ -81,8 +80,6 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     @Override
     @Transactional
     public void performWithdrawProcess(Long userId) {
-        commentCommandUseCase.anonymizeUserComments(userId);
-
         entityManager.flush();
         entityManager.clear();
 

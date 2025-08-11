@@ -1,7 +1,9 @@
 package jaeik.growfarm.domain.paper.application.service;
 
 import jaeik.growfarm.domain.paper.application.port.in.DeletePaperUseCase;
+import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.DeletePaperPort;
+import jaeik.growfarm.domain.paper.domain.Message;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.global.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeletePaperService implements DeletePaperUseCase {
 
     private final DeletePaperPort deletePaperPort;
+    private final ReadPaperUseCase readPaperUseCase;
 
     /**
      * {@inheritDoc}
@@ -39,9 +42,12 @@ public class DeletePaperService implements DeletePaperUseCase {
      */
     @Override
     public void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageDTO messageDTO) {
-        if (!messageDTO.getUserId().equals(userDetails.getUserId())) {
+        Message message = readPaperUseCase.findMessageById(messageDTO.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.MESSAGE_NOT_FOUND));
+
+        if (!message.isOwner(userDetails.getUserId())) {
             throw new CustomException(ErrorCode.MESSAGE_DELETE_FORBIDDEN);
         }
-        deletePaperPort.deleteById(messageDTO.getId());
+        deletePaperPort.deleteById(message.getId());
     }
 }

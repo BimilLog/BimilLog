@@ -66,6 +66,11 @@ public class PostPersistenceAdapter implements
     }
 
     @Override
+    public void deleteAllByPostId(Long postId) {
+        postLikeJpaRepository.deleteAllByPostId(postId);
+    }
+
+    @Override
     public boolean existsByUserAndPost(User user, Post post) {
         return postLikeJpaRepository.existsByUserAndPost(user, post);
     }

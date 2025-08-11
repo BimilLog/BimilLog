@@ -52,6 +52,21 @@ public class CommentDTO {
 
     private boolean userLike;
 
+    public CommentDTO(Long id, Long postId, Long userId, String userName, String content, boolean deleted, Integer password, Instant createdAt, Long parentId) {
+        this.id = id;
+        this.postId = postId;
+        this.userId = userId;
+        this.userName = userName;
+        this.content = content;
+        this.deleted = deleted;
+        this.password = password;
+        this.createdAt = createdAt;
+        this.parentId = parentId;
+        this.popular = false;
+        this.likes = 0;
+        this.userLike = false;
+    }
+
     /**
      * <h3>엔티티를 DTO로 변환</h3>
      * <p>
