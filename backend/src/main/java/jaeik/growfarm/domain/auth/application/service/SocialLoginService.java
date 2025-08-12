@@ -11,6 +11,7 @@ import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
 import jaeik.growfarm.dto.auth.LoginResultDTO;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
+import jaeik.growfarm.global.event.FcmTokenRegisteredEvent;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
@@ -20,6 +21,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -41,6 +43,7 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final SocialLoginPort socialLoginPort;
     private final ManageAuthDataPort manageAuthDataPort;
     private final ManageTemporaryDataPort manageTemporaryDataPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>소셜 로그인 처리</h3>
@@ -83,7 +86,14 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @since 2.0.0
      */
     private LoginResponseDTO<List<ResponseCookie>> handleExistingUserLogin(User user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
-        List<ResponseCookie> cookies = manageAuthDataPort.saveExistUser(user, userData, tokenDTO, fcmToken);
+        // 쿠키 생성
+        List<ResponseCookie> cookies = manageAuthDataPort.saveExistUser(user, userData, tokenDTO);
+        
+        // FCM 토큰이 있으면 이벤트 발행
+        if (fcmToken != null && !fcmToken.isEmpty()) {
+            eventPublisher.publishEvent(FcmTokenRegisteredEvent.of(user.getId(), fcmToken));
+        }
+        
         return LoginResponseDTO.existingUser(cookies);
     }
 

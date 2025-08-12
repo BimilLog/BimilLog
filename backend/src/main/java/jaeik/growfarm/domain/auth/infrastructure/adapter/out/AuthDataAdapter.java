@@ -2,8 +2,6 @@ package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
-import jaeik.growfarm.domain.notification.entity.FcmToken;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.FcmTokenRepository;
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
@@ -11,6 +9,7 @@ import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
+import jaeik.growfarm.global.event.UserLoggedOutEvent;
 import jaeik.growfarm.global.event.UserSignedUpEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
@@ -38,7 +37,6 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     private final TokenRepository tokenRepository;
     private final AuthCookieManager authCookieManager;
     private final UserRepository userRepository;
-    private final FcmTokenRepository fcmTokenRepository;
     private final EntityManager entityManager;
     private final TempDataAdapter tempDataAdapter;
     private final ApplicationEventPublisher eventPublisher;
@@ -46,7 +44,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
 
     @Override
     @Transactional
-    public List<ResponseCookie> saveExistUser(User user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+    public List<ResponseCookie> saveExistUser(User user, SocialLoginUserData userData, TokenDTO tokenDTO) {
         user.updateUserInfo(userData.getNickname(), userData.getProfileImageUrl());
 
         Token token = tokenRepository.findByUser(user)
@@ -55,25 +53,26 @@ public class AuthDataAdapter implements ManageAuthDataPort {
 
         return authCookieManager.generateJwtCookie(ClientDTO.of(user,
                 tokenRepository.save(token).getId(),
-                fcmToken != null ? fcmTokenRepository.save(FcmToken.create(user, fcmToken)).getId() : null));
+                null)); // fcmTokenId는 null로 설정
     }
 
     @Override
     @Transactional
-    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
+    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO) {
         User user = userRepository.save(User.createUser(userData, userName));
         eventPublisher.publishEvent(new UserSignedUpEvent(user.getId()));
         tempDataAdapter.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(ClientDTO.of(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
-                fcmToken != null ? fcmTokenRepository.save(FcmToken.create(user, fcmToken)).getId() : null));
+                null)); // fcmTokenId는 null로 설정
     }
 
     @Override
     @Transactional
     public void logoutUser(Long userId) {
         tokenRepository.deleteAllByUserId(userId);
-        fcmTokenRepository.deleteByUser_Id(userId);
+        // FCM 토큰 삭제는 이벤트를 통해 notification 도메인에서 처리
+        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, null));
     }
 
     @Override
@@ -83,7 +82,8 @@ public class AuthDataAdapter implements ManageAuthDataPort {
         entityManager.clear();
 
         tokenRepository.deleteAllByUserId(userId);
-        fcmTokenRepository.deleteByUser_Id(userId);
+        // FCM 토큰 삭제는 이벤트를 통해 notification 도메인에서 처리
+        // 회원 탈퇴 이벤트는 UserAccountService에서 발행
 
         userRepository.deleteById(userId);
     }

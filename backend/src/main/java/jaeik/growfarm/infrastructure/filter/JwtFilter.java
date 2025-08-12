@@ -107,14 +107,14 @@ public class JwtFilter extends OncePerRequestFilter {
             // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을 검증
             if (refreshToken != null && jwtHandler.validateToken(refreshToken)) {
                 Long tokenId = jwtHandler.getTokenIdFromToken(refreshToken);
-                Long fcmTokenId = jwtHandler.getFcmTokenIdFromToken(refreshToken);
+                // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
                 Token token = tokenRepository.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.REPEAT_LOGIN));
                 if (Objects.equals(token.getId(), tokenId)) {
 
                     // 유저 정보 조회 (Setting 포함)
                     User user = userRepository.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
-                    ClientDTO clientDTO = ClientDTO.of(user, tokenId, fcmTokenId);
+                    ClientDTO clientDTO = ClientDTO.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급
                     ResponseCookie cookie = authCookieManager.generateJwtAccessCookie(clientDTO);

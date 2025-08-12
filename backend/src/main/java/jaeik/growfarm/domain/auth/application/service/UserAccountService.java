@@ -8,6 +8,7 @@ import jaeik.growfarm.domain.auth.application.port.out.*;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
+import jaeik.growfarm.global.event.FcmTokenRegisteredEvent;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.global.exception.CustomException;
@@ -40,8 +41,24 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
         if (tempUserData == null) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         }
-        return manageAuthDataPort.saveNewUser(userName, uuid, tempUserData.getSocialLoginUserData(),
-                tempUserData.getTokenDTO(), tempUserData.getFcmToken());
+        
+        List<ResponseCookie> cookies = manageAuthDataPort.saveNewUser(userName, uuid, 
+                tempUserData.getSocialLoginUserData(), tempUserData.getTokenDTO());
+        
+        // FCM 토큰이 존재하면 이벤트 발행
+        if (tempUserData.getFcmToken() != null && !tempUserData.getFcmToken().isEmpty()) {
+            // 사용자 ID는 쿠키에서 추출하거나 다른 방법으로 가져와야 함
+            // 여기서는 UserRepository를 통해 방금 저장된 사용자를 찾는 방식을 사용
+            User user = userQueryUseCase.findByProviderAndSocialId(
+                    tempUserData.getSocialLoginUserData().getProvider(),
+                    tempUserData.getSocialLoginUserData().getSocialId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+            
+            eventPublisher.publishEvent(
+                    FcmTokenRegisteredEvent.of(user.getId(), tempUserData.getFcmToken()));
+        }
+        
+        return cookies;
     }
 
     @Override
