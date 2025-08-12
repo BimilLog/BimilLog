@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
+import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.user.application.port.out.SaveBlacklistPort;
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
 import jaeik.growfarm.domain.user.entity.BlackList;
@@ -16,15 +17,15 @@ import java.util.Optional;
  * <p>사용자 정보 영속성 관리를 위한 Outgoing-Adapter</p>
  *
  * @author Jaeik
- * @version 1.0
+ * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor
-public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, jaeik.growfarm.domain.post.application.port.out.LoadUserPort {
+public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, LoadUserPort, jaeik.growfarm.domain.paper.application.port.out.LoadUserPort {
 
     private final UserRepository userRepository;
     private final SettingRepository settingRepository;
-    private final BlacklistRepository blacklistRepository;
+    private final BlackListRepository blacklistRepository;
 
     @Override
     public Optional<User> findById(Long id) {
@@ -42,7 +43,7 @@ public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, jaei
     }
 
     @Override
-    public User findByUserName(String userName) {
+    public Optional<User> findByUserName(String userName) {
         return userRepository.findByUserName(userName);
     }
 

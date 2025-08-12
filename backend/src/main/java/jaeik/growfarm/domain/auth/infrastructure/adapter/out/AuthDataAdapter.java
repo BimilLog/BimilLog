@@ -6,7 +6,6 @@ import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.FcmTokenRepository;
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserJdbcRepository;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.ClientDTO;
@@ -23,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>인증 데이터 어댑터</h2>
@@ -39,7 +39,6 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     private final AuthCookieManager authCookieManager;
     private final UserRepository userRepository;
     private final FcmTokenRepository fcmTokenRepository;
-    private final UserJdbcRepository userJdbcRepository;
     private final EntityManager entityManager;
     private final TempDataAdapter tempDataAdapter;
     private final ApplicationEventPublisher eventPublisher;
@@ -73,7 +72,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     @Override
     @Transactional
     public void logoutUser(Long userId) {
-        userJdbcRepository.deleteAllTokensByUserId(userId);
+        tokenRepository.deleteAllByUserId(userId);
         fcmTokenRepository.deleteByUser_Id(userId);
     }
 
@@ -83,9 +82,14 @@ public class AuthDataAdapter implements ManageAuthDataPort {
         entityManager.flush();
         entityManager.clear();
 
-        userJdbcRepository.deleteAllTokensByUserId(userId);
+        tokenRepository.deleteAllByUserId(userId);
         fcmTokenRepository.deleteByUser_Id(userId);
 
         userRepository.deleteById(userId);
+    }
+
+    @Override
+    public Optional<Token> findTokenByUserId(Long userId) {
+        return tokenRepository.findByUsers_Id(userId);
     }
 }

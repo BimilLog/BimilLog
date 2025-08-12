@@ -47,11 +47,8 @@ public class WritePaperService implements WritePaperUseCase {
      */
     @Override
     public void writeMessage(String userName, MessageDTO messageDTO) {
-        User user = loadUserPort.findByUserName(userName);
-
-        if (user == null) {
-            throw new CustomException(ErrorCode.USERNAME_NOT_FOUND);
-        }
+        User user = loadUserPort.findByUserName(userName)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Message message = Message.createMessage(user, messageDTO);
         savePaperPort.save(message);

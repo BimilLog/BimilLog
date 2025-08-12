@@ -98,7 +98,7 @@ public class PostPersistenceAdapter implements
                 .map(post -> SimplePostResDTO.builder()
                         .id(post.getId())
                         .title(post.getTitle())
-                        .writer(post.getUser() != null ? post.getUser().getUserName() : "익명")
+                        .userName(post.getUser() != null ? post.getUser().getUserName() : "익명")
                         .createdAt(post.getCreatedAt())
                         .views(post.getViews())
                         .build())

@@ -1,11 +1,13 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
+import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.TokenDTO;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>인증 데이터 관리 포트</h2>
@@ -52,4 +54,6 @@ public interface ManageAuthDataPort {
      * @param userId 사용자 ID
      */
     void performWithdrawProcess(Long userId);
+
+    Optional<Token> findTokenByUserId(Long userId);
 }

@@ -3,6 +3,9 @@ package jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence;
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -29,4 +32,10 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
      * @author Jaeik
      */
     Optional<Token> findByUser(User user);
+
+    Optional<Token> findByUsers_Id(Long userId);
+
+    @Modifying
+    @Query("DELETE FROM Token t WHERE t.users.id = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
 }

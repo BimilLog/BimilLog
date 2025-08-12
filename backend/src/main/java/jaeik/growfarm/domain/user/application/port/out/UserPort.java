@@ -17,7 +17,7 @@ public interface UserPort {
     Optional<User> findById(Long id);
     Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
     boolean existsByUserName(String userName);
-    User findByUserName(String userName);
+    Optional<User> findByUserName(String userName);
     void deleteById(Long id);
     Setting save(Setting setting);
     User save(User user);
