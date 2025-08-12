@@ -44,9 +44,9 @@ public class Setting {
     private boolean postFeaturedNotification = true;
 
     public void updateSetting(SettingDTO settingDTO) {
-        messageNotification = settingDTO.messageNotification();
-        commentNotification = settingDTO.commentNotification();
-        postFeaturedNotification = settingDTO.postFeaturedNotification();
+        messageNotification = settingDTO.isMessageNotification();
+        commentNotification = settingDTO.isCommentNotification();
+        postFeaturedNotification = settingDTO.isPostFeaturedNotification();
     }
 
     public static Setting createSetting() {
@@ -59,9 +59,9 @@ public class Setting {
 
     public static Setting createSetting(SettingDTO settingDTO) {
         return Setting.builder()
-                .messageNotification(settingDTO.messageNotification())
-                .commentNotification(settingDTO.commentNotification())
-                .postFeaturedNotification(settingDTO.postFeaturedNotification())
+                .messageNotification(settingDTO.isMessageNotification())
+                .commentNotification(settingDTO.isCommentNotification())
+                .postFeaturedNotification(settingDTO.isPostFeaturedNotification())
                 .build();
     }
 }

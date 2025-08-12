@@ -18,7 +18,6 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Accessors(fluent = true)
 public class SettingDTO {
 
     private Long settingId;

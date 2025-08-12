@@ -37,7 +37,7 @@ public class AuthQueryController {
         if (userDetails == null) {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
-        // ClientDTO를 응답 전용 DTO로 변환하여 반환
+
         UserInfoResponseDTO response = UserInfoResponseDTO.from(userDetails.getClientDTO());
         return ResponseEntity.ok(response);
     }
