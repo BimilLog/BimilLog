@@ -21,4 +21,7 @@ public interface UserPort {
     void deleteById(Long id);
     Setting save(Setting setting);
     User save(User user);
+    
+    // Setting 조회 기능 추가
+    Optional<Setting> findSettingById(Long settingId);
 }

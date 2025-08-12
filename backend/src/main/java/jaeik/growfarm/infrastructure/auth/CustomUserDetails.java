@@ -104,6 +104,19 @@ public class CustomUserDetails implements UserDetails {
     }
 
     /**
+     * <h3>사용자 설정 ID 조회</h3>
+     *
+     * <p>사용자의 설정 ID를 반환한다. JWT 토큰에서 직접 활용하여 효율적인 설정 조회를 가능하게 한다.</p>
+     *
+     * @since 2.0.0
+     * @author Jaeik
+     * @return 설정 ID
+     */
+    public Long getSettingId() {
+        return clientDTO.getSettingId();
+    }
+
+    /**
      * <h3>닉네임 조회</h3>
      *
      * <p>사용자의 닉네임을 반환한다.</p>

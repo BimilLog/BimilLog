@@ -1,9 +1,8 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.in.web;
 
+import jaeik.growfarm.domain.user.application.port.in.SettingQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.dto.user.SettingDTO;
-import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserQueryController {
 
     private final UserQueryUseCase userQueryUseCase;
+    private final SettingQueryUseCase settingQueryUseCase;
 
     /**
      * <h3>닉네임 중복 확인 API</h3>
@@ -43,19 +43,18 @@ public class UserQueryController {
     }
 
     /**
-     * <h3>사용자 설정 조회 API</h3>
-     * <p>사용자의 설정 정보를 조회하는 요청을 처리</p>
+     * <h3>사용자 설정 조회 API </h3>
+     * <p>JWT 토큰의 settingId를 활용하여 효율적으로 설정 정보를 조회</p>
+     * <p>User 전체 조회 없이 Setting만 직접 조회하여 성능 최적화</p>
      *
-     * @param userDetails 사용자 인증 정보
+     * @param userDetails 사용자 인증 정보 (JWT에서 settingId 포함)
      * @return 사용자 설정 DTO
      * @since 2.0.0
      * @author Jaeik
      */
     @GetMapping("/setting")
     public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        SettingDTO settingDTO = userQueryUseCase.findById(userDetails.getUserId())
-                .map(user -> new SettingDTO(user.getSetting()))
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        SettingDTO settingDTO = settingQueryUseCase.findBySettingId(userDetails.getSettingId());
         return ResponseEntity.ok(settingDTO);
     }
 }

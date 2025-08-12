@@ -70,4 +70,9 @@ public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, jaei
     public User getReferenceById(Long userId) {
         return userRepository.getReferenceById(userId);
     }
+
+    @Override
+    public Optional<Setting> findSettingById(Long settingId) {
+        return settingRepository.findById(settingId);
+    }
 }
