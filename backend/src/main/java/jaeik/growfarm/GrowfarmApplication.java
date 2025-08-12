@@ -15,7 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * JPA Auditing, 스케줄링, 비동기 처리 기능을 활성화
  * </p>
  * 
- * @since 1.0.0
+ * @since 2.0.0
  * @author Jaeik
  */
 @EnableJpaAuditing
@@ -31,7 +31,7 @@ public class GrowfarmApplication {
      * Spring Boot 애플리케이션을 시작한다.
      * </p>
      * 
-     * @since 1.0.0
+     * @since 2.0.0
      * @author Jaeik
      * @param args 명령행 인수
      */

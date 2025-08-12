@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * <p>
  * Growfarm 애플리케이션의 컨텍스트 로딩 테스트입니다.
  * </p>
- * @version 1.0.0
+ * @version 2.0.0
  * @author Jaeik
  */
 @SpringBootTest
