@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.listener.handler;
+package jaeik.growfarm.infrastructure.listener.handler;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;

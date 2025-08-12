@@ -171,10 +171,6 @@ public class SecurityConfig {
      * <h3>쿠키 SameSite 설정</h3>
      * <p>
      * 모든 쿠키(CSRF 토큰 포함)에 SameSite=Lax 속성을 적용합니다.
-     * </p>
-     * <p>
-     * 이 설정은 CSRF 공격을 방지하는 데 도움이 됩니다.
-     * </p>
      *
      * @return CookieSameSiteSupplier 객체
      * @author Jaeik

@@ -33,4 +33,3 @@ public class MessageEventHandler implements NotificationEventHandler<MessageEven
                 event.getUserName());
     }
 }
-

@@ -34,4 +34,3 @@ public class CommentCreatedEventHandler implements NotificationEventHandler<Comm
                 event.getPostId());
     }
 }
-

@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.auth;
+package jaeik.growfarm.infrastructure.auth;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
