@@ -129,10 +129,10 @@ public class User extends BaseEntity {
      */
     public static User createUser(SocialLoginUserData userData, String userName) {
         return User.builder()
-                .socialId(userData.getSocialId())
-                .provider(userData.getProvider())
-                .socialNickname(userData.getNickname())
-                .thumbnailImage(userData.getProfileImageUrl())
+                .socialId(userData.socialId())
+                .provider(userData.provider())
+                .socialNickname(userData.nickname())
+                .thumbnailImage(userData.profileImageUrl())
                 .userName(userName)
                 .role(UserRole.USER)
                 .setting(Setting.createSetting()) // Setting 정보 없이 생성

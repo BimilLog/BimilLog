@@ -18,7 +18,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +31,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserAccountService implements SignUpUseCase, LogoutUseCase, WithdrawUseCase {
-
     private final ManageTemporaryDataPort manageTemporaryDataPort;
     private final ManageAuthDataPort manageAuthDataPort;
     private final SocialLoginPort socialLoginPort;
@@ -60,8 +58,6 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
         } else {
             return manageAuthDataPort.saveNewUser(userName, uuid, tempUserData.get().socialLoginUserData, tempUserData.get().tokenDTO, tempUserData.get().getFcmToken());
         }
-
-
     }
 
     /**

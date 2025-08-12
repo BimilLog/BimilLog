@@ -2,29 +2,22 @@ package jaeik.growfarm.dto.auth;
 
 import jaeik.growfarm.global.domain.SocialProvider;
 import lombok.Builder;
-import lombok.Getter;
 
-@Getter
-public class SocialLoginUserData {
-    private final String socialId;
-    private final String email;
-    private final SocialProvider provider;
-    private final String nickname;
-    private final String profileImageUrl;
-    private final String fcmToken;
-
-    @Builder
-    public SocialLoginUserData(String socialId, SocialProvider provider, String nickname, String profileImageUrl, String fcmToken) {
-        this.socialId = socialId;
-        this.provider = provider;
-        this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
-        this.email = null;
-        this.fcmToken = fcmToken;
-    }
-
-    // 명시적 getter 추가 (혹시 모를 Lombok 문제 대비)
-    public String getFcmToken() {
-        return fcmToken;
-    }
+/**
+ * <h2>소셜 로그인 사용자 데이터</h2>
+ * <p>소셜 로그인 시 필요한 사용자 정보를 담는 레코드 클래스</p>
+ *
+ * @param socialId         소셜 ID
+ * @param email            이메일 주소
+ * @param provider         소셜 제공자 (예: GOOGLE, KAKAO 등)
+ * @param nickname         사용자 닉네임
+ * @param profileImageUrl  프로필 이미지 URL
+ * @param fcmToken         Firebase Cloud Messaging 토큰
+ * @author Jaeik
+ * @version 2.0.0
+ */
+@Builder
+public record SocialLoginUserData(String socialId, String email,
+                                  SocialProvider provider, String nickname,
+                                  String profileImageUrl, String fcmToken) {
 }

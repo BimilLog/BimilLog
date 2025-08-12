@@ -1,6 +1,5 @@
 package jaeik.growfarm.global.event;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

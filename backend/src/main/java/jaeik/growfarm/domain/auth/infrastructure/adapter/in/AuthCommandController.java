@@ -44,8 +44,8 @@ public class AuthCommandController {
      * @param code     소셜 로그인 인증 코드
      * @param fcmToken Firebase Cloud Messaging 토큰 (선택적)
      * @return 로그인 응답 DTO 또는 임시 UUID
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @PostMapping("/login")
     public ResponseEntity<?> socialLogin(@RequestParam String provider, @RequestParam String code,
@@ -71,8 +71,8 @@ public class AuthCommandController {
      * @param userName 사용자의 이름
      * @param uuid     임시 UUID (소셜 로그인 후 생성된 UUID)
      * @return 회원 가입 성공 응답
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestParam String userName, @CookieValue String uuid) {
@@ -85,8 +85,8 @@ public class AuthCommandController {
      *
      * @param userDetails 인증된 사용자 정보
      * @return 로그아웃 성공 응답
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -99,8 +99,8 @@ public class AuthCommandController {
      *
      * @param userDetails 인증된 사용자 정보
      * @return 회원 탈퇴 성공 응답
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @DeleteMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {

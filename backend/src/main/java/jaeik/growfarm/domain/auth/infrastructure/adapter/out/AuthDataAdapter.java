@@ -11,7 +11,7 @@ import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;
 import jaeik.growfarm.global.event.UserSignedUpEvent;
-import jaeik.growfarm.global.event.FcmTokenRegisteredEvent; // FcmTokenRegisteredEvent import 추가
+import jaeik.growfarm.global.event.FcmTokenRegisteredEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
@@ -43,14 +43,13 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     private final TempDataAdapter tempDataAdapter;
     private final ApplicationEventPublisher eventPublisher;
 
-
     @Override
     @Transactional
     public List<ResponseCookie> handleExistingUserLogin(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) { // fcmToken 인자 추가
-        User user = userRepository.findByProviderAndSocialId(userData.getProvider(), userData.getSocialId())
+        User user = userRepository.findByProviderAndSocialId(userData.provider(), userData.socialId())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
-        user.updateUserInfo(userData.getNickname(), userData.getProfileImageUrl());
+        user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
 
         Token token = tokenRepository.findByUser(user)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));

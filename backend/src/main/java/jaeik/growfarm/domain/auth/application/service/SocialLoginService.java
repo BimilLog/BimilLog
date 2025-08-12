@@ -35,7 +35,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SocialLoginService implements SocialLoginUseCase {
-
     private final SocialLoginPort socialLoginPort;
     private final ManageAuthDataPort manageAuthDataPort;
     private final AuthPort authPort;
@@ -43,14 +42,15 @@ public class SocialLoginService implements SocialLoginUseCase {
 
     /**
      * <h3>소셜 로그인 처리</h3>
-     * <p>소셜 로그인 인증 코드를 통해 사용자를 인증하고 로그인 쿠키를 생성</p>
-     * <p>신규 사용자는 임시 쿠키를 발행하고 회원가입을 유도</p>
+     * <p>소셜 로그인 요청을 처리하고 로그인 결과를 반환합니다.</p>
+     * <p>기존 사용자는 쿠키를 생성하고, 신규 사용자는 임시 데이터를 저장한 후 UUID를 반환합니다.</p>
      *
      * @param provider 소셜 제공자
      * @param code     인가 코드
-     * @return 로그인 응답 DTO (로그인 쿠키 또는 임시 쿠키)
-     * @since 2.1.0
+     * @param fcmToken Firebase Cloud Messaging 토큰
+     * @return 로그인 응답 DTO
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     @Transactional
@@ -62,12 +62,9 @@ public class SocialLoginService implements SocialLoginUseCase {
         TokenDTO tokenDTO = loginResult.getTokenDTO();
 
         if (loginResult.getLoginType() == LoginResultDTO.LoginType.EXISTING_USER) {
-            // 기존 사용자 처리
             List<ResponseCookie> cookies = manageAuthDataPort.handleExistingUserLogin(userData, tokenDTO, fcmToken);
-
             return new LoginResponseDTO<>(LoginResponseDTO.LoginType.EXISTING_USER, cookies);
         } else {
-            // 신규 사용자 처리
             String uuid = UUID.randomUUID().toString();
             manageTemporaryDataPort.saveTempData(uuid, userData, tokenDTO);
             ResponseCookie tempCookie = authPort.createTempCookie(uuid);
@@ -75,13 +72,16 @@ public class SocialLoginService implements SocialLoginUseCase {
         }
     }
 
-    private void validateLogin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
-            throw new CustomException(ErrorCode.ALREADY_LOGIN);
-        }
-    }
-
+    /**
+     * <h3>신규 사용자 등록 처리</h3>
+     * <p>임시 데이터를 기반으로 신규 사용자를 등록하고 로그인 쿠키를 생성합니다.</p>
+     *
+     * @param userName 사용자 닉네임
+     * @param uuid     임시 데이터 UUID
+     * @return 로그인 응답 DTO (신규 사용자 등록)
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     @Transactional
     public LoginResponseDTO<List<ResponseCookie>> registerNewUser(String userName, String uuid) {
@@ -91,5 +91,21 @@ public class SocialLoginService implements SocialLoginUseCase {
         List<ResponseCookie> cookies = manageAuthDataPort.saveNewUser(userName, uuid, temporaryUserData.getSocialLoginUserData(), temporaryUserData.getTokenDTO(), temporaryUserData.getFcmToken());
 
         return new LoginResponseDTO<>(LoginResponseDTO.LoginType.NEW_USER_REGISTERED, cookies);
+    }
+
+    /**
+     * <h3>로그인 유효성 검사</h3>
+     * <p>현재 사용자가 로그인 상태인지 확인합니다.</p>
+     * <p>로그인 상태라면 예외를 발생시킵니다.</p>
+     *
+     * @throws CustomException 이미 로그인 상태인 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void validateLogin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
+            throw new CustomException(ErrorCode.ALREADY_LOGIN);
+        }
     }
 }

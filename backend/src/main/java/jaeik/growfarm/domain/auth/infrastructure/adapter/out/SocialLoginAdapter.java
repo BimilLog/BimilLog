@@ -1,31 +1,39 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.strategy.SocialLoginStrategy;
-import jaeik.growfarm.global.domain.SocialProvider;
-import jaeik.growfarm.dto.auth.LoginResultDTO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
+import jaeik.growfarm.dto.auth.LoginResultDTO;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.TokenDTO;
+import jaeik.growfarm.global.domain.SocialProvider;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.global.exception.ErrorCode;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * <h2>소셜 로그인 어댑터</h2>
+ * <p>SocialLoginPort의 구현체로, 소셜 로그인을 처리하는 어댑터 클래스</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Component
 @RequiredArgsConstructor
 public class SocialLoginAdapter implements SocialLoginPort {
 
     private final Map<SocialProvider, SocialLoginStrategy> strategies = new EnumMap<>(SocialProvider.class);
     private final UserRepository userRepository;
-    private final jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository tokenRepository; // 명시적 import
+    private final TokenRepository tokenRepository;
 
     public SocialLoginAdapter(List<SocialLoginStrategy> strategyList, UserRepository userRepository, jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository tokenRepository) {
         strategyList.forEach(strategy -> strategies.put(strategy.getProvider(), strategy));
@@ -53,11 +61,11 @@ public class SocialLoginAdapter implements SocialLoginPort {
         SocialLoginUserData userData = initialLoginResult.getUserData();
         TokenDTO tokenDTO = initialLoginResult.getTokenDTO();
 
-        Optional<User> existingUser = userRepository.findByProviderAndSocialId(provider, userData.getSocialId());
+        Optional<User> existingUser = userRepository.findByProviderAndSocialId(provider, userData.socialId());
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            user.updateUserInfo(userData.getNickname(), userData.getProfileImageUrl());
+            user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
 
             jaeik.growfarm.domain.user.entity.Token token = tokenRepository.findByUser(user)
                     .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));

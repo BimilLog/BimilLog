@@ -55,7 +55,6 @@ public class JwtHandler {
                 .claim("tokenId", clientDTO.getTokenId())
                 .claim("socialId", clientDTO.getSocialId())
                 .claim("provider", clientDTO.getProvider().name())
-                // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
                 .claim("settingId", clientDTO.getSettingId())
                 .claim("userName", clientDTO.getUserName())
                 .claim("role", clientDTO.getRole().name())
@@ -83,7 +82,6 @@ public class JwtHandler {
 
         return Jwts.builder()
                 .setSubject(String.valueOf(clientDTO.getTokenId()))
-                // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -155,8 +153,6 @@ public class JwtHandler {
 
         return Long.parseLong(claims.getSubject());
     }
-
-    // getFcmTokenIdFromToken 메소드 제거 - 이벤트 기반 방식으로 변경
 
     /**
      * <h3>JWT 토큰에서 Claims 추출</h3>
