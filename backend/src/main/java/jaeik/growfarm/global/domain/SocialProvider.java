@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.domain;
+package jaeik.growfarm.global.domain;
 
 public enum SocialProvider {
     KAKAO,

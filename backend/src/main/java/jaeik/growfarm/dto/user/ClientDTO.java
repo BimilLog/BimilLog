@@ -1,8 +1,8 @@
 package jaeik.growfarm.dto.user;
 
-import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
-import jaeik.growfarm.domain.user.domain.UserRole;
+import jaeik.growfarm.global.domain.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -52,7 +52,6 @@ public enum ErrorCode {
     POPULAR_COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "인기 댓글 조회에 실패했습니다.", LogLevel.ERROR),
     COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 조회에 실패했습니다.", LogLevel.ERROR),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다."),
-    EMPTY_FILE(HttpStatus.BAD_REQUEST, "파일이 비어있습니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다."),
     POST_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 삭제에 실패했습니다.", LogLevel.ERROR),
     POST_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "게시글 작성자만 수정 및 삭제할 수 있습니다.", LogLevel.INFO),

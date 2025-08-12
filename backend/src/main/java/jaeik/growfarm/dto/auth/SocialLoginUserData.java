@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.auth;
 
-import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.global.domain.SocialProvider;
 import lombok.Builder;
 import lombok.Getter;
 

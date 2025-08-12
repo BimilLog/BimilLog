@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.paper.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
 import jaeik.growfarm.domain.user.domain.Setting;
-import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;

@@ -24,6 +24,16 @@ public class TempDataAdapter implements ManageTemporaryDataPort {
 
     private final Map<String, TemporaryUserDataDTO> tempUserDataStore = new ConcurrentHashMap<>();
 
+    /**
+     * <h3>임시 사용자 데이터를 저장</h3>
+     *
+     * @param userData 소셜 로그인 사용자 정보
+     * @param tokenDTO 토큰 정보
+     * @param fcmToken FCM 토큰
+     * @return UUID 키
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public String saveTempData(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
         String uuid = UUID.randomUUID().toString();

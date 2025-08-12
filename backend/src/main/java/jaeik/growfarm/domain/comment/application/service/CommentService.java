@@ -10,6 +10,7 @@ import jaeik.growfarm.domain.comment.domain.CommentClosure;
 import jaeik.growfarm.domain.comment.domain.CommentLike;
 import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.CommentReadRepository;
 import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -45,7 +46,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     private final SaveCommentLikePort saveCommentLikePort;
     private final LoadCommentLikePort loadCommentLikePort;
     private final ApplicationEventPublisher eventPublisher;
-    private final LoadUserPort loadUserPort;
+    private final UserQueryUseCase userQueryUseCase;
     private final LoadPostPort loadPostPort;
     private final CommentReadRepository commentReadRepository;
     private final CommentDomainService commentDomainService;
@@ -115,7 +116,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         
         User user = null;
         if (userDetails != null) {
-            user = loadUserPort.findById(userDetails.getUserId())
+            user = userQueryUseCase.findById(userDetails.getUserId())
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         }
 
@@ -170,7 +171,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
         Comment comment = loadCommentPort.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        User user = loadUserPort.findById(userId)
+        User user = userQueryUseCase.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (loadCommentPort.isLikedByUser(commentId, userId)) {

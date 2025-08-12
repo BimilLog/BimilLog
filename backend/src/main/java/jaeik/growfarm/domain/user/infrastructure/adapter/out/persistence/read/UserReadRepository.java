@@ -1,10 +1,8 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.read;
 
-import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.ClientDTO;
-import jaeik.growfarm.dto.user.SettingDTO;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;

@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.strategy.SocialLoginStrategy;
-import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.dto.auth.LoginResultDTO;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +19,16 @@ public class SocialLoginAdapter implements SocialLoginPort {
         strategyList.forEach(strategy -> strategies.put(strategy.getProvider(), strategy));
     }
 
+    /**
+     * <h3>소셜 로그인</h3>
+     * <p>소셜 로그인 요청을 처리하고, 로그인 결과를 반환</p>
+     *
+     * @param provider 소셜 제공자 (예: KAKAO, NAVER 등)
+     * @param code     소셜 로그인 인증 코드
+     * @return 로그인 결과 DTO
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public LoginResultDTO login(SocialProvider provider, String code) {
         SocialLoginStrategy strategy = strategies.get(provider);

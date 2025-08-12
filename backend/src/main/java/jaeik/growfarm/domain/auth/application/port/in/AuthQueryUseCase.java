@@ -12,4 +12,11 @@ import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
  */
 public interface AuthQueryUseCase {
 
+    /**
+     * <h3>ID로 사용자 정보 조회</h3>
+     *
+     * @param id 사용자 ID
+     * @return User
+     */
+    User getUserById(Long id);
 }

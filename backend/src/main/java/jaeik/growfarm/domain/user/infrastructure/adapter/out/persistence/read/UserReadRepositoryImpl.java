@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.read;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.user.domain.QUser;
-import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.ClientDTO;
 import lombok.RequiredArgsConstructor;

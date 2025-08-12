@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out.strategy;
 
-import jaeik.growfarm.domain.user.domain.SocialProvider;
+import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.dto.auth.KakaoFriendsResponse;
 import jaeik.growfarm.dto.auth.LoginResultDTO;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;

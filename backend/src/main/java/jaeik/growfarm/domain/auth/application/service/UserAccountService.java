@@ -5,6 +5,7 @@ import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.*;
+import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;
@@ -25,10 +26,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserAccountService implements SignUpUseCase, LogoutUseCase, WithdrawUseCase {
 
-    private final LoadUserPort loadUserPort;
-    private final SocialLoginPort socialLoginPort;
-    private final ManageAuthDataPort manageAuthDataPort;
     private final ManageTemporaryDataPort manageTemporaryDataPort;
+    private final ManageAuthDataPort manageAuthDataPort;
+    private final SocialLoginPort socialLoginPort;
+    private final UserQueryUseCase userQueryUseCase;
     private final LoadTokenPort loadTokenPort;
     private final AuthPort authPort;
     private final ApplicationEventPublisher eventPublisher;
@@ -46,21 +47,13 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     @Override
     public List<ResponseCookie> logout(CustomUserDetails userDetails) {
         try {
-            // 1. 소셜 로그아웃 처리 (카카오 등)
             logoutSocial(userDetails);
-            
-            // 2. 로그아웃 이벤트 발생 (토큰 삭제, SSE 정리 등을 이벤트 리스너에서 처리)
             eventPublisher.publishEvent(UserLoggedOutEvent.of(
-                userDetails.getUserId(), 
+                userDetails.getUserId(),
                 userDetails.getTokenId()
             ));
-            
-            // 3. Spring Security 컨텍스트 초기화
             SecurityContextHolder.clearContext();
-            
-            // 4. 로그아웃 쿠키 반환 (AuthPort를 통해 인증 도메인에서 처리)
             return authPort.getLogoutCookies();
-            
         } catch (Exception e) {
             throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
         }
@@ -72,13 +65,11 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
         if (userDetails == null) {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
-
-        User user = loadUserPort.findById(userDetails.getUserId())
+        User user = userQueryUseCase.findById(userDetails.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         socialLoginPort.unlink(user.getProvider(), user.getSocialId());
         manageAuthDataPort.performWithdrawProcess(userDetails.getUserId());
-
         eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId()));
 
         return logout(userDetails);
