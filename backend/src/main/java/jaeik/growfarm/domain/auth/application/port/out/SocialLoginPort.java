@@ -18,6 +18,8 @@ public interface SocialLoginPort {
      * @param provider 소셜 제공자
      * @param code     인가 코드
      * @return 로그인 결과
+     * @since 2.0.0
+     * @author Jaeik
      */
     LoginResultDTO login(SocialProvider provider, String code);
 
@@ -26,6 +28,8 @@ public interface SocialLoginPort {
      *
      * @param provider 소셜 제공자
      * @param socialId 소셜 ID
+     * @since 2.0.0
+     * @author Jaeik
      */
     void unlink(SocialProvider provider, String socialId);
 
@@ -34,6 +38,8 @@ public interface SocialLoginPort {
      *
      * @param provider    소셜 제공자
      * @param accessToken 액세스 토큰
+     * @since 2.0.0
+     * @author Jaeik
      */
     void logout(SocialProvider provider, String accessToken);
 }

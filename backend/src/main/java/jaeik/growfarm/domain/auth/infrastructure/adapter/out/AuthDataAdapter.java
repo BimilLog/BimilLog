@@ -1,10 +1,13 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
+import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
 import jaeik.growfarm.domain.notification.domain.FcmToken;
-import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.FcmTokenRepository;
 import jaeik.growfarm.domain.user.domain.Token;
 import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserJdbcRepository;
+import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
@@ -12,10 +15,6 @@ import jaeik.growfarm.global.auth.AuthCookieManager;
 import jaeik.growfarm.global.event.UserSignedUpEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.FcmTokenRepository;
-import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
-import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserJdbcRepository;
-import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -44,6 +43,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     private final EntityManager entityManager;
     private final TempDataAdapter tempDataAdapter;
     private final ApplicationEventPublisher eventPublisher;
+
 
     @Override
     @Transactional

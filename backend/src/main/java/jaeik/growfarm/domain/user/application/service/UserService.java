@@ -53,12 +53,6 @@ public class UserService implements UserQueryUseCase, UserCommandUseCase {
         return userPort.findByUserName(userName);
     }
 
-    @Override
-    @Transactional
-    public void withdrawUser(Long userId) {
-        userPort.deleteById(userId);
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
-    }
 
     @Override
     @Transactional

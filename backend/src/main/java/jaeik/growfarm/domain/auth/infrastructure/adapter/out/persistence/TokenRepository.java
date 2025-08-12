@@ -18,5 +18,15 @@ import java.util.Optional;
 @Repository
 public interface TokenRepository extends JpaRepository<Token, Long> {
 
+    /**
+     * <h3>사용자에 해당하는 토큰 조회</h3>
+     *
+     * <p>주어진 사용자에 해당하는 토큰을 조회합니다.</p>
+     *
+     * @param user 사용자 정보
+     * @return 해당 사용자의 토큰 (없으면 Optional.empty())
+     * @since 2.0.0
+     * @author Jaeik
+     */
     Optional<Token> findByUser(User user);
 }

@@ -224,8 +224,8 @@ class ApiClient {
         '/post/manage/like',     // 글 추천
         '/comment/like',  // 댓글 추천
         '/notification',  // 알림
-        '/auth/logout',   // 로그아웃
-        '/auth/withdraw'  // 회원탈퇴
+        '/api/auth/logout',   // 로그아웃
+        '/api/auth/withdraw'  // 회원탈퇴
       ];
 
       // 현재 요청이 반드시 인증이 필요한지 확인
@@ -357,27 +357,37 @@ export const apiClient = new ApiClient(API_BASE_URL)
 export const authApi = {
   // 카카오 로그인 URL 가져오기
   kakaoLogin: (code: string, fcmToken?: string) => {
-    const queryParams = new URLSearchParams({ code })
+    const queryParams = new URLSearchParams({ provider: 'kakao', code })
     if (fcmToken) queryParams.append("fcmToken", fcmToken)
-    return apiClient.get(`/auth/login?${queryParams.toString()}`)
+    return apiClient.request(`/api/auth/login?${queryParams.toString()}`, {
+      method: 'POST',
+    })
   },
 
   // 현재 사용자 정보 조회 (httpOnly 쿠키 자동 포함)
-  getCurrentUser: () => apiClient.get<User>("/auth/me"),
+  getCurrentUser: () => apiClient.get<User>("/api/auth/me"),
 
   // 로그아웃
-  logout: () => apiClient.post("/auth/logout"),
+  logout: () => apiClient.post("/api/auth/logout"),
 
   // 회원 탈퇴
-  deleteAccount: () => apiClient.post("/auth/withdraw"),
+  deleteAccount: () => apiClient.delete("/api/auth/withdraw"),
 
   // 회원가입 (닉네임 설정)
-  signUp: (userName: string) => apiClient.post('/auth/signUp', null, { 
-    params: { userName } 
-  }),
+  signUp: (userName: string) => {
+    const formData = new URLSearchParams()
+    formData.append('userName', userName)
+    return apiClient.request('/api/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
+    })
+  },
 
   // 서버 상태 확인
-  healthCheck: () => apiClient.get<string>("/auth/health"),
+  healthCheck: () => apiClient.get<string>("/api/auth/health"),
 }
 
 // 사용자 관련 API

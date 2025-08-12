@@ -24,6 +24,8 @@ public interface ManageAuthDataPort {
      * @param tokenDTO 토큰 정보
      * @param fcmToken FCM 토큰
      * @return JWT가 삽입된 쿠키 리스트
+     * @since 2.0.0
+     * @author Jaeik
      */
     List<ResponseCookie> saveExistUser(User user, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken);
 
@@ -36,14 +38,12 @@ public interface ManageAuthDataPort {
      * @param tokenDTO 토큰 정보
      * @param fcmToken FCM 토큰
      * @return JWT가 삽입된 쿠키 리스트
+     * @since 2.0.0
+     * @author Jaeik
      */
     List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken);
 
-    /**
-     * <h3>사용자 로그아웃</h3>
-     *
-     * @param userId 사용자 ID
-     */
+
     void logoutUser(Long userId);
 
     /**

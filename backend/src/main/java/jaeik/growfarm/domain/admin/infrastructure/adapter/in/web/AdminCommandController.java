@@ -5,10 +5,8 @@ import jaeik.growfarm.dto.admin.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 /**
  * <h2>관리자 관련 Command 컨트롤러</h2>
@@ -36,5 +34,19 @@ public class AdminCommandController {
     public ResponseEntity<String> banUser(@RequestBody ReportDTO reportDTO) {
         adminCommandUseCase.banUser(reportDTO);
         return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
+    }
+
+    /**
+     * <h3>관리자 권한으로 사용자 강제 탈퇴 API</h3>
+     *
+     * @param userId 탈퇴시킬 사용자 ID
+     * @return 탈퇴 완료 메시지
+     * @since 2.0.0
+     */
+    @DeleteMapping("/users/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> forceWithdrawUser(@PathVariable Long userId) {
+        adminCommandUseCase.forceWithdrawUser(userId);
+        return ResponseEntity.ok("관리자 권한으로 사용자 탈퇴가 완료되었습니다.");
     }
 }

@@ -32,6 +32,4 @@ public class TokenJdbcRepository {
         String sql = "UPDATE token SET jwt_refresh_token = ? WHERE token_id = ?";
         jdbcTemplate.update(sql, newJwtRefreshToken, tokenId);
     }
-
-
 }

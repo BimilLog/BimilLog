@@ -31,9 +31,4 @@ public class UserCommandController {
         return ResponseEntity.ok("설정 수정 완료");
     }
 
-    @DeleteMapping("/withdraw")
-    public ResponseEntity<String> withdrawUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        userCommandUseCase.withdrawUser(userDetails.getUserId());
-        return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
-    }
 }

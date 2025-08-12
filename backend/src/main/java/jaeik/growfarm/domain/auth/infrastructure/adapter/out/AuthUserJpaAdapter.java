@@ -21,12 +21,28 @@ import java.util.Optional;
 public class AuthUserJpaAdapter implements LoadUserPort {
 
     private final UserRepository userRepository;
-
+    /**
+     * <h3>사용자 정보를 SocialProvider와 socialId로 조회</h3>
+     *
+     * @param provider SocialProvider
+     * @param socialId 소셜 ID
+     * @return Optional<User> 사용자 정보
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return userRepository.findByProviderAndSocialId(provider, socialId);
     }
 
+    /**
+     * <h3>사용자 ID로 사용자 정보 조회</h3>
+     *
+     * @param userId 사용자 ID
+     * @return Optional<User> 사용자 정보
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public Optional<User> findById(Long userId) {
         return userRepository.findById(userId);

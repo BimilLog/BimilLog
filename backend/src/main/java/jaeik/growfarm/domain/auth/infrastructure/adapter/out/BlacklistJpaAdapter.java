@@ -19,6 +19,15 @@ public class BlacklistJpaAdapter implements CheckBlacklistPort {
 
     private final BlackListRepository blackListRepository;
 
+    /**
+     * <h3>소셜 제공자와 소셜 ID로 블랙리스트 확인</h3>
+     *
+     * @param provider 소셜 제공자
+     * @param socialId 소셜 ID
+     * @return 블랙리스트에 존재하면 true, 아니면 false
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
         return blackListRepository.existsByProviderAndSocialId(provider, socialId);

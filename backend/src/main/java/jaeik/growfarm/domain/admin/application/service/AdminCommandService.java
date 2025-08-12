@@ -2,6 +2,7 @@
 package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.growfarm.domain.admin.application.port.out.UserAuthPort;
 import jaeik.growfarm.domain.admin.application.service.resolver.ReportedUserResolver;
 import jaeik.growfarm.domain.admin.domain.ReportType;
 import jaeik.growfarm.domain.user.domain.User;
@@ -23,6 +24,7 @@ public class AdminCommandService implements AdminCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
     private final List<ReportedUserResolver> userResolvers;
+    private final UserAuthPort userAuthPort;
 
     @Override
     public void banUser(ReportDTO reportDTO) {
@@ -36,6 +38,11 @@ public class AdminCommandService implements AdminCommandUseCase {
         }
 
         eventPublisher.publishEvent(new UserBannedEvent(this, user.getId(), user.getSocialId(), user.getProvider()));
+    }
+
+    @Override
+    public void forceWithdrawUser(Long userId) {
+        userAuthPort.forceWithdraw(userId);
     }
 
     private User resolveUser(ReportType reportType, Long targetId) {

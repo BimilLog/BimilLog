@@ -19,6 +19,13 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+/**
+ * <h2>카카오 로그인 전략</h2>
+ * <p>카카오 소셜 로그인을 처리하는 클래스입니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Component
 @RequiredArgsConstructor
 public class KakaoLoginStrategy implements SocialLoginStrategy {
@@ -26,6 +33,15 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     private final KakaoKeyVO kakaoKeyVO;
     private final WebClient.Builder webClientBuilder;
 
+    /**
+     * <h3>카카오 로그인 처리</h3>
+     * <p>카카오 소셜 로그인 코드를 받아 사용자 정보를 조회하고 로그인 결과를 반환합니다.</p>
+     *
+     * @param code 카카오 소셜 로그인 코드
+     * @return 로그인 결과 DTO
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public LoginResultDTO login(String code) {
         TokenDTO tokenDTO = getToken(code);
@@ -36,6 +52,14 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .build();
     }
 
+    /**
+     * <h3>카카오 계정 연결 해제</h3>
+     * <p>주어진 소셜 ID에 해당하는 카카오 계정의 연결을 해제합니다.</p>
+     *
+     * @param socialId 카카오 소셜 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public void unlink(String socialId) {
         WebClient webClient = webClientBuilder.build();
@@ -53,6 +77,14 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .block();
     }
 
+    /**
+     * <h3>카카오 로그아웃</h3>
+     * <p>주어진 액세스 토큰으로 카카오 로그아웃을 수행합니다.</p>
+     *
+     * @param accessToken 카카오 액세스 토큰
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public void logout(String accessToken) {
         WebClient webClient = webClientBuilder.build();
@@ -65,6 +97,15 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .block();
     }
 
+    /**
+     * <h3>카카오 토큰 요청</h3>
+     * <p>카카오 로그인 코드를 사용하여 액세스 토큰과 리프레시 토큰을 요청합니다.</p>
+     *
+     * @param code 카카오 로그인 코드
+     * @return TokenDTO 액세스 토큰과 리프레시 토큰을 포함하는 DTO
+     * @since 2.0.0
+     * @author Jaeik
+     */
     private TokenDTO getToken(String code) {
         WebClient webClient = webClientBuilder.build();
 
@@ -88,6 +129,17 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .build();
     }
 
+    /**
+     * <h3>카카오 친구 목록 조회</h3>
+     * <p>카카오 액세스 토큰을 사용하여 친구 목록을 조회합니다.</p>
+     *
+     * @param accessToken 카카오 액세스 토큰
+     * @param offset      조회 시작 위치 (기본값: 0)
+     * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)
+     * @return KakaoFriendsResponse 친구 목록 응답 DTO
+     * @since 2.0.0
+     * @author Jaeik
+     */
     public KakaoFriendsResponse getFriendList(String accessToken, Integer offset, Integer limit) {
         WebClient webClient = webClientBuilder.build();
 
@@ -106,6 +158,15 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .block();
     }
 
+    /**
+     * <h3>카카오 사용자 정보 조회</h3>
+     * <p>카카오 액세스 토큰을 사용하여 사용자 정보를 조회합니다.</p>
+     *
+     * @param accessToken 카카오 액세스 토큰
+     * @return SocialLoginUserData 사용자 정보 DTO
+     * @since 2.0.0
+     * @author Jaeik
+     */
     private SocialLoginUserData getUserInfo(String accessToken) {
         WebClient webClient = webClientBuilder.build();
 
@@ -131,7 +192,14 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .build();
     }
 
-
+    /**
+     * <h3>소셜 제공자 정보 조회</h3>
+     * <p>현재 소셜 로그인 전략의 제공자를 반환합니다.</p>
+     *
+     * @return SocialProvider 현재 소셜 로그인 전략의 제공자
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public SocialProvider getProvider() {
         return SocialProvider.KAKAO;

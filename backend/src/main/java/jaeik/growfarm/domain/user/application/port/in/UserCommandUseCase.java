@@ -11,7 +11,6 @@ import jaeik.growfarm.dto.user.SettingDTO;
  * @version 1.0
  */
 public interface UserCommandUseCase {
-    void withdrawUser(Long userId);
     void updateUserSettings(Long userId, SettingDTO settingDTO);
     void updateUserName(Long userId, String newUserName);
 }

@@ -20,6 +20,8 @@ public interface LoadUserPort {
      * @param provider 소셜 제공자
      * @param socialId 소셜 ID
      * @return 사용자 정보 (없으면 Optional.empty())
+     * @since 2.0.0
+     * @author Jaeik
      */
     Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
 
@@ -28,6 +30,8 @@ public interface LoadUserPort {
      *
      * @param userId 사용자 ID
      * @return 사용자 정보 (없으면 Optional.empty())
+     * @since 2.0.0
+     * @author Jaeik
      */
     Optional<User> findById(Long userId);
 }

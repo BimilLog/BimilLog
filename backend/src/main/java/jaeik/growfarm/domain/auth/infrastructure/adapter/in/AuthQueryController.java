@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <h2>인증 조회 컨트롤러 V2</h2>
+ * <h2>인증 조회 컨트롤러</h2>
  * <p>사용자 정보 조회, 서버 상태 조회 등 인증 관련 조회 요청을 처리</p>
  *
  * @author Jaeik
@@ -29,6 +29,8 @@ public class AuthQueryController {
      *
      * @param userDetails 인증된 사용자 정보
      * @return 현재 로그인한 사용자 정보
+     * @since 2.0.0
+     * @author Jaeik
      */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -39,6 +41,8 @@ public class AuthQueryController {
      * <h3>서버 상태 검사 API</h3>
      *
      * @return 상태 검사 완료 메시지
+     * @since 2.0.0
+     * @author Jaeik
      */
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {

@@ -27,12 +27,6 @@ public class UserCommandService implements UserCommandUseCase {
     private final UserPort userPort;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Override
-    @Transactional
-    public void withdrawUser(Long userId) {
-        userPort.deleteById(userId);
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
-    }
 
     @Override
     public void updateUserSettings(Long userId, SettingDTO settingDTO) {
