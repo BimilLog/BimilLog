@@ -17,6 +17,15 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * <h2>사용자 명령 서비스</h2>
+ * <p>사용자 관련 명령 유스케이스를 구현하는 Application Service</p>
+ * <p>헥사고날 아키텍처에서 비즈니스 로직을 담당하며, 사용자 설정 업데이트 및 이벤트 처리 기능을 제공</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ * @since 2.0.0
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -25,8 +34,15 @@ public class UserCommandService implements UserCommandUseCase {
 
     private final UserPort userPort;
     private final ApplicationEventPublisher eventPublisher;
-
-
+/**
+     * <h3>사용자 설정 수정</h3>
+     * <p>사용자의 설정을 수정하는 메서드</p>
+     *
+     * @param userId    사용자 ID
+     * @param settingDTO 수정할 설정 정보
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public void updateUserSettings(Long userId, SettingDTO settingDTO) {
         User user = userPort.findById(userId)
@@ -36,6 +52,15 @@ public class UserCommandService implements UserCommandUseCase {
         userPort.save(user);
     }
 
+    /**
+     * <h3>닉네임 변경</h3>
+     * <p>사용자의 닉네임을 변경하는 메서드</p>
+     *
+     * @param userId      사용자 ID
+     * @param newUserName 새로운 닉네임
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public void updateUserName(Long userId, String newUserName) {
         if (userPort.existsByUserName(newUserName)) {
@@ -46,6 +71,7 @@ public class UserCommandService implements UserCommandUseCase {
         user.updateUserName(newUserName);
         userPort.save(user);
     }
+
 
     @Async
     @Transactional

@@ -10,7 +10,7 @@ import java.util.Optional;
  * <p>사용자 정보 조회를 위한 In-Port</p>
  *
  * @author jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 public interface UserQueryUseCase {
 
@@ -22,7 +22,7 @@ public interface UserQueryUseCase {
      * @param socialId 사용자의 소셜 ID
      * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author jaeik
-     * @version 1.0.0
+     * @version 2.0.0
      */
     Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
 
@@ -33,7 +33,7 @@ public interface UserQueryUseCase {
      * @param id 사용자의 고유 ID
      * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author jaeik
-     * @version 1.0.0
+     * @version 2.0.0
      */
     Optional<User> findById(Long id);
 
@@ -44,7 +44,7 @@ public interface UserQueryUseCase {
      * @param userName 확인할 닉네임
      * @return boolean 존재하면 true, 아니면 false
      * @author jaeik
-     * @version 1.0.0
+     * @version 2.0.0
      */
     boolean existsByUserName(String userName);
 }

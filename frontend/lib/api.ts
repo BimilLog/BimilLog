@@ -505,13 +505,13 @@ export const boardApi = {
   likePost: (postId: number) => apiClient.post("/post/manage/like", { postId }),
 
   // 실시간 인기글 조회
-  getRealtimePosts: () => apiClient.get<SimplePost[]>("/post/popular/realtime"),
+  getRealtimePosts: () => apiClient.get<SimplePost[]>("/post/cache/realtime"),
 
   // 주간 인기글 조회
-  getWeeklyPosts: () => apiClient.get<SimplePost[]>("/post/popular/weekly"),
+  getWeeklyPosts: () => apiClient.get<SimplePost[]>("/post/cache/weekly"),
 
   // 레전드 인기글 조회
-  getLegendPosts: () => apiClient.get<SimplePost[]>("/post/popular/legend"),
+  getLegendPosts: () => apiClient.get<SimplePost[]>("/post/cache/legend"),
 }
 
 // 댓글 관련 API

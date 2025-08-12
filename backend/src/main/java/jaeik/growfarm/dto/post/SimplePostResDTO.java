@@ -18,7 +18,6 @@ public class SimplePostResDTO {
     private Long id;
     private String title;
     private String content;
-    private String writer;
     private int views;
     private int likes;
     private boolean isNotice;

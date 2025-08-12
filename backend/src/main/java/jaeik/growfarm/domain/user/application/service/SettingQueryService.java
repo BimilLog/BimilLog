@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Service
 @Transactional(readOnly = true)
@@ -41,15 +40,10 @@ public class SettingQueryService implements SettingQueryUseCase {
      */
     @Override
     public SettingDTO findBySettingId(Long settingId) {
-        log.debug("Finding setting by settingId: {}", settingId);
-        
-        Setting setting = userPort.findSettingById(settingId)
-                .orElseThrow(() -> {
-                    log.warn("Setting not found for settingId: {}", settingId);
-                    return new CustomException(ErrorCode.SETTINGS_NOT_FOUND);
-                });
 
-        log.debug("Successfully found setting for settingId: {}", settingId);
+        Setting setting = userPort.findSettingById(settingId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
+
         return new SettingDTO(setting);
     }
 }
