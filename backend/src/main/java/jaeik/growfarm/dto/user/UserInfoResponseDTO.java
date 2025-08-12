@@ -2,7 +2,6 @@ package jaeik.growfarm.dto.user;
 
 import jaeik.growfarm.global.domain.UserRole;
 import lombok.Builder;
-import lombok.Getter;
 
 /**
  * <h2>사용자 정보 조회 API 응답 DTO</h2>
@@ -12,16 +11,9 @@ import lombok.Getter;
  * @author BimilLog
  * @version 1.0.0
  */
-@Getter
 @Builder
-public class UserInfoResponseDTO {
-
-    private final Long userId;
-    private final Long settingId;
-    private final String socialNickname;
-    private final String thumbnailImage;
-    private final String userName;
-    private final UserRole role;
+public record UserInfoResponseDTO(Long userId, Long settingId, String socialNickname, String thumbnailImage,
+                                  String userName, UserRole role) {
 
     /**
      * <h3>ClientDTO에서 UserInfoResponseDTO로 변환</h3>

@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.config;
+package jaeik.growfarm.infrastructure.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

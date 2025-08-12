@@ -39,17 +39,17 @@ public class FcmTokenEventListener {
     @EventListener
     @Transactional
     public void handleFcmTokenRegisteredEvent(FcmTokenRegisteredEvent event) {
-        log.info("FCM 토큰 등록 이벤트 처리: userId={}", event.getUserId());
+        log.info("FCM 토큰 등록 이벤트 처리: userId={}", event.userId());
         
-        if (event.getFcmToken() == null || event.getFcmToken().isEmpty()) {
-            log.warn("FCM 토큰이 비어있습니다. userId={}", event.getUserId());
+        if (event.fcmToken() == null || event.fcmToken().isEmpty()) {
+            log.warn("FCM 토큰이 비어있습니다. userId={}", event.userId());
             return;
         }
         
-        User user = userQueryUseCase.findById(event.getUserId())
+        User user = userQueryUseCase.findById(event.userId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
-        fcmTokenRepository.save(FcmToken.create(user, event.getFcmToken()));
+        fcmTokenRepository.save(FcmToken.create(user, event.fcmToken()));
     }
 
     /**
@@ -61,8 +61,8 @@ public class FcmTokenEventListener {
     @EventListener
     @Transactional
     public void handleUserLoggedOutEvent(UserLoggedOutEvent event) {
-        log.info("사용자 로그아웃 이벤트 처리: userId={}", event.getUserId());
-        fcmTokenRepository.deleteByUser_Id(event.getUserId());
+        log.info("사용자 로그아웃 이벤트 처리: userId={}", event.userId());
+        fcmTokenRepository.deleteByUser_Id(event.userId());
     }
 
     /**
@@ -74,7 +74,7 @@ public class FcmTokenEventListener {
     @EventListener
     @Transactional
     public void handleUserWithdrawnEvent(UserWithdrawnEvent event) {
-        log.info("사용자 탈퇴 이벤트 처리: userId={}", event.getUserId());
-        fcmTokenRepository.deleteByUser_Id(event.getUserId());
+        log.info("사용자 탈퇴 이벤트 처리: userId={}", event.userId());
+        fcmTokenRepository.deleteByUser_Id(event.userId());
     }
 }

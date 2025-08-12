@@ -64,8 +64,8 @@ public class Token extends BaseEntity {
      */
     public static Token createToken(TokenDTO tokenDTO, User user) {
         return Token.builder()
-                .accessToken(tokenDTO.getAccessToken())
-                .refreshToken(tokenDTO.getRefreshToken())
+                .accessToken(tokenDTO.accessToken())
+                .refreshToken(tokenDTO.refreshToken())
                 .users(user)
                 .build();
     }

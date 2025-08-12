@@ -91,7 +91,7 @@ sourceSets {
     main.java.srcDirs += [ generated ]
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.annotationProcessorGeneratedSourcesDirectory = file(generated)
 }
 

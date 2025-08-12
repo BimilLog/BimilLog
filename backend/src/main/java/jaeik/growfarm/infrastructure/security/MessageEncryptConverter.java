@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.security;
+package jaeik.growfarm.infrastructure.security;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

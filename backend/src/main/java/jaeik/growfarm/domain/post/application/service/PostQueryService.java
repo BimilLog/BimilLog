@@ -79,7 +79,7 @@ public class PostQueryService implements PostQueryUseCase {
 
     @Override
     public List<SimplePostResDTO> getPopularPosts(PostCacheFlag type) {
-        if (!loadPostCachePort.hasPopularPostsCache(type)) {
+        if (loadPostCachePort.hasPopularPostsCache(type)) {
             switch (type) {
                 case REALTIME -> postCacheManageService.updateRealtimePopularPosts();
                 case WEEKLY -> postCacheManageService.updateWeeklyPopularPosts();
@@ -92,7 +92,7 @@ public class PostQueryService implements PostQueryUseCase {
 
     @Override
     public List<SimplePostResDTO> getNoticePosts() {
-        if (!loadPostCachePort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
+        if (loadPostCachePort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
             // 공지사항은 스케줄링이 없으므로, 필요 시 즉시 DB에서 조회하여 캐싱
             List<SimplePostResDTO> noticePosts = loadPostPort.findNoticePosts();
             managePostCachePort.cachePosts(PostCacheFlag.NOTICE, noticePosts);

@@ -10,11 +10,12 @@ import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.comment.CommentDTO;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.global.event.CommentCreatedEvent;
+import jaeik.growfarm.global.event.PostDeletedEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -194,15 +194,15 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     @Transactional
     @EventListener
     public void handleUserWithdrawnEvent(UserWithdrawnEvent event) {
-        log.info("User (ID: {}) withdrawn event received. Anonymizing comments.", event.getUserId());
-        anonymizeUserComments(event.getUserId());
+        log.info("User (ID: {}) withdrawn event received. Anonymizing comments.", event.userId());
+        anonymizeUserComments(event.userId());
     }
 
     @Async
     @Transactional
     @EventListener
     public void handlePostDeletedEvent(PostDeletedEvent event) {
-        log.info("Post (ID: {}) deleted event received. Deleting all comments.", event.getPostId());
-        deleteCommentPort.deleteAllByPostId(event.getPostId());
+        log.info("Post (ID: {}) deleted event received. Deleting all comments.", event.postId());
+        deleteCommentPort.deleteAllByPostId(event.postId());
     }
 }

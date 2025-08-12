@@ -36,16 +36,16 @@ public class SseEmitterCleanupEventHandler {
     @Async
     public void handleUserLoggedOutEvent(UserLoggedOutEvent event) {
         try {
-            log.debug("SSE 연결 정리 시작 - 사용자 ID: {}", event.getUserId());
+            log.debug("SSE 연결 정리 시작 - 사용자 ID: {}", event.userId());
             
             // SSE Emitter 연결 정리
-            manageNotificationPort.deleteAllEmitterByUserId(event.getUserId());
+            manageNotificationPort.deleteAllEmitterByUserId(event.userId());
             
-            log.info("SSE 연결 정리 완료 - 사용자 ID: {}", event.getUserId());
+            log.info("SSE 연결 정리 완료 - 사용자 ID: {}", event.userId());
             
         } catch (Exception e) {
             log.error("SSE 연결 정리 실패 - 사용자 ID: {}, 오류: {}", 
-                     event.getUserId(), e.getMessage(), e);
+                     event.userId(), e.getMessage(), e);
             // SSE 정리 실패는 로그아웃 자체를 실패시키지 않음 (비동기 처리)
         }
     }

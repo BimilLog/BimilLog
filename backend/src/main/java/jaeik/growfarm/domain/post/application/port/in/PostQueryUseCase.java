@@ -1,14 +1,14 @@
 package jaeik.growfarm.domain.post.application.port.in;
 
+import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
-import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import java.util.Optional;
-import jaeik.growfarm.domain.post.entity.Post;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>PostQueryUseCase</h2>
@@ -36,7 +36,7 @@ public interface PostQueryUseCase {
      *     게시글 ID를 통해 게시글 상세 정보를 조회합니다.
      * </p>
      * @param postId      게시글 ID
-     * @param user 현재 로그인 한 사용자 정보 (비로그인 시 null)
+     * @param userId     현재 로그인한 사용자 ID
      * @return 게시글 상세 정보 DTO
      */
     FullPostResDTO getPost(Long postId, Long userId);

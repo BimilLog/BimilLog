@@ -45,7 +45,7 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     @Override
     public LoginResultDTO login(String code) {
         TokenDTO tokenDTO = getToken(code);
-        SocialLoginUserData userData = getUserInfo(tokenDTO.getAccessToken());
+        SocialLoginUserData userData = getUserInfo(tokenDTO.accessToken());
         return LoginResultDTO.builder()
                 .userData(userData)
                 .tokenDTO(tokenDTO)

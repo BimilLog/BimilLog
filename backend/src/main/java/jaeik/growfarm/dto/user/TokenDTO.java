@@ -1,28 +1,19 @@
 package jaeik.growfarm.dto.user;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * <h3>토큰 정보 DTO</h3>
  * <p>
  * 카카오 토큰과 JWT 토큰 정보를 담는 데이터 전송 객체
  * </p>
- * 
- * @since 2.0.0
+ *
  * @author Jaeik
+ * @since 2.0.0
  */
-@Getter
-public class TokenDTO {
-
-    private final String accessToken;
-    private final String refreshToken;
+public record TokenDTO(String accessToken, String refreshToken) {
 
     @Builder
-    public TokenDTO(String accessToken, String refreshToken) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
+    public TokenDTO {
     }
 }

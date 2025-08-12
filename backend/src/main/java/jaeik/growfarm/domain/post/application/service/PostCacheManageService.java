@@ -96,14 +96,14 @@ public class PostCacheManageService {
     @Async
     @EventListener
     public void handlePostSetAsNotice(PostSetAsNoticeEvent event) {
-        log.info("Post (ID: {}) set as notice event received. Deleting notice cache.", event.getPostId());
+        log.info("Post (ID: {}) set as notice event received. Deleting notice cache.", event.postId());
         deleteNoticeCache();
     }
 
     @Async
     @EventListener
     public void handlePostUnsetAsNotice(PostUnsetAsNoticeEvent event) {
-        log.info("Post (ID: {}) unset as notice event received. Deleting notice cache.", event.getPostId());
+        log.info("Post (ID: {}) unset as notice event received. Deleting notice cache.", event.postId());
         deleteNoticeCache();
     }
 }

@@ -49,7 +49,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
 
         Token token = tokenRepository.findByUser(user)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
-        token.updateToken(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());
+        token.updateToken(tokenDTO.accessToken(), tokenDTO.refreshToken());
 
         return authCookieManager.generateJwtCookie(ClientDTO.of(user,
                 tokenRepository.save(token).getId(),

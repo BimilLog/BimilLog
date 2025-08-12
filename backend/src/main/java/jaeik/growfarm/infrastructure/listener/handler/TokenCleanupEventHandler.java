@@ -37,16 +37,16 @@ public class TokenCleanupEventHandler {
     public void handleUserLoggedOutEvent(UserLoggedOutEvent event) {
         try {
             log.debug("토큰 정리 시작 - 사용자 ID: {}, 토큰 ID: {}", 
-                     event.getUserId(), event.getTokenId());
+                     event.userId(), event.tokenId());
             
             // 사용자 토큰 삭제 (JWT 토큰, FCM 토큰 등)
-            manageAuthDataPort.logoutUser(event.getUserId());
+            manageAuthDataPort.logoutUser(event.userId());
             
-            log.info("토큰 정리 완료 - 사용자 ID: {}", event.getUserId());
+            log.info("토큰 정리 완료 - 사용자 ID: {}", event.userId());
             
         } catch (Exception e) {
             log.error("토큰 정리 실패 - 사용자 ID: {}, 오류: {}", 
-                     event.getUserId(), e.getMessage(), e);
+                     event.userId(), e.getMessage(), e);
             // 토큰 정리 실패는 로그아웃 자체를 실패시키지 않음 (비동기 처리)
         }
     }

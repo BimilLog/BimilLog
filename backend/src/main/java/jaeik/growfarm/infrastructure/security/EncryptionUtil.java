@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.security;
+package jaeik.growfarm.infrastructure.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

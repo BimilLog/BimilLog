@@ -12,10 +12,15 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
-/*
- * 전역 엔티티 클래스
- * 전역 엔티티 클래스로, 생성일자와 수정일자를 관리하는 필드를 포함
- * 수정일 : 2025-05-03
+/**
+ * <h2>기본 엔티티 클래스</h2>
+ * <p>
+ * 모든 엔티티가 상속받는 기본 클래스입니다.
+ * 생성일과 수정일을 자동으로 관리합니다.
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
  */
 @Getter
 @SuperBuilder

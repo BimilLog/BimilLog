@@ -125,7 +125,6 @@ public class User extends BaseEntity {
      *
      * @param userData 카카오 정보 DTO
      * @param userName     사용자 이름
-     * @param setting      사용자 설정 정보
      * @return 생성된 사용자 엔티티
      */
     public static User createUser(SocialLoginUserData userData, String userName) {

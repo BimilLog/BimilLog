@@ -8,16 +8,16 @@ import java.time.Instant;
 
 @Getter
 public class FullPostResDTO {
-    private Long id;
-    private Long userId;
-    private String userName;
-    private String title;
-    private String content;
-    private int views;
-    private int likes;
-    private boolean isNotice;
-    private Instant createdAt;
-    private boolean isLiked;
+    private final Long id;
+    private final Long userId;
+    private final String userName;
+    private final String title;
+    private final String content;
+    private final int views;
+    private final int likes;
+    private final boolean isNotice;
+    private final Instant createdAt;
+    private final boolean isLiked;
 
     @Builder
     public FullPostResDTO(Long id, Long userId, String userName, String title, String content,

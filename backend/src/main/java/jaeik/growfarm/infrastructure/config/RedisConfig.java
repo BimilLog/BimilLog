@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.config;
+package jaeik.growfarm.infrastructure.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;

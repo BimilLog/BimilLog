@@ -77,12 +77,12 @@ public class UserCommandService implements UserCommandUseCase {
     @Transactional
     @EventListener
     public void handleUserSignedUpEvent(UserSignedUpEvent event) {
-        User user = userPort.findById(event.getUserId())
+        User user = userPort.findById(event.userId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
         Setting setting = Setting.createSetting();
         user.updateSetting(setting);
         userPort.save(user);
-        log.info("Initialized default settings for new user (ID: {})", event.getUserId());
+        log.info("Initialized default settings for new user (ID: {})", event.userId());
     }
 }
