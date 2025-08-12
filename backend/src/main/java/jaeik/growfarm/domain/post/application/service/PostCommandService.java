@@ -122,7 +122,7 @@ public class PostCommandService implements PostCommandUseCase {
     @Transactional
     @EventListener
     public void handlePostDeletedEvent(PostDeletedEvent event) {
-        log.info("Post (ID: {}) deleted event received. Deleting all post likes.", event.getPostId());
-        deletePostLikePort.deleteAllByPostId(event.getPostId());
+        log.info("Post (ID: {}) deleted event received. Deleting all post likes.", event.postId());
+        deletePostLikePort.deleteAllByPostId(event.postId());
     }
 }

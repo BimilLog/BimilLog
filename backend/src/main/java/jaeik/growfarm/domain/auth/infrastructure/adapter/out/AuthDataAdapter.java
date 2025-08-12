@@ -11,6 +11,7 @@ import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;
 import jaeik.growfarm.global.event.UserSignedUpEvent;
+import jaeik.growfarm.global.event.FcmTokenRegisteredEvent; // FcmTokenRegisteredEvent import 추가
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jakarta.persistence.EntityManager;
@@ -19,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import jaeik.growfarm.global.domain.SocialProvider;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,34 +46,47 @@ public class AuthDataAdapter implements ManageAuthDataPort {
 
     @Override
     @Transactional
-    public List<ResponseCookie> saveExistUser(User user, SocialLoginUserData userData, TokenDTO tokenDTO) {
+    public List<ResponseCookie> handleExistingUserLogin(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) { // fcmToken 인자 추가
+        User user = userRepository.findByProviderAndSocialId(userData.getProvider(), userData.getSocialId())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
         user.updateUserInfo(userData.getNickname(), userData.getProfileImageUrl());
 
         Token token = tokenRepository.findByUser(user)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
         token.updateToken(tokenDTO.accessToken(), tokenDTO.refreshToken());
 
+        // FCM 토큰 등록 이벤트 발행
+        if (fcmToken != null && !fcmToken.isEmpty()) {
+            eventPublisher.publishEvent(new FcmTokenRegisteredEvent(user.getId(), fcmToken));
+        }
+
         return authCookieManager.generateJwtCookie(ClientDTO.of(user,
                 tokenRepository.save(token).getId(),
-                null)); // fcmTokenId는 null로 설정
+                null));
     }
 
     @Override
     @Transactional
-    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO) {
+    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) { // fcmToken 인자 추가
         User user = userRepository.save(User.createUser(userData, userName));
         eventPublisher.publishEvent(new UserSignedUpEvent(user.getId()));
+
+        // 신규 사용자 FCM 토큰 등록 이벤트 발행
+        if (fcmToken != null && !fcmToken.isEmpty()) {
+            eventPublisher.publishEvent(new FcmTokenRegisteredEvent(user.getId(), fcmToken));
+        }
+
         tempDataAdapter.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(ClientDTO.of(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
-                null)); // fcmTokenId는 null로 설정
+                null));
     }
 
     @Override
     @Transactional
     public void logoutUser(Long userId) {
         tokenRepository.deleteAllByUserId(userId);
-        // FCM 토큰 삭제는 이벤트를 통해 notification 도메인에서 처리
         eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, null));
     }
 
@@ -82,8 +97,6 @@ public class AuthDataAdapter implements ManageAuthDataPort {
         entityManager.clear();
 
         tokenRepository.deleteAllByUserId(userId);
-        // FCM 토큰 삭제는 이벤트를 통해 notification 도메인에서 처리
-        // 회원 탈퇴 이벤트는 UserAccountService에서 발행
 
         userRepository.deleteById(userId);
     }
@@ -91,5 +104,10 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     @Override
     public Optional<Token> findTokenByUserId(Long userId) {
         return tokenRepository.findByUsers_Id(userId);
+    }
+
+    @Override
+    public Optional<User> findUserByProviderAndSocialId(SocialProvider provider, String socialId) {
+        return userRepository.findByProviderAndSocialId(provider, socialId);
     }
 }

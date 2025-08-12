@@ -5,9 +5,9 @@ import lombok.Getter;
 
 @Getter
 public class TemporaryUserDataDTO {
-    private final SocialLoginUserData socialLoginUserData;
-    private final TokenDTO tokenDTO;
-    private final String fcmToken;
+    public SocialLoginUserData socialLoginUserData;
+    public TokenDTO tokenDTO;
+    public String fcmToken;
 
     public TemporaryUserDataDTO(SocialLoginUserData socialLoginUserData, TokenDTO tokenDTO, String fcmToken) {
         this.socialLoginUserData = socialLoginUserData;

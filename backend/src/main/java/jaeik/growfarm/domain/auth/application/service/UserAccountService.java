@@ -7,7 +7,6 @@ import jaeik.growfarm.domain.auth.application.port.out.*;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
-import jaeik.growfarm.global.event.FcmTokenRegisteredEvent;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.global.exception.CustomException;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>사용자 계정 서비스</h2>
@@ -53,23 +53,15 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
      */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
-        TemporaryUserDataDTO tempUserData = manageTemporaryDataPort.getTempData(uuid);
-        if (tempUserData == null) {
+        Optional<TemporaryUserDataDTO> tempUserData = manageTemporaryDataPort.getTempData(uuid);
+
+        if (tempUserData.isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
+        } else {
+            return manageAuthDataPort.saveNewUser(userName, uuid, tempUserData.get().socialLoginUserData, tempUserData.get().tokenDTO, tempUserData.get().getFcmToken());
         }
 
-        List<ResponseCookie> cookies = manageAuthDataPort.saveNewUser(userName, uuid, tempUserData.getSocialLoginUserData(), tempUserData.getTokenDTO());
 
-        // FCM 토큰이 존재하면 이벤트 발행
-        if (tempUserData.getFcmToken() != null && !tempUserData.getFcmToken().isEmpty()) {
-            // 사용자 ID는 쿠키에서 추출하거나 다른 방법으로 가져와야 함
-            // 여기서는 UserRepository를 통해 방금 저장된 사용자를 찾는 방식을 사용
-            User user = userQueryUseCase.findByProviderAndSocialId(tempUserData.getSocialLoginUserData().getProvider(), tempUserData.getSocialLoginUserData().getSocialId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-            eventPublisher.publishEvent(FcmTokenRegisteredEvent.of(user.getId(), tempUserData.getFcmToken()));
-        }
-
-        return cookies;
     }
 
     /**

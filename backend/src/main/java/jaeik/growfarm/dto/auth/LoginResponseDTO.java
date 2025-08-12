@@ -48,7 +48,7 @@ public class LoginResponseDTO<T> {
      * </p>
      */
     public enum LoginType {
-        EXISTING_USER, NEW_USER
+        EXISTING_USER, NEW_USER, NEW_USER_REGISTERED
     }
 
     /**

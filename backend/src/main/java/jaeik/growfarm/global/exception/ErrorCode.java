@@ -34,6 +34,7 @@ public enum ErrorCode {
     INVALID_TEMP_DATA(HttpStatus.BAD_REQUEST, "시간이 초과 되었습니다. 다시 카카오 로그인을 진행해주세요.", LogLevel.WARN),
     REPEAT_LOGIN(HttpStatus.FORBIDDEN, "다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요", LogLevel.INFO),
     UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "해당 작업에 대한 권한이 없습니다.", LogLevel.WARN),
+    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", LogLevel.WARN),
 
     /**
      * <h3>게시판 관련 에러 코드</h3>

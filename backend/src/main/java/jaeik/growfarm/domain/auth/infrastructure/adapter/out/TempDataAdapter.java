@@ -7,7 +7,7 @@ import jaeik.growfarm.dto.user.TokenDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.UUID;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -27,24 +27,22 @@ public class TempDataAdapter implements ManageTemporaryDataPort {
     /**
      * <h3>임시 사용자 데이터를 저장</h3>
      *
+     * @param uuid UUID 키
      * @param userData 소셜 로그인 사용자 정보
      * @param tokenDTO 토큰 정보
-     * @param fcmToken FCM 토큰
-     * @return UUID 키
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public String saveTempData(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) {
-        String uuid = UUID.randomUUID().toString();
-        tempUserDataStore.put(uuid, new TemporaryUserDataDTO(userData, tokenDTO, fcmToken));
+    public void saveTempData(String uuid, SocialLoginUserData userData, TokenDTO tokenDTO) {
+        // fcmToken은 TemporaryUserDataDTO 생성 시에 전달. saveTempData 메서드 인자에서 제거.
+        tempUserDataStore.put(uuid, new TemporaryUserDataDTO(userData, tokenDTO, userData.getFcmToken())); // fcmToken은 userData에서 가져옴
         scheduleCleanup(uuid);
-        return uuid;
     }
 
     @Override
-    public TemporaryUserDataDTO getTempData(String uuid) {
-        return tempUserDataStore.get(uuid);
+    public Optional<TemporaryUserDataDTO> getTempData(String uuid) {
+        return Optional.ofNullable(tempUserDataStore.get(uuid));
     }
 
     public void removeTempData(String uuid) {

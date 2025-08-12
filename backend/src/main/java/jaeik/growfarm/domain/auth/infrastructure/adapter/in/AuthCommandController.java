@@ -60,7 +60,8 @@ public class AuthCommandController {
         }
 
         List<ResponseCookie> cookies = (List<ResponseCookie>) loginResponse.getData();
-        return ResponseEntity.ok().headers(headers -> cookies.forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
+        return ResponseEntity.ok().headers(headers -> cookies.forEach(cookie ->
+                headers.add("Set-Cookie", cookie.toString()))).body("OK");
     }
 
     /**
