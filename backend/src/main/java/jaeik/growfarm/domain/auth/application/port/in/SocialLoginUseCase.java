@@ -12,5 +12,17 @@ import jaeik.growfarm.dto.auth.LoginResponseDTO;
  * @version 2.0.0
  */
 public interface SocialLoginUseCase {
+
+    /**
+     * <h3>소셜 로그인 처리</h3>
+     * <p>소셜 로그인 요청을 처리하고 로그인 결과를 반환합니다.</p>
+     *
+     * @param provider  소셜 제공자
+     * @param code      인가 코드
+     * @param fcmToken  Firebase Cloud Messaging 토큰
+     * @return 로그인 응답 DTO
+     * @since 2.0.0
+     * @author Jaeik
+     */
     LoginResponseDTO<?> processSocialLogin(SocialProvider provider, String code, String fcmToken);
 }

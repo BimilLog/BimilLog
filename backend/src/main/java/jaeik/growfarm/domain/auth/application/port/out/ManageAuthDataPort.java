@@ -44,6 +44,7 @@ public interface ManageAuthDataPort {
     List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO);
 
 
+
     void logoutUser(Long userId);
 
     /**

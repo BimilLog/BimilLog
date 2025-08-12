@@ -40,14 +40,12 @@ public class PopularPostPersistenceAdapter implements LoadPopularPostPort {
     @Transactional(readOnly = true)
     public List<SimplePostResDTO> findLegendaryPosts() {
         QPostLike postLike = QPostLike.postLike;
-        
-        List<SimplePostResDTO> legendPosts = createBasePopularPostsQuery()
+
+        return createBasePopularPostsQuery()
                 .having(postLike.countDistinct().goe(20))
                 .orderBy(postLike.countDistinct().desc())
                 .limit(50)
                 .fetch();
-
-        return legendPosts;
     }
     
     @Override

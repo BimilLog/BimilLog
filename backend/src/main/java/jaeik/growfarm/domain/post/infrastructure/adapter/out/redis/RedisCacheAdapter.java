@@ -82,8 +82,7 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
     public boolean hasPopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            Boolean hasKey = redisTemplate.hasKey(metadata.key());
-            return hasKey != null && hasKey;
+            return redisTemplate.hasKey(metadata.key());
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
         }

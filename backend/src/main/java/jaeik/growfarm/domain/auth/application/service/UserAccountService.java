@@ -1,4 +1,3 @@
-
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
@@ -23,6 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * <h2>사용자 계정 서비스</h2>
+ * <p>회원 가입, 로그아웃, 회원 탈퇴 등의 사용자 계정 관련 기능을 처리하는 서비스 클래스</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Service
 @RequiredArgsConstructor
 public class UserAccountService implements SignUpUseCase, LogoutUseCase, WithdrawUseCase {
@@ -35,40 +41,51 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     private final AuthPort authPort;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * <h3>회원 가입 처리</h3>
+     * <p>임시 UUID를 사용하여 새로운 사용자를 등록하고, FCM 토큰이 존재하면 이벤트를 발행합니다.</p>
+     *
+     * @param userName 사용자의 이름
+     * @param uuid     임시 UUID
+     * @return ResponseCookie 리스트
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
         TemporaryUserDataDTO tempUserData = manageTemporaryDataPort.getTempData(uuid);
         if (tempUserData == null) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         }
-        
-        List<ResponseCookie> cookies = manageAuthDataPort.saveNewUser(userName, uuid, 
-                tempUserData.getSocialLoginUserData(), tempUserData.getTokenDTO());
-        
+
+        List<ResponseCookie> cookies = manageAuthDataPort.saveNewUser(userName, uuid, tempUserData.getSocialLoginUserData(), tempUserData.getTokenDTO());
+
         // FCM 토큰이 존재하면 이벤트 발행
         if (tempUserData.getFcmToken() != null && !tempUserData.getFcmToken().isEmpty()) {
             // 사용자 ID는 쿠키에서 추출하거나 다른 방법으로 가져와야 함
             // 여기서는 UserRepository를 통해 방금 저장된 사용자를 찾는 방식을 사용
-            User user = userQueryUseCase.findByProviderAndSocialId(
-                    tempUserData.getSocialLoginUserData().getProvider(),
-                    tempUserData.getSocialLoginUserData().getSocialId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-            
-            eventPublisher.publishEvent(
-                    FcmTokenRegisteredEvent.of(user.getId(), tempUserData.getFcmToken()));
+            User user = userQueryUseCase.findByProviderAndSocialId(tempUserData.getSocialLoginUserData().getProvider(), tempUserData.getSocialLoginUserData().getSocialId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+            eventPublisher.publishEvent(FcmTokenRegisteredEvent.of(user.getId(), tempUserData.getFcmToken()));
         }
-        
+
         return cookies;
     }
 
+    /**
+     * <h3>로그아웃 처리</h3>
+     * <p>사용자를 로그아웃하고, 소셜 로그아웃을 수행하며, 이벤트를 발행합니다.</p>
+     *
+     * @param userDetails 현재 사용자 정보
+     * @return ResponseCookie 리스트
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public List<ResponseCookie> logout(CustomUserDetails userDetails) {
         try {
             logoutSocial(userDetails);
-            eventPublisher.publishEvent(UserLoggedOutEvent.of(
-                userDetails.getUserId(),
-                userDetails.getTokenId()
-            ));
+            eventPublisher.publishEvent(UserLoggedOutEvent.of(userDetails.getUserId(), userDetails.getTokenId()));
             SecurityContextHolder.clearContext();
             return authPort.getLogoutCookies();
         } catch (Exception e) {
@@ -76,14 +93,22 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
         }
     }
 
+    /**
+     * <h3>회원 탈퇴 처리</h3>
+     * <p>사용자를 탈퇴시키고, 소셜 로그아웃을 수행하며, 이벤트를 발행합니다.</p>
+     *
+     * @param userDetails 현재 사용자 정보
+     * @return ResponseCookie 리스트
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     @Transactional
     public List<ResponseCookie> withdraw(CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
-        User user = userQueryUseCase.findById(userDetails.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = userQueryUseCase.findById(userDetails.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         socialLoginPort.unlink(user.getProvider(), user.getSocialId());
         manageAuthDataPort.performWithdrawProcess(userDetails.getUserId());
@@ -92,14 +117,21 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
         return logout(userDetails);
     }
 
+    /**
+     * <h3>소셜 로그아웃 처리</h3>
+     * <p>사용자의 소셜 로그아웃을 수행합니다.</p>
+     *
+     * @param userDetails 현재 사용자 정보
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Transactional(readOnly = true)
     public void logoutSocial(CustomUserDetails userDetails) {
-        loadTokenPort.findById(userDetails.getTokenId())
-                .ifPresent(token -> {
-                    User user = token.getUsers();
-                    if (user != null) {
-                        socialLoginPort.logout(user.getProvider(), token.getAccessToken());
-                    }
-                });
+        loadTokenPort.findById(userDetails.getTokenId()).ifPresent(token -> {
+            User user = token.getUsers();
+            if (user != null) {
+                socialLoginPort.logout(user.getProvider(), token.getAccessToken());
+            }
+        });
     }
 }

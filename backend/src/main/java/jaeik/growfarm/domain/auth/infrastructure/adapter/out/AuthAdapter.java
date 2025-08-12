@@ -1,8 +1,7 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
-import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.domain.auth.application.port.out.AuthPort;
-import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,6 @@ import java.util.List;
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Component
 @RequiredArgsConstructor

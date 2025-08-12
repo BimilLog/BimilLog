@@ -181,8 +181,6 @@ public class PostQueryDslRepository {
     private BooleanExpression getSearchCondition(QPost post, QUser user, String type, String query) {
         return switch (type) {
             case "title" -> post.title.containsIgnoreCase(query);
-            case "content" -> post.content.containsIgnoreCase(query);
-            case "titleContent" -> post.title.containsIgnoreCase(query).or(post.content.containsIgnoreCase(query));
             case "writer" -> user.userName.containsIgnoreCase(query);
             default -> post.title.containsIgnoreCase(query).or(post.content.containsIgnoreCase(query));
         };

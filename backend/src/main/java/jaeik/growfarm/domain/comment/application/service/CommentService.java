@@ -12,7 +12,6 @@ import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.global.event.CommentCreatedEvent;
-import jaeik.growfarm.global.event.PostDeletedEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;

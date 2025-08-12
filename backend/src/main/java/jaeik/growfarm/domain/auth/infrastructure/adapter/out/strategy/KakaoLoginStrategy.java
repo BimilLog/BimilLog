@@ -1,13 +1,13 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out.strategy;
 
-import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.dto.auth.KakaoFriendsResponse;
 import jaeik.growfarm.dto.auth.LoginResultDTO;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.global.auth.KakaoKeyVO;
+import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.infrastructure.auth.KakaoKeyVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
