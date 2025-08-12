@@ -2,7 +2,8 @@ package jaeik.growfarm.domain.user.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.dto.user.SettingDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.dto.user.UserNameDTO;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

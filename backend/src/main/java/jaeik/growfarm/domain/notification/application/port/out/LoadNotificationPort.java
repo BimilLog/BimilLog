@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.application.port.out;
 
 import jaeik.growfarm.dto.notification.NotificationDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 import java.util.List;
 

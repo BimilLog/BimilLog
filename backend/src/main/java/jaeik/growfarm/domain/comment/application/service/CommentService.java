@@ -12,7 +12,7 @@ import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.Comm
 import jaeik.growfarm.domain.post.domain.Post;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.comment.CommentDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.global.event.CommentCreatedEvent;
 import jaeik.growfarm.global.event.PostDeletedEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;

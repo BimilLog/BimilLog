@@ -6,6 +6,7 @@ import jaeik.growfarm.domain.post.application.port.out.CountPostLikePort;
 import jaeik.growfarm.domain.post.application.port.out.ExistPostLikePort;
 import jaeik.growfarm.domain.post.application.port.out.LoadPostCachePort;
 import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.post.application.port.out.ManagePostCachePort;
 import jaeik.growfarm.domain.post.domain.Post;
 import jaeik.growfarm.domain.post.domain.PostCacheFlag;
@@ -41,6 +42,7 @@ public class PostQueryService implements PostQueryUseCase {
     private final LoadPostPort loadPostPort;
     private final CountPostLikePort countPostLikePort;
     private final ExistPostLikePort existPostLikePort;
+    private final LoadUserPort loadUserPort;
     private final LoadPostCachePort loadPostCachePort;
     private final ManagePostCachePort managePostCachePort;
     private final PostCacheManageService postCacheManageService;
@@ -53,7 +55,7 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     @Override
-    public FullPostResDTO getPost(Long postId, User user) {
+    public FullPostResDTO getPost(Long postId, Long userId) {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
@@ -61,7 +63,11 @@ public class PostQueryService implements PostQueryUseCase {
         // loadPostPort.incrementView(post);
 
         long likeCount = countPostLikePort.countByPost(post);
-        boolean isLiked = user != null && existPostLikePort.existsByUserAndPost(user, post);
+        boolean isLiked = false;
+        if (userId != null) {
+            User user = loadUserPort.getReferenceById(userId);
+            isLiked = existPostLikePort.existsByUserAndPost(user, post);
+        }
 
         return postAssembler.toFullPostResDTO(post, likeCount, isLiked);
     }

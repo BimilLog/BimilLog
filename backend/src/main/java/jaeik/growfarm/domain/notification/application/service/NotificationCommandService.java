@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.notification.application.service;
 import jaeik.growfarm.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.UpdateNotificationPort;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

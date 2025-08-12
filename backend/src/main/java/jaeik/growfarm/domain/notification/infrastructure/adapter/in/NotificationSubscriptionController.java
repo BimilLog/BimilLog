@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.in;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationSubscriptionUseCase;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;

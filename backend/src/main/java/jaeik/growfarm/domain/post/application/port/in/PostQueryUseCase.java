@@ -40,7 +40,7 @@ public interface PostQueryUseCase {
      * @param user 현재 로그인 한 사용자 정보 (비로그인 시 null)
      * @return 게시글 상세 정보 DTO
      */
-    FullPostResDTO getPost(Long postId, User user);
+    FullPostResDTO getPost(Long postId, Long userId);
 
     /**
      * <h3>게시글 검색</h3>

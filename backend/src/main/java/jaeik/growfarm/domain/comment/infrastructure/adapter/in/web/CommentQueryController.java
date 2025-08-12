@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.comment.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.dto.comment.CommentDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;

@@ -11,7 +11,7 @@ import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRep
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
-import jaeik.growfarm.global.auth.AuthCookieManager;
+import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.global.event.UserSignedUpEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;

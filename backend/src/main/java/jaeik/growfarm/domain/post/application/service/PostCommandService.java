@@ -43,12 +43,14 @@ public class PostCommandService implements PostCommandUseCase {
     private final SavePostLikePort savePostLikePort;
     private final DeletePostLikePort deletePostLikePort;
     private final ExistPostLikePort existPostLikePort;
+    private final LoadUserPort loadUserPort; // User 프록시를 가져오기 위한 의존성
     private final ApplicationEventPublisher eventPublisher;
 
 
 
     @Override
-    public Long writePost(User user, PostReqDTO postReqDTO) {
+    public Long writePost(Long userId, PostReqDTO postReqDTO) {
+        User user = loadUserPort.getReferenceById(userId);
         Post newPost = Post.createPost(user, postReqDTO);
         Post savedPost = savePostPort.save(newPost);
         return savedPost.getId();
@@ -71,21 +73,22 @@ public class PostCommandService implements PostCommandUseCase {
     }
 
     @Override
-    public void updatePost(User user, Long postId, PostReqDTO postReqDTO) {
-        Post post = validatePostOwner(user, postId);
+    public void updatePost(Long userId, Long postId, PostReqDTO postReqDTO) {
+        Post post = validatePostOwner(userId, postId);
         post.updatePost(postReqDTO);
         savePostPort.save(post);
     }
 
     @Override
-    public void deletePost(User user, Long postId) {
-        Post post = validatePostOwner(user, postId);
+    public void deletePost(Long userId, Long postId) {
+        Post post = validatePostOwner(userId, postId);
         deletePostPort.delete(post);
         eventPublisher.publishEvent(new PostDeletedEvent(postId));
     }
 
     @Override
-    public void likePost(User user, Long postId) {
+    public void likePost(Long userId, Long postId) {
+        User user = loadUserPort.getReferenceById(userId);
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
@@ -105,11 +108,11 @@ public class PostCommandService implements PostCommandUseCase {
         // savePostPort.save(post)는 @Transactional에 의해 더티 체킹되므로 명시적으로 호출할 필요가 없습니다.
     }
 
-    private Post validatePostOwner(User user, Long postId) {
+    private Post validatePostOwner(Long userId, Long postId) {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        if (!Objects.equals(post.getUser().getId(), user.getId())) {
+        if (!Objects.equals(post.getUser().getId(), userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
         return post;

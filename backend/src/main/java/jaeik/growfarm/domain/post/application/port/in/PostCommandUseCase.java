@@ -18,11 +18,11 @@ public interface PostCommandUseCase {
      * <p>
      *     새로운 게시글을 작성하고 저장합니다.
      * </p>
-     * @param user 현재 로그인한 사용자 정보
+     * @param userId 현재 로그인한 사용자 ID
      * @param postReqDTO  게시글 작성 요청 DTO
      * @return 생성된 게시글의 ID
      */
-    Long writePost(User user, PostReqDTO postReqDTO);
+    Long writePost(Long userId, PostReqDTO postReqDTO);
 
     /**
      * <h3>게시글 공지 설정</h3>
@@ -47,31 +47,31 @@ public interface PostCommandUseCase {
      * <p>
      *     게시글 작성자만 게시글을 수정할 수 있습니다.
      * </p>
-     * @param user 현재 로그인 한 사용자 정보
+     * @param userId 현재 로그인 한 사용자 ID
      * @param postId 수정할 게시글 ID
      * @param postReqDTO 수정할 게시글 정보 DTO
      */
-    void updatePost(User user, Long postId, PostReqDTO postReqDTO);
+    void updatePost(Long userId, Long postId, PostReqDTO postReqDTO);
 
     /**
      * <h3>게시글 삭제</h3>
      * <p>
      *     게시글 작성자만 게시글을 삭제할 수 있습니다.
      * </p>
-     * @param user 현재 로그인한 사용자 정보
+     * @param userId 현재 로그인한 사용자 ID
      * @param postId 삭제할 게시글 ID
      */
-    void deletePost(User user, Long postId);
+    void deletePost(Long userId, Long postId);
 
     /**
      * <h3>게시글 추천</h3>
      * <p>
      *     게시글을 추천하거나 추천 취소합니다.
      * </p>
-     * @param user 현재 로그인한 사용자 정보
+     * @param userId 현재 로그인한 사용자 ID
      * @param postId 추천할 게시글 ID
      */
-    void likePost(User user, Long postId);
+    void likePost(Long userId, Long postId);
 
     /**
      * <h3>게시글 조회수 증가</h3>

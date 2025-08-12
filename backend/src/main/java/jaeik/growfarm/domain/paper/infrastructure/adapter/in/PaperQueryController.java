@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.paper.infrastructure.adapter.in;
 import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

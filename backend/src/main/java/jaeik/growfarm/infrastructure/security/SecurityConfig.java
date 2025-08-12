@@ -1,7 +1,7 @@
-package jaeik.growfarm.global.security;
+package jaeik.growfarm.infrastructure.security;
 
-import jaeik.growfarm.global.filter.JwtFilter;
-import jaeik.growfarm.global.filter.LogFilter;
+import jaeik.growfarm.infrastructure.filter.JwtFilter;
+import jaeik.growfarm.infrastructure.filter.LogFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;

@@ -1,11 +1,12 @@
-package jaeik.growfarm.global.filter;
+package jaeik.growfarm.infrastructure.filter;
 
+import io.jsonwebtoken.Claims;
 import jaeik.growfarm.domain.user.domain.Token;
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.user.ClientDTO;
-import jaeik.growfarm.global.auth.AuthCookieManager;
-import jaeik.growfarm.global.auth.CustomUserDetails;
-import jaeik.growfarm.global.auth.JwtHandler;
+import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.JwtHandler;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;

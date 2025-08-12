@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.paper.application.port.in;
 
 import jaeik.growfarm.dto.paper.MessageDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 /**
  * <h2>롤링페이퍼 삭제 유스케이스</h2>

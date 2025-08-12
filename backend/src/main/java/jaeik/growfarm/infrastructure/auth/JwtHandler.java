@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.auth;
+package jaeik.growfarm.infrastructure.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

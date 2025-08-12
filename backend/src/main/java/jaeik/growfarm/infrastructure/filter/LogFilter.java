@@ -1,6 +1,6 @@
-package jaeik.growfarm.global.filter;
+package jaeik.growfarm.infrastructure.filter;
 
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

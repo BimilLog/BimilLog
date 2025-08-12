@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.auth;
+package jaeik.growfarm.infrastructure.auth;
 
 import jaeik.growfarm.domain.user.domain.UserRole;
 import jaeik.growfarm.dto.user.ClientDTO;

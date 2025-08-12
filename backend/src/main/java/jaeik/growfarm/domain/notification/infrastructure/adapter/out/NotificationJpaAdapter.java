@@ -12,7 +12,7 @@ import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence
 import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

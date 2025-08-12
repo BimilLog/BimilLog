@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.application.port.out;
 
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 /**
  * <h2>알림 업데이트 포트</h2>

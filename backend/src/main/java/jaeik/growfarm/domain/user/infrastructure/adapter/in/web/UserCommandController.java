@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.user.infrastructure.adapter.in.web;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.dto.user.UserNameDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,9 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.in;
 
-import jaeik.growfarm.domain.auth.application.port.in.AuthQueryUseCase;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.dto.user.UserInfoResponseDTO;
+import jaeik.growfarm.global.exception.CustomException;
+import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,8 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthQueryController {
 
-    private final AuthQueryUseCase authQueryUseCase;
-
     /**
      * <h3>현재 로그인한 사용자 정보 조회 API</h3>
      * <p>현재 로그인한 사용자의 정보를 조회하여 반환</p>
@@ -33,8 +33,13 @@ public class AuthQueryController {
      * @author Jaeik
      */
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok(authQueryUseCase.getUserFromUserDetails(userDetails));
+    public ResponseEntity<UserInfoResponseDTO> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
+        }
+        // ClientDTO를 응답 전용 DTO로 변환하여 반환
+        UserInfoResponseDTO response = UserInfoResponseDTO.from(userDetails.getClientDTO());
+        return ResponseEntity.ok(response);
     }
 
     /**

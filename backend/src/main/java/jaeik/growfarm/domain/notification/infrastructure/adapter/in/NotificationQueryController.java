@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.notification.infrastructure.adapter.in;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationQueryUseCase;
 import jaeik.growfarm.dto.notification.NotificationDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

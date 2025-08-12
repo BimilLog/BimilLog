@@ -6,6 +6,9 @@ import jaeik.growfarm.domain.user.domain.BlackList;
 import jaeik.growfarm.domain.user.domain.Setting;
 import jaeik.growfarm.domain.user.domain.SocialProvider;
 import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.BlacklistRepository;
+import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.SettingRepository;
+import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +23,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort {
+public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, jaeik.growfarm.domain.post.application.port.out.LoadUserPort {
 
     private final UserRepository userRepository;
     private final SettingRepository settingRepository;
@@ -47,8 +50,8 @@ public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort {
     }
 
     @Override
-    public void deleteById(Long id) {
-        userRepository.deleteById(id);
+    public User save(User user) {
+        return userRepository.save(user);
     }
 
     @Override
@@ -57,12 +60,17 @@ public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort {
     }
 
     @Override
-    public User save(User user) {
-        return userRepository.save(user);
+    public void deleteById(Long id) {
+        userRepository.deleteById(id);
     }
 
     @Override
     public void save(BlackList blackList) {
         blacklistRepository.save(blackList);
+    }
+
+    @Override
+    public User getReferenceById(Long userId) {
+        return userRepository.getReferenceById(userId);
     }
 }

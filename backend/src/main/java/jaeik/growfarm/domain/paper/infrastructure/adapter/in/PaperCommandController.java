@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.paper.infrastructure.adapter.in;
 import jaeik.growfarm.domain.paper.application.port.in.DeletePaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.in.WritePaperUseCase;
 import jaeik.growfarm.dto.paper.MessageDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

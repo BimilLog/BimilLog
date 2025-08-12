@@ -1,10 +1,10 @@
 package jaeik.growfarm.domain.notification.application.port.in;
 
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 /**
- * <h2>알림 명령 유스케이스</h2>
+ * <h2>알림 관련 커맨드 유스케이스</h2>
  * <p>알림 상태 변경 관련 비즈니스 로직을 정의하는 Primary Port</p>
  *
  * @author Jaeik

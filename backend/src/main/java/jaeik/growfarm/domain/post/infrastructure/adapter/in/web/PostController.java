@@ -1,13 +1,11 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.in.web;
 
-import jaeik.growfarm.domain.auth.application.port.in.AuthQueryUseCase;
 import jaeik.growfarm.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
-import jaeik.growfarm.domain.user.domain.User;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
-import jaeik.growfarm.global.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,7 +24,6 @@ public class PostController {
 
     private final PostCommandUseCase postCommandUseCase;
     private final PostQueryUseCase postQueryUseCase;
-    private final AuthQueryUseCase authQueryUseCase;
 
     // Query Endpoints
     @GetMapping
@@ -47,8 +44,8 @@ public class PostController {
     public ResponseEntity<FullPostResDTO> getPost(@PathVariable Long postId,
                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         postCommandUseCase.incrementViewCount(postId); // 조회수 증가 (Command)
-        User user = authQueryUseCase.getUserFromUserDetails(userDetails);
-        FullPostResDTO fullPostResDTO = postQueryUseCase.getPost(postId, user); // 게시글 조회 (Query)
+        Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+        FullPostResDTO fullPostResDTO = postQueryUseCase.getPost(postId, userId); // 게시글 조회 (Query)
         return ResponseEntity.ok(fullPostResDTO);
     }
 
@@ -56,8 +53,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostReqDTO postReqDTO) {
-        User user = authQueryUseCase.getUserFromUserDetails(userDetails);
-        Long postId = postCommandUseCase.writePost(user, postReqDTO);
+        Long postId = postCommandUseCase.writePost(userDetails.getUserId(), postReqDTO);
         return ResponseEntity.created(URI.create("/api/posts/" + postId)).build();
     }
 
@@ -65,24 +61,21 @@ public class PostController {
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody @Valid PostReqDTO postReqDTO) {
-        User user = authQueryUseCase.getUserFromUserDetails(userDetails);
-        postCommandUseCase.updatePost(user, postId, postReqDTO);
+        postCommandUseCase.updatePost(userDetails.getUserId(), postId, postReqDTO);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        User user = authQueryUseCase.getUserFromUserDetails(userDetails);
-        postCommandUseCase.deletePost(user, postId);
+        postCommandUseCase.deletePost(userDetails.getUserId(), postId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<Void> likePost(@PathVariable Long postId,
                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
-        User user = authQueryUseCase.getUserFromUserDetails(userDetails);
-        postCommandUseCase.likePost(user, postId);
+        postCommandUseCase.likePost(userDetails.getUserId(), postId);
         return ResponseEntity.ok().build();
     }
 
