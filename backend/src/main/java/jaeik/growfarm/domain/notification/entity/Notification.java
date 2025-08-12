@@ -1,6 +1,6 @@
-package jaeik.growfarm.domain.notification.domain;
+package jaeik.growfarm.domain.notification.entity;
 
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.global.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

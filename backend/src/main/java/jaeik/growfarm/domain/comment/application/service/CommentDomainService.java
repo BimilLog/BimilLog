@@ -7,10 +7,10 @@ import jaeik.growfarm.domain.comment.application.port.out.LoadCommentClosurePort
 import jaeik.growfarm.domain.comment.application.port.out.LoadCommentPort;
 import jaeik.growfarm.domain.comment.application.port.out.SaveCommentClosurePort;
 import jaeik.growfarm.domain.comment.application.port.out.SaveCommentPort;
-import jaeik.growfarm.domain.comment.domain.Comment;
-import jaeik.growfarm.domain.comment.domain.CommentClosure;
-import jaeik.growfarm.domain.post.domain.Post;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.comment.entity.Comment;
+import jaeik.growfarm.domain.comment.entity.CommentClosure;
+import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

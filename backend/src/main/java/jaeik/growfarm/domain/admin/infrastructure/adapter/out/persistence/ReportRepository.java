@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.admin.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.admin.domain.Report;
+import jaeik.growfarm.domain.admin.entity.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

@@ -2,9 +2,9 @@ package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.growfarm.domain.post.application.port.out.*;
-import jaeik.growfarm.domain.post.domain.Post;
-import jaeik.growfarm.domain.post.domain.PostLike;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostLike;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.global.event.PostDeletedEvent;
 import jaeik.growfarm.global.event.PostSetAsNoticeEvent;

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
-import jaeik.growfarm.domain.user.domain.Token;
+import jaeik.growfarm.domain.user.entity.Token;
 
 import java.util.Optional;
 

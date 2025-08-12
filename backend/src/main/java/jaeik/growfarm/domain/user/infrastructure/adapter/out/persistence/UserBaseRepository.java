@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.user.domain.QUser;
+import jaeik.growfarm.domain.user.entity.QUser;
 
 /**
  * <h2>사용자 기본 레포지토리</h2>

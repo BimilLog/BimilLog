@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.comment.domain.CommentClosure;
+import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

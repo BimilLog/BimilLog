@@ -6,7 +6,7 @@ import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 import java.util.List;
 import java.util.Optional;
-import jaeik.growfarm.domain.paper.domain.Message;
+import jaeik.growfarm.domain.paper.entity.Message;
 
 /**
  * <h2>롤링페이퍼 조회 유스케이스</h2>

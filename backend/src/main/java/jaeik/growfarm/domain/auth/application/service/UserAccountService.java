@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.*;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;

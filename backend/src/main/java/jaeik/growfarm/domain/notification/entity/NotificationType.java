@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.notification.domain;
+package jaeik.growfarm.domain.notification.entity;
 
 public enum NotificationType {
     MESSAGE,

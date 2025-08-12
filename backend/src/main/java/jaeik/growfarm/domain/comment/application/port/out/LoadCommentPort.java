@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.comment.application.port.out;
 
-import com.querydsl.core.Tuple;
-import jaeik.growfarm.domain.comment.domain.Comment;
+import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 
 public interface LoadCommentPort {
 

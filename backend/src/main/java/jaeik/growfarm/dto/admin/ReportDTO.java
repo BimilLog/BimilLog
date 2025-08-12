@@ -1,7 +1,7 @@
 package jaeik.growfarm.dto.admin;
 
-import jaeik.growfarm.domain.admin.domain.Report;
-import jaeik.growfarm.domain.admin.domain.ReportType;
+import jaeik.growfarm.domain.admin.entity.Report;
+import jaeik.growfarm.domain.admin.entity.ReportType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

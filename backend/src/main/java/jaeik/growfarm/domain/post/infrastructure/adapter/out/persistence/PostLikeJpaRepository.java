@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.post.domain.Post;
-import jaeik.growfarm.domain.post.domain.PostLike;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostLike;
+import jaeik.growfarm.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

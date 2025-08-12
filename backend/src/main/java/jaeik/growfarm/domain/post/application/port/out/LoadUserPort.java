@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 
 /**
  * <h2>사용자 조회 포트 (Post 도메인용)</h2>

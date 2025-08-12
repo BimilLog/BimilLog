@@ -1,6 +1,6 @@
-package jaeik.growfarm.domain.post.domain;
+package jaeik.growfarm.domain.post.entity;
 
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.global.domain.BaseEntity;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jakarta.persistence.*;

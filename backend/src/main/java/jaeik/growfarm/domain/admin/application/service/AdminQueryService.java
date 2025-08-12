@@ -3,8 +3,8 @@ package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminQueryUseCase;
 import jaeik.growfarm.domain.admin.application.port.out.LoadReportPort;
-import jaeik.growfarm.domain.admin.domain.Report;
-import jaeik.growfarm.domain.admin.domain.ReportType;
+import jaeik.growfarm.domain.admin.entity.Report;
+import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;

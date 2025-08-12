@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.application.port.out;
 
-import jaeik.growfarm.domain.notification.domain.NotificationType;
+import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.dto.notification.EventDTO;
 
 /**

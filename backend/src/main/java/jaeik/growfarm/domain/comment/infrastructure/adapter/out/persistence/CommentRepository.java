@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.comment.domain.Comment;
+import jaeik.growfarm.domain.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long>, CommentReadRepository {

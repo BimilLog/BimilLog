@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.user.domain.BlackList;
+import jaeik.growfarm.domain.user.entity.BlackList;
 import jaeik.growfarm.global.domain.SocialProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

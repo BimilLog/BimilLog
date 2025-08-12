@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.admin.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminQueryUseCase;
-import jaeik.growfarm.domain.admin.domain.ReportType;
+import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

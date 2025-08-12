@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.paper;
 
-import jaeik.growfarm.domain.paper.domain.DecoType;
+import jaeik.growfarm.domain.paper.entity.DecoType;
 import lombok.Getter;
 import lombok.Setter;
 

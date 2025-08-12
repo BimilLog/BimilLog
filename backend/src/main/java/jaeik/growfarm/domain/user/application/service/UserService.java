@@ -2,9 +2,9 @@ package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.out.SaveBlacklistPort;
-import jaeik.growfarm.domain.user.domain.BlackList;
-import jaeik.growfarm.domain.user.domain.Setting;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.BlackList;
+import jaeik.growfarm.domain.user.entity.Setting;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.global.event.UserBannedEvent;

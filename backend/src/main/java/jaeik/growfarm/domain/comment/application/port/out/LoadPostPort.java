@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.comment.application.port.out;
 
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 
 import java.util.Optional;
 

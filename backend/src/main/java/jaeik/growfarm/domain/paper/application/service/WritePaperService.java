@@ -1,11 +1,11 @@
 package jaeik.growfarm.domain.paper.application.service;
 
-import jaeik.growfarm.domain.paper.domain.Message;
+import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.paper.application.port.in.WritePaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PublishEventPort;
 import jaeik.growfarm.domain.paper.application.port.out.SavePaperPort;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.global.event.MessageEvent;
 import jaeik.growfarm.global.exception.CustomException;

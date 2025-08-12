@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.notification.domain.Notification;
+import jaeik.growfarm.domain.notification.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

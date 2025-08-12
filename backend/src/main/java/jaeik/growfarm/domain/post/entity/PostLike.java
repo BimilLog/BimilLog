@@ -1,6 +1,6 @@
-package jaeik.growfarm.domain.comment.domain;
+package jaeik.growfarm.domain.post.entity;
 
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,26 +10,30 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 /**
- * <h2>댓글 추천 엔티티</h2>
- * <p>댓글에 대한 추천 정보를 저장하는 엔티티</p>
- * <p>사용자와 댓글 간의 관계를 나타냄</p>
+ * <h2>글 추천 엔티티</h2>
+ * <p>
+ * 글에 대한 추천 정보를 저장하는 엔티티
+ * </p>
+ * <p>
+ * 사용자와 글 간의 관계를 나타냄
+ * </p>
  *
  * @author Jaeik
  * @since 1.0.0
  */
-@Entity
 @Getter
+@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(indexes = {
-        @Index(name = "uk_comment_like_user_comment", columnList = "comment_id, user_id")
+        @Index(name = "idx_postlike_user_post", columnList = "user_id, post_id")
 })
-public class CommentLike {
+public class PostLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CommentLike_id")
+    @Column(name = "postLike_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,7 +43,6 @@ public class CommentLike {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "comment_id")
-    private Comment comment;
+    @JoinColumn(name = "post_id")
+    private Post post;
 }
-

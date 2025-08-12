@@ -2,10 +2,10 @@ package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
 import jaeik.growfarm.domain.user.application.port.out.SaveBlacklistPort;
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
-import jaeik.growfarm.domain.user.domain.BlackList;
-import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.user.entity.BlackList;
+import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.global.domain.SocialProvider;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

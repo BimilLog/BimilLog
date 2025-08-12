@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import jaeik.growfarm.domain.paper.domain.Message;
+import jaeik.growfarm.domain.paper.entity.Message;
 
 /**
  * <h2>롤링페이퍼 조회 서비스</h2>

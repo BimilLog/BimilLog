@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
-import jaeik.growfarm.domain.post.domain.PostLike;
+import jaeik.growfarm.domain.post.entity.PostLike;
 
 /**
  * <h2>SavePostLikePort</h2>

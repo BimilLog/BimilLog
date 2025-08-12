@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.paper.domain;
+package jaeik.growfarm.domain.paper.entity;
 
 /**
  * <h2>장식 타입</h2>

@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.auth.application.port.in;
 
-import jaeik.growfarm.domain.user.domain.User;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
+import jaeik.growfarm.domain.user.entity.User;
 
 /**
  * <h2>인증 조회 유스케이스</h2>

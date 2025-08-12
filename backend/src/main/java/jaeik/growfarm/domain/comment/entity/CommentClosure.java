@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.comment.domain;
+package jaeik.growfarm.domain.comment.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

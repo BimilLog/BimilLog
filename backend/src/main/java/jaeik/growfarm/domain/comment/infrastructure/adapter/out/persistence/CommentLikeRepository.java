@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.comment.domain.CommentLike;
-import jaeik.growfarm.domain.user.domain.User;
-import jaeik.growfarm.domain.comment.domain.Comment;
+import jaeik.growfarm.domain.comment.entity.CommentLike;
+import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.domain.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

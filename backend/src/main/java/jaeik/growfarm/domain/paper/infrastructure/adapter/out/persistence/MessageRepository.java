@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.paper.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.paper.domain.Message;
+import jaeik.growfarm.domain.paper.entity.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,8 +1,7 @@
 package jaeik.growfarm.infrastructure.filter;
 
-import io.jsonwebtoken.Claims;
-import jaeik.growfarm.domain.user.domain.Token;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.Token;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.user.ClientDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.paper.application.port.out;
 
-import jaeik.growfarm.domain.paper.domain.Message;
+import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 

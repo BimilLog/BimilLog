@@ -4,11 +4,11 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.post.application.port.out.LoadPopularPostPort;
-import jaeik.growfarm.domain.post.domain.PostCacheFlag;
-import jaeik.growfarm.domain.post.domain.QPost;
-import jaeik.growfarm.domain.comment.domain.QComment;
-import jaeik.growfarm.domain.post.domain.QPostLike;
-import jaeik.growfarm.domain.user.domain.QUser;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.QPost;
+import jaeik.growfarm.domain.comment.entity.QComment;
+import jaeik.growfarm.domain.post.entity.QPostLike;
+import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,9 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor

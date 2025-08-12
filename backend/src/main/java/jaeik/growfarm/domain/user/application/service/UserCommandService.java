@@ -3,11 +3,10 @@ package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
-import jaeik.growfarm.domain.user.domain.Setting;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.Setting;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.global.event.UserSignedUpEvent;
-import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

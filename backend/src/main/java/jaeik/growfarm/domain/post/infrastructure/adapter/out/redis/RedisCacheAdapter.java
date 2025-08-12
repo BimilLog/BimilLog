@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.post.infrastructure.adapter.out.redis;
 
 import jaeik.growfarm.domain.post.application.port.out.LoadPostCachePort;
 import jaeik.growfarm.domain.post.application.port.out.ManagePostCachePort;
-import jaeik.growfarm.domain.post.domain.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.exception.CustomException;

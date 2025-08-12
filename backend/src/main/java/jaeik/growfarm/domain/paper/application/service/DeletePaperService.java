@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.paper.application.service;
 import jaeik.growfarm.domain.paper.application.port.in.DeletePaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.DeletePaperPort;
-import jaeik.growfarm.domain.paper.domain.Message;
+import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;

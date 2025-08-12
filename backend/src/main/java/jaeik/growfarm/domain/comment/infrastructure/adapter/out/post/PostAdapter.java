@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.comment.infrastructure.adapter.out.post;
 
 import jaeik.growfarm.domain.comment.application.port.out.LoadPostPort;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

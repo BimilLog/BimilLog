@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.post;
 
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 import lombok.Builder;
 import lombok.Getter;
 

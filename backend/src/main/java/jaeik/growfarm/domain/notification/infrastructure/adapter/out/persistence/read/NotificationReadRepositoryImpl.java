@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistenc
 
 import com.querydsl.core.types.Projections;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.NotificationBaseRepository;
-import jaeik.growfarm.domain.user.domain.QUser;
+import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import org.springframework.stereotype.Repository;
 

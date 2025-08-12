@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.notification.domain.FcmToken;
+import jaeik.growfarm.domain.notification.entity.FcmToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

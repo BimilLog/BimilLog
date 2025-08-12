@@ -1,15 +1,10 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.read.UserReadRepository;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.validation.UserValidationRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>사용자 Repository 파사드</h2>

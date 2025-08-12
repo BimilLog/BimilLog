@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.user;
 
-import jaeik.growfarm.domain.user.domain.Setting;
+import jaeik.growfarm.domain.user.entity.Setting;
 import lombok.*;
 import lombok.experimental.Accessors;
 

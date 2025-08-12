@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.read;
 
 import jaeik.growfarm.global.domain.SocialProvider;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.user.ClientDTO;
 
 import java.util.List;

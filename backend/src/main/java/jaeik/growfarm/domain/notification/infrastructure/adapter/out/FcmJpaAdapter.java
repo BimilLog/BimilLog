@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
-import jaeik.growfarm.domain.notification.domain.FcmToken;
+import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.FcmTokenRepository;
 import jaeik.growfarm.domain.notification.application.port.out.LoadFcmTokenPort;
 import lombok.RequiredArgsConstructor;

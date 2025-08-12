@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.domain;
+package jaeik.growfarm.domain.user.entity;
 
 import jaeik.growfarm.global.domain.BaseEntity;
 import jaeik.growfarm.global.domain.SocialProvider;

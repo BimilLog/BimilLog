@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.post.domain;
+package jaeik.growfarm.domain.post.entity;
 
 /**
  * <h2>게시글 캐시 플래그</h2>

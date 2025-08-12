@@ -1,9 +1,9 @@
 package jaeik.growfarm.domain.admin.application.service.resolver;
 
 import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
-import jaeik.growfarm.domain.paper.domain.Message;
-import jaeik.growfarm.domain.admin.domain.ReportType;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.paper.entity.Message;
+import jaeik.growfarm.domain.admin.entity.ReportType;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

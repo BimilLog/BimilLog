@@ -1,6 +1,6 @@
-package jaeik.growfarm.domain.paper.domain;
+package jaeik.growfarm.domain.paper.entity;
 
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.global.domain.BaseEntity;
 import jaeik.growfarm.global.security.MessageEncryptConverter;

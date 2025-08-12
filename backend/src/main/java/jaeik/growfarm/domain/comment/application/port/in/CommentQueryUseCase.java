@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
-import jaeik.growfarm.domain.comment.domain.Comment;
+import jaeik.growfarm.domain.comment.entity.Comment;
 
 public interface CommentQueryUseCase {
 

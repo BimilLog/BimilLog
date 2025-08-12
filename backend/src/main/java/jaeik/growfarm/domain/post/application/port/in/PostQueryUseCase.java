@@ -2,12 +2,11 @@ package jaeik.growfarm.domain.post.application.port.in;
 
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
-import jaeik.growfarm.domain.user.domain.User;
-import jaeik.growfarm.domain.post.domain.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.Optional;
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 
 import java.util.List;
 

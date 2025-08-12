@@ -2,12 +2,11 @@ package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.comment.domain.QComment;
-import jaeik.growfarm.domain.comment.domain.QCommentClosure;
-import jaeik.growfarm.domain.comment.domain.QCommentLike;
-import jaeik.growfarm.domain.user.domain.QUser;
+import jaeik.growfarm.domain.comment.entity.QComment;
+import jaeik.growfarm.domain.comment.entity.QCommentClosure;
+import jaeik.growfarm.domain.comment.entity.QCommentLike;
+import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import lombok.RequiredArgsConstructor;

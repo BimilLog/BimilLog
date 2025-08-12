@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.out.LoadPopularPostPort;
 import jaeik.growfarm.domain.post.application.port.out.ManagePostCachePort;
-import jaeik.growfarm.domain.post.domain.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.global.event.PostSetAsNoticeEvent;

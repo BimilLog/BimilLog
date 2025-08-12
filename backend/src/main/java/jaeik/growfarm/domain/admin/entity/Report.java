@@ -1,6 +1,6 @@
-package jaeik.growfarm.domain.admin.domain;
+package jaeik.growfarm.domain.admin.entity;
 
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.admin.ReportDTO;
 import jaeik.growfarm.global.domain.BaseEntity;
 import jakarta.persistence.*;

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
-import jaeik.growfarm.domain.post.domain.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 

@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.comment;
 
-import jaeik.growfarm.domain.comment.domain.Comment;
+import jaeik.growfarm.domain.comment.entity.Comment;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;

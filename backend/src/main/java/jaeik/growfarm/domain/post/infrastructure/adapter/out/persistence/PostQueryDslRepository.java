@@ -2,13 +2,11 @@ package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.comment.domain.QComment;
-import jaeik.growfarm.domain.post.domain.Post;
-import jaeik.growfarm.domain.post.domain.QPost;
-import jaeik.growfarm.domain.post.domain.QPostLike;
-import jaeik.growfarm.domain.user.domain.QUser;
+import jaeik.growfarm.domain.comment.entity.QComment;
+import jaeik.growfarm.domain.post.entity.QPost;
+import jaeik.growfarm.domain.post.entity.QPostLike;
+import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

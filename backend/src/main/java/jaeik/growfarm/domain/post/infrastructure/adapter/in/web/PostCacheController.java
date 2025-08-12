@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
-import jaeik.growfarm.domain.post.domain.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

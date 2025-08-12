@@ -1,10 +1,10 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
-import jaeik.growfarm.domain.notification.domain.NotificationType;
+import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.growfarm.domain.user.domain.Setting;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.Setting;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.notification.EventDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

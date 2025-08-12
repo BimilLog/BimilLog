@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.notification;
 
-import jaeik.growfarm.domain.notification.domain.NotificationType;
+import jaeik.growfarm.domain.notification.entity.NotificationType;
 import lombok.Getter;
 import lombok.Setter;
 

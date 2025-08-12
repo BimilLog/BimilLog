@@ -1,10 +1,9 @@
 package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
 
-import com.querydsl.core.Tuple;
 import jaeik.growfarm.domain.comment.application.port.out.*;
-import jaeik.growfarm.domain.comment.domain.Comment;
-import jaeik.growfarm.domain.comment.domain.CommentClosure;
-import jaeik.growfarm.domain.comment.domain.CommentLike;
+import jaeik.growfarm.domain.comment.entity.Comment;
+import jaeik.growfarm.domain.comment.entity.CommentClosure;
+import jaeik.growfarm.domain.comment.entity.CommentLike;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -15,8 +14,8 @@ import java.util.Optional;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
-import jaeik.growfarm.domain.user.domain.User;
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.domain.post.entity.Post;
 
 @Repository
 @RequiredArgsConstructor

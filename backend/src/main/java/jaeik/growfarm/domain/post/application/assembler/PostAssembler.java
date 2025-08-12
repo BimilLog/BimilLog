@@ -1,7 +1,7 @@
 
 package jaeik.growfarm.domain.post.application.assembler;
 
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import org.springframework.stereotype.Component;
 

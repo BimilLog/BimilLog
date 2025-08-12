@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.user.domain.Token;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.Token;
+import jaeik.growfarm.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

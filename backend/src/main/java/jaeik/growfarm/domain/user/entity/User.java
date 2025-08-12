@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.domain;
+package jaeik.growfarm.domain.user.entity;
 
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.global.domain.BaseEntity;

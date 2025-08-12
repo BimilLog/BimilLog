@@ -1,17 +1,14 @@
 package jaeik.growfarm.domain.comment.application.service;
 
-import com.querydsl.core.Tuple;
-
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.application.port.out.*;
-import jaeik.growfarm.domain.comment.domain.Comment;
-import jaeik.growfarm.domain.comment.domain.CommentClosure;
-import jaeik.growfarm.domain.comment.domain.CommentLike;
+import jaeik.growfarm.domain.comment.entity.Comment;
+import jaeik.growfarm.domain.comment.entity.CommentLike;
 import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.CommentReadRepository;
-import jaeik.growfarm.domain.post.domain.Post;
+import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.global.event.CommentCreatedEvent;
@@ -24,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

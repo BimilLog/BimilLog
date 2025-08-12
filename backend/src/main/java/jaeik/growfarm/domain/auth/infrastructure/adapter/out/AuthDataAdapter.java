@@ -2,10 +2,10 @@ package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
-import jaeik.growfarm.domain.notification.domain.FcmToken;
+import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.FcmTokenRepository;
-import jaeik.growfarm.domain.user.domain.Token;
-import jaeik.growfarm.domain.user.domain.User;
+import jaeik.growfarm.domain.user.entity.Token;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserJdbcRepository;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;

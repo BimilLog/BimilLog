@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.notification.domain.QNotification;
+import jaeik.growfarm.domain.notification.entity.QNotification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
