@@ -19,4 +19,14 @@ public interface SseEmitterPort {
      * @return SSE Emitter
      */
     SseEmitter subscribe(Long userId, Long tokenId);
+
+    /**
+     * <h3>사용자 SSE 연결 정리</h3>
+     * <p>사용자와 관련된 모든 SSE Emitter 연결을 정리합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    void deleteAllEmitterByUserId(Long userId);
 }

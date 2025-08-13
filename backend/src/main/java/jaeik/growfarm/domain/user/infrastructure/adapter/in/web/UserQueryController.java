@@ -2,9 +2,11 @@ package jaeik.growfarm.domain.user.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.user.application.port.in.SettingQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
+import jaeik.growfarm.dto.auth.KakaoFriendsResponse;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +34,7 @@ public class UserQueryController {
 
     private final UserQueryUseCase userQueryUseCase;
     private final SettingQueryUseCase settingQueryUseCase;
+    private final UserIntegrationUseCase userIntegrationUseCase;
 
     /**
      * <h3>닉네임 중복 확인 API</h3>
@@ -141,5 +145,28 @@ public class UserQueryController {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SimpleCommentDTO> likedComments = userQueryUseCase.getUserLikedComments(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(likedComments);
+    }
+
+    /**
+     * <h3>카카오 친구 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회하고 비밀로그 가입 여부를 포함하여 반환합니다.</p>
+     *
+     * @param offset      조회 시작 위치 (기본값: 0)
+     * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 카카오 친구 목록 (비밀로그 가입 여부 포함)
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @PostMapping("/friendlist")
+    public ResponseEntity<KakaoFriendsResponse> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
+                                                                   @RequestParam(defaultValue = "10") Integer limit,
+                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        KakaoFriendsResponse friendsResponse = userIntegrationUseCase.getKakaoFriendList(
+                userDetails.getUserId(),
+                offset,
+                limit
+        );
+        return ResponseEntity.ok(friendsResponse);
     }
 }

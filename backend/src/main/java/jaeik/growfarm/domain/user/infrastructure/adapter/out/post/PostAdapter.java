@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * @author jaeik
  * @version 2.0.0
  */
-@Component
+@Component("userPostAdapter")
 @RequiredArgsConstructor
 public class PostAdapter implements LoadPostPort {
 

@@ -4,8 +4,8 @@ package jaeik.growfarm.domain.user.application.service;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
+import jaeik.growfarm.domain.user.application.port.out.UserPort;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.global.domain.SocialProvider;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserQueryService implements UserQueryUseCase {
 
-    private final UserRepository userRepository;
+    private final UserPort userPort;
     private final LoadPostPort loadPostPort;
     private final LoadCommentPort loadCommentPort;
 
@@ -45,7 +45,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-        return userRepository.findByProviderAndSocialId(provider, socialId);
+        return userPort.findByProviderAndSocialId(provider, socialId);
     }
 
     /**
@@ -59,7 +59,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+        return userPort.findById(id);
     }
 
     /**
@@ -73,7 +73,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public boolean existsByUserName(String userName) {
-        return userRepository.existsByUserName(userName);
+        return userPort.existsByUserName(userName);
     }
 
     /**
@@ -87,7 +87,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Optional<User> findByUserName(String userName) {
-        return userRepository.findByUserName(userName);
+        return userPort.findByUserName(userName);
     }
 
     /**

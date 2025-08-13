@@ -1,14 +1,14 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageNotificationPort;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.EmitterRepository;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationCommandUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * <h2>알림 어댑터</h2>
- * <p>SSE 연결 관리를 위한 어댑터</p>
- * <p>책임 분리 원칙에 따라 알림 관련 작업만을 담당</p>
+ * <p>Auth 도메인에서 Notification 도메인의 In-Port를 통해 접근하는 어댑터</p>
+ * <p>헥사고날 아키텍처를 준수하여 UseCase를 통한 도메인간 통신</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -17,10 +17,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class NotificationAdapter implements ManageNotificationPort {
 
-    private final EmitterRepository emitterRepository;
+    private final NotificationCommandUseCase notificationCommandUseCase;
 
     @Override
     public void deleteAllEmitterByUserId(Long userId) {
-        emitterRepository.deleteAllEmitterByUserId(userId);
+        notificationCommandUseCase.deleteAllEmitterByUserId(userId);
     }
 }

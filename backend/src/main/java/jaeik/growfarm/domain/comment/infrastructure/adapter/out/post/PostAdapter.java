@@ -17,7 +17,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-@Component
+@Component("commentPostAdapter")
 @RequiredArgsConstructor
 public class PostAdapter implements LoadPostPort {
 

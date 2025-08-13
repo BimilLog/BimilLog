@@ -5,9 +5,7 @@ import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.application.port.out.*;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentLike;
-import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.CommentReadRepository;
 import jaeik.growfarm.domain.post.entity.Post;
-import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.global.event.CommentCreatedEvent;
@@ -53,9 +51,9 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     private final SaveCommentLikePort saveCommentLikePort;
     private final LoadCommentLikePort loadCommentLikePort;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserQueryUseCase userQueryUseCase;
+    private final LoadUserPort loadUserPort;
     private final LoadPostPort loadPostPort;
-    private final CommentReadRepository commentReadRepository;
+    private final LoadCommentQueryPort loadCommentQueryPort;
     private final CommentDomainService commentDomainService;
 
 
@@ -65,7 +63,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     @Transactional(readOnly = true)
     public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
         List<Long> likedCommentIds = getUserLikedCommentIdsForPopular(postId, userDetails);
-        List<CommentDTO> popularComments = commentReadRepository.findPopularComments(postId, likedCommentIds);
+        List<CommentDTO> popularComments = loadCommentQueryPort.findPopularComments(postId, likedCommentIds);
 
         if (!popularComments.isEmpty()) {
             List<Long> commentIds = popularComments.stream().map(CommentDTO::getId).collect(Collectors.toList());
@@ -99,7 +97,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     public Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
         List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
-        Page<CommentDTO> commentPage = commentReadRepository.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
+        Page<CommentDTO> commentPage = loadCommentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
 
         if (commentPage.hasContent()) {
             List<Long> commentIds = commentPage.getContent().stream().map(CommentDTO::getId).collect(Collectors.toList());
@@ -137,13 +135,13 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     @Override
     @Transactional(readOnly = true)
     public Page<jaeik.growfarm.dto.comment.SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
-        return commentReadRepository.findCommentsByUserId(userId, pageable);
+        return loadCommentPort.findCommentsByUserId(userId, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<jaeik.growfarm.dto.comment.SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
-        return commentReadRepository.findLikedCommentsByUserId(userId, pageable);
+        return loadCommentPort.findLikedCommentsByUserId(userId, pageable);
     }
 
 
@@ -156,7 +154,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         
         User user = null;
         if (userDetails != null) {
-            user = userQueryUseCase.findById(userDetails.getUserId())
+            user = loadUserPort.findById(userDetails.getUserId())
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         }
 
@@ -223,7 +221,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
         Comment comment = loadCommentPort.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        User user = userQueryUseCase.findById(userId)
+        User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (loadCommentPort.isLikedByUser(commentId, userId)) {
