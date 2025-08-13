@@ -21,10 +21,27 @@ import java.util.List;
 @Repository
 public class NotificationReadRepositoryImpl extends NotificationBaseRepository implements NotificationReadRepository {
 
+    /**
+     * <h3>생성자</h3>
+     * <p>JPAQueryFactory를 주입받아 초기화합니다.</p>
+     *
+     * @param jpaQueryFactory JPAQueryFactory 주입
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public NotificationReadRepositoryImpl(com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory) {
         super(jpaQueryFactory);
     }
 
+    /**
+     * <h3>사용자 ID로 최신순 알림 목록 조회</h3>
+     * <p>주어진 사용자 ID에 해당하는 알림 목록을 최신 생성일 기준으로 정렬하여 조회합니다.</p>
+     *
+     * @param userId 알림을 조회할 사용자의 ID
+     * @return 알림 DTO 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public List<NotificationDTO> findNotificationsByUserIdOrderByLatest(Long userId) {
         QUser user = QUser.user;

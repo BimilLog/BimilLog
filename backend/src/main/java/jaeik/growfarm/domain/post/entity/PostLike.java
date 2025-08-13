@@ -15,7 +15,8 @@ import org.hibernate.annotations.OnDeleteAction;
  * 글에 대한 추천 정보를 저장하는 엔티티
  * </p>
  * <p>
- * 사용자와 글 간의 관계를 나타냄
+ * 사용자와 글 간의 관계를 나타내며, JPA를 통해 자동으로 ID가 생성됩니다.
+ * 기본 생성자와 모든 필드를 포함하는 생성자는 Lombok에 의해 자동 생성됩니다.
  * </p>
  *
  * @author Jaeik

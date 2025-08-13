@@ -130,31 +130,79 @@ public class CustomUserDetails implements UserDetails {
         return userDTO.getUserName();
     }
 
+    /**
+     * <h3>사용자 권한 조회</h3>
+     * <p>사용자의 권한 목록을 반환합니다.</p>
+     *
+     * @return GrantedAuthority 컬렉션
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
 
+    /**
+     * <h3>사용자 비밀번호 조회</h3>
+     * <p>현재 구현에서는 비밀번호를 사용하지 않으므로 null을 반환합니다.</p>
+     *
+     * @return 항상 null
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public String getPassword() {
         return null;
     }
 
+    /**
+     * <h3>계정 만료 여부 확인</h3>
+     * <p>계정이 만료되지 않았는지 여부를 반환합니다. 항상 true를 반환합니다.</p>
+     *
+     * @return 항상 true
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public boolean isAccountNonExpired() {
         return UserDetails.super.isAccountNonExpired();
     }
 
+    /**
+     * <h3>계정 잠금 여부 확인</h3>
+     * <p>계정이 잠겨있지 않은지 여부를 반환합니다. 항상 true를 반환합니다.</p>
+     *
+     * @return 항상 true
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public boolean isAccountNonLocked() {
         return UserDetails.super.isAccountNonLocked();
     }
 
+    /**
+     * <h3>자격 증명 만료 여부 확인</h3>
+     * <p>자격 증명(비밀번호)이 만료되지 않았는지 여부를 반환합니다. 항상 true를 반환합니다.</p>
+     *
+     * @return 항상 true
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public boolean isCredentialsNonExpired() {
         return UserDetails.super.isCredentialsNonExpired();
     }
 
+    /**
+     * <h3>계정 활성화 여부 확인</h3>
+     * <p>계정이 활성화되어 있는지 여부를 반환합니다. 항상 true를 반환합니다.</p>
+     *
+     * @return 항상 true
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();

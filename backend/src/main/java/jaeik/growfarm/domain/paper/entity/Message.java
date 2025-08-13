@@ -60,6 +60,16 @@ public class Message extends BaseEntity {
     @Column(nullable = false)
     private int height;
 
+    /**
+     * <h3>메시지 생성 팩토리 메소드</h3>
+     * <p>새로운 롤링페이퍼 메시지 엔티티를 생성합니다.</p>
+     *
+     * @param user 사용자 엔티티
+     * @param messageDTO 메시지 DTO
+     * @return 생성된 메시지 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public static Message createMessage(User user, MessageDTO messageDTO) {
         return Message.builder()
                 .user(user)
@@ -71,6 +81,15 @@ public class Message extends BaseEntity {
                 .build();
     }
 
+    /**
+     * <h3>메시지 소유자 확인</h3>
+     * <p>주어진 사용자 ID가 메시지의 소유자인지 확인합니다.</p>
+     *
+     * @param userId 확인할 사용자의 ID
+     * @return 소유자이면 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public boolean isOwner(Long userId) {
         if (this.user == null || userId == null) {
             return false;

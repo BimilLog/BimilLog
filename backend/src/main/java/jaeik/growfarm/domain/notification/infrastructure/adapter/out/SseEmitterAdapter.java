@@ -24,6 +24,16 @@ public class SseEmitterAdapter implements SseEmitterPort {
     private final EmitterRepository emitterRepository;
     private final NotificationUtilPort notificationUtilPort;
 
+    /**
+     * <h3>SSE 구독</h3>
+     * <p>주어진 사용자 ID와 토큰 ID로 SSE 연결을 구독하고 초기 데이터를 전송합니다.</p>
+     *
+     * @param userId 구독할 사용자의 ID
+     * @param tokenId 구독 토큰 ID
+     * @return 생성된 SseEmitter 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public SseEmitter subscribe(Long userId, Long tokenId) {
         String emitterId = notificationUtilPort.makeTimeIncludeId(userId, tokenId);
@@ -38,6 +48,18 @@ public class SseEmitterAdapter implements SseEmitterPort {
         return emitter;
     }
 
+    /**
+     * <h3>SSE 알림 전송</h3>
+     * <p>지정된 SSE Emitter를 통해 클라이언트에게 알림을 전송합니다.</p>
+     *
+     * @param emitter 전송에 사용할 SseEmitter 객체
+     * @param emitterId Emitter의 고유 ID
+     * @param type 알림 유형
+     * @param data 알림 내용
+     * @param url 알림 클릭 시 이동할 URL
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private void sendNotification(SseEmitter emitter, String emitterId, NotificationType type, String data, String url) {
         String jsonData = String.format("{\"message\": \"%s\", \"url\": \"%s\"}",
                 data, url);

@@ -24,6 +24,14 @@ public interface DeletePostLikePort {
      */
     void deleteByUserAndPost(User user, Post post);
 
+    /**
+     * <h3>게시글 ID로 모든 좋아요 삭제</h3>
+     * <p>특정 게시글에 대한 모든 좋아요 데이터를 삭제합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     void deleteAllByPostId(Long postId);
 }
 

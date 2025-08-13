@@ -19,6 +19,14 @@ import org.springframework.context.annotation.Configuration;
 public class QueryDSLConfig {
     private final EntityManager entityManager;
 
+    /**
+     * <h3>JPAQueryFactory 빈 등록</h3>
+     * <p>EntityManager를 사용하여 JPAQueryFactory 빈을 생성하고 반환합니다.</p>
+     *
+     * @return JPAQueryFactory 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Bean
     public JPAQueryFactory jpaQueryFactory(){
         return new JPAQueryFactory(entityManager);

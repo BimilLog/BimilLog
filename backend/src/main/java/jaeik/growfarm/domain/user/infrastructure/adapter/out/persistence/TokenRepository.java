@@ -34,6 +34,14 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
     Optional<Token> findByUser(User user);
 
 
+    /**
+     * <h3>사용자 ID로 모든 토큰 삭제</h3>
+     * <p>주어진 사용자 ID에 해당하는 모든 토큰을 삭제합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Modifying
     @Query("DELETE FROM Token t WHERE t.users.id = :userId")
     void deleteAllByUserId(@Param("userId") Long userId);

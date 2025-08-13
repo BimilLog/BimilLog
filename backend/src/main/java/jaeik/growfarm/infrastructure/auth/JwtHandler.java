@@ -30,6 +30,13 @@ public class JwtHandler {
     private String secretKey;
     private Key key;
 
+    /**
+     * <h3>초기화 메소드</h3>
+     * <p>JWT 비밀 키를 디코딩하여 서명 키로 사용될 Key 객체를 초기화합니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @PostConstruct
     public void init() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);

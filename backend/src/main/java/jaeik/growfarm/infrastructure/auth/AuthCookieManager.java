@@ -89,6 +89,15 @@ public class AuthCookieManager {
         return List.of(accessTokenCookie, refreshTokenCookie);
     }
 
+    /**
+     * <h3>JWT 액세스 토큰 쿠키 생성</h3>
+     * <p>주어진 UserDTO를 기반으로 JWT 액세스 토큰 쿠키를 생성합니다.</p>
+     *
+     * @param userDTO 사용자 정보 DTO
+     * @return 생성된 액세스 토큰 ResponseCookie
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public ResponseCookie generateJwtAccessCookie(UserDTO userDTO) {
         String accessToken = jwtHandler.generateAccessToken(userDTO);
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
@@ -100,6 +109,15 @@ public class AuthCookieManager {
                 .build();
     }
 
+    /**
+     * <h3>JWT 리프레시 토큰 쿠키 생성</h3>
+     * <p>주어진 UserDTO를 기반으로 JWT 리프레시 토큰 쿠키를 생성합니다.</p>
+     *
+     * @param userDTO 사용자 정보 DTO
+     * @return 생성된 리프레시 토큰 ResponseCookie
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private ResponseCookie generateJwtRefreshCookie(UserDTO userDTO) {
         String refreshToken = jwtHandler.generateRefreshToken(userDTO);
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)

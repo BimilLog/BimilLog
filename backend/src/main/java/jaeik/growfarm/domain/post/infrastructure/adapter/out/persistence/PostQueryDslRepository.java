@@ -16,12 +16,29 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * <h2>게시글 QueryDSL Repository</h2>
+ * <p>QueryDSL을 사용하여 게시글 데이터를 조회하는 Repository 클래스입니다.</p>
+ * <p>다양한 검색 조건과 페이지네이션을 지원합니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Repository
 @RequiredArgsConstructor
 public class PostQueryDslRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    /**
+     * <h3>간단한 게시글 목록 조회</h3>
+     * <p>공지사항이 아닌 게시글 목록을 최신순으로 페이지네이션하여 조회합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public Page<SimplePostResDTO> findSimplePost(Pageable pageable) {
         QPost post = QPost.post;
         QUser user = QUser.user;
@@ -60,6 +77,17 @@ public class PostQueryDslRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
+    /**
+     * <h3>게시글 검색</h3>
+     * <p>주어진 검색어와 유형에 따라 게시글을 검색하고 페이지네이션합니다.</p>
+     *
+     * @param query    검색어
+     * @param type     검색 유형 (예: title, writer 등)
+     * @param pageable 페이지 정보
+     * @return 검색된 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public Page<SimplePostResDTO> searchPosts(String query, String type, Pageable pageable) {
         QPost post = QPost.post;
         QUser user = QUser.user;
@@ -101,6 +129,16 @@ public class PostQueryDslRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
+    /**
+     * <h3>사용자 작성 게시글 목록 조회</h3>
+     * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 작성한 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable) {
         QPost post = QPost.post;
         QUser user = QUser.user;
@@ -139,6 +177,16 @@ public class PostQueryDslRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
+    /**
+     * <h3>사용자 좋아요한 게시글 목록 조회</h3>
+     * <p>특정 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 좋아요한 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
         QPost post = QPost.post;
         QUser user = QUser.user;
@@ -178,6 +226,18 @@ public class PostQueryDslRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
+    /**
+     * <h3>검색 조건 생성</h3>
+     * <p>주어진 검색 유형과 쿼리에 따라 QueryDSL BooleanExpression을 생성합니다.</p>
+     *
+     * @param post  QPost 객체
+     * @param user  QUser 객체
+     * @param type  검색 유형
+     * @param query 검색어
+     * @return 생성된 BooleanExpression
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private BooleanExpression getSearchCondition(QPost post, QUser user, String type, String query) {
         return switch (type) {
             case "title" -> post.title.containsIgnoreCase(query);

@@ -13,6 +13,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * <h2>사용자 정의 레포지토리 구현체</h2>
+ * <p>
+ * `UserCustomRepository` 인터페이스의 구현체로, QueryDSL을 사용하여 사용자 데이터를 조회합니다.
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Repository
 @RequiredArgsConstructor
 public class UserCustomRepositoryImpl implements UserCustomRepository {

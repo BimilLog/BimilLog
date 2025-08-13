@@ -198,6 +198,16 @@ final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
     private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
     private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
 
+    /**
+     * <h3>CSRF 토큰 처리</h3>
+     * <p>HttpServletRequest와 HttpServletResponse에 CSRF 토큰을 설정합니다.</p>
+     *
+     * @param request HttpServletRequest 객체
+     * @param response HttpServletResponse 객체
+     * @param csrfToken CSRF 토큰 공급자
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
         this.xor.handle(request, response, csrfToken);

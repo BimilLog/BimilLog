@@ -102,10 +102,26 @@ public class User extends BaseEntity {
         this.userName = userName;
     }
 
+    /**
+     * <h3>설정 업데이트</h3>
+     * <p>사용자의 설정 엔티티를 업데이트합니다.</p>
+     *
+     * @param setting 업데이트할 설정 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public void updateSetting(Setting setting) {
         this.setting = setting;
     }
 
+    /**
+     * <h3>사용자 탈퇴 처리</h3>
+     * <p>사용자 정보를 탈퇴 상태로 변경합니다.</p>
+     * <p>닉네임, 소셜 ID, 프로바이더, 소셜 닉네임, 썸네일 이미지, 역할, 탈퇴 시간을 업데이트합니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public void withdraw() {
         this.userName = "탈퇴한사용자" + this.id;
         this.socialId = null;

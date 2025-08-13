@@ -19,6 +19,16 @@ public class NotificationSubscriptionService implements NotificationSubscription
 
     private final SseEmitterPort sseEmitterPort;
 
+    /**
+     * <h3>알림 구독</h3>
+     * <p>주어진 사용자 ID와 토큰 ID로 SSE 알림을 구독합니다.</p>
+     *
+     * @param userId 구독할 사용자의 ID
+     * @param tokenId 구독 토큰 ID
+     * @return SseEmitter 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public SseEmitter subscribe(Long userId, Long tokenId) {
         return sseEmitterPort.subscribe(userId, tokenId);

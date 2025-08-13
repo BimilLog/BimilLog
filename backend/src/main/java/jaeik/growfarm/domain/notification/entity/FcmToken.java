@@ -38,6 +38,16 @@ public class FcmToken extends BaseEntity {
     @Column(nullable = false)
     private String fcmRegistrationToken;
 
+    /**
+     * <h3>FCM 토큰 생성 팩토리 메소드</h3>
+     * <p>새로운 FCM 토큰 엔티티를 생성합니다.</p>
+     *
+     * @param user 토큰을 소유할 사용자 엔티티
+     * @param token FCM 등록 토큰 문자열
+     * @return 생성된 FcmToken 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public static FcmToken create(User user, String token) {
         return FcmToken.builder()
                 .user(user)

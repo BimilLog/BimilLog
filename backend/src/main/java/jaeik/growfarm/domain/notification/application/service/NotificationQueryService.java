@@ -23,7 +23,17 @@ public class NotificationQueryService implements NotificationQueryUseCase {
 
     private final LoadNotificationPort loadNotificationPort;
 
+    /**
+     * <h3>알림 목록 조회</h3>
+     * <p>현재 로그인한 사용자의 알림 목록을 조회합니다.</p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 알림 DTO 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
+    @Transactional(readOnly = true)
     public List<NotificationDTO> getNotificationList(CustomUserDetails userDetails) {
         return loadNotificationPort.getNotificationList(userDetails);
     }

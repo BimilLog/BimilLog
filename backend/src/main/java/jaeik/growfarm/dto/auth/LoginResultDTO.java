@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
  * <p>소셜 로그인 후 사용자 정보 및 토큰, 로그인 타입을 포함하는 DTO</p>
  *
  * @author Jaeik
- * @version 2.1.0
+ * @version 2.0.0
  */
 @Getter
 @AllArgsConstructor

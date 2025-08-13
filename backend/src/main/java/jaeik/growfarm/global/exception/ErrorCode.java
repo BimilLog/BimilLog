@@ -108,12 +108,31 @@ public enum ErrorCode {
     private final String message;
     private final LogLevel logLevel;
 
+    /**
+     * <h3>ErrorCode 생성자</h3>
+     * <p>HTTP 상태, 메시지, 로그 레벨을 받아 에러 코드를 생성합니다.</p>
+     *
+     * @param status HTTP 상태 코드
+     * @param message 에러 메시지
+     * @param logLevel 에러 로그 레벨
+     * @author Jaeik
+     * @since 2.0.0
+     */
     ErrorCode(HttpStatus status, String message, LogLevel logLevel) {
         this.status = status;
         this.message = message;
         this.logLevel = logLevel;
     }
 
+    /**
+     * <h3>ErrorCode 생성자 (로그 레벨 기본값)</h3>
+     * <p>HTTP 상태와 메시지를 받아 에러 코드를 생성합니다. 로그 레벨은 기본적으로 ERROR로 설정됩니다.</p>
+     *
+     * @param status HTTP 상태 코드
+     * @param message 에러 메시지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     ErrorCode(HttpStatus status, String message) {
         this.status = status;
         this.message = message;

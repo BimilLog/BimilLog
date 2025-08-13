@@ -14,6 +14,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * <h2>FCM 알림 전송기</h2>
+ * <p>Firebase Cloud Messaging(FCM)을 통해 사용자에게 알림을 전송하는 Secondary Adapter</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Component
 @RequiredArgsConstructor
 public class FcmNotificationSender implements NotificationSender {
@@ -21,6 +28,15 @@ public class FcmNotificationSender implements NotificationSender {
     private final LoadFcmTokenPort loadFcmTokenPort;
     private final SendFcmPort sendFcmPort;
 
+    /**
+     * <h3>FCM 알림 전송</h3>
+     * <p>지정된 사용자에게 FCM 알림을 비동기적으로 전송합니다.</p>
+     *
+     * @param userId 알림을 받을 사용자의 ID
+     * @param eventDTO 전송할 이벤트 정보 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     @Async("fcmNotificationExecutor")
     public void send(Long userId, EventDTO eventDTO) {

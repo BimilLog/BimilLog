@@ -16,6 +16,14 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * <h2>Redis 캐시 어댑터</h2>
+ * <p>Redis를 사용하여 게시글 캐시 데이터를 관리하는 영속성 어댑터입니다.</p>
+ * <p>ManagePostCachePort와 LoadPostCachePort 인터페이스를 구현합니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Component
 public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort {
 
@@ -24,6 +32,14 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
     private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
     private static final Duration FULL_POST_CACHE_TTL = Duration.ofDays(1);
 
+    /**
+     * <h3>RedisCacheAdapter 생성자</h3>
+     * <p>RedisTemplate을 주입받아 캐시 메타데이터를 초기화합니다.</p>
+     *
+     * @param redisTemplate Redis 작업을 위한 템플릿
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public RedisCacheAdapter(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
         this.cacheMetadataMap = new EnumMap<>(PostCacheFlag.class);
@@ -35,6 +51,16 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
 
     private record CacheMetadata(String key, Duration ttl) {}
 
+    /**
+     * <h3>캐시 메타데이터 조회</h3>
+     * <p>주어진 캐시 유형에 해당하는 메타데이터를 조회합니다.</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @return 캐시 메타데이터
+     * @throws CustomException 알 수 없는 PostCacheFlag 유형인 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private CacheMetadata getCacheMetadata(PostCacheFlag type) {
         CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
@@ -43,6 +69,16 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
         return metadata;
     }
 
+    /**
+     * <h3>게시글 목록 캐시</h3>
+     * <p>지정된 유형의 게시글 목록을 Redis에 캐시합니다.</p>
+     *
+     * @param type       게시글 캐시 유형
+     * @param cachePosts 캐시할 SimplePostResDTO 목록
+     * @throws CustomException Redis 쓰기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void cachePosts(PostCacheFlag type, List<SimplePostResDTO> cachePosts) {
         CacheMetadata metadata = getCacheMetadata(type);
@@ -53,6 +89,16 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
         }
     }
     
+    /**
+     * <h3>캐시된 인기 게시글 조회</h3>
+     * <p>지정된 유형의 캐시된 인기 게시글 목록을 Redis에서 조회합니다.</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @return 캐시된 SimplePostResDTO 목록. 캐시가 없으면 빈 리스트 반환
+     * @throws CustomException Redis 읽기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     @SuppressWarnings("unchecked")
     public List<SimplePostResDTO> getCachedPopularPosts(PostCacheFlag type) {
@@ -68,6 +114,15 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
         return Collections.emptyList();
     }
 
+    /**
+     * <h3>인기 게시글 캐시 삭제</h3>
+     * <p>지정된 유형의 인기 게시글 캐시를 Redis에서 삭제합니다.</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @throws CustomException Redis 삭제 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void deletePopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
@@ -78,6 +133,16 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
         }
     }
 
+    /**
+     * <h3>인기 게시글 캐시 존재 여부 확인</h3>
+     * <p>지정된 유형의 인기 게시글 캐시가 Redis에 존재하는지 확인합니다.</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @return 캐시 존재 여부
+     * @throws CustomException Redis 읽기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public boolean hasPopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
@@ -88,6 +153,15 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
         }
     }
 
+    /**
+     * <h3>전체 게시글 캐시</h3>
+     * <p>FullPostResDTO 형태의 게시글 상세 정보를 Redis에 캐시합니다.</p>
+     *
+     * @param post 캐시할 FullPostResDTO
+     * @throws CustomException Redis 쓰기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void cacheFullPost(FullPostResDTO post) {
         String key = FULL_POST_CACHE_PREFIX + post.getId();
@@ -98,6 +172,16 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
         }
     }
 
+    /**
+     * <h3>캐시된 전체 게시글 조회</h3>
+     * <p>지정된 게시글 ID의 캐시된 전체 게시글 상세 정보를 Redis에서 조회합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return 캐시된 FullPostResDTO. 캐시가 없으면 null 반환
+     * @throws CustomException Redis 읽기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public FullPostResDTO getCachedFullPost(Long postId) {
         String key = FULL_POST_CACHE_PREFIX + postId;
@@ -112,6 +196,15 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
         return null;
     }
 
+    /**
+     * <h3>전체 게시글 캐시 삭제</h3>
+     * <p>지정된 게시글 ID의 전체 게시글 캐시를 Redis에서 삭제합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @throws CustomException Redis 삭제 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void deleteFullPostCache(Long postId) {
         String key = FULL_POST_CACHE_PREFIX + postId;

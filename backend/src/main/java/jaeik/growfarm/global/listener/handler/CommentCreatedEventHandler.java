@@ -21,11 +21,28 @@ public class CommentCreatedEventHandler implements NotificationEventHandler<Comm
 
     private final NotificationEventUseCase notificationEventUseCase;
 
+    /**
+     * <h3>이벤트 지원 여부 확인</h3>
+     * <p>주어진 이벤트가 {@link CommentCreatedEvent} 타입인지 확인합니다.</p>
+     *
+     * @param event 확인할 {@link ApplicationEvent}
+     * @return 이벤트가 {@link CommentCreatedEvent} 타입이면 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public boolean supports(ApplicationEvent event) {
         return event instanceof CommentCreatedEvent;
     }
 
+    /**
+     * <h3>이벤트 처리</h3>
+     * <p>{@link CommentCreatedEvent}를 처리하여 댓글 생성 알림을 전송합니다.</p>
+     *
+     * @param event 처리할 {@link CommentCreatedEvent}
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void handle(CommentCreatedEvent event) {
         notificationEventUseCase.sendCommentNotification(

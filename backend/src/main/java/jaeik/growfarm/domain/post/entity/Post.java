@@ -135,6 +135,14 @@ public class Post extends BaseEntity {
         this.isNotice = false;
     }
     
+    /**
+     * <h3>게시글 캐시 플래그 설정</h3>
+     * <p>게시글의 캐시 플래그를 설정합니다.</p>
+     *
+     * @param postCacheFlag 설정할 캐시 플래그
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public void setPostCacheFlag(PostCacheFlag postCacheFlag) {
         this.postCacheFlag = postCacheFlag;
     }

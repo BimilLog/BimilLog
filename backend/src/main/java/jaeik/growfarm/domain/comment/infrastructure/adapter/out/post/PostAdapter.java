@@ -8,6 +8,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+/**
+ * <h2>게시글 어댑터</h2>
+ * <p>
+ * Comment 도메인에서 Post 도메인에 접근하기 위한 Outgoing-Adapter
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Component
 @RequiredArgsConstructor
 public class PostAdapter implements LoadPostPort {

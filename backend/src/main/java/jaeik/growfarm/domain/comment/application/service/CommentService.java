@@ -29,6 +29,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * <h2>댓글 서비스</h2>
+ * <p>
+ * 댓글 관련 Command 및 Query 유스케이스를 구현하는 서비스 클래스
+ * </p>
+ * <p>
+ * 댓글 CRUD, 좋아요, 인기 댓글 조회 등 다양한 댓글 관련 기능을 제공
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -63,6 +75,16 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         return popularComments;
     }
 
+    /**
+     * <h3>인기 댓글에 대한 사용자 좋아요 ID 조회</h3>
+     * <p>주어진 게시글 ID에 대한 인기 댓글 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     *
+     * @param postId      게시글 ID
+     * @param userDetails 사용자 인증 정보
+     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private List<Long> getUserLikedCommentIdsForPopular(Long postId, CustomUserDetails userDetails) {
         if (userDetails == null) {
             return Collections.emptyList();
@@ -87,6 +109,17 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         return commentPage;
     }
 
+    /**
+     * <h3>페이지별 사용자 좋아요 ID 조회</h3>
+     * <p>주어진 게시글 ID와 페이지 정보에 해당하는 댓글 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     *
+     * @param postId      게시글 ID
+     * @param pageable    페이지 정보
+     * @param userDetails 사용자 인증 정보
+     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private List<Long> getUserLikedCommentIdsByPage(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         if (userDetails == null) {
             return Collections.emptyList();
@@ -150,6 +183,18 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         saveCommentPort.save(comment);
     }
 
+    /**
+     * <h3>댓글 유효성 검사 및 조회</h3>
+     * <p>댓글 DTO와 사용자 인증 정보를 기반으로 댓글의 유효성을 검사하고 댓글 엔티티를 조회합니다.</p>
+     * <p>비밀번호가 일치하지 않거나, 사용자 본인이 아닌 경우 예외를 발생시킵니다.</p>
+     *
+     * @param commentDto  댓글 DTO
+     * @param userDetails 사용자 인증 정보
+     * @return Comment 유효성 검사를 통과한 댓글 엔티티
+     * @throws CustomException 댓글을 찾을 수 없거나, 비밀번호가 일치하지 않거나, 사용자 권한이 없는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private Comment validateComment(CommentDTO commentDto, CustomUserDetails userDetails) {
         Comment comment = loadCommentPort.findById(commentDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
@@ -192,16 +237,42 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         }
     }
 
+    /**
+     * <h3>사용자 댓글 익명화</h3>
+     * <p>특정 사용자가 작성한 모든 댓글을 익명화 처리합니다. (사용자 탈퇴 시 호출)</p>
+     *
+     * @param userId 익명화할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public void anonymizeUserComments(Long userId) {
         saveCommentPort.anonymizeUserComments(userId);
     }
 
+    /**
+     * <h3>사용자가 좋아요한 댓글 ID 목록 조회</h3>
+     * <p>주어진 댓글 ID 목록 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     *
+     * @param commentIds  댓글 ID 목록
+     * @param userDetails 사용자 인증 정보
+     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private List<Long> getUserLikedCommentIds(List<Long> commentIds, CustomUserDetails userDetails) {
         return (userDetails != null)
                 ? loadCommentPort.findUserLikedCommentIds(commentIds, userDetails.getUserId())
                 : List.of();
     }
 
+    /**
+     * <h3>사용자 탈퇴 이벤트 핸들러</h3>
+     * <p>사용자 탈퇴 이벤트를 수신하여 해당 사용자의 댓글을 익명화 처리합니다.</p>
+     *
+     * @param event 사용자 탈퇴 이벤트
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Async
     @Transactional
     @EventListener
@@ -210,6 +281,14 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         anonymizeUserComments(event.userId());
     }
 
+    /**
+     * <h3>게시글 삭제 이벤트 핸들러</h3>
+     * <p>게시글 삭제 이벤트를 수신하여 해당 게시글의 모든 댓글을 삭제합니다.</p>
+     *
+     * @param event 게시글 삭제 이벤트
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Async
     @Transactional
     @EventListener

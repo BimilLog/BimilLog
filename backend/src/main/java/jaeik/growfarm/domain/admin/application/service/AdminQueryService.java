@@ -16,6 +16,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * <h2>관리자 조회 서비스</h2>
+ * <p>관리자 조회 유스케이스(`AdminQueryUseCase`)를 구현하는 서비스 클래스</p>
+ * <p>신고 목록 조회 및 신고 상세 조회와 같은 관리자 기능을 수행합니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor

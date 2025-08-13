@@ -20,6 +20,15 @@ public class NotificationCommandService implements NotificationCommandUseCase {
 
     private final UpdateNotificationPort updateNotificationPort;
 
+    /**
+     * <h3>알림 일괄 업데이트</h3>
+     * <p>사용자의 알림 상태를 일괄적으로 업데이트합니다.</p>
+     *
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @param updateNotificationDTO 업데이트할 알림 정보 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void batchUpdate(CustomUserDetails userDetails, UpdateNotificationDTO updateNotificationDTO) {
         updateNotificationPort.batchUpdate(userDetails, updateNotificationDTO);

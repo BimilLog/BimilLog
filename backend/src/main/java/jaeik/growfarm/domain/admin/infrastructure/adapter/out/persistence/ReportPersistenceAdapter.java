@@ -11,6 +11,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * <h2>신고 영속성 어댑터</h2>
+ * <p>
+ * 신고(`Report`) 관련 데이터를 영속화하고 조회하는 Outgoing-Adapter
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Repository
 @RequiredArgsConstructor
 public class ReportPersistenceAdapter implements LoadReportPort {

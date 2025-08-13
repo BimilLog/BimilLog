@@ -73,6 +73,14 @@ public class UserCommandService implements UserCommandUseCase {
     }
 
 
+    /**
+     * <h3>사용자 가입 이벤트 처리</h3>
+     * <p>새로운 사용자가 가입했을 때 기본 설정을 초기화하는 메서드입니다.</p>
+     *
+     * @param event 사용자 가입 이벤트
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Async
     @Transactional
     @EventListener

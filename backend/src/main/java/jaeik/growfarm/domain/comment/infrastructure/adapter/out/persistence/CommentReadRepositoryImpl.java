@@ -19,12 +19,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * <h2>댓글 조회 레포지토리 구현체</h2>
+ * <p>
+ * `CommentReadRepository` 인터페이스의 구현체로, QueryDSL을 사용하여 댓글 데이터를 조회합니다.
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Repository
 @RequiredArgsConstructor
 public class CommentReadRepositoryImpl implements CommentReadRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    /**
+     * <h3>최신순 댓글 조회</h3>
+     * <p>주어진 게시글의 댓글을 최신순으로 페이지네이션하여 조회합니다. 사용자가 좋아요를 누른 댓글 정보도 포함합니다.</p>
+     *
+     * @param postId          게시글 ID
+     * @param pageable        페이지 정보
+     * @param likedCommentIds 사용자가 좋아요한 댓글 ID 목록
+     * @return Page<CommentDTO> 최신순 댓글 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Page<CommentDTO> findCommentsWithLatestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds) {
         QComment comment = QComment.comment;
@@ -64,6 +84,16 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
+    /**
+     * <h3>인기 댓글 조회</h3>
+     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다. 사용자가 좋아요를 누른 댓글 정보도 포함합니다.</p>
+     *
+     * @param postId          게시글 ID
+     * @param likedCommentIds 사용자가 좋아요한 댓글 ID 목록
+     * @return List<CommentDTO> 인기 댓글 DTO 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public List<CommentDTO> findPopularComments(Long postId, List<Long> likedCommentIds) {
         QComment comment = QComment.comment;
@@ -102,6 +132,15 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
         return popularComments;
     }
 
+    /**
+     * <h3>게시글 ID로 루트 댓글 수 조회</h3>
+     * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return Long 루트 댓글의 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Long countRootCommentsByPostId(Long postId) {
         QComment comment = QComment.comment;
@@ -115,6 +154,15 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
                 .fetchOne();
     }
 
+    /**
+     * <h3>여러 게시글 ID에 대한 댓글 수 조회</h3>
+     * <p>주어진 여러 게시글 ID에 해당하는 각 게시글의 댓글 수를 조회합니다.</p>
+     *
+     * @param postIds 게시글 ID 목록
+     * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
         QComment comment = QComment.comment;
@@ -133,6 +181,16 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
                 ));
     }
 
+    /**
+     * <h3>사용자 좋아요한 댓글 목록 조회</h3>
+     * <p>특정 사용자가 좋아요한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return Page<SimpleCommentDTO> 좋아요한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
         QComment comment = QComment.comment;
@@ -166,6 +224,16 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
+    /**
+     * <h3>사용자 작성 댓글 목록 조회</h3>
+     * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return Page<SimpleCommentDTO> 작성한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable) {
         QComment comment = QComment.comment;

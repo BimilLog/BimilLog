@@ -50,8 +50,28 @@ public interface LoadPostPort {
      */
     Page<SimplePostResDTO> findBySearch(String type, String query, Pageable pageable);
 
+    /**
+     * <h3>사용자 작성 게시글 목록 조회</h3>
+     * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 작성한 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable);
 
+    /**
+     * <h3>사용자 좋아요한 게시글 목록 조회</h3>
+     * <p>특정 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 좋아요한 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
 
     /**

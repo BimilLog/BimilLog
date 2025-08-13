@@ -19,6 +19,15 @@ import java.util.Optional;
  */
 public interface LoadPaperPort {
 
+    /**
+     * <h3>메시지 ID로 메시지 조회</h3>
+     * <p>주어진 메시지 ID에 해당하는 메시지를 조회합니다.</p>
+     *
+     * @param messageId 조회할 메시지의 ID
+     * @return 메시지 엔티티 (Optional)
+     * @author Jaeik
+     * @since 2.0.0
+     */
     Optional<Message> findMessageById(Long messageId);
 
     /**
