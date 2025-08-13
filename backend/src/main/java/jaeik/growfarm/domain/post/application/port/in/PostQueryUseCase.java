@@ -14,7 +14,7 @@ import java.util.List;
  *     게시글 조회와 관련된 비즈니스 로직을 처리하는 UseCase 인터페이스입니다.
  * </p>
  * @author jaeik
- * @version 1.0
+ * @version 2.0.0
  */
 public interface PostQueryUseCase {
 
@@ -25,6 +25,8 @@ public interface PostQueryUseCase {
      * </p>
      * @param pageable 페이지 정보
      * @return 게시글 목록 페이지
+     * @since 2.0.0
+     * @author jaeik
      */
     Page<SimplePostResDTO> getBoard(Pageable pageable);
 
@@ -36,6 +38,8 @@ public interface PostQueryUseCase {
      * @param postId      게시글 ID
      * @param userId     현재 로그인한 사용자 ID
      * @return 게시글 상세 정보 DTO
+     * @since 2.0.0
+     * @author jaeik
      */
     FullPostResDTO getPost(Long postId, Long userId);
 
@@ -48,6 +52,8 @@ public interface PostQueryUseCase {
      * @param query 검색어
      * @param pageable  페이지 정보
      * @return 검색된 게시글 목록 페이지
+     * @since 2.0.0
+     * @author jaeik
      */
     Page<SimplePostResDTO> searchPost(String type, String query, Pageable pageable);
 
@@ -67,6 +73,8 @@ public interface PostQueryUseCase {
      *     캐시된 공지사항 목록을 조회합니다.
      * </p>
      * @return 공지사항 목록
+     * @since 2.0.0
+     * @author jaeik
      */
     List<SimplePostResDTO> getNoticePosts();
 
@@ -77,6 +85,8 @@ public interface PostQueryUseCase {
      * </p>
      * @param postId 게시글 ID
      * @return 게시글 엔티티 (Optional)
+     * @since 2.0.0
+     * @author jaeik
      */
     java.util.Optional<jaeik.growfarm.domain.post.entity.Post> findById(Long postId);
 
@@ -88,6 +98,8 @@ public interface PostQueryUseCase {
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
      * @return 작성한 게시글 목록 페이지
+     * @since 2.0.0
+     * @author jaeik
      */
     Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable);
 
@@ -99,6 +111,8 @@ public interface PostQueryUseCase {
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
      * @return 좋아요한 게시글 목록 페이지
+     * @since 2.0.0
+     * @author jaeik
      */
     Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable);
 }
