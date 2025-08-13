@@ -1,10 +1,10 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
+import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.strategy.SocialLoginStrategy;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
+import jaeik.growfarm.domain.user.application.port.out.UserPort;
 import jaeik.growfarm.dto.auth.LoginResultDTO;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.TokenDTO;
@@ -32,13 +32,13 @@ import java.util.Optional;
 public class SocialLoginAdapter implements SocialLoginPort {
 
     private final Map<SocialProvider, SocialLoginStrategy> strategies = new EnumMap<>(SocialProvider.class);
-    private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
+    private final UserPort userPort;
+    private final TokenPort tokenPort;
 
-    public SocialLoginAdapter(List<SocialLoginStrategy> strategyList, UserRepository userRepository, jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository tokenRepository) {
+    public SocialLoginAdapter(List<SocialLoginStrategy> strategyList, UserPort userPort, TokenPort tokenPort) {
         strategyList.forEach(strategy -> strategies.put(strategy.getProvider(), strategy));
-        this.userRepository = userRepository;
-        this.tokenRepository = tokenRepository;
+        this.userPort = userPort;
+        this.tokenPort = tokenPort;
     }
 
     /**
@@ -61,13 +61,13 @@ public class SocialLoginAdapter implements SocialLoginPort {
         SocialLoginUserData userData = initialLoginResult.getUserData();
         TokenDTO tokenDTO = initialLoginResult.getTokenDTO();
 
-        Optional<User> existingUser = userRepository.findByProviderAndSocialId(provider, userData.socialId());
+        Optional<User> existingUser = userPort.findByProviderAndSocialId(provider, userData.socialId());
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
 
-            jaeik.growfarm.domain.user.entity.Token token = tokenRepository.findByUser(user)
+            jaeik.growfarm.domain.user.entity.Token token = tokenPort.findByUser(user)
                     .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
             token.updateToken(tokenDTO.accessToken(), tokenDTO.refreshToken());
 
@@ -77,12 +77,30 @@ public class SocialLoginAdapter implements SocialLoginPort {
         }
     }
 
+    /**
+     * <h3>소셜 계정 연결 해제</h3>
+     * <p>주어진 소셜 ID에 해당하는 계정의 연결을 해제합니다.</p>
+     *
+     * @param provider 소셜 제공자
+     * @param socialId 소셜 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public void unlink(SocialProvider provider, String socialId) {
         SocialLoginStrategy strategy = strategies.get(provider);
         strategy.unlink(socialId);
     }
 
+    /**
+     * <h3>소셜 로그아웃</h3>
+     * <p>사용자의 소셜 로그아웃을 처리합니다.</p>
+     *
+     * @param provider    소셜 제공자
+     * @param accessToken 액세스 토큰
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public void logout(SocialProvider provider, String accessToken) {
         SocialLoginStrategy strategy = strategies.get(provider);

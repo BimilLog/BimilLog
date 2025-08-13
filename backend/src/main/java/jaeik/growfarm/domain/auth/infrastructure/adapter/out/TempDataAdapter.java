@@ -31,6 +31,8 @@ public class TempDataAdapter implements ManageTemporaryDataPort {
      * @param uuid UUID 키
      * @param userData 소셜 로그인 사용자 정보
      * @param tokenDTO 토큰 정보
+     * @since 2.0.0
+     * @author Jaeik
      */
     @Override
     public void saveTempData(String uuid, SocialLoginUserData userData, TokenDTO tokenDTO) {
@@ -45,6 +47,8 @@ public class TempDataAdapter implements ManageTemporaryDataPort {
      *
      * @param uuid UUID 키
      * @return Optional로 감싼 임시 사용자 데이터
+     * @since 2.0.0
+     * @author Jaeik
      */
     @Override
     public Optional<TemporaryUserDataDTO> getTempData(String uuid) {
@@ -56,6 +60,8 @@ public class TempDataAdapter implements ManageTemporaryDataPort {
      * <p>UUID를 사용하여 임시 사용자 데이터를 삭제합니다.</p>
      *
      * @param uuid UUID 키
+     * @since 2.0.0
+     * @author Jaeik
      */
     public void removeTempData(String uuid) {
         tempUserDataStore.remove(uuid);
@@ -66,6 +72,8 @@ public class TempDataAdapter implements ManageTemporaryDataPort {
      * <p>5분 후에 임시 사용자 데이터를 정리하는 작업을 스케줄링합니다.</p>
      *
      * @param uuid UUID 키
+     * @since 2.0.0
+     * @author Jaeik
      */
     private void scheduleCleanup(String uuid) {
         CompletableFuture.delayedExecutor(5, TimeUnit.MINUTES)

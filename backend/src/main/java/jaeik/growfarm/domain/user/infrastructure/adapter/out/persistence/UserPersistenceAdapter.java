@@ -33,6 +33,11 @@ public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, Load
     }
 
     @Override
+    public Optional<User> findByIdWithSetting(Long id) {
+        return userRepository.findByIdWithSetting(id);
+    }
+
+    @Override
     public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return userRepository.findByProviderAndSocialId(provider, socialId);
     }

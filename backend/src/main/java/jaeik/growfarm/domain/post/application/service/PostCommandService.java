@@ -24,12 +24,11 @@ import java.util.Objects;
 /**
  * <h2>PostCommandService</h2>
  * <p>
- *     PostCommandUseCase의 구현체입니다.
- *     게시글 생성, 수정, 삭제 등 CUD 관련 비즈니스 로직을 처리합니다.
+ *     PostCommandUseCase의 구현체로, 게시글 작성, 수정, 삭제 등의 명령형 비즈니스 로직을 처리합니다.
  * </p>
  *
  * @author jaeik
- * @version 1.0
+ * @version 2.0.0
  */
 @Service
 @Transactional
@@ -43,11 +42,20 @@ public class PostCommandService implements PostCommandUseCase {
     private final SavePostLikePort savePostLikePort;
     private final DeletePostLikePort deletePostLikePort;
     private final ExistPostLikePort existPostLikePort;
-    private final LoadUserPort loadUserPort; // User 프록시를 가져오기 위한 의존성
+    private final LoadUserPort loadUserPort;
     private final ApplicationEventPublisher eventPublisher;
 
 
-
+    /**
+     * <h3>게시글 작성</h3>
+     * <p>사용자가 작성한 게시글을 저장하고, 해당 게시글의 ID를 반환합니다.</p>
+     *
+     * @param userId      게시글 작성자의 사용자 ID
+     * @param postReqDTO  게시글 요청 DTO
+     * @return 저장된 게시글의 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public Long writePost(Long userId, PostReqDTO postReqDTO) {
         User user = loadUserPort.getReferenceById(userId);
@@ -56,6 +64,14 @@ public class PostCommandService implements PostCommandUseCase {
         return savedPost.getId();
     }
 
+    /**
+     * <h3>게시글 공지 설정</h3>
+     * <p>관리자 권한으로 특정 게시글을 공지로 설정합니다.</p>
+     *
+     * @param postId 공지로 설정할 게시글 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Override
     public void setPostAsNotice(Long postId) {
         Post post = loadPostPort.findById(postId)

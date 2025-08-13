@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;

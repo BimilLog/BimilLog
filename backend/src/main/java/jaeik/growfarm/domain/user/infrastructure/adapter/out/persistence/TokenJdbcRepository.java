@@ -1,8 +1,9 @@
-package jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
 
 /**
  * <h2>토큰 Jdbc Repository</h2>

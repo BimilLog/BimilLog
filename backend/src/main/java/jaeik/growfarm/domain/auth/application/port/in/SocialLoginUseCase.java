@@ -1,11 +1,8 @@
 
 package jaeik.growfarm.domain.auth.application.port.in;
 
-import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.dto.auth.LoginResponseDTO;
-import org.springframework.http.ResponseCookie;
-
-import java.util.List;
+import jaeik.growfarm.global.domain.SocialProvider;
 
 /**
  * <h2>소셜 로그인 유스케이스</h2>
@@ -29,15 +26,5 @@ public interface SocialLoginUseCase {
      */
     LoginResponseDTO<?> processSocialLogin(SocialProvider provider, String code, String fcmToken);
 
-    /**
-     * <h3>신규 사용자 등록 처리</h3>
-     * <p>임시 데이터를 기반으로 신규 사용자를 등록하고 로그인 쿠키를 생성합니다.</p>
-     *
-     * @param userName 사용자 닉네임
-     * @param uuid     임시 데이터 UUID
-     * @return 로그인 응답 DTO (신규 사용자 등록)
-     * @since 2.1.0
-     * @author Jaeik
-     */
-    LoginResponseDTO<List<ResponseCookie>> registerNewUser(String userName, String uuid); // 반환 타입 변경
+
 }

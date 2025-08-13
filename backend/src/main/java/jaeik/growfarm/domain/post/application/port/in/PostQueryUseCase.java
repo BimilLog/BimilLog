@@ -1,6 +1,5 @@
 package jaeik.growfarm.domain.post.application.port.in;
 
-import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -8,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>PostQueryUseCase</h2>
@@ -71,6 +69,4 @@ public interface PostQueryUseCase {
      * @return 공지사항 목록
      */
     List<SimplePostResDTO> getNoticePosts();
-    
-    Optional<Post> findById(Long postId);
 }

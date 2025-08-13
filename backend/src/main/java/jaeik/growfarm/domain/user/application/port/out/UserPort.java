@@ -15,6 +15,7 @@ import java.util.Optional;
  */
 public interface UserPort {
     Optional<User> findById(Long id);
+    Optional<User> findByIdWithSetting(Long id);
     Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
     boolean existsByUserName(String userName);
     Optional<User> findByUserName(String userName);

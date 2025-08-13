@@ -8,8 +8,8 @@ import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.auth.JwtHandler;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.domain.auth.infrastructure.adapter.out.persistence.TokenRepository;
-import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
+import jaeik.growfarm.domain.user.application.port.out.TokenPort;
+import jaeik.growfarm.domain.user.application.port.out.UserPort;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -38,8 +38,8 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-    private final TokenRepository tokenRepository;
-    private final UserRepository userRepository;
+    private final TokenPort tokenPort;
+    private final UserPort userPort;
     private final JwtHandler jwtHandler;
     private final AuthCookieManager authCookieManager;
 
@@ -108,12 +108,12 @@ public class JwtFilter extends OncePerRequestFilter {
             if (refreshToken != null && jwtHandler.validateToken(refreshToken)) {
                 Long tokenId = jwtHandler.getTokenIdFromToken(refreshToken);
                 // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
-                Token token = tokenRepository.findById(tokenId)
+                Token token = tokenPort.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.REPEAT_LOGIN));
                 if (Objects.equals(token.getId(), tokenId)) {
 
                     // 유저 정보 조회 (Setting 포함)
-                    User user = userRepository.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
+                    User user = userPort.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
                     ClientDTO clientDTO = ClientDTO.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급

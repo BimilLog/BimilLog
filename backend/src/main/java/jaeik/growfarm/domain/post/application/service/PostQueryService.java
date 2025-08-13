@@ -2,12 +2,7 @@ package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.assembler.PostAssembler;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
-import jaeik.growfarm.domain.post.application.port.out.CountPostLikePort;
-import jaeik.growfarm.domain.post.application.port.out.ExistPostLikePort;
-import jaeik.growfarm.domain.post.application.port.out.LoadPostCachePort;
-import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
-import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
-import jaeik.growfarm.domain.post.application.port.out.ManagePostCachePort;
+import jaeik.growfarm.domain.post.application.port.out.*;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.user.entity.User;
@@ -22,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>PostQueryService</h2>
@@ -59,9 +53,6 @@ public class PostQueryService implements PostQueryUseCase {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        // 조회수 증가 로직은 PostController로 이동 (Command와 Query 분리)
-        // loadPostPort.incrementView(post);
-
         long likeCount = countPostLikePort.countByPost(post);
         boolean isLiked = false;
         if (userId != null) {
@@ -79,7 +70,7 @@ public class PostQueryService implements PostQueryUseCase {
 
     @Override
     public List<SimplePostResDTO> getPopularPosts(PostCacheFlag type) {
-        if (loadPostCachePort.hasPopularPostsCache(type)) {
+        if (!loadPostCachePort.hasPopularPostsCache(type)) {
             switch (type) {
                 case REALTIME -> postCacheManageService.updateRealtimePopularPosts();
                 case WEEKLY -> postCacheManageService.updateWeeklyPopularPosts();
@@ -92,16 +83,10 @@ public class PostQueryService implements PostQueryUseCase {
 
     @Override
     public List<SimplePostResDTO> getNoticePosts() {
-        if (loadPostCachePort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            // 공지사항은 스케줄링이 없으므로, 필요 시 즉시 DB에서 조회하여 캐싱
+        if (!loadPostCachePort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
             List<SimplePostResDTO> noticePosts = loadPostPort.findNoticePosts();
             managePostCachePort.cachePosts(PostCacheFlag.NOTICE, noticePosts);
         }
         return loadPostCachePort.getCachedPopularPosts(PostCacheFlag.NOTICE);
-    }
-
-    @Override
-    public Optional<Post> findById(Long postId) {
-        return loadPostPort.findById(postId);
     }
 }

@@ -3,6 +3,7 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.AuthPort;
+import jaeik.growfarm.domain.auth.application.port.out.CheckBlacklistPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
@@ -39,6 +40,8 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final ManageAuthDataPort manageAuthDataPort;
     private final AuthPort authPort;
     private final ManageTemporaryDataPort manageTemporaryDataPort;
+    private final CheckBlacklistPort checkBlacklistPort;
+
 
     /**
      * <h3>소셜 로그인 처리</h3>
@@ -49,6 +52,7 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @param code     인가 코드
      * @param fcmToken Firebase Cloud Messaging 토큰
      * @return 로그인 응답 DTO
+     * @throws CustomException 블랙리스트 사용자인 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -60,6 +64,10 @@ public class SocialLoginService implements SocialLoginUseCase {
         LoginResultDTO loginResult = socialLoginPort.login(provider, code);
         SocialLoginUserData userData = loginResult.getUserData();
         TokenDTO tokenDTO = loginResult.getTokenDTO();
+        
+        if (checkBlacklistPort.existsByProviderAndSocialId(provider, userData.socialId())) {
+            throw new CustomException(ErrorCode.BLACKLIST_USER);
+        }
 
         if (loginResult.getLoginType() == LoginResultDTO.LoginType.EXISTING_USER) {
             List<ResponseCookie> cookies = manageAuthDataPort.handleExistingUserLogin(userData, tokenDTO, fcmToken);
@@ -72,26 +80,6 @@ public class SocialLoginService implements SocialLoginUseCase {
         }
     }
 
-    /**
-     * <h3>신규 사용자 등록 처리</h3>
-     * <p>임시 데이터를 기반으로 신규 사용자를 등록하고 로그인 쿠키를 생성합니다.</p>
-     *
-     * @param userName 사용자 닉네임
-     * @param uuid     임시 데이터 UUID
-     * @return 로그인 응답 DTO (신규 사용자 등록)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public LoginResponseDTO<List<ResponseCookie>> registerNewUser(String userName, String uuid) {
-        TemporaryUserDataDTO temporaryUserData = manageTemporaryDataPort.getTempData(uuid)
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_TEMP_DATA));
-
-        List<ResponseCookie> cookies = manageAuthDataPort.saveNewUser(userName, uuid, temporaryUserData.getSocialLoginUserData(), temporaryUserData.getTokenDTO(), temporaryUserData.getFcmToken());
-
-        return new LoginResponseDTO<>(LoginResponseDTO.LoginType.NEW_USER_REGISTERED, cookies);
-    }
 
     /**
      * <h3>로그인 유효성 검사</h3>
