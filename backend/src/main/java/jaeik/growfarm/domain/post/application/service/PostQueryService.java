@@ -89,4 +89,9 @@ public class PostQueryService implements PostQueryUseCase {
         }
         return loadPostCachePort.getCachedPopularPosts(PostCacheFlag.NOTICE);
     }
+
+    @Override
+    public java.util.Optional<Post> findById(Long postId) {
+        return loadPostPort.findById(postId);
+    }
 }

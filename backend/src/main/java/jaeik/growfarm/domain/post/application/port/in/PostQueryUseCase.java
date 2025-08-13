@@ -69,4 +69,14 @@ public interface PostQueryUseCase {
      * @return 공지사항 목록
      */
     List<SimplePostResDTO> getNoticePosts();
+
+    /**
+     * <h3>게시글 ID로 조회 (내부 도메인용)</h3>
+     * <p>
+     *     다른 도메인에서 게시글 엔티티가 필요한 경우 사용하는 메서드입니다.
+     * </p>
+     * @param postId 게시글 ID
+     * @return 게시글 엔티티 (Optional)
+     */
+    java.util.Optional<jaeik.growfarm.domain.post.entity.Post> findById(Long postId);
 }

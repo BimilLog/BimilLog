@@ -2,6 +2,8 @@ package jaeik.growfarm.domain.post.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
+import jaeik.growfarm.domain.post.application.port.in.PostNoticeUseCase;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.PostReqDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -24,6 +26,8 @@ public class PostController {
 
     private final PostCommandUseCase postCommandUseCase;
     private final PostQueryUseCase postQueryUseCase;
+    private final PostInteractionUseCase postInteractionUseCase;
+    private final PostNoticeUseCase postNoticeUseCase;
 
     // Query Endpoints
     @GetMapping
@@ -43,7 +47,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<FullPostResDTO> getPost(@PathVariable Long postId,
                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postCommandUseCase.incrementViewCount(postId); // 조회수 증가 (Command)
+        postInteractionUseCase.incrementViewCount(postId); // 조회수 증가 (Command)
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
         FullPostResDTO fullPostResDTO = postQueryUseCase.getPost(postId, userId); // 게시글 조회 (Query)
         return ResponseEntity.ok(fullPostResDTO);
@@ -75,21 +79,21 @@ public class PostController {
     @PostMapping("/{postId}/like")
     public ResponseEntity<Void> likePost(@PathVariable Long postId,
                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postCommandUseCase.likePost(userDetails.getUserId(), postId);
+        postInteractionUseCase.likePost(userDetails.getUserId(), postId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{postId}/notice")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> setPostAsNotice(@PathVariable Long postId) {
-        postCommandUseCase.setPostAsNotice(postId);
+        postNoticeUseCase.setPostAsNotice(postId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{postId}/notice")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> unsetPostAsNotice(@PathVariable Long postId) {
-        postCommandUseCase.unsetPostAsNotice(postId);
+        postNoticeUseCase.unsetPostAsNotice(postId);
         return ResponseEntity.ok().build();
     }
 }
