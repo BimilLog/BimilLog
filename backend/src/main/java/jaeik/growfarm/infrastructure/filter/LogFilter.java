@@ -57,10 +57,10 @@ public class LogFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Long userId = userDetails.getClientDTO().getUserId();
-            String socialId = userDetails.getClientDTO().getSocialId();
-            String socialNickname = userDetails.getClientDTO().getSocialNickname();
-            String provider = userDetails.getClientDTO().getProvider().name();
+            Long userId = userDetails.getUserDTO().getUserId();
+            String socialId = userDetails.getUserDTO().getSocialId();
+            String socialNickname = userDetails.getUserDTO().getSocialNickname();
+            String provider = userDetails.getUserDTO().getProvider().name();
 
             if (uri.startsWith("/admin")) {
                 log.error(

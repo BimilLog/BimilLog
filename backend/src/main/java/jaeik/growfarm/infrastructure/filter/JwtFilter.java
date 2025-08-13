@@ -2,7 +2,7 @@ package jaeik.growfarm.infrastructure.filter;
 
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.auth.JwtHandler;
@@ -114,10 +114,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     // 유저 정보 조회 (Setting 포함)
                     User user = userPort.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
-                    ClientDTO clientDTO = ClientDTO.of(user, tokenId, null); // fcmTokenId는 null로 설정
+                    UserDTO userDTO = UserDTO.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급
-                    ResponseCookie cookie = authCookieManager.generateJwtAccessCookie(clientDTO);
+                    ResponseCookie cookie = authCookieManager.generateJwtAccessCookie(userDTO);
                     response.addHeader("Set-Cookie", cookie.toString());
 
                     // 사용자 인증 정보 설정
@@ -137,8 +137,8 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        ClientDTO clientDTO = jwtHandler.getUserInfoFromToken(jwtAccessToken);
-        CustomUserDetails customUserDetails = new CustomUserDetails(clientDTO);
+        UserDTO userDTO = jwtHandler.getUserInfoFromToken(jwtAccessToken);
+        CustomUserDetails customUserDetails = new CustomUserDetails(userDTO);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails,
                 null,

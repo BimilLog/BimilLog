@@ -5,7 +5,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.global.domain.UserRole;
-import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.UserDTO;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,25 +41,25 @@ public class JwtHandler {
      *
      * <p>사용자 정보를 포함한 JWT 액세스 토큰을 생성한다. 유효기간은 1시간이다</p>
      *
-     * @param clientDTO 클라이언트용 DTO
+     * @param userDTO 클라이언트용 DTO
      * @return JWT 액세스 토큰
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateAccessToken(ClientDTO clientDTO) {
+    public String generateAccessToken(UserDTO userDTO) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + 3600000);
 
         return Jwts.builder()
-                .setSubject(String.valueOf(clientDTO.getUserId()))
-                .claim("tokenId", clientDTO.getTokenId())
-                .claim("socialId", clientDTO.getSocialId())
-                .claim("provider", clientDTO.getProvider().name())
-                .claim("settingId", clientDTO.getSettingId())
-                .claim("userName", clientDTO.getUserName())
-                .claim("role", clientDTO.getRole().name())
-                .claim("socialNickname", clientDTO.getSocialNickname())
-                .claim("thumbnailImage", clientDTO.getThumbnailImage())
+                .setSubject(String.valueOf(userDTO.getUserId()))
+                .claim("tokenId", userDTO.getTokenId())
+                .claim("socialId", userDTO.getSocialId())
+                .claim("provider", userDTO.getProvider().name())
+                .claim("settingId", userDTO.getSettingId())
+                .claim("userName", userDTO.getUserName())
+                .claim("role", userDTO.getRole().name())
+                .claim("socialNickname", userDTO.getSocialNickname())
+                .claim("thumbnailImage", userDTO.getThumbnailImage())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -71,17 +71,17 @@ public class JwtHandler {
      *
      * <p>사용자 ID와 토큰 ID를 포함한 JWT 리프레시 토큰을 생성한다. 유효기간은 30일이다.</p>
      *
-     * @param clientDTO 클라이언트용 DTO
+     * @param userDTO 클라이언트용 DTO
      * @return JWT 리프레시 토큰
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateRefreshToken(ClientDTO clientDTO) {
+    public String generateRefreshToken(UserDTO userDTO) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + (3600000L * 720));
 
         return Jwts.builder()
-                .setSubject(String.valueOf(clientDTO.getTokenId()))
+                .setSubject(String.valueOf(userDTO.getTokenId()))
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -121,10 +121,10 @@ public class JwtHandler {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ClientDTO getUserInfoFromToken(String jwtAccessToken) {
+    public UserDTO getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
-        return ClientDTO.builder()
+        return UserDTO.builder()
                 .userId(Long.parseLong(claims.getSubject()))
                 .socialId(claims.get("socialId", String.class))
                 .provider(SocialProvider.valueOf(claims.get("provider", String.class)))

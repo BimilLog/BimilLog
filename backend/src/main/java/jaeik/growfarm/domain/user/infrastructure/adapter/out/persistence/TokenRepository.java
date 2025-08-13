@@ -33,7 +33,6 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
      */
     Optional<Token> findByUser(User user);
 
-    Optional<Token> findByUsers_Id(Long userId);
 
     @Modifying
     @Query("DELETE FROM Token t WHERE t.users.id = :userId")

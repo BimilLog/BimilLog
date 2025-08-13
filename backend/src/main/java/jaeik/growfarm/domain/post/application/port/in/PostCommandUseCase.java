@@ -32,7 +32,6 @@ public interface PostCommandUseCase {
      * @param userId     현재 로그인한 사용자 ID
      * @param postId     수정할 게시글 ID
      * @param postReqDTO 수정할 게시글 정보 DTO
-     * @throws jaeik.growfarm.global.exception.CustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
@@ -45,7 +44,6 @@ public interface PostCommandUseCase {
      *
      * @param userId 현재 로그인한 사용자 ID
      * @param postId 삭제할 게시글 ID
-     * @throws jaeik.growfarm.global.exception.CustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */

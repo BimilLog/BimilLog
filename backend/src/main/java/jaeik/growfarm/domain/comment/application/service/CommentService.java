@@ -101,6 +101,18 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         return loadCommentPort.findById(commentId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<jaeik.growfarm.dto.comment.SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
+        return commentReadRepository.findCommentsByUserId(userId, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<jaeik.growfarm.dto.comment.SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
+        return commentReadRepository.findLikedCommentsByUserId(userId, pageable);
+    }
+
 
     // ============== Command ==============
 

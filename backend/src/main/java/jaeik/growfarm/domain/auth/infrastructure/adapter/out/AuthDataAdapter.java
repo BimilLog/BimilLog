@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
-import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;
@@ -21,10 +21,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import jaeik.growfarm.global.domain.SocialProvider;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>인증 데이터 어댑터</h2>
@@ -73,7 +71,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
             eventPublisher.publishEvent(new FcmTokenRegisteredEvent(user.getId(), fcmToken));
         }
 
-        return authCookieManager.generateJwtCookie(ClientDTO.of(user,
+        return authCookieManager.generateJwtCookie(UserDTO.of(user,
                 tokenRepository.save(token).getId(),
                 null));
     }
@@ -103,7 +101,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
         }
 
         tempDataAdapter.removeTempData(uuid);
-        return authCookieManager.generateJwtCookie(ClientDTO.of(user,
+        return authCookieManager.generateJwtCookie(UserDTO.of(user,
                 tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
                 null));
     }

@@ -25,4 +25,16 @@ public interface UserPort {
     
     // Setting 조회 기능 추가
     Optional<Setting> findSettingById(Long settingId);
+    
+    /**
+     * <h3>사용자 이름 목록을 순서대로 조회</h3>
+     * <p>소셜 ID 목록을 받아서 순서대로 사용자 이름을 반환합니다.</p>
+     * <p>카카오 친구 목록 매핑에 사용됩니다.</p>
+     *
+     * @param socialIds 소셜 ID 목록
+     * @return 사용자 이름 목록 (순서 유지)
+     * @author jaeik
+     * @version 2.0.0
+     */
+    java.util.List<String> findUserNamesInOrder(java.util.List<String> socialIds);
 }

@@ -8,8 +8,8 @@ import lombok.Builder;
  * <p>GET /api/auth/me API의 응답으로 사용되는 DTO입니다.</p>
  * <p>클라이언트에게 노출되어도 안전한 사용자 정보만을 포함합니다.</p>
  *
- * @author BimilLog
- * @version 1.0.0
+ * @author jaeik
+ * @version 2.0.0
  */
 @Builder
 public record UserInfoResponseDTO(Long userId, Long settingId, String socialNickname, String thumbnailImage,
@@ -19,17 +19,19 @@ public record UserInfoResponseDTO(Long userId, Long settingId, String socialNick
      * <h3>ClientDTO에서 UserInfoResponseDTO로 변환</h3>
      * <p>내부용 DTO인 ClientDTO에서 클라이언트 응답용 DTO를 생성합니다.</p>
      *
-     * @param clientDTO 원본 ClientDTO 객체
+     * @param userDTO 원본 ClientDTO 객체
      * @return 변환된 UserInfoResponseDTO 객체
+     * @since 2.0.0
+     * @author jaeik
      */
-    public static UserInfoResponseDTO from(ClientDTO clientDTO) {
+    public static UserInfoResponseDTO from(UserDTO userDTO) {
         return UserInfoResponseDTO.builder()
-                .userId(clientDTO.getUserId())
-                .settingId(clientDTO.getSettingId())
-                .socialNickname(clientDTO.getSocialNickname())
-                .thumbnailImage(clientDTO.getThumbnailImage())
-                .userName(clientDTO.getUserName())
-                .role(clientDTO.getRole())
+                .userId(userDTO.getUserId())
+                .settingId(userDTO.getSettingId())
+                .socialNickname(userDTO.getSocialNickname())
+                .thumbnailImage(userDTO.getThumbnailImage())
+                .userName(userDTO.getUserName())
+                .role(userDTO.getRole())
                 .build();
     }
 }

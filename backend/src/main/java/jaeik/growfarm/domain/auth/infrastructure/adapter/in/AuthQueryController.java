@@ -38,7 +38,7 @@ public class AuthQueryController {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
 
-        UserInfoResponseDTO response = UserInfoResponseDTO.from(userDetails.getClientDTO());
+        UserInfoResponseDTO response = UserInfoResponseDTO.from(userDetails.getUserDTO());
         return ResponseEntity.ok(response);
     }
 

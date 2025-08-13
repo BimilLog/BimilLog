@@ -94,4 +94,14 @@ public class PostQueryService implements PostQueryUseCase {
     public java.util.Optional<Post> findById(Long postId) {
         return loadPostPort.findById(postId);
     }
+
+    @Override
+    public Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable) {
+        return loadPostPort.findPostsByUserId(userId, pageable);
+    }
+
+    @Override
+    public Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable) {
+        return loadPostPort.findLikedPostsByUserId(userId, pageable);
+    }
 }

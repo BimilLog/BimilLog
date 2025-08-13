@@ -3,8 +3,13 @@ package jaeik.growfarm.domain.user.infrastructure.adapter.in.web;
 import jaeik.growfarm.domain.user.application.port.in.SettingQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,5 +61,85 @@ public class UserQueryController {
     public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
         SettingDTO settingDTO = settingQueryUseCase.findBySettingId(userDetails.getSettingId());
         return ResponseEntity.ok(settingDTO);
+    }
+
+    /**
+     * <h3>사용자 작성 게시글 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param page        페이지 번호
+     * @param size        페이지 크기  
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 작성 게시글 목록 페이지
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/posts")
+    public ResponseEntity<Page<SimplePostResDTO>> getUserPosts(@RequestParam int page,
+                                                              @RequestParam int size,
+                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<SimplePostResDTO> postList = userQueryUseCase.getUserPosts(userDetails.getUserId(), pageable);
+        return ResponseEntity.ok(postList);
+    }
+
+    /**
+     * <h3>사용자 좋아요한 게시글 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 좋아요한 게시글 목록 페이지
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/likeposts")
+    public ResponseEntity<Page<SimplePostResDTO>> getUserLikedPosts(@RequestParam int page,
+                                                                   @RequestParam int size,
+                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<SimplePostResDTO> likedPosts = userQueryUseCase.getUserLikedPosts(userDetails.getUserId(), pageable);
+        return ResponseEntity.ok(likedPosts);
+    }
+
+    /**
+     * <h3>사용자 작성 댓글 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 작성 댓글 목록 페이지
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/comments")
+    public ResponseEntity<Page<SimpleCommentDTO>> getUserComments(@RequestParam int page,
+                                                                 @RequestParam int size,
+                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<SimpleCommentDTO> commentList = userQueryUseCase.getUserComments(userDetails.getUserId(), pageable);
+        return ResponseEntity.ok(commentList);
+    }
+
+    /**
+     * <h3>사용자 좋아요한 댓글 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자가 좋아요한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 좋아요한 댓글 목록 페이지
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/likecomments")
+    public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam int page,
+                                                                      @RequestParam int size,
+                                                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<SimpleCommentDTO> likedComments = userQueryUseCase.getUserLikedComments(userDetails.getUserId(), pageable);
+        return ResponseEntity.ok(likedComments);
     }
 }

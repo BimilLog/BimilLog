@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.auth;
 
 import jaeik.growfarm.global.domain.UserRole;
-import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.UserDTO;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,7 +26,7 @@ import java.util.List;
 @Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final ClientDTO clientDTO;
+    private final UserDTO userDTO;
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
@@ -38,11 +38,11 @@ public class CustomUserDetails implements UserDetails {
      * 
      * @since 2.0.0
      * @author Jaeik
-     * @param clientDTO 사용자 정보 DTO
+     * @param userDTO 사용자 정보 DTO
      */
-    public CustomUserDetails(ClientDTO clientDTO) {
-        this.clientDTO = clientDTO;
-        this.authorities = createAuthorities(clientDTO.getRole());
+    public CustomUserDetails(UserDTO userDTO) {
+        this.userDTO = userDTO;
+        this.authorities = createAuthorities(userDTO.getRole());
     }
 
     /**
@@ -75,7 +75,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 유저 ID
      */
     public Long getUserId() {
-        return clientDTO.getUserId();
+        return userDTO.getUserId();
     }
 
     /**
@@ -87,7 +87,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 토큰 ID
      */
     public Long getTokenId() {
-        return clientDTO.getTokenId();
+        return userDTO.getTokenId();
     }
 
     /**
@@ -100,7 +100,7 @@ public class CustomUserDetails implements UserDetails {
      * @return FCM 토큰 ID
      */
     public Long getFcmTokenId() {
-        return clientDTO.getFcmTokenId();
+        return userDTO.getFcmTokenId();
     }
 
     /**
@@ -113,7 +113,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 설정 ID
      */
     public Long getSettingId() {
-        return clientDTO.getSettingId();
+        return userDTO.getSettingId();
     }
 
     /**
@@ -127,7 +127,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return clientDTO.getUserName();
+        return userDTO.getUserName();
     }
 
     @Override

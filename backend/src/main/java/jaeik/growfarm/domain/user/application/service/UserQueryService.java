@@ -2,10 +2,16 @@
 package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.UserRepository;
+import jaeik.growfarm.dto.post.SimplePostResDTO;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.global.domain.SocialProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +30,8 @@ import java.util.Optional;
 public class UserQueryService implements UserQueryUseCase {
 
     private final UserRepository userRepository;
+    private final LoadPostPort loadPostPort;
+    private final LoadCommentPort loadCommentPort;
 
     /**
      * <h3>소셜 정보로 사용자 조회</h3>
@@ -66,5 +74,79 @@ public class UserQueryService implements UserQueryUseCase {
     @Override
     public boolean existsByUserName(String userName) {
         return userRepository.existsByUserName(userName);
+    }
+
+    /**
+     * <h3>닉네임으로 사용자 조회</h3>
+     * <p>닉네임을 사용하여 사용자를 조회합니다.</p>
+     *
+     * @param userName 사용자 닉네임
+     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
+     * @author jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Optional<User> findByUserName(String userName) {
+        return userRepository.findByUserName(userName);
+    }
+
+    /**
+     * <h3>사용자 작성 게시글 목록 조회</h3>
+     * <p>해당 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 작성한 게시글 목록 페이지
+     * @author jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable) {
+        return loadPostPort.findPostsByUserId(userId, pageable);
+    }
+
+    /**
+     * <h3>사용자 좋아요한 게시글 목록 조회</h3>
+     * <p>해당 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 좋아요한 게시글 목록 페이지
+     * @author jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable) {
+        return loadPostPort.findLikedPostsByUserId(userId, pageable);
+    }
+
+    /**
+     * <h3>사용자 작성 댓글 목록 조회</h3>
+     * <p>해당 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 작성한 댓글 목록 페이지
+     * @author jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
+        return loadCommentPort.findCommentsByUserId(userId, pageable);
+    }
+
+    /**
+     * <h3>사용자 좋아요한 댓글 목록 조회</h3>
+     * <p>해당 사용자가 좋아요한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return 좋아요한 댓글 목록 페이지
+     * @author jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
+        return loadCommentPort.findLikedCommentsByUserId(userId, pageable);
     }
 }

@@ -16,5 +16,4 @@ public interface TokenPort {
     Optional<Token> findById(Long id);
     Optional<Token> findByUser(User user);
     Token save(Token token);
-    void deleteAllByUserId(Long userId);
 }

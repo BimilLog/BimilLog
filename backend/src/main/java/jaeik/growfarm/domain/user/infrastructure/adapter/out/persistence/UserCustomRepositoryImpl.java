@@ -4,7 +4,6 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.user.ClientDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -31,13 +30,6 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
         return Optional.ofNullable(result);
     }
 
-    @Override
-    public ClientDTO findClientInfoById(Long id) {
-        // This method's placement is questionable as it needs data from other repositories.
-        // Returning null to satisfy the interface for now.
-        // A proper implementation would require injecting TokenRepository and FcmTokenRepository.
-        return null;
-    }
 
     @Override
     public List<String> findUserNamesInOrder(List<String> ids) {

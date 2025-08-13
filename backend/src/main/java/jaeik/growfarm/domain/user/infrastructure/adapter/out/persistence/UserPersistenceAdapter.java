@@ -81,4 +81,9 @@ public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, Load
     public Optional<Setting> findSettingById(Long settingId) {
         return settingRepository.findById(settingId);
     }
+
+    @Override
+    public java.util.List<String> findUserNamesInOrder(java.util.List<String> socialIds) {
+        return userRepository.findUserNamesInOrder(socialIds);
+    }
 }

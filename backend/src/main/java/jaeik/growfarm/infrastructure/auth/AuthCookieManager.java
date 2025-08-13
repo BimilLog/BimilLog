@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.auth;
 
-import jaeik.growfarm.dto.user.ClientDTO;
+import jaeik.growfarm.dto.user.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -51,13 +51,13 @@ public class AuthCookieManager {
      *
      * <p>Access 토큰과 Refresh 토큰이 담긴 쿠키 리스트를 생성한다</p>
      *
-     * @param clientDTO 클라이언트용 DTO
+     * @param userDTO 클라이언트용 DTO
      * @return 응답 쿠키 리스트
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<ResponseCookie> generateJwtCookie(ClientDTO clientDTO) {
-        return List.of(generateJwtAccessCookie(clientDTO), generateJwtRefreshCookie(clientDTO));
+    public List<ResponseCookie> generateJwtCookie(UserDTO userDTO) {
+        return List.of(generateJwtAccessCookie(userDTO), generateJwtRefreshCookie(userDTO));
     }
 
     /**
@@ -89,8 +89,8 @@ public class AuthCookieManager {
         return List.of(accessTokenCookie, refreshTokenCookie);
     }
 
-    public ResponseCookie generateJwtAccessCookie(ClientDTO clientDTO) {
-        String accessToken = jwtHandler.generateAccessToken(clientDTO);
+    public ResponseCookie generateJwtAccessCookie(UserDTO userDTO) {
+        String accessToken = jwtHandler.generateAccessToken(userDTO);
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
                 .path("/")
                 .maxAge(MAX_AGE)
@@ -100,8 +100,8 @@ public class AuthCookieManager {
                 .build();
     }
 
-    private ResponseCookie generateJwtRefreshCookie(ClientDTO clientDTO) {
-        String refreshToken = jwtHandler.generateRefreshToken(clientDTO);
+    private ResponseCookie generateJwtRefreshCookie(UserDTO userDTO) {
+        String refreshToken = jwtHandler.generateRefreshToken(userDTO);
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .path("/")
                 .maxAge(MAX_AGE * 720L)

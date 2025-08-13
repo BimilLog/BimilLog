@@ -36,8 +36,4 @@ public class TokenPersistenceAdapter implements TokenPort {
         return tokenRepository.save(token);
     }
 
-    @Override
-    public void deleteAllByUserId(Long userId) {
-        tokenRepository.deleteAllByUserId(userId);
-    }
 }
