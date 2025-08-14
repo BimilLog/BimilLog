@@ -1,14 +1,17 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.out.redis;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -25,12 +28,16 @@ import java.util.Map;
  * @version 2.0.0
  */
 @Component
+
 public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, PostCacheQueryPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
     private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
     private static final Duration FULL_POST_CACHE_TTL = Duration.ofDays(1);
+
+    private final JPAQueryFactory jpaQueryFactory;
+
 
 
 
@@ -42,8 +49,9 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
      * @author Jaeik
      * @since 2.0.0
      */
-    public RedisCacheCommandQueryAdapter(RedisTemplate<String, Object> redisTemplate) {
+    public RedisCacheCommandQueryAdapter(RedisTemplate<String, Object> redisTemplate, JPAQueryFactory jpaQueryFactory) {
         this.redisTemplate = redisTemplate;
+        this.jpaQueryFactory = jpaQueryFactory;
         this.cacheMetadataMap = new EnumMap<>(PostCacheFlag.class);
         cacheMetadataMap.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(30)));
         cacheMetadataMap.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofDays(1)));
@@ -111,19 +119,45 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
         return List.of();
     }
 
-    @Override
-    public List<SimplePostResDTO> findNoticePosts2() {
-        return List.of();
-    }
 
+    /**
+     * <h3>인기 플래그 적용</h3>
+     * <p>주어진 게시글 ID 목록에 특정 캐시 플래그를 적용합니다.</p>
+     *
+     * @param postIds       캐시 플래그를 적용할 게시글 ID 목록
+     * @param postCacheFlag 적용할 캐시 플래그
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
+    @Transactional
     public void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag) {
-
+        if (postIds == null || postIds.isEmpty()) {
+            return;
+        }
+        QPost post = QPost.post;
+        jpaQueryFactory.update(post)
+                .set(post.postCacheFlag, postCacheFlag)
+                .where(post.id.in(postIds))
+                .execute();
     }
 
+    /**
+     * <h3>인기 플래그 초기화</h3>
+     * <p>주어진 캐시 플래그에 해당하는 게시글들의 플래그를 초기화(null로 설정)합니다.</p>
+     *
+     * @param postCacheFlag 초기화할 캐시 플래그
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
+    @Transactional
     public void resetPopularFlag(PostCacheFlag postCacheFlag) {
-
+        QPost post = QPost.post;
+        jpaQueryFactory.update(post)
+                .set(post.postCacheFlag, (PostCacheFlag) null)
+                .where(post.postCacheFlag.eq(postCacheFlag))
+                .execute();
     }
 
     /**

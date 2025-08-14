@@ -3,11 +3,10 @@ package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
-import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.QPost;
-import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.dto.post.FullPostResDTO;
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * <h2>인기 게시글 영속성 어댑터</h2>
@@ -34,7 +32,6 @@ import java.util.stream.Collectors;
 public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPort {
 
     private final JPAQueryFactory jpaQueryFactory;
-    private final PostJpaRepository postJpaRepository;
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
@@ -47,7 +44,7 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
     @Override
     @Transactional(readOnly = true)
     public List<SimplePostResDTO> findRealtimePopularPosts() {
-        return findPopularPostsByDays(1, PostCacheFlag.REALTIME);
+        return findPopularPostsByDays(1);
     }
 
     /**
@@ -61,7 +58,7 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
     @Override
     @Transactional(readOnly = true)
     public List<SimplePostResDTO> findWeeklyPopularPosts() {
-        return findPopularPostsByDays(7, PostCacheFlag.WEEKLY);
+        return findPopularPostsByDays(7);
     }
 
     /**
@@ -127,13 +124,12 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
      * <h3>기간별 인기 게시글 조회</h3>
      * <p>주어진 기간(일) 내에 좋아요 수가 많은 게시글을 조회합니다. 결과는 5개로 제한됩니다.</p>
      *
-     * @param days            기간(일)
-     * @param postCacheFlag 캐시 플래그 (현재는 사용되지 않으나 파라미터로 존재)
+     * @param days 기간(일)
      * @return 인기 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    private List<SimplePostResDTO> findPopularPostsByDays(int days, PostCacheFlag postCacheFlag) {
+    private List<SimplePostResDTO> findPopularPostsByDays(int days) {
         QPost post = QPost.post;
         QPostLike postLike = QPostLike.postLike;
         
@@ -178,23 +174,7 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
                 .groupBy(post.id, user.id);
     }
     
-    /**
-     * <h3>인기 플래그 초기화</h3>
-     * <p>주어진 캐시 플래그에 해당하는 게시글들의 플래그를 초기화(null로 설정)합니다.</p>
-     *
-     * @param postCacheFlag 초기화할 캐시 플래그
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public void resetPopularFlag(PostCacheFlag postCacheFlag) {
-        QPost post = QPost.post;
-        jpaQueryFactory.update(post)
-                .set(post.postCacheFlag, (PostCacheFlag) null)
-                .where(post.postCacheFlag.eq(postCacheFlag))
-                .execute();
-    }
+
 
     @Override
     public List<SimplePostResDTO> getCachedPopularPosts(PostCacheFlag type) {
@@ -211,49 +191,6 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
         return false;
     }
 
-    /**
-     * <h3>인기 플래그 적용</h3>
-     * <p>주어진 게시글 ID 목록에 특정 캐시 플래그를 적용합니다.</p>
-     *
-     * @param postIds       캐시 플래그를 적용할 게시글 ID 목록
-     * @param postCacheFlag 적용할 캐시 플래그
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag) {
-        if (postIds == null || postIds.isEmpty()) {
-            return;
-        }
-        QPost post = QPost.post;
-        jpaQueryFactory.update(post)
-                .set(post.postCacheFlag, postCacheFlag)
-                .where(post.id.in(postIds))
-                .execute();
-    }
 
-    /**
-     * <h3>공지사항 게시글 목록 조회</h3>
-     * <p>모든 공지사항 게시글을 조회합니다.</p>
-     * <p>임시 구현: PostJpaRepository에 직접 쿼리 메서드를 추가하는 것이 더 효율적입니다.</p>
-     *
-     * @return 공지사항 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public List<SimplePostResDTO> findNoticePosts2() {
-        // 임시 구현: 실제로는 PostJpaRepository에 쿼리 메서드를 추가하는 것이 좋습니다.
-        return postJpaRepository.findAll().stream()
-                .filter(Post::isNotice)
-                .map(post -> SimplePostResDTO.builder()
-                        .id(post.getId())
-                        .title(post.getTitle())
-                        .userName(post.getUser() != null ? post.getUser().getUserName() : "익명")
-                        .createdAt(post.getCreatedAt())
-                        .views(post.getViews())
-                        .build())
-                .collect(Collectors.toList());
-    }
+
 }

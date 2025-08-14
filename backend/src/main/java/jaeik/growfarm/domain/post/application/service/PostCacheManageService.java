@@ -47,12 +47,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 30) // 30분마다
     @Transactional
     public void updateRealtimePopularPosts() {
-        postCacheQueryPort.resetPopularFlag(PostCacheFlag.REALTIME);
+        postCacheCommandPort.resetPopularFlag(PostCacheFlag.REALTIME);
         List<SimplePostResDTO> posts = postCacheQueryPort.findRealtimePopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.REALTIME, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            postCacheQueryPort.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
+            postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
         }
     }
 
@@ -67,12 +67,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        postCacheQueryPort.resetPopularFlag(PostCacheFlag.WEEKLY);
+        postCacheCommandPort.resetPopularFlag(PostCacheFlag.WEEKLY);
         List<SimplePostResDTO> posts = postCacheQueryPort.findWeeklyPopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.WEEKLY, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            postCacheQueryPort.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+            postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
@@ -99,12 +99,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        postCacheQueryPort.resetPopularFlag(PostCacheFlag.LEGEND);
+        postCacheCommandPort.resetPopularFlag(PostCacheFlag.LEGEND);
         List<SimplePostResDTO> posts = postCacheQueryPort.findLegendaryPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.LEGEND, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            postCacheQueryPort.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
+            postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(

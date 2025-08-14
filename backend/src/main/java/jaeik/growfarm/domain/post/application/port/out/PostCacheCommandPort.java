@@ -37,6 +37,27 @@ public interface PostCacheCommandPort {
     void deletePopularPostsCache(PostCacheFlag type);
 
     /**
+     * <h3>인기 플래그 적용</h3>
+     * <p>주어진 게시글 ID 목록에 특정 캐시 플래그를 적용합니다.</p>
+     *
+     * @param postIds       캐시 플래그를 적용할 게시글 ID 목록
+     * @param postCacheFlag 적용할 캐시 플래그
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag);
+
+    /**
+     * <h3>인기 플래그 초기화</h3>
+     * <p>특정 캐시 플래그에 해당하는 모든 게시글의 플래그를 초기화합니다.</p>
+     *
+     * @param postCacheFlag 초기화할 캐시 플래그
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void resetPopularFlag(PostCacheFlag postCacheFlag);
+
+    /**
      * <h3>전체 게시글 캐시</h3>
      * <p>FullPostResDTO 형태의 게시글 상세 정보를 캐시합니다.</p>
      *

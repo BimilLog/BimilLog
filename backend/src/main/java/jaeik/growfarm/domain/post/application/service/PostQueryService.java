@@ -132,7 +132,7 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public List<SimplePostResDTO> getNoticePosts() {
         if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            List<SimplePostResDTO> noticePosts = postCacheQueryPort.findNoticePosts2();
+            List<SimplePostResDTO> noticePosts = postCacheQueryPort.findNoticePosts();
             postCacheCommandPort.cachePosts(PostCacheFlag.NOTICE, noticePosts);
         }
         return postCacheQueryPort.getCachedPopularPosts(PostCacheFlag.NOTICE);
