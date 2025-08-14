@@ -4,6 +4,8 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.entity.QComment;
+import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
+import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
@@ -15,31 +17,47 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
- * <h2>게시글 QueryDSL Repository</h2>
- * <p>QueryDSL을 사용하여 게시글 데이터를 조회하는 Repository 클래스입니다.</p>
- * <p>다양한 검색 조건과 페이지네이션을 지원합니다.</p>
+ * <h2>게시글 쿼리 영속성 어댑터</h2>
+ * <p>게시글 조회와 관련된 데이터베이스 작업을 처리합니다.</p>
+ * <p>PostQueryPort 인터페이스를 구현하여 게시글 조회 기능을 제공합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Repository
 @RequiredArgsConstructor
-public class PostQueryDslRepository {
-
+public class PostQueryAdapter implements PostQueryPort {
     private final JPAQueryFactory jpaQueryFactory;
+    private final PostJpaRepository postJpaRepository;
 
     /**
-     * <h3>간단한 게시글 목록 조회</h3>
-     * <p>공지사항이 아닌 게시글 목록을 최신순으로 페이지네이션하여 조회합니다.</p>
+     * <h3>ID로 게시글 조회</h3>
+     * <p>주어진 ID를 사용하여 게시글을 조회합니다.</p>
+     *
+     * @param id 조회할 게시글 ID
+     * @return 조회된 게시글 (Optional)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Optional<Post> findById(Long id) {
+        return postJpaRepository.findById(id);
+    }
+
+    /**
+     * <h3>페이지별 게시글 조회</h3>
+     * <p>페이지 정보에 따라 게시글 목록을 조회합니다.</p>
      *
      * @param pageable 페이지 정보
      * @return 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<SimplePostResDTO> findSimplePost(Pageable pageable) {
+    @Override
+    public Page<SimplePostResDTO> findByPage(Pageable pageable) {
         QPost post = QPost.post;
         QUser user = QUser.user;
         QComment comment = QComment.comment;
@@ -78,17 +96,18 @@ public class PostQueryDslRepository {
     }
 
     /**
-     * <h3>게시글 검색</h3>
-     * <p>주어진 검색어와 유형에 따라 게시글을 검색하고 페이지네이션합니다.</p>
+     * <h3>검색을 통한 게시글 조회</h3>
+     * <p>검색 유형과 쿼리에 따라 게시글을 검색하고 페이지네이션합니다.</p>
      *
+     * @param type     검색 유형
      * @param query    검색어
-     * @param type     검색 유형 (예: title, writer 등)
      * @param pageable 페이지 정보
      * @return 검색된 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<SimplePostResDTO> searchPosts(String query, String type, Pageable pageable) {
+    @Override
+    public Page<SimplePostResDTO> findBySearch(String type, String query, Pageable pageable) {
         QPost post = QPost.post;
         QUser user = QUser.user;
         QComment comment = QComment.comment;
@@ -129,6 +148,8 @@ public class PostQueryDslRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
+
+
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>
      * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
@@ -139,6 +160,7 @@ public class PostQueryDslRepository {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable) {
         QPost post = QPost.post;
         QUser user = QUser.user;
@@ -187,6 +209,7 @@ public class PostQueryDslRepository {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
         QPost post = QPost.post;
         QUser user = QUser.user;
