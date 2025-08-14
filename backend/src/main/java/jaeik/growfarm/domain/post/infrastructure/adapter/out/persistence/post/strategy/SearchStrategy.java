@@ -26,14 +26,15 @@ public interface SearchStrategy {
     
     /**
      * <h3>전략 적용 가능 여부 확인</h3>
-     * <p>주어진 검색어에 대해 이 전략을 적용할 수 있는지 판단합니다.</p>
+     * <p>주어진 검색어와 검색 유형에 대해 이 전략을 적용할 수 있는지 판단합니다.</p>
      * 
      * @param query 검색어
+     * @param type 검색 유형 ("title", "writer", "title_content")
      * @return 적용 가능 여부
      * @author Jaeik
      * @since 1.0.0
      */
-    boolean canHandle(String query);
+    boolean canHandle(String query, String type);
     
     /**
      * <h3>전략 이름 반환</h3>

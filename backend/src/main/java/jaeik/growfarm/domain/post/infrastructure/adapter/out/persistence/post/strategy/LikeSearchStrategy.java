@@ -41,17 +41,36 @@ public class LikeSearchStrategy implements SearchStrategy {
     
     /**
      * <h3>처리 가능 여부 확인</h3>
-     * <p>짧은 검색어(1-3글자)에 대해서만 처리 가능합니다.</p>
+     * <p>짧은 검색어에 대해서만 처리 가능합니다.</p>
+     * <p>제목/내용: 1-2글자, 작성자: 1-3글자</p>
      * 
      * @param query 검색어
+     * @param type 검색 유형
      * @return 처리 가능 여부
      * @author Jaeik
      * @since 1.0.0
      */
     @Override
-    public boolean canHandle(String query) {
-        // 제목/내용은 2글자 이하, 작성자는 3글자 이하에서 LIKE 검색 사용
-        return query.length() <= 3;
+    public boolean canHandle(String query, String type) {
+        int threshold = getThreshold(type);
+        return query.length() < threshold;
+    }
+    
+    /**
+     * <h3>검색 유형별 임계값 반환</h3>
+     * <p>각 검색 유형에 따른 LIKE vs FullText 구분 임계값을 반환합니다.</p>
+     * 
+     * @param type 검색 유형
+     * @return 임계값 (이 값 미만이면 LIKE, 이상이면 FullText)
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private int getThreshold(String type) {
+        return switch (type) {
+            case "title", "title_content" -> 3;  // 1-2글자: LIKE, 3글자 이상: FullText
+            case "writer" -> 4;                  // 1-3글자: LIKE, 4글자 이상: FullText
+            default -> 3;
+        };
     }
     
     /**

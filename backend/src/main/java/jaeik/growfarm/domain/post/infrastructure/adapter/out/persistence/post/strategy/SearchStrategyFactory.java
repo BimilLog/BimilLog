@@ -60,6 +60,7 @@ public class SearchStrategyFactory {
     /**
      * <h3>검색 전략 선택</h3>
      * <p>검색어와 검색 유형에 따라 가장 적절한 전략을 선택합니다.</p>
+     * <p>각 전략의 canHandle() 메서드를 사용하여 적절한 전략을 선택합니다.</p>
      * 
      * @param query 검색어
      * @param type 검색 유형
@@ -68,12 +69,9 @@ public class SearchStrategyFactory {
      * @since 1.0.0
      */
     private SearchStrategy selectStrategy(String query, String type) {
-        // 검색 유형별 길이 기준 설정
-        int threshold = getStrategyThreshold(type);
-        
-        // 길이 기준에 따른 전략 선택
+        // 각 전략의 canHandle() 메서드를 사용하여 적절한 전략 선택
         return searchStrategies.stream()
-                .filter(strategy -> shouldUseStrategy(strategy, query, threshold))
+                .filter(strategy -> strategy.canHandle(query, type))
                 .findFirst()
                 .orElseGet(() -> {
                     log.warn("적절한 검색 전략을 찾을 수 없습니다. LikeSearchStrategy를 기본값으로 사용합니다.");
@@ -84,48 +82,11 @@ public class SearchStrategyFactory {
                 });
     }
     
-    /**
-     * <h3>전략 사용 여부 결정</h3>
-     * <p>주어진 전략이 현재 검색어와 임계값에 적합한지 판단합니다.</p>
-     * 
-     * @param strategy 검색 전략
-     * @param query 검색어
-     * @param threshold 임계값
-     * @return 전략 사용 적합성
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private boolean shouldUseStrategy(SearchStrategy strategy, String query, int threshold) {
-        // FullTextSearchStrategy: 임계값 이상의 긴 검색어
-        if (strategy instanceof FullTextSearchStrategy) {
-            return query.length() >= threshold;
-        }
-        
-        // LikeSearchStrategy: 임계값 미만의 짧은 검색어
-        if (strategy instanceof LikeSearchStrategy) {
-            return query.length() < threshold;
-        }
-        
-        // 기타 전략: 기본 canHandle 메서드 사용
-        return strategy.canHandle(query);
-    }
+    // shouldUseStrategy 메서드는 더 이상 필요하지 않음
+    // 각 전략의 canHandle(query, type) 메서드를 직접 사용
     
-    /**
-     * <h3>검색 유형별 전략 임계값 반환</h3>
-     * <p>각 검색 유형에 따라 LIKE 검색과 FullText 검색을 구분하는 임계값을 반환합니다.</p>
-     * 
-     * @param type 검색 유형
-     * @return 임계값 (이 값 이상이면 FullText, 미만이면 LIKE)
-     * @author Jaeik
-     * @since 1.0.0
-     */
-    private int getStrategyThreshold(String type) {
-        return switch (type) {
-            case "title", "title_content" -> 3;  // 원본: 1-2글자 LIKE, 3글자 이상 FullText
-            case "writer" -> 4;                  // 원본: 1-3글자 LIKE, 4글자 이상 FullText  
-            default -> 3;                        // 기본값: 3글자
-        };
-    }
+    // getStrategyThreshold 메서드는 더 이상 필요하지 않음
+    // 각 전략에서 자체적으로 임계값을 관리
     
     /**
      * <h3>기본 검색 조건 반환</h3>
