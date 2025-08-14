@@ -171,6 +171,6 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
                 .where(postLike.post.id.eq(postId))
                 .fetchOne() : 0L;
 
-        return FullPostResDTO.from(entity, false, (int) likeCount);
+        return FullPostResDTO.from(entity, likeCount, false);
     }
 }

@@ -2,6 +2,7 @@ package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.post;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
@@ -10,6 +11,7 @@ import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
+import jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.post.strategy.SearchStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -32,6 +34,12 @@ import java.util.Optional;
 public class PostQueryAdapter implements PostQueryPort {
     private final JPAQueryFactory jpaQueryFactory;
     private final PostJpaRepository postJpaRepository;
+    private final SearchStrategyFactory searchStrategyFactory;
+
+    private static final QPost POST = QPost.post;
+    private static final QUser USER = QUser.user;
+    private static final QComment COMMENT = QComment.comment;
+    private static final QPostLike POST_LIKE = QPostLike.postLike;
 
     /**
      * <h3>ID로 게시글 조회</h3>
@@ -58,41 +66,8 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<SimplePostResDTO> findByPage(Pageable pageable) {
-        QPost post = QPost.post;
-        QUser user = QUser.user;
-        QComment comment = QComment.comment;
-        QPostLike postLike = QPostLike.postLike;
-
-        List<SimplePostResDTO> content = jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        user.id,
-                        user.userName,
-                        comment.countDistinct().intValue(),
-                        postLike.countDistinct().intValue()))
-                .from(post)
-                .leftJoin(post.user, user)
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .where(post.isNotice.isFalse())
-                .groupBy(post.id, user.id)
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        Long total = jpaQueryFactory
-                .select(post.count())
-                .from(post)
-                .where(post.isNotice.isFalse())
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+        BooleanExpression condition = POST.isNotice.isFalse();
+        return findPostsWithCondition(condition, pageable, false);
     }
 
     /**
@@ -108,44 +83,8 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<SimplePostResDTO> findBySearch(String type, String query, Pageable pageable) {
-        QPost post = QPost.post;
-        QUser user = QUser.user;
-        QComment comment = QComment.comment;
-        QPostLike postLike = QPostLike.postLike;
-
-        BooleanExpression searchCondition = getSearchCondition(post, user, type, query);
-
-        List<SimplePostResDTO> content = jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        user.id,
-                        user.userName,
-                        comment.countDistinct().intValue(),
-                        postLike.countDistinct().intValue()))
-                .from(post)
-                .leftJoin(post.user, user)
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .where(searchCondition)
-                .groupBy(post.id, user.id)
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        Long total = jpaQueryFactory
-                .select(post.count())
-                .from(post)
-                .leftJoin(post.user, user)
-                .where(searchCondition)
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+        BooleanExpression condition = getSearchCondition(type, query);
+        return findPostsWithCondition(condition, pageable, true);
     }
 
 
@@ -162,41 +101,8 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable) {
-        QPost post = QPost.post;
-        QUser user = QUser.user;
-        QComment comment = QComment.comment;
-        QPostLike postLike = QPostLike.postLike;
-
-        List<SimplePostResDTO> content = jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        user.id,
-                        user.userName,
-                        comment.countDistinct().intValue(),
-                        postLike.countDistinct().intValue()))
-                .from(post)
-                .leftJoin(post.user, user)
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .where(user.id.eq(userId))
-                .groupBy(post.id, user.id)
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        Long total = jpaQueryFactory
-                .select(post.count())
-                .from(post)
-                .where(post.user.id.eq(userId))
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+        BooleanExpression condition = USER.id.eq(userId);
+        return findPostsWithCondition(condition, pageable, false);
     }
 
     /**
@@ -211,61 +117,115 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
-        QPost post = QPost.post;
-        QUser user = QUser.user;
-        QComment comment = QComment.comment;
-        QPostLike postLike = QPostLike.postLike;
         QPostLike userPostLike = new QPostLike("userPostLike");
-
-        List<SimplePostResDTO> content = jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        user.id,
-                        user.userName,
-                        comment.countDistinct().intValue(),
-                        postLike.countDistinct().intValue()))
-                .from(post)
-                .leftJoin(post.user, user)
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
-                .groupBy(post.id, user.id)
-                .orderBy(post.createdAt.desc())
+        
+        List<SimplePostResDTO> content = buildBasePostQuery()
+                .join(userPostLike).on(POST.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
+                .groupBy(POST.id, USER.id)
+                .orderBy(POST.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         Long total = jpaQueryFactory
-                .select(post.countDistinct())
-                .from(post)
-                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
+                .select(POST.countDistinct())
+                .from(POST)
+                .join(userPostLike).on(POST.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**
-     * <h3>검색 조건 생성</h3>
-     * <p>주어진 검색 유형과 쿼리에 따라 QueryDSL BooleanExpression을 생성합니다.</p>
+     * <h3>공통 게시글 조회 메서드</h3>
+     * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
      *
-     * @param post  QPost 객체
-     * @param user  QUser 객체
+     * @param condition       WHERE 조건
+     * @param pageable       페이지 정보
+     * @param isSearchQuery  검색 쿼리 여부 (count 쿼리에서 JOIN 포함 여부 결정)
+     * @return 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Page<SimplePostResDTO> findPostsWithCondition(BooleanExpression condition, Pageable pageable, boolean isSearchQuery) {
+        List<SimplePostResDTO> content = buildBasePostQuery()
+                .where(condition)
+                .groupBy(POST.id, USER.id)
+                .orderBy(POST.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = buildCountQuery(condition, isSearchQuery);
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * <h3>기본 게시글 쿼리 빌더</h3>
+     * <p>공통으로 사용되는 SELECT, JOIN 구조를 생성합니다.</p>
+     *
+     * @return JPAQuery<SimplePostResDTO>
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private JPAQuery<SimplePostResDTO> buildBasePostQuery() {
+        return jpaQueryFactory
+                .select(Projections.constructor(SimplePostResDTO.class,
+                        POST.id,
+                        POST.title,
+                        POST.views.coalesce(0),
+                        POST.isNotice,
+                        POST.postCacheFlag,
+                        POST.createdAt,
+                        USER.id,
+                        USER.userName,
+                        COMMENT.countDistinct().intValue(),
+                        POST_LIKE.countDistinct().intValue()))
+                .from(POST)
+                .leftJoin(POST.user, USER)
+                .leftJoin(COMMENT).on(POST.id.eq(COMMENT.post.id))
+                .leftJoin(POST_LIKE).on(POST.id.eq(POST_LIKE.post.id));
+    }
+
+    /**
+     * <h3>개수 조회 쿼리 빌더</h3>
+     * <p>주어진 조건에 따라 총 개수를 조회합니다.</p>
+     *
+     * @param condition      WHERE 조건
+     * @param isSearchQuery  검색 쿼리 여부 (JOIN 포함 여부 결정)
+     * @return 총 개수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Long buildCountQuery(BooleanExpression condition, boolean isSearchQuery) {
+        JPAQuery<Long> countQuery = jpaQueryFactory
+                .select(POST.count())
+                .from(POST);
+
+        if (isSearchQuery) {
+            countQuery.leftJoin(POST.user, USER);
+        }
+
+        return countQuery.where(condition).fetchOne();
+    }
+
+    /**
+     * <h3>검색 조건 생성</h3>
+     * <p>주어진 검색 유형과 쿼리에 따라 최적화된 검색 조건을 생성합니다.</p>
+     * <p>Strategy Pattern과 Factory Pattern을 사용하여 적절한 검색 전략을 선택합니다.</p>
+     *
      * @param type  검색 유형
      * @param query 검색어
      * @return 생성된 BooleanExpression
      * @author Jaeik
      * @since 2.0.0
      */
-    private BooleanExpression getSearchCondition(QPost post, QUser user, String type, String query) {
-        return switch (type) {
-            case "title" -> post.title.containsIgnoreCase(query);
-            case "writer" -> user.userName.containsIgnoreCase(query);
-            default -> post.title.containsIgnoreCase(query).or(post.content.containsIgnoreCase(query));
-        };
+    private BooleanExpression getSearchCondition(String type, String query) {
+        // SearchStrategyFactory를 통해 적절한 전략으로 검색 조건 생성
+        return searchStrategyFactory.createSearchCondition(type, query);
     }
+
+    // 기존 검색 메서드들은 Strategy Pattern으로 대체되어 제거됨
+    // 모든 검색 로직은 SearchStrategyFactory를 통해 처리됨
 }

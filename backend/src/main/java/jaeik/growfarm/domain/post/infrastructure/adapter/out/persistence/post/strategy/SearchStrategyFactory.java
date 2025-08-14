@@ -1,0 +1,142 @@
+package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.post.strategy;
+
+import com.querydsl.core.types.dsl.BooleanExpression;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+/**
+ * <h2>검색 전략 팩토리</h2>
+ * <p>검색어와 검색 유형에 따라 적절한 검색 전략을 선택하는 팩토리 클래스입니다.</p>
+ * <p>Strategy Pattern과 Factory Pattern을 조합하여 검색 로직을 캡슐화합니다.</p>
+ * 
+ * @author Jaeik
+ * @version 1.0.0
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class SearchStrategyFactory {
+    
+    private final List<SearchStrategy> searchStrategies;
+    
+    /**
+     * <h3>검색 조건 생성</h3>
+     * <p>주어진 검색 유형과 쿼리에 대해 가장 적절한 전략을 선택하여 검색 조건을 생성합니다.</p>
+     * <p>전략 우선순위: FullTextSearchStrategy → LikeSearchStrategy → 기본값</p>
+     * 
+     * @param type 검색 유형 ("title", "writer", "title_content")
+     * @param query 검색어
+     * @return 생성된 BooleanExpression
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    public BooleanExpression createSearchCondition(String type, String query) {
+        // 입력값 검증
+        if (query == null || query.trim().isEmpty()) {
+            log.warn("빈 검색어가 입력되었습니다. 기본 조건을 반환합니다.");
+            return getDefaultCondition();
+        }
+        
+        String trimmedQuery = query.trim();
+        
+        // 적절한 전략 선택
+        SearchStrategy selectedStrategy = selectStrategy(trimmedQuery, type);
+        
+        // 선택된 전략으로 조건 생성
+        try {
+            BooleanExpression condition = selectedStrategy.createCondition(type, trimmedQuery);
+            log.debug("검색 전략 선택: {} (검색어: '{}', 타입: '{}')", 
+                    selectedStrategy.getStrategyName(), trimmedQuery, type);
+            return condition;
+        } catch (Exception e) {
+            log.error("검색 조건 생성 중 오류 발생: {}", e.getMessage(), e);
+            return getDefaultCondition();
+        }
+    }
+    
+    /**
+     * <h3>검색 전략 선택</h3>
+     * <p>검색어와 검색 유형에 따라 가장 적절한 전략을 선택합니다.</p>
+     * 
+     * @param query 검색어
+     * @param type 검색 유형
+     * @return 선택된 검색 전략
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private SearchStrategy selectStrategy(String query, String type) {
+        // 검색 유형별 길이 기준 설정
+        int threshold = getStrategyThreshold(type);
+        
+        // 길이 기준에 따른 전략 선택
+        return searchStrategies.stream()
+                .filter(strategy -> shouldUseStrategy(strategy, query, threshold))
+                .findFirst()
+                .orElseGet(() -> {
+                    log.warn("적절한 검색 전략을 찾을 수 없습니다. LikeSearchStrategy를 기본값으로 사용합니다.");
+                    return searchStrategies.stream()
+                            .filter(strategy -> strategy instanceof LikeSearchStrategy)
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalStateException("LikeSearchStrategy를 찾을 수 없습니다."));
+                });
+    }
+    
+    /**
+     * <h3>전략 사용 여부 결정</h3>
+     * <p>주어진 전략이 현재 검색어와 임계값에 적합한지 판단합니다.</p>
+     * 
+     * @param strategy 검색 전략
+     * @param query 검색어
+     * @param threshold 임계값
+     * @return 전략 사용 적합성
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private boolean shouldUseStrategy(SearchStrategy strategy, String query, int threshold) {
+        // FullTextSearchStrategy: 임계값 이상의 긴 검색어
+        if (strategy instanceof FullTextSearchStrategy) {
+            return query.length() >= threshold;
+        }
+        
+        // LikeSearchStrategy: 임계값 미만의 짧은 검색어
+        if (strategy instanceof LikeSearchStrategy) {
+            return query.length() < threshold;
+        }
+        
+        // 기타 전략: 기본 canHandle 메서드 사용
+        return strategy.canHandle(query);
+    }
+    
+    /**
+     * <h3>검색 유형별 전략 임계값 반환</h3>
+     * <p>각 검색 유형에 따라 LIKE 검색과 FullText 검색을 구분하는 임계값을 반환합니다.</p>
+     * 
+     * @param type 검색 유형
+     * @return 임계값 (이 값 이상이면 FullText, 미만이면 LIKE)
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private int getStrategyThreshold(String type) {
+        return switch (type) {
+            case "title", "title_content" -> 3;  // 원본: 1-2글자 LIKE, 3글자 이상 FullText
+            case "writer" -> 4;                  // 원본: 1-3글자 LIKE, 4글자 이상 FullText  
+            default -> 3;                        // 기본값: 3글자
+        };
+    }
+    
+    /**
+     * <h3>기본 검색 조건 반환</h3>
+     * <p>오류 상황에서 사용할 기본 검색 조건을 반환합니다.</p>
+     * 
+     * @return 기본 BooleanExpression (항상 true)
+     * @author Jaeik
+     * @since 1.0.0
+     */
+    private BooleanExpression getDefaultCondition() {
+        // 모든 게시글을 반환하는 기본 조건 (실제로는 추가적인 필터링이 적용됨)
+        return null; // QueryDSL에서 null은 조건 없음을 의미
+    }
+}
