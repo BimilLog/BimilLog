@@ -26,7 +26,6 @@ public interface PostCacheQueryPort {
      */
     List<SimplePostResDTO> getCachedPostList(PostCacheFlag type);
 
-    // TODO : 현재 캐시글 상세 조회는 사용되지않으며 모든 글 상세 조회는 DB를 통하고 있음. 상세 조회시에 캐시에 있는 글은 캐시에서 조회하는 로직 필요
     /**
      * <h3>캐시글 상세 조회</h3>
      * <p>지정된 게시글 ID의 캐시된 전체 게시글 상세 정보를 조회합니다.</p>

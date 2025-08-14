@@ -3,10 +3,12 @@ package jaeik.growfarm.dto.post;
 import jaeik.growfarm.domain.post.entity.Post;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 @Getter
+@Setter
 public class FullPostResDTO {
     private final Long id;
     private final Long userId;
@@ -17,7 +19,7 @@ public class FullPostResDTO {
     private final int likes;
     private final boolean isNotice;
     private final Instant createdAt;
-    private final boolean isLiked;
+    private boolean isLiked;
 
     @Builder
     public FullPostResDTO(Long id, Long userId, String userName, String title, String content,

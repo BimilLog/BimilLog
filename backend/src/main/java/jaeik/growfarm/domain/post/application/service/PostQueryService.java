@@ -32,11 +32,10 @@ import java.util.List;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PostQueryService implements PostQueryUseCase {
-
     private final PostQueryPort postQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final LoadUserPort loadUserPort;
-    private final PostCacheManageService postCacheManageService;
+    private final PostCacheSyncService postCacheSyncService;
     private final PostAssembler postAssembler;
     private final PostCacheQueryPort postCacheQueryPort;
 
@@ -56,8 +55,39 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
+     * <h3>인기글 여부 확인</h3>
+     * <p>주어진 게시글 ID가 현재 캐시된 인기글(실시간, 주간, 전설, 공지)에 포함되어 있는지 확인합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return 인기글 여부 (true: 인기글, false: 일반글)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private boolean isPopularPost(Long postId) {
+        // 모든 인기글 타입에 대해 확인
+        for (PostCacheFlag flag : new PostCacheFlag[]{
+                PostCacheFlag.REALTIME, 
+                PostCacheFlag.WEEKLY, 
+                PostCacheFlag.LEGEND, 
+                PostCacheFlag.NOTICE
+        }) {
+            // 해당 타입의 캐시가 있는지 확인
+            if (postCacheQueryPort.hasPopularPostsCache(flag)) {
+                // 캐시된 인기글 목록 조회
+                List<SimplePostResDTO> cachedPosts = postCacheQueryPort.getCachedPostList(flag);
+                // 해당 ID의 게시글이 목록에 있는지 확인
+                if (cachedPosts.stream().anyMatch(post -> post.getId().equals(postId))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * <h3>게시글 상세 조회</h3>
      * <p>게시글 ID를 통해 게시글 상세 정보를 조회합니다.</p>
+     * <p>인기글인 경우 캐시에서 먼저 조회를 시도하고, 캐시에 없거나 일반 게시글인 경우 DB에서 조회합니다.</p>
      *
      * @param postId 게시글 ID
      * @param userId 현재 로그인한 사용자 ID (Optional, 추천 여부 확인용)
@@ -68,6 +98,23 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public FullPostResDTO getPost(Long postId, Long userId) {
+        // 1. 인기글인 경우 캐시에서 조회 시도
+        if (isPopularPost(postId)) {
+            FullPostResDTO cachedPost = postCacheQueryPort.getCachedPost(postId);
+            if (cachedPost != null) {
+                // 사용자의 좋아요 정보만 추가 확인 필요
+                if (userId != null) {
+                    Post post = postQueryPort.findById(postId)
+                            .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                    User user = loadUserPort.getReferenceById(userId);
+                    boolean isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
+                    cachedPost.setLiked(isLiked);
+                }
+                return cachedPost;
+            }
+        }
+
+        // 2. 캐시에 없거나 일반 게시글인 경우 DB에서 조회
         Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
@@ -111,9 +158,9 @@ public class PostQueryService implements PostQueryUseCase {
     public List<SimplePostResDTO> getPopularPosts(PostCacheFlag type) {
         if (!postCacheQueryPort.hasPopularPostsCache(type)) {
             switch (type) {
-                case REALTIME -> postCacheManageService.updateRealtimePopularPosts();
-                case WEEKLY -> postCacheManageService.updateWeeklyPopularPosts();
-                case LEGEND -> postCacheManageService.updateLegendaryPosts();
+                case REALTIME -> postCacheSyncService.updateRealtimePopularPosts();
+                case WEEKLY -> postCacheSyncService.updateWeeklyPopularPosts();
+                case LEGEND -> postCacheSyncService.updateLegendaryPosts();
                 default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
             }
         }

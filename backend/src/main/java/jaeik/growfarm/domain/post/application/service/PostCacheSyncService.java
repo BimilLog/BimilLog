@@ -1,8 +1,11 @@
 package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.infrastructure.adapter.out.redis.RedisCacheCommandQueryAdapter;
+import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
 import jaeik.growfarm.global.event.PostSetAsNoticeEvent;
@@ -20,7 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * <h2>게시글 캐시 관리 서비스</h2>
+ * <h2>게시글 캐시 동기화 서비스</h2>
  * <p>게시글 관련 캐시 데이터를 주기적으로 업데이트하고 이벤트에 따라 캐시를 무효화하는 서비스 클래스입니다.</p>
  * <p>주로 인기 게시글 및 공지사항 캐시를 관리합니다.</p>
  *
@@ -30,10 +33,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostCacheManageService {
+public class PostCacheSyncService {
 
     private final PostCacheCommandPort postCacheCommandPort;
     private final PostCacheSyncPort postCacheSyncPort;
+    private final PostCacheQueryPort postCacheQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -53,6 +57,14 @@ public class PostCacheManageService {
             postCacheCommandPort.cachePosts(PostCacheFlag.REALTIME, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
+            
+            // 인기글의 상세 정보도 함께 캐싱
+            for (SimplePostResDTO post : posts) {
+                FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
+                if (fullPost != null) {
+                    ((RedisCacheCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                }
+            }
         }
     }
 
@@ -73,6 +85,15 @@ public class PostCacheManageService {
             postCacheCommandPort.cachePosts(PostCacheFlag.WEEKLY, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+            
+            // 인기글의 상세 정보도 함께 캐싱
+            for (SimplePostResDTO post : posts) {
+                FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
+                if (fullPost != null) {
+                    ((RedisCacheCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                }
+            }
+            
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
@@ -105,6 +126,15 @@ public class PostCacheManageService {
             postCacheCommandPort.cachePosts(PostCacheFlag.LEGEND, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
+            
+            // 인기글의 상세 정보도 함께 캐싱
+            for (SimplePostResDTO post : posts) {
+                FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
+                if (fullPost != null) {
+                    ((RedisCacheCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                }
+            }
+            
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(

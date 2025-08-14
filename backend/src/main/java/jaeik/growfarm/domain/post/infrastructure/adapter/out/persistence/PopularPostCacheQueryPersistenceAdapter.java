@@ -7,6 +7,7 @@ import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
+import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
@@ -104,9 +105,8 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
     }
     
 
-    @Override
     public void cacheFullPost(FullPostResDTO post) {
-
+        // 사용하지 않음 - Redis 캐시 어댑터에서 구현
     }
 
     @Override
@@ -173,6 +173,34 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
     @Override
     public List<SimplePostResDTO> getCachedPostList(PostCacheFlag type) {
         return List.of();
+    }
+
+    @Override
+    public FullPostResDTO findPostDetail(Long postId) {
+        QPost post = QPost.post;
+        QUser user = QUser.user;
+        QPostLike postLike = QPostLike.postLike;
+        
+        Post entity = jpaQueryFactory
+                .selectFrom(post)
+                .leftJoin(post.user, user).fetchJoin()
+                .where(post.id.eq(postId))
+                .fetchOne();
+                
+        if (entity == null) {
+            return null;
+        }
+        
+        long likeCount = jpaQueryFactory
+                .select(postLike.count())
+                .from(postLike)
+                .where(postLike.post.id.eq(postId))
+                .fetchOne() != null ? jpaQueryFactory.select(postLike.count())
+                .from(postLike)
+                .where(postLike.post.id.eq(postId))
+                .fetchOne() : 0L;
+        
+        return FullPostResDTO.from(entity, false, (int) likeCount);
     }
 
     @Override

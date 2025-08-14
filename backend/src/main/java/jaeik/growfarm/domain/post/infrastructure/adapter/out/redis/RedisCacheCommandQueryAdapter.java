@@ -99,6 +99,25 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
         }
     }
 
+    /**
+     * <h3>전체 게시글 캐시</h3>
+     * <p>FullPostResDTO 형태의 게시글 상세 정보를 Redis에 캐시합니다.</p>
+     *
+     * @param post 캐시할 FullPostResDTO
+     * @throws CustomException Redis 쓰기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void cacheFullPost(FullPostResDTO post) {
+        String key = FULL_POST_CACHE_PREFIX + post.getId();
+        try {
+            redisTemplate.opsForValue().set(key, post, FULL_POST_CACHE_TTL);
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
+        }
+    }
+
 
 
 
@@ -183,24 +202,7 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
         }
     }
 
-    /**
-     * <h3>전체 게시글 캐시</h3>
-     * <p>FullPostResDTO 형태의 게시글 상세 정보를 Redis에 캐시합니다.</p>
-     *
-     * @param post 캐시할 FullPostResDTO
-     * @throws CustomException Redis 쓰기 오류 발생 시
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void cacheFullPost(FullPostResDTO post) {
-        String key = FULL_POST_CACHE_PREFIX + post.getId();
-        try {
-            redisTemplate.opsForValue().set(key, post, FULL_POST_CACHE_TTL);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
-        }
-    }
+
 
     /**
      * <h3>캐시글 조회</h3>
@@ -228,8 +230,8 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
     }
 
     /**
-     * <h3>캐시된 전체 게시글 조회</h3>
-     * <p>지정된 게시글 ID의 캐시된 전체 게시글 상세 정보를 Redis에서 조회합니다.</p>
+     * <h3>캐시글 상세 조회</h3>
+     * <p>지정된 게시글 ID의 캐시된 전체 게시글 상세 정보를 조회합니다.</p>
      *
      * @param postId 게시글 ID
      * @return 캐시된 FullPostResDTO. 캐시가 없으면 null 반환

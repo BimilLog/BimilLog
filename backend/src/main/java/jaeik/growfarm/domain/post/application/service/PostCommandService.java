@@ -4,6 +4,7 @@ import jaeik.growfarm.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.post.PostReqDTO;
@@ -36,6 +37,7 @@ public class PostCommandService implements PostCommandUseCase {
     private final PostQueryPort postQueryPort;
     private final LoadUserPort loadUserPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final PostCacheCommandPort postCacheCommandPort;
 
 
     /**
@@ -71,22 +73,16 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public void updatePost(Long userId, Long postId, PostReqDTO postReqDTO) {
-        // 1. 아웃포트를 통해 게시글 조회 (영속 상태의 엔티티를 가져옴)
         Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
-        // 2. 엔티티의 비즈니스 메서드를 호출하여 권한 검증
         if (!post.isAuthor(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        // 3. 엔티티의 메서드를 호출하여 상태 변경 (도메인 로직)
         post.updatePost(postReqDTO);
-
-        // 4. 명시적으로 아웃포트 호출 (영속화 의도 명확화)
-        // JPA의 더티 체킹 덕분에 save() 메서드가 없어도 작동하지만,
-        // 아키텍처 원칙에 따라 명시적으로 호출하는 것이 좋습니다.
         postCommandPort.save(post);
+        postCacheCommandPort.deleteFullPostCache(postId);
         
         log.info("Post updated: postId={}, userId={}, title={}", postId, userId, postReqDTO.getTitle());
     }
@@ -104,17 +100,15 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public void deletePost(Long userId, Long postId) {
-        // 1. 아웃포트를 통해 게시글 조회
         Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
-        // 2. 엔티티의 비즈니스 메서드를 호출하여 권한 검증
         if (!post.isAuthor(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        // 3. 아웃포트를 통해 게시글 삭제
         postCommandPort.delete(post);
+        postCacheCommandPort.deleteFullPostCache(postId);
         
         log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, post.getTitle());
         eventPublisher.publishEvent(new PostDeletedEvent(postId));

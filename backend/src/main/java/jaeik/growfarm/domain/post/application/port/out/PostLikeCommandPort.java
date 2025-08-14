@@ -5,14 +5,12 @@ import jaeik.growfarm.domain.post.entity.PostLike;
 import jaeik.growfarm.domain.user.entity.User;
 
 /**
- * <h2>PostLikeCommandPort</h2>
+ * <h2>추천 관리 포트</h2>
  * <p>
  *     게시글 추천 데이터의 생성/삭제를 담당하는 통합 Port 인터페이스입니다.
- *     ISP(Interface Segregation Principle)를 따라 Command 관련 기능만 포함합니다.
  * </p>
  *
  * @author jaeik
- * @since 2.0.0
  * @version 2.0.0
  */
 public interface PostLikeCommandPort {
@@ -23,6 +21,8 @@ public interface PostLikeCommandPort {
      *     게시글 추천 엔티티를 데이터베이스에 저장합니다.
      * </p>
      * @param postLike 저장할 게시글 추천 엔티티
+     * @since 2.0.0
+     * @author Jaeik
      */
     void save(PostLike postLike);
 
@@ -33,6 +33,8 @@ public interface PostLikeCommandPort {
      * </p>
      * @param user 사용자
      * @param post 게시글
+     * @since 2.0.0
+     * @author Jaeik
      */
     void deleteByUserAndPost(User user, Post post);
 

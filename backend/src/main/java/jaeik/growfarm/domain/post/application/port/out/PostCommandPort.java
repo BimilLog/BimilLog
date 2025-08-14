@@ -3,14 +3,12 @@ package jaeik.growfarm.domain.post.application.port.out;
 import jaeik.growfarm.domain.post.entity.Post;
 
 /**
- * <h2>PostCommandPort</h2>
+ * <h2>글 관리 포트</h2>
  * <p>
  *     게시글 데이터의 생성/수정/삭제를 담당하는 통합 Port 인터페이스입니다.
- *     ISP(Interface Segregation Principle)를 따라 Command 관련 기능만 포함합니다.
  * </p>
  *
  * @author jaeik
- * @since 2.0.0
  * @version 2.0.0
  */
 public interface PostCommandPort {
