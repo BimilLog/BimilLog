@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
@@ -30,7 +31,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPort, PostCacheCommandPort {
+public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPort, PostCacheCommandPort, PostCacheSyncPort {
 
     private final JPAQueryFactory jpaQueryFactory;
 

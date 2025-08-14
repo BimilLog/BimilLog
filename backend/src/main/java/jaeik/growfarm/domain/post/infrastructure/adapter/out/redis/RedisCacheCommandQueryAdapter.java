@@ -99,20 +99,6 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
         }
     }
 
-    @Override
-    public List<SimplePostResDTO> findRealtimePopularPosts() {
-        return List.of();
-    }
-
-    @Override
-    public List<SimplePostResDTO> findWeeklyPopularPosts() {
-        return List.of();
-    }
-
-    @Override
-    public List<SimplePostResDTO> findLegendaryPosts() {
-        return List.of();
-    }
 
 
 

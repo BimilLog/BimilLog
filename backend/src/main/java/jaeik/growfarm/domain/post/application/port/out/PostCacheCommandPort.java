@@ -58,37 +58,6 @@ public interface PostCacheCommandPort {
     void resetPopularFlag(PostCacheFlag postCacheFlag);
 
     /**
-     * <h3>실시간 인기 게시글 조회</h3>
-     * <p>실시간 인기 게시글 목록을 데이터베이스에서 조회하여 스케쥴러에 반환합니다.</p>
-     *
-     * @return 실시간 인기 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<SimplePostResDTO> findRealtimePopularPosts();
-
-    /**
-     * <h3>주간 인기 게시글 조회</h3>
-     * <p>주간 인기 게시글 목록을 데이터베이스에서 조회하여 스케쥴러에 반환합니다.</p>
-     *
-     * @return 주간 인기 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<SimplePostResDTO> findWeeklyPopularPosts();
-
-    /**
-     * <h3>전설의 게시글 조회</h3>
-     * <p>전설의 게시글 목록을 데이터베이스에서 조회하여 스케쥴러에 반환합니다.</p>
-     *
-     * @return 전설의 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<SimplePostResDTO> findLegendaryPosts();
-
-
-    /**
      * <h3>전체 게시글 캐시</h3>
      * <p>FullPostResDTO 형태의 게시글 상세 정보를 캐시합니다.</p>
      *

@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.application.service;
 
-import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostCacheManageService {
 
-    private final PostCacheQueryPort postCacheQueryPort;
     private final PostCacheCommandPort postCacheCommandPort;
+    private final PostCacheSyncPort postCacheSyncPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -48,7 +48,7 @@ public class PostCacheManageService {
     @Transactional
     public void updateRealtimePopularPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.REALTIME);
-        List<SimplePostResDTO> posts = postCacheCommandPort.findRealtimePopularPosts();
+        List<SimplePostResDTO> posts = postCacheSyncPort.findRealtimePopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.REALTIME, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
@@ -68,7 +68,7 @@ public class PostCacheManageService {
     @Transactional
     public void updateWeeklyPopularPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.WEEKLY);
-        List<SimplePostResDTO> posts = postCacheCommandPort.findWeeklyPopularPosts();
+        List<SimplePostResDTO> posts = postCacheSyncPort.findWeeklyPopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.WEEKLY, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
@@ -100,7 +100,7 @@ public class PostCacheManageService {
     @Transactional
     public void updateLegendaryPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.LEGEND);
-        List<SimplePostResDTO> posts = postCacheCommandPort.findLegendaryPosts();
+        List<SimplePostResDTO> posts = postCacheSyncPort.findLegendaryPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.LEGEND, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());

@@ -36,7 +36,6 @@ public class PostQueryService implements PostQueryUseCase {
     private final PostQueryPort postQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final LoadUserPort loadUserPort;
-    private final PostCacheCommandPort postCacheCommandPort;
     private final PostCacheManageService postCacheManageService;
     private final PostAssembler postAssembler;
     private final PostCacheQueryPort postCacheQueryPort;
@@ -131,9 +130,6 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public List<SimplePostResDTO> getNoticePosts() {
-        if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            postCacheManageService.updateNoticePosts();
-        }
         return postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
     }
 
