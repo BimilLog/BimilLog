@@ -13,7 +13,7 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface ManagePostCachePort {
+public interface PostCacheCommandPort {
 
     /**
      * <h3>게시글 목록 캐시</h3>

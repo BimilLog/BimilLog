@@ -16,7 +16,7 @@ import jaeik.growfarm.domain.post.entity.Post;
 public interface PostCommandPort {
 
     /**
-     * <h3>게시글 저장</h3>
+     * <h3>게시글 저장 / 수정</h3>
      * <p>
      *     게시글 엔티티를 데이터베이스에 저장합니다.
      *     신규 게시글 생성 및 기존 게시글 수정 모두 처리합니다.

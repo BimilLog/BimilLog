@@ -13,7 +13,7 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadPostCachePort {
+public interface PostCacheQueryPort {
 
     /**
      * <h3>캐시된 인기 게시글 조회</h3>

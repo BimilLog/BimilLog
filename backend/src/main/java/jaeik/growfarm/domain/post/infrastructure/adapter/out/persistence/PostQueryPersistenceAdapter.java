@@ -1,9 +1,9 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
+import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostLike;
 import jaeik.growfarm.domain.user.entity.User;
@@ -13,9 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 영속성 어댑터</h2>
@@ -226,27 +224,5 @@ public class PostQueryPersistenceAdapter implements
         return postQueryDslRepository.findLikedPostsByUserId(userId, pageable);
     }
 
-    /**
-     * <h3>공지사항 게시글 목록 조회</h3>
-     * <p>모든 공지사항 게시글을 조회합니다.</p>
-     * <p>임시 구현: PostJpaRepository에 직접 쿼리 메서드를 추가하는 것이 더 효율적입니다.</p>
-     *
-     * @return 공지사항 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public List<SimplePostResDTO> findNoticePosts() {
-        // 임시 구현: 실제로는 PostJpaRepository에 쿼리 메서드를 추가하는 것이 좋습니다.
-        return postJpaRepository.findAll().stream()
-                .filter(Post::isNotice)
-                .map(post -> SimplePostResDTO.builder()
-                        .id(post.getId())
-                        .title(post.getTitle())
-                        .userName(post.getUser() != null ? post.getUser().getUserName() : "익명")
-                        .createdAt(post.getCreatedAt())
-                        .views(post.getViews())
-                        .build())
-                .collect(Collectors.toList());
-    }
+
 }

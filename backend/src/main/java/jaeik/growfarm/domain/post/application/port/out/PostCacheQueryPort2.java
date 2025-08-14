@@ -12,7 +12,7 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadPopularPostPort {
+public interface PostCacheQueryPort2 {
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
@@ -53,6 +53,15 @@ public interface LoadPopularPostPort {
      * @since 2.0.0
      */
     List<SimplePostResDTO> findNoticePosts();
+
+    /**
+     * <h3>공지사항 목록 조회</h3>
+     * <p>
+     *     공지사항으로 지정된 게시글 목록을 조회합니다.
+     * </p>
+     * @return 공지사항 목록
+     */
+    List<SimplePostResDTO> findNoticePosts2();
 
     /**
      * <h3>인기 플래그 적용</h3>

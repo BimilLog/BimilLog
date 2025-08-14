@@ -3,7 +3,8 @@ package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.post.application.port.out.LoadPopularPostPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort2;
+import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.comment.entity.QComment;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <h2>인기 게시글 영속성 어댑터</h2>
@@ -28,9 +30,10 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class PopularPostPersistenceAdapter implements LoadPopularPostPort {
+public class PopularPostCacheQueryPersistenceAdapter2 implements PostCacheQueryPort2 {
 
     private final JPAQueryFactory jpaQueryFactory;
+    private final PostJpaRepository postJpaRepository;
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
@@ -212,5 +215,29 @@ public class PopularPostPersistenceAdapter implements LoadPopularPostPort {
                 .set(post.postCacheFlag, postCacheFlag)
                 .where(post.id.in(postIds))
                 .execute();
+    }
+
+    /**
+     * <h3>공지사항 게시글 목록 조회</h3>
+     * <p>모든 공지사항 게시글을 조회합니다.</p>
+     * <p>임시 구현: PostJpaRepository에 직접 쿼리 메서드를 추가하는 것이 더 효율적입니다.</p>
+     *
+     * @return 공지사항 게시글 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<SimplePostResDTO> findNoticePosts2() {
+        // 임시 구현: 실제로는 PostJpaRepository에 쿼리 메서드를 추가하는 것이 좋습니다.
+        return postJpaRepository.findAll().stream()
+                .filter(Post::isNotice)
+                .map(post -> SimplePostResDTO.builder()
+                        .id(post.getId())
+                        .title(post.getTitle())
+                        .userName(post.getUser() != null ? post.getUser().getUserName() : "익명")
+                        .createdAt(post.getCreatedAt())
+                        .views(post.getViews())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

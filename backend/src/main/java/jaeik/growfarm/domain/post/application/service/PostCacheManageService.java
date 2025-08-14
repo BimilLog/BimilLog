@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.application.service;
 
-import jaeik.growfarm.domain.post.application.port.out.LoadPopularPostPort;
-import jaeik.growfarm.domain.post.application.port.out.ManagePostCachePort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort2;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostCacheManageService {
 
-    private final LoadPopularPostPort loadPopularPostPort;
-    private final ManagePostCachePort managePostCachePort;
+    private final PostCacheQueryPort2 postCacheQueryPort2;
+    private final PostCacheCommandPort postCacheCommandPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -47,12 +47,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 30) // 30분마다
     @Transactional
     public void updateRealtimePopularPosts() {
-        loadPopularPostPort.resetPopularFlag(PostCacheFlag.REALTIME);
-        List<SimplePostResDTO> posts = loadPopularPostPort.findRealtimePopularPosts();
+        postCacheQueryPort2.resetPopularFlag(PostCacheFlag.REALTIME);
+        List<SimplePostResDTO> posts = postCacheQueryPort2.findRealtimePopularPosts();
         if (!posts.isEmpty()) {
-            managePostCachePort.cachePosts(PostCacheFlag.REALTIME, posts);
+            postCacheCommandPort.cachePosts(PostCacheFlag.REALTIME, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            loadPopularPostPort.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
+            postCacheQueryPort2.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
         }
     }
 
@@ -67,12 +67,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        loadPopularPostPort.resetPopularFlag(PostCacheFlag.WEEKLY);
-        List<SimplePostResDTO> posts = loadPopularPostPort.findWeeklyPopularPosts();
+        postCacheQueryPort2.resetPopularFlag(PostCacheFlag.WEEKLY);
+        List<SimplePostResDTO> posts = postCacheQueryPort2.findWeeklyPopularPosts();
         if (!posts.isEmpty()) {
-            managePostCachePort.cachePosts(PostCacheFlag.WEEKLY, posts);
+            postCacheCommandPort.cachePosts(PostCacheFlag.WEEKLY, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            loadPopularPostPort.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+            postCacheQueryPort2.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
@@ -99,12 +99,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        loadPopularPostPort.resetPopularFlag(PostCacheFlag.LEGEND);
-        List<SimplePostResDTO> posts = loadPopularPostPort.findLegendaryPosts();
+        postCacheQueryPort2.resetPopularFlag(PostCacheFlag.LEGEND);
+        List<SimplePostResDTO> posts = postCacheQueryPort2.findLegendaryPosts();
         if (!posts.isEmpty()) {
-            managePostCachePort.cachePosts(PostCacheFlag.LEGEND, posts);
+            postCacheCommandPort.cachePosts(PostCacheFlag.LEGEND, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            loadPopularPostPort.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
+            postCacheQueryPort2.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
@@ -128,7 +128,7 @@ public class PostCacheManageService {
      * @since 2.0.0
      */
     public void deleteNoticeCache() {
-        managePostCachePort.deletePopularPostsCache(PostCacheFlag.NOTICE);
+        postCacheCommandPort.deletePopularPostsCache(PostCacheFlag.NOTICE);
     }
 
     /**

@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.out.redis;
 
-import jaeik.growfarm.domain.post.application.port.out.LoadPostCachePort;
-import jaeik.growfarm.domain.post.application.port.out.ManagePostCachePort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -25,7 +25,7 @@ import java.util.Map;
  * @version 2.0.0
  */
 @Component
-public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort {
+public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, PostCacheQueryPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
@@ -40,7 +40,7 @@ public class RedisCacheAdapter implements ManagePostCachePort, LoadPostCachePort
      * @author Jaeik
      * @since 2.0.0
      */
-    public RedisCacheAdapter(RedisTemplate<String, Object> redisTemplate) {
+    public RedisCacheCommandQueryAdapter(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
         this.cacheMetadataMap = new EnumMap<>(PostCacheFlag.class);
         cacheMetadataMap.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(30)));

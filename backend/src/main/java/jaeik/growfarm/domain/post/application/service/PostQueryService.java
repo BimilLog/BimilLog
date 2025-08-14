@@ -36,10 +36,11 @@ public class PostQueryService implements PostQueryUseCase {
     private final PostQueryPort postQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final LoadUserPort loadUserPort;
-    private final LoadPostCachePort loadPostCachePort;
-    private final ManagePostCachePort managePostCachePort;
+    private final PostCacheQueryPort postCacheQueryPort;
+    private final PostCacheCommandPort postCacheCommandPort;
     private final PostCacheManageService postCacheManageService;
     private final PostAssembler postAssembler;
+    private final PostCacheQueryPort2 postCacheQueryPort2;
 
 
     /**
@@ -110,7 +111,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public List<SimplePostResDTO> getPopularPosts(PostCacheFlag type) {
-        if (!loadPostCachePort.hasPopularPostsCache(type)) {
+        if (!postCacheQueryPort.hasPopularPostsCache(type)) {
             switch (type) {
                 case REALTIME -> postCacheManageService.updateRealtimePopularPosts();
                 case WEEKLY -> postCacheManageService.updateWeeklyPopularPosts();
@@ -118,7 +119,7 @@ public class PostQueryService implements PostQueryUseCase {
                 default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
             }
         }
-        return loadPostCachePort.getCachedPopularPosts(type);
+        return postCacheQueryPort.getCachedPopularPosts(type);
     }
 
     /**
@@ -131,11 +132,11 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public List<SimplePostResDTO> getNoticePosts() {
-        if (!loadPostCachePort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            List<SimplePostResDTO> noticePosts = postQueryPort.findNoticePosts();
-            managePostCachePort.cachePosts(PostCacheFlag.NOTICE, noticePosts);
+        if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
+            List<SimplePostResDTO> noticePosts = postCacheQueryPort2.findNoticePosts2();
+            postCacheCommandPort.cachePosts(PostCacheFlag.NOTICE, noticePosts);
         }
-        return loadPostCachePort.getCachedPopularPosts(PostCacheFlag.NOTICE);
+        return postCacheQueryPort.getCachedPopularPosts(PostCacheFlag.NOTICE);
     }
 
     /**
