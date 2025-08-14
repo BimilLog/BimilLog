@@ -4,6 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.entity.QComment;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.QPost;
@@ -29,9 +30,29 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPort {
+public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPort, PostCacheCommandPort {
 
     private final JPAQueryFactory jpaQueryFactory;
+
+    @Override
+    public void cachePosts(PostCacheFlag type, List<SimplePostResDTO> cachePosts) {
+
+    }
+
+    @Override
+    public void deletePopularPostsCache(PostCacheFlag type) {
+
+    }
+
+    @Override
+    public void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag) {
+
+    }
+
+    @Override
+    public void resetPopularFlag(PostCacheFlag postCacheFlag) {
+
+    }
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
@@ -119,7 +140,17 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
                 .orderBy(post.createdAt.desc())
                 .fetch();
     }
-    
+
+    @Override
+    public void cacheFullPost(FullPostResDTO post) {
+
+    }
+
+    @Override
+    public void deleteFullPostCache(Long postId) {
+
+    }
+
     /**
      * <h3>기간별 인기 게시글 조회</h3>
      * <p>주어진 기간(일) 내에 좋아요 수가 많은 게시글을 조회합니다. 결과는 5개로 제한됩니다.</p>

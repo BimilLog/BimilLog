@@ -123,7 +123,7 @@ public class PostQueryService implements PostQueryUseCase {
 
     /**
      * <h3>공지사항 목록 조회</h3>
-     * <p>캐시된 공지사항 목록을 조회합니다. 캐시가 없는 경우 업데이트 후 조회합니다.</p>
+     * <p>캐시된 공지사항 목록을 조회합니다. 캐시가 없는 경우 PostCacheManageService를 통해 업데이트 후 조회합니다.</p>
      *
      * @return 공지사항 목록
      * @author Jaeik
@@ -132,8 +132,7 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public List<SimplePostResDTO> getNoticePosts() {
         if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            List<SimplePostResDTO> noticePosts = postCacheQueryPort.findNoticePosts();
-            postCacheCommandPort.cachePosts(PostCacheFlag.NOTICE, noticePosts);
+            postCacheManageService.updateNoticePosts();
         }
         return postCacheQueryPort.getCachedPopularPosts(PostCacheFlag.NOTICE);
     }

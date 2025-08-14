@@ -48,7 +48,7 @@ public class PostCacheManageService {
     @Transactional
     public void updateRealtimePopularPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.REALTIME);
-        List<SimplePostResDTO> posts = postCacheQueryPort.findRealtimePopularPosts();
+        List<SimplePostResDTO> posts = postCacheCommandPort.findRealtimePopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.REALTIME, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
@@ -68,7 +68,7 @@ public class PostCacheManageService {
     @Transactional
     public void updateWeeklyPopularPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.WEEKLY);
-        List<SimplePostResDTO> posts = postCacheQueryPort.findWeeklyPopularPosts();
+        List<SimplePostResDTO> posts = postCacheCommandPort.findWeeklyPopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.WEEKLY, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
@@ -100,7 +100,7 @@ public class PostCacheManageService {
     @Transactional
     public void updateLegendaryPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.LEGEND);
-        List<SimplePostResDTO> posts = postCacheQueryPort.findLegendaryPosts();
+        List<SimplePostResDTO> posts = postCacheCommandPort.findLegendaryPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.LEGEND, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
@@ -118,6 +118,21 @@ public class PostCacheManageService {
                 }
             });
         }
+    }
+
+    /**
+     * <h3>공지사항 게시글 업데이트</h3>
+     * <p>공지사항 게시글을 업데이트하고 캐시합니다.</p>
+     * <p>다른 인기 게시글과 동일한 패턴으로 처리합니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional
+    public void updateNoticePosts() {
+        List<SimplePostResDTO> posts = postCacheCommandPort.findNoticePosts();
+        postCacheCommandPort.cachePosts(PostCacheFlag.NOTICE, posts);
+        log.info("Notice posts cache updated. Count: {}", posts.size());
     }
 
     /**
