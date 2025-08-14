@@ -33,7 +33,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostQueryService implements PostQueryUseCase {
 
-    private final LoadPostPort loadPostPort;
+    private final PostQueryPort postQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final LoadUserPort loadUserPort;
     private final LoadPostCachePort loadPostCachePort;
@@ -53,7 +53,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public Page<SimplePostResDTO> getBoard(Pageable pageable) {
-        return loadPostPort.findByPage(pageable);
+        return postQueryPort.findByPage(pageable);
     }
 
     /**
@@ -69,7 +69,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public FullPostResDTO getPost(Long postId, Long userId) {
-        Post post = loadPostPort.findById(postId)
+        Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         long likeCount = postLikeQueryPort.countByPost(post);
@@ -95,7 +95,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public Page<SimplePostResDTO> searchPost(String type, String query, Pageable pageable) {
-        return loadPostPort.findBySearch(type, query, pageable);
+        return postQueryPort.findBySearch(type, query, pageable);
     }
 
     /**
@@ -132,7 +132,7 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public List<SimplePostResDTO> getNoticePosts() {
         if (!loadPostCachePort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            List<SimplePostResDTO> noticePosts = loadPostPort.findNoticePosts();
+            List<SimplePostResDTO> noticePosts = postQueryPort.findNoticePosts();
             managePostCachePort.cachePosts(PostCacheFlag.NOTICE, noticePosts);
         }
         return loadPostCachePort.getCachedPopularPosts(PostCacheFlag.NOTICE);
@@ -149,7 +149,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public java.util.Optional<Post> findById(Long postId) {
-        return loadPostPort.findById(postId);
+        return postQueryPort.findById(postId);
     }
 
     /**
@@ -164,7 +164,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable) {
-        return loadPostPort.findPostsByUserId(userId, pageable);
+        return postQueryPort.findPostsByUserId(userId, pageable);
     }
 
     /**
@@ -179,6 +179,6 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable) {
-        return loadPostPort.findLikedPostsByUserId(userId, pageable);
+        return postQueryPort.findLikedPostsByUserId(userId, pageable);
     }
 }

@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.in.PostNoticeUseCase;
-import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.global.event.PostSetAsNoticeEvent;
 import jaeik.growfarm.global.event.PostUnsetAsNoticeEvent;
@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PostNoticeService implements PostNoticeUseCase {
 
-    private final LoadPostPort loadPostPort;
+    private final PostQueryPort postQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -42,7 +42,7 @@ public class PostNoticeService implements PostNoticeUseCase {
      */
     @Override
     public void setPostAsNotice(Long postId) {
-        Post post = loadPostPort.findById(postId)
+        Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
         post.setAsNotice();
@@ -63,7 +63,7 @@ public class PostNoticeService implements PostNoticeUseCase {
      */
     @Override
     public void unsetPostAsNotice(Long postId) {
-        Post post = loadPostPort.findById(postId)
+        Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
         post.unsetAsNotice();

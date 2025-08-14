@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.admin.application.service.resolver;
 
-import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.user.entity.User;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PostReportedUserResolver implements ReportedUserResolver {
 
-    private final LoadPostPort loadPostPort;
+    private final PostQueryPort postQueryPort;
 
     /**
      * <h3>게시글 ID로 신고 대상 사용자 해결</h3>
@@ -34,7 +34,7 @@ public class PostReportedUserResolver implements ReportedUserResolver {
      */
     @Override
     public User resolve(Long targetId) {
-        Post post = loadPostPort.findById(targetId)
+        Post post = postQueryPort.findById(targetId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         return post.getUser();
     }

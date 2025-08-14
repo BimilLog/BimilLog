@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
  */
 @Repository
 @RequiredArgsConstructor
-public class PostPersistenceAdapter implements
-        PostCommandPort, LoadPostPort,
+public class PostQueryPersistenceAdapter implements
+        PostCommandPort, PostQueryPort,
         PostLikeCommandPort, PostLikeQueryPort {
 
     private final PostJpaRepository postJpaRepository;

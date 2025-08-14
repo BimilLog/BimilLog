@@ -1,7 +1,8 @@
 package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
-import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
+import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
@@ -28,7 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PostInteractionService implements PostInteractionUseCase {
 
-    private final LoadPostPort loadPostPort;
+    private final PostCommandPort postCommandPort;
+    private final PostQueryPort postQueryPort;
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final LoadUserPort loadUserPort;
@@ -47,7 +49,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     @Override
     public void likePost(Long userId, Long postId) {
         User user = loadUserPort.getReferenceById(userId);
-        Post post = loadPostPort.findById(postId)
+        Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (postLikeQueryPort.existsByUserAndPost(user, post)) {
@@ -72,10 +74,9 @@ public class PostInteractionService implements PostInteractionUseCase {
      */
     @Override
     public void incrementViewCount(Long postId) {
-        Post post = loadPostPort.findById(postId)
+        Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        post.incrementView();
+        postCommandPort.incrementView(post);
         log.debug("Post view count incremented: postId={}, newViewCount={}", postId, post.getViews());
-        // @Transactional에 의해 더티 체킹되므로 명시적으로 save할 필요 없음
     }
 }

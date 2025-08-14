@@ -34,4 +34,14 @@ public interface PostCommandPort {
      * @param post 삭제할 게시글 엔티티
      */
     void delete(Post post);
+
+    /**
+     * <h3>조회수 증가</h3>
+     * <p>
+     *     게시글의 조회수를 1 증가시키고 데이터베이스에 저장합니다.
+     *     Command 작업이므로 PostCommandPort에 위치합니다.
+     * </p>
+     * @param post 조회수를 증가시킬 게시글 엔티티
+     */
+    void incrementView(Post post);
 }

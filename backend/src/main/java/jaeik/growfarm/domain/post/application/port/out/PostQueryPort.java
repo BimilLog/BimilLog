@@ -16,7 +16,7 @@ import java.util.List;
  * @author jaeik
  * @version 1.0
  */
-public interface LoadPostPort {
+public interface PostQueryPort {
 
     /**
      * <h3>ID로 게시글 조회</h3>
@@ -82,13 +82,4 @@ public interface LoadPostPort {
      * @return 공지사항 목록
      */
     List<SimplePostResDTO> findNoticePosts();
-
-    /**
-     * <h3>조회수 증가</h3>
-     * <p>
-     *     게시글의 조회수를 1 증가시킵니다.
-     * </p>
-     * @param post 조회수를 증가시킬 게시글
-     */
-    void incrementView(Post post);
 }
