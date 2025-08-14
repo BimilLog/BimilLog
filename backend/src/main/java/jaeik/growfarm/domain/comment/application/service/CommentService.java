@@ -52,7 +52,6 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     private final ApplicationEventPublisher eventPublisher;
     private final LoadUserPort loadUserPort;
     private final LoadPostPort loadPostPort;
-    private final LoadCommentQueryPort loadCommentQueryPort;
     private final CommentDomainService commentDomainService;
 
 
@@ -62,7 +61,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     @Transactional(readOnly = true)
     public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
         List<Long> likedCommentIds = getUserLikedCommentIdsForPopular(postId, userDetails);
-        List<CommentDTO> popularComments = loadCommentQueryPort.findPopularComments(postId, likedCommentIds);
+        List<CommentDTO> popularComments = commentQueryPort.findPopularComments(postId, likedCommentIds);
 
         if (!popularComments.isEmpty()) {
             List<Long> commentIds = popularComments.stream().map(CommentDTO::getId).collect(Collectors.toList());
@@ -96,7 +95,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     public Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
         List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
-        Page<CommentDTO> commentPage = loadCommentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
+        Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
 
         if (commentPage.hasContent()) {
             List<Long> commentIds = commentPage.getContent().stream().map(CommentDTO::getId).collect(Collectors.toList());

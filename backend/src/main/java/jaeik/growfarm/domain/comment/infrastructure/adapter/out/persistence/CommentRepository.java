@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import jaeik.growfarm.domain.post.entity.Post;
 
 /**
  * <h2>댓글 레포지토리 인터페이스</h2>
@@ -22,16 +21,6 @@ import jaeik.growfarm.domain.post.entity.Post;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long>, CommentReadRepository {
 
-    /**
-     * <h3>게시글로 댓글 목록 조회</h3>
-     * <p>주어진 게시글에 속한 모든 댓글 목록을 조회합니다.</p>
-     *
-     * @param post 게시글 엔티티
-     * @return List<Comment> 댓글 엔티티 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<Comment> findByPost(Post post);
 
     /**
      * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>

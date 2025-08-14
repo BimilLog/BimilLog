@@ -34,8 +34,7 @@ import jaeik.growfarm.domain.post.entity.Post;
 public class CommentPersistenceAdapter implements
         CommentQueryPort, CommentCommandPort,
         CommentLikeQueryPort, CommentLikeCommandPort,
-        CommentClosureQueryPort, CommentClosureCommandPort,
-        LoadCommentQueryPort {
+        CommentClosureQueryPort, CommentClosureCommandPort {
 
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
@@ -130,19 +129,6 @@ public class CommentPersistenceAdapter implements
         return commentReadRepository.findLikedCommentsByUserId(userId, pageable);
     }
     
-    /**
-     * <h3>게시글로 댓글 목록 조회</h3>
-     * <p>주어진 게시글에 속한 모든 댓글 목록을 조회합니다.</p>
-     *
-     * @param post 게시글 엔티티
-     * @return List<Comment> 댓글 엔티티 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public List<Comment> findByPost(Post post) {
-        return commentRepository.findByPost(post);
-    }
 
     /**
      * <h3>사용자가 댓글에 추천를 눌렀는지 여부 확인</h3>
@@ -403,7 +389,7 @@ public class CommentPersistenceAdapter implements
         commentClosureRepository.delete(commentClosure);
     }
 
-    // ================== LoadCommentQueryPort ==================
+    // ================== LoadCommentQueryPort merged methods ==================
     /**
      * <h3>인기 댓글 목록 조회</h3>
      * <p>주어진 게시글 ID에 대한 인기 댓글 목록을 조회합니다.</p>
@@ -434,4 +420,5 @@ public class CommentPersistenceAdapter implements
     public Page<jaeik.growfarm.dto.comment.CommentDTO> findCommentsWithLatestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds) {
         return commentReadRepository.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
     }
+
 }
