@@ -135,6 +135,10 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
     /**
      * <h3>게시글 ID로 루트 댓글 수 조회</h3>
      * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
+     * 
+     * <p><strong>⚠️ TODO: 현재 미사용 구현 - Post 도메인과 연결 대기</strong></p>
+     * <p>이 메서드는 QueryDSL로 정확하게 구현되어 있으며, depth=0인 댓글(루트 댓글)만 카운트합니다.</p>
+     * <p>PostQueryService에서 호출하여 SimplePostResDTO.commentCount 설정 시 사용하면 됩니다.</p>
      *
      * @param postId 게시글 ID
      * @return Long 루트 댓글의 수
@@ -157,6 +161,11 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
     /**
      * <h3>여러 게시글 ID에 대한 댓글 수 조회</h3>
      * <p>주어진 여러 게시글 ID에 해당하는 각 게시글의 댓글 수를 조회합니다.</p>
+     * 
+     * <p><strong>⚠️ TODO: 현재 미사용 구현 - N+1 문제 해결을 위한 배치 조회</strong></p>
+     * <p>이 메서드는 QueryDSL로 정확하게 구현되어 있으며, 한 번의 쿼리로 여러 게시글의 댓글 수를 조회합니다.</p>
+     * <p><strong>주의:</strong> 현재는 depth 구분 없이 모든 댓글을 카운트합니다. 루트 댓글만 필요하면 수정 필요.</p>
+     * <p>PostQueryService 게시글 목록 조회 시 이 메서드를 사용하여 성능을 최적화할 수 있습니다.</p>
      *
      * @param postIds 게시글 ID 목록
      * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵

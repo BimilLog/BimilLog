@@ -280,6 +280,17 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     /**
      * <h3>게시글 삭제 이벤트 핸들러</h3>
      * <p>게시글 삭제 이벤트를 수신하여 해당 게시글의 모든 댓글을 삭제합니다.</p>
+     * 
+     * <p><strong>⚠️ TODO: 성능 최적화 - 클로저 배치 삭제 고려</strong></p>
+     * <p>현재는 commentCommandPort.deleteAllByPostId()만 사용하여 댓글을 삭제하고,</p>
+     * <p>클로저는 데이터베이스 CASCADE에 의존하고 있습니다.</p>
+     * <p><strong>개선 방법:</strong></p>
+     * <ul>
+     *   <li>1. 해당 게시글의 모든 댓글 ID 조회</li>
+     *   <li>2. CommentClosureCommandPort.deleteByDescendantIds()로 클로저 배치 삭제</li>
+     *   <li>3. commentCommandPort.deleteAllByPostId()로 댓글 삭제</li>
+     *   <li><strong>장점:</strong> DB CASCADE 의존성 제거, 명시적 삭제 순서 제어</li>
+     * </ul>
      *
      * @param event 게시글 삭제 이벤트
      * @author Jaeik
@@ -290,6 +301,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     @EventListener
     public void handlePostDeletedEvent(PostDeletedEvent event) {
         log.info("Post (ID: {}) deleted event received. Deleting all comments.", event.postId());
+        // TODO: 성능 최적화를 위해 클로저 배치 삭제 로직 추가 고려
         commentCommandPort.deleteAllByPostId(event.postId());
     }
 }
