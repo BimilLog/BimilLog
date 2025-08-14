@@ -1,10 +1,9 @@
 package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.in.PostCommandUseCase;
-import jaeik.growfarm.domain.post.application.port.out.DeletePostPort;
 import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
 import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
-import jaeik.growfarm.domain.post.application.port.out.SavePostPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.post.PostReqDTO;
@@ -22,7 +21,8 @@ import java.util.Objects;
 /**
  * <h2>게시글 기본 명령 서비스</h2>
  * <p>PostCommandUseCase의 구현체로, 게시글의 기본적인 CRUD 비즈니스 로직을 처리합니다.</p>
- * <p>게시글 생성, 수정, 삭제 등의 핵심 기능을 담당합니다.</p>
+ * <p>통합된 PostCommandPort를 사용하여 게시글 생성/수정/삭제 작업을 처리합니다.</p>
+ * <p>ISP(Interface Segregation Principle)를 준수하여 Command 책임만 분리했습니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -33,9 +33,8 @@ import java.util.Objects;
 @Slf4j
 public class PostCommandService implements PostCommandUseCase {
 
-    private final SavePostPort savePostPort;
+    private final PostCommandPort postCommandPort;
     private final LoadPostPort loadPostPort;
-    private final DeletePostPort deletePostPort;
     private final LoadUserPort loadUserPort;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -54,7 +53,7 @@ public class PostCommandService implements PostCommandUseCase {
     public Long writePost(Long userId, PostReqDTO postReqDTO) {
         User user = loadUserPort.getReferenceById(userId);
         Post newPost = Post.createPost(user, postReqDTO);
-        Post savedPost = savePostPort.save(newPost);
+        Post savedPost = postCommandPort.save(newPost);
         return savedPost.getId();
     }
 
@@ -75,7 +74,7 @@ public class PostCommandService implements PostCommandUseCase {
     public void updatePost(Long userId, Long postId, PostReqDTO postReqDTO) {
         Post post = validatePostOwner(userId, postId);
         post.updatePost(postReqDTO);
-        savePostPort.save(post);
+        postCommandPort.save(post);
         log.info("Post updated: postId={}, userId={}, title={}", postId, userId, postReqDTO.getTitle());
     }
 
@@ -93,7 +92,7 @@ public class PostCommandService implements PostCommandUseCase {
     @Override
     public void deletePost(Long userId, Long postId) {
         Post post = validatePostOwner(userId, postId);
-        deletePostPort.delete(post);
+        postCommandPort.delete(post);
         log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, post.getTitle());
         eventPublisher.publishEvent(new PostDeletedEvent(postId));
     }

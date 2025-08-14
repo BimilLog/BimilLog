@@ -1,10 +1,9 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.post.application.port.out.DeletePostPort;
 import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
-import jaeik.growfarm.domain.post.application.port.out.SavePostPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostLike;
 import jaeik.growfarm.domain.user.entity.User;
@@ -21,8 +20,10 @@ import java.util.stream.Collectors;
 /**
  * <h2>게시글 영속성 어댑터</h2>
  * <p>게시글 관련 데이터의 저장, 조회, 삭제, 좋아요 관리 등을 처리하는 영속성 어댑터입니다.</p>
- * <p>통합된 PostLike Port 인터페이스들을 구현하여 CQRS 패턴을 지원합니다:</p>
+ * <p>통합된 Port 인터페이스들을 구현하여 CQRS 패턴을 지원합니다:</p>
  * <ul>
+ *     <li>PostCommandPort: 게시글 생성/수정/삭제 관리</li>
+ *     <li>LoadPostPort: 게시글 조회 기능</li>
  *     <li>PostLikeCommandPort: 좋아요 생성/삭제 관리</li>
  *     <li>PostLikeQueryPort: 좋아요 존재여부/개수 조회</li>
  * </ul>
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 @Repository
 @RequiredArgsConstructor
 public class PostPersistenceAdapter implements
-        SavePostPort, LoadPostPort, DeletePostPort,
+        PostCommandPort, LoadPostPort,
         PostLikeCommandPort, PostLikeQueryPort {
 
     private final PostJpaRepository postJpaRepository;
