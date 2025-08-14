@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.post;
 
 import jaeik.growfarm.domain.post.entity.Post;
 import org.springframework.data.jpa.repository.JpaRepository;

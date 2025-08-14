@@ -4,7 +4,7 @@ import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.domain.post.infrastructure.adapter.out.redis.RedisCacheCommandQueryAdapter;
+import jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.redis.RedisCommandQueryAdapter;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
@@ -62,7 +62,7 @@ public class PostCacheSyncService {
             for (SimplePostResDTO post : posts) {
                 FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
-                    ((RedisCacheCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                    ((RedisCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
                 }
             }
         }
@@ -90,7 +90,7 @@ public class PostCacheSyncService {
             for (SimplePostResDTO post : posts) {
                 FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
-                    ((RedisCacheCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                    ((RedisCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
                 }
             }
             
@@ -131,7 +131,7 @@ public class PostCacheSyncService {
             for (SimplePostResDTO post : posts) {
                 FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
-                    ((RedisCacheCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                    ((RedisCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
                 }
             }
             

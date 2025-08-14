@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.post.infrastructure.adapter.out.redis;
+package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.redis;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
@@ -29,7 +29,7 @@ import java.util.Map;
  */
 @Component
 
-public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, PostCacheQueryPort {
+public class RedisCommandQueryAdapter implements PostCacheCommandPort, PostCacheQueryPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
@@ -49,7 +49,7 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
      * @author Jaeik
      * @since 2.0.0
      */
-    public RedisCacheCommandQueryAdapter(RedisTemplate<String, Object> redisTemplate, JPAQueryFactory jpaQueryFactory) {
+    public RedisCommandQueryAdapter(RedisTemplate<String, Object> redisTemplate, JPAQueryFactory jpaQueryFactory) {
         this.redisTemplate = redisTemplate;
         this.jpaQueryFactory = jpaQueryFactory;
         this.cacheMetadataMap = new EnumMap<>(PostCacheFlag.class);

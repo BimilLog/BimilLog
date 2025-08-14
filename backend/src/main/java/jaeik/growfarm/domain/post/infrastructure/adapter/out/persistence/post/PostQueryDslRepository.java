@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.post;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;

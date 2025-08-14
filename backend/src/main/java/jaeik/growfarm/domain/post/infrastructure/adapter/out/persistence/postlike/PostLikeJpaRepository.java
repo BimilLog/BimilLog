@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.postlike;
 
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostLike;

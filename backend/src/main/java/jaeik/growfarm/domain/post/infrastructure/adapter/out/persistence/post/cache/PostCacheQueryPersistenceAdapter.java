@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.post.cache;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -32,7 +32,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPort, PostCacheCommandPort, PostCacheSyncPort {
+public class PostCacheQueryPersistenceAdapter implements PostCacheQueryPort, PostCacheCommandPort, PostCacheSyncPort {
 
     private final JPAQueryFactory jpaQueryFactory;
 

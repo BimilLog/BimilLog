@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.post;
 
 import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeCommandPort;
@@ -6,6 +6,7 @@ import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostLike;
+import jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.postlike.PostLikeJpaRepository;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
