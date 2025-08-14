@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.handler;
 
-import jaeik.growfarm.domain.post.application.port.out.DeletePostLikePort;
+import jaeik.growfarm.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.growfarm.global.event.PostDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PostEventHandler {
 
-    private final DeletePostLikePort deletePostLikePort;
+    private final PostLikeCommandPort postLikeCommandPort;
 
     /**
      * <h3>게시글 삭제 이벤트 처리</h3>
@@ -40,7 +40,7 @@ public class PostEventHandler {
         log.info("Post deleted event received: postId={}", event.postId());
         
         try {
-            deletePostLikePort.deleteAllByPostId(event.postId());
+            postLikeCommandPort.deleteAllByPostId(event.postId());
             log.info("All post likes deleted successfully for postId={}", event.postId());
         } catch (Exception e) {
             log.error("Failed to delete post likes for postId={}", event.postId(), e);

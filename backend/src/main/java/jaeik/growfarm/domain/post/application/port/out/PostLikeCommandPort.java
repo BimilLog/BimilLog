@@ -1,18 +1,30 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
-import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostLike;
+import jaeik.growfarm.domain.user.entity.User;
 
 /**
- * <h2>DeletePostLikePort</h2>
+ * <h2>PostLikeCommandPort</h2>
  * <p>
- *     게시글 좋아요 데이터를 삭제하는 Port 인터페이스입니다.
+ *     게시글 좋아요 데이터의 생성/삭제를 담당하는 통합 Port 인터페이스입니다.
+ *     ISP(Interface Segregation Principle)를 따라 Command 관련 기능만 포함합니다.
  * </p>
  *
  * @author jaeik
- * @version 1.0
+ * @since 2.0.0
+ * @version 2.0.0
  */
-public interface DeletePostLikePort {
+public interface PostLikeCommandPort {
+
+    /**
+     * <h3>게시글 좋아요 저장</h3>
+     * <p>
+     *     게시글 좋아요 엔티티를 데이터베이스에 저장합니다.
+     * </p>
+     * @param postLike 저장할 게시글 좋아요 엔티티
+     */
+    void save(PostLike postLike);
 
     /**
      * <h3>게시글 좋아요 삭제</h3>
@@ -34,4 +46,3 @@ public interface DeletePostLikePort {
      */
     void deleteAllByPostId(Long postId);
 }
-

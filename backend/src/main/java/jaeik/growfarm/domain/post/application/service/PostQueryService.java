@@ -26,7 +26,7 @@ import java.util.List;
  * </p>
  *
  * @author jaeik
- * @version 1.0
+ * @version 2.0.0
  */
 @Service
 @Transactional(readOnly = true)
@@ -34,8 +34,7 @@ import java.util.List;
 public class PostQueryService implements PostQueryUseCase {
 
     private final LoadPostPort loadPostPort;
-    private final CountPostLikePort countPostLikePort;
-    private final ExistPostLikePort existPostLikePort;
+    private final PostLikeQueryPort postLikeQueryPort;
     private final LoadUserPort loadUserPort;
     private final LoadPostCachePort loadPostCachePort;
     private final ManagePostCachePort managePostCachePort;
@@ -73,11 +72,11 @@ public class PostQueryService implements PostQueryUseCase {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        long likeCount = countPostLikePort.countByPost(post);
+        long likeCount = postLikeQueryPort.countByPost(post);
         boolean isLiked = false;
         if (userId != null) {
             User user = loadUserPort.getReferenceById(userId);
-            isLiked = existPostLikePort.existsByUserAndPost(user, post);
+            isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
         }
 
         return postAssembler.toFullPostResDTO(post, likeCount, isLiked);

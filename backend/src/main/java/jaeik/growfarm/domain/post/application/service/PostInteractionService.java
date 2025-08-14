@@ -1,7 +1,10 @@
 package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
-import jaeik.growfarm.domain.post.application.port.out.*;
+import jaeik.growfarm.domain.post.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
+import jaeik.growfarm.domain.post.application.port.out.PostLikeCommandPort;
+import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostLike;
 import jaeik.growfarm.domain.user.entity.User;
@@ -26,9 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostInteractionService implements PostInteractionUseCase {
 
     private final LoadPostPort loadPostPort;
-    private final SavePostLikePort savePostLikePort;
-    private final DeletePostLikePort deletePostLikePort;
-    private final ExistPostLikePort existPostLikePort;
+    private final PostLikeCommandPort postLikeCommandPort;
+    private final PostLikeQueryPort postLikeQueryPort;
     private final LoadUserPort loadUserPort;
 
     /**
@@ -48,12 +50,12 @@ public class PostInteractionService implements PostInteractionUseCase {
         Post post = loadPostPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        if (existPostLikePort.existsByUserAndPost(user, post)) {
-            deletePostLikePort.deleteByUserAndPost(user, post);
+        if (postLikeQueryPort.existsByUserAndPost(user, post)) {
+            postLikeCommandPort.deleteByUserAndPost(user, post);
             log.debug("Post like removed: userId={}, postId={}", userId, postId);
         } else {
             PostLike postLike = PostLike.builder().user(user).post(post).build();
-            savePostLikePort.save(postLike);
+            postLikeCommandPort.save(postLike);
             log.debug("Post like added: userId={}, postId={}", userId, postId);
         }
     }
