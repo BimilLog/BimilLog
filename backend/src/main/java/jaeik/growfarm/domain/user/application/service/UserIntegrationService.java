@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.growfarm.domain.user.application.port.out.KakaoFriendPort;
-import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.Token;
@@ -30,7 +30,7 @@ import java.util.List;
 public class UserIntegrationService implements UserIntegrationUseCase {
 
     private final KakaoFriendPort kakaoFriendPort;
-    private final UserPort userPort;
+    private final UserQueryPort userQueryPort;
     private final TokenPort tokenPort;
 
     /**
@@ -48,7 +48,7 @@ public class UserIntegrationService implements UserIntegrationUseCase {
     @Override
     public KakaoFriendsResponse getKakaoFriendList(Long userId, Integer offset, Integer limit) {
         // 사용자 조회
-        User user = userPort.findById(userId)
+        User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 사용자의 토큰 조회
@@ -77,7 +77,7 @@ public class UserIntegrationService implements UserIntegrationUseCase {
             if (elements != null && !elements.isEmpty()) {
                 for (KakaoFriendDTO friend : elements) {
                     // 카카오 소셜 ID로 비밀로그 가입자 찾기
-                    userPort.findByProviderAndSocialId(SocialProvider.KAKAO, String.valueOf(friend.getId()))
+                    userQueryPort.findByProviderAndSocialId(SocialProvider.KAKAO, String.valueOf(friend.getId()))
                             .ifPresent(registeredUser -> friend.setUserName(registeredUser.getUserName()));
                 }
             }

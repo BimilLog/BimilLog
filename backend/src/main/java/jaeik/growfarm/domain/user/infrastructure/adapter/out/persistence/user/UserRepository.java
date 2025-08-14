@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.user;
 
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.global.domain.SocialProvider;

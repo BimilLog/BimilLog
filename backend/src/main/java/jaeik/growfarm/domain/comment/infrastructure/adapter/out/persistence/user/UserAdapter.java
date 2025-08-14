@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.comment.infrastructure.adapter.out.user;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.user;
 
 import jaeik.growfarm.domain.comment.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;

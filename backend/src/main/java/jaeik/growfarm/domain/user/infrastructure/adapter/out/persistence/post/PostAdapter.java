@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.infrastructure.adapter.out.post;
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.post;
 
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;

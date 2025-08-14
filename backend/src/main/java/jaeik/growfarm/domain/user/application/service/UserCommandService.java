@@ -2,7 +2,8 @@
 package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
+import jaeik.growfarm.domain.user.application.port.out.UserCommandPort;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.user.SettingDTO;
@@ -32,7 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserCommandService implements UserCommandUseCase {
 
-    private final UserPort userPort;
+    private final UserQueryPort userQueryPort;
+    private final UserCommandPort userCommandPort;
     private final ApplicationEventPublisher eventPublisher;
 /**
      * <h3>사용자 설정 수정</h3>
@@ -45,11 +47,11 @@ public class UserCommandService implements UserCommandUseCase {
      */
     @Override
     public void updateUserSettings(Long userId, SettingDTO settingDTO) {
-        User user = userPort.findById(userId)
+        User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Setting setting = user.getSetting();
         setting.updateSetting(settingDTO);
-        userPort.save(user);
+        userCommandPort.save(user);
     }
 
     /**
@@ -63,13 +65,13 @@ public class UserCommandService implements UserCommandUseCase {
      */
     @Override
     public void updateUserName(Long userId, String newUserName) {
-        if (userPort.existsByUserName(newUserName)) {
+        if (userQueryPort.existsByUserName(newUserName)) {
             throw new CustomException(ErrorCode.EXISTED_NICKNAME);
         }
-        User user = userPort.findById(userId)
+        User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.updateUserName(newUserName);
-        userPort.save(user);
+        userCommandPort.save(user);
     }
 
 
@@ -85,12 +87,12 @@ public class UserCommandService implements UserCommandUseCase {
     @Transactional
     @EventListener
     public void handleUserSignedUpEvent(UserSignedUpEvent event) {
-        User user = userPort.findById(event.userId())
+        User user = userQueryPort.findById(event.userId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
         Setting setting = Setting.createSetting();
         user.updateSetting(setting);
-        userPort.save(user);
+        userCommandPort.save(user);
         log.info("Initialized default settings for new user (ID: {})", event.userId());
     }
 }

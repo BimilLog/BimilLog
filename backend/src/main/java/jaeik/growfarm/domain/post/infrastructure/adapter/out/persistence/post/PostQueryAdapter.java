@@ -87,8 +87,6 @@ public class PostQueryAdapter implements PostQueryPort {
         return findPostsWithCondition(condition, pageable, true);
     }
 
-
-
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>
      * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
@@ -222,10 +220,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     private BooleanExpression getSearchCondition(String type, String query) {
-        // SearchStrategyFactory를 통해 적절한 전략으로 검색 조건 생성
         return searchStrategyFactory.createSearchCondition(type, query);
     }
-
-    // 기존 검색 메서드들은 Strategy Pattern으로 대체되어 제거됨
-    // 모든 검색 로직은 SearchStrategyFactory를 통해 처리됨
 }

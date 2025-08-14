@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.service;
 
-import jaeik.growfarm.domain.user.application.port.out.SaveBlacklistPort;
+import jaeik.growfarm.domain.user.application.port.out.UserCommandPort;
 import jaeik.growfarm.domain.user.entity.BlackList;
 import jaeik.growfarm.global.event.UserBannedEvent;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserService {
 
-    private final SaveBlacklistPort saveBlacklistPort;
+    private final UserCommandPort userCommandPort;
 
     /**
      * <h3>사용자 차단 이벤트 처리</h3>
@@ -39,6 +39,6 @@ public class UserService {
     public void handleUserBannedEvent(UserBannedEvent event) {
         log.info("사용자 차단 이벤트 처리: 소셜 ID={}, 제공자={}", event.getSocialId(), event.getProvider());
         BlackList blackList = BlackList.createBlackList(event.getSocialId(), event.getProvider());
-        saveBlacklistPort.save(blackList);
+        userCommandPort.save(blackList);
     }
 }

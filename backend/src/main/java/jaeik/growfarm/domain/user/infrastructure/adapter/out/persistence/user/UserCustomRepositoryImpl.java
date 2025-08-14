@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.user;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;

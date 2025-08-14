@@ -8,7 +8,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
  * <p>검색 쿼리의 특성에 따라 적절한 검색 전략을 선택할 수 있습니다.</p>
  * 
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 public interface SearchStrategy {
     
@@ -20,7 +20,7 @@ public interface SearchStrategy {
      * @param query 검색어
      * @return 생성된 BooleanExpression
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     BooleanExpression createCondition(String type, String query);
     
@@ -32,7 +32,7 @@ public interface SearchStrategy {
      * @param type 검색 유형 ("title", "writer", "title_content")
      * @return 적용 가능 여부
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     boolean canHandle(String query, String type);
     
@@ -42,7 +42,7 @@ public interface SearchStrategy {
      * 
      * @return 전략 이름
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     String getStrategyName();
 }

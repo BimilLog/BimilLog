@@ -4,7 +4,7 @@ package jaeik.growfarm.domain.user.application.service;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
-import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserQueryService implements UserQueryUseCase {
 
-    private final UserPort userPort;
+    private final UserQueryPort userQueryPort;
     private final LoadPostPort loadPostPort;
     private final LoadCommentPort loadCommentPort;
 
@@ -45,7 +45,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-        return userPort.findByProviderAndSocialId(provider, socialId);
+        return userQueryPort.findByProviderAndSocialId(provider, socialId);
     }
 
     /**
@@ -59,7 +59,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Optional<User> findById(Long id) {
-        return userPort.findById(id);
+        return userQueryPort.findById(id);
     }
 
     /**
@@ -73,7 +73,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public boolean existsByUserName(String userName) {
-        return userPort.existsByUserName(userName);
+        return userQueryPort.existsByUserName(userName);
     }
 
     /**
@@ -87,7 +87,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Optional<User> findByUserName(String userName) {
-        return userPort.findByUserName(userName);
+        return userQueryPort.findByUserName(userName);
     }
 
     /**
@@ -162,6 +162,6 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public User getReferenceById(Long userId) {
-        return userPort.getReferenceById(userId);
+        return userQueryPort.getReferenceById(userId);
     }
 }

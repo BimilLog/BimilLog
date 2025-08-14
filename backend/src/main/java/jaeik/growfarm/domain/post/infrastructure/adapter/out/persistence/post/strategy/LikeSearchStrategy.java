@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * <p>일반적으로 1-3글자의 짧은 검색어에 대해 사용됩니다.</p>
  * 
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Component
 public class LikeSearchStrategy implements SearchStrategy {
@@ -27,7 +27,7 @@ public class LikeSearchStrategy implements SearchStrategy {
      * @param query 검색어
      * @return LIKE 검색 조건
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public BooleanExpression createCondition(String type, String query) {
@@ -48,7 +48,7 @@ public class LikeSearchStrategy implements SearchStrategy {
      * @param type 검색 유형
      * @return 처리 가능 여부
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public boolean canHandle(String query, String type) {
@@ -63,7 +63,7 @@ public class LikeSearchStrategy implements SearchStrategy {
      * @param type 검색 유형
      * @return 임계값 (이 값 미만이면 LIKE, 이상이면 FullText)
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private int getThreshold(String type) {
         return switch (type) {
@@ -78,7 +78,7 @@ public class LikeSearchStrategy implements SearchStrategy {
      * 
      * @return 전략 이름
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public String getStrategyName() {
@@ -92,7 +92,7 @@ public class LikeSearchStrategy implements SearchStrategy {
      * @param query 검색어
      * @return 제목 LIKE 검색 조건
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private BooleanExpression createTitleLikeCondition(String query) {
         return POST.title.containsIgnoreCase(query);
@@ -105,7 +105,7 @@ public class LikeSearchStrategy implements SearchStrategy {
      * @param query 검색어
      * @return 제목+내용 LIKE 검색 조건
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private BooleanExpression createTitleContentLikeCondition(String query) {
         return POST.title.containsIgnoreCase(query)
@@ -120,7 +120,7 @@ public class LikeSearchStrategy implements SearchStrategy {
      * @param query 검색어
      * @return 작성자 LIKE 검색 조건
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private BooleanExpression createWriterLikeCondition(String query) {
         // LikeSearchStrategy는 1-3글자만 담당하므로 항상 contains 사용

@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.blacklist;
 
 import jaeik.growfarm.domain.user.entity.BlackList;
 import jaeik.growfarm.global.domain.SocialProvider;

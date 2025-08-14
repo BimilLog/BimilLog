@@ -38,7 +38,7 @@ public class FullTextSearchStrategy implements SearchStrategy {
      * @param query 검색어
      * @return 풀텍스트 검색 조건
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public BooleanExpression createCondition(String type, String query) {
@@ -59,7 +59,7 @@ public class FullTextSearchStrategy implements SearchStrategy {
      * @param type 검색 유형
      * @return 처리 가능 여부
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public boolean canHandle(String query, String type) {
@@ -74,7 +74,7 @@ public class FullTextSearchStrategy implements SearchStrategy {
      * @param type 검색 유형
      * @return 임계값 (이 값 이상이면 FullText, 미만이면 LIKE)
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private int getThreshold(String type) {
         return switch (type) {
@@ -89,7 +89,7 @@ public class FullTextSearchStrategy implements SearchStrategy {
      * 
      * @return 전략 이름
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     @Override
     public String getStrategyName() {
@@ -169,7 +169,7 @@ public class FullTextSearchStrategy implements SearchStrategy {
      * @param query 검색어
      * @return 작성자 검색 조건
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private BooleanExpression createWriterFullTextCondition(String query) {
         return USER.userName.startsWithIgnoreCase(query);

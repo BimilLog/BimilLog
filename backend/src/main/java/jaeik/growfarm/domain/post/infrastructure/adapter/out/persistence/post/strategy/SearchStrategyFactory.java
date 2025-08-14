@@ -13,7 +13,7 @@ import java.util.List;
  * <p>Strategy Pattern과 Factory Pattern을 조합하여 검색 로직을 캡슐화합니다.</p>
  * 
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Slf4j
 @Component
@@ -31,10 +31,9 @@ public class SearchStrategyFactory {
      * @param query 검색어
      * @return 생성된 BooleanExpression
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public BooleanExpression createSearchCondition(String type, String query) {
-        // 입력값 검증
         if (query == null || query.trim().isEmpty()) {
             log.warn("빈 검색어가 입력되었습니다. 기본 조건을 반환합니다.");
             return getDefaultCondition();
@@ -42,10 +41,8 @@ public class SearchStrategyFactory {
         
         String trimmedQuery = query.trim();
         
-        // 적절한 전략 선택
         SearchStrategy selectedStrategy = selectStrategy(trimmedQuery, type);
         
-        // 선택된 전략으로 조건 생성
         try {
             BooleanExpression condition = selectedStrategy.createCondition(type, trimmedQuery);
             log.debug("검색 전략 선택: {} (검색어: '{}', 타입: '{}')", 
@@ -66,10 +63,9 @@ public class SearchStrategyFactory {
      * @param type 검색 유형
      * @return 선택된 검색 전략
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private SearchStrategy selectStrategy(String query, String type) {
-        // 각 전략의 canHandle() 메서드를 사용하여 적절한 전략 선택
         return searchStrategies.stream()
                 .filter(strategy -> strategy.canHandle(query, type))
                 .findFirst()
@@ -81,23 +77,16 @@ public class SearchStrategyFactory {
                             .orElseThrow(() -> new IllegalStateException("LikeSearchStrategy를 찾을 수 없습니다."));
                 });
     }
-    
-    // shouldUseStrategy 메서드는 더 이상 필요하지 않음
-    // 각 전략의 canHandle(query, type) 메서드를 직접 사용
-    
-    // getStrategyThreshold 메서드는 더 이상 필요하지 않음
-    // 각 전략에서 자체적으로 임계값을 관리
-    
+
     /**
      * <h3>기본 검색 조건 반환</h3>
      * <p>오류 상황에서 사용할 기본 검색 조건을 반환합니다.</p>
      * 
      * @return 기본 BooleanExpression (항상 true)
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     private BooleanExpression getDefaultCondition() {
-        // 모든 게시글을 반환하는 기본 조건 (실제로는 추가적인 필터링이 적용됨)
-        return null; // QueryDSL에서 null은 조건 없음을 의미
+        return null;
     }
 }

@@ -1,11 +1,12 @@
 package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
-import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.TokenRepository;
+import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.token.TokenRepository;
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
+import jaeik.growfarm.domain.user.application.port.out.UserCommandPort;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.user.UserDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
@@ -38,7 +39,8 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     private final TokenRepository tokenRepository;
     private final AuthCookieManager authCookieManager;
     private final UserQueryUseCase userQueryUseCase;
-    private final UserPort userPort;
+    private final UserQueryPort userQueryPort;
+    private final UserCommandPort userCommandPort;
     private final EntityManager entityManager;
     private final TempDataAdapter tempDataAdapter;
     private final ApplicationEventPublisher eventPublisher;
@@ -92,7 +94,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
     @Override
     @Transactional
     public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) { // fcmToken 인자 추가
-        User user = userPort.save(User.createUser(userData, userName));
+        User user = userCommandPort.save(User.createUser(userData, userName));
         eventPublisher.publishEvent(new UserSignedUpEvent(user.getId()));
 
         // 신규 사용자 FCM 토큰 등록 이벤트 발행
@@ -137,7 +139,7 @@ public class AuthDataAdapter implements ManageAuthDataPort {
 
         tokenRepository.deleteAllByUserId(userId);
 
-        userPort.deleteById(userId);
+        userCommandPort.deleteById(userId);
     }
 
 }

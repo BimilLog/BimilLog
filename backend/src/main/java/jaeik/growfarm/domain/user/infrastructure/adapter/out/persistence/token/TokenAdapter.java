@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.token;
 
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.entity.Token;
@@ -17,7 +17,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class TokenPersistenceAdapter implements TokenPort {
+public class TokenAdapter implements TokenPort {
 
     private final TokenRepository tokenRepository;
 

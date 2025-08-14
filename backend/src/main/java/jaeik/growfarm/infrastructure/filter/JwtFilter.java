@@ -9,7 +9,7 @@ import jaeik.growfarm.infrastructure.auth.JwtHandler;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
-import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -39,7 +39,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final TokenPort tokenPort;
-    private final UserPort userPort;
+    private final UserQueryPort userQueryPort;
     private final JwtHandler jwtHandler;
     private final AuthCookieManager authCookieManager;
 
@@ -113,7 +113,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 if (Objects.equals(token.getId(), tokenId)) {
 
                     // 유저 정보 조회 (Setting 포함)
-                    User user = userPort.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
+                    User user = userQueryPort.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
                     UserDTO userDTO = UserDTO.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급

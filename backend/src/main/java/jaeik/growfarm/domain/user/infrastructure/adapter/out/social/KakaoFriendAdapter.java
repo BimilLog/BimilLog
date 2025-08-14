@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.infrastructure.adapter.out;
+package jaeik.growfarm.domain.user.infrastructure.adapter.out.social;
 
 import jaeik.growfarm.domain.auth.infrastructure.adapter.out.strategy.KakaoLoginStrategy;
 import jaeik.growfarm.domain.user.application.port.out.KakaoFriendPort;

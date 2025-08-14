@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.SettingQueryUseCase;
-import jaeik.growfarm.domain.user.application.port.out.UserPort;
+import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.dto.user.SettingDTO;
 import jaeik.growfarm.global.exception.CustomException;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class SettingQueryService implements SettingQueryUseCase {
 
-    private final UserPort userPort;
+    private final UserQueryPort userQueryPort;
 
     /**
      * <h3>설정 ID로 설정 조회</h3>
@@ -41,7 +41,7 @@ public class SettingQueryService implements SettingQueryUseCase {
     @Override
     public SettingDTO findBySettingId(Long settingId) {
 
-        Setting setting = userPort.findSettingById(settingId)
+        Setting setting = userQueryPort.findSettingById(settingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
 
         return new SettingDTO(setting);

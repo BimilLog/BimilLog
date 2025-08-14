@@ -20,7 +20,7 @@ import org.hibernate.annotations.OnDeleteAction;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @since 2.0.0
  */
 @Getter
 @Entity
