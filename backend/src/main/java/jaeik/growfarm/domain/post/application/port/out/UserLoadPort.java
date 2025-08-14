@@ -9,7 +9,7 @@ import jaeik.growfarm.domain.user.entity.User;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadUserPort {
+public interface UserLoadPort {
 
     /**
      * <h3>ID로 사용자 프록시 조회</h3>

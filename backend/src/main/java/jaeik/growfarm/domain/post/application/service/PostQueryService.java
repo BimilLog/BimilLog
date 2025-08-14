@@ -34,7 +34,7 @@ import java.util.List;
 public class PostQueryService implements PostQueryUseCase {
     private final PostQueryPort postQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
-    private final LoadUserPort loadUserPort;
+    private final UserLoadPort userLoadPort;
     private final PostCacheSyncService postCacheSyncService;
     private final PostAssembler postAssembler;
     private final PostCacheQueryPort postCacheQueryPort;
@@ -106,7 +106,7 @@ public class PostQueryService implements PostQueryUseCase {
                 if (userId != null) {
                     Post post = postQueryPort.findById(postId)
                             .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-                    User user = loadUserPort.getReferenceById(userId);
+                    User user = userLoadPort.getReferenceById(userId);
                     boolean isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
                     cachedPost.setLiked(isLiked);
                 }
@@ -121,7 +121,7 @@ public class PostQueryService implements PostQueryUseCase {
         long likeCount = postLikeQueryPort.countByPost(post);
         boolean isLiked = false;
         if (userId != null) {
-            User user = loadUserPort.getReferenceById(userId);
+            User user = userLoadPort.getReferenceById(userId);
             isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
         }
 

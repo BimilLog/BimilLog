@@ -1,10 +1,8 @@
 package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
-import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.redis.RedisCommandQueryAdapter;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import jaeik.growfarm.global.event.PostFeaturedEvent;
@@ -37,7 +35,6 @@ public class PostCacheSyncService {
 
     private final PostCacheCommandPort postCacheCommandPort;
     private final PostCacheSyncPort postCacheSyncPort;
-    private final PostCacheQueryPort postCacheQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -62,7 +59,7 @@ public class PostCacheSyncService {
             for (SimplePostResDTO post : posts) {
                 FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
-                    ((RedisCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                    postCacheCommandPort.cacheFullPost(fullPost);
                 }
             }
         }
@@ -90,7 +87,7 @@ public class PostCacheSyncService {
             for (SimplePostResDTO post : posts) {
                 FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
-                    ((RedisCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                    postCacheCommandPort.cacheFullPost(fullPost);
                 }
             }
             
@@ -131,7 +128,7 @@ public class PostCacheSyncService {
             for (SimplePostResDTO post : posts) {
                 FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
-                    ((RedisCommandQueryAdapter) postCacheQueryPort).cacheFullPost(fullPost);
+                    postCacheCommandPort.cacheFullPost(fullPost);
                 }
             }
             

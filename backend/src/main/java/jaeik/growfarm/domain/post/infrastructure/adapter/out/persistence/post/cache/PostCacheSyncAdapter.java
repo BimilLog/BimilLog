@@ -4,11 +4,8 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.entity.QComment;
-import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
-import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.Post;
-import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
@@ -32,29 +29,9 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class PostCacheQueryPersistenceAdapter implements PostCacheQueryPort, PostCacheCommandPort, PostCacheSyncPort {
+public class PostCacheSyncAdapter implements PostCacheSyncPort {
 
     private final JPAQueryFactory jpaQueryFactory;
-
-    @Override
-    public void cachePosts(PostCacheFlag type, List<SimplePostResDTO> cachePosts) {
-
-    }
-
-    @Override
-    public void deletePopularPostsCache(PostCacheFlag type) {
-
-    }
-
-    @Override
-    public void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag) {
-
-    }
-
-    @Override
-    public void resetPopularFlag(PostCacheFlag postCacheFlag) {
-
-    }
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
@@ -103,16 +80,7 @@ public class PostCacheQueryPersistenceAdapter implements PostCacheQueryPort, Pos
                 .limit(50)
                 .fetch();
     }
-    
 
-    public void cacheFullPost(FullPostResDTO post) {
-        // 사용하지 않음 - Redis 캐시 어댑터에서 구현
-    }
-
-    @Override
-    public void deleteFullPostCache(Long postId) {
-
-    }
 
     /**
      * <h3>기간별 인기 게시글 조회</h3>
@@ -126,7 +94,7 @@ public class PostCacheQueryPersistenceAdapter implements PostCacheQueryPort, Pos
     private List<SimplePostResDTO> findPopularPostsByDays(int days) {
         QPost post = QPost.post;
         QPostLike postLike = QPostLike.postLike;
-        
+
         return createBasePopularPostsQuery()
                 .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS)))
                 .orderBy(postLike.countDistinct().desc())
@@ -167,30 +135,33 @@ public class PostCacheQueryPersistenceAdapter implements PostCacheQueryPort, Pos
                 .join(postLike).on(post.id.eq(postLike.post.id))
                 .groupBy(post.id, user.id);
     }
-    
 
 
-    @Override
-    public List<SimplePostResDTO> getCachedPostList(PostCacheFlag type) {
-        return List.of();
-    }
-
+    /**
+     * <h3>게시글 상세 조회</h3>
+     * <p>게시글 ID를 기준으로 게시글 상세 정보를 조회합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return 게시글 상세 정보 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public FullPostResDTO findPostDetail(Long postId) {
         QPost post = QPost.post;
         QUser user = QUser.user;
         QPostLike postLike = QPostLike.postLike;
-        
+
         Post entity = jpaQueryFactory
                 .selectFrom(post)
                 .leftJoin(post.user, user).fetchJoin()
                 .where(post.id.eq(postId))
                 .fetchOne();
-                
+
         if (entity == null) {
             return null;
         }
-        
+
         long likeCount = jpaQueryFactory
                 .select(postLike.count())
                 .from(postLike)
@@ -199,20 +170,7 @@ public class PostCacheQueryPersistenceAdapter implements PostCacheQueryPort, Pos
                 .from(postLike)
                 .where(postLike.post.id.eq(postId))
                 .fetchOne() : 0L;
-        
+
         return FullPostResDTO.from(entity, false, (int) likeCount);
     }
-
-    @Override
-    public FullPostResDTO getCachedPost(Long postId) {
-        return null;
-    }
-
-    @Override
-    public boolean hasPopularPostsCache(PostCacheFlag type) {
-        return false;
-    }
-
-
-
 }

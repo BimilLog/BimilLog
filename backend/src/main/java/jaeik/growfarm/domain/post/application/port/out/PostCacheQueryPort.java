@@ -7,7 +7,7 @@ import jaeik.growfarm.dto.post.SimplePostResDTO;
 import java.util.List;
 
 /**
- * <h2>인기 게시글 조회 및 관리 Port</h2>
+ * <h2>인기 게시글 조회 및 관리 포트</h2>
  * <p>인기 게시글 및 공지사항을 조회하고, 캐시 플래그를 적용하거나 초기화하는 인터페이스입니다.</p>
  *
  * @author Jaeik

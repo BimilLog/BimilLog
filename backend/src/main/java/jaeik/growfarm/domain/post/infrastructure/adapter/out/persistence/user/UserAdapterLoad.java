@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence.user;
 
-import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
+import jaeik.growfarm.domain.post.application.port.out.UserLoadPort;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class UserLoadAdapter implements LoadUserPort {
+public class UserAdapterLoad implements UserLoadPort {
 
     private final UserQueryUseCase userQueryUseCase;
 
