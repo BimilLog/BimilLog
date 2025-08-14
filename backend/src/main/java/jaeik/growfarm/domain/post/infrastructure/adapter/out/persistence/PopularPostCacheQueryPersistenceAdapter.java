@@ -3,13 +3,14 @@ package jaeik.growfarm.domain.post.infrastructure.adapter.out.persistence;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort2;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
+import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @RequiredArgsConstructor
-public class PopularPostCacheQueryPersistenceAdapter2 implements PostCacheQueryPort2 {
+public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPort {
 
     private final JPAQueryFactory jpaQueryFactory;
     private final PostJpaRepository postJpaRepository;
@@ -194,7 +195,22 @@ public class PopularPostCacheQueryPersistenceAdapter2 implements PostCacheQueryP
                 .where(post.postCacheFlag.eq(postCacheFlag))
                 .execute();
     }
-    
+
+    @Override
+    public List<SimplePostResDTO> getCachedPopularPosts(PostCacheFlag type) {
+        return List.of();
+    }
+
+    @Override
+    public FullPostResDTO getCachedFullPost(Long postId) {
+        return null;
+    }
+
+    @Override
+    public boolean hasPopularPostsCache(PostCacheFlag type) {
+        return false;
+    }
+
     /**
      * <h3>인기 플래그 적용</h3>
      * <p>주어진 게시글 ID 목록에 특정 캐시 플래그를 적용합니다.</p>

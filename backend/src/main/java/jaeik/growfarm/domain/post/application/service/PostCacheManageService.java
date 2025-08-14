@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.service;
 
-import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort2;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostCacheManageService {
 
-    private final PostCacheQueryPort2 postCacheQueryPort2;
+    private final PostCacheQueryPort postCacheQueryPort;
     private final PostCacheCommandPort postCacheCommandPort;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -47,12 +47,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 30) // 30분마다
     @Transactional
     public void updateRealtimePopularPosts() {
-        postCacheQueryPort2.resetPopularFlag(PostCacheFlag.REALTIME);
-        List<SimplePostResDTO> posts = postCacheQueryPort2.findRealtimePopularPosts();
+        postCacheQueryPort.resetPopularFlag(PostCacheFlag.REALTIME);
+        List<SimplePostResDTO> posts = postCacheQueryPort.findRealtimePopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.REALTIME, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            postCacheQueryPort2.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
+            postCacheQueryPort.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
         }
     }
 
@@ -67,12 +67,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        postCacheQueryPort2.resetPopularFlag(PostCacheFlag.WEEKLY);
-        List<SimplePostResDTO> posts = postCacheQueryPort2.findWeeklyPopularPosts();
+        postCacheQueryPort.resetPopularFlag(PostCacheFlag.WEEKLY);
+        List<SimplePostResDTO> posts = postCacheQueryPort.findWeeklyPopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.WEEKLY, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            postCacheQueryPort2.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+            postCacheQueryPort.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
@@ -99,12 +99,12 @@ public class PostCacheManageService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        postCacheQueryPort2.resetPopularFlag(PostCacheFlag.LEGEND);
-        List<SimplePostResDTO> posts = postCacheQueryPort2.findLegendaryPosts();
+        postCacheQueryPort.resetPopularFlag(PostCacheFlag.LEGEND);
+        List<SimplePostResDTO> posts = postCacheQueryPort.findLegendaryPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.LEGEND, posts);
             List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
-            postCacheQueryPort2.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
+            postCacheQueryPort.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(

@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.infrastructure.adapter.out.redis;
 
-import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.dto.post.FullPostResDTO;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -31,6 +31,8 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
     private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
     private static final Duration FULL_POST_CACHE_TTL = Duration.ofDays(1);
+
+
 
     /**
      * <h3>RedisCacheAdapter 생성자</h3>
@@ -88,7 +90,42 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
             throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
         }
     }
-    
+
+    @Override
+    public List<SimplePostResDTO> findRealtimePopularPosts() {
+        return List.of();
+    }
+
+    @Override
+    public List<SimplePostResDTO> findWeeklyPopularPosts() {
+        return List.of();
+    }
+
+    @Override
+    public List<SimplePostResDTO> findLegendaryPosts() {
+        return List.of();
+    }
+
+    @Override
+    public List<SimplePostResDTO> findNoticePosts() {
+        return List.of();
+    }
+
+    @Override
+    public List<SimplePostResDTO> findNoticePosts2() {
+        return List.of();
+    }
+
+    @Override
+    public void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag) {
+
+    }
+
+    @Override
+    public void resetPopularFlag(PostCacheFlag postCacheFlag) {
+
+    }
+
     /**
      * <h3>캐시된 인기 게시글 조회</h3>
      * <p>지정된 유형의 캐시된 인기 게시글 목록을 Redis에서 조회합니다.</p>
@@ -214,4 +251,6 @@ public class RedisCacheCommandQueryAdapter implements PostCacheCommandPort, Post
             throw new CustomException(ErrorCode.REDIS_DELETE_ERROR, e);
         }
     }
+
+
 }
