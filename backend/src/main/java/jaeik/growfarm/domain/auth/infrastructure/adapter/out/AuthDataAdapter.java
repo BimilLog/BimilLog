@@ -142,4 +142,17 @@ public class AuthDataAdapter implements ManageAuthDataPort {
         userCommandPort.deleteById(userId);
     }
 
+    /**
+     * <h3>로그아웃 쿠키 생성</h3>
+     * <p>사용자 로그아웃 시 JWT 토큰을 무효화하는 쿠키를 생성</p>
+     *
+     * @return 로그아웃 쿠키 리스트 (Access Token, Refresh Token 무효화 쿠키)
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public List<ResponseCookie> getLogoutCookies() {
+        return authCookieManager.getLogoutCookies();
+    }
+
 }

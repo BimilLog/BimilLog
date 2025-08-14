@@ -9,6 +9,7 @@ import java.util.List;
 /**
  * <h2>인증 데이터 관리 포트</h2>
  * <p>사용자 데이터 저장, 업데이트, 삭제를 위한 포트</p>
+ * <p>CQRS 패턴에 따른 명령 전용 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -58,5 +59,15 @@ public interface ManageAuthDataPort {
      * @param userId 사용자 ID
      */
     void performWithdrawProcess(Long userId);
+
+    /**
+     * <h3>로그아웃 쿠키 생성</h3>
+     * <p>사용자 로그아웃 시 JWT 토큰을 무효화하는 쿠키를 생성</p>
+     *
+     * @return 로그아웃 쿠키 리스트 (Access Token, Refresh Token 무효화 쿠키)
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    List<ResponseCookie> getLogoutCookies();
 
 }

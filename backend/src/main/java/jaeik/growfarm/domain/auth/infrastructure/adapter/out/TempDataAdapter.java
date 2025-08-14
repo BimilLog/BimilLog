@@ -4,6 +4,9 @@ import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
 import jaeik.growfarm.dto.user.TokenDTO;
+import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -20,9 +23,11 @@ import java.util.concurrent.TimeUnit;
  * @version 2.0.0
  */
 @Component
+@RequiredArgsConstructor
 public class TempDataAdapter implements ManageTemporaryDataPort {
 
     private final Map<String, TemporaryUserDataDTO> tempUserDataStore = new ConcurrentHashMap<>();
+    private final AuthCookieManager authCookieManager;
 
     /**
      * <h3>임시 사용자 데이터 저장</h3>
@@ -65,6 +70,20 @@ public class TempDataAdapter implements ManageTemporaryDataPort {
      */
     public void removeTempData(String uuid) {
         tempUserDataStore.remove(uuid);
+    }
+
+    /**
+     * <h3>임시 사용자 ID 쿠키 생성</h3>
+     * <p>신규 회원가입 시 사용자의 임시 UUID를 담는 쿠키를 생성</p>
+     *
+     * @param uuid 임시 사용자 ID
+     * @return 임시 사용자 ID 쿠키
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public ResponseCookie createTempCookie(String uuid) {
+        return authCookieManager.createTempCookie(uuid);
     }
 
     /**

@@ -36,7 +36,6 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     private final SocialLoginPort socialLoginPort;
     private final UserQueryUseCase userQueryUseCase;
     private final LoadTokenPort loadTokenPort;
-    private final AuthPort authPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -75,7 +74,7 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
             logoutSocial(userDetails);
             eventPublisher.publishEvent(UserLoggedOutEvent.of(userDetails.getUserId(), userDetails.getTokenId()));
             SecurityContextHolder.clearContext();
-            return authPort.getLogoutCookies();
+            return manageAuthDataPort.getLogoutCookies();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
         }

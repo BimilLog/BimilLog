@@ -2,7 +2,6 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
-import jaeik.growfarm.domain.auth.application.port.out.AuthPort;
 import jaeik.growfarm.domain.auth.application.port.out.CheckBlacklistPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
@@ -38,7 +37,6 @@ import java.util.UUID;
 public class SocialLoginService implements SocialLoginUseCase {
     private final SocialLoginPort socialLoginPort;
     private final ManageAuthDataPort manageAuthDataPort;
-    private final AuthPort authPort;
     private final ManageTemporaryDataPort manageTemporaryDataPort;
     private final CheckBlacklistPort checkBlacklistPort;
 
@@ -75,7 +73,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         } else {
             String uuid = UUID.randomUUID().toString();
             manageTemporaryDataPort.saveTempData(uuid, userData, tokenDTO);
-            ResponseCookie tempCookie = authPort.createTempCookie(uuid);
+            ResponseCookie tempCookie = manageTemporaryDataPort.createTempCookie(uuid);
             return new LoginResponseDTO<>(LoginResponseDTO.LoginType.NEW_USER, tempCookie);
         }
     }
