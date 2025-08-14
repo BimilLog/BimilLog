@@ -36,7 +36,18 @@ public class FullPostResDTO {
         this.isLiked = isLiked;
     }
 
-    public static FullPostResDTO from(Post post, boolean isLiked, int likeCount) {
+    /**
+     * <h3>FullPostResDTO로 변환</h3>
+     * <p>Post 엔티티, 추천 수, 추천 여부를 FullPostResDTO로 변환합니다.</p>
+     *
+     * @param post      게시글 엔티티
+     * @param likeCount 추천 수
+     * @param isLiked   사용자가 추천를 눌렀는지 여부
+     * @return FullPostResDTO 변환된 게시글 응답 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static FullPostResDTO from(Post post, long likeCount, boolean isLiked) {
         return FullPostResDTO.builder()
                 .id(post.getId())
                 .userId(post.getUser() != null ? post.getUser().getId() : null)
@@ -44,7 +55,7 @@ public class FullPostResDTO {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .views(post.getViews())
-                .likes(likeCount)
+                .likes((int) likeCount)
                 .isNotice(post.isNotice())
                 .createdAt(post.getCreatedAt())
                 .isLiked(isLiked)

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.service;
 
-import jaeik.growfarm.domain.post.application.assembler.PostAssembler;
+
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.growfarm.domain.post.application.port.out.*;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -32,13 +32,13 @@ import java.util.List;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PostQueryService implements PostQueryUseCase {
+
     private final PostQueryPort postQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final UserLoadPort userLoadPort;
     private final PostCacheSyncService postCacheSyncService;
-    private final PostAssembler postAssembler;
-    private final PostCacheQueryPort postCacheQueryPort;
 
+    private final PostCacheQueryPort postCacheQueryPort;
 
     /**
      * <h3>게시판 조회</h3>
@@ -125,7 +125,7 @@ public class PostQueryService implements PostQueryUseCase {
             isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
         }
 
-        return postAssembler.toFullPostResDTO(post, likeCount, isLiked);
+        return FullPostResDTO.from(post, likeCount, isLiked);
     }
 
     /**
@@ -181,7 +181,7 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>게시글 ID로 조회 (내부 도메인용)</h3>
+     * <h3>게시글 ID로 조회 </h3>
      * <p>다른 도메인에서 게시글 엔티티가 필요한 경우 사용하는 메소드입니다.</p>
      *
      * @param postId 게시글 ID
@@ -195,7 +195,7 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>사용자 작성 게시글 목록 조회 (도메인 간 연동용)</h3>
+     * <h3>사용자 작성 게시글 목록 조회 </h3>
      * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param userId   사용자 ID
@@ -210,7 +210,7 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>사용자 추천한 게시글 목록 조회 (도메인 간 연동용)</h3>
+     * <h3>사용자 추천한 게시글 목록 조회 </h3>
      * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param userId   사용자 ID
