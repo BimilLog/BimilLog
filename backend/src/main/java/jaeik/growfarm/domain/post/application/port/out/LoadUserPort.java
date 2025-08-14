@@ -3,11 +3,11 @@ package jaeik.growfarm.domain.post.application.port.out;
 import jaeik.growfarm.domain.user.entity.User;
 
 /**
- * <h2>사용자 조회 포트 (Post 도메인용)</h2>
- * <p>Post 도메인에서 사용자 정보를 조회하기 위한 아웃고잉 포트입니다.</p>
+ * <h2>사용자 조회 포트</h2>
+ * <p>Post 도메인에서 사용자 정보를 조회하기 위한 포트입니다.</p>
  *
- * @author BimilLog
- * @version 1.0.0
+ * @author Jaeik
+ * @version 2.0.0
  */
 public interface LoadUserPort {
 
@@ -18,6 +18,8 @@ public interface LoadUserPort {
      *
      * @param userId 사용자 ID
      * @return User 프록시 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     User getReferenceById(Long userId);
 }

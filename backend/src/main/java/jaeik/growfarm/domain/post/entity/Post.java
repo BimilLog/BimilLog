@@ -148,6 +148,21 @@ public class Post extends BaseEntity {
     }
 
     /**
+     * <h3>작성자 권한 확인</h3>
+     * <p>
+     *     현재 사용자가 게시글의 작성자인지 확인합니다.
+     * </p>
+     *
+     * @param userId 확인할 사용자 ID
+     * @return 작성자인 경우 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public boolean isAuthor(Long userId) {
+        return this.user != null && this.user.getId().equals(userId);
+    }
+
+    /**
      * <h3>조회수 증가</h3>
      * <p>
      *     게시글의 조회수를 1 증가시킨다.

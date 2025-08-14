@@ -16,7 +16,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 
 /**
  * <h2>게시글 기본 명령 서비스</h2>
@@ -61,7 +60,7 @@ public class PostCommandService implements PostCommandUseCase {
     /**
      * <h3>게시글 수정</h3>
      * <p>게시글 작성자만 게시글을 수정할 수 있습니다.</p>
-     * <p>권한 검증 후 게시글 내용을 업데이트합니다.</p>
+     * <p>헥사고날 아키텍처 원칙에 따라 모든 외부 의존성을 Port를 통해 처리합니다.</p>
      *
      * @param userId     현재 로그인한 사용자 ID
      * @param postId     수정할 게시글 ID
@@ -72,16 +71,30 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public void updatePost(Long userId, Long postId, PostReqDTO postReqDTO) {
-        Post post = validatePostOwner(userId, postId);
+        // 1. 아웃포트를 통해 게시글 조회 (영속 상태의 엔티티를 가져옴)
+        Post post = postQueryPort.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        
+        // 2. 엔티티의 비즈니스 메서드를 호출하여 권한 검증
+        if (!post.isAuthor(userId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        // 3. 엔티티의 메서드를 호출하여 상태 변경 (도메인 로직)
         post.updatePost(postReqDTO);
+
+        // 4. 명시적으로 아웃포트 호출 (영속화 의도 명확화)
+        // JPA의 더티 체킹 덕분에 save() 메서드가 없어도 작동하지만,
+        // 아키텍처 원칙에 따라 명시적으로 호출하는 것이 좋습니다.
         postCommandPort.save(post);
+        
         log.info("Post updated: postId={}, userId={}, title={}", postId, userId, postReqDTO.getTitle());
     }
 
     /**
      * <h3>게시글 삭제</h3>
      * <p>게시글 작성자만 게시글을 삭제할 수 있습니다.</p>
-     * <p>권한 검증 후 게시글을 삭제하고 관련 데이터 정리 이벤트를 발행합니다.</p>
+     * <p>헥사고날 아키텍처 원칙에 따라 모든 외부 의존성을 Port를 통해 처리합니다.</p>
      *
      * @param userId 현재 로그인한 사용자 ID
      * @param postId 삭제할 게시글 ID
@@ -91,32 +104,20 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public void deletePost(Long userId, Long postId) {
-        Post post = validatePostOwner(userId, postId);
-        postCommandPort.delete(post);
-        log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, post.getTitle());
-        eventPublisher.publishEvent(new PostDeletedEvent(postId));
-    }
-
-
-    /**
-     * <h3>게시글 소유자 검증</h3>
-     * <p>현재 사용자가 해당 게시글의 작성자인지 확인합니다.</p>
-     *
-     * @param userId 현재 사용자 ID
-     * @param postId 검증할 게시글 ID
-     * @return 검증된 게시글 엔티티
-     * @throws CustomException 권한이 없거나 게시글을 찾을 수 없는 경우
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    private Post validatePostOwner(Long userId, Long postId) {
+        // 1. 아웃포트를 통해 게시글 조회
         Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-
-        if (!Objects.equals(post.getUser().getId(), userId)) {
+        
+        // 2. 엔티티의 비즈니스 메서드를 호출하여 권한 검증
+        if (!post.isAuthor(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
-        return post;
+
+        // 3. 아웃포트를 통해 게시글 삭제
+        postCommandPort.delete(post);
+        
+        log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, post.getTitle());
+        eventPublisher.publishEvent(new PostDeletedEvent(postId));
     }
 
 }
