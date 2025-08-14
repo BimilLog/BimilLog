@@ -33,11 +33,11 @@ public interface DeleteCommentPort {
     void deleteById(Long commentId);
 
     /**
-     * <h3>댓글 좋아요 삭제</h3>
-     * <p>주어진 댓글과 사용자의 좋아요 관계를 삭제합니다.</p>
+     * <h3>댓글 추천 삭제</h3>
+     * <p>주어진 댓글과 사용자의 추천 관계를 삭제합니다.</p>
      *
-     * @param comment 좋아요를 삭제할 댓글 엔티티
-     * @param user    좋아요를 삭제할 사용자 엔티티
+     * @param comment 추천를 삭제할 댓글 엔티티
+     * @param user    추천를 삭제할 사용자 엔티티
      * @author Jaeik
      * @since 2.0.0
      */

@@ -15,20 +15,20 @@ import java.util.List;
  */
 public interface PostCacheQueryPort {
 
-
     /**
-     * <h3>캐시된 인기 게시글 조회</h3>
-     * <p>지정된 유형의 캐시된 인기 게시글 목록을 조회합니다.</p>
+     * <h3>캐시글 목록 조회</h3>
+     * <p>지정된 유형의 캐시글 목록을 조회합니다.</p>
      *
      * @param type 캐시할 게시글 유형 (예: REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @return 캐시된 인기 게시글 목록
+     * @return 캐시된 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<SimplePostResDTO> getCachedPopularPosts(PostCacheFlag type);
+    List<SimplePostResDTO> getCachedPostList(PostCacheFlag type);
 
+    // TODO : 현재 캐시글 상세 조회는 사용되지않으며 모든 글 상세 조회는 DB를 통하고 있음. 상세 조회시에 캐시에 있는 글은 캐시에서 조회하는 로직 필요
     /**
-     * <h3>캐시된 전체 게시글 조회</h3>
+     * <h3>캐시글 상세 조회</h3>
      * <p>지정된 게시글 ID의 캐시된 전체 게시글 상세 정보를 조회합니다.</p>
      *
      * @param postId 게시글 ID
@@ -36,7 +36,7 @@ public interface PostCacheQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    FullPostResDTO getCachedFullPost(Long postId);
+    FullPostResDTO getCachedPost(Long postId);
 
     /**
      * <h3>인기 게시글 캐시 존재 여부 확인</h3>

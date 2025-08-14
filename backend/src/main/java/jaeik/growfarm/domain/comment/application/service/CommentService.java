@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * 댓글 관련 Command 및 Query 유스케이스를 구현하는 서비스 클래스
  * </p>
  * <p>
- * 댓글 CRUD, 좋아요, 인기 댓글 조회 등 다양한 댓글 관련 기능을 제공
+ * 댓글 CRUD, 추천, 인기 댓글 조회 등 다양한 댓글 관련 기능을 제공
  * </p>
  *
  * @author Jaeik
@@ -74,12 +74,12 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     }
 
     /**
-     * <h3>인기 댓글에 대한 사용자 좋아요 ID 조회</h3>
-     * <p>주어진 게시글 ID에 대한 인기 댓글 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <h3>인기 댓글에 대한 사용자 추천 ID 조회</h3>
+     * <p>주어진 게시글 ID에 대한 인기 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
      *
      * @param postId      게시글 ID
      * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */
@@ -87,8 +87,8 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         if (userDetails == null) {
             return Collections.emptyList();
         }
-        // 이 부분은 개선의 여지가 있습니다. 인기 댓글 ID를 먼저 가져오고, 그 ID들로 좋아요 여부를 확인하는 것이 더 효율적입니다.
-        // 현재는 postId 전체 댓글에 대해 좋아요 여부를 확인하게 될 수 있습니다.
+        // 이 부분은 개선의 여지가 있습니다. 인기 댓글 ID를 먼저 가져오고, 그 ID들로 추천 여부를 확인하는 것이 더 효율적입니다.
+        // 현재는 postId 전체 댓글에 대해 추천 여부를 확인하게 될 수 있습니다.
         return loadCommentPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
     }
 
@@ -108,13 +108,13 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     }
 
     /**
-     * <h3>페이지별 사용자 좋아요 ID 조회</h3>
-     * <p>주어진 게시글 ID와 페이지 정보에 해당하는 댓글 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <h3>페이지별 사용자 추천 ID 조회</h3>
+     * <p>주어진 게시글 ID와 페이지 정보에 해당하는 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
      *
      * @param postId      게시글 ID
      * @param pageable    페이지 정보
      * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */
@@ -122,7 +122,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         if (userDetails == null) {
             return Collections.emptyList();
         }
-        // 이 또한 comment ID 목록을 먼저 가져온 후 좋아요 여부를 확인하는 것이 더 효율적입니다.
+        // 이 또한 comment ID 목록을 먼저 가져온 후 추천 여부를 확인하는 것이 더 효율적입니다.
         return loadCommentPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
     }
 
@@ -248,12 +248,12 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     }
 
     /**
-     * <h3>사용자가 좋아요한 댓글 ID 목록 조회</h3>
-     * <p>주어진 댓글 ID 목록 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>
+     * <p>주어진 댓글 ID 목록 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
      *
      * @param commentIds  댓글 ID 목록
      * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */

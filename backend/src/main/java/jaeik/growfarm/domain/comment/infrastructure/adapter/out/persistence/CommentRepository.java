@@ -34,12 +34,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
     List<Comment> findByPost(Post post);
 
     /**
-     * <h3>사용자가 좋아요한 댓글 ID 목록 조회</h3>
-     * <p>주어진 댓글 ID 목록 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>
+     * <p>주어진 댓글 ID 목록 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
      *
      * @param commentIds 댓글 ID 목록
      * @param userId     사용자 ID
-     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */
@@ -47,12 +47,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
     List<Long> findUserLikedCommentIds(@Param("commentIds") List<Long> commentIds, @Param("userId") Long userId);
 
     /**
-     * <h3>게시글 ID로 사용자가 좋아요한 댓글 ID 목록 조회</h3>
-     * <p>주어진 게시글 ID에 대한 댓글 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <h3>게시글 ID로 사용자가 추천한 댓글 ID 목록 조회</h3>
+     * <p>주어진 게시글 ID에 대한 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
      *
      * @param postId 게시글 ID
      * @param userId 사용자 ID
-     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */

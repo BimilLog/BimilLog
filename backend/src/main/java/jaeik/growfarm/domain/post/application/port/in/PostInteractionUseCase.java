@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.post.application.port.in;
 
 /**
  * <h2>게시글 상호작용 유스케이스</h2>
- * <p>게시글의 좋아요 및 조회수와 관련된 비즈니스 로직을 처리하는 유스케이스 인터페이스</p>
+ * <p>게시글의 추천 및 조회수와 관련된 비즈니스 로직을 처리하는 유스케이스 인터페이스</p>
  *
  * @author Jaeik
  * @version 2.0.0

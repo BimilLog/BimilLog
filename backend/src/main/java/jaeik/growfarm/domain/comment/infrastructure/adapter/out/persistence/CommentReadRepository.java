@@ -24,11 +24,11 @@ import java.util.Map;
 public interface CommentReadRepository {
     /**
      * <h3>최신순 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 최신순으로 페이지네이션하여 조회합니다. 사용자가 좋아요를 누른 댓글 정보도 포함합니다.</p>
+     * <p>주어진 게시글의 댓글을 최신순으로 페이지네이션하여 조회합니다. 사용자가 추천를 누른 댓글 정보도 포함합니다.</p>
      *
      * @param postId          게시글 ID
      * @param pageable        페이지 정보
-     * @param likedCommentIds 사용자가 좋아요한 댓글 ID 목록
+     * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
      * @return Page<CommentDTO> 최신순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
@@ -37,10 +37,10 @@ public interface CommentReadRepository {
 
     /**
      * <h3>인기 댓글 조회</h3>
-     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다. 사용자가 좋아요를 누른 댓글 정보도 포함합니다.</p>
+     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다. 사용자가 추천를 누른 댓글 정보도 포함합니다.</p>
      *
      * @param postId          게시글 ID
-     * @param likedCommentIds 사용자가 좋아요한 댓글 ID 목록
+     * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
      * @return List<CommentDTO> 인기 댓글 DTO 목록
      * @author Jaeik
      * @since 2.0.0
@@ -70,12 +70,12 @@ public interface CommentReadRepository {
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
 
     /**
-     * <h3>사용자 좋아요한 댓글 목록 조회</h3>
-     * <p>특정 사용자가 좋아요한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <h3>사용자 추천한 댓글 목록 조회</h3>
+     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentDTO> 좋아요한 댓글 목록 페이지
+     * @return Page<SimpleCommentDTO> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */

@@ -237,7 +237,7 @@ export default function SuggestPage() {
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
                   • 바라는 기능이나 기능 개선에 대한 제안을 해주세요 어떠한
-                  의견도 좋아요.
+                  의견도 추천.
                 </li>
                 <li>• 버그, 오류를 발견할 시에는 제보할 수 있습니다.</li>
                 <li>• 욕설, 비방, 스팸성 내용은 삭제될 수 있습니다.</li>

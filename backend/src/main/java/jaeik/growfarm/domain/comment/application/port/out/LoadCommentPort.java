@@ -64,12 +64,12 @@ public interface LoadCommentPort {
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
 
     /**
-     * <h3>사용자가 좋아요한 댓글 ID 목록 조회</h3>
-     * <p>주어진 댓글 ID 목록 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>
+     * <p>주어진 댓글 ID 목록 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
      *
      * @param commentIds 댓글 ID 목록
      * @param userId     사용자 ID
-     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */
@@ -88,36 +88,36 @@ public interface LoadCommentPort {
     Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable);
 
     /**
-     * <h3>사용자 좋아요한 댓글 목록 조회</h3>
-     * <p>특정 사용자가 좋아요한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <h3>사용자 추천한 댓글 목록 조회</h3>
+     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentDTO> 좋아요한 댓글 목록 페이지
+     * @return Page<SimpleCommentDTO> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
 
     /**
-     * <h3>사용자가 댓글에 좋아요를 눌렀는지 여부 확인</h3>
-     * <p>주어진 댓글과 사용자가 이미 좋아요 관계인지 확인합니다.</p>
+     * <h3>사용자가 댓글에 추천를 눌렀는지 여부 확인</h3>
+     * <p>주어진 댓글과 사용자가 이미 추천 관계인지 확인합니다.</p>
      *
      * @param commentId 댓글 ID
      * @param userId    사용자 ID
-     * @return boolean 좋아요를 눌렀으면 true, 아니면 false
+     * @return boolean 추천를 눌렀으면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
     boolean isLikedByUser(Long commentId, Long userId);
 
     /**
-     * <h3>게시글 ID로 사용자가 좋아요한 댓글 ID 목록 조회</h3>
-     * <p>주어진 게시글 ID에 대한 댓글 중 사용자가 좋아요를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <h3>게시글 ID로 사용자가 추천한 댓글 ID 목록 조회</h3>
+     * <p>주어진 게시글 ID에 대한 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
      *
      * @param postId 게시글 ID
      * @param userId 사용자 ID
-     * @return List<Long> 사용자가 좋아요를 누른 댓글 ID 목록
+     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */

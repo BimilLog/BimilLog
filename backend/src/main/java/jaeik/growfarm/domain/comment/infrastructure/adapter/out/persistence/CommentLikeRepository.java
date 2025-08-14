@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * <h2>댓글 좋아요 레포지토리 인터페이스</h2>
+ * <h2>댓글 추천 레포지토리 인터페이스</h2>
  * <p>
- * 댓글 좋아요(`CommentLike`) 엔티티의 데이터베이스 작업을 처리하는 레포지토리 인터페이스
+ * 댓글 추천(`CommentLike`) 엔티티의 데이터베이스 작업을 처리하는 레포지토리 인터페이스
  * </p>
  *
  * @author Jaeik
@@ -25,46 +25,46 @@ import java.util.Optional;
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
 
     /**
-     * <h3>댓글 ID와 사용자 ID로 댓글 좋아요 조회</h3>
-     * <p>주어진 댓글 ID와 사용자 ID에 해당하는 댓글 좋아요 엔티티를 조회합니다.</p>
+     * <h3>댓글 ID와 사용자 ID로 댓글 추천 조회</h3>
+     * <p>주어진 댓글 ID와 사용자 ID에 해당하는 댓글 추천 엔티티를 조회합니다.</p>
      *
      * @param commentId 댓글 ID
      * @param userId    사용자 ID
-     * @return Optional<CommentLike> 조회된 댓글 좋아요 엔티티. 존재하지 않으면 Optional.empty()
+     * @return Optional<CommentLike> 조회된 댓글 추천 엔티티. 존재하지 않으면 Optional.empty()
      * @author Jaeik
      * @since 2.0.0
      */
     Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId);
 
     /**
-     * <h3>댓글과 사용자로 좋아요 존재 여부 확인</h3>
-     * <p>주어진 댓글과 사용자에 해당하는 좋아요가 존재하는지 확인합니다.</p>
+     * <h3>댓글과 사용자로 추천 존재 여부 확인</h3>
+     * <p>주어진 댓글과 사용자에 해당하는 추천가 존재하는지 확인합니다.</p>
      *
      * @param comment 댓글 엔티티
      * @param user    사용자 엔티티
-     * @return boolean 좋아요가 존재하면 true, 아니면 false
+     * @return boolean 추천가 존재하면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
     boolean existsByCommentAndUser(Comment comment, User user);
 
     /**
-     * <h3>댓글과 사용자로 좋아요 삭제</h3>
-     * <p>주어진 댓글과 사용자에 해당하는 좋아요를 삭제합니다.</p>
+     * <h3>댓글과 사용자로 추천 삭제</h3>
+     * <p>주어진 댓글과 사용자에 해당하는 추천를 삭제합니다.</p>
      *
-     * @param comment 좋아요를 삭제할 댓글 엔티티
-     * @param user    좋아요를 삭제할 사용자 엔티티
+     * @param comment 추천를 삭제할 댓글 엔티티
+     * @param user    추천를 삭제할 사용자 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
     void deleteByCommentAndUser(Comment comment, User user);
 
     /**
-     * <h3>여러 댓글 ID에 대한 좋아요 수 조회</h3>
-     * <p>주어진 댓글 ID 목록에 해당하는 각 댓글의 좋아요 수를 조회합니다.</p>
+     * <h3>여러 댓글 ID에 대한 추천 수 조회</h3>
+     * <p>주어진 댓글 ID 목록에 해당하는 각 댓글의 추천 수를 조회합니다.</p>
      *
      * @param commentIds 댓글 ID 목록
-     * @return Map<Long, Long> 댓글 ID를 키로, 좋아요 수를 값으로 하는 맵
+     * @return Map<Long, Long> 댓글 ID를 키로, 추천 수를 값으로 하는 맵
      * @author Jaeik
      * @since 2.0.0
      */

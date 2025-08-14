@@ -18,11 +18,11 @@ public class PostAssembler {
 
     /**
      * <h3>FullPostResDTO로 변환</h3>
-     * <p>Post 엔티티, 좋아요 수, 좋아요 여부를 FullPostResDTO로 변환합니다.</p>
+     * <p>Post 엔티티, 추천 수, 추천 여부를 FullPostResDTO로 변환합니다.</p>
      *
      * @param post      게시글 엔티티
-     * @param likeCount 좋아요 수
-     * @param isLiked   사용자가 좋아요를 눌렀는지 여부
+     * @param likeCount 추천 수
+     * @param isLiked   사용자가 추천를 눌렀는지 여부
      * @return FullPostResDTO 변환된 게시글 응답 DTO
      * @author Jaeik
      * @since 2.0.0

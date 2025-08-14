@@ -121,21 +121,6 @@ public class PostCacheManageService {
     }
 
     /**
-     * <h3>공지사항 게시글 업데이트</h3>
-     * <p>공지사항 게시글을 업데이트하고 캐시합니다.</p>
-     * <p>다른 인기 게시글과 동일한 패턴으로 처리합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Transactional
-    public void updateNoticePosts() {
-        List<SimplePostResDTO> posts = postCacheCommandPort.findNoticePosts();
-        postCacheCommandPort.cachePosts(PostCacheFlag.NOTICE, posts);
-        log.info("Notice posts cache updated. Count: {}", posts.size());
-    }
-
-    /**
      * <h3>공지 캐시 삭제</h3>
      * <p>공지사항 관련 캐시를 삭제합니다.</p>
      *

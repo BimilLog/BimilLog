@@ -84,7 +84,7 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
 
     /**
      * <h3>전설의 게시글 조회</h3>
-     * <p>좋아요 수가 20개 이상인 게시글 중 가장 좋아요 수가 많은 상위 50개 게시글을 조회합니다.</p>
+     * <p>추천 수가 20개 이상인 게시글 중 가장 추천 수가 많은 상위 50개 게시글을 조회합니다.</p>
      *
      * @return 전설의 게시글 목록
      * @author Jaeik
@@ -102,44 +102,6 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
                 .fetch();
     }
     
-    /**
-     * <h3>공지사항 게시글 조회</h3>
-     * <p>공지사항으로 설정된 게시글 목록을 최신순으로 조회합니다.</p>
-     *
-     * @return 공지사항 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<SimplePostResDTO> findNoticePosts() {
-        QPost post = QPost.post;
-        QUser user = QUser.user;
-        QComment comment = QComment.comment;
-        QPostLike postLike = QPostLike.postLike;
-
-        return jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.content,
-                        post.views,
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        user.id,
-                        user.userName,
-                        comment.countDistinct().intValue(),
-                        postLike.countDistinct().intValue()))
-                .from(post)
-                .leftJoin(post.user, user)
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .where(post.isNotice.isTrue())
-                .groupBy(post.id, user.id)
-                .orderBy(post.createdAt.desc())
-                .fetch();
-    }
 
     @Override
     public void cacheFullPost(FullPostResDTO post) {
@@ -153,7 +115,7 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
 
     /**
      * <h3>기간별 인기 게시글 조회</h3>
-     * <p>주어진 기간(일) 내에 좋아요 수가 많은 게시글을 조회합니다. 결과는 5개로 제한됩니다.</p>
+     * <p>주어진 기간(일) 내에 추천 수가 많은 게시글을 조회합니다. 결과는 5개로 제한됩니다.</p>
      *
      * @param days 기간(일)
      * @return 인기 게시글 목록
@@ -208,12 +170,12 @@ public class PopularPostCacheQueryPersistenceAdapter implements PostCacheQueryPo
 
 
     @Override
-    public List<SimplePostResDTO> getCachedPopularPosts(PostCacheFlag type) {
+    public List<SimplePostResDTO> getCachedPostList(PostCacheFlag type) {
         return List.of();
     }
 
     @Override
-    public FullPostResDTO getCachedFullPost(Long postId) {
+    public FullPostResDTO getCachedPost(Long postId) {
         return null;
     }
 

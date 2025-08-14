@@ -198,7 +198,7 @@ export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
           label="추천한 글"
           color="text-red-600"
           gradient="from-red-500 to-pink-600"
-          description="좋아요 표현 (1점)"
+          description="추천 표현 (1점)"
         />
 
         <StatCard

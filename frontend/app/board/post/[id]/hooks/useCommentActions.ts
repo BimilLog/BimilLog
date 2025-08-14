@@ -81,7 +81,7 @@ export const useCommentActions = (
     setReplyPassword("");
   };
 
-  // 댓글 좋아요
+  // 댓글 추천
   const handleLikeComment = async (comment: Comment) => {
     try {
       await commentApi.likeComment(comment.id);

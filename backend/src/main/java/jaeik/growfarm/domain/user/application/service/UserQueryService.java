@@ -106,12 +106,12 @@ public class UserQueryService implements UserQueryUseCase {
     }
 
     /**
-     * <h3>사용자 좋아요한 게시글 목록 조회</h3>
-     * <p>해당 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <h3>사용자 추천한 게시글 목록 조회</h3>
+     * <p>해당 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return 좋아요한 게시글 목록 페이지
+     * @return 추천한 게시글 목록 페이지
      * @author jaeik
      * @since 2.0.0
      */
@@ -136,12 +136,12 @@ public class UserQueryService implements UserQueryUseCase {
     }
 
     /**
-     * <h3>사용자 좋아요한 댓글 목록 조회</h3>
-     * <p>해당 사용자가 좋아요한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <h3>사용자 추천한 댓글 목록 조회</h3>
+     * <p>해당 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return 좋아요한 댓글 목록 페이지
+     * @return 추천한 댓글 목록 페이지
      * @author jaeik
      * @since 2.0.0
      */

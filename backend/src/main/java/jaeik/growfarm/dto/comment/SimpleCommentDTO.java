@@ -38,8 +38,8 @@ public class SimpleCommentDTO {
      * @param userName  사용자 이름
      * @param content   댓글 내용
      * @param createdAt 댓글 작성 시간
-     * @param likes     댓글 좋아요 수
-     * @param userLike  사용자가 좋아요를 눌렀는지 여부
+     * @param likes     댓글 추천 수
+     * @param userLike  사용자가 추천를 눌렀는지 여부
      */
     public SimpleCommentDTO(Long id, Long postId, String userName, String content, Instant createdAt, int likes, boolean userLike) {
         this.id = id;

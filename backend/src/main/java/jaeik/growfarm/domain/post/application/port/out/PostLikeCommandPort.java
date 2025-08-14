@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.user.entity.User;
 /**
  * <h2>PostLikeCommandPort</h2>
  * <p>
- *     게시글 좋아요 데이터의 생성/삭제를 담당하는 통합 Port 인터페이스입니다.
+ *     게시글 추천 데이터의 생성/삭제를 담당하는 통합 Port 인터페이스입니다.
  *     ISP(Interface Segregation Principle)를 따라 Command 관련 기능만 포함합니다.
  * </p>
  *
@@ -18,18 +18,18 @@ import jaeik.growfarm.domain.user.entity.User;
 public interface PostLikeCommandPort {
 
     /**
-     * <h3>게시글 좋아요 저장</h3>
+     * <h3>게시글 추천 저장</h3>
      * <p>
-     *     게시글 좋아요 엔티티를 데이터베이스에 저장합니다.
+     *     게시글 추천 엔티티를 데이터베이스에 저장합니다.
      * </p>
-     * @param postLike 저장할 게시글 좋아요 엔티티
+     * @param postLike 저장할 게시글 추천 엔티티
      */
     void save(PostLike postLike);
 
     /**
-     * <h3>게시글 좋아요 삭제</h3>
+     * <h3>게시글 추천 삭제</h3>
      * <p>
-     *     사용자와 게시글을 기준으로 좋아요 데이터를 삭제합니다.
+     *     사용자와 게시글을 기준으로 추천 데이터를 삭제합니다.
      * </p>
      * @param user 사용자
      * @param post 게시글
@@ -37,8 +37,8 @@ public interface PostLikeCommandPort {
     void deleteByUserAndPost(User user, Post post);
 
     /**
-     * <h3>게시글 ID로 모든 좋아요 삭제</h3>
-     * <p>특정 게시글에 대한 모든 좋아요 데이터를 삭제합니다.</p>
+     * <h3>게시글 ID로 모든 추천 삭제</h3>
+     * <p>특정 게시글에 대한 모든 추천 데이터를 삭제합니다.</p>
      *
      * @param postId 게시글 ID
      * @author Jaeik

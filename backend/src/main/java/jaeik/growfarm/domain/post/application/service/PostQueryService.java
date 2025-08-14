@@ -61,7 +61,7 @@ public class PostQueryService implements PostQueryUseCase {
      * <p>게시글 ID를 통해 게시글 상세 정보를 조회합니다.</p>
      *
      * @param postId 게시글 ID
-     * @param userId 현재 로그인한 사용자 ID (Optional, 좋아요 여부 확인용)
+     * @param userId 현재 로그인한 사용자 ID (Optional, 추천 여부 확인용)
      * @return 게시글 상세 정보 DTO
      * @throws CustomException 게시글을 찾을 수 없는 경우
      * @author Jaeik
@@ -118,7 +118,7 @@ public class PostQueryService implements PostQueryUseCase {
                 default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
             }
         }
-        return postCacheQueryPort.getCachedPopularPosts(type);
+        return postCacheQueryPort.getCachedPostList(type);
     }
 
     /**
@@ -134,7 +134,7 @@ public class PostQueryService implements PostQueryUseCase {
         if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
             postCacheManageService.updateNoticePosts();
         }
-        return postCacheQueryPort.getCachedPopularPosts(PostCacheFlag.NOTICE);
+        return postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
     }
 
     /**
@@ -167,12 +167,12 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>사용자 좋아요한 게시글 목록 조회 (도메인 간 연동용)</h3>
-     * <p>특정 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <h3>사용자 추천한 게시글 목록 조회 (도메인 간 연동용)</h3>
+     * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return 좋아요한 게시글 목록 페이지
+     * @return 추천한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */

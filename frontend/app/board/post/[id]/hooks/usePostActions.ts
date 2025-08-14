@@ -10,7 +10,7 @@ export const usePostActions = (
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
 
-  // 게시글 좋아요
+  // 게시글 추천
   const handleLike = async () => {
     if (!post) return;
     try {

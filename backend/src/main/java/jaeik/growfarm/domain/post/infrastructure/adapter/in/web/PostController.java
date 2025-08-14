@@ -22,7 +22,7 @@ import java.net.URI;
 /**
  * <h2>게시글 컨트롤러</h2>
  * <p>게시글 관련 API 요청을 처리하는 컨트롤러입니다.</p>
- * <p>게시글의 조회, 생성, 수정, 삭제 및 좋아요, 공지사항 설정/해제 기능을 제공합니다.</p>
+ * <p>게시글의 조회, 생성, 수정, 삭제 및 추천, 공지사항 설정/해제 기능을 제공합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -77,7 +77,7 @@ public class PostController {
      * <p>게시글 ID를 통해 게시글 상세 정보를 조회하고 조회수를 증가시킵니다.</p>
      *
      * @param postId      조회할 게시글 ID
-     * @param userDetails 현재 로그인한 사용자 정보 (Optional, 좋아요 여부 확인용)
+     * @param userDetails 현재 로그인한 사용자 정보 (Optional, 추천 여부 확인용)
      * @return 게시글 상세 정보 DTO (200 OK)
      * @author Jaeik
      * @since 2.0.0
@@ -146,10 +146,10 @@ public class PostController {
     }
 
     /**
-     * <h3>게시글 좋아요/좋아요 취소 API</h3>
-     * <p>게시글에 좋아요를 누르거나 좋아요를 취소합니다.</p>
+     * <h3>게시글 추천/추천 취소 API</h3>
+     * <p>게시글에 추천를 누르거나 추천를 취소합니다.</p>
      *
-     * @param postId      좋아요/좋아요 취소할 게시글 ID
+     * @param postId      추천/추천 취소할 게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 성공 응답 (200 OK)
      * @author Jaeik

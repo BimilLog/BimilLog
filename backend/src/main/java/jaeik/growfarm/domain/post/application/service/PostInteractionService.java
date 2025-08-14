@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>게시글 상호작용 서비스</h2>
- * <p>PostInteractionUseCase의 구현체로, 게시글의 좋아요 및 조회수 관련 비즈니스 로직을 처리합니다.</p>
+ * <p>PostInteractionUseCase의 구현체로, 게시글의 추천 및 조회수 관련 비즈니스 로직을 처리합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

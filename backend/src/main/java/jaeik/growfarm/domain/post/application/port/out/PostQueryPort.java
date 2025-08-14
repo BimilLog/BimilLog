@@ -8,13 +8,13 @@ import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 /**
- * <h2>LoadPostPort</h2>
+ * <h2>게시글 조회 인터페이스</h2>
  * <p>
  *     게시글 데이터를 조회하는 Port 인터페이스입니다.
  * </p>
  *
  * @author jaeik
- * @version 1.0
+ * @version 2.0.0
  */
 public interface PostQueryPort {
 
@@ -63,12 +63,12 @@ public interface PostQueryPort {
     Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable);
 
     /**
-     * <h3>사용자 좋아요한 게시글 목록 조회</h3>
-     * <p>특정 사용자가 좋아요한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <h3>사용자 추천한 게시글 목록 조회</h3>
+     * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return 좋아요한 게시글 목록 페이지
+     * @return 추천한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */

@@ -87,15 +87,6 @@ public interface PostCacheCommandPort {
      */
     List<SimplePostResDTO> findLegendaryPosts();
 
-    /**
-     * <h3>공지사항 게시글 조회</h3>
-     * <p>공지사항 게시글 목록을 데이터베이스에서 조회하여 스케쥴러에 반환합니다.</p>
-     *
-     * @return 공지사항 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<SimplePostResDTO> findNoticePosts();
 
     /**
      * <h3>전체 게시글 캐시</h3>
