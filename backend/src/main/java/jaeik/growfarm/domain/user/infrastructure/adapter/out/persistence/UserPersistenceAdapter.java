@@ -1,6 +1,5 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.post.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.user.application.port.out.SaveBlacklistPort;
 import jaeik.growfarm.domain.user.application.port.out.UserPort;
 import jaeik.growfarm.domain.user.entity.BlackList;
@@ -21,7 +20,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, LoadUserPort, jaeik.growfarm.domain.paper.application.port.out.LoadUserPort {
+public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort {
 
     private final UserRepository userRepository;
     private final SettingRepository settingRepository;
@@ -153,20 +152,6 @@ public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, Load
     }
 
     /**
-     * <h3>ID로 사용자 참조 가져오기</h3>
-     * <p>주어진 ID의 사용자 엔티티 참조를 가져옵니다.</p>
-     *
-     * @param userId 참조를 가져올 사용자 ID
-     * @return User 사용자 엔티티 참조
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public User getReferenceById(Long userId) {
-        return userRepository.getReferenceById(userId);
-    }
-
-    /**
      * <h3>ID로 설정 조회</h3>
      * <p>주어진 ID로 설정 정보를 조회합니다.</p>
      *
@@ -183,14 +168,30 @@ public class UserPersistenceAdapter implements UserPort, SaveBlacklistPort, Load
     /**
      * <h3>주어진 순서대로 사용자 이름 조회</h3>
      * <p>주어진 소셜 ID 목록에 해당하는 사용자 이름들을 요청된 순서대로 조회합니다.</p>
+     * <p>카카오 친구 목록 매핑에 사용됩니다.</p>
      *
      * @param socialIds 조회할 소셜 ID 문자열 리스트
      * @return List<String> 조회된 사용자 이름 리스트
-     * @author Jaeik
-     * @since 2.0.0
+     * @author jaeik
+     * @version 2.0.0
      */
     @Override
     public java.util.List<String> findUserNamesInOrder(java.util.List<String> socialIds) {
         return userRepository.findUserNamesInOrder(socialIds);
+    }
+
+    /**
+     * <h3>ID로 사용자 참조 가져오기</h3>
+     * <p>주어진 ID의 사용자 엔티티 참조를 가져옵니다.</p>
+     * <p>JPA 연관 관계 설정 시 성능 최적화를 위해 사용됩니다.</p>
+     *
+     * @param userId 참조를 가져올 사용자 ID
+     * @return User 사용자 엔티티 참조
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public User getReferenceById(Long userId) {
+        return userRepository.getReferenceById(userId);
     }
 }
