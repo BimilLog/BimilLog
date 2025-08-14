@@ -32,9 +32,9 @@ import jaeik.growfarm.domain.post.entity.Post;
 @Repository
 @RequiredArgsConstructor
 public class CommentPersistenceAdapter implements
-        LoadCommentPort, SaveCommentPort, DeleteCommentPort,
-        LoadCommentLikePort, SaveCommentLikePort, DeleteCommentLikePort,
-        LoadCommentClosurePort, SaveCommentClosurePort, DeleteCommentClosurePort,
+        CommentQueryPort, CommentCommandPort,
+        CommentLikeQueryPort, CommentLikeCommandPort,
+        CommentClosureQueryPort, CommentClosureCommandPort,
         LoadCommentQueryPort {
 
     private final CommentRepository commentRepository;
@@ -388,6 +388,19 @@ public class CommentPersistenceAdapter implements
     @Override
     public void deleteByDescendantIds(List<Long> commentIds) {
         commentClosureRepository.deleteByDescendantIds(commentIds);
+    }
+
+    /**
+     * <h3>댓글 클로저 삭제</h3>
+     * <p>주어진 댓글 클로저 엔티티를 삭제합니다.</p>
+     *
+     * @param commentClosure 삭제할 댓글 클로저 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void delete(CommentClosure commentClosure) {
+        commentClosureRepository.delete(commentClosure);
     }
 
     // ================== LoadCommentQueryPort ==================

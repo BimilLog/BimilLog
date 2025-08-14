@@ -1,12 +1,10 @@
 
 package jaeik.growfarm.domain.comment.application.service;
 
-import jaeik.growfarm.domain.comment.application.port.out.DeleteCommentClosurePort;
-import jaeik.growfarm.domain.comment.application.port.out.DeleteCommentPort;
-import jaeik.growfarm.domain.comment.application.port.out.LoadCommentClosurePort;
-import jaeik.growfarm.domain.comment.application.port.out.LoadCommentPort;
-import jaeik.growfarm.domain.comment.application.port.out.SaveCommentClosurePort;
-import jaeik.growfarm.domain.comment.application.port.out.SaveCommentPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentCommandPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentClosureQueryPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentClosureCommandPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -36,12 +34,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentDomainService {
 
-    private final LoadCommentPort loadCommentPort;
-    private final SaveCommentPort saveCommentPort;
-    private final DeleteCommentPort deleteCommentPort;
-    private final LoadCommentClosurePort loadCommentClosurePort;
-    private final SaveCommentClosurePort saveCommentClosurePort;
-    private final DeleteCommentClosurePort deleteCommentClosurePort;
+    private final CommentQueryPort commentQueryPort;
+    private final CommentCommandPort commentCommandPort;
+    private final CommentClosureQueryPort commentClosureQueryPort;
+    private final CommentClosureCommandPort commentClosureCommandPort;
 
     /**
      * <h3>댓글과 클로저 엔티티 함께 저장</h3>
@@ -58,22 +54,22 @@ public class CommentDomainService {
      */
     public void saveCommentWithClosure(Post post, User user, String content, Integer password, Long parentId) {
         try {
-            Comment comment = saveCommentPort.save(Comment.createComment(post, user, content, password));
+            Comment comment = commentCommandPort.save(Comment.createComment(post, user, content, password));
 
             CommentClosure selfClosure = CommentClosure.createCommentClosure(comment, comment, 0);
-            saveCommentClosurePort.save(selfClosure);
+            commentClosureCommandPort.save(selfClosure);
 
             if (parentId != null) {
-                Comment parentComment = loadCommentPort.findById(parentId)
+                Comment parentComment = commentQueryPort.findById(parentId)
                         .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
-                List<CommentClosure> parentClosures = loadCommentClosurePort.findByDescendantId(parentComment.getId())
+                List<CommentClosure> parentClosures = commentClosureQueryPort.findByDescendantId(parentComment.getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
 
                 for (CommentClosure parentClosure : parentClosures) {
                     Comment ancestor = parentClosure.getAncestor();
                     int newDepth = parentClosure.getDepth() + 1;
                     CommentClosure newClosure = CommentClosure.createCommentClosure(ancestor, comment, newDepth);
-                    saveCommentClosurePort.save(newClosure);
+                    commentClosureCommandPort.save(newClosure);
                 }
             }
 
@@ -93,13 +89,13 @@ public class CommentDomainService {
     public void deleteComment(Comment comment) {
         Long commentId = comment.getId();
         try {
-            boolean hasDescendants = loadCommentClosurePort.hasDescendants(commentId);
+            boolean hasDescendants = commentClosureQueryPort.hasDescendants(commentId);
             if (hasDescendants) {
                 comment.softDelete();
-                saveCommentPort.save(comment);
+                commentCommandPort.save(comment);
             } else {
-                deleteCommentClosurePort.deleteByDescendantId(commentId);
-                deleteCommentPort.delete(comment);
+                commentClosureCommandPort.deleteByDescendantId(commentId);
+                commentCommandPort.delete(comment);
             }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.COMMENT_DELETE_FAILED, e);

@@ -12,6 +12,7 @@ import java.util.Optional;
  * @version 2.0.0
  */
 public interface LoadPostPort {
+
     /**
      * <h3>ID로 게시글 조회</h3>
      * <p>주어진 ID로 게시글을 조회합니다.</p>

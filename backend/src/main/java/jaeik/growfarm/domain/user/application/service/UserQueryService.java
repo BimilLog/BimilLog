@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
-import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -31,7 +31,7 @@ public class UserQueryService implements UserQueryUseCase {
 
     private final UserQueryPort userQueryPort;
     private final LoadPostPort loadPostPort;
-    private final LoadCommentPort loadCommentPort;
+    private final CommentQueryPort commentQueryPort;
 
     /**
      * <h3>소셜 정보로 사용자 조회</h3>
@@ -132,7 +132,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
-        return loadCommentPort.findCommentsByUserId(userId, pageable);
+        return commentQueryPort.findCommentsByUserId(userId, pageable);
     }
 
     /**
@@ -147,7 +147,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
-        return loadCommentPort.findLikedCommentsByUserId(userId, pageable);
+        return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
     }
 
     /**

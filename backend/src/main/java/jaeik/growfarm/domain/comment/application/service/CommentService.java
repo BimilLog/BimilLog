@@ -45,11 +45,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CommentService implements CommentCommandUseCase, CommentQueryUseCase {
 
-    private final LoadCommentPort loadCommentPort;
-    private final SaveCommentPort saveCommentPort;
-    private final DeleteCommentPort deleteCommentPort;
-    private final SaveCommentLikePort saveCommentLikePort;
-    private final LoadCommentLikePort loadCommentLikePort;
+    private final CommentQueryPort commentQueryPort;
+    private final CommentCommandPort commentCommandPort;
+    private final CommentLikeQueryPort commentLikeQueryPort;
+    private final CommentLikeCommandPort commentLikeCommandPort;
     private final ApplicationEventPublisher eventPublisher;
     private final LoadUserPort loadUserPort;
     private final LoadPostPort loadPostPort;
@@ -67,7 +66,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
         if (!popularComments.isEmpty()) {
             List<Long> commentIds = popularComments.stream().map(CommentDTO::getId).collect(Collectors.toList());
-            Map<Long, Long> likeCounts = loadCommentLikePort.countByCommentIds(commentIds);
+            Map<Long, Long> likeCounts = commentLikeQueryPort.countByCommentIds(commentIds);
             popularComments.forEach(comment -> comment.setLikes(likeCounts.getOrDefault(comment.getId(), 0L).intValue()));
         }
         return popularComments;
@@ -89,7 +88,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         }
         // 이 부분은 개선의 여지가 있습니다. 인기 댓글 ID를 먼저 가져오고, 그 ID들로 추천 여부를 확인하는 것이 더 효율적입니다.
         // 현재는 postId 전체 댓글에 대해 추천 여부를 확인하게 될 수 있습니다.
-        return loadCommentPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
+        return commentQueryPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
     }
 
     @Override
@@ -101,7 +100,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
 
         if (commentPage.hasContent()) {
             List<Long> commentIds = commentPage.getContent().stream().map(CommentDTO::getId).collect(Collectors.toList());
-            Map<Long, Long> likeCounts = loadCommentLikePort.countByCommentIds(commentIds);
+            Map<Long, Long> likeCounts = commentLikeQueryPort.countByCommentIds(commentIds);
             commentPage.getContent().forEach(comment -> comment.setLikes(likeCounts.getOrDefault(comment.getId(), 0L).intValue()));
         }
         return commentPage;
@@ -123,25 +122,25 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
             return Collections.emptyList();
         }
         // 이 또한 comment ID 목록을 먼저 가져온 후 추천 여부를 확인하는 것이 더 효율적입니다.
-        return loadCommentPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
+        return commentQueryPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Comment> findById(Long commentId) {
-        return loadCommentPort.findById(commentId);
+        return commentQueryPort.findById(commentId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<jaeik.growfarm.dto.comment.SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
-        return loadCommentPort.findCommentsByUserId(userId, pageable);
+        return commentQueryPort.findCommentsByUserId(userId, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<jaeik.growfarm.dto.comment.SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
-        return loadCommentPort.findLikedCommentsByUserId(userId, pageable);
+        return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
     }
 
 
@@ -178,7 +177,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     public void updateComment(CommentDTO commentDto, CustomUserDetails userDetails) {
         Comment comment = validateComment(commentDto, userDetails);
         comment.updateComment(commentDto.getContent());
-        saveCommentPort.save(comment);
+        commentCommandPort.save(comment);
     }
 
     /**
@@ -194,7 +193,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
      * @since 2.0.0
      */
     private Comment validateComment(CommentDTO commentDto, CustomUserDetails userDetails) {
-        Comment comment = loadCommentPort.findById(commentDto.getId())
+        Comment comment = commentQueryPort.findById(commentDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
         if (commentDto.getPassword() != null && !Objects.equals(comment.getPassword(), commentDto.getPassword())) {
@@ -219,19 +218,19 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
         Long commentId = commentDto.getId();
         Long userId = userDetails.getUserId();
 
-        Comment comment = loadCommentPort.findById(commentId)
+        Comment comment = commentQueryPort.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
         User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        if (loadCommentPort.isLikedByUser(commentId, userId)) {
-            deleteCommentPort.deleteLike(comment, user);
+        if (commentQueryPort.isLikedByUser(commentId, userId)) {
+            commentCommandPort.deleteLike(comment, user);
         } else {
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)
                     .user(user)
                     .build();
-            saveCommentLikePort.save(commentLike);
+            commentLikeCommandPort.save(commentLike);
         }
     }
 
@@ -244,7 +243,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
      * @since 2.0.0
      */
     public void anonymizeUserComments(Long userId) {
-        saveCommentPort.anonymizeUserComments(userId);
+        commentCommandPort.anonymizeUserComments(userId);
     }
 
     /**
@@ -259,7 +258,7 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
      */
     private List<Long> getUserLikedCommentIds(List<Long> commentIds, CustomUserDetails userDetails) {
         return (userDetails != null)
-                ? loadCommentPort.findUserLikedCommentIds(commentIds, userDetails.getUserId())
+                ? commentQueryPort.findUserLikedCommentIds(commentIds, userDetails.getUserId())
                 : List.of();
     }
 
@@ -292,6 +291,6 @@ public class CommentService implements CommentCommandUseCase, CommentQueryUseCas
     @EventListener
     public void handlePostDeletedEvent(PostDeletedEvent event) {
         log.info("Post (ID: {}) deleted event received. Deleting all comments.", event.postId());
-        deleteCommentPort.deleteAllByPostId(event.postId());
+        commentCommandPort.deleteAllByPostId(event.postId());
     }
 }

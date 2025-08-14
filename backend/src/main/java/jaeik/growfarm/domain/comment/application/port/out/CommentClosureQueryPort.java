@@ -8,11 +8,12 @@ import java.util.Optional;
 /**
  * <h2>댓글 클로저 조회 포트</h2>
  * <p>댓글 클로저 엔티티 조회를 위한 Out-Port</p>
+ * <p>CQRS 패턴에 따른 조회 전용 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadCommentClosurePort {
+public interface CommentClosureQueryPort {
 
     /**
      * <h3>자손 ID로 댓글 클로저 목록 조회</h3>
