@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.paper.infrastructure.adapter.out;
+package jaeik.growfarm.domain.paper.infrastructure.adapter.out.persistence;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;

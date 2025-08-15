@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.paper.infrastructure.adapter.in;
 
-import jaeik.growfarm.domain.paper.application.port.in.DeletePaperUseCase;
-import jaeik.growfarm.domain.paper.application.port.in.WritePaperUseCase;
+import jaeik.growfarm.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -26,8 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/paper")
 public class PaperCommandController {
 
-    private final WritePaperUseCase writePaperUseCase;
-    private final DeletePaperUseCase deletePaperUseCase;
+    private final PaperCommandUseCase paperCommandUseCase;
 
     /**
      * <h3>메시지 작성 API</h3>
@@ -43,7 +41,7 @@ public class PaperCommandController {
     public ResponseEntity<String> writeMessage(
             @PathVariable String userName,
             @RequestBody @Valid MessageDTO messageDTO) {
-        writePaperUseCase.writeMessage(userName, messageDTO);
+        paperCommandUseCase.writeMessage(userName, messageDTO);
         return ResponseEntity.ok("메시지가 작성되었습니다.");
     }
 
@@ -60,7 +58,7 @@ public class PaperCommandController {
     @PostMapping("/delete")
     public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                 @RequestBody @Valid MessageDTO messageDTO) {
-        deletePaperUseCase.deleteMessageInMyPaper(userDetails, messageDTO);
+        paperCommandUseCase.deleteMessageInMyPaper(userDetails, messageDTO);
         return ResponseEntity.ok("메시지가 삭제되었습니다.");
     }
 }

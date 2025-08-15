@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.paper.infrastructure.adapter.out;
+package jaeik.growfarm.domain.paper.infrastructure.adapter.out.persistence;
 
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;

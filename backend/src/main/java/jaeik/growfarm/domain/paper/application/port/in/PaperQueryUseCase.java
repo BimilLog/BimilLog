@@ -1,12 +1,12 @@
 package jaeik.growfarm.domain.paper.application.port.in;
 
+import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 import java.util.List;
 import java.util.Optional;
-import jaeik.growfarm.domain.paper.entity.Message;
 
 /**
  * <h2>롤링페이퍼 조회 유스케이스</h2>
@@ -18,7 +18,7 @@ import jaeik.growfarm.domain.paper.entity.Message;
  * @author Jaeik
  * @version 2.0.0 (헥사고날 아키텍처 적용)
  */
-public interface ReadPaperUseCase {
+public interface PaperQueryUseCase {
 
     /**
      * <h3>내 롤링페이퍼 조회</h3>

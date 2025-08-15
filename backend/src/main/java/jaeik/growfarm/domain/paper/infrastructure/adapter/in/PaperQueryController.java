@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.paper.infrastructure.adapter.in;
 
-import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
+import jaeik.growfarm.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequestMapping("/api/paper")
 public class PaperQueryController {
 
-    private final ReadPaperUseCase readPaperUseCase;
+    private final PaperQueryUseCase paperQueryUseCase;
 
     /**
      * <h3>내 롤링페이퍼 조회 API</h3>
@@ -43,7 +43,7 @@ public class PaperQueryController {
      */
     @GetMapping
     public ResponseEntity<List<MessageDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<MessageDTO> messageDTOs = readPaperUseCase.getMyPaper(userDetails);
+        List<MessageDTO> messageDTOs = paperQueryUseCase.getMyPaper(userDetails);
         return ResponseEntity.ok(messageDTOs);
     }
 
@@ -58,7 +58,7 @@ public class PaperQueryController {
      */
     @GetMapping("{userName}")
     public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String userName) {
-        List<VisitMessageDTO> visitMessageDTOs = readPaperUseCase.visitPaper(userName);
+        List<VisitMessageDTO> visitMessageDTOs = paperQueryUseCase.visitPaper(userName);
         return ResponseEntity.ok(visitMessageDTOs);
     }
 }

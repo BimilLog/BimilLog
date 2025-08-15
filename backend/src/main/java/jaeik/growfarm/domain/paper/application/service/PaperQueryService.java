@@ -1,8 +1,9 @@
 package jaeik.growfarm.domain.paper.application.service;
 
-import jaeik.growfarm.domain.paper.application.port.in.ReadPaperUseCase;
+import jaeik.growfarm.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.LoadPaperPort;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
+import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.dto.paper.MessageDTO;
 import jaeik.growfarm.dto.paper.VisitMessageDTO;
 import jaeik.growfarm.global.exception.CustomException;
@@ -14,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import jaeik.growfarm.domain.paper.entity.Message;
 
 /**
  * <h2>롤링페이퍼 조회 서비스</h2>
@@ -29,7 +29,7 @@ import jaeik.growfarm.domain.paper.entity.Message;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class ReadPaperService implements ReadPaperUseCase {
+public class PaperQueryService implements PaperQueryUseCase {
 
     private final LoadPaperPort loadPaperPort;
     private final LoadUserPort loadUserPort;
