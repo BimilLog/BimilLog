@@ -40,17 +40,4 @@ public class AdminQueryController {
         Page<ReportDTO> reportList = adminQueryUseCase.getReportList(page, size, reportType);
         return ResponseEntity.ok(reportList);
     }
-
-    /**
-     * <h3>신고 상세 조회 API</h3>
-     *
-     * @param reportId 신고 ID
-     * @return 신고 상세 정보
-     * @since 2025-04-28
-     */
-    @GetMapping("/{reportId}")
-    public ResponseEntity<ReportDTO> getReportDetail(@PathVariable Long reportId) {
-        ReportDTO reportDetail = adminQueryUseCase.getReportDetail(reportId);
-        return ResponseEntity.ok(reportDetail);
-    }
 }

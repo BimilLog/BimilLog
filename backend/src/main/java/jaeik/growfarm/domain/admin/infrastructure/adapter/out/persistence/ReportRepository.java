@@ -12,5 +12,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface ReportRepository extends JpaRepository<Report, Long>, ReportCustomRepository {
+public interface ReportRepository extends JpaRepository<Report, Long> {
 }

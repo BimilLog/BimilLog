@@ -2,7 +2,7 @@
 package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminCommandUseCase;
-import jaeik.growfarm.domain.admin.application.port.out.UserAuthPort;
+import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.growfarm.domain.admin.application.service.resolver.ReportedUserResolver;
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.user.entity.User;
@@ -32,7 +32,7 @@ public class AdminCommandService implements AdminCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
     private final List<ReportedUserResolver> userResolvers;
-    private final UserAuthPort userAuthPort;
+    private final AdminCommandPort adminCommandPort;
 
     /**
      * <h3>사용자 제재</h3>
@@ -67,7 +67,7 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     public void forceWithdrawUser(Long userId) {
-        userAuthPort.forceWithdraw(userId);
+        adminCommandPort.forceWithdraw(userId);
     }
 
     /**

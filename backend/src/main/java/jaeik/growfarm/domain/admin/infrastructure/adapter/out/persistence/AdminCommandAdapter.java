@@ -1,9 +1,10 @@
-package jaeik.growfarm.domain.admin.infrastructure.adapter.out.persistence.user;
+package jaeik.growfarm.domain.admin.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.admin.application.port.out.UserAuthPort;
+import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageNotificationPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.EmitterRepository;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
@@ -23,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
-public class UserAuthAdapter implements UserAuthPort {
+public class AdminCommandAdapter implements AdminCommandPort {
 
     private final UserQueryUseCase userQueryUseCase;
     private final SocialLoginPort socialLoginPort;
@@ -41,5 +42,12 @@ public class UserAuthAdapter implements UserAuthPort {
         manageAuthDataPort.performWithdrawProcess(userId);
         manageNotificationPort.deleteAllEmitterByUserId(userId);
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
+    }
+
+    private final EmitterRepository emitterRepository;
+
+    @Override
+    public void deleteAllEmitterByUserId(Long userId) {
+        emitterRepository.deleteAllEmitterByUserId(userId);
     }
 }

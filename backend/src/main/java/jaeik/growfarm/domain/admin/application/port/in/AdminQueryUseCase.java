@@ -25,15 +25,4 @@ public interface AdminQueryUseCase {
      * @since 2.0.0
      */
     Page<ReportDTO> getReportList(int page, int size, ReportType reportType);
-
-    /**
-     * <h3>신고 상세 정보 조회</h3>
-     * <p>주어진 신고 ID에 해당하는 신고의 상세 정보를 조회합니다.</p>
-     *
-     * @param reportId 신고 ID
-     * @return ReportDTO 신고 상세 정보 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    ReportDTO getReportDetail(Long reportId);
 }

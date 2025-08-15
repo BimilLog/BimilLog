@@ -15,7 +15,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadReportPort {
+public interface AdminQueryPort {
 
     /**
      * <h3>신고 목록 페이지네이션 조회</h3>
