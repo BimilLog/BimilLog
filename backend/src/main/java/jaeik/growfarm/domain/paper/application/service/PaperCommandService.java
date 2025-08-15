@@ -17,14 +17,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <h2>롤링페이퍼 삭제 서비스</h2>
+ * <h2>롤링페이퍼 명령 서비스</h2>
  * <p>
- * Use Case Implementation: 롤링페이퍼 메시지 삭제 관련 비즈니스 로직 구현
- * 기존 PaperDeleteServiceImpl의 모든 로직을 완전히 보존하여 이전
+ * Use Case Implementation: 롤링페이퍼 메시지 생성/삭제 관련 비즈니스 로직 구현
+ * 기존 PaperWriteServiceImpl, PaperDeleteServiceImpl의 모든 로직을 완전히 보존하여 이전
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0 (헥사고날 아키텍처 적용)
+ * @version 2.0.0
  */
 @Service
 @Transactional
@@ -35,8 +35,6 @@ public class PaperCommandService implements PaperCommandUseCase {
     private final PaperQueryUseCase paperQueryUseCase;
     private final LoadUserPort loadUserPort;
     private final PublishEventPort publishEventPort;
-
-
 
 
     /**

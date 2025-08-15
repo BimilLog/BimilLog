@@ -23,7 +23,7 @@ import java.util.Optional;
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0 (헥사고날 아키텍처 적용)
+ * @version 2.0.0
  */
 @Repository
 @RequiredArgsConstructor
@@ -31,6 +31,11 @@ public class PaperQueryAdapter implements PaperQueryPort {
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>QueryDSL을 사용하여 메시지 ID로 메시지 엔티티를 조회합니다.</p>
+     */
     @Override
     public Optional<Message> findMessageById(Long messageId) {
         QMessage message = QMessage.message;

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * </p>
  *
  * @author Jaeik
- * @version 2.1.0
+ * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor
@@ -21,11 +21,21 @@ public class PaperCommandAdapter implements PaperCommandPort {
 
     private final MessageRepository messageRepository;
 
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>MessageRepository.save()를 위임하여 메시지를 저장합니다.</p>
+     */
     @Override
     public Message save(Message message) {
         return messageRepository.save(message);
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>MessageRepository.deleteById()를 위임하여 메시지를 삭제합니다.</p>
+     */
     @Override
     public void deleteById(Long messageId) {
         messageRepository.deleteById(messageId);

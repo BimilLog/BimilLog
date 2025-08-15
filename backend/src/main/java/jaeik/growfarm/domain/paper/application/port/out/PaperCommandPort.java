@@ -4,6 +4,10 @@ import jaeik.growfarm.domain.paper.entity.Message;
 
 /**
  * <h2>롤링페이퍼 명령 Port</h2>
+ * <p>
+ * Secondary Port: 롤링페이퍼 메시지 생성/삭제를 위한 아웃바운드 포트
+ * 기존 MessageRepository의 기능을 추상화
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0

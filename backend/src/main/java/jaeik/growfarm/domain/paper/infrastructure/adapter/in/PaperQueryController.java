@@ -18,7 +18,7 @@ import java.util.List;
  * <h2>롤링 페이퍼 조회 컨트롤러</h2>
  * <p>
  * Primary Adapter: 롤링 페이퍼 조회 관련 웹 API를 관리합니다.
- * 헥사고날 아키텍처 적용 - UseCase 기반 구현
+ * UseCase 기반 구현으로 CQRS 패턴 적용
  * 기존 PaperQueryController와 동일한 API 스펙 보장
  * </p>
  *

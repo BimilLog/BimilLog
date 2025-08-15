@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * <h2>롤링 페이퍼 변경 컨트롤러</h2>
  * <p>
  * Primary Adapter: 롤링 페이퍼 변경 관련 웹 API를 관리합니다.
- * 헥사고날 아키텍처 적용 - UseCase 기반 구현
+ * UseCase 기반 구현으로 CQRS 패턴 적용
  * 기존 PaperCommandController와 동일한 API 스펙 보장
  * </p>
  *

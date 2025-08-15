@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0 (헥사고날 아키텍처 적용)
+ * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor
