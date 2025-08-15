@@ -63,11 +63,7 @@ public class CommentQueryService implements CommentQueryUseCase {
         List<Long> likedCommentIds = getUserLikedCommentIdsForPopular(postId, userDetails);
         List<CommentDTO> popularComments = commentQueryPort.findPopularComments(postId, likedCommentIds);
 
-        if (!popularComments.isEmpty()) {
-            List<Long> commentIds = popularComments.stream().map(CommentDTO::getId).collect(Collectors.toList());
-            Map<Long, Long> likeCounts = commentLikeQueryPort.countByCommentIds(commentIds);
-            popularComments.forEach(comment -> comment.setLikes(likeCounts.getOrDefault(comment.getId(), 0L).intValue()));
-        }
+        // 추천수는 이미 쿼리에서 설정됨 (단일 쿼리 최적화)
         return popularComments;
     }
 
@@ -142,11 +138,7 @@ public class CommentQueryService implements CommentQueryUseCase {
         List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
         Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
 
-        if (commentPage.hasContent()) {
-            List<Long> commentIds = commentPage.getContent().stream().map(CommentDTO::getId).collect(Collectors.toList());
-            Map<Long, Long> likeCounts = commentLikeQueryPort.countByCommentIds(commentIds);
-            commentPage.getContent().forEach(comment -> comment.setLikes(likeCounts.getOrDefault(comment.getId(), 0L).intValue()));
-        }
+        // 추천수는 이미 쿼리에서 설정됨 (단일 쿼리 최적화)
         return commentPage;
     }
 

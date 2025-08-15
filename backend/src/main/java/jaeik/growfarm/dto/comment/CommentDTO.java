@@ -68,6 +68,38 @@ public class CommentDTO {
     }
 
     /**
+     * <h3>추천수를 포함한 댓글 DTO 생성자</h3>
+     * <p>QueryDSL 쿼리에서 추천수를 한번에 조회할 때 사용하는 생성자입니다.</p>
+     *
+     * @param id        댓글 ID
+     * @param postId    게시글 ID
+     * @param userId    사용자 ID
+     * @param userName  사용자명
+     * @param content   댓글 내용
+     * @param deleted   삭제 여부
+     * @param password  비밀번호
+     * @param createdAt 생성일시
+     * @param parentId  부모 댓글 ID
+     * @param likes     추천수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public CommentDTO(Long id, Long postId, Long userId, String userName, String content, boolean deleted, Integer password, Instant createdAt, Long parentId, Integer likes) {
+        this.id = id;
+        this.postId = postId;
+        this.userId = userId;
+        this.userName = userName;
+        this.content = content;
+        this.deleted = deleted;
+        this.password = password;
+        this.createdAt = createdAt;
+        this.parentId = parentId;
+        this.popular = false;
+        this.likes = likes != null ? likes : 0;
+        this.userLike = false;
+    }
+
+    /**
      * <h3>엔티티를 DTO로 변환</h3>
      * <p>
      * likes와 userLike는 별도로 설정해야 함

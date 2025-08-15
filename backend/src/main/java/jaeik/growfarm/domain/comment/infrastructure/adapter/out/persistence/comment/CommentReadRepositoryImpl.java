@@ -62,11 +62,13 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
                         comment.deleted,
                         comment.password,
                         comment.createdAt,
-                        closure.ancestor.id
+                        closure.ancestor.id,
+                        commentLike.countDistinct().coalesce(0L).intValue() // 추천수 한번에 조회, null 방지
                 ))
                 .from(comment)
                 .leftJoin(comment.user, user)
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id))
+                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id)) // 추천수 조회를 위한 JOIN
                 .where(comment.post.id.eq(postId))
                 .groupBy(comment.id, user.userName, closure.ancestor.id)
                 .orderBy(comment.createdAt.desc())
@@ -76,7 +78,7 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
 
         content.forEach(dto -> {
             dto.setUserLike(likedCommentIds.contains(dto.getId()));
-            // like count는 별도로 조회해야 함
+            // 추천수는 이미 쿼리에서 설정됨
         });
         // countRootCommentsByPostId는 어떠한 글의 최상위 댓글 수만 조회 함
         // main 브랜치를 살펴보고 페이징을 최상위 댓글 기준으로 하였는지 전체 댓글 기준으로 하였는지 확인 필요
@@ -112,7 +114,8 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
                         comment.deleted,
                         comment.password,
                         comment.createdAt,
-                        closure.ancestor.id
+                        closure.ancestor.id,
+                        commentLike.countDistinct().coalesce(0L).intValue() // 추천수 한번에 조회, null 방지
                 ))
                 .from(comment)
                 .leftJoin(comment.user, user)
@@ -128,7 +131,7 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
         popularComments.forEach(dto -> {
             dto.setUserLike(likedCommentIds.contains(dto.getId()));
             dto.setPopular(true);
-            // like count는 별도로 조회해야 함
+            // 추천수는 이미 쿼리에서 설정됨
         });
         return popularComments;
     }
