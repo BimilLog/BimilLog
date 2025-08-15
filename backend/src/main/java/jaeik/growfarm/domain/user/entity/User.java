@@ -3,7 +3,6 @@ package jaeik.growfarm.domain.user.entity;
 import jaeik.growfarm.dto.auth.SocialLoginUserData;
 import jaeik.growfarm.global.domain.BaseEntity;
 import jaeik.growfarm.global.domain.SocialProvider;
-import jaeik.growfarm.global.domain.UserRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

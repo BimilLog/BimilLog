@@ -2,7 +2,7 @@ package jaeik.growfarm.dto.user;
 
 import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.global.domain.UserRole;
+import jaeik.growfarm.domain.user.entity.UserRole;
 import org.springframework.lang.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

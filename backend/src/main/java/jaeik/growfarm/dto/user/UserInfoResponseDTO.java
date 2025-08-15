@@ -1,6 +1,6 @@
 package jaeik.growfarm.dto.user;
 
-import jaeik.growfarm.global.domain.UserRole;
+import jaeik.growfarm.domain.user.entity.UserRole;
 import lombok.Builder;
 
 /**

@@ -1,4 +1,4 @@
-package jaeik.growfarm.global.domain;
+package jaeik.growfarm.domain.user.entity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

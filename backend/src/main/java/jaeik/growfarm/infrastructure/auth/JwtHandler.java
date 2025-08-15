@@ -4,7 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.growfarm.global.domain.SocialProvider;
-import jaeik.growfarm.global.domain.UserRole;
+import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.dto.user.UserDTO;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
