@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.comment;
 
-import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.CommentReadRepository;
+import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.comment.CommentReadRepository;
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.comment;
 
 import jaeik.growfarm.domain.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;

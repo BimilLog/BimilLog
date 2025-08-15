@@ -1,39 +1,29 @@
+
 package jaeik.growfarm.domain.comment.application.service;
 
-import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
-import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
-import jaeik.growfarm.domain.comment.application.port.out.*;
+import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentCommandPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentClosureQueryPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentClosureCommandPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
-import jaeik.growfarm.domain.comment.entity.CommentLike;
+import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.comment.CommentDTO;
-import jaeik.growfarm.global.event.CommentCreatedEvent;
-import jaeik.growfarm.global.event.PostDeletedEvent;
-import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.global.exception.CustomException;
 import jaeik.growfarm.global.exception.ErrorCode;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
- * <h2>댓글 서비스</h2>
+ * <h2>댓글 도메인 서비스</h2>
  * <p>
- * 댓글 관련 Command 및 Query 유스케이스를 구현하는 서비스 클래스
+ * 댓글의 생성, 삭제 등 핵심 비즈니스 로직을 담당하는 도메인 서비스
  * </p>
  * <p>
- * 댓글 CRUD, 추천, 인기 댓글 조회 등 다양한 댓글 관련 기능을 제공
+ * 댓글 계층 구조 관리 및 연관된 클로저 엔티티 처리를 포함
  * </p>
  *
  * @author Jaeik
@@ -42,266 +32,73 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Slf4j
-public class CommentService implements CommentCommandUseCase, CommentQueryUseCase {
+public class CommentService {
 
     private final CommentQueryPort commentQueryPort;
     private final CommentCommandPort commentCommandPort;
-    private final CommentLikeQueryPort commentLikeQueryPort;
-    private final CommentLikeCommandPort commentLikeCommandPort;
-    private final ApplicationEventPublisher eventPublisher;
-    private final LoadUserPort loadUserPort;
-    private final LoadPostPort loadPostPort;
-    private final CommentDomainService commentDomainService;
-
-
-    // ============== Query ==============
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
-        List<Long> likedCommentIds = getUserLikedCommentIdsForPopular(postId, userDetails);
-        List<CommentDTO> popularComments = commentQueryPort.findPopularComments(postId, likedCommentIds);
-
-        if (!popularComments.isEmpty()) {
-            List<Long> commentIds = popularComments.stream().map(CommentDTO::getId).collect(Collectors.toList());
-            Map<Long, Long> likeCounts = commentLikeQueryPort.countByCommentIds(commentIds);
-            popularComments.forEach(comment -> comment.setLikes(likeCounts.getOrDefault(comment.getId(), 0L).intValue()));
-        }
-        return popularComments;
-    }
+    private final CommentClosureQueryPort commentClosureQueryPort;
+    private final CommentClosureCommandPort commentClosureCommandPort;
 
     /**
-     * <h3>인기 댓글에 대한 사용자 추천 ID 조회</h3>
-     * <p>주어진 게시글 ID에 대한 인기 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <h3>댓글과 클로저 엔티티 함께 저장</h3>
+     * <p>새로운 댓글을 저장하고 댓글의 계층 구조를 관리하는 클로저 엔티티를 함께 저장합니다.</p>
+     * <p>부모 댓글이 있는 경우 해당 댓글의 모든 상위 클로저 엔티티와 새로운 댓글을 연결합니다.</p>
      *
-     * @param postId      게시글 ID
-     * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
+     * @param post     댓글이 속한 게시글 엔티티
+     * @param user     댓글 작성 사용자 엔티티
+     * @param content  댓글 내용
+     * @param password 댓글 비밀번호 (선택 사항)
+     * @param parentId 부모 댓글 ID (대댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
-    private List<Long> getUserLikedCommentIdsForPopular(Long postId, CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            return Collections.emptyList();
-        }
-        // 이 부분은 개선의 여지가 있습니다. 인기 댓글 ID를 먼저 가져오고, 그 ID들로 추천 여부를 확인하는 것이 더 효율적입니다.
-        // 현재는 postId 전체 댓글에 대해 추천 여부를 확인하게 될 수 있습니다.
-        return commentQueryPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
-    }
+    public void saveCommentWithClosure(Post post, User user, String content, Integer password, Long parentId) {
+        try {
+            Comment comment = commentCommandPort.save(Comment.createComment(post, user, content, password));
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
-        Pageable pageable = Pageable.ofSize(20).withPage(page);
-        List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
-        Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
+            CommentClosure selfClosure = CommentClosure.createCommentClosure(comment, comment, 0);
+            commentClosureCommandPort.save(selfClosure);
 
-        if (commentPage.hasContent()) {
-            List<Long> commentIds = commentPage.getContent().stream().map(CommentDTO::getId).collect(Collectors.toList());
-            Map<Long, Long> likeCounts = commentLikeQueryPort.countByCommentIds(commentIds);
-            commentPage.getContent().forEach(comment -> comment.setLikes(likeCounts.getOrDefault(comment.getId(), 0L).intValue()));
-        }
-        return commentPage;
-    }
+            if (parentId != null) {
+                Comment parentComment = commentQueryPort.findById(parentId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
+                List<CommentClosure> parentClosures = commentClosureQueryPort.findByDescendantId(parentComment.getId())
+                        .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
 
-    /**
-     * <h3>페이지별 사용자 추천 ID 조회</h3>
-     * <p>주어진 게시글 ID와 페이지 정보에 해당하는 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
-     *
-     * @param postId      게시글 ID
-     * @param pageable    페이지 정보
-     * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private List<Long> getUserLikedCommentIdsByPage(Long postId, Pageable pageable, CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            return Collections.emptyList();
-        }
-        // 이 또한 comment ID 목록을 먼저 가져온 후 추천 여부를 확인하는 것이 더 효율적입니다.
-        return commentQueryPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
-    }
+                for (CommentClosure parentClosure : parentClosures) {
+                    Comment ancestor = parentClosure.getAncestor();
+                    int newDepth = parentClosure.getDepth() + 1;
+                    CommentClosure newClosure = CommentClosure.createCommentClosure(ancestor, comment, newDepth);
+                    commentClosureCommandPort.save(newClosure);
+                }
+            }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<Comment> findById(Long commentId) {
-        return commentQueryPort.findById(commentId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<jaeik.growfarm.dto.comment.SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
-        return commentQueryPort.findCommentsByUserId(userId, pageable);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<jaeik.growfarm.dto.comment.SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
-        return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
-    }
-
-
-    // ============== Command ==============
-
-    @Override
-    public void writeComment(CustomUserDetails userDetails, CommentDTO commentDto) {
-        Post post = loadPostPort.findById(commentDto.getPostId())
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        
-        User user = null;
-        if (userDetails != null) {
-            user = loadUserPort.findById(userDetails.getUserId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        }
-
-        commentDomainService.saveCommentWithClosure(
-                post,
-                user,
-                commentDto.getContent(),
-                commentDto.getPassword(),
-                commentDto.getParentId());
-
-        if (post.getUser() != null) {
-            eventPublisher.publishEvent(new CommentCreatedEvent(
-                    this,
-                    post.getUser().getId(),
-                    commentDto.getUserName(),
-                    commentDto.getPostId()));
-        }
-    }
-
-    @Override
-    public void updateComment(CommentDTO commentDto, CustomUserDetails userDetails) {
-        Comment comment = validateComment(commentDto, userDetails);
-        comment.updateComment(commentDto.getContent());
-        commentCommandPort.save(comment);
-    }
-
-    /**
-     * <h3>댓글 유효성 검사 및 조회</h3>
-     * <p>댓글 DTO와 사용자 인증 정보를 기반으로 댓글의 유효성을 검사하고 댓글 엔티티를 조회합니다.</p>
-     * <p>비밀번호가 일치하지 않거나, 사용자 본인이 아닌 경우 예외를 발생시킵니다.</p>
-     *
-     * @param commentDto  댓글 DTO
-     * @param userDetails 사용자 인증 정보
-     * @return Comment 유효성 검사를 통과한 댓글 엔티티
-     * @throws CustomException 댓글을 찾을 수 없거나, 비밀번호가 일치하지 않거나, 사용자 권한이 없는 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Comment validateComment(CommentDTO commentDto, CustomUserDetails userDetails) {
-        Comment comment = commentQueryPort.findById(commentDto.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-
-        if (commentDto.getPassword() != null && !Objects.equals(comment.getPassword(), commentDto.getPassword())) {
-            throw new CustomException(ErrorCode.COMMENT_PASSWORD_NOT_MATCH);
-        }
-
-        if (commentDto.getPassword() == null
-                && (userDetails == null || !Objects.equals(comment.getUser().getId(), userDetails.getUserId()))) {
-            throw new CustomException(ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
-        }
-        return comment;
-    }
-
-    @Override
-    public void deleteComment(CommentDTO commentDto, CustomUserDetails userDetails) {
-        Comment comment = validateComment(commentDto, userDetails);
-        commentDomainService.deleteComment(comment);
-    }
-
-    @Override
-    public void likeComment(CommentDTO commentDto, CustomUserDetails userDetails) {
-        Long commentId = commentDto.getId();
-        Long userId = userDetails.getUserId();
-
-        Comment comment = commentQueryPort.findById(commentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        User user = loadUserPort.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        if (commentQueryPort.isLikedByUser(commentId, userId)) {
-            commentCommandPort.deleteLike(comment, user);
-        } else {
-            CommentLike commentLike = CommentLike.builder()
-                    .comment(comment)
-                    .user(user)
-                    .build();
-            commentLikeCommandPort.save(commentLike);
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
     }
 
     /**
-     * <h3>사용자 댓글 익명화</h3>
-     * <p>특정 사용자가 작성한 모든 댓글을 익명화 처리합니다. (사용자 탈퇴 시 호출)</p>
+     * <h3>댓글 삭제</h3>
+     * <p>주어진 댓글을 삭제합니다. 대댓글이 있는 경우 소프트 삭제를 수행하고, 없는 경우 물리적으로 삭제합니다.</p>
      *
-     * @param userId 익명화할 사용자 ID
+     * @param comment 삭제할 댓글 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public void anonymizeUserComments(Long userId) {
-        commentCommandPort.anonymizeUserComments(userId);
-    }
-
-    /**
-     * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>
-     * <p>주어진 댓글 ID 목록 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
-     *
-     * @param commentIds  댓글 ID 목록
-     * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private List<Long> getUserLikedCommentIds(List<Long> commentIds, CustomUserDetails userDetails) {
-        return (userDetails != null)
-                ? commentQueryPort.findUserLikedCommentIds(commentIds, userDetails.getUserId())
-                : List.of();
-    }
-
-    /**
-     * <h3>사용자 탈퇴 이벤트 핸들러</h3>
-     * <p>사용자 탈퇴 이벤트를 수신하여 해당 사용자의 댓글을 익명화 처리합니다.</p>
-     *
-     * @param event 사용자 탈퇴 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async
-    @Transactional
-    @EventListener
-    public void handleUserWithdrawnEvent(UserWithdrawnEvent event) {
-        log.info("User (ID: {}) withdrawn event received. Anonymizing comments.", event.userId());
-        anonymizeUserComments(event.userId());
-    }
-
-    /**
-     * <h3>게시글 삭제 이벤트 핸들러</h3>
-     * <p>게시글 삭제 이벤트를 수신하여 해당 게시글의 모든 댓글을 삭제합니다.</p>
-     * 
-     * <p><strong>⚠️ TODO: 성능 최적화 - 클로저 배치 삭제 고려</strong></p>
-     * <p>현재는 commentCommandPort.deleteAllByPostId()만 사용하여 댓글을 삭제하고,</p>
-     * <p>클로저는 데이터베이스 CASCADE에 의존하고 있습니다.</p>
-     * <p><strong>개선 방법:</strong></p>
-     * <ul>
-     *   <li>1. 해당 게시글의 모든 댓글 ID 조회</li>
-     *   <li>2. CommentClosureCommandPort.deleteByDescendantIds()로 클로저 배치 삭제</li>
-     *   <li>3. commentCommandPort.deleteAllByPostId()로 댓글 삭제</li>
-     *   <li><strong>장점:</strong> DB CASCADE 의존성 제거, 명시적 삭제 순서 제어</li>
-     * </ul>
-     *
-     * @param event 게시글 삭제 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async
-    @Transactional
-    @EventListener
-    public void handlePostDeletedEvent(PostDeletedEvent event) {
-        log.info("Post (ID: {}) deleted event received. Deleting all comments.", event.postId());
-        // TODO: 성능 최적화를 위해 클로저 배치 삭제 로직 추가 고려
-        commentCommandPort.deleteAllByPostId(event.postId());
+    public void deleteComment(Comment comment) {
+        Long commentId = comment.getId();
+        try {
+            boolean hasDescendants = commentClosureQueryPort.hasDescendants(commentId);
+            if (hasDescendants) {
+                comment.softDelete();
+                commentCommandPort.save(comment);
+            } else {
+                commentClosureCommandPort.deleteByDescendantId(commentId);
+                commentCommandPort.delete(comment);
+            }
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.COMMENT_DELETE_FAILED, e);
+        }
     }
 }

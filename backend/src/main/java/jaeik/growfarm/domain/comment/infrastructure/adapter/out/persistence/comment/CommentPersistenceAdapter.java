@@ -1,21 +1,22 @@
-package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.comment;
 
 import jaeik.growfarm.domain.comment.application.port.out.*;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import jaeik.growfarm.domain.comment.entity.CommentLike;
+import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.commentclosure.CommentClosureRepository;
+import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.commentlike.CommentLikeRepository;
+import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import jaeik.growfarm.dto.comment.SimpleCommentDTO;
-import org.springframework.data.domain.Page;
-import org.springframework.transaction.annotation.Transactional;
-import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.post.entity.Post;
 
 /**
  * <h2>댓글 영속성 어댑터</h2>

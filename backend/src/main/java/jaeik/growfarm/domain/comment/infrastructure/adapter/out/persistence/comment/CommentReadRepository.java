@@ -1,6 +1,5 @@
-package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.comment;
 
-import com.querydsl.core.Tuple;
 import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import org.springframework.data.domain.Page;

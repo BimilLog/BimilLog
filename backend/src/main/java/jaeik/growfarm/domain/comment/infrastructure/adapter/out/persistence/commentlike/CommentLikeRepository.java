@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.commentlike;
 
 import jaeik.growfarm.domain.comment.entity.CommentLike;
 import jaeik.growfarm.domain.user.entity.User;

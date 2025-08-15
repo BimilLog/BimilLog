@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.comment;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
