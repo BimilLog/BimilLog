@@ -43,4 +43,22 @@ public class CommentLikeQueryAdapter implements CommentLikeQueryPort {
     public Map<Long, Long> countByCommentIds(List<Long> commentIds) {
         return commentLikeRepository.countByCommentIds(commentIds);
     }
+
+    /**
+     * <h3>사용자가 댓글에 추천를 눌렀는지 여부 확인</h3>
+     * <p>주어진 댓글과 사용자가 이미 추천 관계인지 확인합니다.</p>
+     *
+     * @param commentId 댓글 ID
+     * @param userId    사용자 ID
+     * @return boolean 추천를 눌렀으면 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public boolean isLikedByUser(Long commentId, Long userId) {
+        // 이 로직은 userId와 commentId만으로 처리하는 것이 더 효율적일 수 있습니다.
+        // 현재는 CommentService에서 이미 User와 Comment 엔티티를 조회하고 있어,
+        // 그 엔티티를 활용하는 것이 추가적인 쿼리를 줄일 수 있습니다.
+        return commentLikeRepository.findByCommentIdAndUserId(commentId, userId).isPresent();
+    }
 }

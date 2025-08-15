@@ -34,16 +34,6 @@ public interface CommentCommandPort {
     void delete(Comment comment);
 
     /**
-     * <h3>ID로 댓글 삭제</h3>
-     * <p>주어진 ID의 댓글을 삭제합니다.</p>
-     *
-     * @param commentId 삭제할 댓글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void deleteById(Long commentId);
-
-    /**
      * <h3>게시글 ID로 모든 댓글 삭제</h3>
      * <p>주어진 게시글 ID에 해당하는 모든 댓글을 삭제합니다.</p>
      *

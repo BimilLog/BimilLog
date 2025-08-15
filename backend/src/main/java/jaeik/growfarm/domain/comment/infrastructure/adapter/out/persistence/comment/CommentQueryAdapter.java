@@ -2,7 +2,6 @@ package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.com
 
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
-import jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.commentlike.CommentLikeRepository;
 import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +25,7 @@ import java.util.Optional;
 public class CommentQueryAdapter implements CommentQueryPort {
 
     private final CommentRepository commentRepository;
-    private final CommentLikeRepository commentLikeRepository;
-    private final CommentReadRepository commentReadRepository; // QueryDSL 구현체
+    private final CommentReadRepository commentReadRepository;
 
     /**
      * <h3>ID로 댓글 조회</h3>
@@ -117,24 +115,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     }
     
 
-    /**
-     * <h3>사용자가 댓글에 추천를 눌렀는지 여부 확인</h3>
-     * <p>주어진 댓글과 사용자가 이미 추천 관계인지 확인합니다.</p>
-     *
-     * @param commentId 댓글 ID
-     * @param userId    사용자 ID
-     * @return boolean 추천를 눌렀으면 true, 아니면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public boolean isLikedByUser(Long commentId, Long userId) {
-        // 이 로직은 userId와 commentId만으로 처리하는 것이 더 효율적일 수 있습니다.
-        // 현재는 CommentService에서 이미 User와 Comment 엔티티를 조회하고 있어,
-        // 그 엔티티를 활용하는 것이 추가적인 쿼리를 줄일 수 있습니다.
-        // 하지만 포트의 의미를 명확히 하기 위해 이대로 구현합니다.
-        return commentLikeRepository.findByCommentIdAndUserId(commentId, userId).isPresent();
-    }
+
 
     /**
      * <h3>게시글 ID로 사용자가 추천한 댓글 ID 목록 조회</h3>
@@ -150,7 +131,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
     public List<Long> findUserLikedCommentIdsByPostId(Long postId, Long userId) {
         return commentRepository.findUserLikedCommentIdsByPostId(postId, userId);
     }
-
 
     /**
      * <h3>인기 댓글 목록 조회</h3>

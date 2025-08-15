@@ -29,18 +29,6 @@ public class CommentLikeCommandAdapter implements CommentLikeCommandPort {
         return commentLikeRepository.save(commentLike);
     }
 
-    /**
-     * <h3>댓글 추천 삭제</h3>
-     * <p>주어진 댓글 추천 엔티티를 삭제합니다.</p>
-     *
-     * @param commentLike 삭제할 댓글 추천 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void delete(CommentLike commentLike) {
-        commentLikeRepository.delete(commentLike);
-    }
 
     /**
      * <h3>댓글 추천 삭제</h3>

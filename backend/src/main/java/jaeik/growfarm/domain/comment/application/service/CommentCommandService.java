@@ -35,6 +35,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     private final CommentQueryPort commentQueryPort;
     private final CommentClosureQueryPort commentClosureQueryPort;
     private final CommentClosureCommandPort commentClosureCommandPort;
+    private final CommentLikeQueryPort commentLikeQueryPort;
 
 
 
@@ -100,7 +101,7 @@ public class CommentCommandService implements CommentCommandUseCase {
         User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        if (commentQueryPort.isLikedByUser(commentId, userId)) {
+        if (commentLikeQueryPort.isLikedByUser(commentId, userId)) {
             commentLikeCommandPort.deleteLike(comment, user);
         } else {
             CommentLike commentLike = CommentLike.builder()

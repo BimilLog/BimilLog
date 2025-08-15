@@ -28,16 +28,6 @@ public interface CommentLikeCommandPort {
 
     /**
      * <h3>댓글 추천 삭제</h3>
-     * <p>주어진 댓글 추천 엔티티를 삭제합니다.</p>
-     *
-     * @param commentLike 삭제할 댓글 추천 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void delete(CommentLike commentLike);
-
-    /**
-     * <h3>댓글 추천 삭제</h3>
      * <p>주어진 댓글과 사용자의 추천 관계를 삭제합니다.</p>
      *
      * @param comment 추천를 삭제할 댓글 엔티티
