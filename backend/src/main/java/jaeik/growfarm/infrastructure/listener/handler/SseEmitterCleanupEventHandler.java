@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
  * <p>단일 책임 원칙(SRP)에 따라 SSE 정리 로직만을 담당</p>
  *
  * @author Jaeik
- * @version 2.0.0
  * @since 2.0.0
  */
 @Slf4j

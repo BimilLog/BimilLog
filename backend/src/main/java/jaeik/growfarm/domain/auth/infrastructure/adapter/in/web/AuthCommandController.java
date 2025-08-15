@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.auth.infrastructure.adapter.in;
+package jaeik.growfarm.domain.auth.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;

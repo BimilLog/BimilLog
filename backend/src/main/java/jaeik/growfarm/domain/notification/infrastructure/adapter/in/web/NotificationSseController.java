@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.notification.infrastructure.adapter.in;
+package jaeik.growfarm.domain.notification.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;

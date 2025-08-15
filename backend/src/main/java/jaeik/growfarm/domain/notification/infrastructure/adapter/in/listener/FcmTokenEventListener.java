@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.notification.application.handler;
+package jaeik.growfarm.domain.notification.infrastructure.adapter.in.listener;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.growfarm.global.event.FcmTokenRegisteredEvent;
@@ -12,9 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <h2>FCM 토큰 이벤트 핸들러</h2>
- * <p>FCM 토큰 관련 이벤트를 처리하는 Application Service</p>
- * <p>헥사고날 아키텍처를 준수하여 Use Case를 통해 비즈니스 로직 처리</p>
+ * <h2>FCM 토큰 이벤트 리스너</h2>
+ * <p>FCM 토큰 관련 이벤트 발행을 청취한다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -22,12 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FcmTokenEventHandler {
+public class FcmTokenEventListener {
 
     private final NotificationFcmUseCase notificationFcmUseCase;
 
     /**
-     * <h3>FCM 토큰 등록 이벤트 처리</h3>
+     * <h3>FCM 토큰 등록 이벤트 처리 핸들러</h3>
      * <p>사용자 로그인 또는 회원가입 시 FCM 토큰을 등록합니다.</p>
      *
      * @param event FCM 토큰 등록 이벤트
@@ -43,7 +42,7 @@ public class FcmTokenEventHandler {
     }
 
     /**
-     * <h3>사용자 로그아웃 이벤트 처리</h3>
+     * <h3>사용자 로그아웃 이벤트 처리 핸들러</h3>
      * <p>사용자 로그아웃 시 FCM 토큰을 삭제합니다.</p>
      *
      * @param event 사용자 로그아웃 이벤트
@@ -59,7 +58,7 @@ public class FcmTokenEventHandler {
     }
 
     /**
-     * <h3>사용자 탈퇴 이벤트 처리</h3>
+     * <h3>사용자 탈퇴 이벤트 처리 핸들러</h3>
      * <p>사용자 탈퇴 시 FCM 토큰을 삭제합니다.</p>
      *
      * @param event 사용자 탈퇴 이벤트

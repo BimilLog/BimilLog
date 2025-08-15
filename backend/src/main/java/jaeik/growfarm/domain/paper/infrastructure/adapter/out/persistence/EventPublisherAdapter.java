@@ -6,11 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+// TODO : 헥사고날 아키텍처에서는 이벤트 발행은 서비스 레이어에서 일어나야함 수정 필요.
 /**
  * <h2>이벤트 발행 어댑터</h2>
  * <p>
- * Secondary Adapter: 도메인 이벤트를 Spring의 ApplicationEventPublisher로 발행하는 구현
- * 기존 ApplicationEventPublisher 사용법을 완전히 보존
+ * Secondary Port: 도메인 이벤트 발행을 위한 어댑터
  * </p>
  *
  * @author Jaeik
@@ -23,15 +23,15 @@ public class EventPublisherAdapter implements PublishEventPort {
     private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * {@inheritDoc}
-     * 
-     * <p>기존 ApplicationEventPublisher.publishEvent() 메서드를 완전히 위임:</p>
-     * <ul>
-     *   <li>Spring의 이벤트 발행 메커니즘 그대로 사용</li>
-     *   <li>기존의 이벤트 리스너들과 완전 호환</li>
-     *   <li>비동기/동기 처리 방식 모두 보존</li>
-     *   <li>트랜잭션 경계와의 상호작용 보존</li>
-     * </ul>
+     * <h3>메시지 이벤트 발행</h3>
+     * <p>
+     * 기존 ApplicationEventPublisher.publishEvent() 메서드와 동일한 기능
+     * 메시지 작성 시 알림 시스템과의 연동을 위한 이벤트 발행
+     * </p>
+     *
+     * @param event 발행할 메시지 이벤트
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void publishMessageEvent(MessageEvent event) {

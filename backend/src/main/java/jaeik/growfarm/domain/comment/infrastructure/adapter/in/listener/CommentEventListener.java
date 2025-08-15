@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.comment.application.handler;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.in.listener;
 
 import jaeik.growfarm.domain.comment.application.port.out.CommentCommandPort;
 import jaeik.growfarm.global.event.PostDeletedEvent;
@@ -11,9 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <h2>댓글 이벤트 핸들러</h2>
- * <p>댓글 도메인과 관련된 도메인 이벤트를 처리하는 핸들러</p>
- * <p>다른 도메인과의 일관성을 위해 handler 디렉토리에 위치</p>
+ * <h2>댓글 이벤트 리스너</h2>
+ * <p>댓글 도메인과 관련된 도메인 이벤트를 처리하는 리스너</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -21,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CommentEventHandler {
+public class CommentEventListener {
 
     private final CommentCommandPort commentCommandPort;
 

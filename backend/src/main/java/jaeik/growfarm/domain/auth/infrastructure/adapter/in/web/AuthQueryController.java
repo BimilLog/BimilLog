@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.auth.infrastructure.adapter.in;
+package jaeik.growfarm.domain.auth.infrastructure.adapter.in.web;
 
 import jaeik.growfarm.dto.user.UserInfoResponseDTO;
 import jaeik.growfarm.global.exception.CustomException;
