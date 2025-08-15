@@ -1,10 +1,7 @@
 package jaeik.growfarm.domain.comment.application.port.out;
 
-import jaeik.growfarm.domain.comment.entity.CommentLike;
-
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * <h2>댓글 추천 조회 포트</h2>
@@ -15,18 +12,6 @@ import java.util.Optional;
  * @version 2.0.0
  */
 public interface CommentLikeQueryPort {
-
-    /**
-     * <h3>댓글 ID와 사용자 ID로 댓글 추천 조회</h3>
-     * <p>주어진 댓글 ID와 사용자 ID에 해당하는 댓글 추천 엔티티를 조회합니다.</p>
-     *
-     * @param commentId 댓글 ID
-     * @param userId    사용자 ID
-     * @return Optional<CommentLike> 조회된 댓글 추천 엔티티. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId);
 
     /**
      * <h3>여러 댓글 ID에 대한 추천 수 조회</h3>
@@ -42,6 +27,7 @@ public interface CommentLikeQueryPort {
     /**
      * <h3>사용자가 댓글에 추천을 눌렀는지 여부 확인</h3>
      * <p>주어진 댓글과 사용자가 이미 추천 관계인지 확인합니다.</p>
+     * <p>성능 최적화: EXISTS 쿼리를 사용하여 효율적으로 존재 여부만 확인합니다.</p>
      *
      * @param commentId 댓글 ID
      * @param userId    사용자 ID
