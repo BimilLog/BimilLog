@@ -16,7 +16,7 @@ import java.util.List;
  * @version 2.0.0
  */
 @Repository
-public class NotificationDeleteRepositoryImpl extends NotificationBaseRepository implements NotificationDeleteRepository {
+public class NotificationCommandRepositoryImpl extends NotificationBaseRepository implements NotificationCommandRepository {
 
     /**
      * <h3>생성자</h3>
@@ -26,7 +26,7 @@ public class NotificationDeleteRepositoryImpl extends NotificationBaseRepository
      * @author Jaeik
      * @since 2.0.0
      */
-    public NotificationDeleteRepositoryImpl(com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory) {
+    public NotificationCommandRepositoryImpl(com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory) {
         super(jpaQueryFactory);
     }
 
@@ -43,6 +43,25 @@ public class NotificationDeleteRepositoryImpl extends NotificationBaseRepository
     public void deleteByIdInAndUserId(List<Long> ids, Long userId) {
         jpaQueryFactory
                 .delete(notification)
+                .where(notification.id.in(ids)
+                        .and(getUserNotificationCondition(userId)))
+                .execute();
+    }
+
+    /**
+     * <h3>알림 ID 목록과 사용자 ID로 알림 읽음 처리</h3>
+     * <p>주어진 알림 ID 목록과 사용자 ID에 해당하는 알림을 읽음 상태로 변경합니다.</p>
+     *
+     * @param ids 읽음 처리할 알림 ID 목록
+     * @param userId 알림을 소유한 사용자의 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void markAsReadByIdInAndUserId(List<Long> ids, Long userId) {
+        jpaQueryFactory
+                .update(notification)
+                .set(notification.isRead, true)
                 .where(notification.id.in(ids)
                         .and(getUserNotificationCondition(userId)))
                 .execute();

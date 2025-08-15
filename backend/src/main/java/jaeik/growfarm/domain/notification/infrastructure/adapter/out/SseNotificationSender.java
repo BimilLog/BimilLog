@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
-import jaeik.growfarm.domain.notification.application.port.out.SaveNotificationPort;
+import jaeik.growfarm.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.EmitterRepository;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
@@ -29,7 +29,7 @@ public class SseNotificationSender implements NotificationSender {
 
     private final EmitterRepository emitterRepository;
     private final UserQueryUseCase userQueryUseCase;
-    private final SaveNotificationPort saveNotificationPort;
+    private final NotificationCommandPort notificationCommandPort;
 
     /**
      * <h3>SSE 알림 전송</h3>
@@ -49,7 +49,7 @@ public class SseNotificationSender implements NotificationSender {
 
             User user = userQueryUseCase.findById(userId)
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-            saveNotificationPort.save(user, type, data, url);
+            notificationCommandPort.save(user, type, data, url);
             Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
 
             emitters.forEach(

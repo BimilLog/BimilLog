@@ -1,21 +1,15 @@
-package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
+package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.notification.application.port.out.LoadNotificationPort;
-import jaeik.growfarm.domain.notification.application.port.out.SaveNotificationPort;
-import jaeik.growfarm.domain.notification.application.port.out.UpdateNotificationPort;
+import jaeik.growfarm.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.growfarm.domain.notification.entity.Notification;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.NotificationRepository;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.delete.NotificationDeleteRepository;
+import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.delete.NotificationCommandRepository;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.read.NotificationReadRepository;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.update.NotificationUpdateRepository;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,27 +22,12 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class NotificationJpaAdapter implements LoadNotificationPort, UpdateNotificationPort, SaveNotificationPort {
+public class NotificationCommandAdapter implements NotificationCommandPort {
 
     private final NotificationRepository notificationRepository;
-    private final NotificationReadRepository notificationReadRepository;
-    private final NotificationDeleteRepository notificationDeleteRepository;
-    private final NotificationUpdateRepository notificationUpdateRepository;
+    private final NotificationCommandRepository notificationCommandRepository;
 
-    /**
-     * <h3>알림 목록 조회</h3>
-     * <p>현재 로그인한 사용자의 알림 목록을 최신순으로 조회합니다.</p>
-     *
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 알림 DTO 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<NotificationDTO> getNotificationList(CustomUserDetails userDetails) {
-        return notificationReadRepository.findNotificationsByUserIdOrderByLatest(userDetails.getUserId());
-    }
+
 
     /**
      * <h3>알림 일괄 업데이트</h3>
@@ -66,11 +45,11 @@ public class NotificationJpaAdapter implements LoadNotificationPort, UpdateNotif
         List<Long> readIds = updateNotificationDTO.getReadIds();
 
         if (deleteIds != null && !deleteIds.isEmpty()) {
-            notificationDeleteRepository.deleteByIdInAndUserId(deleteIds, userId);
+            notificationCommandRepository.deleteByIdInAndUserId(deleteIds, userId);
         }
 
         if (readIds != null && !readIds.isEmpty()) {
-            notificationUpdateRepository.markAsReadByIdInAndUserId(readIds, userId);
+            notificationCommandRepository.markAsReadByIdInAndUserId(readIds, userId);
         }
     }
 

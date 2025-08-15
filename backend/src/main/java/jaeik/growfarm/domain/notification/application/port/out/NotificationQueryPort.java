@@ -12,7 +12,7 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadNotificationPort {
+public interface NotificationQueryPort {
 
     /**
      * <h3>알림 리스트 조회</h3>

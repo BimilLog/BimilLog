@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationCommandUseCase;
-import jaeik.growfarm.domain.notification.application.port.out.UpdateNotificationPort;
+import jaeik.growfarm.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NotificationCommandService implements NotificationCommandUseCase {
 
-    private final UpdateNotificationPort updateNotificationPort;
+    private final NotificationCommandPort notificationCommandPort;
 
     /**
      * <h3>알림 일괄 업데이트</h3>
@@ -31,7 +31,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      */
     @Override
     public void batchUpdate(CustomUserDetails userDetails, UpdateNotificationDTO updateNotificationDTO) {
-        updateNotificationPort.batchUpdate(userDetails, updateNotificationDTO);
+        notificationCommandPort.batchUpdate(userDetails, updateNotificationDTO);
     }
 
 

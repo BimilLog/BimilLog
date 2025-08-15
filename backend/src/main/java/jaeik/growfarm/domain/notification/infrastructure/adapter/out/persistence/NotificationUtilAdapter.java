@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
+package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.growfarm.domain.notification.entity.NotificationType;

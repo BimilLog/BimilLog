@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
-import jaeik.growfarm.domain.notification.application.port.out.SseEmitterPort;
+import jaeik.growfarm.domain.notification.application.port.out.SsePort;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.EmitterRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 @Component
 @RequiredArgsConstructor
-public class SseEmitterAdapter implements SseEmitterPort {
+public class SseAdapter implements SsePort {
 
     private final EmitterRepository emitterRepository;
     private final NotificationUtilPort notificationUtilPort;
