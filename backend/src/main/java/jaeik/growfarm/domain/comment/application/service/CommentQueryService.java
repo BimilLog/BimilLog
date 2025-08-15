@@ -1,37 +1,30 @@
 package jaeik.growfarm.domain.comment.application.service;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
-import jaeik.growfarm.domain.comment.application.port.out.CommentCommandPort;
-import jaeik.growfarm.domain.comment.application.port.out.CommentLikeQueryPort;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
-import jaeik.growfarm.global.event.PostDeletedEvent;
-import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * <h2>댓글 서비스</h2>
  * <p>
- * 댓글 관련 Command 및 Query 유스케이스를 구현하는 서비스 클래스
+ * 댓글 관련 Query 유스케이스를 구현하는 서비스 클래스
  * </p>
  * <p>
- * 댓글 CRUD, 추천, 인기 댓글 조회 등 다양한 댓글 관련 기능을 제공
+ * 댓글 조회, 인기 댓글 조회 등 다양한 댓글 조회 기능을 제공
  * </p>
  *
  * @author Jaeik
@@ -44,8 +37,6 @@ import java.util.stream.Collectors;
 public class CommentQueryService implements CommentQueryUseCase {
 
     private final CommentQueryPort commentQueryPort;
-    private final CommentCommandPort commentCommandPort;
-    private final CommentLikeQueryPort commentLikeQueryPort;
 
     /**
      * <h3>인기 댓글 조회</h3>
@@ -61,10 +52,9 @@ public class CommentQueryService implements CommentQueryUseCase {
     @Transactional(readOnly = true)
     public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
         List<Long> likedCommentIds = getUserLikedCommentIdsForPopular(postId, userDetails);
-        List<CommentDTO> popularComments = commentQueryPort.findPopularComments(postId, likedCommentIds);
 
         // 추천수는 이미 쿼리에서 설정됨 (단일 쿼리 최적화)
-        return popularComments;
+        return commentQueryPort.findPopularComments(postId, likedCommentIds);
     }
 
     /**
@@ -136,10 +126,9 @@ public class CommentQueryService implements CommentQueryUseCase {
     public Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
         List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
-        Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
 
         // 추천수는 이미 쿼리에서 설정됨 (단일 쿼리 최적화)
-        return commentPage;
+        return commentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
     }
 
     /**
@@ -158,17 +147,6 @@ public class CommentQueryService implements CommentQueryUseCase {
     }
 
 
-    /**
-     * <h3>사용자 댓글 익명화</h3>
-     * <p>특정 사용자가 작성한 모든 댓글을 익명화 처리합니다. (사용자 탈퇴 시 호출)</p>
-     *
-     * @param userId 익명화할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void anonymizeUserComments(Long userId) {
-        commentCommandPort.anonymizeUserComments(userId);
-    }
 
     /**
      * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>
@@ -186,49 +164,7 @@ public class CommentQueryService implements CommentQueryUseCase {
                 : List.of();
     }
 
-    /**
-     * <h3>사용자 탈퇴 이벤트 핸들러</h3>
-     * <p>사용자 탈퇴 이벤트를 수신하여 해당 사용자의 댓글을 익명화 처리합니다.</p>
-     *
-     * @param event 사용자 탈퇴 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async
-    @Transactional
-    @EventListener
-    public void handleUserWithdrawnEvent(UserWithdrawnEvent event) {
-        log.info("User (ID: {}) withdrawn event received. Anonymizing comments.", event.userId());
-        anonymizeUserComments(event.userId());
-    }
 
-    /**
-     * <h3>게시글 삭제 이벤트 핸들러</h3>
-     * <p>게시글 삭제 이벤트를 수신하여 해당 게시글의 모든 댓글을 삭제합니다.</p>
-     * 
-     * <p><strong>⚠️ TODO: 성능 최적화 - 클로저 배치 삭제 고려</strong></p>
-     * <p>현재는 commentCommandPort.deleteAllByPostId()만 사용하여 댓글을 삭제하고,</p>
-     * <p>클로저는 데이터베이스 CASCADE에 의존하고 있습니다.</p>
-     * <p><strong>개선 방법:</strong></p>
-     * <ul>
-     *   <li>1. 해당 게시글의 모든 댓글 ID 조회</li>
-     *   <li>2. CommentClosureCommandPort.deleteByDescendantIds()로 클로저 배치 삭제</li>
-     *   <li>3. commentCommandPort.deleteAllByPostId()로 댓글 삭제</li>
-     *   <li><strong>장점:</strong> DB CASCADE 의존성 제거, 명시적 삭제 순서 제어</li>
-     * </ul>
-     *
-     * @param event 게시글 삭제 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async
-    @Transactional
-    @EventListener
-    public void handlePostDeletedEvent(PostDeletedEvent event) {
-        log.info("Post (ID: {}) deleted event received. Deleting all comments.", event.postId());
-        // TODO: 성능 최적화를 위해 클로저 배치 삭제 로직 추가 고려
-        commentCommandPort.deleteAllByPostId(event.postId());
-    }
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
