@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 @Component("commentPostAdapter")
 @RequiredArgsConstructor
-public class PostAdapter implements LoadPostPort {
+public class LoadPostAdapter implements LoadPostPort {
 
     private final PostQueryUseCase postQueryUseCase;
 

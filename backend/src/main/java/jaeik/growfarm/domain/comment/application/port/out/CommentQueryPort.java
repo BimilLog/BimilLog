@@ -1,6 +1,7 @@
 package jaeik.growfarm.domain.comment.application.port.out;
 
 import jaeik.growfarm.domain.comment.entity.Comment;
+import jaeik.growfarm.dto.comment.CommentDTO;
 import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +30,7 @@ public interface CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<jaeik.growfarm.dto.comment.CommentDTO> findPopularComments(Long postId, List<Long> likedCommentIds);
+    List<CommentDTO> findPopularComments(Long postId, List<Long> likedCommentIds);
 
     /**
      * <h3>최신순 댓글 목록 조회</h3>
@@ -42,7 +43,7 @@ public interface CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<jaeik.growfarm.dto.comment.CommentDTO> findCommentsWithLatestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds);
+    Page<CommentDTO> findCommentsWithLatestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds);
 
     /**
      * <h3>ID로 댓글 조회</h3>

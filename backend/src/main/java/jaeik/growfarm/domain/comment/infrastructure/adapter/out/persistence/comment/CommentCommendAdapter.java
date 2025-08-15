@@ -1,16 +1,18 @@
-package jaeik.growfarm.domain.comment.application.port.out;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.comment;
 
+import jaeik.growfarm.domain.comment.application.port.out.CommentCommandPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
+import jaeik.growfarm.domain.user.entity.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <h2>댓글 명령 포트</h2>
- * <p>댓글 엔티티 생성/수정/삭제를 위한 Out-Port</p>
- * <p>CQRS 패턴에 따른 명령 전용 포트</p>
- *
- * @author Jaeik
- * @version 2.0.0
- */
-public interface CommentCommandPort {
+@Repository
+@RequiredArgsConstructor
+public class CommentCommendAdapter implements CommentCommandPort {
+
+    private final CommentRepository commentRepository;
+
 
     /**
      * <h3>댓글 저장</h3>
@@ -21,7 +23,10 @@ public interface CommentCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Comment save(Comment comment);
+    @Override
+    public Comment save(Comment comment) {
+        return commentRepository.save(comment);
+    }
 
     /**
      * <h3>댓글 삭제</h3>
@@ -31,7 +36,10 @@ public interface CommentCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void delete(Comment comment);
+    @Override
+    public void delete(Comment comment) {
+        commentRepository.delete(comment);
+    }
 
     /**
      * <h3>ID로 댓글 삭제</h3>
@@ -41,7 +49,10 @@ public interface CommentCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteById(Long commentId);
+    @Override
+    public void deleteById(Long commentId) {
+        commentRepository.deleteById(commentId);
+    }
 
     /**
      * <h3>게시글 ID로 모든 댓글 삭제</h3>
@@ -51,7 +62,10 @@ public interface CommentCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByPostId(Long postId);
+    @Override
+    public void deleteAllByPostId(Long postId) {
+        commentRepository.deleteAllByPostId(postId);
+    }
 
     /**
      * <h3>사용자 댓글 익명화</h3>
@@ -61,5 +75,10 @@ public interface CommentCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void anonymizeUserComments(Long userId);
+    @Override
+    public void anonymizeUserComments(Long userId) {
+        commentRepository.anonymizeUserComments(userId);
+    }
+
+
 }

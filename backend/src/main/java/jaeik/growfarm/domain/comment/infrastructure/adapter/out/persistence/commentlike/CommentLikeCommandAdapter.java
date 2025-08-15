@@ -1,19 +1,19 @@
-package jaeik.growfarm.domain.comment.application.port.out;
+package jaeik.growfarm.domain.comment.infrastructure.adapter.out.persistence.commentlike;
 
+import jaeik.growfarm.domain.comment.application.port.out.CommentLikeCommandPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentLike;
 import jaeik.growfarm.domain.user.entity.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * <h2>댓글 추천 명령 포트</h2>
- * <p>댓글 추천 엔티티 생성/수정/삭제를 위한 Out-Port</p>
- * <p>CQRS 패턴에 따른 명령 전용 포트</p>
- *
- * @author Jaeik
- * @version 2.0.0
- */
-public interface CommentLikeCommandPort {
+@Repository
+@RequiredArgsConstructor
+public class CommentLikeCommandAdapter implements CommentLikeCommandPort {
+
+    private final CommentLikeRepository commentLikeRepository;
+
 
     /**
      * <h3>댓글 추천 저장</h3>
@@ -24,7 +24,10 @@ public interface CommentLikeCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    CommentLike save(CommentLike commentLike);
+    @Override
+    public CommentLike save(CommentLike commentLike) {
+        return commentLikeRepository.save(commentLike);
+    }
 
     /**
      * <h3>댓글 추천 삭제</h3>
@@ -34,7 +37,10 @@ public interface CommentLikeCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void delete(CommentLike commentLike);
+    @Override
+    public void delete(CommentLike commentLike) {
+        commentLikeRepository.delete(commentLike);
+    }
 
     /**
      * <h3>댓글 추천 삭제</h3>
@@ -46,5 +52,8 @@ public interface CommentLikeCommandPort {
      * @since 2.0.0
      */
     @Transactional
-    void deleteLike(Comment comment, User user);
+    @Override
+    public void deleteLike(Comment comment, User user) {
+        commentLikeRepository.deleteByCommentAndUser(comment, user);
+    }
 }

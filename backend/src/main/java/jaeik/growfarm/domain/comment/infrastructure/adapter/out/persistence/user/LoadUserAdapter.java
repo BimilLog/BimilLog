@@ -18,7 +18,7 @@ import java.util.Optional;
  */
 @Component("commentUserAdapter")
 @RequiredArgsConstructor
-public class UserAdapter implements LoadUserPort {
+public class LoadUserAdapter implements LoadUserPort {
 
     private final UserQueryUseCase userQueryUseCase;
 

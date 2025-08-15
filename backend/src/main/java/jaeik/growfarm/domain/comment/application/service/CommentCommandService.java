@@ -101,7 +101,7 @@ public class CommentCommandService implements CommentCommandUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (commentQueryPort.isLikedByUser(commentId, userId)) {
-            commentCommandPort.deleteLike(comment, user);
+            commentLikeCommandPort.deleteLike(comment, user);
         } else {
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)
