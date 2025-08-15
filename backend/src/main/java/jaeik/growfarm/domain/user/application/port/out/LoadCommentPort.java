@@ -6,9 +6,10 @@ import org.springframework.data.domain.Pageable;
 
 /**
  * <h2>댓글 조회 포트</h2>
- * <p>User 도메인에서 Comment 도메인의 데이터에 접근하기 위한 Out-Port</p>
+ * <p>User 도메인에서 Comment 도메인의 정보를 조회하기 위한 아웃바운드 포트입니다.</p>
+ * <p>헥사고날 아키텍처 원칙에 따라 도메인 간 의존성을 관리합니다.</p>
  *
- * @author jaeik
+ * @author Jaeik  
  * @version 2.0.0
  */
 public interface LoadCommentPort {
@@ -19,9 +20,9 @@ public interface LoadCommentPort {
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return 작성한 댓글 목록 페이지
-     * @author jaeik
-     * @version 2.0.0
+     * @return Page<SimpleCommentDTO> 작성한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
      */
     Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable);
 
@@ -31,9 +32,9 @@ public interface LoadCommentPort {
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return 추천한 댓글 목록 페이지
-     * @author jaeik
-     * @version 2.0.0
+     * @return Page<SimpleCommentDTO> 추천한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
      */
     Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
 }

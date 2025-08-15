@@ -114,6 +114,18 @@ public interface CommentQueryPort {
     List<Long> findUserLikedCommentIds(List<Long> commentIds, Long userId);
 
     /**
+     * <h3>게시글 ID로 사용자가 추천한 댓글 ID 목록 조회</h3>
+     * <p>주어진 게시글 ID에 대한 댓글 중 사용자가 추천을 누른 댓글의 ID 목록을 조회합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID
+     * @return List<Long> 사용자가 추천을 누른 댓글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    List<Long> findUserLikedCommentIdsByPostId(Long postId, Long userId);
+
+    /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
@@ -138,15 +150,5 @@ public interface CommentQueryPort {
     Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
 
 
-    /**
-     * <h3>게시글 ID로 사용자가 추천한 댓글 ID 목록 조회</h3>
-     * <p>주어진 게시글 ID에 대한 댓글 중 사용자가 추천을 누른 댓글의 ID 목록을 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param userId 사용자 ID
-     * @return List<Long> 사용자가 추천을 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<Long> findUserLikedCommentIdsByPostId(Long postId, Long userId);
+
 }

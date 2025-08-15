@@ -2,8 +2,10 @@ package jaeik.growfarm.domain.comment.application.port.in;
 
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.dto.comment.CommentDTO;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,5 +54,29 @@ public interface CommentQueryUseCase {
      * @since 2.0.0
      */
     Optional<Comment> findById(Long commentId);
+
+    /**
+     * <h3>사용자 작성 댓글 목록 조회</h3>
+     * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return Page<SimpleCommentDTO> 작성한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable);
+
+    /**
+     * <h3>사용자 추천한 댓글 목록 조회</h3>
+     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return Page<SimpleCommentDTO> 추천한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable);
 
 }

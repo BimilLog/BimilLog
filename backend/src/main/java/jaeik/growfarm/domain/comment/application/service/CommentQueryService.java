@@ -6,6 +6,7 @@ import jaeik.growfarm.domain.comment.application.port.out.CommentLikeQueryPort;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.dto.comment.CommentDTO;
+import jaeik.growfarm.dto.comment.SimpleCommentDTO;
 import jaeik.growfarm.global.event.PostDeletedEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -220,5 +221,39 @@ public class CommentQueryService implements CommentQueryUseCase {
         log.info("Post (ID: {}) deleted event received. Deleting all comments.", event.postId());
         // TODO: 성능 최적화를 위해 클로저 배치 삭제 로직 추가 고려
         commentCommandPort.deleteAllByPostId(event.postId());
+    }
+
+    /**
+     * <h3>사용자 작성 댓글 목록 조회</h3>
+     * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>CommentQueryPort의 기존 구현체를 활용합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return Page<SimpleCommentDTO> 작성한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
+        return commentQueryPort.findCommentsByUserId(userId, pageable);
+    }
+
+    /**
+     * <h3>사용자 추천한 댓글 목록 조회</h3>
+     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>CommentQueryPort의 기존 구현체를 활용합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return Page<SimpleCommentDTO> 추천한 댓글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
+        return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
     }
 }
