@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <h2>신고 영속성 어댑터</h2>
+ * <h2>관히자 조회 어댑터</h2>
  * <p>
- * 신고(`Report`) 관련 데이터를 영속화하고 조회하는 Outgoing-Adapter
+ * 신고(`Report`) 관련 데이터를 영속화하고 조회
  * </p>
  *
  * @author Jaeik
@@ -34,26 +34,16 @@ public class AdminQueryAdapter implements AdminQueryPort {
     private final JPAQueryFactory queryFactory;
 
 
-
     /**
-     * <h3>신고 목록 페이징 조회</h3>
-     * <p>
-     * 신고 타입에 따라 필터링하여 신고 목록을 페이징 조회하고 ReportDTO로 변환하여 반환합니다.
-     * </p>
-     * <p>
-     * 신고 타입이 null인 경우 전체 신고를 조회합니다.
-     * </p>
-     * <p>
-     * 기본적으로 최신순(생성일시 내림차순)으로 조회합니다.
-     * </p>
+     * <h3>신고 목록 페이지네이션 조회</h3>
+     * <p>주어진 신고 유형에 따라 신고 목록을 페이지네이션하여 조회합니다.</p>
      *
-     * @param reportType 신고 타입 (null이면 전체 조회)
-     * @param pageable   페이징 정보 객체
-     * @return Page<ReportDTO> 신고 DTO 페이지 객체
+     * @param reportType 신고 유형 (null 가능, 전체 조회 시)
+     * @param pageable   페이지 정보
+     * @return Page<ReportDTO> 신고 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-
     @Override
     public Page<ReportDTO> findReportsWithPaging(ReportType reportType, Pageable pageable) {
         QReport report = QReport.report;
@@ -85,6 +75,15 @@ public class AdminQueryAdapter implements AdminQueryPort {
     }
 
 
+    /**
+     * <h3>ID로 신고 조회</h3>
+     * <p>주어진 신고 ID로 신고 엔티티를 조회합니다.</p>
+     *
+     * @param reportId 신고 ID
+     * @return Optional<Report> 조회된 신고 엔티티. 존재하지 않으면 Optional.empty()
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Optional<Report> findById(Long reportId) {
         return reportRepository.findById(reportId);

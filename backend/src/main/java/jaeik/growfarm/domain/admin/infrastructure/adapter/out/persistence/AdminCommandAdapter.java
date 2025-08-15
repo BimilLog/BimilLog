@@ -31,6 +31,15 @@ public class AdminCommandAdapter implements AdminCommandPort {
     private final ManageNotificationPort manageNotificationPort;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * <h3>사용자 강제 탈퇴</h3>
+     * <p>관리자 권한으로 사용자를 강제 탈퇴 처리합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @throws CustomException 사용자 정보가 존재하지 않을 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     @Transactional
     public void forceWithdraw(Long userId) {

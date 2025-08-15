@@ -28,6 +28,17 @@ public class AdminQueryService implements AdminQueryUseCase {
 
     private final AdminQueryPort adminQueryPort;
 
+    /**
+     * <h3>신고 목록 조회</h3>
+     * <p>신고 목록을 페이지네이션하여 조회합니다. 특정 신고 유형에 따라 필터링할 수 있습니다.</p>
+     *
+     * @param page       페이지 번호
+     * @param size       페이지 크기
+     * @param reportType 신고 유형 (선택 사항)
+     * @return Page<ReportDTO> 신고 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Page<ReportDTO> getReportList(int page, int size, ReportType reportType) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
