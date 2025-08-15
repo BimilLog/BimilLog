@@ -25,7 +25,6 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
     private final NotificationCommandRepository notificationCommandRepository;
 
 
-
     /**
      * <h3>알림 일괄 업데이트</h3>
      * <p>주어진 알림 ID 목록에 따라 알림을 삭제하거나 읽음 상태로 변경합니다.</p>

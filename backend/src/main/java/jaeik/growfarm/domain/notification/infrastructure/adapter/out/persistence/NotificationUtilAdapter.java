@@ -85,9 +85,6 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
             case MESSAGE -> setting.isMessageNotification();
             case COMMENT -> setting.isCommentNotification();
             case POST_FEATURED -> setting.isPostFeaturedNotification();
-            case COMMENT_FEATURED ->
-                // 인기댓글에 대한 설정은 현재 없으므로, 댓글 알림 설정을 따르도록 합니다.
-                    setting.isCommentNotification();
             default -> false; // ADMIN, INITIATE는 위에서 처리했으므로 사실상 도달하지 않음
         };
     }

@@ -74,5 +74,4 @@ public class NotificationReadRepository {
                 .orderBy(notification.createdAt.desc())
                 .fetch();
     }
-
 }
