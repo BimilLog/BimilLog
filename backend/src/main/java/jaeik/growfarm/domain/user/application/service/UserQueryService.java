@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
-import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.post.SimplePostResDTO;
@@ -31,7 +31,7 @@ public class UserQueryService implements UserQueryUseCase {
 
     private final UserQueryPort userQueryPort;
     private final LoadPostPort loadPostPort;
-    private final CommentQueryPort commentQueryPort;
+    private final LoadCommentPort loadCommentPort;
 
     /**
      * <h3>소셜 정보로 사용자 조회</h3>
@@ -123,6 +123,7 @@ public class UserQueryService implements UserQueryUseCase {
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>해당 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>헥사고날 아키텍처 원칙에 따라 User 도메인의 LoadCommentPort를 통해 접근합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -132,12 +133,13 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
-        return commentQueryPort.findCommentsByUserId(userId, pageable);
+        return loadCommentPort.findCommentsByUserId(userId, pageable);
     }
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>해당 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>헥사고날 아키텍처 원칙에 따라 User 도메인의 LoadCommentPort를 통해 접근합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -147,7 +149,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
-        return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
+        return loadCommentPort.findLikedCommentsByUserId(userId, pageable);
     }
 
     /**

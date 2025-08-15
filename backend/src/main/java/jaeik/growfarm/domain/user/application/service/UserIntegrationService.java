@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <h2>사용자 통합 서비스</h2>
@@ -36,6 +37,11 @@ public class UserIntegrationService implements UserIntegrationUseCase {
     /**
      * <h3>카카오 친구 목록 조회</h3>
      * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회하고, 비밀로그 가입 여부를 확인합니다.</p>
+     * <p><strong>성능 최적화:</strong> findUserNamesInOrder 메소드를 사용하여 배치 조회로 N+1 문제를 해결합니다.</p>
+     * <ul>
+     *   <li><strong>기존 방식:</strong> 각 친구마다 개별 쿼리 실행 (친구 10명 = 10번 쿼리)</li>
+     *   <li><strong>최적화된 방식:</strong> 모든 친구를 한 번에 배치 조회 (친구 10명 = 1번 쿼리)</li>
+     * </ul>
      *
      * @param userId 사용자 ID
      * @param offset 조회 시작 위치 (기본값: 0)
@@ -72,13 +78,23 @@ public class UserIntegrationService implements UserIntegrationUseCase {
                     actualLimit
             );
 
-            // 각 친구에 대해 비밀로그 가입 여부 확인
+            // 각 친구에 대해 비밀로그 가입 여부 확인 (성능 최적화: 배치 조회)
             List<KakaoFriendDTO> elements = friendsResponse.getElements();
             if (elements != null && !elements.isEmpty()) {
-                for (KakaoFriendDTO friend : elements) {
-                    // 카카오 소셜 ID로 비밀로그 가입자 찾기
-                    userQueryPort.findByProviderAndSocialId(SocialProvider.KAKAO, String.valueOf(friend.getId()))
-                            .ifPresent(registeredUser -> friend.setUserName(registeredUser.getUserName()));
+                // 1. 모든 친구의 소셜 ID를 수집
+                List<String> socialIds = elements.stream()
+                        .map(friend -> String.valueOf(friend.getId()))
+                        .collect(Collectors.toList());
+
+                // 2. 배치로 사용자 이름 조회 (N+1 문제 해결)
+                List<String> userNames = userQueryPort.findUserNamesInOrder(socialIds);
+
+                // 3. 결과를 각 친구에게 매핑
+                for (int i = 0; i < elements.size(); i++) {
+                    String userName = userNames.get(i);
+                    if (!userName.isEmpty()) {
+                        elements.get(i).setUserName(userName);
+                    }
                 }
             }
 

@@ -2,12 +2,13 @@ package jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.user;
 
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.Setting;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.infrastructure.adapter.out.persistence.setting.SettingRepository;
 import jaeik.growfarm.global.domain.SocialProvider;
-import jaeik.growfarm.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -119,10 +120,10 @@ public class UserQueryAdapter implements UserQueryPort {
      * @param socialIds 조회할 소셜 ID 문자열 리스트
      * @return List<String> 조회된 사용자 이름 리스트
      * @author jaeik
-     * @version 2.0.0
+     * @since  2.0.0
      */
     @Override
-    public java.util.List<String> findUserNamesInOrder(java.util.List<String> socialIds) {
+    public List<String> findUserNamesInOrder (List<String> socialIds) {
         return userRepository.findUserNamesInOrder(socialIds);
     }
 

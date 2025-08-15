@@ -72,21 +72,4 @@ public class Setting {
                 .postFeaturedNotification(true)
                 .build();
     }
-
-    /**
-     * <h3>설정 DTO로 설정 생성</h3>
-     * <p>주어진 DTO를 사용하여 새로운 설정 엔티티를 생성합니다.</p>
-     *
-     * @param settingDTO 설정 정보 DTO
-     * @return 생성된 설정 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static Setting createSetting(SettingDTO settingDTO) {
-        return Setting.builder()
-                .messageNotification(settingDTO.isMessageNotification())
-                .commentNotification(settingDTO.isCommentNotification())
-                .postFeaturedNotification(settingDTO.isPostFeaturedNotification())
-                .build();
-    }
 }

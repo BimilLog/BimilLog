@@ -8,8 +8,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.time.Instant;
-
 /**
  * <h2>사용자 엔티티</h2>
  * <p>
@@ -31,6 +29,7 @@ import java.time.Instant;
         @Index(name = "idx_user_username", columnList = "userName"),
         @Index(name = "uk_provider_social_id", columnList = "provider, social_id", unique = true),
 })
+
 public class User extends BaseEntity {
 
     @Id
@@ -66,9 +65,6 @@ public class User extends BaseEntity {
 
     @Column(name = "thumbnail_image") // 카카오 프로필 이미지
     private String thumbnailImage;
-
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
 
     /**
      * <h3>사용자 정보 업데이트</h3>
@@ -112,24 +108,6 @@ public class User extends BaseEntity {
      */
     public void updateSetting(Setting setting) {
         this.setting = setting;
-    }
-
-    /**
-     * <h3>사용자 탈퇴 처리</h3>
-     * <p>사용자 정보를 탈퇴 상태로 변경합니다.</p>
-     * <p>닉네임, 소셜 ID, 프로바이더, 소셜 닉네임, 썸네일 이미지, 역할, 탈퇴 시간을 업데이트합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void withdraw() {
-        this.userName = "탈퇴한사용자" + this.id;
-        this.socialId = null;
-        this.provider = null;
-        this.socialNickname = null;
-        this.thumbnailImage = null;
-        this.role = UserRole.WITHDRAWN;
-        this.deletedAt = Instant.now();
     }
 
     /**

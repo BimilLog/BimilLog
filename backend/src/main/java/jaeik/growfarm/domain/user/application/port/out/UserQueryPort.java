@@ -1,9 +1,10 @@
 package jaeik.growfarm.domain.user.application.port.out;
 
 import jaeik.growfarm.domain.user.entity.Setting;
-import jaeik.growfarm.global.domain.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.global.domain.SocialProvider;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -92,7 +93,7 @@ public interface UserQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    java.util.List<String> findUserNamesInOrder(java.util.List<String> socialIds);
+    List<String> findUserNamesInOrder(List<String> socialIds);
 
     /**
      * <h3>ID로 사용자 프록시 가져오기</h3>
