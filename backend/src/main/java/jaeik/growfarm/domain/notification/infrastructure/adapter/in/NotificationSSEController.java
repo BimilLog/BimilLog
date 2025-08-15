@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.in;
 
-import jaeik.growfarm.domain.notification.application.port.in.NotificationSubscriptionUseCase;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationSSEUseCase;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +22,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notification")
-public class NotificationSubscriptionController {
+public class NotificationSSEController {
 
-    private final NotificationSubscriptionUseCase notificationSubscriptionUseCase;
+    private final NotificationSSEUseCase notificationSSEUseCase;
 
     /**
      * <h3>SSE 구독</h3>
@@ -34,6 +34,6 @@ public class NotificationSubscriptionController {
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return notificationSubscriptionUseCase.subscribe(userDetails.getUserId(), userDetails.getTokenId());
+        return notificationSSEUseCase.subscribe(userDetails.getUserId(), userDetails.getTokenId());
     }
 }

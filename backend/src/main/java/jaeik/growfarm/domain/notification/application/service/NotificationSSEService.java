@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.application.service;
 
-import jaeik.growfarm.domain.notification.application.port.in.NotificationSubscriptionUseCase;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationSSEUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.SseEmitterPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  */
 @Service
 @RequiredArgsConstructor
-public class NotificationSubscriptionService implements NotificationSubscriptionUseCase {
+public class NotificationSSEService implements NotificationSSEUseCase {
 
     private final SseEmitterPort sseEmitterPort;
 
@@ -32,5 +32,18 @@ public class NotificationSubscriptionService implements NotificationSubscription
     @Override
     public SseEmitter subscribe(Long userId, Long tokenId) {
         return sseEmitterPort.subscribe(userId, tokenId);
+    }
+
+    /**
+     * <h3>사용자 SSE 연결 정리</h3>
+     * <p>사용자와 관련된 모든 SSE Emitter 연결을 정리합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteAllEmitterByUserId(Long userId) {
+        sseEmitterPort.deleteAllEmitterByUserId(userId);
     }
 }

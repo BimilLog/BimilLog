@@ -9,7 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface NotificationSubscriptionUseCase {
+public interface NotificationSSEUseCase {
 
     /**
      * <h3>SSE 구독</h3>
@@ -20,4 +20,15 @@ public interface NotificationSubscriptionUseCase {
      * @return SSE Emitter
      */
     SseEmitter subscribe(Long userId, Long tokenId);
+
+    /**
+     * <h3>사용자 SSE 연결 정리</h3>
+     * <p>사용자와 관련된 모든 SSE Emitter 연결을 정리합니다.</p>
+     * <p>로그아웃이나 회원탈퇴 시 호출됩니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    void deleteAllEmitterByUserId(Long userId);
 }

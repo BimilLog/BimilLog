@@ -2,7 +2,6 @@ package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.UpdateNotificationPort;
-import jaeik.growfarm.domain.notification.application.port.out.SseEmitterPort;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Service;
 public class NotificationCommandService implements NotificationCommandUseCase {
 
     private final UpdateNotificationPort updateNotificationPort;
-    private final SseEmitterPort sseEmitterPort;
 
     /**
      * <h3>알림 일괄 업데이트</h3>
@@ -36,16 +34,5 @@ public class NotificationCommandService implements NotificationCommandUseCase {
         updateNotificationPort.batchUpdate(userDetails, updateNotificationDTO);
     }
 
-    /**
-     * <h3>사용자 SSE 연결 정리</h3>
-     * <p>사용자와 관련된 모든 SSE Emitter 연결을 정리합니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteAllEmitterByUserId(Long userId) {
-        sseEmitterPort.deleteAllEmitterByUserId(userId);
-    }
+
 }

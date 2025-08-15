@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.application.handler;
 
-import jaeik.growfarm.domain.notification.application.port.in.NotificationEventUseCase;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.growfarm.global.event.FcmTokenRegisteredEvent;
 import jaeik.growfarm.global.event.UserLoggedOutEvent;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class FcmTokenEventHandler {
 
-    private final NotificationEventUseCase notificationEventUseCase;
+    private final NotificationFcmUseCase notificationFcmUseCase;
 
     /**
      * <h3>FCM 토큰 등록 이벤트 처리</h3>
@@ -39,7 +39,7 @@ public class FcmTokenEventHandler {
     @Transactional
     public void handleFcmTokenRegisteredEvent(FcmTokenRegisteredEvent event) {
         log.info("FCM 토큰 등록 이벤트 처리: userId={}", event.userId());
-        notificationEventUseCase.registerFcmToken(event.userId(), event.fcmToken());
+        notificationFcmUseCase.registerFcmToken(event.userId(), event.fcmToken());
     }
 
     /**
@@ -55,7 +55,7 @@ public class FcmTokenEventHandler {
     @Transactional
     public void handleUserLoggedOutEvent(UserLoggedOutEvent event) {
         log.info("사용자 로그아웃 이벤트 처리: userId={}", event.userId());
-        notificationEventUseCase.deleteFcmTokens(event.userId());
+        notificationFcmUseCase.deleteFcmTokens(event.userId());
     }
 
     /**
@@ -71,6 +71,6 @@ public class FcmTokenEventHandler {
     @Transactional
     public void handleUserWithdrawnEvent(UserWithdrawnEvent event) {
         log.info("사용자 탈퇴 이벤트 처리: userId={}", event.userId());
-        notificationEventUseCase.deleteFcmTokens(event.userId());
+        notificationFcmUseCase.deleteFcmTokens(event.userId());
     }
 }

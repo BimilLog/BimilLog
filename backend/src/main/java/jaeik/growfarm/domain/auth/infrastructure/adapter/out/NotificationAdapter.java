@@ -2,6 +2,7 @@ package jaeik.growfarm.domain.auth.infrastructure.adapter.out;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageNotificationPort;
 import jaeik.growfarm.domain.notification.application.port.in.NotificationCommandUseCase;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationSSEUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +19,10 @@ import org.springframework.stereotype.Component;
 public class NotificationAdapter implements ManageNotificationPort {
 
     private final NotificationCommandUseCase notificationCommandUseCase;
+    private final NotificationSSEUseCase notificationSSEUseCase;
 
     @Override
     public void deleteAllEmitterByUserId(Long userId) {
-        notificationCommandUseCase.deleteAllEmitterByUserId(userId);
+        notificationSSEUseCase.deleteAllEmitterByUserId(userId);
     }
 }

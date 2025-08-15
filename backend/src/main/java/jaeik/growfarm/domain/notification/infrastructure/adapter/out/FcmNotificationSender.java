@@ -1,8 +1,7 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out;
 
-import jaeik.growfarm.domain.notification.application.port.out.LoadFcmTokenPort;
+import jaeik.growfarm.domain.notification.application.port.out.FcmPort;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
-import jaeik.growfarm.domain.notification.application.port.out.SendFcmPort;
 import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.dto.notification.EventDTO;
 import jaeik.growfarm.dto.notification.FcmSendDTO;
@@ -25,8 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FcmNotificationSender implements NotificationSender {
 
-    private final LoadFcmTokenPort loadFcmTokenPort;
-    private final SendFcmPort sendFcmPort;
+    private final FcmPort fcmPort;
 
     /**
      * <h3>FCM 알림 전송</h3>
@@ -41,11 +39,11 @@ public class FcmNotificationSender implements NotificationSender {
     @Async("fcmNotificationExecutor")
     public void send(Long userId, EventDTO eventDTO) {
         try {
-            List<FcmToken> fcmTokens = loadFcmTokenPort.findValidFcmTokensByUserId(userId);
+            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensByUserId(userId);
             if (fcmTokens == null || fcmTokens.isEmpty()) return;
 
             for (FcmToken fcmToken : fcmTokens) {
-                sendFcmPort.sendMessageTo(FcmSendDTO.builder()
+                fcmPort.sendMessageTo(FcmSendDTO.builder()
                         .token(fcmToken.getFcmRegistrationToken())
                         .title(eventDTO.getData())
                         .body("지금 확인해보세요!")
