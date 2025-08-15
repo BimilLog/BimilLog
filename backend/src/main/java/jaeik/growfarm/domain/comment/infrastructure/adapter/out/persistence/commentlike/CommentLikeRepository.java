@@ -25,18 +25,6 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
 
 
     /**
-     * <h3>댓글과 사용자로 추천 존재 여부 확인</h3>
-     * <p>주어진 댓글과 사용자에 해당하는 추천가 존재하는지 확인합니다.</p>
-     *
-     * @param comment 댓글 엔티티
-     * @param user    사용자 엔티티
-     * @return boolean 추천가 존재하면 true, 아니면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    boolean existsByCommentAndUser(Comment comment, User user);
-
-    /**
      * <h3>댓글과 사용자로 추천 삭제</h3>
      * <p>주어진 댓글과 사용자에 해당하는 추천를 삭제합니다.</p>
      *

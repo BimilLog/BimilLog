@@ -113,10 +113,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
     public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
         return commentReadRepository.findLikedCommentsByUserId(userId, pageable);
     }
-    
-
-
-
 
     /**
      * <h3>인기 댓글 목록 조회</h3>
