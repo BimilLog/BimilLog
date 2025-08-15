@@ -25,4 +25,14 @@ public interface WithdrawUseCase {
      * @author Jaeik
      */
     List<ResponseCookie> withdraw(CustomUserDetails userDetails);
+
+    /**
+     * <h3>관리자 강제 탈퇴 처리</h3>
+     * <p>관리자 권한으로 지정된 사용자를 강제 탈퇴 처리합니다.</p>
+     *
+     * @param userId 탈퇴시킬 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    void forceWithdraw(Long userId);
 }

@@ -105,6 +105,25 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     }
 
     /**
+     * <h3>관리자 강제 탈퇴 처리</h3>
+     * <p>관리자 권한으로 지정된 사용자를 강제 탈퇴 처리합니다.</p>
+     *
+     * @param userId 탈퇴시킬 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    @Transactional
+    public void forceWithdraw(Long userId) {
+        User user = userQueryUseCase.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        socialLoginPort.unlink(user.getProvider(), user.getSocialId());
+        manageAuthDataPort.performWithdrawProcess(userId);
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
+    }
+
+    /**
      * <h3>소셜 로그아웃 처리</h3>
      * <p>사용자의 소셜 로그아웃을 수행합니다.</p>
      *

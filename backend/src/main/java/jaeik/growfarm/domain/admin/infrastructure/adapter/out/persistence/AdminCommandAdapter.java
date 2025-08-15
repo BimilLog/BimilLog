@@ -1,16 +1,8 @@
 package jaeik.growfarm.domain.admin.infrastructure.adapter.out.persistence;
 
 import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageNotificationPort;
-import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.global.event.UserWithdrawnEvent;
-import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,31 +17,21 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminCommandAdapter implements AdminCommandPort {
 
-    private final UserQueryUseCase userQueryUseCase;
-    private final SocialLoginPort socialLoginPort;
-    private final ManageAuthDataPort manageAuthDataPort;
-    private final ManageNotificationPort manageNotificationPort;
-    private final ApplicationEventPublisher eventPublisher;
+    private final WithdrawUseCase withdrawUseCase;
 
     /**
      * <h3>사용자 강제 탈퇴</h3>
      * <p>관리자 권한으로 사용자를 강제 탈퇴 처리합니다.</p>
+     * <p>인증 도메인의 WithdrawUseCase에 위임하여 헥사고날 아키텍처 원칙을 준수합니다.</p>
      *
      * @param userId 사용자 ID
-     * @throws CustomException 사용자 정보가 존재하지 않을 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
     public void forceWithdraw(Long userId) {
-        User user = userQueryUseCase.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        socialLoginPort.unlink(user.getProvider(), user.getSocialId());
-        manageAuthDataPort.performWithdrawProcess(userId);
-        manageNotificationPort.deleteAllEmitterByUserId(userId);
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
+        withdrawUseCase.forceWithdraw(userId);
     }
 
 }
