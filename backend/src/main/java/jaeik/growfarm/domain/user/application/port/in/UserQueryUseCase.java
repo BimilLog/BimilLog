@@ -53,13 +53,13 @@ public interface UserQueryUseCase {
     boolean existsByUserName(String userName);
 
     /**
-     * <h3>닉네임으로 사용자 조회 (도메인 간 연동용)</h3>
+     * <h3>닉네임으로 사용자 조회 \>/h3>
      * <p>닉네임을 사용하여 사용자를 조회합니다.</p>
      *
      * @param userName 사용자 닉네임
      * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author jaeik
-     * @version 2.0.0
+     * @since  2.0.0
      */
     Optional<User> findByUserName(String userName);
 

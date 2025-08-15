@@ -117,20 +117,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
 
 
-    /**
-     * <h3>게시글 ID로 사용자가 추천한 댓글 ID 목록 조회</h3>
-     * <p>주어진 게시글 ID에 대한 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param userId 사용자 ID
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public List<Long> findUserLikedCommentIdsByPostId(Long postId, Long userId) {
-        return commentRepository.findUserLikedCommentIdsByPostId(postId, userId);
-    }
 
     /**
      * <h3>인기 댓글 목록 조회</h3>

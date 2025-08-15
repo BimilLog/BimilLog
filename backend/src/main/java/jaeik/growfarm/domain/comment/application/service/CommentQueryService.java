@@ -74,6 +74,7 @@ public class CommentQueryService implements CommentQueryUseCase {
     /**
      * <h3>인기 댓글에 대한 사용자 추천 ID 조회</h3>
      * <p>주어진 게시글 ID에 대한 인기 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <p>성능 최적화: 인기 댓글 ID를 먼저 조회한 후, 해당 댓글들에 대해서만 추천 여부를 확인합니다.</p>
      *
      * @param postId      게시글 ID
      * @param userDetails 사용자 인증 정보
@@ -85,14 +86,21 @@ public class CommentQueryService implements CommentQueryUseCase {
         if (userDetails == null) {
             return Collections.emptyList();
         }
-        // 이 부분은 개선의 여지가 있습니다. 인기 댓글 ID를 먼저 가져오고, 그 ID들로 추천 여부를 확인하는 것이 더 효율적입니다.
-        // 현재는 postId 전체 댓글에 대해 추천 여부를 확인하게 될 수 있습니다.
-        return commentQueryPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
+        // 1단계: 인기 댓글 ID 목록 먼저 조회
+        List<CommentDTO> popularComments = commentQueryPort.findPopularComments(postId, Collections.emptyList());
+        if (popularComments.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        // 2단계: 인기 댓글들에 대해서만 추천 여부 확인
+        List<Long> popularCommentIds = popularComments.stream().map(CommentDTO::getId).collect(Collectors.toList());
+        return commentQueryPort.findUserLikedCommentIds(popularCommentIds, userDetails.getUserId());
     }
 
     /**
      * <h3>페이지별 사용자 추천 ID 조회</h3>
      * <p>주어진 게시글 ID와 페이지 정보에 해당하는 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
+     * <p>성능 최적화: 페이지의 댓글 ID를 먼저 조회한 후, 해당 댓글들에 대해서만 추천 여부를 확인합니다.</p>
      *
      * @param postId      게시글 ID
      * @param pageable    페이지 정보
@@ -105,8 +113,15 @@ public class CommentQueryService implements CommentQueryUseCase {
         if (userDetails == null) {
             return Collections.emptyList();
         }
-        // 이 또한 comment ID 목록을 먼저 가져온 후 추천 여부를 확인하는 것이 더 효율적입니다.
-        return commentQueryPort.findUserLikedCommentIdsByPostId(postId, userDetails.getUserId());
+        // 1단계: 페이지의 댓글 ID 목록 먼저 조회
+        Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithLatestOrder(postId, pageable, Collections.emptyList());
+        if (!commentPage.hasContent()) {
+            return Collections.emptyList();
+        }
+        
+        // 2단계: 페이지 댓글들에 대해서만 추천 여부 확인
+        List<Long> pageCommentIds = commentPage.getContent().stream().map(CommentDTO::getId).collect(Collectors.toList());
+        return commentQueryPort.findUserLikedCommentIds(pageCommentIds, userDetails.getUserId());
     }
 
     /**

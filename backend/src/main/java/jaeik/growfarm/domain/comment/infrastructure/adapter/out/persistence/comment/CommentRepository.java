@@ -35,18 +35,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
     @Query("SELECT cl.comment.id FROM CommentLike cl WHERE cl.comment.id IN :commentIds AND cl.user.id = :userId")
     List<Long> findUserLikedCommentIds(@Param("commentIds") List<Long> commentIds, @Param("userId") Long userId);
 
-    /**
-     * <h3>게시글 ID로 사용자가 추천한 댓글 ID 목록 조회</h3>
-     * <p>주어진 게시글 ID에 대한 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param userId 사용자 ID
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Query("SELECT cl.comment.id FROM CommentLike cl WHERE cl.comment.post.id = :postId AND cl.user.id = :userId")
-    List<Long> findUserLikedCommentIdsByPostId(@Param("postId") Long postId, @Param("userId") Long userId);
 
     /**
      * <h3>사용자 댓글 익명화</h3>
