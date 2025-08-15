@@ -1,22 +1,36 @@
-package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.delete;
+package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence;
 
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.NotificationBaseRepository;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.domain.notification.entity.QNotification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
- * <h2>알림 삭제 레포지터리 구현체</h2>
+ * <h2>알림 명령 레포지터리 구현체</h2>
  * <p>
- * 알림 삭제 관련 기능을 구현
- * SRP: 알림 삭제 기능만 구현
+
  * </p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Repository
-public class NotificationCommandRepositoryImpl extends NotificationBaseRepository implements NotificationCommandRepository {
+public class NotificationCommandRepository {
+
+    protected final JPAQueryFactory jpaQueryFactory;
+    protected final QNotification notification = QNotification.notification;
+
+    /**
+     * <h3>사용자별 알림 기본 조건</h3>
+     * <p>공통으로 사용되는 사용자별 알림 필터링 조건을 제공합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @return 공통 조건
+     */
+    protected com.querydsl.core.types.dsl.BooleanExpression getUserNotificationCondition(Long userId) {
+        return notification.users.id.eq(userId);
+    }
 
     /**
      * <h3>생성자</h3>
@@ -26,8 +40,8 @@ public class NotificationCommandRepositoryImpl extends NotificationBaseRepositor
      * @author Jaeik
      * @since 2.0.0
      */
-    public NotificationCommandRepositoryImpl(com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory) {
-        super(jpaQueryFactory);
+    public NotificationCommandRepository(com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory, JPAQueryFactory jpaQueryFactory1) {
+        this.jpaQueryFactory = jpaQueryFactory1;
     }
 
     /**
@@ -39,7 +53,6 @@ public class NotificationCommandRepositoryImpl extends NotificationBaseRepositor
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteByIdInAndUserId(List<Long> ids, Long userId) {
         jpaQueryFactory
                 .delete(notification)
@@ -57,7 +70,6 @@ public class NotificationCommandRepositoryImpl extends NotificationBaseRepositor
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void markAsReadByIdInAndUserId(List<Long> ids, Long userId) {
         jpaQueryFactory
                 .update(notification)

@@ -1,7 +1,8 @@
-package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.read;
+package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence;
 
 import com.querydsl.core.types.Projections;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.NotificationBaseRepository;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.domain.notification.entity.QNotification;
 import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import org.springframework.stereotype.Repository;
@@ -19,7 +20,21 @@ import java.util.List;
  * @version 2.0.0
  */
 @Repository
-public class NotificationReadRepositoryImpl extends NotificationBaseRepository implements NotificationReadRepository {
+public class NotificationReadRepository {
+
+    protected final JPAQueryFactory jpaQueryFactory;
+    protected final QNotification notification = QNotification.notification;
+
+    /**
+     * <h3>사용자별 알림 기본 조건</h3>
+     * <p>공통으로 사용되는 사용자별 알림 필터링 조건을 제공합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @return 공통 조건
+     */
+    protected com.querydsl.core.types.dsl.BooleanExpression getUserNotificationCondition(Long userId) {
+        return notification.users.id.eq(userId);
+    }
 
     /**
      * <h3>생성자</h3>
@@ -29,8 +44,8 @@ public class NotificationReadRepositoryImpl extends NotificationBaseRepository i
      * @author Jaeik
      * @since 2.0.0
      */
-    public NotificationReadRepositoryImpl(com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory) {
-        super(jpaQueryFactory);
+    public NotificationReadRepository(com.querydsl.jpa.impl.JPAQueryFactory jpaQueryFactory, JPAQueryFactory jpaQueryFactory1) {
+        this.jpaQueryFactory = jpaQueryFactory1;
     }
 
     /**
@@ -42,7 +57,6 @@ public class NotificationReadRepositoryImpl extends NotificationBaseRepository i
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<NotificationDTO> findNotificationsByUserIdOrderByLatest(Long userId) {
         QUser user = QUser.user;
 

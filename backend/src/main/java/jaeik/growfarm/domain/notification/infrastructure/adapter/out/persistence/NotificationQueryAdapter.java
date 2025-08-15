@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationQueryPort;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.read.NotificationReadRepository;
 import jaeik.growfarm.dto.notification.NotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;

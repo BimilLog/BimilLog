@@ -3,8 +3,6 @@ package jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistenc
 import jaeik.growfarm.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.growfarm.domain.notification.entity.Notification;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.delete.NotificationCommandRepository;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.read.NotificationReadRepository;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -14,8 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * <h2>알림 JPA 어댑터</h2>
- * <p>알림 데이터 조회 및 업데이트를 위한 JPA 구현</p>
+ * <h2>알림 명령 어댑터</h2>
  *
  * @author Jaeik
  * @version 2.0.0
