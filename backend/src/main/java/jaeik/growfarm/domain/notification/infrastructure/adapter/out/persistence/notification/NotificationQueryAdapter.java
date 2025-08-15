@@ -29,7 +29,6 @@ public class NotificationQueryAdapter implements NotificationQueryPort {
     private final QNotification notification = QNotification.notification;
     private final QUser user = QUser.user;
 
-
     /**
      * <h3>알림 목록 조회</h3>
      * <p>현재 로그인한 사용자의 알림 목록을 최신순으로 조회합니다.</p>

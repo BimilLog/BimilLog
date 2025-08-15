@@ -88,19 +88,6 @@ public class SseAdapter implements SsePort, NotificationSender {
     }
 
     /**
-     * <h3>사용자 SSE 연결 정리</h3>
-     * <p>사용자와 관련된 모든 SSE Emitter 연결을 정리합니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteAllEmitterByUserId(Long userId) {
-        emitterRepository.deleteAllEmitterByUserId(userId);
-    }
-
-    /**
      * <h3>단일 SSE 알림 전송</h3>
      * <p>주어진 Emitter를 통해 클라이언트에게 단일 알림을 전송합니다.</p>
      *
@@ -123,4 +110,19 @@ public class SseAdapter implements SsePort, NotificationSender {
             emitterRepository.deleteById(emitterId);
         }
     }
+
+    /**
+     * <h3>사용자 SSE 연결 정리</h3>
+     * <p>사용자와 관련된 모든 SSE Emitter 연결을 정리합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteAllEmitterByUserId(Long userId) {
+        emitterRepository.deleteAllEmitterByUserId(userId);
+    }
+
+
 }
