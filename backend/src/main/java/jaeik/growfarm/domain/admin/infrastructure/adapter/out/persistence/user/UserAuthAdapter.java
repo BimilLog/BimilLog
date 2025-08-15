@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.admin.infrastructure.adapter.out.user;
+package jaeik.growfarm.domain.admin.infrastructure.adapter.out.persistence.user;
 
 import jaeik.growfarm.domain.admin.application.port.out.UserAuthPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;

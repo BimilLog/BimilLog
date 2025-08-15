@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
  * </p>
  *
  * @author Jaeik
- * @version 2.1.0
+ * @version 2.0.0
  */
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
