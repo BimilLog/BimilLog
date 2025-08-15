@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.paper.infrastructure.adapter.out.persistence;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.paper.application.port.out.LoadPaperPort;
+import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.paper.entity.QMessage;
 import jaeik.growfarm.domain.user.entity.QUser;
@@ -27,7 +27,7 @@ import java.util.Optional;
  */
 @Repository
 @RequiredArgsConstructor
-public class PaperJpaAdapter implements LoadPaperPort {
+public class PaperQueryAdapter implements PaperQueryPort {
 
     private final JPAQueryFactory jpaQueryFactory;
 

@@ -17,7 +17,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0 (헥사고날 아키텍처 적용)
  */
-public interface LoadPaperPort {
+public interface PaperQueryPort {
 
     /**
      * <h3>메시지 ID로 메시지 조회</h3>

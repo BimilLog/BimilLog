@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.paper.application.service;
 
 import jaeik.growfarm.domain.paper.application.port.in.PaperQueryUseCase;
-import jaeik.growfarm.domain.paper.application.port.out.LoadPaperPort;
+import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.dto.paper.MessageDTO;
@@ -31,7 +31,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PaperQueryService implements PaperQueryUseCase {
 
-    private final LoadPaperPort loadPaperPort;
+    private final PaperQueryPort paperQueryPort;
     private final LoadUserPort loadUserPort;
 
     /**
@@ -41,7 +41,7 @@ public class PaperQueryService implements PaperQueryUseCase {
      */
     @Override
     public List<MessageDTO> getMyPaper(CustomUserDetails userDetails) {
-        return loadPaperPort.findMessageDTOsByUserId(userDetails.getUserId());
+        return paperQueryPort.findMessageDTOsByUserId(userDetails.getUserId());
     }
 
     /**
@@ -60,11 +60,11 @@ public class PaperQueryService implements PaperQueryUseCase {
         if (!exists) {
             throw new CustomException(ErrorCode.USERNAME_NOT_FOUND);
         }
-        return loadPaperPort.findVisitMessageDTOsByUserName(userName);
+        return paperQueryPort.findVisitMessageDTOsByUserName(userName);
     }
 
     @Override
     public Optional<Message> findMessageById(Long messageId) {
-        return loadPaperPort.findMessageById(messageId);
+        return paperQueryPort.findMessageById(messageId);
     }
 }
