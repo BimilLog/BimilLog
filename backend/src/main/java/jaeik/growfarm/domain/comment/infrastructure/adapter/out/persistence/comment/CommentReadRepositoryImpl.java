@@ -63,12 +63,12 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
                         comment.password,
                         comment.createdAt,
                         closure.ancestor.id,
-                        commentLike.countDistinct().coalesce(0L).intValue() // 추천수 한번에 조회, null 방지
+                        commentLike.countDistinct().coalesce(0L).intValue()
                 ))
                 .from(comment)
                 .leftJoin(comment.user, user)
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id))
-                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id)) // 추천수 조회를 위한 JOIN
+                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .where(comment.post.id.eq(postId))
                 .groupBy(comment.id, user.userName, closure.ancestor.id)
                 .orderBy(comment.createdAt.desc())
@@ -78,10 +78,8 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
 
         content.forEach(dto -> {
             dto.setUserLike(likedCommentIds.contains(dto.getId()));
-            // 추천수는 이미 쿼리에서 설정됨
         });
-        // countRootCommentsByPostId는 어떠한 글의 최상위 댓글 수만 조회 함
-        // main 브랜치를 살펴보고 페이징을 최상위 댓글 기준으로 하였는지 전체 댓글 기준으로 하였는지 확인 필요
+
         Long total = countRootCommentsByPostId(postId);
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
@@ -137,12 +135,13 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
     }
 
     /**
-     * <h3>게시글 ID로 루트 댓글 수 조회</h3>
+     * <h3>게시글 ID로 루트 댓글 수 조회 (페이징용)</h3>
      * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
      * 
-     * <p><strong>⚠️ TODO: 현재 미사용 구현 - Post 도메인과 연결 대기</strong></p>
-     * <p>이 메서드는 QueryDSL로 정확하게 구현되어 있으며, depth=0인 댓글(루트 댓글)만 카운트합니다.</p>
-     * <p>PostQueryService에서 호출하여 SimplePostResDTO.commentCount 설정 시 사용하면 됩니다.</p>
+     * <p><strong>사용 목적</strong>: 댓글 목록 페이징 시 total count 계산</p>
+     * <p><strong>현재 사용</strong>: findCommentsWithLatestOrder 메서드에서 PageImpl total 값 설정에 사용</p>
+     * <p><strong>구현 세부</strong>: QueryDSL로 구현, depth=0인 댓글(루트 댓글)만 카운트</p>
+     * <p><strong>내부 메서드</strong>: Infrastructure layer 내부에서만 사용</p>
      *
      * @param postId 게시글 ID
      * @return Long 루트 댓글의 수

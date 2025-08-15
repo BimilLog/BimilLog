@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -39,34 +38,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
     @Override
     public Optional<Comment> findById(Long commentId) {
         return commentRepository.findById(commentId);
-    }
-
-    /**
-     * <h3>게시글 ID로 루트 댓글 수 조회</h3>
-     * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @return Long 루트 댓글의 수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Long countRootCommentsByPostId(Long postId) {
-        return commentReadRepository.countRootCommentsByPostId(postId);
-    }
-
-    /**
-     * <h3>여러 게시글 ID에 대한 댓글 수 조회</h3>
-     * <p>주어진 여러 게시글 ID에 해당하는 각 게시글의 댓글 수를 조회합니다.</p>
-     *
-     * @param postIds 게시글 ID 목록
-     * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
-        return commentReadRepository.findCommentCountsByPostIds(postIds);
     }
 
     /**

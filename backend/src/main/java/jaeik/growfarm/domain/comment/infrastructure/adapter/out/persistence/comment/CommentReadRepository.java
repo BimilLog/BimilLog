@@ -47,8 +47,10 @@ public interface CommentReadRepository {
     List<CommentDTO> findPopularComments(Long postId, List<Long> likedCommentIds);
 
     /**
-     * <h3>게시글 ID로 루트 댓글 수 조회</h3>
+     * <h3>게시글 ID로 루트 댓글 수 조회 (페이징용)</h3>
      * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
+     * <p><strong>사용 목적</strong>: 댓글 목록 페이징 시 total count 계산에 사용</p>
+     * <p><strong>내부 메서드</strong>: Infrastructure layer 내부에서만 사용되는 메서드</p>
      *
      * @param postId 게시글 ID
      * @return Long 루트 댓글의 수
