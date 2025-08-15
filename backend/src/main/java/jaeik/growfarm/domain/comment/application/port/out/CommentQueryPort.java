@@ -24,7 +24,7 @@ public interface CommentQueryPort {
      * <h3>인기 댓글 목록 조회</h3>
      * <p>주어진 게시글 ID에 대한 인기 댓글 목록을 조회합니다.</p>
      *
-     * @param postId 게시글 ID
+     * @param postId          게시글 ID
      * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
      * @return List<jaeik.growfarm.dto.comment.CommentDTO> 인기 댓글 목록
      * @author Jaeik
@@ -36,8 +36,8 @@ public interface CommentQueryPort {
      * <h3>최신순 댓글 목록 조회</h3>
      * <p>주어진 게시글 ID에 대한 댓글을 최신순으로 페이지네이션하여 조회합니다.</p>
      *
-     * @param postId 게시글 ID
-     * @param pageable 페이지 정보
+     * @param postId          게시글 ID
+     * @param pageable        페이지 정보
      * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
      * @return Page<jaeik.growfarm.dto.comment.CommentDTO> 최신순 댓글 페이지
      * @author Jaeik
@@ -59,7 +59,7 @@ public interface CommentQueryPort {
     /**
      * <h3>게시글 ID로 루트 댓글 수 조회</h3>
      * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
-     * 
+     *
      * <p><strong>⚠️ TODO: 현재 미사용 메서드 - Post 도메인 연결 필요</strong></p>
      * <ul>
      *   <li><strong>목적</strong>: 게시글 목록에서 각 게시글의 댓글 수를 표시하기 위해 필요</li>
@@ -79,7 +79,7 @@ public interface CommentQueryPort {
     /**
      * <h3>여러 게시글 ID에 대한 댓글 수 조회</h3>
      * <p>주어진 여러 게시글 ID에 해당하는 각 게시글의 댓글 수를 조회합니다.</p>
-     * 
+     *
      * <p><strong>⚠️ TODO: 현재 미사용 메서드 - 성능 최적화를 위한 배치 조회</strong></p>
      * <ul>
      *   <li><strong>목적</strong>: 게시글 목록 조회 시 N+1 문제를 피하기 위한 배치 댓글 수 조회</li>
@@ -113,7 +113,6 @@ public interface CommentQueryPort {
      */
     List<Long> findUserLikedCommentIds(List<Long> commentIds, Long userId);
 
-
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
@@ -137,7 +136,5 @@ public interface CommentQueryPort {
      * @since 2.0.0
      */
     Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
-
-
 
 }

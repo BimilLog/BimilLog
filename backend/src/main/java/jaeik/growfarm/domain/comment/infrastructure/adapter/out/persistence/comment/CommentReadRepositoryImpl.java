@@ -78,7 +78,8 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
             dto.setUserLike(likedCommentIds.contains(dto.getId()));
             // like count는 별도로 조회해야 함
         });
-
+        // countRootCommentsByPostId는 어떠한 글의 최상위 댓글 수만 조회 함
+        // main 브랜치를 살펴보고 페이징을 최상위 댓글 기준으로 하였는지 전체 댓글 기준으로 하였는지 확인 필요
         Long total = countRootCommentsByPostId(postId);
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
