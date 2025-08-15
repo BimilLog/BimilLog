@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <h2>관히자 조회 어댑터</h2>
+ * <h2>관리자 조회 어댑터</h2>
  * <p>
  * 신고(`Report`) 관련 데이터를 영속화하고 조회
  * </p>
