@@ -5,8 +5,6 @@ import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 @RequiredArgsConstructor
 public class CommentClosureCommandAdapter implements CommentClosureCommandPort {
@@ -50,18 +48,5 @@ public class CommentClosureCommandAdapter implements CommentClosureCommandPort {
     @Override
     public void deleteByDescendantId(Long commentId) {
         commentClosureRepository.deleteByDescendantId(commentId);
-    }
-
-    /**
-     * <h3>여러 자손 ID로 댓글 클로저 삭제</h3>
-     * <p>주어진 여러 자손 댓글 ID와 관련된 모든 댓글 클로저 엔티티를 삭제합니다.</p>
-     *
-     * @param commentIds 여러 자손 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteByDescendantIds(List<Long> commentIds) {
-        commentClosureRepository.deleteByDescendantIds(commentIds);
     }
 }
