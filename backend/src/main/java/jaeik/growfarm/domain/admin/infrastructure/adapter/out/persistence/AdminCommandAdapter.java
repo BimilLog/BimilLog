@@ -4,7 +4,6 @@ import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageNotificationPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.domain.notification.infrastructure.adapter.out.persistence.EmitterRepository;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.global.event.UserWithdrawnEvent;
@@ -44,10 +43,4 @@ public class AdminCommandAdapter implements AdminCommandPort {
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
     }
 
-    private final EmitterRepository emitterRepository;
-
-    @Override
-    public void deleteAllEmitterByUserId(Long userId) {
-        emitterRepository.deleteAllEmitterByUserId(userId);
-    }
 }

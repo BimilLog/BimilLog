@@ -16,13 +16,4 @@ public interface AdminCommandPort {
      */
     void forceWithdraw(Long userId);
 
-    /**
-     * <h3>사용자 ID로 모든 Emitter 삭제</h3>
-     * <p>주어진 사용자 ID와 연결된 모든 SSE Emitter를 삭제합니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void deleteAllEmitterByUserId(Long userId);
 }
