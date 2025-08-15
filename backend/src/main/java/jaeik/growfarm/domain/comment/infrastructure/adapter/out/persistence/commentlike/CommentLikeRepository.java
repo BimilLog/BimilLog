@@ -8,8 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Map;
 
 /**
  * <h2>댓글 추천 레포지토리 인터페이스</h2>
@@ -49,17 +47,6 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     @Query("SELECT CASE WHEN COUNT(cl) > 0 THEN true ELSE false END FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.user.id = :userId")
     boolean existsByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("userId") Long userId);
 
-    /**
-     * <h3>여러 댓글 ID에 대한 추천 수 조회</h3>
-     * <p>주어진 댓글 ID 목록에 해당하는 각 댓글의 추천 수를 조회합니다.</p>
-     *
-     * @param commentIds 댓글 ID 목록
-     * @return Map<Long, Long> 댓글 ID를 키로, 추천 수를 값으로 하는 맵
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Query("SELECT cl.comment.id, COUNT(cl) FROM CommentLike cl WHERE cl.comment.id IN :commentIds GROUP BY cl.comment.id")
-    Map<Long, Long> countByCommentIds(@Param("commentIds") List<Long> commentIds);
 }
 
 
