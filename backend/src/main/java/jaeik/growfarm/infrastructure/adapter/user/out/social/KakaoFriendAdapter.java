@@ -1,6 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.social;
 
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.KakaoLoginStrategy;
 import jaeik.growfarm.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +16,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KakaoFriendAdapter implements KakaoFriendPort {
 
-    private final KakaoLoginStrategy kakaoLoginStrategy;
+    private final KakaoSocialAdapter kakaoSocialAdapter;
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
-     * <p>카카오 로그인 전략을 통해 친구 목록을 조회합니다.</p>
+     * <p>카카오 소셜 어댑터를 통해 친구 목록을 조회합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
      * @param offset      조회 시작 위치
@@ -32,6 +31,6 @@ public class KakaoFriendAdapter implements KakaoFriendPort {
      */
     @Override
     public KakaoFriendsResponse getFriendList(String accessToken, Integer offset, Integer limit) {
-        return kakaoLoginStrategy.getFriendList(accessToken, offset, limit);
+        return kakaoSocialAdapter.getFriendList(accessToken, offset, limit);
     }
 }

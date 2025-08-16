@@ -1,6 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.social;
 
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
@@ -129,34 +128,6 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .build();
     }
 
-    /**
-     * <h3>카카오 친구 목록 조회</h3>
-     * <p>카카오 액세스 토큰을 사용하여 친구 목록을 조회합니다.</p>
-     *
-     * @param accessToken 카카오 액세스 토큰
-     * @param offset      조회 시작 위치 (기본값: 0)
-     * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)
-     * @return KakaoFriendsResponse 친구 목록 응답 DTO
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public KakaoFriendsResponse getFriendList(String accessToken, Integer offset, Integer limit) {
-        WebClient webClient = webClientBuilder.build();
-
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(kakaoKeyVO.getGET_FRIEND_LIST_URL())
-                        .queryParam("offset", offset)
-                        .queryParam("limit", limit)
-                        .build())
-                .header("Authorization", "Bearer " + accessToken)
-                .retrieve()
-                .onStatus(httpStatus -> httpStatus.is4xxClientError() || httpStatus.is5xxServerError(),
-                        clientResponse -> clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> Mono.error(new CustomException(ErrorCode.KAKAO_API_ERROR, new RuntimeException(errorBody)))))
-                .bodyToMono(KakaoFriendsResponse.class)
-                .block();
-    }
 
     /**
      * <h3>카카오 사용자 정보 조회</h3>
