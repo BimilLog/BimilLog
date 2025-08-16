@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.admin.application.service;
 
+import jaeik.growfarm.domain.admin.application.port.in.ReportedUserResolver;
 import jaeik.growfarm.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.admin.entity.ReportType;

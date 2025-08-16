@@ -32,6 +32,7 @@ public interface TokenBlacklistCachePort {
      */
     boolean isBlacklisted(String tokenHash);
 
+    // TODO : 이 메서드 사용안되는 중
     /**
      * <h3>블랙리스트에서 토큰 제거</h3>
      * <p>Redis에서 토큰 해시값을 삭제합니다.</p>

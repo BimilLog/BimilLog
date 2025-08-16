@@ -34,11 +34,11 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SocialLoginService implements SocialLoginUseCase {
+
     private final SocialLoginPort socialLoginPort;
     private final ManageAuthDataPort manageAuthDataPort;
     private final ManageTemporaryDataPort manageTemporaryDataPort;
     private final CheckBlacklistPort checkBlacklistPort;
-
 
     /**
      * <h3>소셜 로그인 처리</h3>

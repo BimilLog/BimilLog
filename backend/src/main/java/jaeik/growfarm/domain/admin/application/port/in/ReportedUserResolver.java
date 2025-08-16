@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.admin.application.service;
+package jaeik.growfarm.domain.admin.application.port.in;
 
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.user.entity.User;

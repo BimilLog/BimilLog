@@ -2,6 +2,7 @@
 package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.growfarm.domain.admin.application.port.in.ReportedUserResolver;
 import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.user.entity.User;

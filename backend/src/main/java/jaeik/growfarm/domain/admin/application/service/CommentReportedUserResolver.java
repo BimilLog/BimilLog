@@ -1,6 +1,7 @@
 package jaeik.growfarm.domain.admin.application.service;
 
-import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.growfarm.domain.admin.application.port.in.ReportedUserResolver;
+import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.user.entity.User;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CommentReportedUserResolver implements ReportedUserResolver {
 
-    private final CommentQueryPort commentQueryPort;
+    private final CommentQueryUseCase commentQueryUseCase;
 
     /**
      * <h3>댓글 ID로 신고 대상 사용자 해결</h3>
@@ -34,7 +35,7 @@ public class CommentReportedUserResolver implements ReportedUserResolver {
      */
     @Override
     public User resolve(Long targetId) {
-        Comment comment = commentQueryPort.findById(targetId)
+        Comment comment = commentQueryUseCase.findById(targetId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_FAILED));
         return comment.getUser();
     }

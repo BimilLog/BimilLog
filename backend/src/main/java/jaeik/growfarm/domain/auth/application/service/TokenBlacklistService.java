@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
+import jaeik.growfarm.domain.auth.application.port.out.AuthPort;
 import jaeik.growfarm.domain.auth.application.port.out.TokenBlacklistCachePort;
-import jaeik.growfarm.infrastructure.auth.JwtHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.util.Date;
 public class TokenBlacklistService implements TokenBlacklistUseCase {
 
     private final TokenBlacklistCachePort tokenBlacklistCachePort;
-    private final JwtHandler jwtHandler;
+    private final AuthPort authPort;
 
     /**
      * <h3>토큰을 블랙리스트에 등록</h3>
@@ -41,16 +41,16 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     public boolean addToBlacklist(String token, String reason) {
         try {
             // 토큰 유효성 검사
-            if (!jwtHandler.validateToken(token)) {
+            if (!authPort.validateToken(token)) {
                 log.warn("Invalid token attempted to be blacklisted: {}", reason);
                 return false;
             }
 
             // 토큰 해시 생성
-            String tokenHash = jwtHandler.generateTokenHash(token);
+            String tokenHash = authPort.generateTokenHash(token);
             
             // 토큰 만료 시간 확인
-            Date expiration = jwtHandler.getTokenExpiration(token);
+            Date expiration = authPort.getTokenExpiration(token);
             if (expiration == null) {
                 log.warn("Could not extract expiration from token for blacklisting");
                 return false;
@@ -88,7 +88,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     public boolean isBlacklisted(String token) {
         try {
             // 토큰 해시 생성
-            String tokenHash = jwtHandler.generateTokenHash(token);
+            String tokenHash = authPort.generateTokenHash(token);
             
             // Redis에서 블랙리스트 여부 확인
             boolean isBlacklisted = tokenBlacklistCachePort.isBlacklisted(tokenHash);
