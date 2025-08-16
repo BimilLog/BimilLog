@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 public class AdminCommandAdapter implements AdminCommandPort {
-
+    // TODO : out어댑터에서 in포트를 의존중 검토 필요
     private final WithdrawUseCase withdrawUseCase;
 
     /**

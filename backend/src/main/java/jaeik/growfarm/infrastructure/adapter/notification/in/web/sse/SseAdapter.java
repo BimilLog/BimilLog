@@ -1,5 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.web.sse;
 
+import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
@@ -32,6 +33,7 @@ public class SseAdapter implements SsePort, NotificationSender {
     private final NotificationUtilPort notificationUtilPort;
     private final UserQueryUseCase userQueryUseCase;
     private final NotificationCommandPort notificationCommandPort;
+    private final NotificationSseUseCase notificationSSEUseCase;
 
     /**
      * <h3>SSE 구독</h3>
@@ -109,6 +111,20 @@ public class SseAdapter implements SsePort, NotificationSender {
         } catch (IOException e) {
             emitterRepository.deleteById(emitterId);
         }
+    }
+
+
+    /**
+     * <h3>사용자 SSE Emitter 삭제</h3>
+     * <p>주어진 사용자 ID에 해당하는 모든 SSE Emitter를 삭제합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteAllEmitterByUserId2(Long userId) {
+        notificationSSEUseCase.deleteAllEmitterByUserId(userId);
     }
 
     /**

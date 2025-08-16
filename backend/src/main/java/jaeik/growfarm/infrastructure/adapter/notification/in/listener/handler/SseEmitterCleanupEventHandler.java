@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler;
 
-import jaeik.growfarm.domain.auth.application.port.out.ManageNotificationPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
+import jaeik.growfarm.domain.notification.application.port.out.SsePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SseEmitterCleanupEventHandler {
 
-    private final ManageNotificationPort manageNotificationPort;
+    private final SsePort ssePort;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리 - SSE 연결 정리</h3>
@@ -38,7 +38,7 @@ public class SseEmitterCleanupEventHandler {
             log.debug("SSE 연결 정리 시작 - 사용자 ID: {}", event.userId());
             
             // SSE Emitter 연결 정리
-            manageNotificationPort.deleteAllEmitterByUserId(event.userId());
+            ssePort.deleteAllEmitterByUserId(event.userId());
             
             log.info("SSE 연결 정리 완료 - 사용자 ID: {}", event.userId());
             

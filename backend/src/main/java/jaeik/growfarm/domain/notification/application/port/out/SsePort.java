@@ -29,4 +29,14 @@ public interface SsePort {
      * @author Jaeik
      */
     void deleteAllEmitterByUserId(Long userId);
+
+    /**
+     * <h3>SSE 연결 삭제</h3>
+     * <p>사용자 로그아웃 시 해당 사용자의 모든 SSE 연결을 정리</p>
+     *
+     * @param userId 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    void deleteAllEmitterByUserId2(Long userId);
 }
