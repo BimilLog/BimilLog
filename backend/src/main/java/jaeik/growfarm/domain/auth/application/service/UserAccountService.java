@@ -5,7 +5,7 @@ import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.*;
-import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.auth.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
@@ -35,7 +35,7 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     private final ManageTemporaryDataPort manageTemporaryDataPort;
     private final ManageAuthDataPort manageAuthDataPort;
     private final SocialLoginPort socialLoginPort;
-    private final UserQueryUseCase userQueryUseCase;
+    private final LoadUserPort loadUserPort;
     private final LoadTokenPort loadTokenPort;
     private final ApplicationEventPublisher eventPublisher;
     private final TokenBlacklistUseCase tokenBlacklistUseCase;
@@ -98,7 +98,7 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
         if (userDetails == null) {
             throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
         }
-        User user = userQueryUseCase.findById(userDetails.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = loadUserPort.findById(userDetails.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 사용자의 모든 토큰을 블랙리스트에 등록 (보안 강화)
         tokenBlacklistUseCase.blacklistAllUserTokens(user.getId(), "사용자 탈퇴");
@@ -122,7 +122,7 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     @Override
     @Transactional
     public void forceWithdraw(Long userId) {
-        User user = userQueryUseCase.findById(userId)
+        User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 관리자 강제 탈퇴 시 해당 사용자의 모든 토큰을 즉시 블랙리스트에 등록
