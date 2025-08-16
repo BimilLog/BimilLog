@@ -1,10 +1,9 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.user;
 
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
+import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
@@ -32,13 +31,11 @@ import java.util.Optional;
 public class SocialLoginAdapter implements SocialLoginPort {
 
     private final Map<SocialProvider, SocialLoginStrategy> strategies = new EnumMap<>(SocialProvider.class);
-    private final UserQueryPort userQueryPort;
-    private final TokenPort tokenPort;
+    private final UserQueryUseCase userQueryUseCase;
 
-    public SocialLoginAdapter(List<SocialLoginStrategy> strategyList, UserQueryPort userQueryPort, TokenPort tokenPort) {
+    public SocialLoginAdapter(List<SocialLoginStrategy> strategyList, UserQueryUseCase userQueryUseCase) {
         strategyList.forEach(strategy -> strategies.put(strategy.getProvider(), strategy));
-        this.userQueryPort = userQueryPort;
-        this.tokenPort = tokenPort;
+        this.userQueryUseCase = userQueryUseCase;
     }
 
     /**
@@ -61,13 +58,13 @@ public class SocialLoginAdapter implements SocialLoginPort {
         SocialLoginUserData userData = initialLoginResult.getUserData();
         TokenDTO tokenDTO = initialLoginResult.getTokenDTO();
 
-        Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, userData.socialId());
+        Optional<User> existingUser = userQueryUseCase.findByProviderAndSocialId(provider, userData.socialId());
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
 
-            jaeik.growfarm.domain.user.entity.Token token = tokenPort.findByUser(user)
+            jaeik.growfarm.domain.user.entity.Token token = userQueryUseCase.findTokenByUser(user)
                     .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
             token.updateToken(tokenDTO.accessToken(), tokenDTO.refreshToken());
 

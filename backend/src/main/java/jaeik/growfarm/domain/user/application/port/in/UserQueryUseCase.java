@@ -2,6 +2,7 @@ package jaeik.growfarm.domain.user.application.port.in;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
@@ -122,4 +123,15 @@ public interface UserQueryUseCase {
      * @since 2.0.0
      */
     User getReferenceById(Long userId);
+
+    /**
+     * <h3>사용자의 토큰 조회</h3>
+     * <p>주어진 사용자에 대한 토큰 정보를 조회합니다.</p>
+     *
+     * @param user 사용자 엔티티
+     * @return Optional<Token> 조회된 토큰 객체. 존재하지 않으면 Optional.empty()
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Optional<Token> findTokenByUser(User user);
 }

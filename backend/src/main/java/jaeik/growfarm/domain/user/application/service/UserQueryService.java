@@ -4,7 +4,9 @@ package jaeik.growfarm.domain.user.application.service;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
+import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
+import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
@@ -32,6 +34,7 @@ public class UserQueryService implements UserQueryUseCase {
     private final UserQueryPort userQueryPort;
     private final LoadPostPort loadPostPort;
     private final LoadCommentPort loadCommentPort;
+    private final TokenPort tokenPort;
 
     /**
      * <h3>소셜 정보로 사용자 조회</h3>
@@ -165,5 +168,19 @@ public class UserQueryService implements UserQueryUseCase {
     @Override
     public User getReferenceById(Long userId) {
         return userQueryPort.getReferenceById(userId);
+    }
+
+    /**
+     * <h3>사용자의 토큰 조회</h3>
+     * <p>주어진 사용자에 대한 토큰 정보를 조회합니다.</p>
+     *
+     * @param user 사용자 엔티티
+     * @return Optional<Token> 조회된 토큰 객체. 존재하지 않으면 Optional.empty()
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Optional<Token> findTokenByUser(User user) {
+        return tokenPort.findByUser(user);
     }
 }
