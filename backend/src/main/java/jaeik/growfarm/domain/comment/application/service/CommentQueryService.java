@@ -142,25 +142,6 @@ public class CommentQueryService implements CommentQueryUseCase {
         return commentQueryPort.findById(commentId);
     }
 
-
-    /**
-     * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>
-     * <p>주어진 댓글 ID 목록 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
-     *
-     * @param commentIds  댓글 ID 목록
-     * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private List<Long> getUserLikedCommentIds(List<Long> commentIds, CustomUserDetails userDetails) {
-        return (userDetails != null)
-                ? commentQueryPort.findUserLikedCommentIds(commentIds, userDetails.getUserId())
-                : List.of();
-    }
-
-
-
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
