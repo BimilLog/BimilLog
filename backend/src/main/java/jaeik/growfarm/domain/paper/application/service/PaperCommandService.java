@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.paper.application.service;
 
 import jaeik.growfarm.domain.paper.application.port.in.PaperCommandUseCase;
-import jaeik.growfarm.domain.paper.application.port.in.PaperQueryUseCase;
+import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.growfarm.domain.paper.application.port.out.PublishEventPort;
@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaperCommandService implements PaperCommandUseCase {
 
     private final PaperCommandPort paperCommandPort;
-    private final PaperQueryUseCase paperQueryUseCase;
+    private final PaperQueryPort paperQueryPort;
     private final LoadUserPort loadUserPort;
     private final PublishEventPort publishEventPort;
 
@@ -49,7 +49,7 @@ public class PaperCommandService implements PaperCommandUseCase {
      */
     @Override
     public void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageDTO messageDTO) {
-        Message message = paperQueryUseCase.findMessageById(messageDTO.getId())
+        Message message = paperQueryPort.findMessageById(messageDTO.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MESSAGE_NOT_FOUND));
 
         if (!message.isOwner(userDetails.getUserId())) {
