@@ -1,0 +1,245 @@
+package jaeik.growfarm.domain.auth.application.service;
+
+import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
+import jaeik.growfarm.infrastructure.exception.CustomException;
+import jaeik.growfarm.infrastructure.exception.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseCookie;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+/**
+ * <h2>SignUpService 단위 테스트</h2>
+ * <p>회원 가입 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
+@ExtendWith(MockitoExtension.class)
+@DisplayName("SignUpService 단위 테스트")
+class SignUpServiceTest {
+
+    @Mock
+    private ManageTemporaryDataPort manageTemporaryDataPort;
+
+    @Mock
+    private ManageSaveDataPort manageSaveDataPort;
+
+    @InjectMocks
+    private SignUpService signUpService;
+
+    private String testUserName;
+    private String testUuid;
+    private SocialLoginUserData testSocialData;
+    private TokenDTO testTokenDTO;
+    private TemporaryUserDataDTO testTempData;
+    private List<ResponseCookie> testCookies;
+
+    @BeforeEach
+    void setUp() {
+        testUserName = "testUser";
+        testUuid = "test-uuid-123";
+        
+        testSocialData = new SocialLoginUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "fcm-token");
+        testTokenDTO = TokenDTO.builder()
+                .accessToken("access-token")
+                .refreshToken("refresh-token")
+                .build();
+        
+        testTempData = new TemporaryUserDataDTO(testSocialData, testTokenDTO, "fcm-token");
+        
+        testCookies = List.of(
+                ResponseCookie.from("access_token", "access-token").build(),
+                ResponseCookie.from("refresh_token", "refresh-token").build()
+        );
+    }
+
+    @Test
+    @DisplayName("유효한 임시 데이터로 회원 가입 성공")
+    void shouldSignUp_WhenValidTemporaryData() {
+        // Given
+        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(manageSaveDataPort.saveNewUser(
+                eq(testUserName), 
+                eq(testUuid), 
+                eq(testSocialData), 
+                eq(testTokenDTO), 
+                eq("fcm-token")
+        )).willReturn(testCookies);
+
+        // When
+        List<ResponseCookie> result = signUpService.signUp(testUserName, testUuid);
+
+        // Then
+        assertThat(result).isEqualTo(testCookies);
+        assertThat(result).hasSize(2);
+        
+        verify(manageTemporaryDataPort).getTempData(testUuid);
+        verify(manageSaveDataPort).saveNewUser(
+                testUserName, 
+                testUuid, 
+                testSocialData, 
+                testTokenDTO, 
+                "fcm-token"
+        );
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 임시 데이터로 회원 가입 시 INVALID_TEMP_DATA 예외 발생")
+    void shouldThrowException_WhenTemporaryDataNotFound() {
+        // Given
+        String nonExistentUuid = "non-existent-uuid";
+        given(manageTemporaryDataPort.getTempData(nonExistentUuid)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> signUpService.signUp(testUserName, nonExistentUuid))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_DATA);
+
+        verify(manageTemporaryDataPort).getTempData(nonExistentUuid);
+        verify(manageSaveDataPort, never()).saveNewUser(
+                eq(testUserName), 
+                eq(nonExistentUuid), 
+                eq(testSocialData), 
+                eq(testTokenDTO), 
+                eq("fcm-token")
+        );
+    }
+
+    @Test
+    @DisplayName("FCM 토큰이 없는 임시 데이터로 회원 가입")
+    void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
+        // Given
+        TemporaryUserDataDTO tempDataWithoutFcm = new TemporaryUserDataDTO(testSocialData, testTokenDTO, null);
+        
+        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
+        given(manageSaveDataPort.saveNewUser(
+                eq(testUserName), 
+                eq(testUuid), 
+                eq(testSocialData), 
+                eq(testTokenDTO), 
+                eq(null)
+        )).willReturn(testCookies);
+
+        // When
+        List<ResponseCookie> result = signUpService.signUp(testUserName, testUuid);
+
+        // Then
+        assertThat(result).isEqualTo(testCookies);
+        
+        verify(manageTemporaryDataPort).getTempData(testUuid);
+        verify(manageSaveDataPort).saveNewUser(testUserName, testUuid, testSocialData, testTokenDTO, null);
+    }
+
+    @Test
+    @DisplayName("다양한 사용자 이름으로 회원 가입 테스트")
+    void shouldSignUp_WithDifferentUserNames() {
+        // Given
+        String[] userNames = {"사용자1", "User2", "user_3", "user-4"};
+        
+        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+
+        for (String userName : userNames) {
+            given(manageSaveDataPort.saveNewUser(
+                    eq(userName), 
+                    eq(testUuid), 
+                    eq(testSocialData), 
+                    eq(testTokenDTO), 
+                    eq("fcm-token")
+            )).willReturn(testCookies);
+
+            // When
+            List<ResponseCookie> result = signUpService.signUp(userName, testUuid);
+
+            // Then
+            assertThat(result).isEqualTo(testCookies);
+            verify(manageSaveDataPort).saveNewUser(userName, testUuid, testSocialData, testTokenDTO, "fcm-token");
+        }
+    }
+
+    @Test
+    @DisplayName("빈 문자열 사용자 이름으로 회원 가입")
+    void shouldSignUp_WithEmptyUserName() {
+        // Given
+        String emptyUserName = "";
+        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(manageSaveDataPort.saveNewUser(
+                eq(emptyUserName), 
+                eq(testUuid), 
+                eq(testSocialData), 
+                eq(testTokenDTO), 
+                eq("fcm-token")
+        )).willReturn(testCookies);
+
+        // When
+        List<ResponseCookie> result = signUpService.signUp(emptyUserName, testUuid);
+
+        // Then
+        assertThat(result).isEqualTo(testCookies);
+        verify(manageSaveDataPort).saveNewUser(emptyUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
+    }
+
+    @Test
+    @DisplayName("null 사용자 이름으로 회원 가입")
+    void shouldSignUp_WithNullUserName() {
+        // Given
+        String nullUserName = null;
+        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(manageSaveDataPort.saveNewUser(
+                eq(nullUserName), 
+                eq(testUuid), 
+                eq(testSocialData), 
+                eq(testTokenDTO), 
+                eq("fcm-token")
+        )).willReturn(testCookies);
+
+        // When
+        List<ResponseCookie> result = signUpService.signUp(nullUserName, testUuid);
+
+        // Then
+        assertThat(result).isEqualTo(testCookies);
+        verify(manageSaveDataPort).saveNewUser(nullUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
+    }
+
+    @Test
+    @DisplayName("빈 쿠키 리스트 반환 테스트")
+    void shouldReturnEmptyCookies_WhenSaveReturnsEmpty() {
+        // Given
+        List<ResponseCookie> emptyCookies = List.of();
+        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(manageSaveDataPort.saveNewUser(
+                eq(testUserName), 
+                eq(testUuid), 
+                eq(testSocialData), 
+                eq(testTokenDTO), 
+                eq("fcm-token")
+        )).willReturn(emptyCookies);
+
+        // When
+        List<ResponseCookie> result = signUpService.signUp(testUserName, testUuid);
+
+        // Then
+        assertThat(result).isEmpty();
+        verify(manageSaveDataPort).saveNewUser(testUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
+    }
+}
