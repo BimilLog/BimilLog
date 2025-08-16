@@ -6,6 +6,7 @@ import jaeik.growfarm.domain.user.entity.Token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -33,5 +34,20 @@ public class TokenJpaAdapter implements LoadTokenPort {
     @Override
     public Optional<Token> findById(Long tokenId) {
         return tokenRepository.findById(tokenId);
+    }
+
+    /**
+     * <h3>사용자의 모든 활성 토큰 조회</h3>
+     * <p>특정 사용자가 소유한 모든 활성 토큰을 조회합니다.</p>
+     * <p>회원 탈퇴 시 모든 토큰을 블랙리스트에 등록하기 위해 사용됩니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @return 사용자의 모든 활성 토큰 목록
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public List<Token> findAllByUserId(Long userId) {
+        return tokenRepository.findByUsersId(userId);
     }
 }

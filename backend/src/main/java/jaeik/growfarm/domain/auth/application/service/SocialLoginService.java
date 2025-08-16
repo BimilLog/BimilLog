@@ -2,7 +2,7 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
-import jaeik.growfarm.domain.auth.application.port.out.CheckBlacklistPort;
+import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
@@ -38,7 +38,7 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final SocialLoginPort socialLoginPort;
     private final ManageAuthDataPort manageAuthDataPort;
     private final ManageTemporaryDataPort manageTemporaryDataPort;
-    private final CheckBlacklistPort checkBlacklistPort;
+    private final BlacklistPort blacklistPort;
 
     /**
      * <h3>소셜 로그인 처리</h3>
@@ -62,7 +62,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         SocialLoginUserData userData = loginResult.getUserData();
         TokenDTO tokenDTO = loginResult.getTokenDTO();
         
-        if (checkBlacklistPort.existsByProviderAndSocialId(provider, userData.socialId())) {
+        if (blacklistPort.existsByProviderAndSocialId(provider, userData.socialId())) {
             throw new CustomException(ErrorCode.BLACKLIST_USER);
         }
 

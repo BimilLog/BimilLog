@@ -1,15 +1,17 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
-import jaeik.growfarm.domain.auth.application.port.out.AuthPort;
-import jaeik.growfarm.domain.auth.application.port.out.TokenBlacklistCachePort;
+import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
+import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
+import jaeik.growfarm.domain.auth.application.port.out.BlacklistCachePort;
+import jaeik.growfarm.domain.user.entity.Token;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <h2>토큰 블랙리스트 서비스</h2>
@@ -25,57 +27,9 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class TokenBlacklistService implements TokenBlacklistUseCase {
 
-    private final TokenBlacklistCachePort tokenBlacklistCachePort;
-    private final AuthPort authPort;
-
-    /**
-     * <h3>토큰을 블랙리스트에 등록</h3>
-     * <p>JWT 토큰을 Redis 블랙리스트에 등록합니다.</p>
-     * <p>토큰의 만료 시간까지만 블랙리스트에 유지됩니다.</p>
-     *
-     * @param token JWT 토큰
-     * @param reason 블랙리스트 등록 사유
-     * @return 등록 성공 여부
-     */
-    @Override
-    public boolean addToBlacklist(String token, String reason) {
-        try {
-            // 토큰 유효성 검사
-            if (!authPort.validateToken(token)) {
-                log.warn("Invalid token attempted to be blacklisted: {}", reason);
-                return false;
-            }
-
-            // 토큰 해시 생성
-            String tokenHash = authPort.generateTokenHash(token);
-            
-            // 토큰 만료 시간 확인
-            Date expiration = authPort.getTokenExpiration(token);
-            if (expiration == null) {
-                log.warn("Could not extract expiration from token for blacklisting");
-                return false;
-            }
-
-            // 현재 시간과 만료 시간 차이 계산
-            Duration ttl = Duration.between(Instant.now(), expiration.toInstant());
-            
-            // 이미 만료된 토큰은 블랙리스트에 추가할 필요 없음
-            if (ttl.isNegative() || ttl.isZero()) {
-                log.info("Token already expired, skipping blacklist: {}", reason);
-                return true;
-            }
-
-            // Redis 블랙리스트에 등록
-            tokenBlacklistCachePort.addToBlacklist(tokenHash, reason, ttl);
-            
-            log.info("Token successfully added to blacklist: reason={}, ttl={}s", reason, ttl.getSeconds());
-            return true;
-
-        } catch (Exception e) {
-            log.error("Failed to add token to blacklist: reason={}, error={}", reason, e.getMessage(), e);
-            return false;
-        }
-    }
+    private final BlacklistCachePort blacklistCachePort;
+    private final BlacklistPort blacklistPort;
+    private final LoadTokenPort loadTokenPort;
 
     /**
      * <h3>토큰 블랙리스트 여부 확인</h3>
@@ -88,10 +42,10 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     public boolean isBlacklisted(String token) {
         try {
             // 토큰 해시 생성
-            String tokenHash = authPort.generateTokenHash(token);
+            String tokenHash = blacklistPort.generateTokenHash(token);
             
             // Redis에서 블랙리스트 여부 확인
-            boolean isBlacklisted = tokenBlacklistCachePort.isBlacklisted(tokenHash);
+            boolean isBlacklisted = blacklistCachePort.isBlacklisted(tokenHash);
             
             if (isBlacklisted) {
                 log.debug("Token found in blacklist: hash={}", tokenHash.substring(0, 8) + "...");
@@ -117,12 +71,39 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     @Override
     public void blacklistAllUserTokens(Long userId, String reason) {
         try {
-            // 일반적인 JWT 만료 시간(1시간)을 기본값으로 설정
-            Duration defaultTtl = Duration.ofHours(1);
+            // 사용자의 모든 활성 토큰 조회
+            List<Token> userTokens = loadTokenPort.findAllByUserId(userId);
             
-            tokenBlacklistCachePort.blacklistAllUserTokens(userId, reason, defaultTtl);
+            if (userTokens.isEmpty()) {
+                log.info("No active tokens found for user {}", userId);
+                return;
+            }
             
-            log.info("All tokens for user {} added to blacklist: reason={}", userId, reason);
+            // 토큰에서 해시값 생성
+            List<String> tokenHashes = userTokens.stream()
+                    .map(token -> {
+                        try {
+                            return blacklistPort.generateTokenHash(token.getAccessToken());
+                        } catch (Exception e) {
+                            log.warn("Failed to generate hash for token {}: {}", token.getId(), e.getMessage());
+                            return null;
+                        }
+                    })
+                    .filter(hash -> hash != null)
+                    .collect(Collectors.toList());
+            
+            if (!tokenHashes.isEmpty()) {
+                // 일반적인 JWT 만료 시간(1시간)을 기본값으로 설정
+                Duration defaultTtl = Duration.ofHours(1);
+                
+                // 개별 토큰 해시들을 모두 블랙리스트에 등록
+                blacklistCachePort.blacklistTokenHashes(tokenHashes, reason, defaultTtl);
+                
+                log.info("All {} tokens for user {} added to blacklist: reason={}", 
+                        tokenHashes.size(), userId, reason);
+            } else {
+                log.warn("No valid token hashes generated for user {}", userId);
+            }
 
         } catch (Exception e) {
             log.error("Failed to blacklist all tokens for user {}: reason={}, error={}", 

@@ -11,19 +11,6 @@ package jaeik.growfarm.domain.auth.application.port.in;
  */
 public interface TokenBlacklistUseCase {
 
-
-    //TODO 현재 사용되지 않음 검토 필요
-    /**
-     * <h3>토큰을 블랙리스트에 등록</h3>
-     * <p>로그아웃 또는 보안상의 이유로 JWT 토큰을 블랙리스트에 등록합니다.</p>
-     * <p>토큰의 만료 시간까지만 블랙리스트에 유지됩니다.</p>
-     *
-     * @param token JWT 토큰
-     * @param reason 블랙리스트 등록 사유
-     * @return 등록 성공 여부
-     */
-    boolean addToBlacklist(String token, String reason);
-
     /**
      * <h3>토큰 블랙리스트 여부 확인</h3>
      * <p>주어진 JWT 토큰이 블랙리스트에 등록되어 있는지 확인합니다.</p>
