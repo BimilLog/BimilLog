@@ -29,4 +29,31 @@ public interface NotificationFcmUseCase {
      * @since 2.0.0
      */
     void deleteFcmTokens(Long userId);
+
+    /**
+     * <h3>댓글 알림 FCM 전송</h3>
+     * <p>댓글이 작성되었을 때 게시글 작성자에게 FCM 알림을 전송합니다.</p>
+     *
+     * @param postUserId    게시글 작성자 ID
+     * @param commenterName 댓글 작성자 이름
+     */
+    void sendCommentNotification(Long postUserId, String commenterName);
+
+    /**
+     * <h3>롤링페이퍼 메시지 알림 FCM 전송</h3>
+     * <p>롤링페이퍼에 새 메시지가 작성되었을 때 주인에게 FCM 알림을 전송합니다.</p>
+     *
+     * @param farmOwnerId 롤링페이퍼 주인 ID
+     */
+    void sendPaperPlantNotification(Long farmOwnerId);
+
+    /**
+     * <h3>인기글 등극 알림 FCM 전송</h3>
+     * <p>게시글이 인기글로 등극했을 때 작성자에게 FCM 알림을 전송합니다.</p>
+     *
+     * @param userId  사용자 ID
+     * @param title   알림 제목
+     * @param body    알림 내용
+     */
+    void sendPostFeaturedNotification(Long userId, String title, String body);
 }

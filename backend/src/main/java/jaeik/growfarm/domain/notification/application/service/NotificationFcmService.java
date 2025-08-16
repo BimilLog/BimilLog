@@ -5,11 +5,13 @@ import jaeik.growfarm.domain.notification.application.port.out.FcmPort;
 import jaeik.growfarm.domain.notification.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 
 /**
@@ -63,5 +65,95 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     public void deleteFcmTokens(Long userId) {
         log.info("FCM 토큰 삭제 처리: userId={}", userId);
         fcmPort.deleteByUserId(userId);
+    }
+
+    /**
+     * <h3>댓글 알림 FCM 전송</h3>
+     *
+     * @param postUserId    게시글 작성자 ID
+     * @param commenterName 댓글 작성자 이름
+     */
+    @Override
+    public void sendCommentNotification(Long postUserId, String commenterName) {
+        try {
+            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensByUserId(postUserId);
+            if (fcmTokens.isEmpty()) {
+                log.info("FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", postUserId);
+                return;
+            }
+
+            String title = commenterName + "님이 댓글을 남겼습니다!";
+            String body = "지금 확인해보세요!";
+            
+            for (FcmToken token : fcmTokens) {
+                FcmSendDTO fcmSendDto = FcmSendDTO.builder()
+                        .token(token.getFcmRegistrationToken())
+                        .title(title)
+                        .body(body)
+                        .build();
+                fcmPort.sendMessageTo(fcmSendDto);
+            }
+        } catch (Exception e) {
+            log.error("FCM 댓글 알림 전송 실패: userId={}, commenterName={}", postUserId, commenterName, e);
+        }
+    }
+
+    /**
+     * <h3>롤링페이퍼 메시지 알림 FCM 전송</h3>
+     *
+     * @param farmOwnerId 롤링페이퍼 주인 ID
+     */
+    @Override
+    public void sendPaperPlantNotification(Long farmOwnerId) {
+        try {
+            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensByUserId(farmOwnerId);
+            if (fcmTokens.isEmpty()) {
+                log.info("FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", farmOwnerId);
+                return;
+            }
+
+            String title = "롤링페이퍼에 메시지가 작성되었어요!";
+            String body = "지금 확인해보세요!";
+            
+            for (FcmToken token : fcmTokens) {
+                FcmSendDTO fcmSendDto = FcmSendDTO.builder()
+                        .token(token.getFcmRegistrationToken())
+                        .title(title)
+                        .body(body)
+                        .build();
+                fcmPort.sendMessageTo(fcmSendDto);
+            }
+        } catch (Exception e) {
+            log.error("FCM 롤링페이퍼 알림 전송 실패: farmOwnerId={}", farmOwnerId, e);
+        }
+    }
+
+    /**
+     * <h3>인기글 등극 알림 FCM 전송</h3>
+     *
+     * @param userId 사용자 ID
+     * @param title  알림 제목
+     * @param body   알림 내용
+     */
+    @Override
+    public void sendPostFeaturedNotification(Long userId, String title, String body) {
+        try {
+            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensByUserId(userId);
+            if (fcmTokens.isEmpty()) {
+                log.info("FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", userId);
+                return;
+            }
+            
+            for (FcmToken token : fcmTokens) {
+                FcmSendDTO fcmSendDto = FcmSendDTO.builder()
+                        .token(token.getFcmRegistrationToken())
+                        .title(title)
+                        .body(body)
+                        .build();
+                fcmPort.sendMessageTo(fcmSendDto);
+            }
+        } catch (Exception e) {
+            log.error("FCM 인기글 등극 알림 전송 실패: userId={}, title={}", userId, title, e);
+        }
     }
 }

@@ -162,6 +162,32 @@ public class JwtHandler {
     }
 
     /**
+     * <h3>리프레시 토큰 자동 갱신 여부 확인</h3>
+     *
+     * <p>리프레시 토큰의 남은 만료 시간이 지정된 임계값(일수) 이하인지 확인합니다.</p>
+     * <p>15일 이하로 남았을 때 true를 반환하여 새로운 리프레시 토큰 발급을 유도합니다.</p>
+     *
+     * @param token JWT 리프레시 토큰
+     * @param thresholdDays 임계값(일수)
+     * @return 갱신이 필요한 경우 true, 그렇지 않은 경우 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public boolean shouldRefreshToken(String token, long thresholdDays) {
+        try {
+            Claims claims = getClaims(token);
+            Date expiration = claims.getExpiration();
+            long now = System.currentTimeMillis();
+            long remainingTime = expiration.getTime() - now;
+            long thresholdMillis = thresholdDays * 24 * 3600000L; // 일수를 밀리초로 변환
+            
+            return remainingTime <= thresholdMillis;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
      * <h3>JWT 토큰에서 Claims 추출</h3>
      *
      * <p>JWT 토큰에서 Claims를 추출합니다.</p>

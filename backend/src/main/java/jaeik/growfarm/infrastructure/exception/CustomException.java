@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.16
+ * @version 2.0.0
  */
 @Getter
 @Setter

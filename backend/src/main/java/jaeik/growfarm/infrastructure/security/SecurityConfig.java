@@ -93,7 +93,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/comment/**").permitAll()
                         .requestMatchers("/api/post/like").authenticated()
                         .requestMatchers("/api/post/**").permitAll()
-                        .requestMatchers("/api/dto/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/paper/{userName}").permitAll()
                         .requestMatchers("/api/user/suggestion", "/api/user/username/check").permitAll()
                         .requestMatchers("/api/ai/**").permitAll()

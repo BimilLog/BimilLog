@@ -31,4 +31,33 @@ public interface NotificationSseUseCase {
      * @author Jaeik
      */
     void deleteAllEmitterByUserId(Long userId);
+
+    /**
+     * <h3>댓글 알림 SSE 전송</h3>
+     * <p>댓글이 작성되었을 때 게시글 작성자에게 SSE 알림을 전송합니다.</p>
+     *
+     * @param postUserId    게시글 작성자 ID
+     * @param commenterName 댓글 작성자 이름
+     * @param postId        게시글 ID
+     */
+    void sendCommentNotification(Long postUserId, String commenterName, Long postId);
+
+    /**
+     * <h3>롤링페이퍼 메시지 알림 SSE 전송</h3>
+     * <p>롤링페이퍼에 새 메시지가 작성되었을 때 주인에게 SSE 알림을 전송합니다.</p>
+     *
+     * @param farmOwnerId 롤링페이퍼 주인 ID
+     * @param userName    사용자 이름
+     */
+    void sendPaperPlantNotification(Long farmOwnerId, String userName);
+
+    /**
+     * <h3>인기글 등극 알림 SSE 전송</h3>
+     * <p>게시글이 인기글로 등극했을 때 작성자에게 SSE 알림을 전송합니다.</p>
+     *
+     * @param userId  사용자 ID
+     * @param message 알림 메시지
+     * @param postId  게시글 ID
+     */
+    void sendPostFeaturedNotification(Long userId, String message, Long postId);
 }

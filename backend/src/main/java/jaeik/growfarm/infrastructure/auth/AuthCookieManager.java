@@ -118,7 +118,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
-    private ResponseCookie generateJwtRefreshCookie(UserDTO userDTO) {
+    public ResponseCookie generateJwtRefreshCookie(UserDTO userDTO) {
         String refreshToken = jwtHandler.generateRefreshToken(userDTO);
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .path("/")

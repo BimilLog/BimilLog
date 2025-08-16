@@ -123,6 +123,4 @@ public class SseAdapter implements SsePort, NotificationSender {
     public void deleteAllEmitterByUserId(Long userId) {
         emitterRepository.deleteAllEmitterByUserId(userId);
     }
-
-
 }

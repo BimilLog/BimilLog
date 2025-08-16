@@ -117,11 +117,17 @@ public class JwtFilter extends OncePerRequestFilter {
                     UserDTO userDTO = UserDTO.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급
-                    ResponseCookie cookie = authCookieManager.generateJwtAccessCookie(userDTO);
-                    response.addHeader("Set-Cookie", cookie.toString());
+                    ResponseCookie accessCookie = authCookieManager.generateJwtAccessCookie(userDTO);
+                    response.addHeader("Set-Cookie", accessCookie.toString());
+
+                    // 리프레시 토큰이 15일 이하로 남았으면 새로운 리프레시 토큰도 발급
+                    if (jwtHandler.shouldRefreshToken(refreshToken, 15)) {
+                        ResponseCookie refreshCookie = authCookieManager.generateJwtRefreshCookie(userDTO);
+                        response.addHeader("Set-Cookie", refreshCookie.toString());
+                    }
 
                     // 사용자 인증 정보 설정
-                    setAuthentication(cookie.getValue());
+                    setAuthentication(accessCookie.getValue());
                 }
             }
         }

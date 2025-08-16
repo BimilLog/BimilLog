@@ -1,7 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler;
 
-import jaeik.growfarm.domain.notification.application.port.in.NotificationEventUseCase;
 import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CommentCreatedEventHandler implements NotificationEventHandler<CommentCreatedEvent> {
 
-    private final NotificationEventUseCase notificationEventUseCase;
+    private final NotificationSseUseCase notificationSseUseCase;
+    private final NotificationFcmUseCase notificationFcmUseCase;
 
     /**
      * <h3>이벤트 지원 여부 확인</h3>
@@ -45,9 +47,15 @@ public class CommentCreatedEventHandler implements NotificationEventHandler<Comm
      */
     @Override
     public void handle(CommentCreatedEvent event) {
-        notificationEventUseCase.sendCommentNotification(
+        // SSE 알림 전송
+        notificationSseUseCase.sendCommentNotification(
                 event.getPostUserId(),
                 event.getCommenterName(),
                 event.getPostId());
+        
+        // FCM 알림 전송
+        notificationFcmUseCase.sendCommentNotification(
+                event.getPostUserId(),
+                event.getCommenterName());
     }
 }

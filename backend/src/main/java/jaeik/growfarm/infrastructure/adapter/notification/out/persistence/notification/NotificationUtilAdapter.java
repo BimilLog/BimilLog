@@ -82,7 +82,7 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
 
         Setting setting = userOptional.get().getSetting();
         return switch (type) {
-            case MESSAGE -> setting.isMessageNotification();
+            case PAPER -> setting.isMessageNotification();
             case COMMENT -> setting.isCommentNotification();
             case POST_FEATURED -> setting.isPostFeaturedNotification();
             default -> false; // ADMIN, INITIATE는 위에서 처리했으므로 사실상 도달하지 않음

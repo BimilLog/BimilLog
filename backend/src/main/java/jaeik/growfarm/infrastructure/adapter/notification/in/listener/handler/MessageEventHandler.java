@@ -1,7 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler;
 
-import jaeik.growfarm.domain.notification.application.port.in.NotificationEventUseCase;
 import jaeik.growfarm.domain.paper.event.MessageEvent;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MessageEventHandler implements NotificationEventHandler<MessageEvent> {
 
-    private final NotificationEventUseCase notificationEventUseCase;
+    private final NotificationSseUseCase notificationSseUseCase;
+    private final NotificationFcmUseCase notificationFcmUseCase;
 
     /**
      * <h3>이벤트 지원 여부 확인</h3>
@@ -45,8 +47,13 @@ public class MessageEventHandler implements NotificationEventHandler<MessageEven
      */
     @Override
     public void handle(MessageEvent event) {
-        notificationEventUseCase.sendPaperPlantNotification(
+        // SSE 알림 전송
+        notificationSseUseCase.sendPaperPlantNotification(
                 event.getPaperOwnerId(),
                 event.getUserName());
+        
+        // FCM 알림 전송
+        notificationFcmUseCase.sendPaperPlantNotification(
+                event.getPaperOwnerId());
     }
 }

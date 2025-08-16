@@ -2,6 +2,11 @@ package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.SsePort;
+import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
+import jaeik.growfarm.domain.notification.application.service.NotificationUrlGenerator;
+import jaeik.growfarm.domain.notification.application.service.NotificationUtil;
+import jaeik.growfarm.domain.notification.entity.NotificationType;
+import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.EventDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -18,6 +23,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class NotificationSseService implements NotificationSseUseCase {
 
     private final SsePort ssePort;
+    private final NotificationSender notificationSender;
+    private final NotificationUrlGenerator urlGenerator;
+    private final NotificationUtil notificationUtil;
 
     /**
      * <h3>알림 구독</h3>
@@ -45,5 +53,48 @@ public class NotificationSseService implements NotificationSseUseCase {
     @Override
     public void deleteAllEmitterByUserId(Long userId) {
         ssePort.deleteAllEmitterByUserId(userId);
+    }
+
+    /**
+     * <h3>댓글 알림 SSE 전송</h3>
+     *
+     * @param postUserId    게시글 작성자 ID
+     * @param commenterName 댓글 작성자 이름
+     * @param postId        게시글 ID
+     */
+    @Override
+    public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
+        String message = commenterName + "님이 댓글을 남겼습니다!";
+        String url = urlGenerator.generatePostUrl(postId);
+        EventDTO eventDTO = notificationUtil.createEventDTO(NotificationType.COMMENT, message, url);
+        notificationSender.send(postUserId, eventDTO);
+    }
+
+    /**
+     * <h3>롤링페이퍼 메시지 알림 SSE 전송</h3>
+     *
+     * @param farmOwnerId 롤링페이퍼 주인 ID
+     * @param userName    사용자 이름
+     */
+    @Override
+    public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
+        String message = "롤링페이퍼에 메시지가 작성되었어요!";
+        String url = urlGenerator.generatePaperUrl(userName);
+        EventDTO eventDTO = notificationUtil.createEventDTO(NotificationType.PAPER, message, url);
+        notificationSender.send(farmOwnerId, eventDTO);
+    }
+
+    /**
+     * <h3>인기글 등극 알림 SSE 전송</h3>
+     *
+     * @param userId  사용자 ID
+     * @param message 알림 메시지
+     * @param postId  게시글 ID
+     */
+    @Override
+    public void sendPostFeaturedNotification(Long userId, String message, Long postId) {
+        String url = urlGenerator.generatePostUrl(postId);
+        EventDTO eventDTO = notificationUtil.createEventDTO(NotificationType.POST_FEATURED, message, url);
+        notificationSender.send(userId, eventDTO);
     }
 }
