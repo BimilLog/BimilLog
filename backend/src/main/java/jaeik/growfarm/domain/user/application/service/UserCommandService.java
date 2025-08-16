@@ -73,6 +73,33 @@ public class UserCommandService implements UserCommandUseCase {
         userCommandPort.save(user);
     }
 
+    /**
+     * <h3>사용자 삭제</h3>
+     * <p>ID를 통해 사용자를 삭제하는 메서드</p>
+     *
+     * @param userId 삭제할 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public void deleteById(Long userId) {
+        userCommandPort.deleteById(userId);
+    }
+
+    /**
+     * <h3>사용자 저장</h3>
+     * <p>사용자 정보를 저장하거나 업데이트하는 메서드</p>
+     *
+     * @param user 저장할 사용자 엔티티
+     * @return User 저장된 사용자 엔티티
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public User save(User user) {
+        return userCommandPort.save(user);
+    }
+
 
     /**
      * <h3>사용자 가입 이벤트 처리</h3>

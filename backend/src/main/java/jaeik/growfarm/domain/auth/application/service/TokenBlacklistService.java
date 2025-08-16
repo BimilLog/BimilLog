@@ -1,6 +1,7 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
+import jaeik.growfarm.domain.auth.application.port.out.AuthPort;
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
 import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistCachePort;
@@ -30,6 +31,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     private final BlacklistCachePort blacklistCachePort;
     private final BlacklistPort blacklistPort;
     private final LoadTokenPort loadTokenPort;
+    private final AuthPort authPort;
 
     /**
      * <h3>토큰 블랙리스트 여부 확인</h3>
@@ -42,7 +44,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     public boolean isBlacklisted(String token) {
         try {
             // 토큰 해시 생성
-            String tokenHash = blacklistPort.generateTokenHash(token);
+            String tokenHash = authPort.generateTokenHash(token);
             
             // Redis에서 블랙리스트 여부 확인
             boolean isBlacklisted = blacklistCachePort.isBlacklisted(tokenHash);
@@ -83,7 +85,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
             List<String> tokenHashes = userTokens.stream()
                     .map(token -> {
                         try {
-                            return blacklistPort.generateTokenHash(token.getAccessToken());
+                            return authPort.generateTokenHash(token.getAccessToken());
                         } catch (Exception e) {
                             log.warn("Failed to generate hash for token {}: {}", token.getId(), e.getMessage());
                             return null;

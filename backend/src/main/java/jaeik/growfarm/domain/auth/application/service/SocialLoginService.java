@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResponseDTO;
@@ -36,7 +36,7 @@ import java.util.UUID;
 public class SocialLoginService implements SocialLoginUseCase {
 
     private final SocialLoginPort socialLoginPort;
-    private final ManageAuthDataPort manageAuthDataPort;
+    private final ManageSaveDataPort manageSaveDataPort;
     private final ManageTemporaryDataPort manageTemporaryDataPort;
     private final BlacklistPort blacklistPort;
 
@@ -67,7 +67,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         }
 
         if (loginResult.getLoginType() == LoginResultDTO.LoginType.EXISTING_USER) {
-            List<ResponseCookie> cookies = manageAuthDataPort.handleExistingUserLogin(userData, tokenDTO, fcmToken);
+            List<ResponseCookie> cookies = manageSaveDataPort.handleExistingUserLogin(userData, tokenDTO, fcmToken);
             return new LoginResponseDTO<>(LoginResponseDTO.LoginType.EXISTING_USER, cookies);
         } else {
             String uuid = UUID.randomUUID().toString();

@@ -4,7 +4,8 @@ import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.LoadUserPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.event.UserWithdrawnEvent;
 import jaeik.growfarm.domain.user.entity.User;
@@ -32,7 +33,7 @@ import java.util.List;
 public class WithdrawService implements WithdrawUseCase {
 
     private final LoadUserPort loadUserPort;
-    private final ManageAuthDataPort manageAuthDataPort;
+    private final ManageDeleteDataPort manageDeleteDataPort;
     private final SocialLoginPort socialLoginPort;
     private final ApplicationEventPublisher eventPublisher;
     private final TokenBlacklistUseCase tokenBlacklistUseCase;
@@ -60,7 +61,7 @@ public class WithdrawService implements WithdrawUseCase {
         tokenBlacklistUseCase.blacklistAllUserTokens(user.getId(), "사용자 탈퇴");
 
         socialLoginPort.unlink(user.getProvider(), user.getSocialId());
-        manageAuthDataPort.performWithdrawProcess(userDetails.getUserId());
+        manageDeleteDataPort.performWithdrawProcess(userDetails.getUserId());
         eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId()));
 
         return logoutUseCase.logout(userDetails);
@@ -85,7 +86,7 @@ public class WithdrawService implements WithdrawUseCase {
         tokenBlacklistUseCase.blacklistAllUserTokens(userId, "관리자 강제 탈퇴");
 
         socialLoginPort.unlink(user.getProvider(), user.getSocialId());
-        manageAuthDataPort.performWithdrawProcess(userId);
+        manageDeleteDataPort.performWithdrawProcess(userId);
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
     }
 }

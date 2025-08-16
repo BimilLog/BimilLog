@@ -37,7 +37,6 @@ public class PostQueryService implements PostQueryUseCase {
     private final PostLikeQueryPort postLikeQueryPort;
     private final UserLoadPort userLoadPort;
     private final PostCacheSyncService postCacheSyncService;
-
     private final PostCacheQueryPort postCacheQueryPort;
 
     /**

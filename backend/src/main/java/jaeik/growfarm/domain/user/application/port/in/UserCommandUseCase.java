@@ -1,6 +1,7 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
+import jaeik.growfarm.domain.user.entity.User;
 
 /**
  * <h2>사용자 명령 유스케이스</h2>
@@ -32,4 +33,25 @@ public interface UserCommandUseCase {
      * @author Jaeik
      */
     void updateUserName(Long userId, String newUserName);
+
+    /**
+     * <h3>사용자 삭제</h3>
+     * <p>ID를 통해 사용자를 삭제하는 메서드</p>
+     *
+     * @param userId 삭제할 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    void deleteById(Long userId);
+
+    /**
+     * <h3>사용자 저장</h3>
+     * <p>사용자 정보를 저장하거나 업데이트하는 메서드</p>
+     *
+     * @param user 저장할 사용자 엔티티
+     * @return User 저장된 사용자 엔티티
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    User save(User user);
 }

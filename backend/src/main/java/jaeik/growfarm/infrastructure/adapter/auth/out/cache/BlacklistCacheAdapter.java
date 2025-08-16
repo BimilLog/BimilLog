@@ -39,9 +39,8 @@ public class BlacklistCacheAdapter implements BlacklistCachePort {
     public boolean isBlacklisted(String tokenHash) {
         try {
             String key = BLACKLIST_KEY_PREFIX + tokenHash;
-            Boolean exists = redisTemplate.hasKey(key);
-            
-            return Boolean.TRUE.equals(exists);
+
+            return redisTemplate.hasKey(key);
 
         } catch (Exception e) {
             log.error("Failed to check token blacklist in Redis: tokenHash={}, error={}", 
@@ -56,7 +55,6 @@ public class BlacklistCacheAdapter implements BlacklistCachePort {
      * <p>특정 사용자의 모든 토큰을 블랙리스트에 등록합니다.</p>
      * <p>사용자별 패턴을 사용하여 일괄 처리합니다.</p>
      *
-     * @param userId 사용자 ID
      * @param reason 블랙리스트 등록 사유
      * @param ttl 만료 시간
      */

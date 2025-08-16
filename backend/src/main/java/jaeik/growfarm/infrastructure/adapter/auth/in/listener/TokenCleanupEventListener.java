@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.auth.in.listener;
 
-import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TokenCleanupEventListener {
 
-    private final ManageAuthDataPort manageAuthDataPort;
+    private final ManageDeleteDataPort manageDeleteDataPort;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리 - 토큰 정리</h3>
@@ -40,7 +40,7 @@ public class TokenCleanupEventListener {
                      event.userId(), event.tokenId());
             
             // 사용자 토큰 삭제 (JWT 토큰, FCM 토큰 등)
-            manageAuthDataPort.logoutUser(event.userId());
+            manageDeleteDataPort.logoutUser(event.userId());
             
             log.info("토큰 정리 완료 - 사용자 ID: {}", event.userId());
             

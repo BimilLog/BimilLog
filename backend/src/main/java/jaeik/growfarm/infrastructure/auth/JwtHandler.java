@@ -3,6 +3,7 @@ package jaeik.growfarm.infrastructure.auth;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jaeik.growfarm.domain.auth.application.port.out.AuthPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.UserDTO;
@@ -26,7 +27,7 @@ import java.util.Date;
  */
 @Component
 @RequiredArgsConstructor
-public class JwtHandler {
+public class JwtHandler implements AuthPort {
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -218,6 +219,7 @@ public class JwtHandler {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public String generateTokenHash(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
