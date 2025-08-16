@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.social.dto;
 
-import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import lombok.Builder;
 
 /**

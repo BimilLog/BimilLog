@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.auth.in.listener;
+package jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.growfarm.domain.auth.event.FcmTokenRegisteredEvent;

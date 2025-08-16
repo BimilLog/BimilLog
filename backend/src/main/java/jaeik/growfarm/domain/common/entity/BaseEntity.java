@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.common;
+package jaeik.growfarm.domain.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

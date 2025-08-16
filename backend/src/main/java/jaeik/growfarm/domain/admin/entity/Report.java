@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.admin.entity;
 
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
-import jaeik.growfarm.domain.common.BaseEntity;
+import jaeik.growfarm.domain.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

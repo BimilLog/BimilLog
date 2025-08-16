@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.common;
+package jaeik.growfarm.domain.common.entity;
 
 /**
  * <h2>소셜 제공자 열거형</h2>

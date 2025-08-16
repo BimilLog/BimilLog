@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.listener.handler;
+package jaeik.growfarm.infrastructure.adapter.auth.in.listener;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * <h2>토큰 정리 이벤트 핸들러</h2>
+ * <h2>토큰 정리 이벤트 리스너</h2>
  * <p>사용자 로그아웃 시 토큰 삭제를 담당하는 이벤트 핸들러</p>
  * <p>단일 책임 원칙(SRP)에 따라 토큰 정리 로직만을 담당</p>
  *
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TokenCleanupEventHandler {
+public class TokenCleanupEventListener {
 
     private final ManageAuthDataPort manageAuthDataPort;
 

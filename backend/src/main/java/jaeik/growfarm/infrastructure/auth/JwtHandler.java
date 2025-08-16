@@ -3,7 +3,7 @@ package jaeik.growfarm.infrastructure.auth;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.UserDTO;
 import jakarta.annotation.PostConstruct;

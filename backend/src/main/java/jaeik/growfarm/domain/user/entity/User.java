@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.user.entity;
 
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.domain.common.BaseEntity;
-import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.domain.common.entity.BaseEntity;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

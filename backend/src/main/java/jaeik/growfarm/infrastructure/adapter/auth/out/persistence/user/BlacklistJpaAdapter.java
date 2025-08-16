@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.user;
 
 import jaeik.growfarm.domain.auth.application.port.out.CheckBlacklistPort;
-import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.blacklist.BlackListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

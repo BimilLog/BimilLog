@@ -4,7 +4,7 @@ import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsRes
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
-import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import jaeik.growfarm.infrastructure.auth.KakaoKeyVO;

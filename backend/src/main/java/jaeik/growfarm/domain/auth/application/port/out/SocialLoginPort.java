@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
-import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 
 /**

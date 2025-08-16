@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.entity;
 
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.common.BaseEntity;
+import jaeik.growfarm.domain.common.entity.BaseEntity;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

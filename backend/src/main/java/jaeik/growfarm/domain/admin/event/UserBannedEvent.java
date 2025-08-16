@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.admin.event;
 
-import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

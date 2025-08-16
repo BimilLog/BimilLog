@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.user.in.web.dto;
 
-import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.UserInfoResponseDTO;
