@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.comment.application.port.in;
 
-import jaeik.growfarm.dto.comment.CommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 /**

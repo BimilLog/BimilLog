@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.post.application.port.in;
 
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.dto.post.FullPostResDTO;
-import jaeik.growfarm.dto.post.SimplePostResDTO;
+import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
+import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

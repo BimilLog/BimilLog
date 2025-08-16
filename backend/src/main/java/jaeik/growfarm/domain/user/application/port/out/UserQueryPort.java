@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.user.application.port.out;
 
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.global.domain.SocialProvider;
+import jaeik.growfarm.domain.common.SocialProvider;
 
 import java.util.List;
 import java.util.Optional;

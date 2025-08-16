@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.notification.application.port.out;
 
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.notification.UpdateNotificationDTO;
+import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.UpdateNotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 /**

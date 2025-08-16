@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.application.port.out;
 
 import jaeik.growfarm.domain.notification.entity.NotificationType;
-import jaeik.growfarm.dto.notification.EventDTO;
+import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.EventDTO;
 
 /**
  * <h2>알림 유틸리티 포트</h2>

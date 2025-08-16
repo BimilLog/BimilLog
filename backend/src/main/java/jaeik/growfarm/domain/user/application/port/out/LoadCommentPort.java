@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.out;
 
-import jaeik.growfarm.dto.comment.SimpleCommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

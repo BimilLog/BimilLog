@@ -1,9 +1,10 @@
 package jaeik.growfarm.domain.paper.application.port.in;
 
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.dto.paper.MessageDTO;
-import jaeik.growfarm.dto.paper.VisitMessageDTO;
+import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
+import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.exception.CustomException;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +43,7 @@ public interface PaperQueryUseCase {
      *
      * @param userName 방문할 사용자명
      * @return 방문한 롤링페이퍼의 메시지 목록 (익명화된 정보)
-     * @throws jaeik.growfarm.global.exception.CustomException 사용자가 존재하지 않는 경우
+     * @throws CustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */

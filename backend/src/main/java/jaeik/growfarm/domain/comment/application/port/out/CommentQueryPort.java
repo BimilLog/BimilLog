@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.comment.application.port.out;
 
 import jaeik.growfarm.domain.comment.entity.Comment;
-import jaeik.growfarm.dto.comment.CommentDTO;
-import jaeik.growfarm.dto.comment.SimpleCommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -25,7 +25,7 @@ public interface CommentQueryPort {
      *
      * @param postId          게시글 ID
      * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
-     * @return List<jaeik.growfarm.dto.comment.CommentDTO> 인기 댓글 목록
+     * @return List<jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO> 인기 댓글 목록
      * @author Jaeik
      * @since 2.0.0
      */
@@ -38,7 +38,7 @@ public interface CommentQueryPort {
      * @param postId          게시글 ID
      * @param pageable        페이지 정보
      * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
-     * @return Page<jaeik.growfarm.dto.comment.CommentDTO> 최신순 댓글 페이지
+     * @return Page<jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO> 최신순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */

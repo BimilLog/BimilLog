@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.paper.application.port.out;
 
-import jaeik.growfarm.global.event.MessageEvent;
+import jaeik.growfarm.domain.paper.event.MessageEvent;
 
 /**
  * <h2>이벤트 발행 포트</h2>

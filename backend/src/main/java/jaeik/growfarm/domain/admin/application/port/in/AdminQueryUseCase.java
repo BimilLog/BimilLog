@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.admin.application.port.in;
 
 import jaeik.growfarm.domain.admin.entity.ReportType;
-import jaeik.growfarm.dto.admin.ReportDTO;
+import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import org.springframework.data.domain.Page;
 
 /**

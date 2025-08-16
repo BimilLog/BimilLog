@@ -1,8 +1,8 @@
 
 package jaeik.growfarm.domain.auth.application.port.in;
 
-import jaeik.growfarm.dto.auth.LoginResponseDTO;
-import jaeik.growfarm.global.domain.SocialProvider;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResponseDTO;
+import jaeik.growfarm.domain.common.SocialProvider;
 
 /**
  * <h2>소셜 로그인 유스케이스</h2>

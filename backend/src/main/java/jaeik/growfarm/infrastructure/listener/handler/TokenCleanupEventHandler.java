@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.listener.handler;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageAuthDataPort;
-import jaeik.growfarm.global.event.UserLoggedOutEvent;
+import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

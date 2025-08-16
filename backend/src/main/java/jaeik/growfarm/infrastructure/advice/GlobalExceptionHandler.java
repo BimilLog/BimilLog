@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.advice;
 
-import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.infrastructure.exception.CustomException;
+import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

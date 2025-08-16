@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.admin.application.port.in;
 
-import jaeik.growfarm.dto.admin.ReportDTO;
+import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 
 /**
  * <h2>관리자 명령 유스케이스</h2>

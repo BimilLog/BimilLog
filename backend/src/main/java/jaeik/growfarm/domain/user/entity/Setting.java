@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.entity;
 
-import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;

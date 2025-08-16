@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.admin.entity;
 
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.global.domain.BaseEntity;
+import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.growfarm.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

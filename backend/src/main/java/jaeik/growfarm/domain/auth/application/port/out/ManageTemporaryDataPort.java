@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
-import jaeik.growfarm.dto.auth.SocialLoginUserData;
-import jaeik.growfarm.dto.auth.TemporaryUserDataDTO;
-import jaeik.growfarm.dto.user.TokenDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import org.springframework.http.ResponseCookie;
 
 import java.util.Optional;

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
-import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 
 /**
  * <h2>사용자 명령 유스케이스</h2>

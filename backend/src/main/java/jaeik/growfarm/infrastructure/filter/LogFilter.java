@@ -74,7 +74,7 @@ public class LogFilter extends OncePerRequestFilter {
             String socialNickname = userDetails.getUserDTO().getSocialNickname();
             String provider = userDetails.getUserDTO().getProvider().name();
 
-            if (uri.startsWith("/admin")) {
+            if (uri.startsWith("/dto")) {
                 log.error(
                         "회원 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 제공자: {}, 소셜 ID: {}, 소셜 닉네임: {}",
                         ip, referer, uri, method, userId, provider, socialId, socialNickname);
@@ -82,7 +82,7 @@ public class LogFilter extends OncePerRequestFilter {
             log.info("회원 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 제공자: {}, 소셜 ID: {}, 소셜 닉네임: {}", ip,
                     referer, uri, method, userId, provider, socialId, socialNickname);
         } else {
-            if (uri.startsWith("/admin")) {
+            if (uri.startsWith("/dto")) {
                 log.error("비회원 - 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri,
                         method);
             }

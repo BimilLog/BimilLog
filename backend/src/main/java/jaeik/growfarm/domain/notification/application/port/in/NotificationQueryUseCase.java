@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.application.port.in;
 
-import jaeik.growfarm.dto.notification.NotificationDTO;
+import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.NotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 import java.util.List;

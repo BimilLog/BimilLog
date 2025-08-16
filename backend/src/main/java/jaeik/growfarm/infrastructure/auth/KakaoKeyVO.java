@@ -21,7 +21,7 @@ public class KakaoKeyVO {
     @Value("${spring.kakao.client-secret}")
     private String CLIENT_SECRET; // 앱 시크릿 키
 
-    @Value("${spring.kakao.admin-key}")
+    @Value("${spring.kakao.dto-key}")
     private String ADMIN_KEY; // 앱 어드민 키
 
     @Value("${spring.kakao.redirect-uri}")

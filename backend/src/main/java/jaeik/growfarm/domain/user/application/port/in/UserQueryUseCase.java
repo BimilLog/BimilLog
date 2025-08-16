@@ -1,9 +1,9 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
-import jaeik.growfarm.global.domain.SocialProvider;
+import jaeik.growfarm.domain.common.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.post.SimplePostResDTO;
-import jaeik.growfarm.dto.comment.SimpleCommentDTO;
+import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

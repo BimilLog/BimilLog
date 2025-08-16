@@ -1,7 +1,8 @@
 package jaeik.growfarm.domain.paper.application.port.in;
 
-import jaeik.growfarm.dto.paper.MessageDTO;
+import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
+import jaeik.growfarm.infrastructure.exception.CustomException;
 
 /**
  * <h2>롤링페이퍼 명령 유스케이스</h2>
@@ -25,7 +26,7 @@ public interface PaperCommandUseCase {
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param messageDTO  삭제할 메시지 정보
-     * @throws jaeik.growfarm.global.exception.CustomException 삭제 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
+     * @throws CustomException 삭제 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -42,7 +43,7 @@ public interface PaperCommandUseCase {
      *
      * @param userName   롤링페이퍼 소유자의 사용자명
      * @param messageDTO 작성할 메시지 정보
-     * @throws jaeik.growfarm.global.exception.CustomException 사용자가 존재하지 않는 경우
+     * @throws CustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */

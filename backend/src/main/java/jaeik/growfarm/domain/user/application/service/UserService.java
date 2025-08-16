@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.out.UserCommandPort;
 import jaeik.growfarm.domain.user.entity.BlackList;
-import jaeik.growfarm.global.event.UserBannedEvent;
+import jaeik.growfarm.domain.admin.event.UserBannedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

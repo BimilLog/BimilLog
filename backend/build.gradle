@@ -73,7 +73,7 @@ dependencies {
     testImplementation 'org.testcontainers:mysql:1.19.3' // MySQL TestContainer
 
     // ==== 알림 관련 ====
-    implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
+    implementation 'com.google.firebase:firebase-dto:9.2.0' // Google Firebase Admin
 
     // ==== 로깅 및 AWS ====
     implementation 'ca.pjer:logback-awslogs-appender:1.6.0'

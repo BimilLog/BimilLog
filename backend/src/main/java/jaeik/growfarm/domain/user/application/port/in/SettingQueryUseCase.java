@@ -1,6 +1,7 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
-import jaeik.growfarm.dto.user.SettingDTO;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
+import jaeik.growfarm.infrastructure.exception.CustomException;
 
 /**
  * <h2>설정 조회 유스케이스</h2>
@@ -19,7 +20,7 @@ public interface SettingQueryUseCase {
      *
      * @param settingId 설정 ID
      * @return 설정 DTO
-     * @throws jaeik.growfarm.global.exception.CustomException 설정을 찾을 수 없는 경우
+     * @throws CustomException 설정을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */

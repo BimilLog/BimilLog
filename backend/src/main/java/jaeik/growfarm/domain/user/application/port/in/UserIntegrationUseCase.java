@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
-import jaeik.growfarm.dto.auth.KakaoFriendsResponse;
+import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
 
 /**
  * <h2>사용자 통합 기능 UseCase</h2>

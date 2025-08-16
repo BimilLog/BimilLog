@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.application.port.out;
 
 import jaeik.growfarm.domain.notification.entity.FcmToken;
-import jaeik.growfarm.dto.notification.FcmSendDTO;
+import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
 
 import java.io.IOException;
 import java.util.List;

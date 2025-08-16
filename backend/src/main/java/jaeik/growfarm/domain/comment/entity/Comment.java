@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.comment.entity;
 
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.global.domain.BaseEntity;
+import jaeik.growfarm.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

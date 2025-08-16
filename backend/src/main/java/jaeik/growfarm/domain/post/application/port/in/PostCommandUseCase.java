@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.port.in;
 
-import jaeik.growfarm.dto.post.PostReqDTO;
+import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 
 /**
  * <h2>게시글 기본 명령 유스케이스</h2>

@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
-import jaeik.growfarm.global.domain.SocialProvider;
-import jaeik.growfarm.dto.auth.LoginResultDTO;
+import jaeik.growfarm.domain.common.SocialProvider;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 
 /**
  * <h2>소셜 로그인 포트</h2>

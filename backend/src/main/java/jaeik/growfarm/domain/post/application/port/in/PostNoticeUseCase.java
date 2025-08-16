@@ -1,5 +1,7 @@
 package jaeik.growfarm.domain.post.application.port.in;
 
+import jaeik.growfarm.infrastructure.exception.CustomException;
+
 /**
  * <h2>게시글 공지사항 유스케이스</h2>
  * <p>게시글의 공지사항 설정/해제와 관련된 비즈니스 로직을 처리하는 유스케이스 인터페이스</p>
@@ -23,7 +25,7 @@ public interface PostNoticeUseCase {
      * <p>관리자 권한이 필요하며, 설정 후 공지사항 캐시를 무효화합니다.</p>
      *
      * @param postId 공지로 설정할 게시글 ID
-     * @throws jaeik.growfarm.global.exception.CustomException 게시글을 찾을 수 없는 경우
+     * @throws CustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
@@ -35,7 +37,7 @@ public interface PostNoticeUseCase {
      * <p>관리자 권한이 필요하며, 해제 후 공지사항 캐시를 무효화합니다.</p>
      *
      * @param postId 공지 설정을 해제할 게시글 ID
-     * @throws jaeik.growfarm.global.exception.CustomException 게시글을 찾을 수 없는 경우
+     * @throws CustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */

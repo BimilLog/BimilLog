@@ -3,13 +3,12 @@ package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
-import jaeik.growfarm.domain.admin.application.service.resolver.ReportedUserResolver;
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.admin.ReportDTO;
-import jaeik.growfarm.global.event.UserBannedEvent;
-import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.growfarm.domain.admin.event.UserBannedEvent;
+import jaeik.growfarm.infrastructure.exception.CustomException;
+import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

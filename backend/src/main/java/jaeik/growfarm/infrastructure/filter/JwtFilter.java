@@ -2,12 +2,12 @@ package jaeik.growfarm.infrastructure.filter;
 
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.dto.user.UserDTO;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.UserDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.auth.JwtHandler;
-import jaeik.growfarm.global.exception.CustomException;
-import jaeik.growfarm.global.exception.ErrorCode;
+import jaeik.growfarm.infrastructure.exception.CustomException;
+import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jakarta.servlet.FilterChain;

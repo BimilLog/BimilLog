@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.paper.application.port.out;
 
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.dto.paper.MessageDTO;
-import jaeik.growfarm.dto.paper.VisitMessageDTO;
+import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
+import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
 
 import java.util.List;
 import java.util.Optional;
