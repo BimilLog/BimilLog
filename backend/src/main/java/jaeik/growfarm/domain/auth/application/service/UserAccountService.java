@@ -3,6 +3,7 @@ package jaeik.growfarm.domain.auth.application.service;
 import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
+import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.*;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
@@ -37,6 +38,7 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     private final UserQueryUseCase userQueryUseCase;
     private final LoadTokenPort loadTokenPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final TokenBlacklistUseCase tokenBlacklistUseCase;
 
     /**
      * <h3>회원 가입 처리</h3>
@@ -83,6 +85,7 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     /**
      * <h3>회원 탈퇴 처리</h3>
      * <p>사용자를 탈퇴시키고, 소셜 로그아웃을 수행하며, 이벤트를 발행합니다.</p>
+     * <p>탈퇴 시 해당 사용자의 모든 JWT 토큰을 블랙리스트에 등록하여 즉시 무효화합니다.</p>
      *
      * @param userDetails 현재 사용자 정보
      * @return ResponseCookie 리스트
@@ -97,6 +100,9 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
         }
         User user = userQueryUseCase.findById(userDetails.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        // 사용자의 모든 토큰을 블랙리스트에 등록 (보안 강화)
+        tokenBlacklistUseCase.blacklistAllUserTokens(user.getId(), "사용자 탈퇴");
+
         socialLoginPort.unlink(user.getProvider(), user.getSocialId());
         manageAuthDataPort.performWithdrawProcess(userDetails.getUserId());
         eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId()));
@@ -107,6 +113,7 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     /**
      * <h3>관리자 강제 탈퇴 처리</h3>
      * <p>관리자 권한으로 지정된 사용자를 강제 탈퇴 처리합니다.</p>
+     * <p>강제 탈퇴 시 해당 사용자의 모든 JWT 토큰을 블랙리스트에 등록하여 즉시 차단합니다.</p>
      *
      * @param userId 탈퇴시킬 사용자 ID
      * @since 2.0.0
@@ -117,6 +124,9 @@ public class UserAccountService implements SignUpUseCase, LogoutUseCase, Withdra
     public void forceWithdraw(Long userId) {
         User user = userQueryUseCase.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // 관리자 강제 탈퇴 시 해당 사용자의 모든 토큰을 즉시 블랙리스트에 등록
+        tokenBlacklistUseCase.blacklistAllUserTokens(userId, "관리자 강제 탈퇴");
 
         socialLoginPort.unlink(user.getProvider(), user.getSocialId());
         manageAuthDataPort.performWithdrawProcess(userId);

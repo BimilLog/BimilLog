@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 /**
@@ -203,6 +205,55 @@ public class JwtHandler {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    /**
+     * <h3>JWT 토큰 해시값 생성</h3>
+     *
+     * <p>JWT 토큰을 SHA-256으로 해시하여 블랙리스트 키로 사용할 해시값을 생성합니다.</p>
+     * <p>전체 토큰을 저장하지 않고 해시값만 저장하여 보안성을 향상시킵니다.</p>
+     *
+     * @param token JWT 토큰
+     * @return SHA-256 해시값 (Hex 문자열)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public String generateTokenHash(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(token.getBytes());
+            
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not available", e);
+        }
+    }
+
+    /**
+     * <h3>JWT 토큰 만료 시간 추출</h3>
+     *
+     * <p>JWT 토큰에서 만료 시간을 추출합니다. 블랙리스트 TTL 설정에 사용됩니다.</p>
+     *
+     * @param token JWT 토큰
+     * @return 토큰 만료 시간 (Date 객체)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public Date getTokenExpiration(String token) {
+        try {
+            Claims claims = getClaims(token);
+            return claims.getExpiration();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
 

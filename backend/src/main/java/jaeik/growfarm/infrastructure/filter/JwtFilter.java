@@ -10,6 +10,7 @@ import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
+import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -42,6 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserQueryPort userQueryPort;
     private final JwtHandler jwtHandler;
     private final AuthCookieManager authCookieManager;
+    private final TokenBlacklistUseCase tokenBlacklistUseCase;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -99,13 +101,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String accessToken = extractTokenFromCookie(request, AuthCookieManager.ACCESS_TOKEN_COOKIE);
 
-        // Access Token이 유효할 때
-        if (accessToken != null && jwtHandler.validateToken(accessToken)) {
+        // Access Token이 유효하고 블랙리스트에 없을 때
+        if (accessToken != null && jwtHandler.validateToken(accessToken) && !tokenBlacklistUseCase.isBlacklisted(accessToken)) {
             setAuthentication(accessToken);
-        } else { // accessToken이 없거나 유효 하지 않을 때
+        } else { // accessToken이 없거나 유효하지 않거나 블랙리스트에 있을 때
             String refreshToken = extractTokenFromCookie(request, AuthCookieManager.REFRESH_TOKEN_COOKIE);
-            // accessToken은 유효 하지 않지만 refreshToken은 유효할 때 accessToken 발급을 위해 refreshToken을 검증
-            if (refreshToken != null && jwtHandler.validateToken(refreshToken)) {
+            // accessToken은 유효하지 않지만 refreshToken은 유효하고 블랙리스트에 없을 때 accessToken 발급을 위해 refreshToken을 검증
+            if (refreshToken != null && jwtHandler.validateToken(refreshToken) && !tokenBlacklistUseCase.isBlacklisted(refreshToken)) {
                 Long tokenId = jwtHandler.getTokenIdFromToken(refreshToken);
                 // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
                 Token token = tokenPort.findById(tokenId)
