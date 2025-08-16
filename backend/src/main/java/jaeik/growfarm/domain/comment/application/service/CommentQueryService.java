@@ -53,7 +53,6 @@ public class CommentQueryService implements CommentQueryUseCase {
     public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
         List<Long> likedCommentIds = getUserLikedCommentIdsForPopular(postId, userDetails);
 
-        // 추천수는 이미 쿼리에서 설정됨 (단일 쿼리 최적화)
         return commentQueryPort.findPopularComments(postId, likedCommentIds);
     }
 
@@ -72,13 +71,12 @@ public class CommentQueryService implements CommentQueryUseCase {
         if (userDetails == null) {
             return Collections.emptyList();
         }
-        // 1단계: 인기 댓글 ID 목록 먼저 조회
+
         List<CommentDTO> popularComments = commentQueryPort.findPopularComments(postId, Collections.emptyList());
         if (popularComments.isEmpty()) {
             return Collections.emptyList();
         }
         
-        // 2단계: 인기 댓글들에 대해서만 추천 여부 확인
         List<Long> popularCommentIds = popularComments.stream().map(CommentDTO::getId).collect(Collectors.toList());
         return commentQueryPort.findUserLikedCommentIds(popularCommentIds, userDetails.getUserId());
     }
@@ -99,13 +97,12 @@ public class CommentQueryService implements CommentQueryUseCase {
         if (userDetails == null) {
             return Collections.emptyList();
         }
-        // 1단계: 페이지의 댓글 ID 목록 먼저 조회
+
         Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithLatestOrder(postId, pageable, Collections.emptyList());
         if (!commentPage.hasContent()) {
             return Collections.emptyList();
         }
         
-        // 2단계: 페이지 댓글들에 대해서만 추천 여부 확인
         List<Long> pageCommentIds = commentPage.getContent().stream().map(CommentDTO::getId).collect(Collectors.toList());
         return commentQueryPort.findUserLikedCommentIds(pageCommentIds, userDetails.getUserId());
     }
@@ -127,7 +124,6 @@ public class CommentQueryService implements CommentQueryUseCase {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
         List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
 
-        // 추천수는 이미 쿼리에서 설정됨 (단일 쿼리 최적화)
         return commentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
     }
 
@@ -145,7 +141,6 @@ public class CommentQueryService implements CommentQueryUseCase {
     public Optional<Comment> findById(Long commentId) {
         return commentQueryPort.findById(commentId);
     }
-
 
 
     /**

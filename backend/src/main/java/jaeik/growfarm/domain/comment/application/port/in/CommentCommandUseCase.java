@@ -12,16 +12,7 @@ import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
  */
 public interface CommentCommandUseCase {
 
-    /**
-     * <h3>댓글 작성</h3>
-     * <p>새로운 댓글을 작성합니다.</p>
-     *
-     * @param userDetails 사용자 인증 정보
-     * @param commentDto  댓글 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void writeComment(CustomUserDetails userDetails, CommentDTO commentDto);
+
 
     /**
      * <h3>댓글 수정</h3>
@@ -45,14 +36,5 @@ public interface CommentCommandUseCase {
      */
     void deleteComment(CommentDTO commentDto, CustomUserDetails userDetails);
 
-    /**
-     * <h3>댓글 추천/취소</h3>
-     * <p>댓글에 추천를 누르거나 취소합니다.</p>
-     *
-     * @param commentDto  추천/취소할 댓글 DTO
-     * @param userDetails 사용자 인증 정보
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void likeComment(CommentDTO commentDto, CustomUserDetails userDetails);
+
 }

@@ -1,6 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.comment.in.web;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.growfarm.domain.comment.application.port.in.CommentLikeUseCase;
+import jaeik.growfarm.domain.comment.application.port.in.CommentWriteUseCase;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -25,6 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommentCommandController {
 
     private final CommentCommandUseCase commentCommandUseCase;
+    private final CommentWriteUseCase commentWriteUseCase;
+    private final CommentLikeUseCase commentLikeUseCase;
 
     /**
      * <h3>댓글 작성 API</h3>
@@ -43,7 +47,7 @@ public class CommentCommandController {
     public ResponseEntity<String> writeComment(
             @Valid @RequestBody CommentDTO commentDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        commentCommandUseCase.writeComment(userDetails, commentDto);
+        commentWriteUseCase.writeComment(userDetails, commentDto);
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
@@ -108,7 +112,7 @@ public class CommentCommandController {
     public ResponseEntity<String> likeComment(
             @RequestBody @Valid CommentDTO commentDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        commentCommandUseCase.likeComment(commentDto, userDetails);
+        commentLikeUseCase.likeComment(commentDto, userDetails);
         return ResponseEntity.ok("추천 처리 완료");
     }
 }
