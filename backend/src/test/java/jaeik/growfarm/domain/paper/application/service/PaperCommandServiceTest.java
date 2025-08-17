@@ -31,10 +31,6 @@ import static org.mockito.Mockito.*;
  *
  * @author Jaeik
  * @version 2.0.0
- * 
- * TODO: 다른 도메인 테스트의 컴파일 오류로 인해 현재 실행 불가.
- *       post, notification 도메인 컴파일 이슈 해결 후 테스트 실행 필요.
- *       논리적으로 모든 시나리오 커버됨 - 이벤트 검증, 엣지케이스, 비즈니스 로직 검증 완료.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PaperCommandService 테스트")
@@ -215,22 +211,19 @@ class PaperCommandServiceTest {
 
     @Test
     @DisplayName("메시지 작성 - null 메시지 DTO")
-    void shouldWriteMessage_WhenNullMessageDTO() {
+    void shouldThrowException_WhenNullMessageDTO() {
         // Given
         String userName = "testuser";
-        Long userId = 1L;
         MessageDTO messageDTO = null;
-        
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.of(user));
-        given(user.getId()).willReturn(userId);
 
-        // When
-        paperCommandService.writeMessage(userName, messageDTO);
+        // When & Then
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
 
-        // Then
-        verify(loadUserPort, times(1)).findByUserName(userName);
-        verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(MessageEvent.class));
+        verify(loadUserPort, never()).findByUserName(any());
+        verify(paperCommandPort, never()).save(any());
+        verify(publishEventPort, never()).publishMessageEvent(any());
     }
 
     @Test
@@ -263,7 +256,8 @@ class PaperCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO))
-                .isInstanceOf(NullPointerException.class);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
     }
 
     @Test

@@ -23,6 +23,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -112,7 +113,7 @@ class SocialLoginServiceTest {
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of()));
+            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
             
             given(socialLoginPort.login(provider, code)).willReturn(existingUserResult);
             given(blacklistPort.existsByProviderAndSocialId(provider, testUserData.socialId())).willReturn(false);
@@ -144,7 +145,7 @@ class SocialLoginServiceTest {
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of()));
+            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
             
             given(socialLoginPort.login(provider, code)).willReturn(newUserResult);
             given(blacklistPort.existsByProviderAndSocialId(provider, testUserData.socialId())).willReturn(false);
@@ -175,7 +176,7 @@ class SocialLoginServiceTest {
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of()));
+            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
             
             given(socialLoginPort.login(provider, code)).willReturn(existingUserResult);
             given(blacklistPort.existsByProviderAndSocialId(provider, testUserData.socialId())).willReturn(true);
@@ -202,7 +203,7 @@ class SocialLoginServiceTest {
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             UsernamePasswordAuthenticationToken authenticatedToken = 
-                    new UsernamePasswordAuthenticationToken("user", "password", List.of());
+                    new UsernamePasswordAuthenticationToken("user", "password", List.of(new SimpleGrantedAuthority("ROLE_USER")));
             
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             given(securityContext.getAuthentication()).willReturn(authenticatedToken);
@@ -256,7 +257,7 @@ class SocialLoginServiceTest {
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of()));
+            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
 
             for (SocialProvider provider : providers) {
                 given(socialLoginPort.login(provider, code)).willReturn(existingUserResult);

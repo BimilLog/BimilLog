@@ -47,14 +47,37 @@ public interface FcmPort {
      */
     void sendMessageTo(FcmSendDTO fcmSendDto) throws IOException;
 
+
     /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회</h3>
-     * <p>주어진 사용자 ID에 해당하는 유효한 FCM 토큰 목록을 조회합니다.</p>
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (메시지 알림)</h3>
+     * <p>메시지 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
      *
      * @param userId 조회할 사용자의 ID
      * @return FCM 토큰 엔티티 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<FcmToken> findValidFcmTokensByUserId(Long userId);
+    List<FcmToken> findValidFcmTokensForMessageNotification(Long userId);
+
+    /**
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (댓글 알림)</h3>
+     * <p>댓글 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
+     *
+     * @param userId 조회할 사용자의 ID
+     * @return FCM 토큰 엔티티 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    List<FcmToken> findValidFcmTokensForCommentNotification(Long userId);
+
+    /**
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (인기글 알림)</h3>
+     * <p>인기글 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
+     *
+     * @param userId 조회할 사용자의 ID
+     * @return FCM 토큰 엔티티 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    List<FcmToken> findValidFcmTokensForPostFeaturedNotification(Long userId);
 }

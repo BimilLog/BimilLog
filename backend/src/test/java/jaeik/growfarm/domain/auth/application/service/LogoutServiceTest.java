@@ -3,9 +3,9 @@ package jaeik.growfarm.domain.auth.application.service;
 import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
 import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
@@ -21,7 +21,6 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
@@ -30,13 +29,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
+import static org.mockito.Mockito.*;
 /**
  * <h2>LogoutService 단위 테스트</h2>
  * <p>로그아웃 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
@@ -91,15 +85,14 @@ class LogoutServiceTest {
                 ResponseCookie.from("access_token", "").maxAge(0).build(),
                 ResponseCookie.from("refresh_token", "").maxAge(0).build()
         );
-
-        given(userDetails.getUserId()).willReturn(100L);
-        given(userDetails.getTokenId()).willReturn(200L);
     }
 
     @Test
     @DisplayName("정상적인 로그아웃 처리")
     void shouldLogout_WhenValidUserDetails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
+        given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.of(testToken));
         given(manageDeleteDataPort.getLogoutCookies()).willReturn(logoutCookies);
 
@@ -133,6 +126,8 @@ class LogoutServiceTest {
     @DisplayName("토큰이 존재하지 않는 경우 로그아웃 처리")
     void shouldLogout_WhenTokenNotFound() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
+        given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.empty());
         given(manageDeleteDataPort.getLogoutCookies()).willReturn(logoutCookies);
 
@@ -157,6 +152,9 @@ class LogoutServiceTest {
     @DisplayName("사용자가 null인 토큰으로 로그아웃 처리")
     void shouldLogout_WhenTokenHasNullUser() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
+        given(userDetails.getTokenId()).willReturn(200L);
+        
         Token tokenWithNullUser = Token.builder()
                 .id(200L)
                 .accessToken("access-token")
@@ -188,6 +186,7 @@ class LogoutServiceTest {
     @DisplayName("소셜 로그아웃 실패 시 전체 로그아웃 실패")
     void shouldThrowException_WhenSocialLogoutFails() {
         // Given
+        given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.of(testToken));
         doThrow(new RuntimeException("소셜 로그아웃 실패")).when(socialLoginPort)
                 .logout(SocialProvider.KAKAO, "access-token");
@@ -209,6 +208,8 @@ class LogoutServiceTest {
     @DisplayName("이벤트 발행 실패 시 전체 로그아웃 실패")
     void shouldThrowException_WhenEventPublishingFails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
+        given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.of(testToken));
         doThrow(new RuntimeException("이벤트 발행 실패")).when(eventPublisher)
                 .publishEvent(any(UserLoggedOutEvent.class));
@@ -229,6 +230,8 @@ class LogoutServiceTest {
     @DisplayName("로그아웃 쿠키 생성 실패 시 전체 로그아웃 실패")
     void shouldThrowException_WhenCookieGenerationFails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
+        given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.of(testToken));
         doThrow(new RuntimeException("쿠키 생성 실패")).when(manageDeleteDataPort).getLogoutCookies();
 
@@ -249,6 +252,7 @@ class LogoutServiceTest {
     @DisplayName("소셜 로그아웃만 별도 테스트")
     void shouldLogoutSocial_WhenValidToken() {
         // Given
+        given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.of(testToken));
 
         // When
@@ -263,6 +267,9 @@ class LogoutServiceTest {
     @DisplayName("다양한 소셜 제공자에 대한 로그아웃 테스트")
     void shouldLogout_WithDifferentSocialProviders() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
+        given(userDetails.getTokenId()).willReturn(200L);
+        
         SocialProvider[] providers = {SocialProvider.KAKAO};
 
         for (SocialProvider provider : providers) {

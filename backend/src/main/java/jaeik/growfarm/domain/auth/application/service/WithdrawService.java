@@ -60,7 +60,11 @@ public class WithdrawService implements WithdrawUseCase {
         // 사용자의 모든 토큰을 블랙리스트에 등록 (보안 강화)
         tokenBlacklistUseCase.blacklistAllUserTokens(user.getId(), "사용자 탈퇴");
 
-        socialLoginPort.unlink(user.getProvider(), user.getSocialId());
+        try {
+            socialLoginPort.unlink(user.getProvider(), user.getSocialId());
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED, e);
+        }
         manageDeleteDataPort.performWithdrawProcess(userDetails.getUserId());
         eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId()));
 
@@ -85,7 +89,11 @@ public class WithdrawService implements WithdrawUseCase {
         // 관리자 강제 탈퇴 시 해당 사용자의 모든 토큰을 즉시 블랙리스트에 등록
         tokenBlacklistUseCase.blacklistAllUserTokens(userId, "관리자 강제 탈퇴");
 
-        socialLoginPort.unlink(user.getProvider(), user.getSocialId());
+        try {
+            socialLoginPort.unlink(user.getProvider(), user.getSocialId());
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED, e);
+        }
         manageDeleteDataPort.performWithdrawProcess(userId);
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
     }

@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -237,8 +238,8 @@ class CommentLikeServiceTest {
         commentLikeService.likeComment(commentDTO, userDetails);
         
         // Then
-        verify(commentLikeCommandPort).save(any()); // 총 2번 호출
-        verify(commentLikeCommandPort).deleteLike(testComment, testUser); // 1번 호출
+        verify(commentLikeCommandPort, times(2)).save(any()); // 총 2번 호출
+        verify(commentLikeCommandPort, times(1)).deleteLike(testComment, testUser); // 1번 호출
     }
 
     @Test

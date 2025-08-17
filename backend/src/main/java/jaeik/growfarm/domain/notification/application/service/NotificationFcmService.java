@@ -76,9 +76,9 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendCommentNotification(Long postUserId, String commenterName) {
         try {
-            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensByUserId(postUserId);
+            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForCommentNotification(postUserId);
             if (fcmTokens.isEmpty()) {
-                log.info("FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", postUserId);
+                log.info("댓글 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", postUserId);
                 return;
             }
 
@@ -93,6 +93,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
                         .build();
                 fcmPort.sendMessageTo(fcmSendDto);
             }
+            log.info("댓글 알림 FCM 전송 완료: userId={}, tokenCount={}", postUserId, fcmTokens.size());
         } catch (Exception e) {
             log.error("FCM 댓글 알림 전송 실패: userId={}, commenterName={}", postUserId, commenterName, e);
         }
@@ -106,9 +107,9 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendPaperPlantNotification(Long farmOwnerId) {
         try {
-            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensByUserId(farmOwnerId);
+            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForMessageNotification(farmOwnerId);
             if (fcmTokens.isEmpty()) {
-                log.info("FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", farmOwnerId);
+                log.info("메시지 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", farmOwnerId);
                 return;
             }
 
@@ -123,6 +124,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
                         .build();
                 fcmPort.sendMessageTo(fcmSendDto);
             }
+            log.info("롤링페이퍼 메시지 알림 FCM 전송 완료: userId={}, tokenCount={}", farmOwnerId, fcmTokens.size());
         } catch (Exception e) {
             log.error("FCM 롤링페이퍼 알림 전송 실패: farmOwnerId={}", farmOwnerId, e);
         }
@@ -138,9 +140,9 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendPostFeaturedNotification(Long userId, String title, String body) {
         try {
-            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensByUserId(userId);
+            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForPostFeaturedNotification(userId);
             if (fcmTokens.isEmpty()) {
-                log.info("FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", userId);
+                log.info("인기글 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", userId);
                 return;
             }
             
@@ -152,6 +154,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
                         .build();
                 fcmPort.sendMessageTo(fcmSendDto);
             }
+            log.info("인기글 등극 알림 FCM 전송 완료: userId={}, tokenCount={}", userId, fcmTokens.size());
         } catch (Exception e) {
             log.error("FCM 인기글 등극 알림 전송 실패: userId={}, title={}", userId, title, e);
         }

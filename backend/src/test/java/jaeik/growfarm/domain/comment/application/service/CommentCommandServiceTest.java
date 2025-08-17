@@ -80,14 +80,13 @@ class CommentCommandServiceTest {
         commentDTO = new CommentDTO();
         commentDTO.setId(200L);
         commentDTO.setContent("수정된 댓글");
-
-        given(userDetails.getUserId()).willReturn(100L);
     }
 
     @Test
     @DisplayName("인증된 사용자의 댓글 수정 성공")
     void shouldUpdateComment_WhenAuthenticatedUserOwnsComment() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
 
         // When
@@ -173,6 +172,7 @@ class CommentCommandServiceTest {
     @DisplayName("다른 사용자가 댓글 수정 시 ONLY_COMMENT_OWNER_UPDATE 예외 발생")
     void shouldThrowException_WhenNotCommentOwner() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         User anotherUser = User.builder()
                 .id(999L)
                 .userName("anotherUser")
@@ -201,6 +201,7 @@ class CommentCommandServiceTest {
     @DisplayName("후손이 없는 댓글 삭제 시 완전 삭제")
     void shouldDeleteComment_WhenNoDescendants() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
         given(commentClosureQueryPort.hasDescendants(200L)).willReturn(false);
 
@@ -219,6 +220,7 @@ class CommentCommandServiceTest {
     @DisplayName("후손이 있는 댓글 삭제 시 소프트 삭제")
     void shouldSoftDeleteComment_WhenHasDescendants() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
         given(commentClosureQueryPort.hasDescendants(200L)).willReturn(true);
 
@@ -237,6 +239,7 @@ class CommentCommandServiceTest {
     @DisplayName("댓글 삭제 과정에서 예외 발생 시 COMMENT_DELETE_FAILED 예외 발생")
     void shouldThrowException_WhenDeleteProcessFails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
         doThrow(new RuntimeException("삭제 실패")).when(commentClosureQueryPort).hasDescendants(200L);
 
@@ -268,6 +271,7 @@ class CommentCommandServiceTest {
     @DisplayName("이미 삭제된 댓글에 대한 작업")
     void shouldHandleDeletedComment() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         Comment deletedComment = Comment.builder()
                 .id(200L)
                 .content("삭제된 댓글")
@@ -287,8 +291,8 @@ class CommentCommandServiceTest {
     }
 
     @Test
-    @DisplayName("빈 문자열 패스워드로 댓글 수정")
-    void shouldUpdateComment_WhenEmptyPassword() {
+    @DisplayName("빈 문자열 패스워드로 댓글 수정 시 ONLY_COMMENT_OWNER_UPDATE 예외 발생")
+    void shouldThrowException_WhenEmptyPasswordWithoutUser() {
         // Given
         Comment emptyPasswordComment = Comment.builder()
                 .id(200L)
@@ -305,11 +309,12 @@ class CommentCommandServiceTest {
 
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(emptyPasswordComment));
 
-        // When
-        commentCommandService.updateComment(emptyPasswordDTO, null);
+        // When & Then
+        assertThatThrownBy(() -> commentCommandService.updateComment(emptyPasswordDTO, null))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
-        // Then
         verify(commentQueryPort).findById(200L);
-        verify(commentCommandPort).save(emptyPasswordComment);
+        verify(commentCommandPort, never()).save(any());
     }
 }

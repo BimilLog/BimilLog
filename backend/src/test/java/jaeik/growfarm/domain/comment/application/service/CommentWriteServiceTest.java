@@ -129,13 +129,14 @@ class CommentWriteServiceTest {
                 .depth(1)
                 .build();
 
-        given(userDetails.getUserId()).willReturn(100L);
+        // userDetails.getUserId() mock은 개별 테스트에서 필요시 설정
     }
 
     @Test
     @DisplayName("인증된 사용자의 댓글 작성 성공")
     void shouldWriteComment_WhenAuthenticatedUser() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
@@ -189,6 +190,7 @@ class CommentWriteServiceTest {
     @DisplayName("대댓글 작성 성공 - 클로저 테이블 업데이트")
     void shouldWriteReplyComment_WithClosureTableUpdate() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         commentDTO.setParentId(500L); // 부모 댓글 ID 설정
 
         List<CommentClosure> parentClosures = Arrays.asList(
@@ -237,6 +239,7 @@ class CommentWriteServiceTest {
     @DisplayName("존재하지 않는 사용자 댓글 작성 시 USER_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenUserNotFound() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.empty());
 
@@ -255,6 +258,7 @@ class CommentWriteServiceTest {
     @DisplayName("존재하지 않는 부모 댓글에 대댓글 작성 시 PARENT_COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenParentCommentNotFound() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         commentDTO.setParentId(999L); // 존재하지 않는 부모 댓글 ID
 
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
@@ -276,6 +280,7 @@ class CommentWriteServiceTest {
     @DisplayName("부모 댓글의 클로저 테이블 조회 실패 시 PARENT_COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenParentCommentClosureNotFound() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         commentDTO.setParentId(500L);
 
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
@@ -298,6 +303,7 @@ class CommentWriteServiceTest {
     @DisplayName("게시글 작성자가 없는 경우 이벤트 발행하지 않음")
     void shouldNotPublishEvent_WhenPostOwnerIsNull() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         Post postWithoutOwner = Post.builder()
                 .id(300L)
                 .title("익명 게시글")
@@ -323,6 +329,7 @@ class CommentWriteServiceTest {
     @DisplayName("댓글 저장 중 예외 발생 시 COMMENT_WRITE_FAILED 예외 발생")
     void shouldThrowException_WhenCommentSaveFails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willThrow(new RuntimeException("Database error"));
@@ -341,6 +348,7 @@ class CommentWriteServiceTest {
     @DisplayName("클로저 테이블 저장 중 예외 발생 시 COMMENT_WRITE_FAILED 예외 발생")
     void shouldThrowException_WhenClosureSaveFails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
@@ -360,6 +368,7 @@ class CommentWriteServiceTest {
     @DisplayName("다중 대댓글 계층 구조 처리")
     void shouldHandleMultiLevelReplyStructure() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         commentDTO.setParentId(500L);
 
         // 부모 댓글의 클로저 관계: 깊이 0(자기 자신), 깊이 1(부모와의 관계)
@@ -397,6 +406,7 @@ class CommentWriteServiceTest {
     @DisplayName("긴 댓글 내용 처리")
     void shouldHandleLongCommentContent() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         String longContent = "이것은 매우 긴 댓글 내용입니다. ".repeat(20); // 약 600자
         commentDTO.setContent(longContent);
 
@@ -422,6 +432,7 @@ class CommentWriteServiceTest {
     @DisplayName("특수 문자가 포함된 댓글 내용 처리")
     void shouldHandleSpecialCharactersInContent() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         String specialContent = "특수문자 테스트: !@#$%^&*()_+{}|:\"<>?[];',./`~";
         commentDTO.setContent(specialContent);
 

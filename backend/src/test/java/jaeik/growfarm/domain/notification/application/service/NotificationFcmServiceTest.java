@@ -142,13 +142,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token2")
         );
         
-        given(fcmPort.findValidFcmTokensByUserId(postUserId)).willReturn(fcmTokens);
+        given(fcmPort.findValidFcmTokensForCommentNotification(postUserId)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendCommentNotification(postUserId, commenterName);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(postUserId);
+        verify(fcmPort, times(1)).findValidFcmTokensForCommentNotification(postUserId);
         verify(fcmPort, times(2)).sendMessageTo(any(FcmSendDTO.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -160,13 +160,13 @@ class NotificationFcmServiceTest {
         Long postUserId = 1L;
         String commenterName = "테스트사용자";
         
-        given(fcmPort.findValidFcmTokensByUserId(postUserId)).willReturn(Collections.emptyList());
+        given(fcmPort.findValidFcmTokensForCommentNotification(postUserId)).willReturn(Collections.emptyList());
 
         // When
         notificationFcmService.sendCommentNotification(postUserId, commenterName);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(postUserId);
+        verify(fcmPort, times(1)).findValidFcmTokensForCommentNotification(postUserId);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -178,14 +178,14 @@ class NotificationFcmServiceTest {
         Long postUserId = 1L;
         String commenterName = "테스트사용자";
         
-        given(fcmPort.findValidFcmTokensByUserId(postUserId))
+        given(fcmPort.findValidFcmTokensForCommentNotification(postUserId))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));
 
         // When
         notificationFcmService.sendCommentNotification(postUserId, commenterName);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(postUserId);
+        verify(fcmPort, times(1)).findValidFcmTokensForCommentNotification(postUserId);
         // 예외가 발생해도 서비스는 정상적으로 완료되어야 함
     }
 
@@ -200,13 +200,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token2")
         );
         
-        given(fcmPort.findValidFcmTokensByUserId(farmOwnerId)).willReturn(fcmTokens);
+        given(fcmPort.findValidFcmTokensForMessageNotification(farmOwnerId)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendPaperPlantNotification(farmOwnerId);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(farmOwnerId);
+        verify(fcmPort, times(1)).findValidFcmTokensForMessageNotification(farmOwnerId);
         verify(fcmPort, times(2)).sendMessageTo(any(FcmSendDTO.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -217,13 +217,13 @@ class NotificationFcmServiceTest {
         // Given
         Long farmOwnerId = 1L;
         
-        given(fcmPort.findValidFcmTokensByUserId(farmOwnerId)).willReturn(Collections.emptyList());
+        given(fcmPort.findValidFcmTokensForMessageNotification(farmOwnerId)).willReturn(Collections.emptyList());
 
         // When
         notificationFcmService.sendPaperPlantNotification(farmOwnerId);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(farmOwnerId);
+        verify(fcmPort, times(1)).findValidFcmTokensForMessageNotification(farmOwnerId);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -240,13 +240,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token1")
         );
         
-        given(fcmPort.findValidFcmTokensByUserId(userId)).willReturn(fcmTokens);
+        given(fcmPort.findValidFcmTokensForPostFeaturedNotification(userId)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendPostFeaturedNotification(userId, title, body);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(userId);
+        verify(fcmPort, times(1)).findValidFcmTokensForPostFeaturedNotification(userId);
         verify(fcmPort, times(1)).sendMessageTo(any(FcmSendDTO.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -259,13 +259,13 @@ class NotificationFcmServiceTest {
         String title = "축하합니다!";
         String body = "게시글이 인기글로 선정되었습니다.";
         
-        given(fcmPort.findValidFcmTokensByUserId(userId)).willReturn(Collections.emptyList());
+        given(fcmPort.findValidFcmTokensForPostFeaturedNotification(userId)).willReturn(Collections.emptyList());
 
         // When
         notificationFcmService.sendPostFeaturedNotification(userId, title, body);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(userId);
+        verify(fcmPort, times(1)).findValidFcmTokensForPostFeaturedNotification(userId);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -278,29 +278,31 @@ class NotificationFcmServiceTest {
         String title = "축하합니다!";
         String body = "게시글이 인기글로 선정되었습니다.";
         
-        given(fcmPort.findValidFcmTokensByUserId(userId))
+        given(fcmPort.findValidFcmTokensForPostFeaturedNotification(userId))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));
 
         // When
         notificationFcmService.sendPostFeaturedNotification(userId, title, body);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(userId);
+        verify(fcmPort, times(1)).findValidFcmTokensForPostFeaturedNotification(userId);
         // 예외가 발생해도 서비스는 정상적으로 완료되어야 함
     }
 
     @Test
     @DisplayName("FCM 토큰 등록 - null 사용자 ID")
-    void shouldNotRegister_WhenUserIdIsNull() {
+    void shouldThrowException_WhenUserIdIsNull() {
         // Given
         Long userId = null;
         String fcmToken = "valid-fcm-token";
+        given(loadUserPort.findById(userId)).willReturn(Optional.empty());
 
-        // When
-        notificationFcmService.registerFcmToken(userId, fcmToken);
+        // When & Then
+        assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining("사용자를 찾을 수 없습니다");
 
-        // Then
-        verify(loadUserPort, never()).findById(any());
+        verify(loadUserPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());
     }
 
@@ -365,13 +367,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token1")
         );
         
-        given(fcmPort.findValidFcmTokensByUserId(postUserId)).willReturn(fcmTokens);
+        given(fcmPort.findValidFcmTokensForCommentNotification(postUserId)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendCommentNotification(postUserId, commenterName);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(postUserId);
+        verify(fcmPort, times(1)).findValidFcmTokensForCommentNotification(postUserId);
         verify(fcmPort, times(1)).sendMessageTo(any(FcmSendDTO.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -382,13 +384,13 @@ class NotificationFcmServiceTest {
         // Given
         Long farmOwnerId = null;
         
-        given(fcmPort.findValidFcmTokensByUserId(farmOwnerId)).willReturn(Collections.emptyList());
+        given(fcmPort.findValidFcmTokensForMessageNotification(farmOwnerId)).willReturn(Collections.emptyList());
 
         // When
         notificationFcmService.sendPaperPlantNotification(farmOwnerId);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(farmOwnerId);
+        verify(fcmPort, times(1)).findValidFcmTokensForMessageNotification(farmOwnerId);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -405,13 +407,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token1")
         );
         
-        given(fcmPort.findValidFcmTokensByUserId(userId)).willReturn(fcmTokens);
+        given(fcmPort.findValidFcmTokensForPostFeaturedNotification(userId)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendPostFeaturedNotification(userId, title, body);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByUserId(userId);
+        verify(fcmPort, times(1)).findValidFcmTokensForPostFeaturedNotification(userId);
         verify(fcmPort, times(1)).sendMessageTo(any(FcmSendDTO.class));
         verifyNoMoreInteractions(fcmPort);
     }

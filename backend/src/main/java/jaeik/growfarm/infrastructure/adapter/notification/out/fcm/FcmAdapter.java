@@ -83,7 +83,7 @@ public class FcmAdapter implements FcmPort, NotificationSender {
     @Async("fcmNotificationExecutor")
     public void send(Long userId, EventDTO eventDTO) {
         try {
-            List<FcmToken> fcmTokens = findValidFcmTokensByUserId(userId);
+            List<FcmToken> fcmTokens = findValidFcmTokensForMessageNotification(userId);
             if (fcmTokens == null || fcmTokens.isEmpty()) return;
 
             for (FcmToken fcmToken : fcmTokens) {
@@ -112,9 +112,10 @@ public class FcmAdapter implements FcmPort, NotificationSender {
         return fcmTokenRepository.save(fcmToken);
     }
 
+
     /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회</h3>
-     * <p>주어진 사용자 ID에 해당하는 유효한 FCM 토큰 목록을 조회합니다.</p>
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (메시지 알림)</h3>
+     * <p>메시지 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
      *
      * @param userId 조회할 사용자의 ID
      * @return FCM 토큰 엔티티 목록
@@ -122,8 +123,36 @@ public class FcmAdapter implements FcmPort, NotificationSender {
      * @since 2.0.0
      */
     @Override
-    public List<FcmToken> findValidFcmTokensByUserId(Long userId) {
-        return fcmTokenRepository.findValidFcmTokensByUserId(userId);
+    public List<FcmToken> findValidFcmTokensForMessageNotification(Long userId) {
+        return fcmTokenRepository.findValidFcmTokensForMessageNotification(userId);
+    }
+
+    /**
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (댓글 알림)</h3>
+     * <p>댓글 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
+     *
+     * @param userId 조회할 사용자의 ID
+     * @return FCM 토큰 엔티티 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<FcmToken> findValidFcmTokensForCommentNotification(Long userId) {
+        return fcmTokenRepository.findValidFcmTokensForCommentNotification(userId);
+    }
+
+    /**
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (인기글 알림)</h3>
+     * <p>인기글 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
+     *
+     * @param userId 조회할 사용자의 ID
+     * @return FCM 토큰 엔티티 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<FcmToken> findValidFcmTokensForPostFeaturedNotification(Long userId) {
+        return fcmTokenRepository.findValidFcmTokensForPostFeaturedNotification(userId);
     }
 
     /**

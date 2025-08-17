@@ -31,10 +31,6 @@ import static org.mockito.Mockito.*;
  *
  * @author Jaeik
  * @version 2.0.0
- * 
- * TODO: 다른 도메인 테스트의 컴파일 오류로 인해 현재 실행 불가.
- *       post, notification 도메인 컴파일 이슈 해결 후 테스트 실행 필요.
- *       VisitMessageDTO 구조 맞춤, 엣지케이스 및 성능 테스트 추가 완료.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PaperQueryService 테스트")

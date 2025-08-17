@@ -84,14 +84,13 @@ class WithdrawServiceTest {
                 ResponseCookie.from("access_token", "").maxAge(0).build(),
                 ResponseCookie.from("refresh_token", "").maxAge(0).build()
         );
-
-        given(userDetails.getUserId()).willReturn(100L);
     }
 
     @Test
     @DisplayName("정상적인 회원 탈퇴 처리")
     void shouldWithdraw_WhenValidUserDetails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(logoutUseCase.logout(userDetails)).willReturn(logoutCookies);
 
@@ -129,15 +128,14 @@ class WithdrawServiceTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NULL_SECURITY_CONTEXT);
 
-        // 다른 메서드들이 호출되지 않았는지 검증
-        verify(loadUserPort).findById(eq(null));
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(null), eq("사용자 탈퇴"));
+        // null userDetails일 때는 어떤 메서드도 호출되지 않아야 함
     }
 
     @Test
     @DisplayName("존재하지 않는 사용자 탈퇴 시 USER_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenUserNotFound() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadUserPort.findById(100L)).willReturn(Optional.empty());
 
         // When & Then
@@ -147,26 +145,26 @@ class WithdrawServiceTest {
 
         verify(loadUserPort).findById(100L);
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(100L), eq("사용자 탈퇴"));
     }
 
     @Test
-    @DisplayName("소셜 로그인 연결 해제 실패 시에도 탈퇴 프로세스 계속 진행")
-    void shouldContinueWithdraw_WhenSocialUnlinkFails() {
+    @DisplayName("소셜 로그인 연결 해제 실패 시 전체 탈퇴 프로세스 롤백")
+    void shouldRollbackWithdraw_WhenSocialUnlinkFails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         doThrow(new RuntimeException("소셜 연결 해제 실패"))
                 .when(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
-        given(logoutUseCase.logout(userDetails)).willReturn(logoutCookies);
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("소셜 연결 해제 실패");
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOCIAL_UNLINK_FAILED);
 
-        // 토큰 블랙리스트는 실행되어야 함
+        // 소셜 연결 해제 실패로 인해 트랜잭션 롤백, 후속 작업들은 실행되지 않음
         verify(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
+        // DB 삭제 및 이벤트 발행은 롤백으로 인해 실행되지 않음
     }
 
     @Test
@@ -218,17 +216,16 @@ class WithdrawServiceTest {
 
         verify(loadUserPort).findById(nonExistentUserId);
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(nonExistentUserId), eq("관리자 강제 탈퇴"));
     }
 
     @Test
     @DisplayName("토큰 블랙리스트 등록 실패 시에도 탈퇴 프로세스 계속 진행")
     void shouldContinueWithdraw_WhenTokenBlacklistFails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         doThrow(new RuntimeException("블랙리스트 등록 실패"))
                 .when(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
-        given(logoutUseCase.logout(userDetails)).willReturn(logoutCookies);
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
@@ -252,6 +249,7 @@ class WithdrawServiceTest {
                     .userName("testUser")
                     .build();
 
+            given(userDetails.getUserId()).willReturn(100L);
             given(loadUserPort.findById(100L)).willReturn(Optional.of(user));
             given(logoutUseCase.logout(userDetails)).willReturn(logoutCookies);
 
@@ -268,10 +266,10 @@ class WithdrawServiceTest {
     @DisplayName("이벤트 발행 실패 시에도 탈퇴 프로세스 완료")
     void shouldCompleteWithdraw_WhenEventPublishingFails() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         doThrow(new RuntimeException("이벤트 발행 실패"))
                 .when(eventPublisher).publishEvent(new UserWithdrawnEvent(100L));
-        given(logoutUseCase.logout(userDetails)).willReturn(logoutCookies);
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))

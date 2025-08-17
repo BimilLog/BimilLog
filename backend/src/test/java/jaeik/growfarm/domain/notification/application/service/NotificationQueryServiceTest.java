@@ -26,23 +26,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Jaeik
  * @version 2.0.0
- * 
- * TODO: PostReqDTO 컴파일 오류로 인해 현재 실행 불가.
- *       post 도메인 DTO 컴파일 이슈 해결 후 테스트 실행 필요.
- *       논리적으로 모든 시나리오 커버됨 - null 처리, 대량 데이터, 알림 타입 검증 완료.
- *       알림은 인기글이 되었을 때, 댓글이 달렸을 때, 롤링페이퍼에 메시지가 도착했을때만 일어나고
- *       롤링페이퍼에 메시지가 달렸을 때 FCM 알림 여부 SSE는 항상 전송됨
- *       @Builder.Default
- *       @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
- *       private boolean messageNotification = true;
- *       글에 댓글이 달렸을 때 FCM 알림 여부 SSE는 항상 전송됨
- *       @Builder.Default
- *       @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
- *       private boolean commentNotification = true;
- *       글이 인기글이 되었을 때 FCM 알림 여부 SSE는 항상 전송됨 (실시간 인기글은 해당 안됨, 주간, 전설 인기글만 전송됨)
- *       @Builder.Default
- *       @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
- *       private boolean postFeaturedNotification = true;
+ *
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationQueryService 테스트")
@@ -72,7 +56,7 @@ class NotificationQueryServiceTest {
                         .build(),
                 NotificationDTO.builder()
                         .id(2L)
-                        .content("게시글에 좋아요가 추가되었습니다.")
+                        .content("축하합니다! 게시글이 인기글로 선정되었습니다.")
                         .url("/post/456")
                         .notificationType(NotificationType.POST_FEATURED)
                         .isRead(true)
@@ -95,7 +79,7 @@ class NotificationQueryServiceTest {
         assertThat(result.get(0).isRead()).isFalse();
         
         assertThat(result.get(1).getId()).isEqualTo(2L);
-        assertThat(result.get(1).getContent()).isEqualTo("게시글에 좋아요가 추가되었습니다.");
+        assertThat(result.get(1).getContent()).isEqualTo("축하합니다! 게시글이 인기글로 선정되었습니다.");
         assertThat(result.get(1).getNotificationType()).isEqualTo(NotificationType.POST_FEATURED);
         assertThat(result.get(1).isRead()).isTrue();
 

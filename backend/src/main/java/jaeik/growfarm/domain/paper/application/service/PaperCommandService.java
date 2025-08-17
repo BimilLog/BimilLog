@@ -49,6 +49,10 @@ public class PaperCommandService implements PaperCommandUseCase {
      */
     @Override
     public void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageDTO messageDTO) {
+        if (messageDTO == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
         Message message = paperQueryPort.findMessageById(messageDTO.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MESSAGE_NOT_FOUND));
 
@@ -72,6 +76,10 @@ public class PaperCommandService implements PaperCommandUseCase {
      */
     @Override
     public void writeMessage(String userName, MessageDTO messageDTO) {
+        if (messageDTO == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
         User user = loadUserPort.findByUserName(userName)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 

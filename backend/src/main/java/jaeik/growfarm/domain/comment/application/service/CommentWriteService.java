@@ -95,7 +95,11 @@ public class CommentWriteService implements CommentWriteUseCase {
                 }
             }
 
+        } catch (CustomException e) {
+            // 비즈니스 예외는 그대로 재발행
+            throw e;
         } catch (Exception e) {
+            // 기술적 오류만 COMMENT_WRITE_FAILED로 감싸기
             throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
     }

@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
@@ -21,11 +20,11 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-
 /**
  * <h2>AdminQueryService 단위 테스트</h2>
  * <p>관리자 조회 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
@@ -253,25 +252,14 @@ class AdminQueryServiceTest {
 
     @Test
     @DisplayName("음수 페이지 번호 처리")
-    void shouldHandleNegativePageNumber() {
+    void shouldThrowException_WhenNegativePageNumber() {
         // Given
         int negativePage = -1;
-        Page<ReportDTO> expectedPage = new PageImpl<>(testReports);
-        given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
-                .willReturn(expectedPage);
 
-        // When
-        Page<ReportDTO> result = adminQueryService.getReportList(negativePage, 10, null);
-
-        // Then
-        assertThat(result).isNotNull();
-        
-        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(adminQueryPort).findReportsWithPaging(any(), pageableCaptor.capture());
-        
-        Pageable capturedPageable = pageableCaptor.getValue();
-        // PageRequest.of()는 음수 페이지를 0으로 처리
-        assertThat(capturedPageable.getPageNumber()).isEqualTo(0);
+        // When & Then
+        assertThatThrownBy(() -> adminQueryService.getReportList(negativePage, 10, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Page index must not be less than zero");
     }
 
     @Test

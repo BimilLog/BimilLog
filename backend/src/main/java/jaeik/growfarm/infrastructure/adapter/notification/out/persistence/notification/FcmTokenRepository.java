@@ -18,7 +18,7 @@ import java.util.List;
 public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
 
     /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회</h3>
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (메시지 알림)</h3>
      * <p>
      * 메시지 알림이 활성화된 사용자의 FCM 토큰만 조회합니다.
      * </p>
@@ -35,7 +35,48 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
         WHERE u.id = :userId
         AND s.messageNotification = true
         """)
-    List<FcmToken> findValidFcmTokensByUserId(@Param("userId") Long userId);
+    List<FcmToken> findValidFcmTokensForMessageNotification(@Param("userId") Long userId);
+
+    /**
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (댓글 알림)</h3>
+     * <p>
+     * 댓글 알림이 활성화된 사용자의 FCM 토큰만 조회합니다.
+     * </p>
+     *
+     * @param userId 사용자 ID
+     * @return 유효한 FCM 토큰 리스트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Query("""
+        SELECT f FROM FcmToken f
+        JOIN f.user u
+        JOIN u.setting s
+        WHERE u.id = :userId
+        AND s.commentNotification = true
+        """)
+    List<FcmToken> findValidFcmTokensForCommentNotification(@Param("userId") Long userId);
+
+    /**
+     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (인기글 알림)</h3>
+     * <p>
+     * 인기글 알림이 활성화된 사용자의 FCM 토큰만 조회합니다.
+     * </p>
+     *
+     * @param userId 사용자 ID
+     * @return 유효한 FCM 토큰 리스트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Query("""
+        SELECT f FROM FcmToken f
+        JOIN f.user u
+        JOIN u.setting s
+        WHERE u.id = :userId
+        AND s.postFeaturedNotification = true
+        """)
+    List<FcmToken> findValidFcmTokensForPostFeaturedNotification(@Param("userId") Long userId);
+
 
     /**
      * <h3>사용자 ID로 FCM 토큰 삭제</h3>

@@ -148,7 +148,6 @@ class CommentQueryServiceTest {
         Long postId = 300L;
         List<CommentDTO> emptyComments = Collections.emptyList();
 
-        given(userDetails.getUserId()).willReturn(100L);
         given(commentQueryPort.findPopularComments(postId, Collections.emptyList())).willReturn(emptyComments);
 
         // When
@@ -218,7 +217,6 @@ class CommentQueryServiceTest {
         int page = 0;
         Page<CommentDTO> emptyPage = new PageImpl<>(Collections.emptyList());
 
-        given(userDetails.getUserId()).willReturn(100L);
         given(commentQueryPort.findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
                 .willReturn(emptyPage);
 
