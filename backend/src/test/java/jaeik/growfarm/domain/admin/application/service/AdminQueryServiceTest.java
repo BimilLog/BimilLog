@@ -156,7 +156,7 @@ class AdminQueryServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getReportType()).isEqualTo(ReportType.COMMENT);
+        assertThat(result.getContent().getFirst().getReportType()).isEqualTo(ReportType.COMMENT);
         verify(adminQueryPort).findReportsWithPaging(eq(reportType), any(Pageable.class));
     }
 

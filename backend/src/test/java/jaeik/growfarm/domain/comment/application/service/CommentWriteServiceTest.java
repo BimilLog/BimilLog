@@ -21,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,12 +72,10 @@ class CommentWriteServiceTest {
     private CommentWriteService commentWriteService;
 
     private User testUser;
-    private User postOwner;
     private Post testPost;
     private Comment testComment;
     private Comment parentComment;
     private CommentDTO commentDTO;
-    private CommentClosure commentClosure;
 
     @BeforeEach
     void setUp() {
@@ -88,7 +85,7 @@ class CommentWriteServiceTest {
                 .socialId("kakao123")
                 .build();
 
-        postOwner = User.builder()
+        User postOwner = User.builder()
                 .id(200L)
                 .userName("postOwner")
                 .socialId("kakao456")
@@ -122,14 +119,6 @@ class CommentWriteServiceTest {
         commentDTO.setContent("테스트 댓글 내용");
         commentDTO.setUserName("testUser");
         commentDTO.setPassword(1234);
-
-        commentClosure = CommentClosure.builder()
-                .ancestor(parentComment)
-                .descendant(testComment)
-                .depth(1)
-                .build();
-
-        // userDetails.getUserId() mock은 개별 테스트에서 필요시 설정
     }
 
     @Test
@@ -397,9 +386,9 @@ class CommentWriteServiceTest {
 
         List<CommentClosure> savedClosures = closureCaptor.getAllValues();
         // 첫 번째는 자기 자신과의 클로저 (depth = 0)
-        assertThat(savedClosures.get(0).getDepth()).isEqualTo(0);
-        assertThat(savedClosures.get(0).getAncestor()).isEqualTo(testComment);
-        assertThat(savedClosures.get(0).getDescendant()).isEqualTo(testComment);
+        assertThat(savedClosures.getFirst().getDepth()).isEqualTo(0);
+        assertThat(savedClosures.getFirst().getAncestor()).isEqualTo(testComment);
+        assertThat(savedClosures.getFirst().getDescendant()).isEqualTo(testComment);
     }
 
     @Test

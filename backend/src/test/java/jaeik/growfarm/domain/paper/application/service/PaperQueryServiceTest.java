@@ -368,7 +368,7 @@ class PaperQueryServiceTest {
     void shouldVisitPaper_WithSpecialCharacterUserName() {
         // Given
         String userName = "user@test.com";
-        List<VisitMessageDTO> expectedMessages = Arrays.asList(
+        List<VisitMessageDTO> expectedMessages = List.of(
                 createVisitMessageDTO(10L, "메시지")
         );
 
@@ -381,7 +381,7 @@ class PaperQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(10L);
+        assertThat(result.getFirst().getId()).isEqualTo(10L);
 
         verify(loadUserPort, times(1)).existsByUserName(userName);
         verify(paperQueryPort, times(1)).findVisitMessageDTOsByUserName(userName);
@@ -444,7 +444,7 @@ class PaperQueryServiceTest {
     void shouldVisitPaper_WithKoreanUserName() {
         // Given
         String koreanUserName = "한글사용자";
-        List<VisitMessageDTO> expectedMessages = Arrays.asList(
+        List<VisitMessageDTO> expectedMessages = List.of(
                 createVisitMessageDTO(1L, "메시지")
         );
 

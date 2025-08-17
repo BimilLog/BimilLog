@@ -128,7 +128,7 @@ class PostCacheSyncServiceTest {
         
         List<PostFeaturedEvent> events = eventCaptor.getAllValues();
         assertThat(events).hasSize(2);
-        assertThat(events.get(0).getUserId()).isEqualTo(1L);
+        assertThat(events.getFirst().getUserId()).isEqualTo(1L);
         assertThat(events.get(0).getSseMessage()).isEqualTo("주간 인기 게시글로 선정되었어요!");
         assertThat(events.get(0).getPostId()).isEqualTo(1L);
         assertThat(events.get(1).getUserId()).isEqualTo(2L);

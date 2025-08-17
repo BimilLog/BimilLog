@@ -18,20 +18,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * <h2>CommentQueryService 단위 테스트</h2>
@@ -54,14 +48,13 @@ class CommentQueryServiceTest {
     @InjectMocks
     private CommentQueryService commentQueryService;
 
-    private User testUser;
     private Comment testComment;
     private CommentDTO commentDTO;
     private SimpleCommentDTO simpleCommentDTO;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
+        User testUser = User.builder()
                 .id(100L)
                 .userName("testUser")
                 .socialId("kakao123")
@@ -97,9 +90,9 @@ class CommentQueryServiceTest {
     void shouldGetPopularComments_WhenLoggedInUser() {
         // Given
         Long postId = 300L;
-        List<CommentDTO> popularComments = Arrays.asList(commentDTO);
-        List<Long> popularCommentIds = Arrays.asList(200L);
-        List<Long> likedCommentIds = Arrays.asList(200L);
+        List<CommentDTO> popularComments = Collections.singletonList(commentDTO);
+        List<Long> popularCommentIds = List.of(200L);
+        List<Long> likedCommentIds = List.of(200L);
 
         given(userDetails.getUserId()).willReturn(100L);
         // 첫 번째 호출: 좋아요 ID 조회를 위해 빈 리스트로 호출
@@ -113,8 +106,8 @@ class CommentQueryServiceTest {
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(200L);
-        assertThat(result.get(0).getContent()).isEqualTo("테스트 댓글");
+        assertThat(result.getFirst().getId()).isEqualTo(200L);
+        assertThat(result.getFirst().getContent()).isEqualTo("테스트 댓글");
 
         verify(commentQueryPort).findPopularComments(postId, Collections.emptyList());
         verify(commentQueryPort).findUserLikedCommentIds(popularCommentIds, 100L);
@@ -126,7 +119,7 @@ class CommentQueryServiceTest {
     void shouldGetPopularComments_WhenAnonymousUser() {
         // Given
         Long postId = 300L;
-        List<CommentDTO> popularComments = Arrays.asList(commentDTO);
+        List<CommentDTO> popularComments = Collections.singletonList(commentDTO);
 
         given(commentQueryPort.findPopularComments(postId, Collections.emptyList())).willReturn(popularComments);
 
@@ -135,7 +128,7 @@ class CommentQueryServiceTest {
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(200L);
+        assertThat(result.getFirst().getId()).isEqualTo(200L);
 
         verify(commentQueryPort).findPopularComments(postId, Collections.emptyList());
         verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
@@ -166,10 +159,10 @@ class CommentQueryServiceTest {
         // Given
         Long postId = 300L;
         int page = 0;
-        List<CommentDTO> comments = Arrays.asList(commentDTO);
+        List<CommentDTO> comments = Collections.singletonList(commentDTO);
         Page<CommentDTO> commentPage = new PageImpl<>(comments);
-        List<Long> pageCommentIds = Arrays.asList(200L);
-        List<Long> likedCommentIds = Arrays.asList(200L);
+        List<Long> pageCommentIds = List.of(200L);
+        List<Long> likedCommentIds = List.of(200L);
 
         given(userDetails.getUserId()).willReturn(100L);
         given(commentQueryPort.findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
@@ -183,7 +176,7 @@ class CommentQueryServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getId()).isEqualTo(200L);
+        assertThat(result.getContent().getFirst().getId()).isEqualTo(200L);
     }
 
     @Test
@@ -192,7 +185,7 @@ class CommentQueryServiceTest {
         // Given
         Long postId = 300L;
         int page = 0;
-        List<CommentDTO> comments = Arrays.asList(commentDTO);
+        List<CommentDTO> comments = Collections.singletonList(commentDTO);
         Page<CommentDTO> commentPage = new PageImpl<>(comments);
 
         given(commentQueryPort.findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
@@ -203,7 +196,7 @@ class CommentQueryServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getId()).isEqualTo(200L);
+        assertThat(result.getContent().getFirst().getId()).isEqualTo(200L);
 
         verify(commentQueryPort).findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
         verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
@@ -270,7 +263,7 @@ class CommentQueryServiceTest {
         // Given
         Long userId = 100L;
         Pageable pageable = Pageable.ofSize(20).withPage(0);
-        List<SimpleCommentDTO> comments = Arrays.asList(simpleCommentDTO);
+        List<SimpleCommentDTO> comments = Collections.singletonList(simpleCommentDTO);
         Page<SimpleCommentDTO> commentPage = new PageImpl<>(comments);
 
         given(commentQueryPort.findCommentsByUserId(userId, pageable)).willReturn(commentPage);
@@ -280,8 +273,8 @@ class CommentQueryServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getId()).isEqualTo(200L);
-        assertThat(result.getContent().get(0).getUserName()).isEqualTo("testUser");
+        assertThat(result.getContent().getFirst().getId()).isEqualTo(200L);
+        assertThat(result.getContent().getFirst().getUserName()).isEqualTo("testUser");
 
         verify(commentQueryPort).findCommentsByUserId(userId, pageable);
     }
@@ -315,7 +308,7 @@ class CommentQueryServiceTest {
         SimpleCommentDTO likedComment = new SimpleCommentDTO(
                 200L, 300L, "anotherUser", "추천한 댓글", Instant.now(), 10, true
         );
-        List<SimpleCommentDTO> likedComments = Arrays.asList(likedComment);
+        List<SimpleCommentDTO> likedComments = List.of(likedComment);
         Page<SimpleCommentDTO> commentPage = new PageImpl<>(likedComments);
 
         given(commentQueryPort.findLikedCommentsByUserId(userId, pageable)).willReturn(commentPage);
@@ -325,9 +318,9 @@ class CommentQueryServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getId()).isEqualTo(200L);
-        assertThat(result.getContent().get(0).isUserLike()).isTrue();
-        assertThat(result.getContent().get(0).getLikes()).isEqualTo(10);
+        assertThat(result.getContent().getFirst().getId()).isEqualTo(200L);
+        assertThat(result.getContent().getFirst().isUserLike()).isTrue();
+        assertThat(result.getContent().getFirst().getLikes()).isEqualTo(10);
 
         verify(commentQueryPort).findLikedCommentsByUserId(userId, pageable);
     }

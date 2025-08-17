@@ -61,13 +61,12 @@ class LogoutServiceTest {
     @InjectMocks
     private LogoutService logoutService;
 
-    private User testUser;
     private Token testToken;
     private List<ResponseCookie> logoutCookies;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
+        User testUser = User.builder()
                 .id(100L)
                 .socialId("kakao123")
                 .provider(SocialProvider.KAKAO)
