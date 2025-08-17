@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -157,6 +158,78 @@ class AdminCommandServiceTest {
 
         // Then
         verify(adminCommandPort).forceWithdraw(userId);
+    }
+
+    @Test
+    @DisplayName("null 사용자 ID로 강제 탈퇴 시도 시 처리")
+    void shouldHandleNullUserId_WhenForceWithdraw() {
+        // Given
+        Long userId = null;
+
+        // When
+        adminCommandService.forceWithdrawUser(userId);
+
+        // Then
+        verify(adminCommandPort).forceWithdraw(userId);
+    }
+
+    @Test
+    @DisplayName("여러 신고 유형에 대한 ReportedUserResolver 테스트")
+    void shouldHandleMultipleReportTypesCorrectly() {
+        // Given
+        ReportedUserResolver postResolver = createMockResolver(ReportType.POST);
+        ReportedUserResolver commentResolver = createMockResolver(ReportType.COMMENT);
+        ReportedUserResolver paperResolver = createMockResolver(ReportType.PAPER);
+
+        given(postResolver.resolve(200L)).willReturn(testUser);
+        given(commentResolver.resolve(300L)).willReturn(testUser);
+        given(paperResolver.resolve(400L)).willReturn(testUser);
+
+        adminCommandService = new AdminCommandService(
+                eventPublisher,
+                List.of(postResolver, commentResolver, paperResolver),
+                adminCommandPort
+        );
+
+        ReportDTO postReport = ReportDTO.builder()
+                .id(1L)
+                .reporterId(100L)
+                .reporterName("reporter")
+                .reportType(ReportType.POST)
+                .targetId(200L)
+                .content("부적절한 게시글")
+                .build();
+        
+        ReportDTO commentReport = ReportDTO.builder()
+                .id(2L)
+                .reporterId(100L)
+                .reporterName("reporter")
+                .reportType(ReportType.COMMENT)
+                .targetId(300L)
+                .content("부적절한 댓글")
+                .build();
+        
+        ReportDTO paperReport = ReportDTO.builder()
+                .id(3L)
+                .reporterId(100L)
+                .reporterName("reporter")
+                .reportType(ReportType.PAPER)
+                .targetId(400L)
+                .content("부적절한 메시지")
+                .build();
+
+        // When & Then
+        adminCommandService.banUser(postReport);
+        verify(postResolver).resolve(200L);
+
+        adminCommandService.banUser(commentReport);
+        verify(commentResolver).resolve(300L);
+
+        adminCommandService.banUser(paperReport);
+        verify(paperResolver).resolve(400L);
+
+        // 이벤트 발행 검증
+        verify(eventPublisher, times(3)).publishEvent(any(UserBannedEvent.class));
     }
 
     @Test

@@ -3,9 +3,7 @@ package jaeik.growfarm.infrastructure.adapter.post.in.web.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * <h2>게시글 작성/수정/삭제 요청 DTO</h2>
@@ -22,6 +20,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostReqDTO {
 
     private Long postId;

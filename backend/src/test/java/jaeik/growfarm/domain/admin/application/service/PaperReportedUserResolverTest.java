@@ -182,4 +182,66 @@ class PaperReportedUserResolverTest {
         assertThat(result.getSocialId()).isEqualTo("anonymous");
         verify(paperQueryUseCase).findMessageById(messageId);
     }
+
+    @Test
+    @DisplayName("암호화된 메시지 사용자 해결 테스트")
+    void shouldResolveUserForEncryptedMessage() {
+        // Given
+        Long encryptedMessageId = 500L;
+        User messageUser = User.builder()
+                .id(150L)
+                .userName("encryptedUser")
+                .socialId("kakao789")
+                .build();
+
+        Message encryptedMessage = Message.builder()
+                .id(encryptedMessageId)
+                .content("암호화된 메시지 내용")
+                .user(messageUser)
+                .build();
+
+        given(paperQueryUseCase.findMessageById(encryptedMessageId)).willReturn(Optional.of(encryptedMessage));
+
+        // When
+        User result = paperReportedUserResolver.resolve(encryptedMessageId);
+
+        // Then
+        assertThat(result).isEqualTo(messageUser);
+        assertThat(result.getId()).isEqualTo(150L);
+        assertThat(result.getUserName()).isEqualTo("encryptedUser");
+        verify(paperQueryUseCase).findMessageById(encryptedMessageId);
+    }
+
+    @Test
+    @DisplayName("0이나 음수 메시지 ID로 해결 시도시 처리")
+    void shouldHandleInvalidMessageIds() {
+        // Given
+        Long[] invalidIds = {0L, -1L, -100L};
+
+        for (Long invalidId : invalidIds) {
+            given(paperQueryUseCase.findMessageById(invalidId)).willReturn(Optional.empty());
+        }
+
+        // When & Then
+        for (Long invalidId : invalidIds) {
+            assertThatThrownBy(() -> paperReportedUserResolver.resolve(invalidId))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
+            verify(paperQueryUseCase).findMessageById(invalidId);
+        }
+    }
+
+    @Test
+    @DisplayName("매우 큰 메시지 ID로 해결 시도시 처리")
+    void shouldHandleLargeMessageId() {
+        // Given
+        Long largeMessageId = Long.MAX_VALUE;
+        given(paperQueryUseCase.findMessageById(largeMessageId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> paperReportedUserResolver.resolve(largeMessageId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
+        verify(paperQueryUseCase).findMessageById(largeMessageId);
+    }
 }

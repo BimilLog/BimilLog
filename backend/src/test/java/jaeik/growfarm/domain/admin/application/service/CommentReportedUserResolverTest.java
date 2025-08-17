@@ -153,4 +153,81 @@ class CommentReportedUserResolverTest {
             verify(commentQueryUseCase).findById(commentId);
         }
     }
+
+    @Test
+    @DisplayName("대댓글 사용자 해결 테스트")
+    void shouldResolveUserForReplyComment() {
+        // Given
+        Long replyCommentId = 500L;
+        User replyUser = User.builder()
+                .id(200L)
+                .userName("replyUser")
+                .socialId("kakao456")
+                .build();
+
+        Comment replyComment = Comment.builder()
+                .id(replyCommentId)
+                .content("대댓글입니다")
+                .user(replyUser)
+                .build();
+
+        given(commentQueryUseCase.findById(replyCommentId)).willReturn(Optional.of(replyComment));
+
+        // When
+        User result = commentReportedUserResolver.resolve(replyCommentId);
+
+        // Then
+        assertThat(result).isEqualTo(replyUser);
+        assertThat(result.getId()).isEqualTo(200L);
+        assertThat(result.getUserName()).isEqualTo("replyUser");
+        verify(commentQueryUseCase).findById(replyCommentId);
+    }
+
+    @Test
+    @DisplayName("익명 댓글 사용자 해결 테스트")
+    void shouldResolveAnonymousCommentUser() {
+        // Given
+        Long anonymousCommentId = 600L;
+        User anonymousUser = User.builder()
+                .id(null)
+                .userName("익명")
+                .socialId("anonymous")
+                .build();
+
+        Comment anonymousComment = Comment.builder()
+                .id(anonymousCommentId)
+                .content("익명 댓글")
+                .user(anonymousUser)
+                .build();
+
+        given(commentQueryUseCase.findById(anonymousCommentId)).willReturn(Optional.of(anonymousComment));
+
+        // When
+        User result = commentReportedUserResolver.resolve(anonymousCommentId);
+
+        // Then
+        assertThat(result).isEqualTo(anonymousUser);
+        assertThat(result.getUserName()).isEqualTo("익명");
+        assertThat(result.getSocialId()).isEqualTo("anonymous");
+        verify(commentQueryUseCase).findById(anonymousCommentId);
+    }
+
+    @Test
+    @DisplayName("0이나 음수 댓글 ID로 해결 시도시 처리")
+    void shouldHandleInvalidCommentIds() {
+        // Given
+        Long[] invalidIds = {0L, -1L, -100L};
+
+        for (Long invalidId : invalidIds) {
+            given(commentQueryUseCase.findById(invalidId)).willReturn(Optional.empty());
+        }
+
+        // When & Then
+        for (Long invalidId : invalidIds) {
+            assertThatThrownBy(() -> commentReportedUserResolver.resolve(invalidId))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_FAILED);
+            verify(commentQueryUseCase).findById(invalidId);
+        }
+    }
 }

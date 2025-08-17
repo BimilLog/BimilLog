@@ -31,14 +31,17 @@ public class Setting {
     @Column(name = "setting_id")
     private Long id;
 
+    // 롤링페이퍼에 메시지가 달렸을 때 FCM 알림 여부 SSE는 항상 전송됨
     @Builder.Default
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean messageNotification = true;
 
+    // 글에 댓글이 달렸을 때 FCM 알림 여부 SSE는 항상 전송됨
     @Builder.Default
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean commentNotification = true;
 
+    // 글이 인기글이 되었을 때 FCM 알림 여부 SSE는 항상 전송됨 (실시간 인기글은 해당 안됨, 주간, 전설 인기글만 전송됨)
     @Builder.Default
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean postFeaturedNotification = true;

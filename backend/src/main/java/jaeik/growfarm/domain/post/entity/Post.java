@@ -80,6 +80,10 @@ public class Post extends BaseEntity {
      * @since 2.0.0
      */
     public static Post createPost(User user, PostReqDTO postReqDTO) {
+        if (postReqDTO == null) {
+            throw new IllegalArgumentException("PostReqDTO cannot be null");
+        }
+        
         return Post.builder()
                 .user(user)
                 .title(postReqDTO.getTitle())
@@ -103,6 +107,10 @@ public class Post extends BaseEntity {
      * @since 2.0.0
      */
     public void updatePost(PostReqDTO postReqDTO) {
+        if (postReqDTO == null) {
+            throw new IllegalArgumentException("PostReqDTO cannot be null");
+        }
+        
         this.title = postReqDTO.getTitle();
         this.content = postReqDTO.getContent();
     }

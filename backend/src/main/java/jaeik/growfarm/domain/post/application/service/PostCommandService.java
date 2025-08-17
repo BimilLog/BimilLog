@@ -52,6 +52,10 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public Long writePost(Long userId, PostReqDTO postReqDTO) {
+        if (postReqDTO == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
         User user = userLoadPort.getReferenceById(userId);
         Post newPost = Post.createPost(user, postReqDTO);
         Post savedPost = postCommandPort.save(newPost);
@@ -80,11 +84,16 @@ public class PostCommandService implements PostCommandUseCase {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
+        if (postReqDTO == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
         post.updatePost(postReqDTO);
         postCommandPort.save(post);
         postCacheCommandPort.deleteFullPostCache(postId);
         
-        log.info("Post updated: postId={}, userId={}, title={}", postId, userId, postReqDTO.getTitle());
+        log.info("Post updated: postId={}, userId={}, title={}", postId, userId, 
+                 postReqDTO != null ? postReqDTO.getTitle() : "null");
     }
 
     /**
@@ -111,7 +120,7 @@ public class PostCommandService implements PostCommandUseCase {
         postCacheCommandPort.deleteFullPostCache(postId);
         
         log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, post.getTitle());
-        eventPublisher.publishEvent(new PostDeletedEvent(postId));
+        eventPublisher.publishEvent(new PostDeletedEvent(postId, post.getTitle()));
     }
 
 }

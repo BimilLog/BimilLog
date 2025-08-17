@@ -228,4 +228,73 @@ class AdminQueryServiceTest {
         assertThat(createdAtOrder).isNotNull();
         assertThat(createdAtOrder.getDirection()).isEqualTo(Sort.Direction.DESC);
     }
+
+    @Test
+    @DisplayName("최대 페이지 크기 제한 테스트")
+    void shouldHandleLargePageSize() {
+        // Given
+        int largePageSize = 1000;
+        Page<ReportDTO> expectedPage = new PageImpl<>(testReports);
+        given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
+                .willReturn(expectedPage);
+
+        // When
+        Page<ReportDTO> result = adminQueryService.getReportList(0, largePageSize, null);
+
+        // Then
+        assertThat(result).isNotNull();
+        
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(adminQueryPort).findReportsWithPaging(any(), pageableCaptor.capture());
+        
+        Pageable capturedPageable = pageableCaptor.getValue();
+        assertThat(capturedPageable.getPageSize()).isEqualTo(largePageSize);
+    }
+
+    @Test
+    @DisplayName("음수 페이지 번호 처리")
+    void shouldHandleNegativePageNumber() {
+        // Given
+        int negativePage = -1;
+        Page<ReportDTO> expectedPage = new PageImpl<>(testReports);
+        given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
+                .willReturn(expectedPage);
+
+        // When
+        Page<ReportDTO> result = adminQueryService.getReportList(negativePage, 10, null);
+
+        // Then
+        assertThat(result).isNotNull();
+        
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(adminQueryPort).findReportsWithPaging(any(), pageableCaptor.capture());
+        
+        Pageable capturedPageable = pageableCaptor.getValue();
+        // PageRequest.of()는 음수 페이지를 0으로 처리
+        assertThat(capturedPageable.getPageNumber()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("모든 신고 유형에 대한 개별 조회 테스트")
+    void shouldGetReportListForAllReportTypes() {
+        // Given
+        ReportType[] allTypes = {ReportType.POST, ReportType.COMMENT, ReportType.PAPER};
+        
+        for (ReportType type : allTypes) {
+            List<ReportDTO> filteredReports = testReports.stream()
+                    .filter(report -> report.getReportType() == type)
+                    .toList();
+            Page<ReportDTO> expectedPage = new PageImpl<>(filteredReports);
+            
+            given(adminQueryPort.findReportsWithPaging(eq(type), any(Pageable.class)))
+                    .willReturn(expectedPage);
+        }
+
+        // When & Then
+        for (ReportType type : allTypes) {
+            Page<ReportDTO> result = adminQueryService.getReportList(0, 10, type);
+            assertThat(result).isNotNull();
+            verify(adminQueryPort).findReportsWithPaging(eq(type), any(Pageable.class));
+        }
+    }
 }

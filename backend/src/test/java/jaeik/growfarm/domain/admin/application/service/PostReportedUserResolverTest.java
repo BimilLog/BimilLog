@@ -201,4 +201,97 @@ class PostReportedUserResolverTest {
 
         verify(postQueryUseCase).findById(deletedPostId);
     }
+
+    @Test
+    @DisplayName("인기 게시글 사용자 해결 테스트")
+    void shouldResolveUserForPopularPost() {
+        // Given
+        Long popularPostId = 700L;
+        User popularUser = User.builder()
+                .id(300L)
+                .userName("인기작성자")
+                .socialId("kakao999")
+                .build();
+
+        Post popularPost = Post.builder()
+                .id(popularPostId)
+                .title("인기 게시글 제목")
+                .content("많은 추천을 받은 게시글")
+                .user(popularUser)
+                .build();
+
+        given(postQueryUseCase.findById(popularPostId)).willReturn(Optional.of(popularPost));
+
+        // When
+        User result = postReportedUserResolver.resolve(popularPostId);
+
+        // Then
+        assertThat(result).isEqualTo(popularUser);
+        assertThat(result.getId()).isEqualTo(300L);
+        assertThat(result.getUserName()).isEqualTo("인기작성자");
+        verify(postQueryUseCase).findById(popularPostId);
+    }
+
+    @Test
+    @DisplayName("0이나 음수 게시글 ID로 해결 시도시 처리")
+    void shouldHandleInvalidPostIds() {
+        // Given
+        Long[] invalidIds = {0L, -1L, -100L};
+
+        for (Long invalidId : invalidIds) {
+            given(postQueryUseCase.findById(invalidId)).willReturn(Optional.empty());
+        }
+
+        // When & Then
+        for (Long invalidId : invalidIds) {
+            assertThatThrownBy(() -> postReportedUserResolver.resolve(invalidId))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+            verify(postQueryUseCase).findById(invalidId);
+        }
+    }
+
+    @Test
+    @DisplayName("매우 큰 게시글 ID로 해결 시도시 처리")
+    void shouldHandleLargePostId() {
+        // Given
+        Long largePostId = Long.MAX_VALUE;
+        given(postQueryUseCase.findById(largePostId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> postReportedUserResolver.resolve(largePostId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+        verify(postQueryUseCase).findById(largePostId);
+    }
+
+    @Test
+    @DisplayName("익명 게시글 사용자 해결 테스트")
+    void shouldResolveAnonymousPostUser() {
+        // Given
+        Long anonymousPostId = 800L;
+        User anonymousUser = User.builder()
+                .id(null)
+                .userName("익명")
+                .socialId("anonymous")
+                .build();
+
+        Post anonymousPost = Post.builder()
+                .id(anonymousPostId)
+                .title("익명 게시글")
+                .content("익명으로 작성된 게시글")
+                .user(anonymousUser)
+                .build();
+
+        given(postQueryUseCase.findById(anonymousPostId)).willReturn(Optional.of(anonymousPost));
+
+        // When
+        User result = postReportedUserResolver.resolve(anonymousPostId);
+
+        // Then
+        assertThat(result).isEqualTo(anonymousUser);
+        assertThat(result.getUserName()).isEqualTo("익명");
+        assertThat(result.getSocialId()).isEqualTo("anonymous");
+        verify(postQueryUseCase).findById(anonymousPostId);
+    }
 }
