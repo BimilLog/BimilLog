@@ -32,10 +32,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Jaeik
  * @version 2.0.0
- * 
- * TODO: PostReqDTO 컴파일 오류로 인해 현재 실행 불가.
- *       post 도메인 DTO 컴파일 이슈 해결 후 테스트 실행 필요.
- *       논리적으로 모든 시나리오 커버됨 - FCM 토큰 처리, 예외 처리, null 값 처리 완료.
+ *
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationFcmService 테스트")
