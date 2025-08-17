@@ -13,6 +13,7 @@ import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import org.mockito.ArgumentCaptor;
 
 /**
  * <h2>PostCommandService 테스트</h2>
@@ -33,12 +33,7 @@ import org.mockito.ArgumentCaptor;
  *
  * @author Jaeik
  * @version 2.0.0
- * 
- * RESOLVED: PostReqDTO Lombok 설정 및 PostDeletedEvent ArgumentCaptor 패턴으로 해결 완료.
- *          1. @NoArgsConstructor, @AllArgsConstructor 추가로 빌더 패턴 정상 작동
- *          2. PostDeletedEvent에 postTitle 필드 추가하여 완전한 이벤트 정보 제공
- *          3. ArgumentCaptor 사용으로 Record 타입 안전한 검증 가능
- *          논리적으로 모든 시나리오 커버됨 - 엣지케이스, 권한 검증, 이벤트 발행, 캐시 처리 완료.
+ *
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCommandService 테스트")
