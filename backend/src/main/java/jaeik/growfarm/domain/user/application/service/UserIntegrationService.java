@@ -101,7 +101,7 @@ public class UserIntegrationService implements UserIntegrationUseCase {
 
         } catch (CustomException e) {
             // 카카오 친구 동의 필요한 경우 특별한 에러 메시지 처리
-            if (e.getMessage().contains("consent")) {
+            if (e.getErrorCode() == ErrorCode.KAKAO_API_ERROR) {
                 throw new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
             }
             throw e;
