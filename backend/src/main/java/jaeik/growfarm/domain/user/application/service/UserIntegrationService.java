@@ -57,7 +57,7 @@ public class UserIntegrationService implements UserIntegrationUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 사용자의 토큰 조회
-        Token token = tokenPort.findByUser(user)
+        Token token = tokenPort.findByUsers(user)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
         
         // 카카오 액세스 토큰 확인

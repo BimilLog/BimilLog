@@ -32,7 +32,7 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
      * @since 2.0.0
      * @author Jaeik
      */
-    Optional<Token> findByUser(User user);
+    Optional<Token> findByUsers(User user);
 
     /**
      * <h3>사용자 ID로 모든 토큰 조회</h3>

@@ -34,7 +34,7 @@ public interface TokenPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<Token> findByUser(User user);
+    Optional<Token> findByUsers(User user);
 
     /**
      * <h3>토큰 저장</h3>

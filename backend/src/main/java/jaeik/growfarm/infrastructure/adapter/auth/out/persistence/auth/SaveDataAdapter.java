@@ -59,7 +59,7 @@ public class SaveDataAdapter implements ManageSaveDataPort {
 
         user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
 
-        Token token = tokenRepository.findByUser(user)
+        Token token = tokenRepository.findByUsers(user)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
         token.updateToken(tokenDTO.accessToken(), tokenDTO.refreshToken());
 

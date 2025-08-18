@@ -59,7 +59,7 @@ public class AdminQueryAdapter implements AdminQueryPort {
                         report.createdAt))
                 .from(report)
                 .where(whereClause)
-                .orderBy(report.createdAt.desc())
+                .orderBy(report.createdAt.desc(), report.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

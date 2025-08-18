@@ -1,16 +1,27 @@
 package jaeik.growfarm.infrastructure.adapter.admin.out.persistence;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.GrowfarmApplication;
 import jaeik.growfarm.domain.admin.entity.Report;
 import jaeik.growfarm.domain.admin.entity.ReportType;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.domain.user.entity.Setting;
-import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.infrastructure.security.EncryptionUtil;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -30,15 +41,25 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jaeik
  * @version 2.0.0
  */
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@DataJpaTest(
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = GrowfarmApplication.class
+        )
+)
 @Testcontainers
+@EntityScan(basePackages = {
+        "jaeik.growfarm.domain.admin.entity", 
+        "jaeik.growfarm.domain.user.entity",
+        "jaeik.growfarm.domain.paper.entity",
+        "jaeik.growfarm.domain.post.entity",
+        "jaeik.growfarm.domain.comment.entity",
+        "jaeik.growfarm.domain.notification.entity",
+        "jaeik.growfarm.domain.common.entity"
+})
+@Import(AdminQueryAdapter.class)
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:mysql://localhost:${mysql.port}/testdb",
-    "spring.datasource.username=test",
-    "spring.datasource.password=test",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.defer-datasource-initialization=true"
+        "spring.jpa.hibernate.ddl-auto=create-drop"
 })
 class ReportRepositoryTest {
 
@@ -47,6 +68,30 @@ class ReportRepositoryTest {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test");
+
+    @DynamicPropertySource
+    static void dynamicProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+        registry.add("spring.datasource.username", mysql::getUsername);
+        registry.add("spring.datasource.password", mysql::getPassword);
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+            return new JPAQueryFactory(entityManager);
+        }
+
+        // EncryptionUtil 빈 정의: MessageEncryptConverter의 의존성을 만족시킵니다.
+        @Bean
+        public EncryptionUtil encryptionUtil() {
+            // 테스트를 위해 간단한 더미 인스턴스를 반환합니다.
+            // 실제 EncryptionUtil이 복잡한 의존성을 가진다면 Mockito.mock(EncryptionUtil.class)를 사용할 수 있습니다.
+            return new EncryptionUtil();
+        }
+    }
+
 
     @Autowired
     private ReportRepository reportRepository;

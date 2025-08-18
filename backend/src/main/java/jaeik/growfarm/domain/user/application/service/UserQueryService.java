@@ -181,6 +181,6 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Optional<Token> findTokenByUser(User user) {
-        return tokenPort.findByUser(user);
+        return tokenPort.findByUsers(user);
     }
 }

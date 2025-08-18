@@ -78,7 +78,7 @@ class UserIntegrationServiceTest {
         List<String> userNames = Arrays.asList("비밀로그사용자1", ""); // 첫 번째만 가입된 상태
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUser(user)).willReturn(Optional.of(token));
+        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_access_token", offset, limit)).willReturn(kakaoResponse);
 
         // When
@@ -86,7 +86,7 @@ class UserIntegrationServiceTest {
 
         // Then
         verify(userQueryPort).findById(userId);
-        verify(tokenPort).findByUser(user);
+        verify(tokenPort).findByUsers(user);
         verify(kakaoFriendPort).getFriendList("valid_access_token", offset, limit);
         
         assertThat(result).isNotNull();
@@ -120,7 +120,7 @@ class UserIntegrationServiceTest {
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUser(user)).willReturn(Optional.empty());
+        given(tokenPort.findByUsers(user)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 0, 10))
@@ -128,7 +128,7 @@ class UserIntegrationServiceTest {
                 .hasMessage(ErrorCode.NOT_FIND_TOKEN.getMessage());
         
         verify(userQueryPort).findById(userId);
-        verify(tokenPort).findByUser(user);
+        verify(tokenPort).findByUsers(user);
     }
 
     @Test
@@ -148,7 +148,7 @@ class UserIntegrationServiceTest {
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUser(user)).willReturn(Optional.of(token));
+        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
 
         // When & Then
         assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 0, 10))
@@ -173,7 +173,7 @@ class UserIntegrationServiceTest {
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUser(user)).willReturn(Optional.of(token));
+        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
 
         // When & Then
         assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 0, 10))
@@ -198,7 +198,7 @@ class UserIntegrationServiceTest {
         KakaoFriendsResponse kakaoResponse = new KakaoFriendsResponse();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUser(user)).willReturn(Optional.of(token));
+        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 10)).willReturn(kakaoResponse);
 
         // When
@@ -225,7 +225,7 @@ class UserIntegrationServiceTest {
         KakaoFriendsResponse kakaoResponse = new KakaoFriendsResponse();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUser(user)).willReturn(Optional.of(token));
+        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 100)).willReturn(kakaoResponse);
 
         // When
@@ -250,7 +250,7 @@ class UserIntegrationServiceTest {
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUser(user)).willReturn(Optional.of(token));
+        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 10))
                 .willThrow(new CustomException(ErrorCode.KAKAO_API_ERROR));
 
@@ -275,7 +275,7 @@ class UserIntegrationServiceTest {
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUser(user)).willReturn(Optional.of(token));
+        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 10))
                 .willThrow(new RuntimeException("일반적인 API 에러"));
 

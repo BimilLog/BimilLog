@@ -366,13 +366,13 @@ class UserQueryServiceTest {
                 .refreshToken("refresh_token")
                 .build();
 
-        given(tokenPort.findByUser(user)).willReturn(Optional.of(expectedToken));
+        given(tokenPort.findByUsers(user)).willReturn(Optional.of(expectedToken));
 
         // When
         Optional<Token> result = userQueryService.findTokenByUser(user);
 
         // Then
-        verify(tokenPort).findByUser(user);
+        verify(tokenPort).findByUsers(user);
         assertThat(result).isPresent();
         assertThat(result.get().getAccessToken()).isEqualTo("access_token");
         assertThat(result.get().getRefreshToken()).isEqualTo("refresh_token");
@@ -387,13 +387,13 @@ class UserQueryServiceTest {
                 .userName("testUser")
                 .build();
 
-        given(tokenPort.findByUser(user)).willReturn(Optional.empty());
+        given(tokenPort.findByUsers(user)).willReturn(Optional.empty());
 
         // When
         Optional<Token> result = userQueryService.findTokenByUser(user);
 
         // Then
-        verify(tokenPort).findByUser(user);
+        verify(tokenPort).findByUsers(user);
         assertThat(result).isEmpty();
     }
 
