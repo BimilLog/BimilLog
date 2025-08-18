@@ -43,12 +43,19 @@ public class UserDTO {
     @Nullable
     private Long fcmTokenId;
 
+    // TODO: 옵션 2 설계 적용 - 이벤트 핸들러 중심 Setting 생성
+    // Setting 생성 흐름: User.createUser() → save() → UserSignedUpEvent → Setting 생성
+    // 따라서 UserDTO.of() 호출 시점에서는 Setting이 null일 수 있음 (정상적인 상황)
+    // 이벤트 기반 비동기 처리로 인한 일시적 null 상태를 고려한 방어적 프로그래밍
     public static UserDTO of(User user, Long tokenId, @Nullable Long fcmTokenId) {
+        // Setting이 null인 경우에 대한 방어 코드 (이벤트 처리 전 상태 고려)
+        Long settingId = (user.getSetting() != null) ? user.getSetting().getId() : null;
+        
         return UserDTO.builder()
                 .userId(user.getId())
                 .socialId(user.getSocialId())
                 .provider(user.getProvider())
-                .settingId(user.getSetting().getId())
+                .settingId(settingId)
                 .socialNickname(user.getSocialNickname())
                 .thumbnailImage(user.getThumbnailImage())
                 .userName(user.getUserName())

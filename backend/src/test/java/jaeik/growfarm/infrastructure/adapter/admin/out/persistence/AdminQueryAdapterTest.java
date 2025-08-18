@@ -60,7 +60,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 @Import(AdminQueryAdapter.class)
 @TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.jpa.hibernate.ddl-auto=create"
 })
 class AdminQueryAdapterTest {
 
