@@ -19,9 +19,8 @@ import static org.mockito.Mockito.verify;
  * <p>블랙리스트 확인 어댑터의 비즈니스 로직 위주로 테스트</p>
  * <p>완벽한 테스트로 메인 로직의 문제를 발견</p>
  *
- * @author Claude
+ * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 class BlacklistJpaAdapterTest {
@@ -249,21 +248,4 @@ class BlacklistJpaAdapterTest {
         verify(blackListRepository).existsByProviderAndSocialId(provider, socialId1);
         verify(blackListRepository).existsByProviderAndSocialId(provider, socialId2);
     }
-
-    // TODO: 테스트 실패 시 의심해볼 메인 로직 문제들
-    // 1. Repository 의존성 누락: BlackListRepository가 제대로 주입되지 않음
-    // 2. 데이터베이스 연결 실패: JPA 설정 오류로 인한 연결 문제
-    // 3. 쿼리 성능 문제: existsByProviderAndSocialId 쿼리의 인덱스 부족
-    // 4. null 처리 미흡: Repository에서 null 파라미터 처리 실패
-    // 5. 트랜잭션 문제: 읽기 전용 트랜잭션 설정 누락
-    // 6. 캐시 일관성: 블랙리스트 정보의 캐시와 DB 불일치
-    // 7. 동시성 문제: 블랙리스트 추가/삭제와 조회 간 경쟁 조건
-    // 8. 예외 처리 누락: 데이터베이스 예외에 대한 적절한 변환 부족
-    // 9. 로깅 부족: 블랙리스트 확인 결과에 대한 로깅 누락
-    // 10. 보안 문제: SQL 인젝션 등 보안 취약점
-    //
-    // 🔥 중요: 이 테스트들이 실패한다면 비즈니스 로직 자체에 문제가 있을 가능성이 높음
-    // - 블랙리스트 확인은 보안 관련 핵심 기능이므로 완벽한 동작 필수
-    // - 잘못된 결과는 부정 사용자 허용 또는 정상 사용자 차단으로 이어짐
-    // - 성능 이슈는 로그인 프로세스 전체의 지연을 야기
 }

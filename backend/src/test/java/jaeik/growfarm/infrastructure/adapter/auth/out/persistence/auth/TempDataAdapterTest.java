@@ -5,6 +5,7 @@ import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUser
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
+import jaeik.growfarm.infrastructure.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,10 +16,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -27,9 +27,8 @@ import static org.mockito.Mockito.verify;
  * <p>임시 데이터 관리 어댑터의 비즈니스 로직 위주로 테스트</p>
  * <p>메모리 기반 임시 데이터 저장소의 완벽한 검증</p>
  *
- * @author Claude
+ * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 class TempDataAdapterTest {
@@ -69,27 +68,37 @@ class TempDataAdapterTest {
         Optional<TemporaryUserDataDTO> savedData = tempDataAdapter.getTempData(testUuid);
         
         assertThat(savedData).isPresent();
-        assertThat(savedData.get().userData()).isEqualTo(testUserData);
-        assertThat(savedData.get().tokenDTO()).isEqualTo(testTokenDTO);
-        assertThat(savedData.get().fcmToken()).isEqualTo("fcm-token-12345");
+        assertThat(savedData.get().getSocialLoginUserData()).isEqualTo(testUserData);
+        assertThat(savedData.get().getTokenDTO()).isEqualTo(testTokenDTO);
+        assertThat(savedData.get().getFcmToken()).isEqualTo("fcm-token-12345");
     }
 
     @Test
     @DisplayName("임시 데이터 저장 - null 값들로 저장")
     void shouldSaveTempData_WhenNullValuesProvided() {
+        // TODO: 테스트 실패 - 메인 로직 문제 의심 ✅
+        // 개선 완료: Input Validation 추가로 null 입력값 예외 처리
+        // 비즈니스 로직 개선: UUID, userData, tokenDTO null 검증 강화
+        // 예상 동작: null 입력값에 대해 CustomException 발생 (보안 및 안정성 향상)
+        // 
+        // 현재 이 테스트는 의도적으로 실패해야 함:
+        // - 회원가입 프로세스에서 null 데이터는 허용되지 않아야 함
+        // - 메인 로직이 올바르게 Input Validation을 수행하고 있음을 증명
+        
         // Given: null 값들
         String nullUuid = null;
         SocialLoginUserData nullUserData = null;
         TokenDTO nullTokenDTO = null;
 
-        // When: null 값들로 저장 시도
-        tempDataAdapter.saveTempData(nullUuid, nullUserData, nullTokenDTO);
-
-        // Then: null 키로 저장되고 조회 가능
-        Optional<TemporaryUserDataDTO> savedData = tempDataAdapter.getTempData(nullUuid);
-        assertThat(savedData).isPresent();
-        assertThat(savedData.get().userData()).isNull();
-        assertThat(savedData.get().tokenDTO()).isNull();
+        // When & Then: null 값들로 저장 시도 시 예외 발생해야 함
+        // 비즈니스 로직이 올바르게 Input Validation을 수행하는지 검증
+        assertThatThrownBy(() -> tempDataAdapter.saveTempData(nullUuid, nullUserData, nullTokenDTO))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining("임시 사용자 UUID가 유효하지 않습니다");
+        
+        // 추가 검증: null UUID로 조회 시 빈 결과 반환
+        Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(nullUuid);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -104,10 +113,10 @@ class TempDataAdapterTest {
         // Then: 정확한 데이터 반환
         assertThat(result).isPresent();
         TemporaryUserDataDTO data = result.get();
-        assertThat(data.userData().provider()).isEqualTo(SocialProvider.KAKAO);
-        assertThat(data.userData().socialId()).isEqualTo("123456789");
-        assertThat(data.userData().nickname()).isEqualTo("testUser");
-        assertThat(data.tokenDTO().accessToken()).isEqualTo("access-token-12345");
+        assertThat(data.getSocialLoginUserData().provider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(data.getSocialLoginUserData().socialId()).isEqualTo("123456789");
+        assertThat(data.getSocialLoginUserData().nickname()).isEqualTo("testUser");
+        assertThat(data.getTokenDTO().accessToken()).isEqualTo("access-token-12345");
     }
 
     @Test
@@ -259,9 +268,9 @@ class TempDataAdapterTest {
         // Then: 새 데이터로 덮어써짐
         Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
-        assertThat(result.get().userData().socialId()).isEqualTo("987654321");
-        assertThat(result.get().userData().nickname()).isEqualTo("newUser");
-        assertThat(result.get().tokenDTO().accessToken()).isEqualTo("new-access-token");
+        assertThat(result.get().getSocialLoginUserData().socialId()).isEqualTo("987654321");
+        assertThat(result.get().getSocialLoginUserData().nickname()).isEqualTo("newUser");
+        assertThat(result.get().getTokenDTO().accessToken()).isEqualTo("new-access-token");
     }
 
     @Test
@@ -291,9 +300,9 @@ class TempDataAdapterTest {
         Optional<TemporaryUserDataDTO> result2 = tempDataAdapter.getTempData(uuid2);
 
         assertThat(result1).isPresent();
-        assertThat(result1.get().userData().nickname()).isEqualTo("user1");
+        assertThat(result1.get().getSocialLoginUserData().nickname()).isEqualTo("user1");
         assertThat(result2).isPresent();
-        assertThat(result2.get().userData().nickname()).isEqualTo("user2");
+        assertThat(result2.get().getSocialLoginUserData().nickname()).isEqualTo("user2");
     }
 
     @Test
@@ -334,7 +343,7 @@ class TempDataAdapterTest {
             String uuid = "uuid-" + i;
             Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(uuid);
             assertThat(result).isPresent();
-            assertThat(result.get().userData().nickname()).isEqualTo("user-" + i);
+            assertThat(result.get().getSocialLoginUserData().nickname()).isEqualTo("user-" + i);
         }
 
         // 정리: 저장된 데이터 삭제

@@ -18,26 +18,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>SocialLoginAdapter 단위 테스트</h2>
  * <p>소셜 로그인 어댑터의 비즈니스 로직 위주로 테스트</p>
  * <p>Strategy 패턴과 기존/신규 사용자 처리 로직 완벽 검증</p>
  *
- * @author Claude
- * @version 2.0.0
- * @since 2.0.0
+ * @author Jaeik
+ * @version  2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 class SocialLoginAdapterTest {
@@ -53,8 +50,12 @@ class SocialLoginAdapterTest {
 
     @BeforeEach
     void setUp() {
+        // 🔥 CRITICAL: Mock 설정을 생성자 호출 전에 수행
+        // NPE 방지: SocialLoginAdapter 생성자에서 strategy.getProvider() 호출 시 null 방지
+        given(kakaoStrategy.getProvider()).willReturn(SocialProvider.KAKAO);
+        
         // SocialLoginStrategy 리스트 준비
-        List<SocialLoginStrategy> strategies = Arrays.asList(kakaoStrategy);
+        List<SocialLoginStrategy> strategies = List.of(kakaoStrategy);
         
         // SocialLoginAdapter 생성 (생성자를 통한 초기화)
         socialLoginAdapter = new SocialLoginAdapter(strategies, userQueryUseCase);
@@ -78,9 +79,6 @@ class SocialLoginAdapterTest {
                 .tokenDTO(testTokenDTO)
                 .loginType(LoginResultDTO.LoginType.NEW_USER)
                 .build();
-
-        // 기본 Mock 설정
-        given(kakaoStrategy.getProvider()).willReturn(SocialProvider.KAKAO);
     }
 
     @Test
@@ -114,14 +112,14 @@ class SocialLoginAdapterTest {
                 .id(1L)
                 .provider(SocialProvider.KAKAO)
                 .socialId("123456789")
-                .nickname("oldNickname")
-                .profileImageUrl("old-profile.jpg")
+                .socialNickname("oldNickname")
+                .thumbnailImage("old-profile.jpg")
                 .role(UserRole.USER)
                 .build();
         
         Token existingToken = Token.builder()
                 .id(1L)
-                .user(existingUser)
+                .users(existingUser)
                 .accessToken("old-access-token")
                 .refreshToken("old-refresh-token")
                 .build();
@@ -154,7 +152,7 @@ class SocialLoginAdapterTest {
                 .id(1L)
                 .provider(SocialProvider.KAKAO)
                 .socialId("123456789")
-                .nickname("userWithoutToken")
+                .socialNickname("userWithoutToken")
                 .role(UserRole.USER)
                 .build();
 
@@ -293,14 +291,14 @@ class SocialLoginAdapterTest {
                 .id(1L)
                 .provider(SocialProvider.KAKAO)
                 .socialId("123456789")
-                .nickname("oldNickname")
-                .profileImageUrl("old-profile.jpg")
+                .socialNickname("oldNickname")
+                .thumbnailImage("old-profile.jpg")
                 .role(UserRole.USER)
                 .build();
 
         Token existingToken = Token.builder()
                 .id(1L)
-                .user(existingUser)
+                .users(existingUser)
                 .accessToken("old-access-token")
                 .refreshToken("old-refresh-token")
                 .build();
@@ -377,6 +375,11 @@ class SocialLoginAdapterTest {
         // 단위 테스트에서는 비즈니스 로직 검증에 집중
     }
 
+    // TODO: ✅ NPE 이슈 해결됨 - 테스트 설계 오류였음 (2025-08-19)
+    // 문제: SocialLoginAdapter 생성자에서 strategy.getProvider() 호출 시 Mock 설정 전이라 null 반환
+    // 해결: setUp()에서 Mock 설정을 생성자 호출 전으로 이동
+    // 교훈: Mock 객체의 메서드가 생성자에서 호출되는 경우 설정 순서 중요
+    
     // TODO: 테스트 실패 시 의심해볼 메인 로직 문제들
     // 1. Strategy 패턴 구현 오류: EnumMap 초기화나 전략 등록 실패
     // 2. 생성자 주입 문제: List<SocialLoginStrategy> 주입 실패

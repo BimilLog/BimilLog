@@ -21,9 +21,8 @@ import static org.mockito.Mockito.verify;
  * <p>비즈니스 로직 위주로 테스트하며, WebClient는 의존성으로만 Mock 처리</p>
  * <p>테스트 축소나 우회 없이 모든 시나리오를 완벽하게 테스트</p>
  *
- * @author Claude
+ * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 class KakaoLoginStrategyTest {

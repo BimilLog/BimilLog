@@ -34,9 +34,8 @@ import static org.mockito.Mockito.*;
  * <p>Redis 연동, 예외 처리, 동시성, 성능을 풍부하게 테스트</p>
  * <p>외부 시스템(Redis) 장애 상황에서의 안전한 동작을 중점 검증</p>
  * 
- * @author Claude
+ * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 class BlacklistCacheAdapterTest {

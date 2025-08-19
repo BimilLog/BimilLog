@@ -32,6 +32,19 @@ public enum ErrorCode {
     REPEAT_LOGIN(HttpStatus.FORBIDDEN, "다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요", LogLevel.INFO),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", LogLevel.WARN),
     SOCIAL_UNLINK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 연결 해제에 실패했습니다.", LogLevel.ERROR),
+    
+    /**
+     * <h3>임시 데이터 관련 에러 코드</h3>
+     * <p>
+     * 소셜 로그인 임시 데이터 저장, 조회, 삭제 등과 관련된 에러 코드
+     * </p>
+     * @since 2.0.0
+     */
+    INVALID_TEMP_UUID(HttpStatus.BAD_REQUEST, "임시 사용자 UUID가 유효하지 않습니다.", LogLevel.WARN),
+    INVALID_USER_DATA(HttpStatus.BAD_REQUEST, "사용자 데이터가 유효하지 않습니다.", LogLevel.WARN),  
+    INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", LogLevel.WARN),
+    TEMP_DATA_EXPIRED(HttpStatus.NOT_FOUND, "임시 데이터가 만료되었습니다.", LogLevel.INFO),
+    TEMP_DATA_NOT_FOUND(HttpStatus.NOT_FOUND, "임시 데이터를 찾을 수 없습니다.", LogLevel.INFO),
 
     /**
      * <h3>게시판 관련 에러 코드</h3>

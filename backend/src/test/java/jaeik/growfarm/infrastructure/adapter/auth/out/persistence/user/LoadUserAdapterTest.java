@@ -1,8 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.user;
 
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,9 +23,8 @@ import static org.mockito.Mockito.verify;
  * <p>사용자 조회 어댑터의 비즈니스 로직 위주로 테스트</p>
  * <p>헥사고날 아키텍처의 도메인 간 의존성 어댑터 테스트</p>
  *
- * @author Claude
+ * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 class LoadUserAdapterTest {
@@ -43,8 +42,8 @@ class LoadUserAdapterTest {
                 .id(existingUserId)
                 .provider(SocialProvider.KAKAO)
                 .socialId("123456789")
-                .nickname("testUser")
-                .profileImageUrl("https://example.com/profile.jpg")
+                .socialNickname("testUser")
+                .thumbnailImage("https://example.com/profile.jpg")
                 .role(UserRole.USER)
                 .build();
         
@@ -57,7 +56,7 @@ class LoadUserAdapterTest {
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(expectedUser);
         assertThat(result.get().getId()).isEqualTo(existingUserId);
-        assertThat(result.get().getNickname()).isEqualTo("testUser");
+        assertThat(result.get().getSocialNickname()).isEqualTo("testUser");
         assertThat(result.get().getProvider()).isEqualTo(SocialProvider.KAKAO);
         
         verify(userQueryUseCase).findById(existingUserId);
@@ -147,8 +146,8 @@ class LoadUserAdapterTest {
                 .id(userId)
                 .provider(SocialProvider.KAKAO)
                 .socialId("kakao123456")
-                .nickname("완전한사용자")
-                .profileImageUrl("https://example.com/complete-profile.jpg")
+                .socialNickname("완전한사용자")
+                .thumbnailImage("https://example.com/complete-profile.jpg")
                 .role(UserRole.USER)
                 .build();
         
@@ -163,8 +162,8 @@ class LoadUserAdapterTest {
         assertThat(returnedUser.getId()).isEqualTo(userId);
         assertThat(returnedUser.getProvider()).isEqualTo(SocialProvider.KAKAO);
         assertThat(returnedUser.getSocialId()).isEqualTo("kakao123456");
-        assertThat(returnedUser.getNickname()).isEqualTo("완전한사용자");
-        assertThat(returnedUser.getProfileImageUrl()).isEqualTo("https://example.com/complete-profile.jpg");
+        assertThat(returnedUser.getSocialNickname()).isEqualTo("완전한사용자");
+        assertThat(returnedUser.getThumbnailImage()).isEqualTo("https://example.com/complete-profile.jpg");
         assertThat(returnedUser.getRole()).isEqualTo(UserRole.USER);
         
         verify(userQueryUseCase).findById(userId);
@@ -179,8 +178,8 @@ class LoadUserAdapterTest {
                 .id(userId)
                 .provider(SocialProvider.KAKAO)
                 .socialId("partial123")
-                .nickname("부분사용자")
-                .profileImageUrl(null) // null 프로필 이미지
+                .socialNickname("부분사용자")
+                .thumbnailImage(null) // null 프로필 이미지
                 .role(UserRole.USER)
                 .build();
         
@@ -195,8 +194,8 @@ class LoadUserAdapterTest {
         assertThat(returnedUser.getId()).isEqualTo(userId);
         assertThat(returnedUser.getProvider()).isEqualTo(SocialProvider.KAKAO);
         assertThat(returnedUser.getSocialId()).isEqualTo("partial123");
-        assertThat(returnedUser.getNickname()).isEqualTo("부분사용자");
-        assertThat(returnedUser.getProfileImageUrl()).isNull();
+        assertThat(returnedUser.getSocialNickname()).isEqualTo("부분사용자");
+        assertThat(returnedUser.getThumbnailImage()).isNull();
         assertThat(returnedUser.getRole()).isEqualTo(UserRole.USER);
         
         verify(userQueryUseCase).findById(userId);
@@ -227,7 +226,7 @@ class LoadUserAdapterTest {
                 .id(userId)
                 .provider(SocialProvider.KAKAO)
                 .socialId("consistency123")
-                .nickname("일관성테스트")
+                .socialNickname("일관성테스트")
                 .role(UserRole.USER)
                 .build();
         
@@ -241,7 +240,7 @@ class LoadUserAdapterTest {
             // Then: 매번 동일한 결과 반환
             assertThat(result).isPresent();
             assertThat(result.get().getId()).isEqualTo(userId);
-            assertThat(result.get().getNickname()).isEqualTo("일관성테스트");
+            assertThat(result.get().getSocialNickname()).isEqualTo("일관성테스트");
         }
 
         // UserQueryUseCase가 정확히 호출 횟수만큼 호출되었는지 확인
@@ -259,7 +258,7 @@ class LoadUserAdapterTest {
                 .id(userId1)
                 .provider(SocialProvider.KAKAO)
                 .socialId("user1")
-                .nickname("사용자1")
+                .socialNickname("사용자1")
                 .role(UserRole.USER)
                 .build();
         
@@ -267,7 +266,7 @@ class LoadUserAdapterTest {
                 .id(userId2)
                 .provider(SocialProvider.KAKAO)
                 .socialId("user2")
-                .nickname("사용자2")
+                .socialNickname("사용자2")
                 .role(UserRole.ADMIN)
                 .build();
 
@@ -281,12 +280,12 @@ class LoadUserAdapterTest {
         // Then: 각각 올바른 사용자 반환
         assertThat(result1).isPresent();
         assertThat(result1.get().getId()).isEqualTo(userId1);
-        assertThat(result1.get().getNickname()).isEqualTo("사용자1");
+        assertThat(result1.get().getSocialNickname()).isEqualTo("사용자1");
         assertThat(result1.get().getRole()).isEqualTo(UserRole.USER);
 
         assertThat(result2).isPresent();
         assertThat(result2.get().getId()).isEqualTo(userId2);
-        assertThat(result2.get().getNickname()).isEqualTo("사용자2");
+        assertThat(result2.get().getSocialNickname()).isEqualTo("사용자2");
         assertThat(result2.get().getRole()).isEqualTo(UserRole.ADMIN);
 
         verify(userQueryUseCase).findById(userId1);
@@ -302,7 +301,7 @@ class LoadUserAdapterTest {
                 .id(userId)
                 .provider(SocialProvider.KAKAO)
                 .socialId("hexagonal123")
-                .nickname("아키텍처테스트")
+                .socialNickname("아키텍처테스트")
                 .role(UserRole.USER)
                 .build();
         

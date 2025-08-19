@@ -41,9 +41,8 @@ import static org.mockito.Mockito.*;
  * <p>비즈니스 로직과 외부 의존성 간 상호작용을 Mock으로 검증</p>
  * <p>트랜잭션 처리, 이벤트 발행, 예외 처리 로직을 중점 검증</p>
  * 
- * @author Claude
+ * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 class SaveDataAdapterTest {

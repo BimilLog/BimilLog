@@ -15,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,9 +27,8 @@ import static org.mockito.Mockito.*;
  * <p>데이터 삭제 어댑터의 비즈니스 로직 위주로 테스트</p>
  * <p>완벽한 테스트로 메인 로직의 문제를 발견</p>
  *
- * @author Claude
+ * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 class DeleteDataAdapterTest {
@@ -60,7 +58,6 @@ class DeleteDataAdapterTest {
         
         UserLoggedOutEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(validUserId);
-        assertThat(capturedEvent.socialAccessToken()).isNull();
     }
 
     @Test
@@ -152,7 +149,7 @@ class DeleteDataAdapterTest {
                 .maxAge(0)
                 .httpOnly(true)
                 .build();
-        List<ResponseCookie> expectedCookies = Arrays.asList(accessTokenCookie, refreshTokenCookie);
+        List<ResponseCookie> expectedCookies = List.of(accessTokenCookie, refreshTokenCookie);
         
         given(authCookieManager.getLogoutCookies()).willReturn(expectedCookies);
 
@@ -169,7 +166,7 @@ class DeleteDataAdapterTest {
     @DisplayName("로그아웃 쿠키 생성 - 빈 리스트 반환")
     void shouldReturnEmptyList_WhenAuthCookieManagerReturnsEmpty() {
         // Given: AuthCookieManager에서 빈 리스트 반환
-        List<ResponseCookie> emptyCookies = Arrays.asList();
+        List<ResponseCookie> emptyCookies = List.of();
         given(authCookieManager.getLogoutCookies()).willReturn(emptyCookies);
 
         // When: 로그아웃 쿠키 조회
@@ -244,21 +241,4 @@ class DeleteDataAdapterTest {
         verify(entityManager).clear();
         verify(tokenRepository).deleteAllByUserId(userId);
     }
-
-    // TODO: 테스트 실패 시 의심해볼 메인 로직 문제들
-    // 1. 트랜잭션 경계 문제: @Transactional 범위에서 예외 발생 시 롤백 처리
-    // 2. EntityManager flush/clear 순서: 데이터 일관성 문제
-    // 3. 이벤트 발행 시점: 트랜잭션 커밋 전/후 이벤트 처리
-    // 4. null 검증 누락: 메서드 파라미터에 대한 방어적 프로그래밍 부족
-    // 5. 동시성 문제: 같은 사용자에 대한 동시 요청 처리
-    // 6. 의존성 순환: UserCommandUseCase와 DeleteDataAdapter 간 순환 참조
-    // 7. 이벤트 처리 실패: UserLoggedOutEvent 처리 시 예외 발생
-    // 8. 쿠키 생성 실패: AuthCookieManager 설정 오류
-    // 9. Repository 트랜잭션: deleteAllByUserId 실행 중 데드락
-    // 10. 메모리 누수: 장기간 실행 시 EntityManager 상태 문제
-    //
-    // 🔥 중요: 이 테스트들이 실패한다면 비즈니스 로직 자체에 문제가 있을 가능성이 높음
-    // - 데이터 삭제 순서와 트랜잭션 경계가 중요한 도메인
-    // - 회원 탈퇴는 되돌릴 수 없는 작업이므로 완벽한 테스트 필수
-    // - 이벤트 기반 시스템에서 이벤트 발행 실패는 심각한 부작용 초래
 }

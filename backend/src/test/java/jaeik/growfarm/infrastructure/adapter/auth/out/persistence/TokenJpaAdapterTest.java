@@ -36,9 +36,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>MySQL TestContainer를 사용한 토큰 어댑터의 데이터베이스 통합 테스트</p>
  * <p>데이터 매핑, JPA 관계, 영속성 레이어를 실제 환경에서 검증</p>
  * 
- * @author Claude
+ * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @DataJpaTest(
         excludeFilters = @ComponentScan.Filter(
