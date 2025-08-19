@@ -5,6 +5,8 @@ import jaeik.growfarm.domain.common.entity.SocialProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * <h2>BlackList Repository Interface</h2>
  * <p>
@@ -29,4 +31,19 @@ public interface BlackListRepository extends JpaRepository<BlackList, Long> {
      * @return 블랙리스트에 존재하면 true, 아니면 false
      */
     boolean existsByProviderAndSocialId(SocialProvider provider, String socialId);
+
+
+    //TODO 왜 만든건지 확인
+    /**
+     * <h3>소셜 제공자와 소셜 ID로 블랙리스트 조회</h3>
+     *
+     * <p>
+     * 주어진 소셜 제공자와 소셜 ID로 블랙리스트를 조회한다.
+     * </p>
+     *
+     * @param provider 소셜 제공자
+     * @param socialId 소셜 ID
+     * @return 블랙리스트 엔티티 (존재하지 않으면 Optional.empty())
+     */
+    Optional<BlackList> findByProviderAndSocialId(SocialProvider provider, String socialId);
 }
