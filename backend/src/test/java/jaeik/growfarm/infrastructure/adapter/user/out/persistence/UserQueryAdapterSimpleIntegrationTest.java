@@ -286,7 +286,7 @@ class UserQueryAdapterSimpleIntegrationTest {
     @DisplayName("경계값 - 빈 소셜 ID 목록으로 사용자 이름 조회")
     void shouldReturnEmptyList_WhenEmptySocialIdsProvided() {
         // When: 빈 목록으로 사용자 이름 조회
-        List<String> result = userQueryAdapter.findUserNamesInOrder(Arrays.asList());
+        List<String> result = userQueryAdapter.findUserNamesInOrder(List.of());
 
         // Then: 빈 목록이 반환되는지 검증
         assertThat(result).isEmpty();

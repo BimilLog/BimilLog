@@ -145,9 +145,6 @@ class LoadCommentAdapterTest {
         loadCommentAdapter.findCommentsByUserId(nullUserId, pageable);
 
         // Then: UseCase에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null userId에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: LoadCommentAdapter.findCommentsByUserId() 메서드에 null 검증 추가
         verify(commentQueryUseCase).getUserComments(eq(nullUserId), eq(pageable));
     }
 
@@ -162,9 +159,6 @@ class LoadCommentAdapterTest {
         loadCommentAdapter.findCommentsByUserId(userId, nullPageable);
 
         // Then: UseCase에 null 페이지가 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null Pageable에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: LoadCommentAdapter.findCommentsByUserId() 메서드에 Pageable null 검증 추가
         verify(commentQueryUseCase).getUserComments(eq(userId), eq(nullPageable));
     }
 

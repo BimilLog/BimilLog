@@ -114,14 +114,15 @@ public class User extends BaseEntity {
      *
      * <p>
      * 카카오 정보와 사용자 이름을 기반으로 새로운 사용자 엔티티를 생성한다.
-     * Setting은 UserSignedUpEvent 이벤트 핸들러에서 별도로 생성된다.
+     * Setting은 명시적으로 전달되어야 한다.
      * </p>
      *
      * @param userData 카카오 정보 DTO
-     * @param userName     사용자 이름
-     * @return 생성된 사용자 엔티티 (Setting은 null 상태)
+     * @param userName 사용자 이름
+     * @param setting 사용자 설정
+     * @return 생성된 사용자 엔티티
      */
-    public static User createUser(SocialLoginUserData userData, String userName) {
+    public static User createUser(SocialLoginUserData userData, String userName, Setting setting) {
         return User.builder()
                 .socialId(userData.socialId())
                 .provider(userData.provider())
@@ -129,7 +130,7 @@ public class User extends BaseEntity {
                 .thumbnailImage(userData.profileImageUrl())
                 .userName(userName)
                 .role(UserRole.USER)
-                .setting(null) // 이벤트 핸들러에서 생성하도록 변경
+                .setting(setting)
                 .build();
     }
 }

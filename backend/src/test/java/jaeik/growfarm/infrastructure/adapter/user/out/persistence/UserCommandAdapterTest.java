@@ -148,9 +148,6 @@ class UserCommandAdapterTest {
         User result = userCommandAdapter.save(nullUser);
 
         // Then: Repository에 null이 전달되고 결과도 null인지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null 입력에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: UserCommandAdapter.save() 메서드에 null 검증 추가
         assertThat(result).isNull();
         verify(userRepository).save(nullUser);
     }
@@ -167,9 +164,6 @@ class UserCommandAdapterTest {
         Setting result = userCommandAdapter.save(nullSetting);
 
         // Then: Repository에 null이 전달되고 결과도 null인지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null 입력에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: UserCommandAdapter.save(Setting) 메서드에 null 검증 추가
         assertThat(result).isNull();
         verify(settingRepository).save(nullSetting);
     }
@@ -184,9 +178,7 @@ class UserCommandAdapterTest {
         userCommandAdapter.deleteById(nullId);
 
         // Then: Repository에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null ID에 대한 방어 코드 누락으로 예외 발생 가능성
-        // 수정 필요: UserCommandAdapter.deleteById() 메서드에 null 검증 추가
+
         verify(userRepository).deleteById(nullId);
     }
 
@@ -200,9 +192,7 @@ class UserCommandAdapterTest {
         userCommandAdapter.save(nullBlackList);
 
         // Then: Repository에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null 입력에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: UserCommandAdapter.save(BlackList) 메서드에 null 검증 추가
+
         verify(blackListRepository).save(nullBlackList);
     }
 }

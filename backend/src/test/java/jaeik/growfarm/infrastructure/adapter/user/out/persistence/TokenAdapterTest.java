@@ -169,9 +169,6 @@ class TokenAdapterTest {
         Optional<Token> result = tokenAdapter.findById(nullId);
 
         // Then: Repository에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null ID에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: TokenAdapter.findById() 메서드에 null 검증 추가
         assertThat(result).isEmpty();
         verify(tokenRepository).findById(nullId);
     }
@@ -187,9 +184,6 @@ class TokenAdapterTest {
         Optional<Token> result = tokenAdapter.findByUsers(nullUser);
 
         // Then: Repository에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null User에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: TokenAdapter.findByUsers() 메서드에 null 검증 추가
         assertThat(result).isEmpty();
         verify(tokenRepository).findByUsers(nullUser);
     }
@@ -205,9 +199,6 @@ class TokenAdapterTest {
         Token result = tokenAdapter.save(nullToken);
 
         // Then: Repository에 null이 전달되고 결과도 null인지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null 입력에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: TokenAdapter.save() 메서드에 null 검증 추가
         assertThat(result).isNull();
         verify(tokenRepository).save(nullToken);
     }

@@ -259,8 +259,8 @@ class UserQueryAdapterTest {
     @DisplayName("경계값 - 빈 소셜 ID 목록으로 사용자 이름 조회")
     void shouldReturnEmptyList_WhenEmptySocialIdsProvided() {
         // Given: 빈 소셜 ID 목록
-        List<String> emptySocialIds = Arrays.asList();
-        List<String> emptyUserNames = Arrays.asList();
+        List<String> emptySocialIds = List.of();
+        List<String> emptyUserNames = List.of();
         
         given(userRepository.findUserNamesInOrder(emptySocialIds)).willReturn(emptyUserNames);
 
@@ -283,9 +283,7 @@ class UserQueryAdapterTest {
         Optional<User> result = userQueryAdapter.findById(nullId);
 
         // Then: Repository에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null ID에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: UserQueryAdapter.findById() 메서드에 null 검증 추가
+
         assertThat(result).isEmpty();
         verify(userRepository).findById(nullId);
     }
@@ -301,9 +299,7 @@ class UserQueryAdapterTest {
         Optional<User> result = userQueryAdapter.findByUserName(nullUserName);
 
         // Then: Repository에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null userName에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: UserQueryAdapter.findByUserName() 메서드에 null 검증 추가
+
         assertThat(result).isEmpty();
         verify(userRepository).findByUserName(nullUserName);
     }

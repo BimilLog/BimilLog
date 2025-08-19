@@ -7,7 +7,6 @@ import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
-import jaeik.growfarm.domain.auth.event.UserSignedUpEvent;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -215,55 +214,6 @@ class UserCommandServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
     }
 
-    @Test
-    @DisplayName("사용자 가입 이벤트 처리 - 정상 케이스")
-    void shouldHandleUserSignedUpEvent_WhenUserExists() {
-        // Given
-        Long userId = 1L;
-        UserSignedUpEvent event = new UserSignedUpEvent(userId);
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("newUser")
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456")
-                .role(UserRole.USER)
-                .build();
-
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-
-        // When
-        userCommandService.handleUserSignedUpEvent(event);
-
-        // Then
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userQueryPort).findById(userId);
-        verify(userCommandPort).save(userCaptor.capture());
-        
-        User savedUser = userCaptor.getValue();
-        assertThat(savedUser.getSetting()).isNotNull();
-        assertThat(savedUser.getSetting().isCommentNotification()).isTrue(); // 기본값
-        assertThat(savedUser.getSetting().isPostFeaturedNotification()).isTrue(); // 기본값
-        assertThat(savedUser.getSetting().isMessageNotification()).isTrue(); // 기본값
-    }
-
-    @Test
-    @DisplayName("사용자 가입 이벤트 처리 - 사용자가 존재하지 않는 경우")
-    void shouldThrowException_WhenUserNotFoundForSignUpEvent() {
-        // Given
-        Long userId = 999L;
-        UserSignedUpEvent event = new UserSignedUpEvent(userId);
-
-        given(userQueryPort.findById(userId)).willReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> userCommandService.handleUserSignedUpEvent(event))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
-        
-        verify(userQueryPort).findById(userId);
-        verify(userCommandPort, never()).save(any(User.class));
-    }
 
     @Test
     @DisplayName("빈 문자열 닉네임 변경 시도")

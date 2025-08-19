@@ -41,6 +41,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>실제 MySQL 데이터베이스를 사용한 UserQueryAdapter의 통합 테스트</p>
  * <p>TestContainers를 사용하여 실제 MySQL 환경에서 데이터 매핑 및 쿼리 동작 검증</p>
  * 
+ * <p><strong>Note:</strong> User 엔티티의 @NotNull setting 제약조건에 따라 
+ * 모든 테스트 사용자는 유효한 Setting을 가져야 함</p>
+ * 
  * @author Jaeik
  * @version 2.0.0
  */
@@ -116,6 +119,14 @@ class UserQueryAdapterIntegrationTest {
                 .build();
         testSetting = settingRepository.save(testSetting);
 
+        // 두 번째 사용자용 설정 생성
+        Setting testSetting2 = Setting.builder()
+                .messageNotification(false)
+                .commentNotification(true)
+                .postFeaturedNotification(false)
+                .build();
+        testSetting2 = settingRepository.save(testSetting2);
+
         // 사용자 생성
         testUser1 = User.builder()
                 .socialId("kakao123")
@@ -134,7 +145,7 @@ class UserQueryAdapterIntegrationTest {
                 .socialNickname("카카오유저2")
                 .thumbnailImage("http://example.com/image2.jpg")
                 .role(UserRole.USER)
-                .setting(null)  // 설정 없는 사용자
+                .setting(testSetting2)  // 별도 설정을 가진 사용자
                 .build();
 
         testUser1 = userRepository.save(testUser1);
@@ -235,12 +246,19 @@ class UserQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 순서대로 사용자 이름 조회")
     void shouldFindUserNamesInOrder_WhenSocialIdsProvided() {
         // Given: 추가 사용자 생성
+        Setting testSetting3 = Setting.builder()
+                .messageNotification(true)
+                .commentNotification(true)
+                .postFeaturedNotification(true)
+                .build();
+        testSetting3 = settingRepository.save(testSetting3);
+        
         User testUser3 = User.builder()
                 .socialId("kakao789")
                 .provider(SocialProvider.KAKAO)
                 .userName("testUser3")
                 .role(UserRole.USER)
-                .setting(null)
+                .setting(testSetting3)
                 .build();
         userRepository.save(testUser3);
 
@@ -296,16 +314,19 @@ class UserQueryAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("경계값 - 설정이 없는 사용자 조회")
-    void shouldHandleUserWithoutSetting_WhenUserHasNoSetting() {
-        // When: 설정이 없는 사용자 조회
+    @DisplayName("경계값 - 다른 설정을 가진 사용자 조회")
+    void shouldHandleUserWithDifferentSetting_WhenUserHasDifferentSetting() {
+        // When: 다른 설정을 가진 사용자 조회
         Optional<User> result = userQueryAdapter.findByIdWithSetting(testUser2.getId());
 
-        // Then: 사용자는 조회되지만 설정은 null인지 검증
+        // Then: 사용자와 해당 설정이 올바르게 조회되는지 검증
         assertThat(result).isPresent();
         User foundUser = result.get();
         assertThat(foundUser.getId()).isEqualTo(testUser2.getId());
-        assertThat(foundUser.getSetting()).isNull();
+        assertThat(foundUser.getSetting()).isNotNull();
+        assertThat(foundUser.getSetting().isMessageNotification()).isFalse();
+        assertThat(foundUser.getSetting().isCommentNotification()).isTrue();
+        assertThat(foundUser.getSetting().isPostFeaturedNotification()).isFalse();
     }
 
     @Test

@@ -2,7 +2,6 @@ package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 
 import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
 import jaeik.growfarm.domain.auth.event.FcmTokenRegisteredEvent;
-import jaeik.growfarm.domain.auth.event.UserSignedUpEvent;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.entity.Token;
@@ -89,8 +88,10 @@ public class SaveDataAdapter implements ManageSaveDataPort {
     @Override
     @Transactional
     public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) { // fcmToken 인자 추가
-        User user = userCommandUseCase.save(User.createUser(userData, userName));
-        eventPublisher.publishEvent(new UserSignedUpEvent(user.getId()));
+        // Setting을 명시적으로 생성하여 User와 함께 저장
+        jaeik.growfarm.domain.user.entity.Setting setting = jaeik.growfarm.domain.user.entity.Setting.createSetting();
+        
+        User user = userCommandUseCase.save(User.createUser(userData, userName, setting));
 
         // 신규 사용자 FCM 토큰 등록 이벤트 발행
         if (fcmToken != null && !fcmToken.isEmpty()) {

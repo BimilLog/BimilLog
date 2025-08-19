@@ -7,13 +7,10 @@ import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
-import jaeik.growfarm.domain.auth.event.UserSignedUpEvent;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,24 +101,4 @@ public class UserCommandService implements UserCommandUseCase {
     }
 
 
-    /**
-     * <h3>사용자 가입 이벤트 처리</h3>
-     * <p>새로운 사용자가 가입했을 때 기본 설정을 초기화하는 메서드입니다.</p>
-     *
-     * @param event 사용자 가입 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async
-    @Transactional
-    @EventListener
-    public void handleUserSignedUpEvent(UserSignedUpEvent event) {
-        User user = userQueryPort.findById(event.userId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        
-        Setting setting = Setting.createSetting();
-        user.updateSetting(setting);
-        userCommandPort.save(user);
-        log.info("Initialized default settings for new user (ID: {})", event.userId());
-    }
 }

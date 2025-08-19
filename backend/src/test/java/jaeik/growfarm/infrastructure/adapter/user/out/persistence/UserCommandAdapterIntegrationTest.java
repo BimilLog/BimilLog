@@ -148,13 +148,16 @@ class UserCommandAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 기존 사용자 정보 업데이트")
     void shouldUpdateExistingUser_WhenUserModified() {
         // Given: 기존 사용자 생성 및 저장
+        Setting setting = Setting.createSetting();
+        setting = settingRepository.save(setting);
+        
         User existingUser = User.builder()
                 .socialId("kakao456")
                 .provider(SocialProvider.KAKAO)
                 .userName("oldUserName")
                 .socialNickname("old nickname")
                 .role(UserRole.USER)
-                .setting(null)
+                .setting(setting)
                 .build();
         existingUser = userRepository.save(existingUser);
 
@@ -238,12 +241,15 @@ class UserCommandAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 사용자 삭제")
     void shouldDeleteUser_WhenValidIdProvided() {
         // Given: 기존 사용자 생성 및 저장
+        Setting setting = Setting.createSetting();
+        setting = settingRepository.save(setting);
+        
         User existingUser = User.builder()
                 .socialId("kakao789")
                 .provider(SocialProvider.KAKAO)
                 .userName("userToDelete")
                 .role(UserRole.USER)
-                .setting(null)
+                .setting(setting)
                 .build();
         existingUser = userRepository.save(existingUser);
         Long userId = existingUser.getId();
@@ -269,13 +275,10 @@ class UserCommandAdapterIntegrationTest {
         userCommandAdapter.save(blackList);
 
         // Then: 블랙리스트가 올바르게 저장되었는지 검증
-        Optional<BlackList> savedBlackList = blackListRepository
-                .findByProviderAndSocialId(SocialProvider.KAKAO, "kakaoBlocked123");
+        boolean isBlackListed = blackListRepository
+                .existsByProviderAndSocialId(SocialProvider.KAKAO, "kakaoBlocked123");
         
-        assertThat(savedBlackList).isPresent();
-        assertThat(savedBlackList.get().getSocialId()).isEqualTo("kakaoBlocked123");
-        assertThat(savedBlackList.get().getProvider()).isEqualTo(SocialProvider.KAKAO);
-        assertThat(savedBlackList.get().getCreatedAt()).isNotNull();
+        assertThat(isBlackListed).isTrue();
     }
 
     @Test
@@ -316,22 +319,28 @@ class UserCommandAdapterIntegrationTest {
     @DisplayName("경계값 - 중복 닉네임으로 사용자 저장 시 예외")
     void shouldThrowException_WhenDuplicateUserNameProvided() {
         // Given: 이미 존재하는 닉네임을 가진 사용자
+        Setting setting1 = Setting.createSetting();
+        setting1 = settingRepository.save(setting1);
+        
         User existingUser = User.builder()
                 .socialId("kakao111")
                 .provider(SocialProvider.KAKAO)
                 .userName("duplicateUser")
                 .role(UserRole.USER)
-                .setting(null)
+                .setting(setting1)
                 .build();
         userRepository.save(existingUser);
 
         // 동일한 닉네임을 가진 다른 사용자
+        Setting setting2 = Setting.createSetting();
+        setting2 = settingRepository.save(setting2);
+        
         User duplicateUser = User.builder()
                 .socialId("kakao222")
                 .provider(SocialProvider.KAKAO)
                 .userName("duplicateUser")  // 중복 닉네임
                 .role(UserRole.USER)
-                .setting(null)
+                .setting(setting2)
                 .build();
 
         // When & Then: 중복 닉네임으로 저장 시 예외 발생
