@@ -251,13 +251,13 @@ class PostAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
         
         // 작성 게시글
-        Page<SimplePostResDTO> userPosts = new PageImpl<>(Arrays.asList(
-            SimplePostResDTO.builder().id(1L).title("작성 게시글").build()
+        Page<SimplePostResDTO> userPosts = new PageImpl<>(Collections.singletonList(
+                SimplePostResDTO.builder().id(1L).title("작성 게시글").build()
         ), pageable, 1);
         
         // 추천 게시글
-        Page<SimplePostResDTO> likedPosts = new PageImpl<>(Arrays.asList(
-            SimplePostResDTO.builder().id(2L).title("추천 게시글").build()
+        Page<SimplePostResDTO> likedPosts = new PageImpl<>(Collections.singletonList(
+                SimplePostResDTO.builder().id(2L).title("추천 게시글").build()
         ), pageable, 1);
         
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(userPosts);
@@ -268,8 +268,8 @@ class PostAdapterTest {
         Page<SimplePostResDTO> likedPostsResult = postAdapter.findLikedPostsByUserId(userId, pageable);
 
         // Then: 각각 올바른 결과가 반환되는지 검증
-        assertThat(userPostsResult.getContent().get(0).getTitle()).isEqualTo("작성 게시글");
-        assertThat(likedPostsResult.getContent().get(0).getTitle()).isEqualTo("추천 게시글");
+        assertThat(userPostsResult.getContent().getFirst().getTitle()).isEqualTo("작성 게시글");
+        assertThat(likedPostsResult.getContent().getFirst().getTitle()).isEqualTo("추천 게시글");
         
         verify(postQueryUseCase).getUserPosts(eq(userId), eq(pageable));
         verify(postQueryUseCase).getUserLikedPosts(eq(userId), eq(pageable));

@@ -344,9 +344,6 @@ class UserCommandAdapterIntegrationTest {
                 .build();
 
         // When & Then: 중복 닉네임으로 저장 시 예외 발생
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // 중복 닉네임 검증 로직이 누락되어 DB 제약조건 위반 발생 가능
-        // 수정 필요: UserCommandAdapter.save() 메서드에 중복 검증 추가
         org.junit.jupiter.api.Assertions.assertThrows(
                 org.springframework.dao.DataIntegrityViolationException.class,
                 () -> userCommandAdapter.save(duplicateUser)

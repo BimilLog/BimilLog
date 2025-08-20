@@ -47,11 +47,12 @@ class DeleteDataAdapterTest {
         // Given: 유효한 사용자 ID
         Long validUserId = 1L;
 
-        // When: 사용자 로그아웃 실행
-        deleteDataAdapter.logoutUser(validUserId);
+        // When: 사용자 로그아웃 실행 (특정 토큰 삭제)
+        Long tokenId = 123L;
+        deleteDataAdapter.logoutUser(validUserId, tokenId);
 
-        // Then: 토큰 삭제 및 이벤트 발행 검증
-        verify(tokenRepository).deleteAllByUserId(validUserId);
+        // Then: 특정 토큰 삭제 및 이벤트 발행 검증
+        verify(tokenRepository).deleteById(tokenId);
         
         ArgumentCaptor<UserLoggedOutEvent> eventCaptor = ArgumentCaptor.forClass(UserLoggedOutEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -67,7 +68,7 @@ class DeleteDataAdapterTest {
         Long nullUserId = null;
 
         // When: null 사용자 ID로 로그아웃 시도
-        deleteDataAdapter.logoutUser(nullUserId);
+        deleteDataAdapter.logoutUser(nullUserId, 123L);
 
         // Then: 토큰 삭제와 이벤트 발행이 호출됨 (null 처리는 비즈니스 로직에서 검증)
         verify(tokenRepository).deleteAllByUserId(nullUserId);
@@ -81,7 +82,7 @@ class DeleteDataAdapterTest {
         Long nonExistentUserId = 999L;
 
         // When: 존재하지 않는 사용자 ID로 로그아웃
-        deleteDataAdapter.logoutUser(nonExistentUserId);
+        deleteDataAdapter.logoutUser(nonExistentUserId, 123L);
 
         // Then: 토큰 삭제 시도 및 이벤트 발행 (실제 존재 여부는 repository에서 처리)
         verify(tokenRepository).deleteAllByUserId(nonExistentUserId);
@@ -198,8 +199,8 @@ class DeleteDataAdapterTest {
         Long userId = 1L;
 
         // When: 동시에 로그아웃 실행
-        deleteDataAdapter.logoutUser(userId);
-        deleteDataAdapter.logoutUser(userId);
+        deleteDataAdapter.logoutUser(userId, null); // 모든 토큰 삭제
+        deleteDataAdapter.logoutUser(userId, null); // 모든 토큰 삭제
 
         // Then: 두 번의 로그아웃 처리 검증
         verify(tokenRepository, times(2)).deleteAllByUserId(userId);
@@ -215,7 +216,7 @@ class DeleteDataAdapterTest {
         doThrow(expectedException).when(tokenRepository).deleteAllByUserId(userId);
 
         // When & Then: 예외 전파 검증
-        assertThatThrownBy(() -> deleteDataAdapter.logoutUser(userId))
+        assertThatThrownBy(() -> deleteDataAdapter.logoutUser(userId, null))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Database error");
 

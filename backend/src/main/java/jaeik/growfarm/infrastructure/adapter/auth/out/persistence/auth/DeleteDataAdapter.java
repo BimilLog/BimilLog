@@ -26,17 +26,24 @@ public class DeleteDataAdapter implements ManageDeleteDataPort {
 
     /**
      * <h3>로그아웃 처리</h3>
-     * <p>사용자를 로그아웃하고, 소셜 로그아웃을 수행하며, 이벤트를 발행합니다.</p>
+     * <p>다중 로그인 환경에서 특정 토큰만 삭제하여 해당 기기만 로그아웃 처리합니다.</p>
      *
      * @param userId 사용자 ID
+     * @param tokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제)
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     @Transactional
-    public void logoutUser(Long userId) {
-        tokenRepository.deleteAllByUserId(userId);
-        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, null));
+    public void logoutUser(Long userId, Long tokenId) {
+        if (tokenId != null) {
+            // 특정 토큰만 삭제 (다중 로그인 유지)
+            tokenRepository.deleteById(tokenId);
+        } else {
+            // tokenId가 null인 경우 (회원탈퇴 등) 모든 토큰 삭제
+            tokenRepository.deleteAllByUserId(userId);
+        }
+        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId));
     }
 
     /**

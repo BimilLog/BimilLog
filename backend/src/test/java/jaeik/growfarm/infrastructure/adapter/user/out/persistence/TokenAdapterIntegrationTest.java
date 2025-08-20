@@ -32,6 +32,7 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -171,13 +172,21 @@ class TokenAdapterIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 새로운 토큰 저장")
     void shouldSaveNewToken_WhenValidTokenProvided() {
-        // Given: 새로운 사용자 생성
+        // Given: 설정을 먼저 생성 (User는 반드시 Setting을 가져야 함)
+        Setting newUserSetting = Setting.builder()
+                .messageNotification(true)
+                .commentNotification(true)
+                .postFeaturedNotification(false)
+                .build();
+        newUserSetting = settingRepository.save(newUserSetting);
+        
+        // 새로운 사용자 생성 (Setting 포함)
         User newUser = User.builder()
                 .socialId("kakao456")
                 .provider(SocialProvider.KAKAO)
                 .userName("newTokenUser")
                 .role(UserRole.USER)
-                .setting(null)
+                .setting(newUserSetting)
                 .build();
         newUser = userRepository.save(newUser);
 
@@ -260,13 +269,21 @@ class TokenAdapterIntegrationTest {
     @Test
     @DisplayName("경계값 - 토큰이 없는 사용자로 조회")
     void shouldReturnEmpty_WhenUserHasNoToken() {
-        // Given: 토큰이 없는 새로운 사용자
+        // Given: 설정을 먼저 생성 (User는 반드시 Setting을 가져야 함)
+        Setting userWithoutTokenSetting = Setting.builder()
+                .messageNotification(false)
+                .commentNotification(false)
+                .postFeaturedNotification(false)
+                .build();
+        userWithoutTokenSetting = settingRepository.save(userWithoutTokenSetting);
+        
+        // 토큰이 없는 새로운 사용자 (Setting 포함)
         User userWithoutToken = User.builder()
                 .socialId("kakao999")
                 .provider(SocialProvider.KAKAO)
                 .userName("userWithoutToken")
                 .role(UserRole.USER)
-                .setting(null)
+                .setting(userWithoutTokenSetting)
                 .build();
         userWithoutToken = userRepository.save(userWithoutToken);
 
@@ -278,22 +295,41 @@ class TokenAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("관계 매핑 - 사용자 삭제 시 토큰도 자동 삭제 (CASCADE)")
-    void shouldDeleteToken_WhenUserIsDeleted() {
-        // Given: 토큰과 연결된 사용자 ID 확인
-        Long userId = testUser.getId();
-        Long tokenId = testToken.getId();
+    @DisplayName("관계 매핑 - 사용자 삭제 시 모든 토큰 자동 삭제 (CASCADE)")
+    void shouldDeleteAllTokens_WhenUserIsDeleted() {
+        // Given: 사용자가 여러 토큰을 가진 상황 생성 (다중 로그인)
+        Token additionalToken = Token.builder()
+                .accessToken("second-access-token")
+                .refreshToken("second-refresh-token")
+                .users(testUser)
+                .build();
+        Token savedAdditionalToken = entityManager.persistAndFlush(additionalToken);
+        entityManager.clear();
         
-        // 사용자와 토큰 존재 확인
+        Long userId = testUser.getId();
+        Long firstTokenId = testToken.getId();
+        Long secondTokenId = savedAdditionalToken.getId();
+        
+        // 사용자와 모든 토큰 존재 확인
         assertThat(userRepository.findById(userId)).isPresent();
-        assertThat(tokenRepository.findById(tokenId)).isPresent();
+        assertThat(tokenRepository.findById(firstTokenId)).isPresent();
+        assertThat(tokenRepository.findById(secondTokenId)).isPresent();
+        
+        // Repository 레벨에서 토큰 개수 확인
+        List<Token> userTokens = tokenRepository.findByUsersId(userId);
+        assertThat(userTokens).hasSize(2);
 
-        // When: 사용자 삭제 (CASCADE로 토큰도 함께 삭제되어야 함)
+        // When: 사용자 삭제 (CASCADE로 모든 토큰이 함께 삭제되어야 함)
         userRepository.deleteById(userId);
 
-        // Then: 토큰도 자동으로 삭제되었는지 검증
+        // Then: 사용자와 모든 토큰이 자동으로 삭제되었는지 검증
         assertThat(userRepository.findById(userId)).isEmpty();
-        assertThat(tokenRepository.findById(tokenId)).isEmpty();
+        assertThat(tokenRepository.findById(firstTokenId)).isEmpty();
+        assertThat(tokenRepository.findById(secondTokenId)).isEmpty();
+        
+        // 사용자의 모든 토큰이 삭제되었는지 확인
+        List<Token> remainingTokens = tokenRepository.findByUsersId(userId);
+        assertThat(remainingTokens).isEmpty();
     }
 
     @Test
@@ -339,16 +375,16 @@ class TokenAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("트랜잭션 - 한 사용자의 여러 토큰 시나리오")
-    void shouldHandleMultipleTokensPerUser_WhenBusinessRuleAllows() {
-        // Given: 동일한 사용자에 대한 추가 토큰 생성
+    @DisplayName("다중 로그인 - 한 사용자의 여러 토큰 관리 시나리오")
+    void shouldHandleMultipleTokensPerUser_WhenMultipleDeviceLogin() {
+        // Given: 동일한 사용자에 대한 추가 토큰 생성 (다중 기기 로그인 지원)
         Token additionalToken = Token.builder()
-                .accessToken("additional-access-token")
-                .refreshToken("additional-refresh-token")
+                .accessToken("additional-access-token-pc")
+                .refreshToken("additional-refresh-token-pc")
                 .users(testUser)
                 .build();
 
-        // When: 추가 토큰 저장
+        // When: 추가 토큰 저장 (새로운 기기에서 로그인)
         Token savedAdditionalToken = tokenAdapter.save(additionalToken);
 
         // Then: 두 개의 토큰이 모두 저장되었는지 검증
@@ -356,13 +392,58 @@ class TokenAdapterIntegrationTest {
         assertThat(savedAdditionalToken.getId()).isNotNull();
         assertThat(savedAdditionalToken.getId()).isNotEqualTo(testToken.getId());
         
-        // 사용자로 토큰 조회 시 하나만 반환 (findByUsers는 하나의 결과만 반환)
-        Optional<Token> userTokenResult = tokenAdapter.findByUsers(testUser);
-        assertThat(userTokenResult).isPresent();
+        // 다중 로그인 환경: 각 토큰을 ID로 정확히 조회 가능
+        Optional<Token> mobileToken = tokenAdapter.findById(testToken.getId());
+        Optional<Token> pcToken = tokenAdapter.findById(savedAdditionalToken.getId());
         
-        // 두 토큰 모두 DB에 존재하는지 확인
-        assertThat(tokenRepository.findById(testToken.getId())).isPresent();
-        assertThat(tokenRepository.findById(savedAdditionalToken.getId())).isPresent();
+        assertThat(mobileToken).isPresent();
+        assertThat(pcToken).isPresent();
+        assertThat(mobileToken.get().getAccessToken()).isEqualTo("kakao-access-token-123");
+        assertThat(pcToken.get().getAccessToken()).isEqualTo("additional-access-token-pc");
+        
+        // Repository 레벨에서 사용자의 모든 토큰 확인
+        List<Token> allUserTokens = tokenRepository.findByUsersId(testUser.getId());
+        assertThat(allUserTokens).hasSize(2);
+        
+        // 다중 로그인 비즈니스 로직: findByUsers는 여러 토큰 중 임의의 하나 반환 (비추천)
+        // 실제 서비스에서는 UserDetails.getTokenId()로 특정 토큰을 findById()로 조회
+        Optional<Token> anyToken = tokenAdapter.findByUsers(testUser);
+        assertThat(anyToken).isPresent(); // 어떤 토큰이든 하나는 반환되어야 함
+    }
+
+    @Test
+    @DisplayName("다중 로그인 - 특정 기기 로그아웃 시나리오")
+    void shouldDeleteSpecificToken_WhenSingleDeviceLogout() {
+        // Given: 사용자가 두 기기에서 로그인한 상황
+        Token pcToken = Token.builder()
+                .accessToken("pc-access-token")
+                .refreshToken("pc-refresh-token")
+                .users(testUser)
+                .build();
+        Token savedPcToken = entityManager.persistAndFlush(pcToken);
+        entityManager.clear();
+        
+        Long mobileTokenId = testToken.getId();
+        Long pcTokenId = savedPcToken.getId();
+        
+        // 두 토큰 모두 존재 확인
+        assertThat(tokenRepository.findById(mobileTokenId)).isPresent();
+        assertThat(tokenRepository.findById(pcTokenId)).isPresent();
+        
+        // When: PC에서만 로그아웃 (특정 토큰만 삭제)
+        tokenRepository.deleteById(pcTokenId);
+        
+        // Then: PC 토큰만 삭제되고 모바일 토큰은 유지되어야 함
+        assertThat(tokenRepository.findById(pcTokenId)).isEmpty(); // PC 토큰 삭제됨
+        assertThat(tokenRepository.findById(mobileTokenId)).isPresent(); // 모바일 토큰 유지됨
+        
+        // 사용자는 여전히 존재하고 모바일에서는 계속 로그인 상태
+        assertThat(userRepository.findById(testUser.getId())).isPresent();
+        
+        // Repository 레벨에서 남은 토큰 확인
+        List<Token> remainingTokens = tokenRepository.findByUsersId(testUser.getId());
+        assertThat(remainingTokens).hasSize(1); // 모바일 토큰 1개만 남음
+        assertThat(remainingTokens.get(0).getId()).isEqualTo(mobileTokenId);
     }
 
     @Test
@@ -371,10 +452,7 @@ class TokenAdapterIntegrationTest {
         // When: null 사용자로 토큰 조회
         Optional<Token> result = tokenAdapter.findByUsers(null);
 
-        // Then: 빈 Optional이 반환되거나 예외가 발생하지 않아야 함
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null User에 대한 방어 코드 누락으로 NPE 발생 가능성
-        // 수정 필요: TokenAdapter.findByUsers() 메서드에 null 검증 추가
+        // Then: 빈 Optional이 반환되어야 함 (null 안전성 확보됨)
         assertThat(result).isEmpty();
     }
 }

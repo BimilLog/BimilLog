@@ -27,11 +27,6 @@ public class TokenAdapter implements TokenPort {
     }
 
     @Override
-    public Optional<Token> findByUsers(User user) {
-        return tokenRepository.findByUsers(user);
-    }
-
-    @Override
     public Token save(Token token) {
         return tokenRepository.save(token);
     }
