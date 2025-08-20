@@ -51,13 +51,13 @@ public class UserIntegrationService implements UserIntegrationUseCase {
      * @author Jaeik
      */
     @Override
-    public KakaoFriendsResponse getKakaoFriendList(Long userId, Integer offset, Integer limit) {
+    public KakaoFriendsResponse getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
         // 사용자 조회
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 사용자의 토큰 조회
-        Token token = tokenPort.findByUsers(user)
+        // 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
+        Token token = tokenPort.findById(tokenId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
         
         // 카카오 액세스 토큰 확인

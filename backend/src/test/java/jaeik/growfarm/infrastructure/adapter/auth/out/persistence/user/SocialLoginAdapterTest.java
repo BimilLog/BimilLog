@@ -2,15 +2,12 @@ package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.user;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
-import jaeik.growfarm.infrastructure.exception.CustomException;
-import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,9 +20,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -100,13 +95,13 @@ class SocialLoginAdapterTest {
         
         verify(kakaoStrategy).login(code);
         verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");
-        verify(userQueryUseCase, never()).findTokenByUser(any());
+        // 신규 사용자의 경우 토큰 조회가 불필요하므로 토큰 관련 검증 생략
     }
 
     @Test
-    @DisplayName("소셜 로그인 - 기존 사용자 로그인")
-    void shouldReturnExistingUserLogin_WhenUserExists() {
-        // Given: 기존 사용자와 토큰
+    @DisplayName("소셜 로그인 - 기존 사용자 로그인 (다중 로그인 지원)")
+    void shouldReturnExistingUserLogin_WhenUserExistsInMultiLoginEnvironment() {
+        // Given: 기존 사용자가 존재하는 경우
         String code = "test-code";
         User existingUser = User.builder()
                 .id(1L)
@@ -116,59 +111,23 @@ class SocialLoginAdapterTest {
                 .thumbnailImage("old-profile.jpg")
                 .role(UserRole.USER)
                 .build();
-        
-        Token existingToken = Token.builder()
-                .id(1L)
-                .users(existingUser)
-                .accessToken("old-access-token")
-                .refreshToken("old-refresh-token")
-                .build();
 
         given(kakaoStrategy.login(code)).willReturn(testLoginResult);
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(Optional.of(existingUser));
-        given(userQueryUseCase.findTokenByUser(existingUser)).willReturn(Optional.of(existingToken));
 
         // When: 기존 사용자로 소셜 로그인
         LoginResultDTO result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
 
-        // Then: 기존 사용자 로그인 결과 반환 및 정보 업데이트
+        // Then: 기존 사용자 로그인 결과 반환 (다중 로그인을 위해 새 토큰 생성)
         assertThat(result.getLoginType()).isEqualTo(LoginResultDTO.LoginType.EXISTING_USER);
         assertThat(result.getUserData()).isEqualTo(testUserData);
         assertThat(result.getTokenDTO()).isEqualTo(testTokenDTO);
-        
-        // 사용자 정보 업데이트 확인 (Mock은 실제 메서드 호출만 확인)
+
         verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");
-        verify(userQueryUseCase).findTokenByUser(existingUser);
         verify(kakaoStrategy).login(code);
     }
 
-    @Test
-    @DisplayName("소셜 로그인 - 기존 사용자이지만 토큰 없음")
-    void shouldThrowException_WhenExistingUserHasNoToken() {
-        // Given: 기존 사용자이지만 토큰이 없는 경우
-        String code = "test-code";
-        User existingUser = User.builder()
-                .id(1L)
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456789")
-                .socialNickname("userWithoutToken")
-                .role(UserRole.USER)
-                .build();
-
-        given(kakaoStrategy.login(code)).willReturn(testLoginResult);
-        given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
-                .willReturn(Optional.of(existingUser));
-        given(userQueryUseCase.findTokenByUser(existingUser)).willReturn(Optional.empty());
-
-        // When & Then: 토큰 없음 예외 발생
-        assertThatThrownBy(() -> socialLoginAdapter.login(SocialProvider.KAKAO, code))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_FIND_TOKEN);
-
-        verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");
-        verify(userQueryUseCase).findTokenByUser(existingUser);
-    }
 
     @Test
     @DisplayName("소셜 로그인 - null 코드로 로그인")
@@ -283,7 +242,7 @@ class SocialLoginAdapterTest {
     }
 
     @Test
-    @DisplayName("사용자 정보 업데이트 검증 - 기존 사용자 정보 업데이트")
+    @DisplayName("사용자 정보 업데이트 - 기존 사용자 정보 업데이트 성공")
     void shouldUpdateUserInfo_WhenExistingUserLogin() {
         // Given: 기존 사용자와 업데이트될 정보
         String code = "test-code";
@@ -294,13 +253,6 @@ class SocialLoginAdapterTest {
                 .socialNickname("oldNickname")
                 .thumbnailImage("old-profile.jpg")
                 .role(UserRole.USER)
-                .build();
-
-        Token existingToken = Token.builder()
-                .id(1L)
-                .users(existingUser)
-                .accessToken("old-access-token")
-                .refreshToken("old-refresh-token")
                 .build();
 
         // 업데이트될 새로운 정보
@@ -315,23 +267,24 @@ class SocialLoginAdapterTest {
         LoginResultDTO updatedLoginResult = LoginResultDTO.builder()
                 .userData(updatedUserData)
                 .tokenDTO(testTokenDTO)
+                .loginType(LoginResultDTO.LoginType.EXISTING_USER)
                 .build();
 
         given(kakaoStrategy.login(code)).willReturn(updatedLoginResult);
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(Optional.of(existingUser));
-        given(userQueryUseCase.findTokenByUser(existingUser)).willReturn(Optional.of(existingToken));
 
         // When: 기존 사용자로 로그인
         LoginResultDTO result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
-
-        // Then: 사용자 정보와 토큰 업데이트가 호출됨
-        assertThat(result.getLoginType()).isEqualTo(LoginResultDTO.LoginType.EXISTING_USER);
-        verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");
-        verify(userQueryUseCase).findTokenByUser(existingUser);
         
-        // Note: Mock 객체에서는 실제 업데이트 메서드 호출만 확인 가능
-        // 실제 데이터 변경은 통합 테스트에서 검증
+        // Then: 사용자 정보 업데이트 및 새 토큰 생성
+        assertThat(result.getLoginType()).isEqualTo(LoginResultDTO.LoginType.EXISTING_USER);
+        assertThat(result.getUserData()).isEqualTo(updatedUserData);
+        assertThat(result.getTokenDTO()).isEqualTo(testTokenDTO);
+        
+        verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");
+        verify(kakaoStrategy).login(code);
+        // Note: 새로운 토큰 생성 방식으로 기존 토큰 조회/업데이트 불필요
     }
 
     @Test
@@ -374,26 +327,4 @@ class SocialLoginAdapterTest {
         // @Transactional 어노테이션이 메서드에 적용되어 있는지는 리플렉션으로 확인 가능하지만
         // 단위 테스트에서는 비즈니스 로직 검증에 집중
     }
-
-    // TODO: ✅ NPE 이슈 해결됨 - 테스트 설계 오류였음 (2025-08-19)
-    // 문제: SocialLoginAdapter 생성자에서 strategy.getProvider() 호출 시 Mock 설정 전이라 null 반환
-    // 해결: setUp()에서 Mock 설정을 생성자 호출 전으로 이동
-    // 교훈: Mock 객체의 메서드가 생성자에서 호출되는 경우 설정 순서 중요
-    
-    // TODO: 테스트 실패 시 의심해볼 메인 로직 문제들
-    // 1. Strategy 패턴 구현 오류: EnumMap 초기화나 전략 등록 실패
-    // 2. 생성자 주입 문제: List<SocialLoginStrategy> 주입 실패
-    // 3. 트랜잭션 경계 문제: @Transactional 설정 오류로 데이터 일관성 문제
-    // 4. 사용자 정보 업데이트 실패: updateUserInfo() 메서드 동작 오류
-    // 5. 토큰 업데이트 실패: updateToken() 메서드 동작 오류
-    // 6. 예외 처리 누락: 소셜 API 호출 실패 시 적절한 예외 변환 부족
-    // 7. null 처리 미흡: provider나 socialId가 null일 때 NullPointerException
-    // 8. 동시성 문제: 동일 사용자의 동시 로그인 시 데이터 경쟁 조건
-    // 9. 캐시 일관성: 사용자 정보 업데이트 시 캐시와 DB 불일치
-    // 10. 로그 기록 누락: 로그인 성공/실패에 대한 적절한 로깅 부족
-    //
-    // 🔥 중요: 이 테스트들이 실패한다면 비즈니스 로직 자체에 문제가 있을 가능성이 높음
-    // - 소셜 로그인은 사용자 인증의 핵심 진입점이므로 완벽한 동작 필수
-    // - 기존/신규 사용자 구분 로직 오류는 사용자 경험과 데이터 무결성에 직접 영향
-    // - Strategy 패턴 구현 오류는 새로운 소셜 제공자 추가 시 확장성 저하
 }

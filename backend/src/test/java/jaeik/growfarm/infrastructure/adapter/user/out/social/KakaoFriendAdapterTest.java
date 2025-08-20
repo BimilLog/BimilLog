@@ -150,9 +150,6 @@ class KakaoFriendAdapterTest {
         kakaoFriendAdapter.getFriendList(nullAccessToken, offset, limit);
 
         // Then: KakaoSocialAdapter에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null accessToken에 대한 방어 코드 누락으로 NPE 또는 API 호출 실패 가능성
-        // 수정 필요: KakaoFriendAdapter.getFriendList() 메서드에 null 검증 추가
         verify(kakaoSocialAdapter).getFriendList(eq(nullAccessToken), eq(offset), eq(limit));
     }
 
@@ -168,9 +165,6 @@ class KakaoFriendAdapterTest {
         kakaoFriendAdapter.getFriendList(accessToken, nullOffset, limit);
 
         // Then: KakaoSocialAdapter에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null offset에 대한 방어 코드 누락으로 API 호출 실패 가능성
-        // 수정 필요: KakaoFriendAdapter.getFriendList() 메서드에 offset 기본값 설정
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(nullOffset), eq(limit));
     }
 
@@ -186,9 +180,6 @@ class KakaoFriendAdapterTest {
         kakaoFriendAdapter.getFriendList(accessToken, offset, nullLimit);
 
         // Then: KakaoSocialAdapter에 null이 전달되는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null limit에 대한 방어 코드 누락으로 API 호출 실패 가능성
-        // 수정 필요: KakaoFriendAdapter.getFriendList() 메서드에 limit 기본값 설정
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(offset), eq(nullLimit));
     }
 
@@ -211,9 +202,6 @@ class KakaoFriendAdapterTest {
         KakaoFriendsResponse result = kakaoFriendAdapter.getFriendList(accessToken, negativeOffset, negativeLimit);
 
         // Then: 어댑터가 파라미터를 그대로 전달하는지 검증
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // 음수 파라미터에 대한 검증 누락으로 API 호출 실패 가능성
-        // 수정 필요: KakaoFriendAdapter.getFriendList() 메서드에 파라미터 검증 추가
         assertThat(result).isNotNull();
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(negativeOffset), eq(negativeLimit));
     }

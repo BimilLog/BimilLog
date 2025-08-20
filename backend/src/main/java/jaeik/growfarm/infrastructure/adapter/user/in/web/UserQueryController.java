@@ -164,6 +164,7 @@ public class UserQueryController {
                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         KakaoFriendsResponse friendsResponse = userIntegrationUseCase.getKakaoFriendList(
                 userDetails.getUserId(),
+                userDetails.getTokenId(), // JWT에서 파싱된 현재 기기의 토큰 ID
                 offset,
                 limit
         );

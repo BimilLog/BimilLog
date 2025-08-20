@@ -125,13 +125,13 @@ public interface UserQueryUseCase {
     User getReferenceById(Long userId);
 
     /**
-     * <h3>사용자의 토큰 조회</h3>
-     * <p>주어진 사용자에 대한 토큰 정보를 조회합니다.</p>
+     * <h3>토큰 ID로 토큰 조회</h3>
+     * <p>다중 로그인 환경에서 JWT에서 파싱된 tokenId로 정확한 기기의 토큰을 조회합니다.</p>
      *
-     * @param user 사용자 엔티티
+     * @param tokenId 토큰 ID (UserDetails.getTokenId()에서 추출)
      * @return Optional<Token> 조회된 토큰 객체. 존재하지 않으면 Optional.empty()
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<Token> findTokenByUser(User user);
+    Optional<Token> findTokenById(Long tokenId);
 }

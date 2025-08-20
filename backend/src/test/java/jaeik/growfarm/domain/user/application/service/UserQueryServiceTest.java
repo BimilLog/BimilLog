@@ -352,49 +352,26 @@ class UserQueryServiceTest {
     }
 
     @Test
-    @DisplayName("사용자의 토큰 조회 - 정상 케이스")
-    void shouldFindTokenByUser_WhenUserExists() {
+    @DisplayName("토큰 ID로 토큰 조회 - 정상 케이스")
+    void shouldFindTokenById_WhenTokenIdExists() {
         // Given
-        User user = User.builder()
-                .id(1L)
-                .userName("testUser")
-                .build();
-        
+        Long tokenId = 1L;
         Token expectedToken = Token.builder()
-                .id(1L)
+                .id(tokenId)
                 .accessToken("access_token")
                 .refreshToken("refresh_token")
                 .build();
 
-        given(tokenPort.findByUsers(user)).willReturn(Optional.of(expectedToken));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(expectedToken));
 
         // When
-        Optional<Token> result = userQueryService.findTokenByUser(user);
+        Optional<Token> result = userQueryService.findTokenById(tokenId);
 
         // Then
-        verify(tokenPort).findByUsers(user);
+        verify(tokenPort).findById(tokenId);
         assertThat(result).isPresent();
         assertThat(result.get().getAccessToken()).isEqualTo("access_token");
         assertThat(result.get().getRefreshToken()).isEqualTo("refresh_token");
-    }
-
-    @Test
-    @DisplayName("사용자의 토큰 조회 - 토큰이 존재하지 않는 경우")
-    void shouldReturnEmpty_WhenTokenNotFound() {
-        // Given
-        User user = User.builder()
-                .id(1L)
-                .userName("testUser")
-                .build();
-
-        given(tokenPort.findByUsers(user)).willReturn(Optional.empty());
-
-        // When
-        Optional<Token> result = userQueryService.findTokenByUser(user);
-
-        // Then
-        verify(tokenPort).findByUsers(user);
-        assertThat(result).isEmpty();
     }
 
     @Test

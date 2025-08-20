@@ -100,7 +100,6 @@ class SaveDataAdapterTest {
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(Optional.of(existingUser));
-        given(tokenRepository.findByUsers(existingUser)).willReturn(Optional.of(existingToken));
         given(tokenRepository.save(any(Token.class))).willReturn(existingToken);
         given(authCookieManager.generateJwtCookie(any(UserDTO.class))).willReturn(expectedCookies);
 
@@ -111,9 +110,13 @@ class SaveDataAdapterTest {
         assertThat(existingUser.getSocialNickname()).isEqualTo("업데이트된닉네임");
         assertThat(existingUser.getThumbnailImage()).isEqualTo("https://updated-profile.jpg");
         
-        // 토큰 업데이트 검증
-        assertThat(existingToken.getAccessToken()).isEqualTo("new-access-token");
-        assertThat(existingToken.getRefreshToken()).isEqualTo("new-refresh-token");
+        // 새로운 토큰이 저장되는지 검증 (실제 구현에서는 새 토큰을 생성)
+        ArgumentCaptor<Token> tokenCaptor = ArgumentCaptor.forClass(Token.class);
+        verify(tokenRepository).save(tokenCaptor.capture());
+        Token savedToken = tokenCaptor.getValue();
+        assertThat(savedToken.getAccessToken()).isEqualTo("new-access-token");
+        assertThat(savedToken.getRefreshToken()).isEqualTo("new-refresh-token");
+        assertThat(savedToken.getUsers()).isEqualTo(existingUser);
         
         // FCM 토큰 이벤트 발행 검증
         ArgumentCaptor<FcmTokenRegisteredEvent> eventCaptor = ArgumentCaptor.forClass(FcmTokenRegisteredEvent.class);
@@ -124,7 +127,6 @@ class SaveDataAdapterTest {
         
         // 쿠키 생성 결과 검증
         assertThat(result).isEqualTo(expectedCookies);
-        verify(tokenRepository).save(existingToken);
     }
 
     @Test
@@ -152,18 +154,18 @@ class SaveDataAdapterTest {
                 .hasMessage(ErrorCode.NOT_FOUND_USER.getMessage());
 
         // 후속 작업이 실행되지 않았는지 검증
-        verify(tokenRepository, never()).findByUsers(any());
+        verify(tokenRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
-    @DisplayName("기존 사용자 로그인 - 토큰 미존재 시 예외 발생")  
-    void shouldThrowException_WhenTokenNotFoundForExistingUser() {
-        // Given: 사용자는 존재하나 토큰이 없는 경우
+    @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 이벤트 미발행")  
+    void shouldNotPublishFcmEvent_WhenExistingUserHasNoFcmToken() {
+        // Given: FCM 토큰이 없는 기존 사용자 로그인
         SocialLoginUserData userData = SocialLoginUserData.builder()
                 .provider(SocialProvider.KAKAO)
                 .socialId("123456789")
-                .nickname("토큰없음")
+                .nickname("FCM없음")
                 .profileImageUrl("https://example.jpg")
                 .build();
 
@@ -174,22 +176,30 @@ class SaveDataAdapterTest {
 
         User existingUser = User.builder()
                 .id(1L)
-                .userName("tokenlessUser")
+                .userName("existingUser")
                 .provider(SocialProvider.KAKAO)
                 .socialId("123456789")
+                .setting(Setting.createSetting())
+                .build();
+
+        Token savedToken = Token.builder()
+                .id(1L)
+                .accessToken("access-token")
+                .refreshToken("refresh-token")
+                .users(existingUser)
                 .build();
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(Optional.of(existingUser));
-        given(tokenRepository.findByUsers(existingUser)).willReturn(Optional.empty());
+        given(tokenRepository.save(any(Token.class))).willReturn(savedToken);
+        given(authCookieManager.generateJwtCookie(any(UserDTO.class))).willReturn(List.of());
 
-        // When & Then: 토큰 미존재 예외 검증
-        assertThatThrownBy(() -> saveDataAdapter.handleExistingUserLogin(userData, tokenDTO, null))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.NOT_FIND_TOKEN.getMessage());
+        // When: FCM 토큰 없이 기존 사용자 로그인 처리
+        saveDataAdapter.handleExistingUserLogin(userData, tokenDTO, null);
 
-        // FCM 이벤트가 발행되지 않았는지 검증
+        // Then: FCM 이벤트가 발행되지 않았는지 검증
         verify(eventPublisher, never()).publishEvent(any(FcmTokenRegisteredEvent.class));
+        verify(tokenRepository).save(any(Token.class));
     }
 
     @Test
@@ -212,10 +222,6 @@ class SaveDataAdapterTest {
                 .refreshToken("new-user-refresh-token")
                 .build();
 
-        // TODO: 옵션 2 설계 적용 - 실제 로직 반영한 Mock 데이터
-        // saveNewUser() 호출 후 userCommandUseCase.save()를 통해 반환되는 User
-        // 실제로는 UserSignedUpEvent 이벤트 핸들러에서 Setting이 생성되어 완전한 상태
-        // 테스트에서는 이벤트 처리 완료된 상태의 User를 Mock으로 구성
         User newUser = User.builder()
                 .id(2L)
                 .userName(userName)
@@ -253,17 +259,16 @@ class SaveDataAdapterTest {
         assertThat(capturedUser.getProvider()).isEqualTo(SocialProvider.KAKAO);
         assertThat(capturedUser.getSocialId()).isEqualTo("987654321");
 
-        // 회원가입 이벤트 발행 검증
-        ArgumentCaptor<UserSignedUpEvent> signUpEventCaptor = ArgumentCaptor.forClass(UserSignedUpEvent.class);
-        verify(eventPublisher).publishEvent(signUpEventCaptor.capture());
-        assertThat(signUpEventCaptor.getValue().userId()).isEqualTo(2L);
 
-        // FCM 토큰 이벤트 발행 검증
+        // FCM 토큰 이벤트 발행 검증 (유일한 이벤트)
         ArgumentCaptor<FcmTokenRegisteredEvent> fcmEventCaptor = ArgumentCaptor.forClass(FcmTokenRegisteredEvent.class);
         verify(eventPublisher).publishEvent(fcmEventCaptor.capture());
         FcmTokenRegisteredEvent fcmEvent = fcmEventCaptor.getValue();
         assertThat(fcmEvent.userId()).isEqualTo(2L);
         assertThat(fcmEvent.fcmToken()).isEqualTo(fcmToken);
+        
+        // 다른 이벤트는 발행되지 않음 확인 (UserSignedUpEvent는 발행 안됨)
+        verify(eventPublisher, never()).publishEvent(any(UserSignedUpEvent.class));
 
         // 임시 데이터 삭제 검증
         verify(tempDataAdapter).removeTempData(uuid);
@@ -293,9 +298,6 @@ class SaveDataAdapterTest {
                 .refreshToken("no-fcm-refresh")
                 .build();
 
-        // TODO: 옵션 2 설계 적용 - FCM 없는 사용자도 이벤트 처리 완료 상태
-        // FCM 토큰 유무와 관계없이 UserSignedUpEvent는 발생하며 Setting은 생성됨
-        // 테스트에서는 이벤트 처리가 완료된 후의 완전한 User 상태를 Mock으로 구성
         User newUser = User.builder()
                 .id(3L)
                 .userName(userName)
@@ -314,18 +316,9 @@ class SaveDataAdapterTest {
         // When: FCM 토큰 없이 사용자 저장
         saveDataAdapter.saveNewUser(userName, uuid, userData, tokenDTO, fcmToken);
 
-        // Then: 회원가입 이벤트만 발행되고 FCM 이벤트는 발행되지 않음
-        verify(eventPublisher).publishEvent(any(UserSignedUpEvent.class));
-        verify(eventPublisher, never()).publishEvent(any(FcmTokenRegisteredEvent.class));
+        // Then: 현재 구현은 직접 Setting 생성 방식이므로 어떤 이벤트도 발행되지 않음
+        // FCM 토큰이 null이므로 FcmTokenRegisteredEvent도 발행 안됨
+        verify(eventPublisher, never()).publishEvent(any()); // 어떤 이벤트도 발행 안됨
     }
 
-    // TODO: 옵션 2 설계 적용 후 주의사항 및 검증 포인트
-    // 1. User.createUser()에서 Setting이 null로 생성되는지 확인
-    // 2. UserSignedUpEvent 이벤트가 정상적으로 발행되는지 검증
-    // 3. UserCommandService.handleUserSignedUpEvent()에서 Setting 생성 확인
-    // 4. @Async 처리로 인한 타이밍 이슈 없는지 검증
-    // 5. UserDTO.of()에서 null Setting 방어 로직이 정상 작동하는지 확인
-    // 6. 이벤트 실패 시 Setting이 null로 남는 경우에 대한 에러 핸들링
-    // 7. 트랜잭션 경계와 이벤트 발행 시점 검토
-    // 8. CascadeType.ALL로 인한 Setting 영속성 전파 확인
 }

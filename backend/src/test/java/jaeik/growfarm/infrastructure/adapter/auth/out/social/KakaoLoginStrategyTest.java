@@ -237,21 +237,4 @@ class KakaoLoginStrategyTest {
         assertThat(provider3).isEqualTo(SocialProvider.KAKAO);
         assertThat(provider1).isEqualTo(provider2).isEqualTo(provider3);
     }
-
-    // TODO: 테스트 실패 시 의심해볼 메인 로직 문제들
-    // 1. KakaoKeyVO 설정 오류: 스프링 설정 파일에서 잘못된 값 주입
-    // 2. WebClient Builder 설정 오류: 스프링 빈 설정에서 Builder 생성 실패
-    // 3. 의존성 주입 실패: @Component 어노테이션 누락 또는 스캔 범위 문제
-    // 4. SocialProvider enum 값 오류: getProvider() 메서드에서 잘못된 값 반환
-    // 5. Null 체크 누락: 메서드 파라미터에 대한 방어적 프로그래밍 부족
-    // 6. WebClient 생성 실패: WebClient.Builder.build() 호출 시 설정 오류
-    // 7. 카카오 API URL 오류: KakaoKeyVO에서 반환하는 URL 형식 문제
-    // 8. 인증 키 설정 오류: CLIENT_ID, ADMIN_KEY, REDIRECT_URI 등 설정값 문제
-    // 9. 예외 처리 로직: 입력 검증 실패 시 적절한 예외 타입 반환 실패
-    // 10. 스레드 안전성: 싱글톤 빈에서 상태 공유로 인한 동시성 문제
-    //
-    // 🔥 중요: 이 테스트들이 실패한다면 비즈니스 로직 자체에 문제가 있을 가능성이 높음
-    // - 외부 API 호출 로직은 복잡하므로 실제 통신 테스트는 통합 테스트에서 수행
-    // - 여기서는 의존성 주입, 설정값 검증, null 처리 등 기본적인 비즈니스 로직 검증에 집중
-    // - Mock WebClient 체인이 복잡하므로 실제 WebClient 사용으로 진짜 오류 상황 테스트
 }

@@ -64,12 +64,12 @@ public class SocialLoginAdapter implements SocialLoginPort {
             User user = existingUser.get();
             user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
 
-            jaeik.growfarm.domain.user.entity.Token token = userQueryUseCase.findTokenByUser(user)
-                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
-            token.updateToken(tokenDTO.accessToken(), tokenDTO.refreshToken());
-
+            // 다중 로그인 지원: 기존 사용자도 새로운 토큰 생성
+            // 기존 토큰을 찾지 않고 새로운 토큰을 저장
+            // JWT에 토큰 ID를 포함하여 로그아웃 시 해당 토큰만 삭제
             return new LoginResultDTO(userData, tokenDTO, LoginResultDTO.LoginType.EXISTING_USER);
         } else {
+            // 신규 사용자도 새로운 토큰 생성
             return new LoginResultDTO(userData, tokenDTO, LoginResultDTO.LoginType.NEW_USER);
         }
     }

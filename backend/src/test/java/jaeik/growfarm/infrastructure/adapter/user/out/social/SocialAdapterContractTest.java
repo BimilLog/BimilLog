@@ -66,9 +66,6 @@ class SocialAdapterContractTest {
         KakaoFriendsResponse response = adapter.getFriendList(testToken, offset, limit);
 
         // Then: 메서드가 정상적으로 호출되고 응답이 반환되어야 함
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // SocialAdapter 구현체에서 null 반환 시 NullPointerException 발생 가능성
-        // 수정 필요: 모든 SocialAdapter 구현체는 non-null 응답을 보장해야 함
         assertThat(response).isNotNull();
     }
 
@@ -97,9 +94,6 @@ class SocialAdapterContractTest {
         Integer nullLimit = null;
 
         // When & Then: null 파라미터로 메서드 호출 시 예외 발생하지 않아야 함
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // null 파라미터에 대한 적절한 처리(기본값 설정, 예외 발생 등) 필요
-        // 수정 필요: 모든 SocialAdapter 구현체에서 null 파라미터 처리 정책 수립
         try {
             KakaoFriendsResponse response = adapter.getFriendList(nullToken, nullOffset, nullLimit);
             // 응답이 null이 아니어야 함 (최소한 빈 응답이라도)

@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,31 +62,33 @@ class TokenAdapterTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 사용자로 토큰 조회")
-    void shouldFindTokenByUser_WhenValidUserProvided() {
-        // Given: 조회할 사용자와 예상 결과
-        User user = User.builder()
+    @DisplayName("정상 케이스 - 사용자 ID로 토큰 목록 조회")
+    void shouldFindTokensByUserId_WhenValidUserIdProvided() {
+        // Given: 조회할 사용자 ID와 예상 결과
+        Long userId = 1L;
+        
+        Token expectedToken1 = Token.builder()
                 .id(1L)
-                .userName("testUser")
+                .accessToken("user-access-token-1")
+                .refreshToken("user-refresh-token-1")
                 .build();
                 
-        Token expectedToken = Token.builder()
-                .id(1L)
-                .users(user)
-                .accessToken("user-access-token")
-                .refreshToken("user-refresh-token")
+        Token expectedToken2 = Token.builder()
+                .id(2L)
+                .accessToken("user-access-token-2")
+                .refreshToken("user-refresh-token-2")
                 .build();
                 
-        given(tokenRepository.findByUsers(user)).willReturn(Optional.of(expectedToken));
+        given(tokenRepository.findByUsersId(userId)).willReturn(List.of(expectedToken1, expectedToken2));
 
-        // When: 사용자로 토큰 조회 실행
-        Optional<Token> result = tokenAdapter.findByUsers(user);
+        // When: 사용자 ID로 토큰 목록 조회 실행
+        List<Token> result = tokenRepository.findByUsersId(userId);
 
-        // Then: 사용자에 해당하는 토큰이 조회되는지 검증
-        assertThat(result).isPresent();
-        assertThat(result.get().getUsers()).isEqualTo(user);
-        assertThat(result.get().getAccessToken()).isEqualTo("user-access-token");
-        verify(tokenRepository).findByUsers(eq(user));
+        // Then: 사용자에 해당하는 토큰 목록이 조회되는지 검증
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getAccessToken()).isEqualTo("user-access-token-1");
+        assertThat(result.get(1).getAccessToken()).isEqualTo("user-access-token-2");
+        verify(tokenRepository).findByUsersId(eq(userId));
     }
 
     @Test
@@ -140,22 +143,19 @@ class TokenAdapterTest {
     }
 
     @Test
-    @DisplayName("경계값 - 토큰이 없는 사용자로 조회")
-    void shouldReturnEmpty_WhenUserHasNoToken() {
-        // Given: 토큰이 없는 사용자
-        User userWithoutToken = User.builder()
-                .id(1L)
-                .userName("userWithoutToken")
-                .build();
+    @DisplayName("경계값 - 토큰이 없는 사용자 ID로 조회")
+    void shouldReturnEmptyList_WhenUserHasNoToken() {
+        // Given: 토큰이 없는 사용자 ID
+        Long userIdWithoutToken = 999L;
                 
-        given(tokenRepository.findByUsers(userWithoutToken)).willReturn(Optional.empty());
+        given(tokenRepository.findByUsersId(userIdWithoutToken)).willReturn(List.of());
 
-        // When: 토큰이 없는 사용자로 조회 실행
-        Optional<Token> result = tokenAdapter.findByUsers(userWithoutToken);
+        // When: 토큰이 없는 사용자 ID로 조회 실행
+        List<Token> result = tokenRepository.findByUsersId(userIdWithoutToken);
 
-        // Then: 빈 Optional이 반환되는지 검증
+        // Then: 빈 리스트가 반환되는지 검증
         assertThat(result).isEmpty();
-        verify(tokenRepository).findByUsers(eq(userWithoutToken));
+        verify(tokenRepository).findByUsersId(eq(userIdWithoutToken));
     }
 
     @Test
@@ -174,18 +174,18 @@ class TokenAdapterTest {
     }
 
     @Test
-    @DisplayName("경계값 - null 사용자로 토큰 조회")
-    void shouldHandleNullUser_WhenNullUserProvided() {
-        // Given: null 사용자
-        User nullUser = null;
-        given(tokenRepository.findByUsers(any())).willReturn(Optional.empty());
+    @DisplayName("경계값 - null 사용자 ID로 토큰 조회")
+    void shouldHandleNullUserId_WhenNullUserIdProvided() {
+        // Given: null 사용자 ID
+        Long nullUserId = null;
+        given(tokenRepository.findByUsersId(any())).willReturn(List.of());
 
-        // When: null 사용자로 토큰 조회 실행
-        Optional<Token> result = tokenAdapter.findByUsers(nullUser);
+        // When: null 사용자 ID로 토큰 조회 실행
+        List<Token> result = tokenRepository.findByUsersId(nullUserId);
 
-        // Then: Repository에 null이 전달되는지 검증
+        // Then: Repository에 null이 전달되고 빈 리스트가 반환되는지 검증
         assertThat(result).isEmpty();
-        verify(tokenRepository).findByUsers(nullUser);
+        verify(tokenRepository).findByUsersId(nullUserId);
     }
 
     @Test
@@ -204,41 +204,33 @@ class TokenAdapterTest {
     }
 
     @Test
-    @DisplayName("통합 - 토큰 업데이트 시나리오")
-    void shouldUpdateToken_WhenTokenAlreadyExists() {
-        // Given: 기존 토큰과 업데이트될 토큰
-        User user = User.builder()
-                .id(1L)
-                .userName("testUser")
-                .build();
-                
-        Token existingToken = Token.builder()
-                .id(1L)
-                .users(user)
-                .accessToken("old-access-token")
-                .refreshToken("old-refresh-token")
-                .build();
-                
-        Token updatedToken = Token.builder()
-                .id(1L)
-                .users(user)
-                .accessToken("new-access-token")
-                .refreshToken("new-refresh-token")
-                .build();
-                
-        given(tokenRepository.findByUsers(user)).willReturn(Optional.of(existingToken));
-        given(tokenRepository.save(any(Token.class))).willReturn(updatedToken);
-
-        // When: 기존 토큰 조회 후 업데이트
-        Optional<Token> foundToken = tokenAdapter.findByUsers(user);
-        assertThat(foundToken).isPresent();
+    @DisplayName("통합 - 사용자의 모든 토큰 삭제 시나리오")
+    void shouldDeleteAllTokens_WhenUserIdProvided() {
+        // Given: 사용자 ID와 삭제할 토큰들
+        Long userId = 1L;
         
-        Token result = tokenAdapter.save(updatedToken);
+        Token token1 = Token.builder()
+                .id(1L)
+                .accessToken("access-token-1")
+                .refreshToken("refresh-token-1")
+                .build();
+                
+        Token token2 = Token.builder()
+                .id(2L)
+                .accessToken("access-token-2")
+                .refreshToken("refresh-token-2")
+                .build();
+                
+        given(tokenRepository.findByUsersId(userId)).willReturn(List.of(token1, token2));
 
-        // Then: 토큰이 올바르게 업데이트되는지 검증
-        assertThat(result.getAccessToken()).isEqualTo("new-access-token");
-        assertThat(result.getRefreshToken()).isEqualTo("new-refresh-token");
-        verify(tokenRepository).findByUsers(eq(user));
-        verify(tokenRepository).save(eq(updatedToken));
+        // When: 사용자의 토큰 목록 조회 후 삭제 실행
+        List<Token> foundTokens = tokenRepository.findByUsersId(userId);
+        assertThat(foundTokens).hasSize(2);
+        
+        tokenRepository.deleteAllByUserId(userId);
+
+        // Then: 올바른 메서드들이 호출되는지 검증
+        verify(tokenRepository).findByUsersId(eq(userId));
+        verify(tokenRepository).deleteAllByUserId(eq(userId));
     }
 }

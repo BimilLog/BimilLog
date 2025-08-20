@@ -58,9 +58,12 @@ public class SaveDataAdapter implements ManageSaveDataPort {
 
         user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
 
-        Token token = tokenRepository.findByUsers(user)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
-        token.updateToken(tokenDTO.accessToken(), tokenDTO.refreshToken());
+        // 다중 로그인 지원: 기존 사용자 로그인 시 새로운 토큰 생성 (새 기기/세션으로 간주)
+        Token newToken = Token.builder()
+                .accessToken(tokenDTO.accessToken())
+                .refreshToken(tokenDTO.refreshToken())
+                .users(user)
+                .build();
 
         // FCM 토큰 등록 이벤트 발행
         if (fcmToken != null && !fcmToken.isEmpty()) {
@@ -68,7 +71,7 @@ public class SaveDataAdapter implements ManageSaveDataPort {
         }
 
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
-                tokenRepository.save(token).getId(),
+                tokenRepository.save(newToken).getId(),
                 null));
     }
 

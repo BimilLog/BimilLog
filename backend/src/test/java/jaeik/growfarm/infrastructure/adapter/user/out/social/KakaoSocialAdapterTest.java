@@ -1,34 +1,17 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.social;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
 import jaeik.growfarm.infrastructure.auth.KakaoKeyVO;
-import jaeik.growfarm.infrastructure.exception.CustomException;
-import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 /**
  * <h2>KakaoSocialAdapter 테스트</h2>
@@ -64,9 +47,6 @@ class KakaoSocialAdapterTest {
     @DisplayName("통합 - 외부 API 호출 시뮬레이션")
     void shouldSimulateExternalApiCall_WhenGetFriendListCalled() {
         // When & Then: 외부 API 호출 시 예외 발생 확인
-        // TODO: 테스트 실패 예상 - 외부 시스템 통합 테스트
-        // WebClient 체인이 완전히 모킹되지 않아 NPE 발생
-        // 실제 통합 테스트에서는 TestContainer나 WireMock 사용 필요
         assertThatThrownBy(() -> kakaoSocialAdapter.getFriendList("token", 0, 10))
                 .isInstanceOf(NullPointerException.class);
     }
@@ -77,9 +57,6 @@ class KakaoSocialAdapterTest {
         // Given & When: 어댑터 생성됨
         
         // Then: WebClient Builder가 주입되었는지 확인
-        // TODO: 테스트 실패 - 의존성 주입 확인
-        // WebClient 관련 필드가 정상적으로 주입되었는지 검증하는 단순 테스트
-        // 복잡한 모킹 대신 의존성 주입 여부만 확인
         assertThat(webClientBuilder).isNotNull();
         assertThat(kakaoKeyVO).isNotNull();
     }

@@ -76,14 +76,6 @@ class TempDataAdapterTest {
     @Test
     @DisplayName("임시 데이터 저장 - null 값들로 저장")
     void shouldSaveTempData_WhenNullValuesProvided() {
-        // TODO: 테스트 실패 - 메인 로직 문제 의심 ✅
-        // 개선 완료: Input Validation 추가로 null 입력값 예외 처리
-        // 비즈니스 로직 개선: UUID, userData, tokenDTO null 검증 강화
-        // 예상 동작: null 입력값에 대해 CustomException 발생 (보안 및 안정성 향상)
-        // 
-        // 현재 이 테스트는 의도적으로 실패해야 함:
-        // - 회원가입 프로세스에서 null 데이터는 허용되지 않아야 함
-        // - 메인 로직이 올바르게 Input Validation을 수행하고 있음을 증명
         
         // Given: null 값들
         String nullUuid = null;
@@ -351,21 +343,4 @@ class TempDataAdapterTest {
             tempDataAdapter.removeTempData("uuid-" + i);
         }
     }
-
-    // TODO: 테스트 실패 시 의심해볼 메인 로직 문제들
-    // 1. ConcurrentHashMap 동시성: 멀티스레드 환경에서 데이터 일관성 문제
-    // 2. 메모리 누수: scheduleCleanup이 제대로 작동하지 않아 메모리 계속 증가
-    // 3. 스케줄링 실패: CompletableFuture.delayedExecutor 설정 오류
-    // 4. null 처리: ConcurrentHashMap은 null key/value 허용하지 않음
-    // 5. FCM 토큰 누락: TemporaryUserDataDTO 생성 시 fcmToken이 제대로 전달되지 않음
-    // 6. 타이밍 이슈: 데이터 저장 후 즉시 조회 시 경쟁 조건
-    // 7. 메모리 한계: 너무 많은 임시 데이터로 인한 OutOfMemoryError
-    // 8. 쿠키 생성 실패: AuthCookieManager 설정 오류
-    // 9. 데이터 직렬화: TemporaryUserDataDTO 객체 저장 시 직렬화 문제
-    // 10. 시간 계산 오류: 5분 스케줄링에서 TimeUnit 설정 실수
-    //
-    // 🔥 중요: 이 테스트들이 실패한다면 비즈니스 로직 자체에 문제가 있을 가능성이 높음
-    // - 임시 데이터는 회원가입 프로세스의 핵심이므로 완벽한 동작 필수
-    // - 메모리 기반 저장소이므로 동시성과 메모리 관리가 중요
-    // - 자동 정리 기능이 없으면 메모리 누수로 서버 장애 발생 가능
 }

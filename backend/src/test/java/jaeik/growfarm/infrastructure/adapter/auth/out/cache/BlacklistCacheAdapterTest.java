@@ -352,15 +352,4 @@ class BlacklistCacheAdapterTest {
         assertThat(capturedTtls).containsExactly(shortTtl, longTtl, customTtl);
     }
 
-    // TODO: 테스트 실패 시 의심해볼 메인 로직 문제들
-    // 1. Redis 키 패턴 오류: BLACKLIST_KEY_PREFIX 상수값 오타
-    // 2. 예외 처리 로직 오류: try-catch 블록 누락 또는 잘못된 기본값 반환
-    // 3. 로깅 보안 이슈: 전체 토큰 해시 로깅으로 인한 보안 위험
-    // 4. null 체크 누락: tokenHash, tokenHashes 파라미터 null 검증
-    // 5. TTL 설정 오류: Duration 단위 변환 실수
-    // 6. 동시성 문제: RedisTemplate이 thread-safe하지 않게 사용
-    // 7. 메모리 누수: 대량 데이터 처리 시 메모리 최적화 미흡
-    // 8. 트랜잭션 경계: Redis 작업이 Spring 트랜잭션과 연동되지 않음
-    // 9. 연결 풀 설정: Redis 연결 풀 크기 부족으로 인한 성능 저하
-    // 10. TokenBlacklistInfo 직렬화: 내부 클래스 직렬화 문제
 }

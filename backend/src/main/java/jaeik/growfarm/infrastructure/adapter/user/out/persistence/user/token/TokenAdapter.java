@@ -2,7 +2,6 @@ package jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token;
 
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.entity.Token;
-import jaeik.growfarm.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +22,9 @@ public class TokenAdapter implements TokenPort {
 
     @Override
     public Optional<Token> findById(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
         return tokenRepository.findById(id);
     }
 

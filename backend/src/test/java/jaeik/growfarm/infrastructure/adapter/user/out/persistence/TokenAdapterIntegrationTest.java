@@ -155,12 +155,12 @@ class TokenAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 사용자로 토큰 조회")
-    void shouldFindTokenByUser_WhenValidUserProvided() {
-        // When: 사용자로 토큰 조회
-        Optional<Token> result = tokenAdapter.findByUsers(testUser);
+    @DisplayName("정상 케이스 - 토큰 ID로 토큰 조회 (다중 로그인 권장 방식)")
+    void shouldFindTokenById_WhenValidTokenIdProvided() {
+        // When: 토큰 ID로 토큰 조회 (UserDetails.getTokenId() 사용 시나리오)
+        Optional<Token> result = tokenAdapter.findById(testToken.getId());
 
-        // Then: 해당 사용자의 토큰이 조회되는지 검증
+        // Then: 해당 토큰이 정확히 조회되는지 검증
         assertThat(result).isPresent();
         Token foundToken = result.get();
         assertThat(foundToken.getId()).isEqualTo(testToken.getId());
@@ -267,28 +267,10 @@ class TokenAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("경계값 - 토큰이 없는 사용자로 조회")
-    void shouldReturnEmpty_WhenUserHasNoToken() {
-        // Given: 설정을 먼저 생성 (User는 반드시 Setting을 가져야 함)
-        Setting userWithoutTokenSetting = Setting.builder()
-                .messageNotification(false)
-                .commentNotification(false)
-                .postFeaturedNotification(false)
-                .build();
-        userWithoutTokenSetting = settingRepository.save(userWithoutTokenSetting);
-        
-        // 토큰이 없는 새로운 사용자 (Setting 포함)
-        User userWithoutToken = User.builder()
-                .socialId("kakao999")
-                .provider(SocialProvider.KAKAO)
-                .userName("userWithoutToken")
-                .role(UserRole.USER)
-                .setting(userWithoutTokenSetting)
-                .build();
-        userWithoutToken = userRepository.save(userWithoutToken);
-
-        // When: 토큰이 없는 사용자로 토큰 조회
-        Optional<Token> result = tokenAdapter.findByUsers(userWithoutToken);
+    @DisplayName("경계값 - 존재하지 않는 토큰 ID로 조회")
+    void shouldReturnEmpty_WhenTokenIdNotExists() {
+        // When: 존재하지 않는 토큰 ID로 조회 (비즈니스 케이스)
+        Optional<Token> result = tokenAdapter.findById(999L);
 
         // Then: 빈 Optional이 반환되는지 검증
         assertThat(result).isEmpty();
@@ -405,10 +387,12 @@ class TokenAdapterIntegrationTest {
         List<Token> allUserTokens = tokenRepository.findByUsersId(testUser.getId());
         assertThat(allUserTokens).hasSize(2);
         
-        // 다중 로그인 비즈니스 로직: findByUsers는 여러 토큰 중 임의의 하나 반환 (비추천)
+        // 다중 로그인 비즈니스 로직: 각 기기별로 고유한 토큰 ID로 정확한 토큰 조회
         // 실제 서비스에서는 UserDetails.getTokenId()로 특정 토큰을 findById()로 조회
-        Optional<Token> anyToken = tokenAdapter.findByUsers(testUser);
-        assertThat(anyToken).isPresent(); // 어떤 토큰이든 하나는 반환되어야 함
+        Optional<Token> mobileTokenFound = tokenAdapter.findById(mobileToken.get().getId());
+        Optional<Token> pcTokenFound = tokenAdapter.findById(pcToken.get().getId());
+        assertThat(mobileTokenFound).isPresent();
+        assertThat(pcTokenFound).isPresent();
     }
 
     @Test
@@ -443,14 +427,14 @@ class TokenAdapterIntegrationTest {
         // Repository 레벨에서 남은 토큰 확인
         List<Token> remainingTokens = tokenRepository.findByUsersId(testUser.getId());
         assertThat(remainingTokens).hasSize(1); // 모바일 토큰 1개만 남음
-        assertThat(remainingTokens.get(0).getId()).isEqualTo(mobileTokenId);
+        assertThat(remainingTokens.getFirst().getId()).isEqualTo(mobileTokenId);
     }
 
     @Test
-    @DisplayName("경계값 - null 사용자로 토큰 조회")
-    void shouldHandleNullUser_WhenNullUserProvided() {
-        // When: null 사용자로 토큰 조회
-        Optional<Token> result = tokenAdapter.findByUsers(null);
+    @DisplayName("경계값 - null 토큰 ID로 토큰 조회")
+    void shouldHandleNullTokenId_WhenNullTokenIdProvided() {
+        // When: null 토큰 ID로 토큰 조회
+        Optional<Token> result = tokenAdapter.findById(null);
 
         // Then: 빈 Optional이 반환되어야 함 (null 안전성 확보됨)
         assertThat(result).isEmpty();

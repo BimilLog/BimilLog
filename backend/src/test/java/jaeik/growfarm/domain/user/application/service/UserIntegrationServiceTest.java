@@ -17,8 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,6 +53,7 @@ class UserIntegrationServiceTest {
     void shouldGetKakaoFriendList_WhenValidRequest() {
         // Given
         Long userId = 1L;
+        Long tokenId = 1L;
         Integer offset = 0;
         Integer limit = 10;
         
@@ -67,26 +66,23 @@ class UserIntegrationServiceTest {
                 .build();
         
         Token token = Token.builder()
-                .id(1L)
+                .id(tokenId)
                 .accessToken("valid_access_token")
                 .refreshToken("refresh_token")
                 .build();
         
         KakaoFriendsResponse kakaoResponse = new KakaoFriendsResponse();
-        
-        List<String> socialIds = Arrays.asList("111", "222");
-        List<String> userNames = Arrays.asList("비밀로그사용자1", ""); // 첫 번째만 가입된 상태
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_access_token", offset, limit)).willReturn(kakaoResponse);
 
         // When
-        KakaoFriendsResponse result = userIntegrationService.getKakaoFriendList(userId, offset, limit);
+        KakaoFriendsResponse result = userIntegrationService.getKakaoFriendList(userId, tokenId, offset, limit);
 
         // Then
         verify(userQueryPort).findById(userId);
-        verify(tokenPort).findByUsers(user);
+        verify(tokenPort).findById(tokenId);
         verify(kakaoFriendPort).getFriendList("valid_access_token", offset, limit);
         
         assertThat(result).isNotNull();
@@ -102,7 +98,7 @@ class UserIntegrationServiceTest {
         given(userQueryPort.findById(nonexistentUserId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(nonexistentUserId, 0, 10))
+        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(nonexistentUserId, 1L, 0, 10))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
         
@@ -114,21 +110,22 @@ class UserIntegrationServiceTest {
     void shouldThrowException_WhenTokenNotFound() {
         // Given
         Long userId = 1L;
+        Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
                 .userName("testUser")
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUsers(user)).willReturn(Optional.empty());
+        given(tokenPort.findById(tokenId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 0, 10))
+        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.NOT_FIND_TOKEN.getMessage());
         
         verify(userQueryPort).findById(userId);
-        verify(tokenPort).findByUsers(user);
+        verify(tokenPort).findById(tokenId);
     }
 
     @Test
@@ -136,22 +133,23 @@ class UserIntegrationServiceTest {
     void shouldThrowException_WhenAccessTokenIsNull() {
         // Given
         Long userId = 1L;
+        Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
                 .userName("testUser")
                 .build();
         
         Token token = Token.builder()
-                .id(1L)
+                .id(tokenId)
                 .accessToken(null) // null 토큰
                 .refreshToken("refresh_token")
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 0, 10))
+        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.NOT_FIND_TOKEN.getMessage());
     }
@@ -161,22 +159,23 @@ class UserIntegrationServiceTest {
     void shouldThrowException_WhenAccessTokenIsEmpty() {
         // Given
         Long userId = 1L;
+        Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
                 .userName("testUser")
                 .build();
         
         Token token = Token.builder()
-                .id(1L)
+                .id(tokenId)
                 .accessToken("") // 빈 문자열 토큰
                 .refreshToken("refresh_token")
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 0, 10))
+        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 1L, 0, 10))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.NOT_FIND_TOKEN.getMessage());
     }
@@ -186,23 +185,25 @@ class UserIntegrationServiceTest {
     void shouldUseDefaultValues_WhenOffsetAndLimitAreNull() {
         // Given
         Long userId = 1L;
+        Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
                 .userName("testUser")
                 .build();
         
         Token token = Token.builder()
+                .id(tokenId)
                 .accessToken("valid_token")
                 .build();
         
         KakaoFriendsResponse kakaoResponse = new KakaoFriendsResponse();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 10)).willReturn(kakaoResponse);
 
         // When
-        userIntegrationService.getKakaoFriendList(userId, null, null);
+        userIntegrationService.getKakaoFriendList(userId, 1L, null, null);
 
         // Then
         verify(kakaoFriendPort).getFriendList("valid_token", 0, 10); // 기본값 0, 10 사용
@@ -213,23 +214,25 @@ class UserIntegrationServiceTest {
     void shouldLimitMaximumLimit_WhenLimitExceedsMaximum() {
         // Given
         Long userId = 1L;
+        Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
                 .userName("testUser")
                 .build();
         
         Token token = Token.builder()
+                .id(tokenId)
                 .accessToken("valid_token")
                 .build();
         
         KakaoFriendsResponse kakaoResponse = new KakaoFriendsResponse();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 100)).willReturn(kakaoResponse);
 
         // When
-        userIntegrationService.getKakaoFriendList(userId, 0, 200); // 200을 요청하지만 100으로 제한
+        userIntegrationService.getKakaoFriendList(userId, 1L, 0, 200); // 200을 요청하지만 100으로 제한
 
         // Then
         verify(kakaoFriendPort).getFriendList("valid_token", 0, 100); // 최대값 100으로 제한
@@ -240,22 +243,24 @@ class UserIntegrationServiceTest {
     void shouldThrowKakaoFriendConsentError_WhenConsentRequired() {
         // Given
         Long userId = 1L;
+        Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
                 .userName("testUser")
                 .build();
         
         Token token = Token.builder()
+                .id(tokenId)
                 .accessToken("valid_token")
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 10))
                 .willThrow(new CustomException(ErrorCode.KAKAO_API_ERROR));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 0, 10))
+        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 1L, 0, 10))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage());
     }
@@ -265,22 +270,24 @@ class UserIntegrationServiceTest {
     void shouldThrowKakaoApiError_WhenGeneralApiError() {
         // Given
         Long userId = 1L;
+        Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
                 .userName("testUser")
                 .build();
         
         Token token = Token.builder()
+                .id(tokenId)
                 .accessToken("valid_token")
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findByUsers(user)).willReturn(Optional.of(token));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 10))
                 .willThrow(new RuntimeException("일반적인 API 에러"));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 0, 10))
+        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 1L, 0, 10))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.KAKAO_API_ERROR.getMessage());
     }
