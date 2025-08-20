@@ -1,7 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence;
 
-import jaeik.growfarm.domain.auth.event.FcmTokenRegisteredEvent;
-import jaeik.growfarm.domain.auth.event.UserSignedUpEvent;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
@@ -24,7 +23,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
@@ -52,7 +50,7 @@ class SaveDataAdapterTest {
     @Mock private UserQueryUseCase userQueryUseCase;
     @Mock private UserCommandUseCase userCommandUseCase;
     @Mock private TempDataAdapter tempDataAdapter;
-    @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private NotificationFcmUseCase notificationFcmUseCase;
 
     @InjectMocks private SaveDataAdapter saveDataAdapter;
 
@@ -118,12 +116,8 @@ class SaveDataAdapterTest {
         assertThat(savedToken.getRefreshToken()).isEqualTo("new-refresh-token");
         assertThat(savedToken.getUsers()).isEqualTo(existingUser);
         
-        // FCM 토큰 이벤트 발행 검증
-        ArgumentCaptor<FcmTokenRegisteredEvent> eventCaptor = ArgumentCaptor.forClass(FcmTokenRegisteredEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
-        FcmTokenRegisteredEvent capturedEvent = eventCaptor.getValue();
-        assertThat(capturedEvent.userId()).isEqualTo(1L);
-        assertThat(capturedEvent.fcmToken()).isEqualTo(fcmToken);
+        // FCM 토큰 직접 등록 검증
+        verify(notificationFcmUseCase).registerFcmToken(1L, fcmToken);
         
         // 쿠키 생성 결과 검증
         assertThat(result).isEqualTo(expectedCookies);
@@ -155,11 +149,11 @@ class SaveDataAdapterTest {
 
         // 후속 작업이 실행되지 않았는지 검증
         verify(tokenRepository, never()).save(any());
-        verify(eventPublisher, never()).publishEvent(any());
+        verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
     }
 
     @Test
-    @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 이벤트 미발행")  
+    @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 등록 미호출")  
     void shouldNotPublishFcmEvent_WhenExistingUserHasNoFcmToken() {
         // Given: FCM 토큰이 없는 기존 사용자 로그인
         SocialLoginUserData userData = SocialLoginUserData.builder()
@@ -196,9 +190,12 @@ class SaveDataAdapterTest {
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
         saveDataAdapter.handleExistingUserLogin(userData, tokenDTO, null);
+        
+        // Then: FCM 토큰 등록이 호출되지 않았는지 검증
+        verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
 
         // Then: FCM 이벤트가 발행되지 않았는지 검증
-        verify(eventPublisher, never()).publishEvent(any(FcmTokenRegisteredEvent.class));
+        verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
         verify(tokenRepository).save(any(Token.class));
     }
 
@@ -260,15 +257,10 @@ class SaveDataAdapterTest {
         assertThat(capturedUser.getSocialId()).isEqualTo("987654321");
 
 
-        // FCM 토큰 이벤트 발행 검증 (유일한 이벤트)
-        ArgumentCaptor<FcmTokenRegisteredEvent> fcmEventCaptor = ArgumentCaptor.forClass(FcmTokenRegisteredEvent.class);
-        verify(eventPublisher).publishEvent(fcmEventCaptor.capture());
-        FcmTokenRegisteredEvent fcmEvent = fcmEventCaptor.getValue();
-        assertThat(fcmEvent.userId()).isEqualTo(2L);
-        assertThat(fcmEvent.fcmToken()).isEqualTo(fcmToken);
+        // FCM 토큰 직접 등록 검증
+        verify(notificationFcmUseCase).registerFcmToken(2L, fcmToken);
         
-        // 다른 이벤트는 발행되지 않음 확인 (UserSignedUpEvent는 발행 안됨)
-        verify(eventPublisher, never()).publishEvent(any(UserSignedUpEvent.class));
+        // UserSignedUpEvent는 발행되지 않음 (이벤트 정책상 제외)
 
         // 임시 데이터 삭제 검증
         verify(tempDataAdapter).removeTempData(uuid);
@@ -279,7 +271,7 @@ class SaveDataAdapterTest {
     }
 
     @Test
-    @DisplayName("신규 사용자 저장 - FCM 토큰 없을 때 이벤트 미발행")
+    @DisplayName("신규 사용자 저장 - FCM 토큰 없을 때 등록 미호출")
     void shouldNotPublishFcmEvent_WhenFcmTokenIsEmpty() {
         // Given: FCM 토큰이 없는 신규 사용자
         String userName = "userWithoutFcm";
@@ -316,9 +308,8 @@ class SaveDataAdapterTest {
         // When: FCM 토큰 없이 사용자 저장
         saveDataAdapter.saveNewUser(userName, uuid, userData, tokenDTO, fcmToken);
 
-        // Then: 현재 구현은 직접 Setting 생성 방식이므로 어떤 이벤트도 발행되지 않음
-        // FCM 토큰이 null이므로 FcmTokenRegisteredEvent도 발행 안됨
-        verify(eventPublisher, never()).publishEvent(any()); // 어떤 이벤트도 발행 안됨
+        // Then: FCM 토큰이 null이므로 FCM 등록 호출되지 않음
+        verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
     }
 
 }

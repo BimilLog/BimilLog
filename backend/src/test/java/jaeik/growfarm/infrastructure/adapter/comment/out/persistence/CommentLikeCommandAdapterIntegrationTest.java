@@ -36,6 +36,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * <h2>CommentLikeCommandAdapter 통합 테스트</h2>
@@ -206,23 +207,28 @@ class CommentLikeCommandAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("경계값 - 중복 댓글 추천 저장 시 예외")
-    void shouldThrowException_WhenDuplicateCommentLikeProvided() {
-        // Given: 이미 존재하는 댓글 추천
+    @DisplayName("데이터베이스 제약조건 - 유니크 키 위반 시 예외")
+    void shouldThrowException_WhenDatabaseUniqueConstraintViolated() {
+        // 실제 비즈니스 로직(CommentLikeService)에서는 토글 방식으로 중복 체크 후 처리하므로
+        // 이 상황은 발생하지 않아야 함. 하지만 데이터베이스 레벨 제약조건 테스트로는 유효함
+        // 의심 지점: 비즈니스 로직에서 중복 체크 로직이 우회되는 경우가 있는지 검토 필요
+        
+        // Given: 이미 존재하는 댓글 추천을 데이터베이스에 직접 저장
         CommentLike existingCommentLike = CommentLike.builder()
                 .comment(testComment)
                 .user(testUser2)
                 .build();
         commentLikeRepository.save(existingCommentLike);
 
-        // 동일한 댓글-사용자 조합의 추천
+        // 동일한 댓글-사용자 조합의 추천 (데이터베이스 제약조건 위반 상황)
         CommentLike duplicateCommentLike = CommentLike.builder()
                 .comment(testComment)
                 .user(testUser2)
                 .build();
 
-        // When & Then: 중복 댓글 추천으로 저장 시 예외 발생
-        org.junit.jupiter.api.Assertions.assertThrows(
+        // When & Then: 데이터베이스 유니크 제약조건 위반으로 예외 발생
+        // 주의: 실제 비즈니스 로직에서는 이런 직접 저장이 발생하지 않음 (토글 로직 존재)
+        assertThrows(
                 org.springframework.dao.DataIntegrityViolationException.class,
                 () -> commentLikeCommandAdapter.save(duplicateCommentLike)
         );

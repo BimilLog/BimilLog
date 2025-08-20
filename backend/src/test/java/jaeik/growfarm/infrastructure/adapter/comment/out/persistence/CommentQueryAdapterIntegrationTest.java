@@ -1,7 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.comment.out.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
 import jaeik.growfarm.GrowfarmApplication;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentLike;
@@ -13,8 +12,11 @@ import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentQueryAdapter;
+import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentReadRepositoryImpl;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike.CommentLikeRepository;
+import jaeik.growfarm.infrastructure.security.EncryptionUtil;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -73,7 +75,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike",
         "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentclosure"
 })
-@Import({CommentQueryAdapter.class})
+@Import(CommentQueryAdapter.class)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
@@ -97,6 +99,18 @@ class CommentQueryAdapterIntegrationTest {
         @Bean
         public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
             return new JPAQueryFactory(entityManager);
+        }
+        
+        @Bean
+        public EncryptionUtil encryptionUtil() {
+            // 테스트용 암호화 유틸리티 (Mock) - JPA Converter에서 필요
+            return org.mockito.Mockito.mock(EncryptionUtil.class);
+        }
+        
+        @Bean("commentReadRepositoryImpl")
+        @org.springframework.context.annotation.Primary
+        public CommentReadRepositoryImpl commentReadRepository(JPAQueryFactory jpaQueryFactory) {
+            return new CommentReadRepositoryImpl(jpaQueryFactory);
         }
     }
 

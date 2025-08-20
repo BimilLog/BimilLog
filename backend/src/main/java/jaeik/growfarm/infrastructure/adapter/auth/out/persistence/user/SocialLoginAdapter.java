@@ -1,15 +1,13 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.user;
 
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
-import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
-import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.exception.CustomException;
-import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,13 +61,8 @@ public class SocialLoginAdapter implements SocialLoginPort {
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
-
-            // 다중 로그인 지원: 기존 사용자도 새로운 토큰 생성
-            // 기존 토큰을 찾지 않고 새로운 토큰을 저장
-            // JWT에 토큰 ID를 포함하여 로그아웃 시 해당 토큰만 삭제
             return new LoginResultDTO(userData, tokenDTO, LoginResultDTO.LoginType.EXISTING_USER);
         } else {
-            // 신규 사용자도 새로운 토큰 생성
             return new LoginResultDTO(userData, tokenDTO, LoginResultDTO.LoginType.NEW_USER);
         }
     }

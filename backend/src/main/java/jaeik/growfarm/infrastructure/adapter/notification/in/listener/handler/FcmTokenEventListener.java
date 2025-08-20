@@ -1,7 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.growfarm.domain.auth.event.FcmTokenRegisteredEvent;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.auth.event.UserWithdrawnEvent;
 import lombok.RequiredArgsConstructor;
@@ -25,21 +24,7 @@ public class FcmTokenEventListener {
 
     private final NotificationFcmUseCase notificationFcmUseCase;
 
-    /**
-     * <h3>FCM 토큰 등록 이벤트 처리 핸들러</h3>
-     * <p>사용자 로그인 또는 회원가입 시 FCM 토큰을 등록합니다.</p>
-     *
-     * @param event FCM 토큰 등록 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async
-    @EventListener
-    @Transactional
-    public void handleFcmTokenRegisteredEvent(FcmTokenRegisteredEvent event) {
-        log.info("FCM 토큰 등록 이벤트 처리: userId={}", event.userId());
-        notificationFcmUseCase.registerFcmToken(event.userId(), event.fcmToken());
-    }
+    // FCM 토큰 등록은 SaveDataAdapter에서 직접 호출로 변경됨 (로그인/회원가입 시)
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리 핸들러</h3>
