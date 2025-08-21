@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.auth.application.service;
 
-import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
+import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
@@ -40,10 +40,10 @@ import static org.mockito.Mockito.verify;
 class SignUpServiceTest {
 
     @Mock
-    private ManageTemporaryDataPort manageTemporaryDataPort;
+    private TempDataPort tempDataPort;
 
     @Mock
-    private ManageSaveDataPort manageSaveDataPort;
+    private SaveUserPort saveUserPort;
 
     @InjectMocks
     private SignUpService signUpService;
@@ -78,8 +78,8 @@ class SignUpServiceTest {
     @DisplayName("유효한 임시 데이터로 회원 가입 성공")
     void shouldSignUp_WhenValidTemporaryData() {
         // Given
-        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
-        given(manageSaveDataPort.saveNewUser(
+        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
                 eq(testSocialData), 
@@ -94,8 +94,8 @@ class SignUpServiceTest {
         assertThat(result).isEqualTo(testCookies);
         assertThat(result).hasSize(2);
         
-        verify(manageTemporaryDataPort).getTempData(testUuid);
-        verify(manageSaveDataPort).saveNewUser(
+        verify(tempDataPort).getTempData(testUuid);
+        verify(saveUserPort).saveNewUser(
                 testUserName, 
                 testUuid, 
                 testSocialData, 
@@ -109,15 +109,15 @@ class SignUpServiceTest {
     void shouldThrowException_WhenTemporaryDataNotFound() {
         // Given
         String nonExistentUuid = "non-existent-uuid";
-        given(manageTemporaryDataPort.getTempData(nonExistentUuid)).willReturn(Optional.empty());
+        given(tempDataPort.getTempData(nonExistentUuid)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> signUpService.signUp(testUserName, nonExistentUuid))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_DATA);
 
-        verify(manageTemporaryDataPort).getTempData(nonExistentUuid);
-        verify(manageSaveDataPort, never()).saveNewUser(
+        verify(tempDataPort).getTempData(nonExistentUuid);
+        verify(saveUserPort, never()).saveNewUser(
                 eq(testUserName), 
                 eq(nonExistentUuid), 
                 eq(testSocialData), 
@@ -132,8 +132,8 @@ class SignUpServiceTest {
         // Given
         TemporaryUserDataDTO tempDataWithoutFcm = new TemporaryUserDataDTO(testSocialData, testTokenDTO, null);
         
-        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
-        given(manageSaveDataPort.saveNewUser(
+        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
+        given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
                 eq(testSocialData), 
@@ -147,8 +147,8 @@ class SignUpServiceTest {
         // Then
         assertThat(result).isEqualTo(testCookies);
         
-        verify(manageTemporaryDataPort).getTempData(testUuid);
-        verify(manageSaveDataPort).saveNewUser(testUserName, testUuid, testSocialData, testTokenDTO, null);
+        verify(tempDataPort).getTempData(testUuid);
+        verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialData, testTokenDTO, null);
     }
 
     @Test
@@ -157,10 +157,10 @@ class SignUpServiceTest {
         // Given
         String[] userNames = {"사용자1", "User2", "user_3", "user-4"};
         
-        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
 
         for (String userName : userNames) {
-            given(manageSaveDataPort.saveNewUser(
+            given(saveUserPort.saveNewUser(
                     eq(userName), 
                     eq(testUuid), 
                     eq(testSocialData), 
@@ -173,7 +173,7 @@ class SignUpServiceTest {
 
             // Then
             assertThat(result).isEqualTo(testCookies);
-            verify(manageSaveDataPort).saveNewUser(userName, testUuid, testSocialData, testTokenDTO, "fcm-token");
+            verify(saveUserPort).saveNewUser(userName, testUuid, testSocialData, testTokenDTO, "fcm-token");
         }
     }
 
@@ -182,8 +182,8 @@ class SignUpServiceTest {
     void shouldSignUp_WithEmptyUserName() {
         // Given
         String emptyUserName = "";
-        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
-        given(manageSaveDataPort.saveNewUser(
+        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(saveUserPort.saveNewUser(
                 eq(emptyUserName), 
                 eq(testUuid), 
                 eq(testSocialData), 
@@ -196,7 +196,7 @@ class SignUpServiceTest {
 
         // Then
         assertThat(result).isEqualTo(testCookies);
-        verify(manageSaveDataPort).saveNewUser(emptyUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
+        verify(saveUserPort).saveNewUser(emptyUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
     }
 
     @Test
@@ -204,8 +204,8 @@ class SignUpServiceTest {
     void shouldSignUp_WithNullUserName() {
         // Given
         String nullUserName = null;
-        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
-        given(manageSaveDataPort.saveNewUser(
+        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(saveUserPort.saveNewUser(
                 eq(nullUserName), 
                 eq(testUuid), 
                 eq(testSocialData), 
@@ -218,7 +218,7 @@ class SignUpServiceTest {
 
         // Then
         assertThat(result).isEqualTo(testCookies);
-        verify(manageSaveDataPort).saveNewUser(nullUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
+        verify(saveUserPort).saveNewUser(nullUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
     }
 
     @Test
@@ -226,8 +226,8 @@ class SignUpServiceTest {
     void shouldReturnEmptyCookies_WhenSaveReturnsEmpty() {
         // Given
         List<ResponseCookie> emptyCookies = List.of();
-        given(manageTemporaryDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
-        given(manageSaveDataPort.saveNewUser(
+        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
                 eq(testSocialData), 
@@ -240,6 +240,6 @@ class SignUpServiceTest {
 
         // Then
         assertThat(result).isEmpty();
-        verify(manageSaveDataPort).saveNewUser(testUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
+        verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialData, testTokenDTO, "fcm-token");
     }
 }

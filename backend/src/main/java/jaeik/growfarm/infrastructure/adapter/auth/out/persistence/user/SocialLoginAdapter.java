@@ -56,6 +56,7 @@ public class SocialLoginAdapter implements SocialLoginPort {
         SocialLoginUserData userData = initialLoginResult.getUserData();
         TokenDTO tokenDTO = initialLoginResult.getTokenDTO();
 
+        // 기존 사용자 확인
         Optional<User> existingUser = userQueryUseCase.findByProviderAndSocialId(provider, userData.socialId());
 
         if (existingUser.isPresent()) {

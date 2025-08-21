@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 
-import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
 import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
@@ -30,7 +30,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class SaveDataAdapter implements ManageSaveDataPort {
+public class SaveUserAdapter implements SaveUserPort {
 
     private final TokenRepository tokenRepository;
     private final AuthCookieManager authCookieManager;

@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 
-import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class DeleteDataAdapter implements ManageDeleteDataPort {
+public class DeleteUserAdapter implements DeleteUserPort {
 
     private final EntityManager entityManager;
     private final TokenRepository tokenRepository;
@@ -61,7 +61,6 @@ public class DeleteDataAdapter implements ManageDeleteDataPort {
         entityManager.clear();
 
         tokenRepository.deleteAllByUserId(userId);
-
         userCommandUseCase.deleteById(userId);
     }
 

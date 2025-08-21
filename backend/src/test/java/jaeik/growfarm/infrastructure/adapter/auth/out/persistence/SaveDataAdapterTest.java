@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.SaveDataAdapter;
+import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.SaveUserAdapter;
 import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.TempDataAdapter;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
@@ -52,7 +52,7 @@ class SaveDataAdapterTest {
     @Mock private TempDataAdapter tempDataAdapter;
     @Mock private NotificationFcmUseCase notificationFcmUseCase;
 
-    @InjectMocks private SaveDataAdapter saveDataAdapter;
+    @InjectMocks private SaveUserAdapter saveDataAdapter;
 
     @Test
     @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 이벤트 발행")

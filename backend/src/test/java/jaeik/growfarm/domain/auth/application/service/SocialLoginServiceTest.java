@@ -1,11 +1,11 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
+import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResponseDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
@@ -55,10 +55,10 @@ class SocialLoginServiceTest {
     private SocialLoginPort socialLoginPort;
 
     @Mock
-    private ManageSaveDataPort manageSaveDataPort;
+    private SaveUserPort saveUserPort;
 
     @Mock
-    private ManageTemporaryDataPort manageTemporaryDataPort;
+    private TempDataPort tempDataPort;
 
     @Mock
     private BlacklistPort blacklistPort;
@@ -117,7 +117,7 @@ class SocialLoginServiceTest {
             
             given(socialLoginPort.login(provider, code)).willReturn(existingUserResult);
             given(blacklistPort.existsByProviderAndSocialId(provider, testUserData.socialId())).willReturn(false);
-            given(manageSaveDataPort.handleExistingUserLogin(testUserData, testTokenDTO, fcmToken)).willReturn(cookies);
+            given(saveUserPort.handleExistingUserLogin(testUserData, testTokenDTO, fcmToken)).willReturn(cookies);
 
             // When
             LoginResponseDTO<?> result = socialLoginService.processSocialLogin(provider, code, fcmToken);
@@ -128,8 +128,8 @@ class SocialLoginServiceTest {
             
             verify(socialLoginPort).login(provider, code);
             verify(blacklistPort).existsByProviderAndSocialId(provider, testUserData.socialId());
-            verify(manageSaveDataPort).handleExistingUserLogin(testUserData, testTokenDTO, fcmToken);
-            verify(manageTemporaryDataPort, never()).saveTempData(anyString(), any(), any());
+            verify(saveUserPort).handleExistingUserLogin(testUserData, testTokenDTO, fcmToken);
+            verify(tempDataPort, never()).saveTempData(anyString(), any(), any());
         }
     }
 
@@ -149,7 +149,7 @@ class SocialLoginServiceTest {
             
             given(socialLoginPort.login(provider, code)).willReturn(newUserResult);
             given(blacklistPort.existsByProviderAndSocialId(provider, testUserData.socialId())).willReturn(false);
-            given(manageTemporaryDataPort.createTempCookie(anyString())).willReturn(tempCookie);
+            given(tempDataPort.createTempCookie(anyString())).willReturn(tempCookie);
 
             // When
             LoginResponseDTO<?> result = socialLoginService.processSocialLogin(provider, code, fcmToken);
@@ -160,9 +160,9 @@ class SocialLoginServiceTest {
             
             verify(socialLoginPort).login(provider, code);
             verify(blacklistPort).existsByProviderAndSocialId(provider, testUserData.socialId());
-            verify(manageTemporaryDataPort).saveTempData(anyString(), eq(testUserData), eq(testTokenDTO));
-            verify(manageTemporaryDataPort).createTempCookie(anyString());
-            verify(manageSaveDataPort, never()).handleExistingUserLogin(any(), any(), anyString());
+            verify(tempDataPort).saveTempData(anyString(), eq(testUserData), eq(testTokenDTO));
+            verify(tempDataPort).createTempCookie(anyString());
+            verify(saveUserPort, never()).handleExistingUserLogin(any(), any(), anyString());
         }
     }
 
@@ -188,8 +188,8 @@ class SocialLoginServiceTest {
 
             verify(socialLoginPort).login(provider, code);
             verify(blacklistPort).existsByProviderAndSocialId(provider, testUserData.socialId());
-            verify(manageSaveDataPort, never()).handleExistingUserLogin(any(), any(), anyString());
-            verify(manageTemporaryDataPort, never()).saveTempData(anyString(), any(), any());
+            verify(saveUserPort, never()).handleExistingUserLogin(any(), any(), anyString());
+            verify(tempDataPort, never()).saveTempData(anyString(), any(), any());
         }
     }
 
@@ -236,7 +236,7 @@ class SocialLoginServiceTest {
             
             given(socialLoginPort.login(provider, code)).willReturn(existingUserResult);
             given(blacklistPort.existsByProviderAndSocialId(provider, testUserData.socialId())).willReturn(false);
-            given(manageSaveDataPort.handleExistingUserLogin(testUserData, testTokenDTO, fcmToken)).willReturn(cookies);
+            given(saveUserPort.handleExistingUserLogin(testUserData, testTokenDTO, fcmToken)).willReturn(cookies);
 
             // When
             LoginResponseDTO<?> result = socialLoginService.processSocialLogin(provider, code, fcmToken);
@@ -262,7 +262,7 @@ class SocialLoginServiceTest {
             for (SocialProvider provider : providers) {
                 given(socialLoginPort.login(provider, code)).willReturn(existingUserResult);
                 given(blacklistPort.existsByProviderAndSocialId(provider, testUserData.socialId())).willReturn(false);
-                given(manageSaveDataPort.handleExistingUserLogin(testUserData, testTokenDTO, fcmToken))
+                given(saveUserPort.handleExistingUserLogin(testUserData, testTokenDTO, fcmToken))
                         .willReturn(List.of(ResponseCookie.from("token", "value").build()));
 
                 // When

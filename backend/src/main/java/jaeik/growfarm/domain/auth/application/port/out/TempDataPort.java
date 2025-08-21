@@ -14,7 +14,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface ManageTemporaryDataPort {
+public interface TempDataPort {
 
     /**
      * <h3>임시 사용자 데이터 저장</h3>

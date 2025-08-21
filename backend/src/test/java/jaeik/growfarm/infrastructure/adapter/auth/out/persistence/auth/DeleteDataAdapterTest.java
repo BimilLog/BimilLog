@@ -39,7 +39,7 @@ class DeleteDataAdapterTest {
     @Mock private AuthCookieManager authCookieManager;
     @Mock private UserCommandUseCase userCommandUseCase;
 
-    @InjectMocks private DeleteDataAdapter deleteDataAdapter;
+    @InjectMocks private DeleteUserAdapter deleteDataAdapter;
 
     @Test
     @DisplayName("로그아웃 처리 - 정상적인 사용자 ID로 로그아웃")

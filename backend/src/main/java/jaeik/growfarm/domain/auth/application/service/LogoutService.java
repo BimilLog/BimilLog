@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.user.entity.User;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LogoutService implements LogoutUseCase {
 
-    private final ManageDeleteDataPort manageDeleteDataPort;
+    private final DeleteUserPort deleteUserPort;
     private final SocialLoginPort socialLoginPort;
     private final LoadTokenPort loadTokenPort;
     private final ApplicationEventPublisher eventPublisher;
@@ -50,7 +50,7 @@ public class LogoutService implements LogoutUseCase {
             logoutSocial(userDetails);
             eventPublisher.publishEvent(UserLoggedOutEvent.of(userDetails.getUserId(), userDetails.getTokenId()));
             SecurityContextHolder.clearContext();
-            return manageDeleteDataPort.getLogoutCookies();
+            return deleteUserPort.getLogoutCookies();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
         }

@@ -4,7 +4,7 @@ import org.springframework.http.ResponseCookie;
 
 import java.util.List;
 
-public interface ManageDeleteDataPort {
+public interface DeleteUserPort {
 
     /**
      * <h3>로그아웃 처리</h3>

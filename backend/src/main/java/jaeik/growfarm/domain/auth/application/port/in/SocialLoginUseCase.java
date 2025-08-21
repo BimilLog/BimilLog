@@ -1,7 +1,7 @@
 
 package jaeik.growfarm.domain.auth.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResponseDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 
 /**

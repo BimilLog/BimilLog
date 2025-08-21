@@ -14,7 +14,7 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface ManageSaveDataPort {
+public interface SaveUserPort {
 
     /**
      * <h3>기존 사용자 로그인 처리 및 쿠키 생성</h3>

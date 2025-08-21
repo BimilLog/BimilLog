@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.auth.application.service;
 import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.LoadUserPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.event.UserWithdrawnEvent;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
@@ -47,7 +47,7 @@ class WithdrawServiceTest {
     private LoadUserPort loadUserPort;
 
     @Mock
-    private ManageDeleteDataPort manageDeleteDataPort;
+    private DeleteUserPort deleteUserPort;
 
     @Mock
     private SocialLoginPort socialLoginPort;
@@ -106,7 +106,7 @@ class WithdrawServiceTest {
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
 
         // 탈퇴 프로세스 수행 검증
-        verify(manageDeleteDataPort).performWithdrawProcess(100L);
+        verify(deleteUserPort).performWithdrawProcess(100L);
 
         // 탈퇴 이벤트 발행 검증
         ArgumentCaptor<UserWithdrawnEvent> eventCaptor = ArgumentCaptor.forClass(UserWithdrawnEvent.class);
@@ -191,7 +191,7 @@ class WithdrawServiceTest {
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao456");
 
         // 탈퇴 프로세스 수행 검증
-        verify(manageDeleteDataPort).performWithdrawProcess(targetUserId);
+        verify(deleteUserPort).performWithdrawProcess(targetUserId);
 
         // 탈퇴 이벤트 발행 검증
         ArgumentCaptor<UserWithdrawnEvent> eventCaptor = ArgumentCaptor.forClass(UserWithdrawnEvent.class);
@@ -278,7 +278,7 @@ class WithdrawServiceTest {
         // 이벤트 발행 전까지의 모든 작업은 완료되어야 함
         verify(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
-        verify(manageDeleteDataPort).performWithdrawProcess(100L);
+        verify(deleteUserPort).performWithdrawProcess(100L);
     }
 
     @Test
@@ -295,7 +295,7 @@ class WithdrawServiceTest {
 
         given(loadUserPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
         doThrow(new RuntimeException("데이터 처리 실패"))
-                .when(manageDeleteDataPort).performWithdrawProcess(targetUserId);
+                .when(deleteUserPort).performWithdrawProcess(targetUserId);
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.forceWithdraw(targetUserId))
@@ -304,6 +304,6 @@ class WithdrawServiceTest {
 
         verify(tokenBlacklistUseCase).blacklistAllUserTokens(targetUserId, "관리자 강제 탈퇴");
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao456");
-        verify(manageDeleteDataPort).performWithdrawProcess(targetUserId);
+        verify(deleteUserPort).performWithdrawProcess(targetUserId);
     }
 }

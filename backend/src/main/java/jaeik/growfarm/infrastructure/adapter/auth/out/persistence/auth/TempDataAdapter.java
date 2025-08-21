@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 
-import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TempDataAdapter implements ManageTemporaryDataPort {
+public class TempDataAdapter implements TempDataPort {
 
     private final Map<String, TemporaryUserDataDTO> tempUserDataStore = new ConcurrentHashMap<>();
     private final AuthCookieManager authCookieManager;

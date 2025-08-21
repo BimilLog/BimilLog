@@ -4,8 +4,7 @@ import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.LoadUserPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.event.UserWithdrawnEvent;
 import jaeik.growfarm.domain.user.entity.User;
@@ -33,7 +32,7 @@ import java.util.List;
 public class WithdrawService implements WithdrawUseCase {
 
     private final LoadUserPort loadUserPort;
-    private final ManageDeleteDataPort manageDeleteDataPort;
+    private final DeleteUserPort deleteUserPort;
     private final SocialLoginPort socialLoginPort;
     private final ApplicationEventPublisher eventPublisher;
     private final TokenBlacklistUseCase tokenBlacklistUseCase;
@@ -65,7 +64,7 @@ public class WithdrawService implements WithdrawUseCase {
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED, e);
         }
-        manageDeleteDataPort.performWithdrawProcess(userDetails.getUserId());
+        deleteUserPort.performWithdrawProcess(userDetails.getUserId());
         eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId()));
 
         return logoutUseCase.logout(userDetails);
@@ -94,7 +93,7 @@ public class WithdrawService implements WithdrawUseCase {
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED, e);
         }
-        manageDeleteDataPort.performWithdrawProcess(userId);
+        deleteUserPort.performWithdrawProcess(userId);
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
     }
 }

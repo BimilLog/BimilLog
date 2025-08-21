@@ -21,7 +21,7 @@ public class LoginResultDTO {
 
     private SocialLoginUserData userData;
     private TokenDTO tokenDTO;
-    private LoginType loginType; // 로그인 유형 추가
+    private LoginType loginType;
 
     public enum LoginType {
         NEW_USER, EXISTING_USER

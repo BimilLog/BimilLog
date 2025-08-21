@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.auth.in.listener;
 
-import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TokenCleanupEventListener {
 
-    private final ManageDeleteDataPort manageDeleteDataPort;
+    private final DeleteUserPort deleteUserPort;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리 - 토큰 정리</h3>
@@ -40,7 +40,7 @@ public class TokenCleanupEventListener {
                      event.userId(), event.tokenId());
             
             // 다중 로그인 지원: 특정 토큰만 삭제 (다른 기기의 로그인 상태 유지)
-            manageDeleteDataPort.logoutUser(event.userId(), event.tokenId());
+            deleteUserPort.logoutUser(event.userId(), event.tokenId());
             
             log.info("토큰 정리 완료 - 사용자 ID: {}, 토큰 ID: {}", 
                      event.userId(), event.tokenId());

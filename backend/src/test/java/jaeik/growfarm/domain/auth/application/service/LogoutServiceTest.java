@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageDeleteDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.*;
 class LogoutServiceTest {
 
     @Mock
-    private ManageDeleteDataPort manageDeleteDataPort;
+    private DeleteUserPort deleteUserPort;
 
     @Mock
     private SocialLoginPort socialLoginPort;
@@ -93,7 +93,7 @@ class LogoutServiceTest {
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.of(testToken));
-        given(manageDeleteDataPort.getLogoutCookies()).willReturn(logoutCookies);
+        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
@@ -117,7 +117,7 @@ class LogoutServiceTest {
             // 소셜 로그아웃 검증
             verify(loadTokenPort).findById(200L);
             verify(socialLoginPort).logout(SocialProvider.KAKAO, "access-token");
-            verify(manageDeleteDataPort).getLogoutCookies();
+            verify(deleteUserPort).getLogoutCookies();
         }
     }
 
@@ -128,7 +128,7 @@ class LogoutServiceTest {
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.empty());
-        given(manageDeleteDataPort.getLogoutCookies()).willReturn(logoutCookies);
+        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
@@ -162,7 +162,7 @@ class LogoutServiceTest {
                 .build();
 
         given(loadTokenPort.findById(200L)).willReturn(Optional.of(tokenWithNullUser));
-        given(manageDeleteDataPort.getLogoutCookies()).willReturn(logoutCookies);
+        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
@@ -200,7 +200,7 @@ class LogoutServiceTest {
         
         // 실패 시 이벤트 발행 및 쿠키 생성은 호출되지 않아야 함
         verify(eventPublisher, never()).publishEvent(any());
-        verify(manageDeleteDataPort, never()).getLogoutCookies();
+        verify(deleteUserPort, never()).getLogoutCookies();
     }
 
     @Test
@@ -222,7 +222,7 @@ class LogoutServiceTest {
         verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
         
         // 실패 시 쿠키 생성은 호출되지 않아야 함
-        verify(manageDeleteDataPort, never()).getLogoutCookies();
+        verify(deleteUserPort, never()).getLogoutCookies();
     }
 
     @Test
@@ -232,7 +232,7 @@ class LogoutServiceTest {
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
         given(loadTokenPort.findById(200L)).willReturn(Optional.of(testToken));
-        doThrow(new RuntimeException("쿠키 생성 실패")).when(manageDeleteDataPort).getLogoutCookies();
+        doThrow(new RuntimeException("쿠키 생성 실패")).when(deleteUserPort).getLogoutCookies();
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When & Then
@@ -243,7 +243,7 @@ class LogoutServiceTest {
             verify(socialLoginPort).logout(SocialProvider.KAKAO, "access-token");
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
-            verify(manageDeleteDataPort).getLogoutCookies();
+            verify(deleteUserPort).getLogoutCookies();
         }
     }
 
@@ -287,7 +287,7 @@ class LogoutServiceTest {
                     .build();
 
             given(loadTokenPort.findById(200L)).willReturn(Optional.of(token));
-            given(manageDeleteDataPort.getLogoutCookies()).willReturn(logoutCookies);
+            given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
             try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
                 // When

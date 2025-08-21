@@ -3,14 +3,13 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
+import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResponseDTO;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
-import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -36,13 +35,10 @@ import java.util.UUID;
 public class SocialLoginService implements SocialLoginUseCase {
 
     private final SocialLoginPort socialLoginPort;
-    private final ManageSaveDataPort manageSaveDataPort;
-    private final ManageTemporaryDataPort manageTemporaryDataPort;
+    private final SaveUserPort saveUserPort;
+    private final TempDataPort tempDataPort;
     private final BlacklistPort blacklistPort;
 
-
-    // TODO : 굳이 여기서 TokenDTO를 생성할 이유가 있을까? 바로 엔티티로 변환하면 되는데
-    //  헥사고날에서 DTO는 외부세계와의 통신을 위한 객체로 사용 되기 때문에 다시 생각해 봐야함.
     /**
      * <h3>소셜 로그인 처리</h3>
      * <p>소셜 로그인 요청을 처리하고 로그인 결과를 반환합니다.</p>
@@ -63,24 +59,52 @@ public class SocialLoginService implements SocialLoginUseCase {
 
         LoginResultDTO loginResult = socialLoginPort.login(provider, code);
         SocialLoginUserData userData = loginResult.getUserData();
-        TokenDTO tokenDTO = loginResult.getTokenDTO();
         
         if (blacklistPort.existsByProviderAndSocialId(provider, userData.socialId())) {
             throw new CustomException(ErrorCode.BLACKLIST_USER);
         }
 
         if (loginResult.getLoginType() == LoginResultDTO.LoginType.EXISTING_USER) {
-            List<ResponseCookie> cookies = manageSaveDataPort.handleExistingUserLogin(userData, tokenDTO, fcmToken);
-            return new LoginResponseDTO<>(LoginResponseDTO.LoginType.EXISTING_USER, cookies);
+            return handleExistingUser(loginResult, fcmToken);
+
         } else {
-            String uuid = UUID.randomUUID().toString();
-            manageTemporaryDataPort.saveTempData(uuid, userData, tokenDTO);
-            ResponseCookie tempCookie = manageTemporaryDataPort.createTempCookie(uuid);
-            return new LoginResponseDTO<>(LoginResponseDTO.LoginType.NEW_USER, tempCookie);
+            return handleNewUser(loginResult);
         }
     }
-
-
+    
+    /**
+     * <h3>기존 사용자 로그인 처리</h3>
+     * <p>기존 사용자의 로그인 결과를 처리하고 쿠키를 생성합니다.</p>
+     *
+     * @param loginResult 로그인 결과 DTO
+     * @param fcmToken    Firebase Cloud Messaging 토큰
+     * @return 로그인 응답 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private LoginResponseDTO<List<ResponseCookie>> handleExistingUser(LoginResultDTO loginResult, String fcmToken) {
+        List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(
+                loginResult.getUserData(), loginResult.getTokenDTO(), fcmToken
+        );
+        return new LoginResponseDTO<>(LoginResponseDTO.LoginType.EXISTING_USER, cookies);
+    }
+    
+    /**
+     * <h3>신규 사용자 로그인 처리</h3>
+     * <p>신규 사용자의 로그인 결과를 처리하고 임시 데이터를 저장합니다.</p>
+     *
+     * @param loginResult 로그인 결과 DTO
+     * @return 로그인 응답 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private LoginResponseDTO<ResponseCookie> handleNewUser(LoginResultDTO loginResult) {
+        String uuid = UUID.randomUUID().toString();
+        tempDataPort.saveTempData(uuid, loginResult.getUserData(), loginResult.getTokenDTO());
+        ResponseCookie tempCookie = tempDataPort.createTempCookie(uuid);
+        return new LoginResponseDTO<>(LoginResponseDTO.LoginType.NEW_USER, tempCookie);
+    }
+    
     /**
      * <h3>로그인 유효성 검사</h3>
      * <p>현재 사용자가 로그인 상태인지 확인합니다.</p>

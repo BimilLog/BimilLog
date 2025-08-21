@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
-import jaeik.growfarm.domain.auth.application.port.out.ManageSaveDataPort;
-import jaeik.growfarm.domain.auth.application.port.out.ManageTemporaryDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
+import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -25,8 +25,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SignUpService implements SignUpUseCase {
 
-    private final ManageTemporaryDataPort manageTemporaryDataPort;
-    private final ManageSaveDataPort manageSaveDataPort;
+    private final TempDataPort tempDataPort;
+    private final SaveUserPort saveUserPort;
 
     /**
      * <h3>회원 가입 처리</h3>
@@ -40,12 +40,12 @@ public class SignUpService implements SignUpUseCase {
      */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
-        Optional<TemporaryUserDataDTO> tempUserData = manageTemporaryDataPort.getTempData(uuid);
+        Optional<TemporaryUserDataDTO> tempUserData = tempDataPort.getTempData(uuid);
 
         if (tempUserData.isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         } else {
-            return manageSaveDataPort.saveNewUser(userName, uuid, tempUserData.get().socialLoginUserData, tempUserData.get().tokenDTO, tempUserData.get().getFcmToken());
+            return saveUserPort.saveNewUser(userName, uuid, tempUserData.get().socialLoginUserData, tempUserData.get().tokenDTO, tempUserData.get().getFcmToken());
         }
     }
 }
