@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -174,5 +175,21 @@ public class CommentQueryService implements CommentQueryUseCase {
     @Transactional(readOnly = true)
     public Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
         return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
+    }
+
+    /**
+     * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
+     * <p>여러 게시글의 댓글 수를 배치로 조회하여 N+1 문제를 해결합니다.</p>
+     * <p>CommentQueryPort의 기존 구현체를 활용합니다.</p>
+     *
+     * @param postIds 게시글 ID 목록
+     * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
+        return commentQueryPort.findCommentCountsByPostIds(postIds);
     }
 }

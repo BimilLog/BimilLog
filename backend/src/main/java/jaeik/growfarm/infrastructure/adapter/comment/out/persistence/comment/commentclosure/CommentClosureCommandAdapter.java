@@ -46,7 +46,5 @@ public class CommentClosureCommandAdapter implements CommentClosureCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void deleteByDescendantId(Long commentId) {
-        commentClosureRepository.deleteByDescendantId(commentId);
-    }
+    public void deleteByDescendantId(Long commentId) {commentClosureRepository.deleteByDescendantId(commentId);}
 }

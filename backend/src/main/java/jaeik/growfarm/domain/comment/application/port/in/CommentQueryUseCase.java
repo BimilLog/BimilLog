@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -78,5 +79,16 @@ public interface CommentQueryUseCase {
      * @since 2.0.0
      */
     Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable);
+
+    /**
+     * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
+     * <p>여러 게시글의 댓글 수를 배치로 조회하여 N+1 문제를 해결합니다.</p>
+     *
+     * @param postIds 게시글 ID 목록
+     * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
 
 }

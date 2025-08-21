@@ -5,7 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -38,7 +38,7 @@ public class PostQueryAdapter implements PostQueryPort {
     private final JPAQueryFactory jpaQueryFactory;
     private final PostJpaRepository postJpaRepository;
     private final SearchStrategyFactory searchStrategyFactory;
-    private final CommentQueryPort commentQueryPort;
+    private final CommentQueryUseCase commentQueryUseCase;
 
     private static final QPost post = QPost.post;
     private static final QUser user = QUser.user;
@@ -137,7 +137,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .toList();
 
         // 3. 배치로 댓글 수 조회 (N+1 문제 해결)
-        Map<Long, Integer> commentCounts = commentQueryPort.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> commentCounts = commentQueryUseCase.findCommentCountsByPostIds(postIds);
 
         // 4. 댓글 수 설정
         content.forEach(post -> {
@@ -182,7 +182,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .toList();
 
         // 3. 배치로 댓글 수 조회 (N+1 문제 해결)
-        Map<Long, Integer> commentCounts = commentQueryPort.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> commentCounts = commentQueryUseCase.findCommentCountsByPostIds(postIds);
 
         // 4. 댓글 수 설정
         content.forEach(post -> {

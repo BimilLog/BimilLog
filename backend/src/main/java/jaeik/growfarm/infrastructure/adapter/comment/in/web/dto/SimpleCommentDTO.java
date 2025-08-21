@@ -32,33 +32,27 @@ public class SimpleCommentDTO {
     @NotNull
     private String content;
 
-    private int likes;
+    private Integer likeCount;
 
     private boolean userLike;
 
     private Instant createdAt;
 
+
     /**
-     * <h3>마이페이지 댓글 조회용 DTO</h3>
+     * <h3>댓글 DTO 생성자</h3>
+     * <p>QueryDSL 프로젝션과 일반 생성 모두에서 사용하는 통합 생성자</p>
      *
      * @param id        댓글 ID
      * @param postId    게시글 ID
      * @param userName  사용자 이름
      * @param content   댓글 내용
      * @param createdAt 댓글 작성 시간
-     * @param likes     댓글 추천 수
+     * @param likeCount     댓글 추천 수
      * @param userLike  사용자가 추천를 눌렀는지 여부
+     * @author Jaeik
+     * @since 2.0.0
      */
-    public SimpleCommentDTO(Long id, Long postId, String userName, String content, Instant createdAt, int likes, boolean userLike) {
-        this.id = id;
-        this.postId = postId;
-        this.userName = userName != null ? userName : "익명";
-        this.content = content;
-        this.createdAt = createdAt;
-        this.likes = likes;
-        this.userLike = userLike;
-    }
-
     @QueryProjection
     public SimpleCommentDTO(
             Long id,
@@ -66,14 +60,14 @@ public class SimpleCommentDTO {
             String userName,
             String content,
             Instant createdAt,
-            Integer likes,
+            Integer likeCount,
             boolean userLike) {
         this.id = id;
         this.postId = postId;
-        this.userName = userName;
+        this.userName = userName != null ? userName : "익명";
         this.content = content;
         this.createdAt = createdAt;
-        this.likes = likes;
+        this.likeCount = likeCount != null ? likeCount : 0;
         this.userLike = userLike;
     }
 }

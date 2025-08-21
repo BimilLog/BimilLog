@@ -1,5 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.comment.in.web.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -50,6 +51,21 @@ public class CommentDTO {
     private boolean userLike;
 
     // 비밀번호는 CommentReqDTO로 이동 반환값에는 비밀번호가 포함되지 않아야 함. 비밀번호의 매칭 여부는 서버내에서 검증
+    /**
+     * <h3>댓글 DTO 생성자</h3>
+     * <p>
+     * 댓글 정보를 담는 DTO 생성자입니다.
+     * </p>
+     *
+     * @param id        댓글 ID
+     * @param postId    게시글 ID
+     * @param userId    사용자 ID
+     * @param userName  사용자 이름
+     * @param content   댓글 내용
+     * @param deleted   삭제 여부
+     * @param createdAt 생성일시
+     * @param parentId  부모 댓글 ID (대댓글의 경우)
+     */
     public CommentDTO(Long id, Long postId, Long userId, String userName, String content, boolean deleted, Instant createdAt, Long parentId) {
         this.id = id;
         this.postId = postId;
@@ -61,36 +77,6 @@ public class CommentDTO {
         this.parentId = parentId;
         this.popular = false;
         this.likes = 0;
-        this.userLike = false;
-    }
-
-    /**
-     * <h3>추천수를 포함한 댓글 DTO 생성자</h3>
-     * <p>QueryDSL 쿼리에서 추천수를 한번에 조회할 때 사용하는 생성자입니다.</p>
-     *
-     * @param id        댓글 ID
-     * @param postId    게시글 ID
-     * @param userId    사용자 ID
-     * @param userName  사용자명
-     * @param content   댓글 내용
-     * @param deleted   삭제 여부
-     * @param createdAt 생성일시
-     * @param parentId  부모 댓글 ID
-     * @param likes     추천수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public CommentDTO(Long id, Long postId, Long userId, String userName, String content, boolean deleted, Instant createdAt, Long parentId, Integer likes) {
-        this.id = id;
-        this.postId = postId;
-        this.userId = userId;
-        this.userName = userName;
-        this.content = content;
-        this.deleted = deleted;
-        this.createdAt = createdAt;
-        this.parentId = parentId;
-        this.popular = false;
-        this.likes = likes != null ? likes : 0;
         this.userLike = false;
     }
 
@@ -114,6 +100,38 @@ public class CommentDTO {
         this.deleted = comment.isDeleted();
         this.parentId = null;
         this.likes = 0;
+        this.userLike = false;
+    }
+
+    /**
+     * <h3>QueryDSL용 댓글 DTO 생성자 - 보안 강화</h3>
+     * <p>QueryDSL 쿼리에서 추천수를 한번에 조회할 때 사용하는 생성자입니다.</p>
+     * <p>응답용 DTO이므로 비밀번호 필드는 제외됩니다.</p>
+     *
+     * @param id        댓글 ID
+     * @param postId    게시글 ID
+     * @param userId    사용자 ID
+     * @param userName  사용자명
+     * @param content   댓글 내용
+     * @param deleted   삭제 여부
+     * @param createdAt 생성일시
+     * @param parentId  부모 댓글 ID
+     * @param likes     추천수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @QueryProjection
+    public CommentDTO(Long id, Long postId, Long userId, String userName, String content, boolean deleted, Instant createdAt, Long parentId, Integer likes) {
+        this.id = id;
+        this.postId = postId;
+        this.userId = userId;
+        this.userName = userName;
+        this.content = content;
+        this.deleted = deleted;
+        this.createdAt = createdAt;
+        this.parentId = parentId;
+        this.popular = false;
+        this.likes = likes != null ? likes : 0;
         this.userLike = false;
     }
 }

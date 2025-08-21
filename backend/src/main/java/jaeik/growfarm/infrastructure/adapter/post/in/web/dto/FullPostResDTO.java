@@ -29,21 +29,21 @@ public class FullPostResDTO {
     private final String title;
     private final String content;
     private final int views;
-    private final int likes;
+    private final Integer likeCount;
     private final boolean isNotice;
     private final Instant createdAt;
     private boolean isLiked;
 
     @Builder
     public FullPostResDTO(Long id, Long userId, String userName, String title, String content,
-                          int views, int likes, boolean isNotice, Instant createdAt, boolean isLiked) {
+                          int views, int likeCount, boolean isNotice, Instant createdAt, boolean isLiked) {
         this.id = id;
         this.userId = userId;
         this.userName = userName;
         this.title = title;
         this.content = content;
         this.views = views;
-        this.likes = likes;
+        this.likeCount = likeCount;
         this.isNotice = isNotice;
         this.createdAt = createdAt;
         this.isLiked = isLiked;
@@ -60,7 +60,7 @@ public class FullPostResDTO {
      * @author Jaeik
      * @since 2.0.0
      */
-    public static FullPostResDTO from(Post post, long likeCount, boolean isLiked) {
+    public static FullPostResDTO from(Post post, Integer likeCount, boolean isLiked) {
         return FullPostResDTO.builder()
                 .id(post.getId())
                 .userId(post.getUser() != null ? post.getUser().getId() : null)
@@ -68,7 +68,7 @@ public class FullPostResDTO {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .views(post.getViews())
-                .likes((int) likeCount)
+                .likeCount(likeCount)
                 .isNotice(post.isNotice())
                 .createdAt(post.getCreatedAt())
                 .isLiked(isLiked)

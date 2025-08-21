@@ -4,7 +4,10 @@ import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import jaeik.growfarm.domain.comment.entity.QComment;
+import jaeik.growfarm.domain.comment.entity.QCommentClosure;
+import jaeik.growfarm.domain.comment.entity.QCommentLike;
 import jaeik.growfarm.domain.user.entity.QUser;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -23,14 +26,18 @@ import lombok.RequiredArgsConstructor;
 public class CommentDtoProjection {
 
     private static final QComment comment = QComment.comment;
+    private static final QCommentLike commentLike = QCommentLike.commentLike;
+    private static final QCommentClosure closure = QCommentClosure.commentClosure; // ★ 추가: CommentDTO 프로젝션에 사용되므로 필요
     private static final QUser user = QUser.user;
 
 
     /**
-     * <p>{@link SimpleCommentDTO}를 위한 {@code ConstructorExpression}을 반환합니다.</p>
-     * <p>사용자가 추천한 댓글 목록 조회 시 {@code SELECT} 절에 사용됩니다.</p>
+     * <h3>SimpleCommentDTO DTO 프로젝션</h3>
+     * <p>SimpleCommentDTO로 변환하는 프로젝션</p>
      *
-     * @return SimpleCommentDTO를 생성하는 {@code ConstructorExpression}
+     * @return ConstructorExpression<SimpleCommentDTO> 댓글 DTO 프로젝션
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static ConstructorExpression<SimpleCommentDTO> getSimpleCommentDtoProjection() {
         return Projections.constructor(SimpleCommentDTO.class,
@@ -43,5 +50,25 @@ public class CommentDtoProjection {
                 Expressions.constant(false));
     }
 
-
+    /**
+     * <h3>CommentDTO DTO 프로젝션</h3>
+     * <p>CommentDTO로 변환하는 프로젝션</p>
+     *
+     * @return ConstructorExpression<CommentDTO> 댓글 DTO 프로젝션
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static ConstructorExpression<CommentDTO> getCommentDtoProjection() {
+        return Projections.constructor(CommentDTO.class,
+                comment.id,
+                comment.post.id,
+                comment.user.id,
+                user.userName,
+                comment.content,
+                comment.deleted,
+                comment.createdAt,
+                closure.ancestor.id,
+                commentLike.countDistinct().coalesce(0L).intValue()
+        );
+    }
 }

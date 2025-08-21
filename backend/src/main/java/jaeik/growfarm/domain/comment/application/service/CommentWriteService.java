@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -35,29 +35,31 @@ public class CommentWriteService implements CommentWriteUseCase {
 
 
     @Override
-    public void writeComment(CustomUserDetails userDetails, CommentDTO commentDto) {
-        Post post = loadPostPort.findById(commentDto.getPostId())
+    public void writeComment(CustomUserDetails userDetails, CommentReqDTO commentReqDto) {
+        Post post = loadPostPort.findById(commentReqDto.getPostId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         User user = null;
+        String userName = "익명";
         if (userDetails != null) {
             user = loadUserPort.findById(userDetails.getUserId())
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+            userName = user.getUserName();
         }
 
         saveCommentWithClosure(
                 post,
                 user,
-                commentDto.getContent(),
-                commentDto.getPassword(),
-                commentDto.getParentId());
+                commentReqDto.getContent(),
+                commentReqDto.getPassword(),
+                commentReqDto.getParentId());
 
         if (post.getUser() != null) {
             eventPublisher.publishEvent(new CommentCreatedEvent(
                     this,
                     post.getUser().getId(),
-                    commentDto.getUserName(),
-                    commentDto.getPostId()));
+                    userName,
+                    commentReqDto.getPostId()));
         }
     }
 

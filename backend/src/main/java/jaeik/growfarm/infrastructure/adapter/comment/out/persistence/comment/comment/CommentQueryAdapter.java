@@ -2,7 +2,6 @@ package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.co
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
@@ -24,6 +23,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getCommentDtoProjection;
 import static jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getSimpleCommentDtoProjection;
 
 /**
@@ -88,14 +88,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     public Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable) {
 
         List<SimpleCommentDTO> content = jpaQueryFactory
-                .select(Projections.constructor(SimpleCommentDTO.class,
-                        comment.id,
-                        comment.post.id,
-                        user.userName,
-                        comment.content,
-                        comment.createdAt,
-                        Expressions.constant(0),
-                        Expressions.constant(false)))
+                .select(getSimpleCommentDtoProjection())
                 .from(comment)
                 .leftJoin(comment.user, user)
                 .where(comment.user.id.eq(userId))
@@ -232,18 +225,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     @Override
     public Page<CommentDTO> findCommentsWithOldestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds) {
         List<CommentDTO> content = jpaQueryFactory
-                .select(Projections.constructor(CommentDTO.class,
-                        comment.id,
-                        comment.post.id,
-                        comment.user.id,
-                        user.userName,
-                        comment.content,
-                        comment.deleted,
-                        comment.password,
-                        comment.createdAt,
-                        closure.ancestor.id,
-                        commentLike.countDistinct().coalesce(0L).intValue()
-                ))
+                .select(getCommentDtoProjection())
                 .from(comment)
                 .leftJoin(comment.user, user)
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id))

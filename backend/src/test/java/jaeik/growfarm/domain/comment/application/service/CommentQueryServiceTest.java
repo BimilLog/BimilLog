@@ -320,7 +320,7 @@ class CommentQueryServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getId()).isEqualTo(200L);
         assertThat(result.getContent().getFirst().isUserLike()).isTrue();
-        assertThat(result.getContent().getFirst().getLikes()).isEqualTo(10);
+        assertThat(result.getContent().getFirst().getLikeCount()).isEqualTo(10);
 
         verify(commentQueryPort).findLikedCommentsByUserId(userId, pageable);
     }

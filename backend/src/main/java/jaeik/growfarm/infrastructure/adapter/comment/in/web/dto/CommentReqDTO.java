@@ -26,6 +26,10 @@ import lombok.Setter;
 @Setter
 public class CommentReqDTO {
 
+    private Long id;
+
+    private Long parentId;
+
     private Long postId;
 
     private Long userId;
