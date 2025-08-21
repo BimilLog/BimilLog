@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.post.in.web.dto;
 
 import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,30 +24,34 @@ import java.time.Instant;
 @Getter
 @Setter
 public class FullPostResDTO {
-    private final Long id;
-    private final Long userId;
-    private final String userName;
-    private final String title;
-    private final String content;
-    private final int views;
-    private final Integer likeCount;
-    private final boolean isNotice;
-    private final Instant createdAt;
+    private Long id;
+    private Long userId;
+    private String userName;
+    private String title;
+    private String content;
+    private Integer viewCount;
+    private Integer likeCount;
+    private Integer commentCount;
+    private Instant createdAt;
+    private PostCacheFlag postCacheFlag;
+    private boolean isNotice;
     private boolean isLiked;
 
     @Builder
     public FullPostResDTO(Long id, Long userId, String userName, String title, String content,
-                          int views, int likeCount, boolean isNotice, Instant createdAt, boolean isLiked) {
+                          Integer viewCount, Integer likeCount, boolean isNotice, Instant createdAt, boolean isLiked, Integer commentCount, PostCacheFlag postCacheFlag) {
         this.id = id;
         this.userId = userId;
         this.userName = userName;
         this.title = title;
         this.content = content;
-        this.views = views;
+        this.viewCount = viewCount;
         this.likeCount = likeCount;
         this.isNotice = isNotice;
         this.createdAt = createdAt;
         this.isLiked = isLiked;
+        this.commentCount = commentCount;
+        this.postCacheFlag = postCacheFlag;
     }
 
     /**
@@ -67,11 +72,12 @@ public class FullPostResDTO {
                 .userName(post.getUser() != null ? post.getUser().getUserName() : "익명")
                 .title(post.getTitle())
                 .content(post.getContent())
-                .views(post.getViews())
+                .viewCount(post.getViews())
                 .likeCount(likeCount)
                 .isNotice(post.isNotice())
                 .createdAt(post.getCreatedAt())
                 .isLiked(isLiked)
+                .commentCount(0) // 기본값으로 0 설정
                 .build();
     }
 }

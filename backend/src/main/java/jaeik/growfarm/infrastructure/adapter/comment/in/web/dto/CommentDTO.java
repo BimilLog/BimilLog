@@ -44,13 +44,12 @@ public class CommentDTO {
 
     private boolean deleted;
 
-    private int likes;
+    private Integer likeCount;
 
     private Instant createdAt;
 
     private boolean userLike;
 
-    // 비밀번호는 CommentReqDTO로 이동 반환값에는 비밀번호가 포함되지 않아야 함. 비밀번호의 매칭 여부는 서버내에서 검증
     /**
      * <h3>댓글 DTO 생성자</h3>
      * <p>
@@ -76,7 +75,7 @@ public class CommentDTO {
         this.createdAt = createdAt;
         this.parentId = parentId;
         this.popular = false;
-        this.likes = 0;
+        this.likeCount = 0;
         this.userLike = false;
     }
 
@@ -99,7 +98,7 @@ public class CommentDTO {
         this.createdAt = comment.getCreatedAt();
         this.deleted = comment.isDeleted();
         this.parentId = null;
-        this.likes = 0;
+        this.likeCount = 0;
         this.userLike = false;
     }
 
@@ -131,7 +130,7 @@ public class CommentDTO {
         this.createdAt = createdAt;
         this.parentId = parentId;
         this.popular = false;
-        this.likes = likes != null ? likes : 0;
+        this.likeCount = likes != null ? likes : 0;
         this.userLike = false;
     }
 }

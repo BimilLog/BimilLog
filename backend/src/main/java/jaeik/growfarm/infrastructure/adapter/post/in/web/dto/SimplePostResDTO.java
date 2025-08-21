@@ -27,13 +27,13 @@ public class SimplePostResDTO {
     private Long id;
     private String title;
     private String content;
-    private int views;
-    private int likes;
-    private boolean isNotice;
+    private Integer viewCount;
+    private Integer likeCount;
     private PostCacheFlag postCacheFlag;
     private Instant createdAt;
     private Long userId;
     private String userName;
-    private int commentCount;
-    private int likeCount;
+    private Integer commentCount;
+    private boolean isNotice;
+
 }

@@ -124,7 +124,7 @@ public class PostQueryService implements PostQueryUseCase {
             isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
         }
 
-        return FullPostResDTO.from(post, likeCount, isLiked);
+        return FullPostResDTO.from(post, Math.toIntExact(likeCount), isLiked);
     }
 
     /**
