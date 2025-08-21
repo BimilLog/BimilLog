@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class TokenBlacklistService implements TokenBlacklistUseCase {
 
     private final BlacklistCachePort blacklistCachePort;
-    private final BlacklistPort blacklistPort;
     private final LoadTokenPort loadTokenPort;
     private final AuthPort authPort;
 

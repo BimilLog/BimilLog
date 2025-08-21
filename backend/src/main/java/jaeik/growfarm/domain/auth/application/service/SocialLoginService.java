@@ -40,6 +40,9 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final ManageTemporaryDataPort manageTemporaryDataPort;
     private final BlacklistPort blacklistPort;
 
+
+    // TODO : 굳이 여기서 TokenDTO를 생성할 이유가 있을까? 바로 엔티티로 변환하면 되는데
+    //  헥사고날에서 DTO는 외부세계와의 통신을 위한 객체로 사용 되기 때문에 다시 생각해 봐야함.
     /**
      * <h3>소셜 로그인 처리</h3>
      * <p>소셜 로그인 요청을 처리하고 로그인 결과를 반환합니다.</p>
