@@ -24,6 +24,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getSimpleCommentDtoProjection;
+
 /**
  * <h2>댓글 쿼리 어댑터</h2>
  *
@@ -126,14 +128,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
 
         List<SimpleCommentDTO> content = jpaQueryFactory
-                .select(Projections.constructor(SimpleCommentDTO.class,
-                        comment.id,
-                        comment.post.id,
-                        user.userName,
-                        comment.content,
-                        comment.createdAt,
-                        Expressions.constant(0),
-                        Expressions.constant(false)))
+                .select(getSimpleCommentDtoProjection())
                 .from(comment)
                 .join(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .leftJoin(comment.user, user)

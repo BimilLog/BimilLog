@@ -1,5 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.comment.in.web.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -52,6 +53,24 @@ public class SimpleCommentDTO {
         this.id = id;
         this.postId = postId;
         this.userName = userName != null ? userName : "익명";
+        this.content = content;
+        this.createdAt = createdAt;
+        this.likes = likes;
+        this.userLike = userLike;
+    }
+
+    @QueryProjection
+    public SimpleCommentDTO(
+            Long id,
+            Long postId,
+            String userName,
+            String content,
+            Instant createdAt,
+            Integer likes,
+            boolean userLike) {
+        this.id = id;
+        this.postId = postId;
+        this.userName = userName;
         this.content = content;
         this.createdAt = createdAt;
         this.likes = likes;
