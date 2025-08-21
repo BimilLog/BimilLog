@@ -3,6 +3,7 @@ package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.comment.entity.QCommentClosure;
 import jaeik.growfarm.domain.comment.entity.QCommentLike;
@@ -27,27 +28,47 @@ public class CommentDtoProjection {
 
     private static final QComment comment = QComment.comment;
     private static final QCommentLike commentLike = QCommentLike.commentLike;
-    private static final QCommentClosure closure = QCommentClosure.commentClosure; // ★ 추가: CommentDTO 프로젝션에 사용되므로 필요
+    private static final QCommentClosure closure = QCommentClosure.commentClosure;
     private static final QUser user = QUser.user;
 
 
     /**
-     * <h3>SimpleCommentDTO DTO 프로젝션</h3>
-     * <p>SimpleCommentDTO로 변환하는 프로젝션</p>
+     * <h3>SimpleCommentDTO DTO 프로젝션 (기본)</h3>
+     * <p>SimpleCommentDTO로 변환하는 프로젝션 - userLike는 false로 기본 설정</p>
      *
      * @return ConstructorExpression<SimpleCommentDTO> 댓글 DTO 프로젝션
      * @author Jaeik
      * @since 2.0.0
      */
     public static ConstructorExpression<SimpleCommentDTO> getSimpleCommentDtoProjection() {
+        return getSimpleCommentDtoProjection(null);
+    }
+
+    /**
+     * <h3>SimpleCommentDTO DTO 프로젝션 (사용자별 추천 여부 포함)</h3>
+     * <p>SimpleCommentDTO로 변환하는 프로젝션 - 서브쿼리로 사용자별 추천 여부를 한번에 계산</p>
+     *
+     * @param userId 사용자 ID (null인 경우 userLike는 false)
+     * @return ConstructorExpression<SimpleCommentDTO> 댓글 DTO 프로젝션
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static ConstructorExpression<SimpleCommentDTO> getSimpleCommentDtoProjection(Long userId) {
         return Projections.constructor(SimpleCommentDTO.class,
                 comment.id,
                 comment.post.id,
                 user.userName,
                 comment.content,
                 comment.createdAt,
-                Expressions.constant(0),
-                Expressions.constant(false));
+                commentLike.countDistinct().coalesce(0L).intValue(), // 실제 추천 수 계산
+                userId != null ? 
+                    JPAExpressions.selectOne()
+                        .from(QCommentLike.commentLike)
+                        .where(QCommentLike.commentLike.comment.id.eq(comment.id)
+                            .and(QCommentLike.commentLike.user.id.eq(userId)))
+                        .exists()
+                    : Expressions.constant(false)
+        );
     }
 
     /**

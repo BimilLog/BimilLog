@@ -73,10 +73,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
         return commentRepository.findUserLikedCommentIds(commentIds, userId);
     }
 
-    //TODO : 현재 추천 여부와 추천 수가 계산되지 않아 계산이 필요
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
-     * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다. 추천 수와 사용자 추천 여부도 포함됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -88,14 +87,18 @@ public class CommentQueryAdapter implements CommentQueryPort {
     public Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable) {
 
         List<SimpleCommentDTO> content = jpaQueryFactory
-                .select(getSimpleCommentDtoProjection())
+                .select(getSimpleCommentDtoProjection(userId)) // userId를 매개변수로 전달
                 .from(comment)
                 .leftJoin(comment.user, user)
+                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .where(comment.user.id.eq(userId))
+                .groupBy(comment.id, user.userName, comment.createdAt)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        // userLike는 서브쿼리로 이미 계산되어 후처리 불필요
 
         Long total = jpaQueryFactory
                 .select(comment.count())
@@ -106,10 +109,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
-    //TODO : 현재 추천 여부와 추천 수가 계산되지 않아 계산이 필요
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
-     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다. 추천 수와 사용자 추천 여부도 포함됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -121,15 +123,18 @@ public class CommentQueryAdapter implements CommentQueryPort {
     public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
 
         List<SimpleCommentDTO> content = jpaQueryFactory
-                .select(getSimpleCommentDtoProjection())
+                .select(getSimpleCommentDtoProjection(userId)) // userId를 매개변수로 전달
                 .from(comment)
                 .join(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .leftJoin(comment.user, user)
                 .where(commentLike.user.id.eq(userId))
+                .groupBy(comment.id, user.userName, comment.createdAt)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        // userLike는 서브쿼리로 이미 계산되어 후처리 불필요
 
         Long total = jpaQueryFactory
                 .select(comment.countDistinct())
@@ -155,18 +160,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     public List<CommentDTO> findPopularComments(Long postId, List<Long> likedCommentIds) {
 
         List<CommentDTO> popularComments = jpaQueryFactory
-                .select(Projections.constructor(CommentDTO.class,
-                        comment.id,
-                        comment.post.id,
-                        comment.user.id,
-                        user.userName,
-                        comment.content,
-                        comment.deleted,
-                        comment.password,
-                        comment.createdAt,
-                        closure.ancestor.id,
-                        commentLike.countDistinct().coalesce(0L).intValue() // 추천수 한번에 조회, null 방지
-                ))
+                .select(getCommentDtoProjection())
                 .from(comment)
                 .leftJoin(comment.user, user)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))

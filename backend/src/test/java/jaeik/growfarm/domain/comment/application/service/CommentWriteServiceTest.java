@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -75,7 +75,7 @@ class CommentWriteServiceTest {
     private Post testPost;
     private Comment testComment;
     private Comment parentComment;
-    private CommentDTO commentDTO;
+    private CommentReqDTO commentDTO;
 
     @BeforeEach
     void setUp() {
@@ -114,10 +114,9 @@ class CommentWriteServiceTest {
                 .deleted(false)
                 .build();
 
-        commentDTO = new CommentDTO();
+        commentDTO = new CommentReqDTO();
         commentDTO.setPostId(300L);
         commentDTO.setContent("테스트 댓글 내용");
-        commentDTO.setUserName("testUser");
         commentDTO.setPassword(1234);
     }
 

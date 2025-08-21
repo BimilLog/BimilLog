@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.comment.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentLike;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -62,7 +62,7 @@ class CommentLikeServiceTest {
 
     private User testUser;
     private Comment testComment;
-    private CommentDTO commentDTO;
+    private CommentReqDTO commentDTO;
 
     @BeforeEach
     void setUp() {
@@ -79,7 +79,7 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        commentDTO = new CommentDTO();
+        commentDTO = new CommentReqDTO();
         commentDTO.setId(200L);
         commentDTO.setContent("테스트 댓글");
 
@@ -258,7 +258,7 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentDTO anotherCommentDTO = new CommentDTO();
+        CommentReqDTO anotherCommentDTO = new CommentReqDTO();
         anotherCommentDTO.setId(201L);
         anotherCommentDTO.setContent("다른 사용자 댓글");
 
@@ -290,7 +290,7 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentDTO anonymousCommentDTO = new CommentDTO();
+        CommentReqDTO anonymousCommentDTO = new CommentReqDTO();
         anonymousCommentDTO.setId(202L);
         anonymousCommentDTO.setContent("익명 댓글");
 

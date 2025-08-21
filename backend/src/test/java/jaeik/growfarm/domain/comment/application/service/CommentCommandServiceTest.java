@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.comment.application.port.out.CommentCommandPort;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -59,7 +59,7 @@ class CommentCommandServiceTest {
 
     private User testUser;
     private Comment testComment;
-    private CommentDTO commentDTO;
+    private CommentReqDTO commentDTO;
 
     @BeforeEach
     void setUp() {
@@ -77,7 +77,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        commentDTO = new CommentDTO();
+        commentDTO = new CommentReqDTO();
         commentDTO.setId(200L);
         commentDTO.setContent("수정된 댓글");
     }
@@ -110,7 +110,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentDTO anonymousCommentDTO = new CommentDTO();
+        CommentReqDTO anonymousCommentDTO = new CommentReqDTO();
         anonymousCommentDTO.setId(200L);
         anonymousCommentDTO.setContent("수정된 익명 댓글");
         anonymousCommentDTO.setPassword(1234);
@@ -152,7 +152,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentDTO wrongPasswordDTO = new CommentDTO();
+        CommentReqDTO wrongPasswordDTO = new CommentReqDTO();
         wrongPasswordDTO.setId(200L);
         wrongPasswordDTO.setContent("수정된 댓글");
         wrongPasswordDTO.setPassword(9999);
@@ -302,7 +302,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentDTO emptyPasswordDTO = new CommentDTO();
+        CommentReqDTO emptyPasswordDTO = new CommentReqDTO();
         emptyPasswordDTO.setId(200L);
         emptyPasswordDTO.setContent("수정된 댓글");
         emptyPasswordDTO.setPassword(null);

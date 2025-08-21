@@ -226,7 +226,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         List<CommentClosure> closures = result.get();
         assertThat(closures).hasSize(1);
 
-        CommentClosure closure = closures.get(0);
+        CommentClosure closure = closures.getFirst();
         assertThat(closure.getAncestor()).isEqualTo(parentComment);
         assertThat(closure.getDescendant()).isEqualTo(parentComment);
         assertThat(closure.getDepth()).isEqualTo(0);
@@ -435,7 +435,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         List<CommentClosure> closures = ancestors.get();
         assertThat(closures).hasSize(1); // 직접 조상만 (부모->level4)
 
-        CommentClosure ancestorClosure = closures.get(0);
+        CommentClosure ancestorClosure = closures.getFirst();
         assertThat(ancestorClosure.getDepth()).isEqualTo(3);
         assertThat(ancestorClosure.getAncestor()).isEqualTo(parentComment);
         assertThat(ancestorClosure.getDescendant()).isEqualTo(level4Comment);

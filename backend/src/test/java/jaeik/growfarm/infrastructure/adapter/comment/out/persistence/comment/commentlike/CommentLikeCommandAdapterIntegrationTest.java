@@ -11,6 +11,7 @@ import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
+import jaeik.growfarm.infrastructure.security.EncryptionUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,15 +56,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         "jaeik.growfarm.domain.comment.entity",
         "jaeik.growfarm.domain.user.entity",
         "jaeik.growfarm.domain.post.entity",
-        "jaeik.growfarm.domain.common.entity"
+        "jaeik.growfarm.domain.common.entity",
+        "jaeik.growfarm.domain.paper.entity",
+        "jaeik.growfarm.domain.notification.entity",
+        "jaeik.growfarm.domain.admin.entity"
+
+
 })
 @EnableJpaRepositories(basePackages = {
-        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment",
-        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike"
+        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike",
+        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment"
 })
-@Import(CommentLikeCommandAdapter.class)
+@Import({CommentLikeCommandAdapter.class, CommentLikeQueryAdapter.class})
 @TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
+        "spring.jpa.hibernate.ddl-auto=create",
+        "message.secret=test-secret-key-for-integration-test-only"
 })
 class CommentLikeCommandAdapterIntegrationTest {
 
@@ -85,6 +92,14 @@ class CommentLikeCommandAdapterIntegrationTest {
         @Bean
         public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
             return new JPAQueryFactory(entityManager);
+        }
+
+        // EncryptionUtil 빈 정의: MessageEncryptConverter의 의존성을 만족시킵니다.
+        @Bean
+        public EncryptionUtil encryptionUtil() {
+            // 테스트를 위해 간단한 더미 인스턴스를 반환합니다.
+            // 실제 EncryptionUtil이 복잡한 의존성을 가진다면 Mockito.mock(EncryptionUtil.class)를 사용할 수 있습니다.
+            return new EncryptionUtil();
         }
     }
 

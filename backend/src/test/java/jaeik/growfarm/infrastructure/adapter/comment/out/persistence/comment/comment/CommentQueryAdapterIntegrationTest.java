@@ -106,10 +106,7 @@ class CommentQueryAdapterIntegrationTest {
             return org.mockito.Mockito.mock(EncryptionUtil.class);
         }
         
-        @Bean
-        public CommentReadRepository commentReadRepository(JPAQueryFactory jpaQueryFactory) {
-            return new CommentReadRepository(jpaQueryFactory);
-        }
+        // CommentReadRepository는 더 이상 사용하지 않음 - CommentQueryAdapter가 직접 QueryDSL 사용
     }
 
     @Autowired
@@ -368,7 +365,7 @@ class CommentQueryAdapterIntegrationTest {
         assertThat(popularComments).hasSize(1);
         assertThat(popularComments.getFirst().getContent()).isEqualTo("인기댓글1");
         assertThat(popularComments.getFirst().isPopular()).isTrue();
-        assertThat(popularComments.getFirst().getLikes()).isEqualTo(6);
+        assertThat(popularComments.getFirst().getLikeCount()).isEqualTo(6);
     }
 
     @Test
