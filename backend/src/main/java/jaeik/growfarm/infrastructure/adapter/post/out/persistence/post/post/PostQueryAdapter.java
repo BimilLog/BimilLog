@@ -6,7 +6,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
-import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.QPost;
@@ -42,7 +41,6 @@ public class PostQueryAdapter implements PostQueryPort {
 
     private static final QPost post = QPost.post;
     private static final QUser user = QUser.user;
-    private static final QComment comment = QComment.comment;
     private static final QPostLike commentLike = QPostLike.postLike;
 
     /**
@@ -219,36 +217,6 @@ public class PostQueryAdapter implements PostQueryPort {
                         commentLike.countDistinct().intValue()))
                 .from(post)
                 .leftJoin(post.user, user)
-                .leftJoin(commentLike).on(post.id.eq(commentLike.post.id));
-    }
-
-    /**
-     * <h3>기본 게시글 쿼리 빌더 (레거시)</h3>
-     * <p>기존 방식의 쿼리 빌더입니다. N+1 문제가 있어 사용을 지양합니다.</p>
-     * <p><strong>⚠️ 사용 금지</strong>: 성능상 이유로 사용하지 않습니다.</p>
-     *
-     * @return JPAQuery<SimplePostResDTO>
-     * @author Jaeik
-     * @since 2.0.0
-     * @deprecated N+1 문제로 인해 사용 중단. buildBasePostQueryWithoutComments() 사용 권장
-     */
-    @Deprecated
-    private JPAQuery<SimplePostResDTO> buildBasePostQuery() {
-        return jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        user.id,
-                        user.userName,
-                        comment.countDistinct().intValue(),
-                        commentLike.countDistinct().intValue()))
-                .from(post)
-                .leftJoin(post.user, user)
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
                 .leftJoin(commentLike).on(post.id.eq(commentLike.post.id));
     }
 

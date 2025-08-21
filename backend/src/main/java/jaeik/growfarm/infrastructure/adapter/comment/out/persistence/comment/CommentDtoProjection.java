@@ -33,18 +33,6 @@ public class CommentDtoProjection {
 
 
     /**
-     * <h3>SimpleCommentDTO DTO 프로젝션 (기본)</h3>
-     * <p>SimpleCommentDTO로 변환하는 프로젝션 - userLike는 false로 기본 설정</p>
-     *
-     * @return ConstructorExpression<SimpleCommentDTO> 댓글 DTO 프로젝션
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static ConstructorExpression<SimpleCommentDTO> getSimpleCommentDtoProjection() {
-        return getSimpleCommentDtoProjection(null);
-    }
-
-    /**
      * <h3>SimpleCommentDTO DTO 프로젝션 (사용자별 추천 여부 포함)</h3>
      * <p>SimpleCommentDTO로 변환하는 프로젝션 - 서브쿼리로 사용자별 추천 여부를 한번에 계산</p>
      *
