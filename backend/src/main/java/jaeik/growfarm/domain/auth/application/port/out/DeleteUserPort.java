@@ -4,6 +4,13 @@ import org.springframework.http.ResponseCookie;
 
 import java.util.List;
 
+/**
+ * <h2>사용자 삭제 포트</h2>
+ * <p>사용자 로그아웃 및 회원 탈퇴 처리를 위한 포트</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 public interface DeleteUserPort {
 
     /**

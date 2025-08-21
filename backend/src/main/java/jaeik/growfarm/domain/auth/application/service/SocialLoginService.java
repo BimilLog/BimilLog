@@ -100,8 +100,7 @@ public class SocialLoginService implements SocialLoginUseCase {
      */
     private LoginResponseDTO<ResponseCookie> handleNewUser(LoginResultDTO loginResult) {
         String uuid = UUID.randomUUID().toString();
-        tempDataPort.saveTempData(uuid, loginResult.getUserData(), loginResult.getTokenDTO());
-        ResponseCookie tempCookie = tempDataPort.createTempCookie(uuid);
+        ResponseCookie tempCookie = tempDataPort.saveTempDataAndCreateCookie(uuid, loginResult.getUserData(), loginResult.getTokenDTO());
         return new LoginResponseDTO<>(LoginResponseDTO.LoginType.NEW_USER, tempCookie);
     }
     

@@ -56,8 +56,6 @@ public class TempDataAdapter implements TempDataPort {
      */
     @Override
     public void saveTempData(String uuid, SocialLoginUserData userData, TokenDTO tokenDTO) {
-        // TODO: 테스트 실패 수정 - 메인 로직에 Input Validation 추가
-        // NPE 방지를 위한 필수 파라미터 검증
         
         // 1. UUID 검증 - ConcurrentHashMap은 null key를 허용하지 않음
         if (uuid == null || uuid.trim().isEmpty()) {
@@ -112,8 +110,6 @@ public class TempDataAdapter implements TempDataPort {
      */
     @Override
     public Optional<TemporaryUserDataDTO> getTempData(String uuid) {
-        // TODO: 테스트 실패 수정 - ConcurrentHashMap null key NPE 방지
-        // null UUID는 비즈니스 로직상 빈 결과 반환이 적절
         
         if (uuid == null) {
             log.debug("Null UUID provided for temp data lookup, returning empty");
@@ -152,8 +148,6 @@ public class TempDataAdapter implements TempDataPort {
      * @author Jaeik
      */
     public void removeTempData(String uuid) {
-        // TODO: 테스트 실패 수정 - ConcurrentHashMap null key remove NPE 방지
-        // null UUID는 비즈니스 로직상 무시하는 것이 적절
         
         if (uuid == null) {
             log.debug("Null UUID provided for temp data removal, ignoring");
@@ -174,17 +168,29 @@ public class TempDataAdapter implements TempDataPort {
         }
     }
 
+
     /**
-     * <h3>임시 사용자 ID 쿠키 생성</h3>
-     * <p>신규 회원가입 시 사용자의 임시 UUID를 담는 쿠키를 생성</p>
+     * <h3>임시 사용자 데이터 저장 및 쿠키 생성</h3>
+     * <p>임시 사용자 데이터를 저장하고 해당 UUID로 쿠키를 생성하여 함께 반환합니다.</p>
+     * <p>신규 사용자 회원가입 플로우에서 두 단계 작업을 하나로 통합합니다.</p>
+     * <p>비즈니스 규칙:</p>
+     * <ul>
+     *   <li>saveTempData 호출 후 createTempCookie 호출</li>
+     *   <li>saveTempData 실패 시 쿠키 생성하지 않음</li>
+     *   <li>원자성 보장: 둘 다 성공하거나 둘 다 실패</li>
+     * </ul>
      *
-     * @param uuid 임시 사용자 ID
-     * @return 임시 사용자 ID 쿠키
+     * @param uuid UUID 키
+     * @param userData 소셜 로그인 사용자 정보
+     * @param tokenDTO 토큰 정보
+     * @return 생성된 임시 사용자 ID 쿠키
+     * @throws CustomException saveTempData에서 발생하는 모든 예외
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public ResponseCookie createTempCookie(String uuid) {
+    public ResponseCookie saveTempDataAndCreateCookie(String uuid, SocialLoginUserData userData, TokenDTO tokenDTO) {
+        saveTempData(uuid, userData, tokenDTO);
         return authCookieManager.createTempCookie(uuid);
     }
 

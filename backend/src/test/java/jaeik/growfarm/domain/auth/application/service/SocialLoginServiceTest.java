@@ -149,7 +149,7 @@ class SocialLoginServiceTest {
             
             given(socialLoginPort.login(provider, code)).willReturn(newUserResult);
             given(blacklistPort.existsByProviderAndSocialId(provider, testUserData.socialId())).willReturn(false);
-            given(tempDataPort.createTempCookie(anyString())).willReturn(tempCookie);
+            given(tempDataPort.saveTempDataAndCreateCookie(anyString(), eq(testUserData), eq(testTokenDTO))).willReturn(tempCookie);
 
             // When
             LoginResponseDTO<?> result = socialLoginService.processSocialLogin(provider, code, fcmToken);
@@ -160,8 +160,7 @@ class SocialLoginServiceTest {
             
             verify(socialLoginPort).login(provider, code);
             verify(blacklistPort).existsByProviderAndSocialId(provider, testUserData.socialId());
-            verify(tempDataPort).saveTempData(anyString(), eq(testUserData), eq(testTokenDTO));
-            verify(tempDataPort).createTempCookie(anyString());
+            verify(tempDataPort).saveTempDataAndCreateCookie(anyString(), eq(testUserData), eq(testTokenDTO));
             verify(saveUserPort, never()).handleExistingUserLogin(any(), any(), anyString());
         }
     }

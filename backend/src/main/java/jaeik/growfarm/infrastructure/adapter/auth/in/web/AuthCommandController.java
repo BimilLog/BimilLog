@@ -6,7 +6,6 @@ import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
-import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -34,7 +33,6 @@ public class AuthCommandController {
     private final SignUpUseCase signUpUseCase;
     private final LogoutUseCase logoutUseCase;
     private final WithdrawUseCase withdrawUseCase;
-    private final AuthCookieManager authCookieManager;
 
     /**
      * <h3>소셜 로그인 API</h3>
@@ -53,10 +51,10 @@ public class AuthCommandController {
         LoginResponseDTO<?> loginResponse = socialLoginUseCase.processSocialLogin(SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
 
         if (loginResponse.getType() == LoginResponseDTO.LoginType.NEW_USER) {
+            ResponseCookie tempCookie = (ResponseCookie) loginResponse.getData();
             Map<String, String> uuidData = new HashMap<>();
-            String uuid = (String) loginResponse.getData();
-            uuidData.put("uuid", uuid);
-            return ResponseEntity.ok().header("Set-Cookie", authCookieManager.createTempCookie(uuid).toString()).body(uuidData);
+            uuidData.put("uuid", tempCookie.getValue());
+            return ResponseEntity.ok().header("Set-Cookie", tempCookie.toString()).body(uuidData);
         }
 
         List<ResponseCookie> cookies = (List<ResponseCookie>) loginResponse.getData();
