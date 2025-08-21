@@ -2,6 +2,7 @@ package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.entity.QComment;
@@ -12,6 +13,7 @@ import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.strategy.SearchStrategyFactory;
+import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentReadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -35,6 +38,7 @@ public class PostQueryAdapter implements PostQueryPort {
     private final JPAQueryFactory jpaQueryFactory;
     private final PostJpaRepository postJpaRepository;
     private final SearchStrategyFactory searchStrategyFactory;
+    private final CommentReadRepository commentReadRepository;
 
     private static final QPost POST = QPost.post;
     private static final QUser USER = QUser.user;
@@ -106,6 +110,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
      * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p><strong>성능 최적화</strong>: N+1 문제 해결을 위해 댓글 수를 배치 조회로 처리</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -117,13 +122,28 @@ public class PostQueryAdapter implements PostQueryPort {
     public Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
         QPostLike userPostLike = new QPostLike("userPostLike");
         
-        List<SimplePostResDTO> content = buildBasePostQuery()
+        // 1. 게시글 기본 정보 조회 (댓글 JOIN 제외)
+        List<SimplePostResDTO> content = buildBasePostQueryWithoutComments()
                 .join(userPostLike).on(POST.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
                 .groupBy(POST.id, USER.id)
                 .orderBy(POST.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        // 2. 게시글 ID 목록 추출
+        List<Long> postIds = content.stream()
+                .map(SimplePostResDTO::getId)
+                .toList();
+
+        // 3. 배치로 댓글 수 조회 (N+1 문제 해결)
+        Map<Long, Integer> commentCounts = commentReadRepository.findCommentCountsByPostIds(postIds);
+
+        // 4. 댓글 수 설정
+        content.forEach(post -> {
+            Integer commentCount = commentCounts.getOrDefault(post.getId(), 0);
+            post.setCommentCount(commentCount);
+        });
 
         Long total = jpaQueryFactory
                 .select(POST.countDistinct())
@@ -137,6 +157,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>공통 게시글 조회 메서드</h3>
      * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
+     * <p><strong>성능 최적화</strong>: N+1 문제 해결을 위해 댓글 수를 배치 조회로 처리</p>
      *
      * @param condition       WHERE 조건
      * @param pageable       페이지 정보
@@ -146,7 +167,8 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     private Page<SimplePostResDTO> findPostsWithCondition(BooleanExpression condition, Pageable pageable, boolean isSearchQuery) {
-        List<SimplePostResDTO> content = buildBasePostQuery()
+        // 1. 게시글 기본 정보 조회 (댓글 JOIN 제외)
+        List<SimplePostResDTO> content = buildBasePostQueryWithoutComments()
                 .where(condition)
                 .groupBy(POST.id, USER.id)
                 .orderBy(POST.createdAt.desc())
@@ -154,19 +176,63 @@ public class PostQueryAdapter implements PostQueryPort {
                 .limit(pageable.getPageSize())
                 .fetch();
 
+        // 2. 게시글 ID 목록 추출
+        List<Long> postIds = content.stream()
+                .map(SimplePostResDTO::getId)
+                .toList();
+
+        // 3. 배치로 댓글 수 조회 (N+1 문제 해결)
+        Map<Long, Integer> commentCounts = commentReadRepository.findCommentCountsByPostIds(postIds);
+
+        // 4. 댓글 수 설정
+        content.forEach(post -> {
+            Integer commentCount = commentCounts.getOrDefault(post.getId(), 0);
+            post.setCommentCount(commentCount);
+        });
+
         Long total = buildCountQuery(condition, isSearchQuery);
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**
-     * <h3>기본 게시글 쿼리 빌더</h3>
-     * <p>공통으로 사용되는 SELECT, JOIN 구조를 생성합니다.</p>
+     * <h3>기본 게시글 쿼리 빌더 (댓글 JOIN 제외)</h3>
+     * <p>N+1 문제 해결을 위해 댓글 JOIN을 제외한 쿼리를 생성합니다.</p>
+     * <p>댓글 수는 별도의 배치 조회로 처리됩니다.</p>
      *
      * @return JPAQuery<SimplePostResDTO>
      * @author Jaeik
      * @since 2.0.0
      */
+    private JPAQuery<SimplePostResDTO> buildBasePostQueryWithoutComments() {
+        return jpaQueryFactory
+                .select(Projections.constructor(SimplePostResDTO.class,
+                        POST.id,
+                        POST.title,
+                        POST.views.coalesce(0),
+                        POST.isNotice,
+                        POST.postCacheFlag,
+                        POST.createdAt,
+                        USER.id,
+                        USER.userName,
+                        Expressions.constant(0), // 댓글 수는 나중에 설정
+                        POST_LIKE.countDistinct().intValue()))
+                .from(POST)
+                .leftJoin(POST.user, USER)
+                .leftJoin(POST_LIKE).on(POST.id.eq(POST_LIKE.post.id));
+    }
+
+    /**
+     * <h3>기본 게시글 쿼리 빌더 (레거시)</h3>
+     * <p>기존 방식의 쿼리 빌더입니다. N+1 문제가 있어 사용을 지양합니다.</p>
+     * <p><strong>⚠️ 사용 금지</strong>: 성능상 이유로 사용하지 않습니다.</p>
+     *
+     * @return JPAQuery<SimplePostResDTO>
+     * @author Jaeik
+     * @since 2.0.0
+     * @deprecated N+1 문제로 인해 사용 중단. buildBasePostQueryWithoutComments() 사용 권장
+     */
+    @Deprecated
     private JPAQuery<SimplePostResDTO> buildBasePostQuery() {
         return jpaQueryFactory
                 .select(Projections.constructor(SimplePostResDTO.class,

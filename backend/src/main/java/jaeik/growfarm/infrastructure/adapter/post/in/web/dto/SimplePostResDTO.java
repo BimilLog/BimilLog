@@ -25,8 +25,8 @@ public class SimplePostResDTO {
     private Instant createdAt;
     private Long userId;
     private String userName;
-    // TODO: 현재 항상 0으로 설정됨 - CommentQueryPort.findCommentCountsByPostIds() 연결 필요
-    // PostQueryService에서 게시글 목록 조회 시 댓글 수를 설정하는 로직 추가 필요
+    // ✅ COMPLETED: CommentReadRepository.findCommentCountsByPostIds() 배치 조회로 연결됨
+    // N+1 문제 해결을 위해 PostQueryAdapter에서 배치 조회 후 설정됨
     private int commentCount;
     private int likeCount;
 }
