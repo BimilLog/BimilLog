@@ -19,7 +19,7 @@ import java.util.List;
  * @version 2.0.0
  */
 @Repository
-public interface CommentRepository extends JpaRepository<Comment, Long>, CommentReadRepository {
+public interface CommentRepository extends JpaRepository<Comment, Long> {
 
 
     /**

@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -13,7 +14,6 @@ import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.strategy.SearchStrategyFactory;
-import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentReadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,7 +38,7 @@ public class PostQueryAdapter implements PostQueryPort {
     private final JPAQueryFactory jpaQueryFactory;
     private final PostJpaRepository postJpaRepository;
     private final SearchStrategyFactory searchStrategyFactory;
-    private final CommentReadRepository commentReadRepository;
+    private final CommentQueryPort commentQueryPort;
 
     private static final QPost POST = QPost.post;
     private static final QUser USER = QUser.user;
@@ -137,7 +137,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .toList();
 
         // 3. 배치로 댓글 수 조회 (N+1 문제 해결)
-        Map<Long, Integer> commentCounts = commentReadRepository.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> commentCounts = commentQueryPort.findCommentCountsByPostIds(postIds);
 
         // 4. 댓글 수 설정
         content.forEach(post -> {
@@ -182,7 +182,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .toList();
 
         // 3. 배치로 댓글 수 조회 (N+1 문제 해결)
-        Map<Long, Integer> commentCounts = commentReadRepository.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> commentCounts = commentQueryPort.findCommentCountsByPostIds(postIds);
 
         // 4. 댓글 수 설정
         content.forEach(post -> {

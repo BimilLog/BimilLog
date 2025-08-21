@@ -100,6 +100,9 @@ class CommentLikeCommandAdapterIntegrationTest {
     @Autowired
     private CommentLikeCommandAdapter commentLikeCommandAdapter;
 
+    @Autowired
+    private CommentLikeQueryAdapter commentLikeQueryAdapter;
+
     private User testUser1;
     private User testUser2;
     private Post testPost;
@@ -189,14 +192,14 @@ class CommentLikeCommandAdapterIntegrationTest {
         existingCommentLike = commentLikeRepository.save(existingCommentLike);
         
         // 삭제 전 댓글 추천 존재 확인
-        boolean existsBefore = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser2.getId());
+        boolean existsBefore = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(existsBefore).isTrue();
 
         // When: 댓글 추천 삭제
         commentLikeCommandAdapter.deleteLike(testComment, testUser2);
 
         // Then: 댓글 추천이 삭제되었는지 검증
-        boolean existsAfter = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser2.getId());
+        boolean existsAfter = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(existsAfter).isFalse();
         
         // ID로도 확인
@@ -242,7 +245,7 @@ class CommentLikeCommandAdapterIntegrationTest {
         commentLikeCommandAdapter.deleteLike(testComment, testUser2);
 
         // Then: 예외가 발생하지 않고 정상적으로 완료되어야 함
-        boolean exists = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser2.getId());
+        boolean exists = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(exists).isFalse();
     }
 
@@ -271,8 +274,8 @@ class CommentLikeCommandAdapterIntegrationTest {
         assertThat(savedLike2.getId()).isNotNull();
         
         // DB에서 확인
-        boolean user1Liked = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser1.getId());
-        boolean user2Liked = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser2.getId());
+        boolean user1Liked = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser1.getId());
+        boolean user2Liked = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         
         assertThat(user1Liked).isTrue();
         assertThat(user2Liked).isTrue();
@@ -309,8 +312,8 @@ class CommentLikeCommandAdapterIntegrationTest {
         assertThat(savedLike2).isNotNull();
         
         // DB에서 확인
-        boolean firstCommentLiked = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser2.getId());
-        boolean secondCommentLiked = commentLikeRepository.existsByCommentIdAndUserId(additionalComment.getId(), testUser2.getId());
+        boolean firstCommentLiked = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean secondCommentLiked = commentLikeQueryAdapter.isLikedByUser(additionalComment.getId(), testUser2.getId());
         
         assertThat(firstCommentLiked).isTrue();
         assertThat(secondCommentLiked).isTrue();
@@ -320,7 +323,7 @@ class CommentLikeCommandAdapterIntegrationTest {
     @DisplayName("트랜잭션 - 댓글 추천 저장 후 삭제")
     void shouldSaveAndDeleteCommentLike_WhenOperationsPerformedSequentially() {
         // Given: 빈 상태에서 시작
-        boolean initialState = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser2.getId());
+        boolean initialState = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(initialState).isFalse();
 
         // When: 댓글 추천 저장
@@ -332,14 +335,14 @@ class CommentLikeCommandAdapterIntegrationTest {
 
         // Then: 저장 확인
         assertThat(savedCommentLike).isNotNull();
-        boolean afterSave = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser2.getId());
+        boolean afterSave = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(afterSave).isTrue();
 
         // When: 댓글 추천 삭제
         commentLikeCommandAdapter.deleteLike(testComment, testUser2);
 
         // Then: 삭제 확인
-        boolean afterDelete = commentLikeRepository.existsByCommentIdAndUserId(testComment.getId(), testUser2.getId());
+        boolean afterDelete = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(afterDelete).isFalse();
     }
 
@@ -389,8 +392,8 @@ class CommentLikeCommandAdapterIntegrationTest {
         long totalLikesAfterDelete = commentLikeRepository.count();
         assertThat(totalLikesAfterDelete).isEqualTo(2);  // testUser2의 comment2 추천이 삭제됨
         
-        boolean user2LikesComment2 = commentLikeRepository.existsByCommentIdAndUserId(comment2.getId(), testUser2.getId());
-        boolean user1LikesComment2 = commentLikeRepository.existsByCommentIdAndUserId(comment2.getId(), testUser1.getId());
+        boolean user2LikesComment2 = commentLikeQueryAdapter.isLikedByUser(comment2.getId(), testUser2.getId());
+        boolean user1LikesComment2 = commentLikeQueryAdapter.isLikedByUser(comment2.getId(), testUser1.getId());
         
         assertThat(user2LikesComment2).isFalse();
         assertThat(user1LikesComment2).isTrue();

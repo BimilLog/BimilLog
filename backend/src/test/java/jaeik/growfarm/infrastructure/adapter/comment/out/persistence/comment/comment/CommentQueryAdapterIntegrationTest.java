@@ -108,7 +108,7 @@ class CommentQueryAdapterIntegrationTest {
         
         @Bean
         public CommentReadRepository commentReadRepository(JPAQueryFactory jpaQueryFactory) {
-            return new CommentReadRepositoryImpl(jpaQueryFactory);
+            return new CommentReadRepository(jpaQueryFactory);
         }
     }
 

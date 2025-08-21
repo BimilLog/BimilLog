@@ -8,12 +8,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * <h2>댓글 추천 커맨드 어댑터</h2>
+ * <p>댓글 추천 엔티티의 저장 및 삭제 작업을 처리하는 Out-Port 구현체</p>
+ * <p>CQRS 패턴에 따른 커맨드 전용 어댑터</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Repository
 @RequiredArgsConstructor
 public class CommentLikeCommandAdapter implements CommentLikeCommandPort {
 
     private final CommentLikeRepository commentLikeRepository;
-
 
     /**
      * <h3>댓글 추천 저장</h3>
@@ -28,7 +35,6 @@ public class CommentLikeCommandAdapter implements CommentLikeCommandPort {
     public CommentLike save(CommentLike commentLike) {
         return commentLikeRepository.save(commentLike);
     }
-
 
     /**
      * <h3>댓글 추천 삭제</h3>

@@ -1,16 +1,26 @@
 package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike;
 
 import jaeik.growfarm.domain.comment.application.port.out.CommentLikeQueryPort;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-
+/**
+ * <h2>댓글 추천 조회 어댑터</h2>
+ * <p>댓글 추천 엔티티 조회를 위한 Out-Port 구현체</p>
+ * <p>CQRS 패턴에 따른 조회 전용 어댑터</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Repository
 @RequiredArgsConstructor
 public class CommentLikeQueryAdapter implements CommentLikeQueryPort {
 
-    private final CommentLikeRepository commentLikeRepository;
-
+    @PersistenceContext
+    private EntityManager entityManager;
 
     /**
      * <h3>사용자가 댓글에 추천을 눌렀는지 여부 확인 (EXISTS 최적화)</h3>
@@ -24,7 +34,12 @@ public class CommentLikeQueryAdapter implements CommentLikeQueryPort {
      * @since 2.0.0
      */
     @Override
-    public boolean isLikedByUser(Long commentId, Long userId) {
-        return commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
+    public boolean isLikedByUser(@Param("commentId") Long commentId, @Param("userId") Long userId) {
+        String jpql = "SELECT CASE WHEN COUNT(cl) > 0 THEN true ELSE false END FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.user.id = :userId";
+        return entityManager.createQuery(jpql, Boolean.class)
+                .setParameter("commentId", commentId)
+                .setParameter("userId", userId)
+                .getSingleResult();
+
     }
 }

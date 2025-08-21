@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -30,6 +31,8 @@ public interface CommentQueryPort {
      * @since 2.0.0
      */
     List<CommentDTO> findPopularComments(Long postId, List<Long> likedCommentIds);
+
+    Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
 
     /**
      * <h3>과거순 댓글 목록 조회</h3>
