@@ -71,7 +71,7 @@ class CommentQueryServiceTest {
         commentDTO.setId(200L);
         commentDTO.setContent("테스트 댓글");
         commentDTO.setUserName("testUser");
-        commentDTO.setLikes(5);
+        commentDTO.setLikeCount(5);
         commentDTO.setUserLike(false);
 
         simpleCommentDTO = new SimpleCommentDTO(
