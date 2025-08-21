@@ -6,15 +6,4 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PostCommandAdapterTest {
 
-    @Test
-    void save() {
-    }
-
-    @Test
-    void delete() {
-    }
-
-    @Test
-    void incrementView() {
-    }
 }

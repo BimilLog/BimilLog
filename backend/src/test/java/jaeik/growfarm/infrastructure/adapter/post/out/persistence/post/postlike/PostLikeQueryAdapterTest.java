@@ -6,11 +6,5 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PostLikeQueryAdapterTest {
 
-    @Test
-    void existsByUserAndPost() {
-    }
 
-    @Test
-    void countByPost() {
-    }
 }

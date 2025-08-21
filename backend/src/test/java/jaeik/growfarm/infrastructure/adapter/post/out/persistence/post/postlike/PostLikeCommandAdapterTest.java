@@ -6,15 +6,5 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PostLikeCommandAdapterTest {
 
-    @Test
-    void save() {
-    }
 
-    @Test
-    void deleteByUserAndPost() {
-    }
-
-    @Test
-    void deleteAllByPostId() {
-    }
 }

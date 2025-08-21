@@ -6,19 +6,4 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PostCacheSyncAdapterTest {
 
-    @Test
-    void findRealtimePopularPosts() {
-    }
-
-    @Test
-    void findWeeklyPopularPosts() {
-    }
-
-    @Test
-    void findLegendaryPosts() {
-    }
-
-    @Test
-    void findPostDetail() {
-    }
 }

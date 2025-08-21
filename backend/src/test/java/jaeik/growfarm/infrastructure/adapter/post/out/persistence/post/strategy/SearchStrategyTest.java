@@ -6,15 +6,4 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SearchStrategyTest {
 
-    @Test
-    void createCondition() {
-    }
-
-    @Test
-    void canHandle() {
-    }
-
-    @Test
-    void getStrategyName() {
-    }
 }

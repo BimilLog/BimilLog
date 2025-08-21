@@ -6,15 +6,4 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FullTextSearchStrategyTest {
 
-    @Test
-    void createCondition() {
-    }
-
-    @Test
-    void canHandle() {
-    }
-
-    @Test
-    void getStrategyName() {
-    }
 }

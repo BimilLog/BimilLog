@@ -6,7 +6,5 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UserAdapterLoadTest {
 
-    @Test
-    void getReferenceById() {
-    }
+
 }

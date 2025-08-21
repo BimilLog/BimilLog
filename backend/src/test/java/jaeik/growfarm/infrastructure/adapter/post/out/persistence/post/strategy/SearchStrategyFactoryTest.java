@@ -6,7 +6,5 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SearchStrategyFactoryTest {
 
-    @Test
-    void createSearchCondition() {
-    }
+
 }
