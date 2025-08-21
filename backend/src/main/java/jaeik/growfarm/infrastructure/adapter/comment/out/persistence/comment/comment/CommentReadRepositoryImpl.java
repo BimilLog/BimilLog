@@ -2,6 +2,7 @@ package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.co
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.comment.entity.QCommentClosure;
@@ -35,18 +36,18 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     /**
-     * <h3>최신순 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 최신순으로 페이지네이션하여 조회합니다. 사용자가 추천를 누른 댓글 정보도 포함합니다.</p>
+     * <h3>과거순 댓글 조회</h3>
+     * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다. 사용자가 추천를 누른 댓글 정보도 포함합니다.</p>
      *
      * @param postId          게시글 ID
      * @param pageable        페이지 정보
      * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
-     * @return Page<CommentDTO> 최신순 댓글 페이지
+     * @return Page<CommentDTO> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<CommentDTO> findCommentsWithLatestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds) {
+    public Page<CommentDTO> findCommentsWithOldestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds) {
         QComment comment = QComment.comment;
         QCommentLike commentLike = QCommentLike.commentLike;
         QCommentClosure closure = QCommentClosure.commentClosure;
@@ -70,8 +71,8 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id))
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, user.userName, closure.ancestor.id)
-                .orderBy(comment.createdAt.desc())
+                .groupBy(comment.id, user.userName, closure.ancestor.id, comment.createdAt)
+                .orderBy(comment.createdAt.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -120,7 +121,7 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id).and(closure.depth.eq(0)))
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, user.userName, closure.ancestor.id)
+                .groupBy(comment.id, user.userName, closure.ancestor.id, comment.createdAt)
                 .having(commentLike.countDistinct().goe(5)) // 추천 5개 이상
                 .orderBy(commentLike.countDistinct().desc())
                 .limit(5)
@@ -139,7 +140,7 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
      * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
      * 
      * <p><strong>사용 목적</strong>: 댓글 목록 페이징 시 total count 계산</p>
-     * <p><strong>현재 사용</strong>: findCommentsWithLatestOrder 메서드에서 PageImpl total 값 설정에 사용</p>
+     * <p><strong>현재 사용</strong>: findCommentsWithOldestOrder 메서드에서 PageImpl total 값 설정에 사용</p>
      * <p><strong>구현 세부</strong>: QueryDSL로 구현, depth=0인 댓글(루트 댓글)만 카운트</p>
      * <p><strong>내부 메서드</strong>: Infrastructure layer 내부에서만 사용</p>
      *
@@ -212,11 +213,12 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
         List<SimpleCommentDTO> content = jpaQueryFactory
                 .select(Projections.constructor(SimpleCommentDTO.class,
                         comment.id,
-                        comment.content,
-                        user.userName,
-                        comment.createdAt,
                         comment.post.id,
-                        comment.post.title))
+                        user.userName,
+                        comment.content,
+                        comment.createdAt,
+                        Expressions.constant(0),
+                        Expressions.constant(false)))
                 .from(comment)
                 .join(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .leftJoin(comment.user, user)
@@ -254,11 +256,12 @@ public class CommentReadRepositoryImpl implements CommentReadRepository {
         List<SimpleCommentDTO> content = jpaQueryFactory
                 .select(Projections.constructor(SimpleCommentDTO.class,
                         comment.id,
-                        comment.content,
-                        user.userName,
-                        comment.createdAt,
                         comment.post.id,
-                        comment.post.title))
+                        user.userName,
+                        comment.content,
+                        comment.createdAt,
+                        Expressions.constant(0),
+                        Expressions.constant(false)))
                 .from(comment)
                 .leftJoin(comment.user, user)
                 .where(comment.user.id.eq(userId))

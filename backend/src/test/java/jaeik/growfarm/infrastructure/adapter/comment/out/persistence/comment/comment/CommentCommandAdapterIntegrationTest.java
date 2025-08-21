@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.comment.out.persistence;
+package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -9,8 +9,6 @@ import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentCommendAdapter;
-import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

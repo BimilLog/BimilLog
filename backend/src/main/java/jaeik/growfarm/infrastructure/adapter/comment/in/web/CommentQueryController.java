@@ -28,12 +28,12 @@ public class CommentQueryController {
     /**
      * <h3>댓글 조회 API</h3>
      * <p>
-     * 게시글에 달린 댓글을 최신순으로 페이징하여 반환한다.
+     * 게시글에 달린 댓글을 과거순으로 페이징하여 반환한다.
      * </p>
      *
      * @param postId 게시글 ID
      * @param page   페이지 번호
-     * @return 댓글 목록 페이지 (최신순)
+     * @return 댓글 목록 페이지 (과거순)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -42,7 +42,7 @@ public class CommentQueryController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
-        return ResponseEntity.ok(commentQueryUseCase.getCommentsLatestOrder(postId, page, userDetails));
+        return ResponseEntity.ok(commentQueryUseCase.getCommentsOldestOrder(postId, page, userDetails));
     }
 
     /**

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'jaeik'
-version = '1.0.0-RC1'
+version = '2.0.0'
 
 java {
     toolchain {
@@ -80,7 +80,7 @@ dependencies {
     implementation 'software.amazon.awssdk:cloudwatchlogs' // AWS CloudWatch Logs SDK
 
     // ==== Commons Logging 충돌 해결 ====
-    configurations.all {
+    configurations.configureEach {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
 }

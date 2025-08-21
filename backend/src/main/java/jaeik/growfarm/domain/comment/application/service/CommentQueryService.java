@@ -98,7 +98,7 @@ public class CommentQueryService implements CommentQueryUseCase {
             return Collections.emptyList();
         }
 
-        Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithLatestOrder(postId, pageable, Collections.emptyList());
+        Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithOldestOrder(postId, pageable, Collections.emptyList());
         if (!commentPage.hasContent()) {
             return Collections.emptyList();
         }
@@ -108,23 +108,23 @@ public class CommentQueryService implements CommentQueryUseCase {
     }
 
     /**
-     * <h3>최신순 댓글 조회</h3>
-     * <p>주어진 게시글 ID에 대한 댓글을 최신순으로 페이지네이션하여 조회합니다.</p>
+     * <h3>과거순 댓글 조회</h3>
+     * <p>주어진 게시글 ID에 대한 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
      *
      * @param postId      게시글 ID
      * @param page        페이지 번호
      * @param userDetails 사용자 인증 정보
-     * @return Page<CommentDTO> 최신순 댓글 페이지
+     * @return Page<CommentDTO> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails) {
+    public Page<CommentDTO> getCommentsOldestOrder(Long postId, int page, CustomUserDetails userDetails) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
         List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
 
-        return commentQueryPort.findCommentsWithLatestOrder(postId, pageable, likedCommentIds);
+        return commentQueryPort.findCommentsWithOldestOrder(postId, pageable, likedCommentIds);
     }
 
     /**

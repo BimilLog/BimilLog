@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.comment.out.persistence;
+package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.GrowfarmApplication;
@@ -11,9 +11,6 @@ import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
-import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentQueryAdapter;
-import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentReadRepositoryImpl;
-import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike.CommentLikeRepository;
 import jaeik.growfarm.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
@@ -41,6 +38,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,7 +75,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 @Import(CommentQueryAdapter.class)
 @TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
+        "spring.jpa.hibernate.ddl-auto=create",
+        "spring.jpa.properties.hibernate.listeners.auto-registration=true"
 })
 class CommentQueryAdapterIntegrationTest {
 
@@ -107,9 +106,8 @@ class CommentQueryAdapterIntegrationTest {
             return org.mockito.Mockito.mock(EncryptionUtil.class);
         }
         
-        @Bean("commentReadRepositoryImpl")
-        @org.springframework.context.annotation.Primary
-        public CommentReadRepositoryImpl commentReadRepository(JPAQueryFactory jpaQueryFactory) {
+        @Bean
+        public CommentReadRepository commentReadRepository(JPAQueryFactory jpaQueryFactory) {
             return new CommentReadRepositoryImpl(jpaQueryFactory);
         }
     }
@@ -266,7 +264,7 @@ class CommentQueryAdapterIntegrationTest {
     @DisplayName("경계값 - 빈 댓글 ID 목록으로 추천 댓글 조회")
     void shouldReturnEmptyList_WhenEmptyCommentIdsProvided() {
         // Given: 빈 댓글 ID 목록
-        List<Long> emptyCommentIds = Arrays.asList();
+        List<Long> emptyCommentIds = List.of();
 
         // When: 빈 댓글 ID 목록으로 추천 댓글 조회
         List<Long> likedCommentIds = commentQueryAdapter
@@ -276,13 +274,8 @@ class CommentQueryAdapterIntegrationTest {
         assertThat(likedCommentIds).isEmpty();
     }
 
-    // TODO: 테스트 실패 - 메인 로직 문제 의심  
-    // CommentReadRepository 구현체가 없어서 findCommentsByUserId 등의 메서드 테스트 실패
-    // 실제 QueryDSL 구현체나 JPA 구현체가 필요함
-    // 수정 필요: CommentReadRepository 구현 확인 및 테스트 환경 설정
-    
     @Test
-    @DisplayName("TODO: 테스트 실패 - 사용자 작성 댓글 목록 조회")
+    @DisplayName("정상 케이스 - 사용자 작성 댓글 목록 조회")
     void shouldFindCommentsByUserId_WhenValidUserIdProvided() {
         // Given: 특정 사용자의 여러 댓글
         Comment comment1 = Comment.createComment(testPost, testUser1, "사용자1 댓글1", null);
@@ -295,24 +288,19 @@ class CommentQueryAdapterIntegrationTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        try {
-            // When: 특정 사용자의 댓글 조회
-            Page<SimpleCommentDTO> userComments = commentQueryAdapter
-                    .findCommentsByUserId(testUser1.getId(), pageable);
+        // When: 특정 사용자의 댓글 조회
+        Page<SimpleCommentDTO> userComments = commentQueryAdapter
+                .findCommentsByUserId(testUser1.getId(), pageable);
 
-            // Then: 해당 사용자의 댓글만 조회되는지 검증
-            assertThat(userComments).isNotNull();
-            assertThat(userComments.getContent()).hasSize(2);
-            // 추가 검증 로직은 CommentReadRepository 구현 후 활성화
-        } catch (Exception e) {
-            // CommentReadRepository 구현체 누락으로 인한 예상된 실패
-            assertThat(e).isNotNull();
-            // 메인 로직에서 CommentReadRepository 인터페이스 구현 필요
-        }
+        // Then: 해당 사용자의 댓글만 조회되는지 검증
+        assertThat(userComments).isNotNull();
+        assertThat(userComments.getContent()).hasSize(2);
+        assertThat(userComments.getContent().get(0).getContent()).contains("사용자1");
+        assertThat(userComments.getContent().get(1).getContent()).contains("사용자1");
     }
 
     @Test  
-    @DisplayName("TODO: 테스트 실패 - 사용자 추천한 댓글 목록 조회")
+    @DisplayName("정상 케이스 - 사용자 추천한 댓글 목록 조회")
     void shouldFindLikedCommentsByUserId_WhenValidUserIdProvided() {
         // Given: 사용자가 추천한 댓글들
         Comment comment1 = Comment.createComment(testPost, testUser1, "댓글1", null);
@@ -330,87 +318,87 @@ class CommentQueryAdapterIntegrationTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        try {
-            // When: 사용자가 추천한 댓글 조회
-            Page<SimpleCommentDTO> likedComments = commentQueryAdapter
-                    .findLikedCommentsByUserId(testUser2.getId(), pageable);
+        // When: 사용자가 추천한 댓글 조회
+        Page<SimpleCommentDTO> likedComments = commentQueryAdapter
+                .findLikedCommentsByUserId(testUser2.getId(), pageable);
 
-            // Then: 추천한 댓글들이 조회되는지 검증  
-            assertThat(likedComments).isNotNull();
-            assertThat(likedComments.getContent()).hasSize(1);
-            // 추가 검증 로직은 CommentReadRepository 구현 후 활성화
-        } catch (Exception e) {
-            // CommentReadRepository 구현체 누락으로 인한 예상된 실패
-            assertThat(e).isNotNull();
-            // 메인 로직에서 CommentReadRepository 인터페이스 구현 필요
-        }
+        // Then: 추천한 댓글들이 조회되는지 검증
+        assertThat(likedComments).isNotNull();
+        assertThat(likedComments.getContent()).hasSize(1);
+        assertThat(likedComments.getContent().getFirst().getContent()).isEqualTo("댓글1");
     }
 
     @Test
-    @DisplayName("TODO: 테스트 실패 - 인기 댓글 목록 조회")
+    @DisplayName("정상 케이스 - 인기 댓글 목록 조회")
     void shouldFindPopularComments_WhenValidPostIdProvided() {
-        // Given: 게시글의 여러 댓글과 추천
+        // Given: 게시글의 여러 댓글과 추천 (인기 댓글 조건: 5개 이상)
         Comment comment1 = Comment.createComment(testPost, testUser1, "인기댓글1", null);
-        Comment comment2 = Comment.createComment(testPost, testUser1, "인기댓글2", null);
-        
         comment1 = commentRepository.save(comment1);
-        comment2 = commentRepository.save(comment2);
 
-        // 추천 생성
-        CommentLike like1 = CommentLike.builder()
-                .comment(comment1)
-                .user(testUser2)
-                .build();
-        commentLikeRepository.save(like1);
-
-        List<Long> likedCommentIds = Arrays.asList(comment1.getId());
-
-        try {
-            // When: 인기 댓글 조회
-            List<CommentDTO> popularComments = commentQueryAdapter
-                    .findPopularComments(testPost.getId(), likedCommentIds);
-
-            // Then: 인기 댓글들이 조회되는지 검증
-            assertThat(popularComments).isNotNull();
-            // 추가 검증 로직은 CommentReadRepository 구현 후 활성화
-        } catch (Exception e) {
-            // CommentReadRepository 구현체 누락으로 인한 예상된 실패
-            assertThat(e).isNotNull();
-            // 메인 로직에서 CommentReadRepository 인터페이스 구현 필요
+        // 5개 이상의 추천 생성 (인기 댓글 조건 충족)
+        for (int i = 0; i < 6; i++) {
+            Setting setting = Setting.createSetting();
+            entityManager.persistAndFlush(setting);
+            
+            User likeUser = User.builder()
+                    .socialId("kakao" + (1000 + i))
+                    .provider(SocialProvider.KAKAO)
+                    .userName("likeUser" + i)
+                    .socialNickname("추천유저" + i)
+                    .role(UserRole.USER)
+                    .setting(setting)
+                    .build();
+            entityManager.persistAndFlush(likeUser);
+            
+            CommentLike like = CommentLike.builder()
+                    .comment(comment1)
+                    .user(likeUser)
+                    .build();
+            commentLikeRepository.save(like);
         }
+
+        List<Long> likedCommentIds = Collections.singletonList(comment1.getId());
+
+        // When: 인기 댓글 조회
+        List<CommentDTO> popularComments = commentQueryAdapter
+                .findPopularComments(testPost.getId(), likedCommentIds);
+
+        // Then: 인기 댓글들이 조회되는지 검증
+        assertThat(popularComments).isNotNull();
+        assertThat(popularComments).hasSize(1);
+        assertThat(popularComments.getFirst().getContent()).isEqualTo("인기댓글1");
+        assertThat(popularComments.getFirst().isPopular()).isTrue();
+        assertThat(popularComments.getFirst().getLikes()).isEqualTo(6);
     }
 
     @Test
-    @DisplayName("TODO: 테스트 실패 - 최신순 댓글 목록 조회") 
-    void shouldFindCommentsWithLatestOrder_WhenValidPostIdProvided() {
+    @DisplayName("정상 케이스 - 과거순 댓글 목록 조회") 
+    void shouldFindCommentsWithOldestOrder_WhenValidPostIdProvided() {
         // Given: 게시글의 여러 댓글들
         Comment comment1 = Comment.createComment(testPost, testUser1, "첫번째 댓글", null);
         Comment comment2 = Comment.createComment(testPost, testUser1, "두번째 댓글", null);
         Comment comment3 = Comment.createComment(testPost, testUser2, "세번째 댓글", null);
-        
+
+
         commentRepository.save(comment1);
-        try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         commentRepository.save(comment2);
-        try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         commentRepository.save(comment3);
 
+
         Pageable pageable = PageRequest.of(0, 10);
-        List<Long> likedCommentIds = Arrays.asList();
+        List<Long> likedCommentIds = List.of();
 
-        try {
-            // When: 최신순 댓글 조회
-            Page<CommentDTO> latestComments = commentQueryAdapter
-                    .findCommentsWithLatestOrder(testPost.getId(), pageable, likedCommentIds);
+        // When: 과거순 댓글 조회
+        Page<CommentDTO> oldestComments = commentQueryAdapter
+                .findCommentsWithOldestOrder(testPost.getId(), pageable, likedCommentIds);
 
-            // Then: 최신순으로 댓글들이 조회되는지 검증
-            assertThat(latestComments).isNotNull();
-            assertThat(latestComments.getContent()).hasSize(3);
-            // 추가 검증 로직은 CommentReadRepository 구현 후 활성화
-        } catch (Exception e) {
-            // CommentReadRepository 구현체 누락으로 인한 예상된 실패
-            assertThat(e).isNotNull();
-            // 메인 로직에서 CommentReadRepository 인터페이스 구현 필요
-        }
+        // Then: 과거순으로 댓글들이 조회되는지 검증
+        assertThat(oldestComments).isNotNull();
+        assertThat(oldestComments.getContent()).hasSize(3);
+        // 과거순 정렬 검증 (첫번째 댓글이 가장 먼저)
+        assertThat(oldestComments.getContent().getFirst().getContent()).isEqualTo("첫번째 댓글");
     }
 
     @Test

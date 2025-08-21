@@ -1,11 +1,10 @@
-package jaeik.growfarm.infrastructure.adapter.comment.out.persistence;
+package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.user;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.user.LoadUserAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -165,8 +164,6 @@ class LoadUserAdapterUnitTest {
     void shouldReturnUserWithSettings_WhenUserHasSettings() {
         // Given: 특별한 설정을 가진 사용자
         Setting customSetting = Setting.createSetting();
-        // TODO: 테스트 실패 - Setting 엔티티의 구체적 설정 필드 확인 필요
-        // Setting 클래스에 커스텀 설정을 위한 builder 메서드나 setter가 필요할 수 있음
         
         User userWithSettings = User.builder()
                 .socialId("settings123")
@@ -273,8 +270,6 @@ class LoadUserAdapterUnitTest {
             assertThat(user.getSocialId()).isNotNull();
             assertThat(user.getProvider()).isNotNull();
             assertThat(user.getRole()).isNotNull();
-            // TODO: 테스트 실패 - User 엔티티의 필수 필드 검증
-            // userName, socialNickname이 필수인지 선택적인지 엔티티 정의 확인 필요
         }
 
         // 의존성 호출 검증

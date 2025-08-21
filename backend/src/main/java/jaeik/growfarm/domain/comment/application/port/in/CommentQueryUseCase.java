@@ -32,17 +32,17 @@ public interface CommentQueryUseCase {
     List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails);
 
     /**
-     * <h3>최신순 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 최신순으로 페이지네이션하여 조회합니다.</p>
+     * <h3>과거순 댓글 조회</h3>
+     * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
      *
      * @param postId      게시글 ID
      * @param page        페이지 번호
      * @param userDetails 사용자 인증 정보
-     * @return Page<CommentDTO> 최신순 댓글 페이지
+     * @return Page<CommentDTO> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<CommentDTO> getCommentsLatestOrder(Long postId, int page, CustomUserDetails userDetails);
+    Page<CommentDTO> getCommentsOldestOrder(Long postId, int page, CustomUserDetails userDetails);
 
     /**
      * <h3>ID로 댓글 조회</h3>

@@ -154,8 +154,8 @@ class CommentQueryServiceTest {
     }
 
     @Test
-    @DisplayName("최신순 댓글 조회 성공 - 로그인 사용자")
-    void shouldGetCommentsLatestOrder_WhenLoggedInUser() {
+    @DisplayName("과거순 댓글 조회 성공 - 로그인 사용자")
+    void shouldGetCommentsOldestOrder_WhenLoggedInUser() {
         // Given
         Long postId = 300L;
         int page = 0;
@@ -165,14 +165,14 @@ class CommentQueryServiceTest {
         List<Long> likedCommentIds = List.of(200L);
 
         given(userDetails.getUserId()).willReturn(100L);
-        given(commentQueryPort.findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
                 .willReturn(commentPage);
         given(commentQueryPort.findUserLikedCommentIds(pageCommentIds, 100L)).willReturn(likedCommentIds);
-        given(commentQueryPort.findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(likedCommentIds)))
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(likedCommentIds)))
                 .willReturn(commentPage);
 
         // When
-        Page<CommentDTO> result = commentQueryService.getCommentsLatestOrder(postId, page, userDetails);
+        Page<CommentDTO> result = commentQueryService.getCommentsOldestOrder(postId, page, userDetails);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -180,46 +180,46 @@ class CommentQueryServiceTest {
     }
 
     @Test
-    @DisplayName("최신순 댓글 조회 성공 - 익명 사용자")
-    void shouldGetCommentsLatestOrder_WhenAnonymousUser() {
+    @DisplayName("과거순 댓글 조회 성공 - 익명 사용자")
+    void shouldGetCommentsOldestOrder_WhenAnonymousUser() {
         // Given
         Long postId = 300L;
         int page = 0;
         List<CommentDTO> comments = Collections.singletonList(commentDTO);
         Page<CommentDTO> commentPage = new PageImpl<>(comments);
 
-        given(commentQueryPort.findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
                 .willReturn(commentPage);
 
         // When
-        Page<CommentDTO> result = commentQueryService.getCommentsLatestOrder(postId, page, null);
+        Page<CommentDTO> result = commentQueryService.getCommentsOldestOrder(postId, page, null);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getId()).isEqualTo(200L);
 
-        verify(commentQueryPort).findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
+        verify(commentQueryPort).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
         verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
     }
 
     @Test
-    @DisplayName("최신순 댓글 조회 - 빈 페이지")
+    @DisplayName("과거순 댓글 조회 - 빈 페이지")
     void shouldReturnEmptyPage_WhenNoCommentsInPage() {
         // Given
         Long postId = 300L;
         int page = 0;
         Page<CommentDTO> emptyPage = new PageImpl<>(Collections.emptyList());
 
-        given(commentQueryPort.findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
                 .willReturn(emptyPage);
 
         // When
-        Page<CommentDTO> result = commentQueryService.getCommentsLatestOrder(postId, page, userDetails);
+        Page<CommentDTO> result = commentQueryService.getCommentsOldestOrder(postId, page, userDetails);
 
         // Then
         assertThat(result.getContent()).isEmpty();
 
-        verify(commentQueryPort, times(2)).findCommentsWithLatestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
+        verify(commentQueryPort, times(2)).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
         verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
     }
 

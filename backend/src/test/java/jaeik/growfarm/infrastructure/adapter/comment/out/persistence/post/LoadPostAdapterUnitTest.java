@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.comment.out.persistence;
+package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.post;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
@@ -6,7 +6,6 @@ import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.post.LoadPostAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -319,8 +318,7 @@ class LoadPostAdapterUnitTest {
             assertThat(post.getUser()).isNotNull();
             assertThat(post.isNotice()).isNotNull();
             assertThat(post.getViews()).isNotNull();
-            // TODO: 테스트 실패 - Post 엔티티의 필수 필드 검증
-            // views가 null 허용 여부, 최소값 제약 등 엔티티 정의 확인 필요
+
         }
 
         // 의존성 호출 검증

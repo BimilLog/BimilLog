@@ -57,9 +57,9 @@ _따뜻한 마음을 익명으로 전달하는 디지털 롤링페이퍼 서비�
 
 ### **Frontend**
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15.2.4 (App Router)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS + Design Token System
+- **Styling**: Tailwind CSS v4 + Design Token System
 - **Architecture**: Atomic Design Pattern
 - **State Management**: React Hooks + Custom Hooks
 - **Real-time**: Server-Sent Events (SSE)
@@ -67,8 +67,8 @@ _따뜻한 마음을 익명으로 전달하는 디지털 롤링페이퍼 서비�
 
 ### **Backend**
 
-- **Framework**: Spring Boot 3.x
-- **Language**: Java 17
+- **Framework**: Spring Boot 3.4.4
+- **Language**: Java 21
 - **Database**: MySQL + QueryDSL
 - **Security**: Spring Security + JWT
 - **Real-time**: Server-Sent Events
