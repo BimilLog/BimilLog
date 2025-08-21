@@ -76,6 +76,16 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
         return metadata;
     }
 
+    /**
+     * <h3>SimplePostResDTO 캐시 저장</h3>
+     * <p>주어진 게시글 캐시 데이터를 Redis에 저장합니다.</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @param cachePosts 캐시할 게시글 목록
+     * @throws CustomException Redis 쓰기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void cachePosts(PostCacheFlag type, List<SimplePostResDTO> cachePosts) {
         CacheMetadata metadata = getCacheMetadata(type);
@@ -86,6 +96,15 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
         }
     }
 
+    /**
+     * <h3>FullPostResDTO 캐시 저장</h3>
+     * <p>주어진 게시글 캐시 유형에 해당하는 캐시 데이터를 Redis에 저장합니다.</p>
+     *
+     * @param post 게시글 캐시 유형
+     * @throws CustomException Redis 읽기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void cacheFullPost(FullPostResDTO post) {
         String key = FULL_POST_CACHE_PREFIX + post.getId();
@@ -96,6 +115,15 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
         }
     }
 
+    /**
+     * <h3>인기 게시글 캐시 플래그 적용</h3>
+     * <p>주어진 게시글 ID 목록에 대해 인기 게시글 캐시 플래그를 적용합니다.</p>
+     *
+     * @param postIds 게시글 ID 목록
+     * @param postCacheFlag 게시글 캐시 유형
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     @Transactional
     public void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag) {
@@ -109,6 +137,14 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
                 .execute();
     }
 
+    /**
+     * <h3>인기 게시글 캐시 플래그 초기화</h3>
+     * <p>주어진 게시글 캐시 유형에 해당하는 인기 게시글 캐시 플래그를 초기화합니다.</p>
+     *
+     * @param postCacheFlag 게시글 캐시 유형
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     @Transactional
     public void resetPopularFlag(PostCacheFlag postCacheFlag) {
@@ -119,6 +155,15 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
                 .execute();
     }
 
+    /**
+     * <h3>인기 게시글 캐시 삭제</h3>
+     * <p>주어진 게시글 캐시 유형에 해당하는 인기 게시글 캐시를 Redis에서 삭제합니다.</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @throws CustomException Redis 삭제 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void deletePopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
@@ -129,6 +174,15 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
         }
     }
 
+    /**
+     * <h3>전체 게시글 캐시 삭제</h3>
+     * <p>주어진 게시글 ID에 해당하는 전체 게시글 캐시를 Redis에서 삭제합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @throws CustomException Redis 삭제 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void deleteFullPostCache(Long postId) {
         String key = FULL_POST_CACHE_PREFIX + postId;
