@@ -21,7 +21,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
 
-
     /**
      * <h3>댓글과 사용자로 추천 삭제</h3>
      * <p>주어진 댓글과 사용자에 해당하는 추천를 삭제합니다.</p>

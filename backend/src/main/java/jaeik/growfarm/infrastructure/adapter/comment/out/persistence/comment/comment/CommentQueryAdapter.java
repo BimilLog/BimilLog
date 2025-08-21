@@ -34,9 +34,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CommentQueryAdapter implements CommentQueryPort {
 
-
     private final CommentRepository commentRepository;
     private final JPAQueryFactory jpaQueryFactory;
+
+    private static final QComment comment = QComment.comment;
+    private static final QCommentLike commentLike = QCommentLike.commentLike;
+    private static final QCommentClosure closure = QCommentClosure.commentClosure;
+    private static final QUser user = QUser.user;
 
     /**
      * <h3>ID로 댓글 조회</h3>
@@ -67,6 +71,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
         return commentRepository.findUserLikedCommentIds(commentIds, userId);
     }
 
+    //TODO : 현재 추천 여부와 추천 수가 계산되지 않아 계산이 필요
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
@@ -79,8 +84,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable) {
-        QComment comment = QComment.comment;
-        QUser user = QUser.user;
 
         List<SimpleCommentDTO> content = jpaQueryFactory
                 .select(Projections.constructor(SimpleCommentDTO.class,
@@ -108,6 +111,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
+    //TODO : 현재 추천 여부와 추천 수가 계산되지 않아 계산이 필요
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
@@ -120,9 +124,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
-        QComment comment = QComment.comment;
-        QCommentLike commentLike = QCommentLike.commentLike;
-        QUser user = QUser.user;
 
         List<SimpleCommentDTO> content = jpaQueryFactory
                 .select(Projections.constructor(SimpleCommentDTO.class,
@@ -164,10 +165,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public List<CommentDTO> findPopularComments(Long postId, List<Long> likedCommentIds) {
-        QComment comment = QComment.comment;
-        QCommentLike commentLike = QCommentLike.commentLike;
-        QCommentClosure closure = QCommentClosure.commentClosure;
-        QUser user = QUser.user;
 
         List<CommentDTO> popularComments = jpaQueryFactory
                 .select(Projections.constructor(CommentDTO.class,
@@ -196,7 +193,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
         popularComments.forEach(dto -> {
             dto.setUserLike(likedCommentIds.contains(dto.getId()));
             dto.setPopular(true);
-            // 추천수는 이미 쿼리에서 설정됨
         });
         return popularComments;
     }
@@ -212,7 +208,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
-        QComment comment = QComment.comment;
 
         List<Tuple> results = jpaQueryFactory
                 .select(comment.post.id, comment.count())
@@ -241,11 +236,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public Page<CommentDTO> findCommentsWithOldestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds) {
-        QComment comment = QComment.comment;
-        QCommentLike commentLike = QCommentLike.commentLike;
-        QCommentClosure closure = QCommentClosure.commentClosure;
-        QUser user = QUser.user;
-
         List<CommentDTO> content = jpaQueryFactory
                 .select(Projections.constructor(CommentDTO.class,
                         comment.id,
@@ -269,13 +259,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
-
-        content.forEach(dto -> {
-            dto.setUserLike(likedCommentIds.contains(dto.getId()));
-        });
+        content.forEach(dto -> dto.setUserLike(likedCommentIds.contains(dto.getId())));
 
         Long total = countRootCommentsByPostId(postId);
-
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
@@ -294,9 +280,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @since 2.0.0
      */
     private Long countRootCommentsByPostId(Long postId) {
-        QComment comment = QComment.comment;
-        QCommentClosure closure = QCommentClosure.commentClosure;
-
         return jpaQueryFactory
                 .select(comment.countDistinct())
                 .from(comment)

@@ -1,12 +1,21 @@
 package jaeik.growfarm.infrastructure.adapter.comment.in.web.dto;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
 
+/**
+ * <h2>간편 댓글 조회용 DTO</h2>
+ * <p>간편 댓글을 조회할 때 사용하는 간단한 댓글 DTO</p>
+ * <p>글로 이동할 수 있는 postId가 포함되어있음</p>
+ * <p>연관관계와 논리적 삭제를 표현할 필요는 없음</p>
+ * <p>댓글의 인기 플래그를 표현할 필요는 없음</p>
+ * <p>현재는 주로 마이페이지에서 댓글 조회 시 사용됨</p>
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Getter
 @Setter
 public class SimpleCommentDTO {
@@ -17,11 +26,9 @@ public class SimpleCommentDTO {
     private Long postId;
 
     @NotNull
-    @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
     private String userName;
 
     @NotNull
-    @Size(max = 255, message = "댓글은 최대 255자 까지 입력 가능합니다.")
     private String content;
 
     private int likes;

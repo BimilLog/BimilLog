@@ -40,10 +40,10 @@ public class PostQueryAdapter implements PostQueryPort {
     private final SearchStrategyFactory searchStrategyFactory;
     private final CommentQueryPort commentQueryPort;
 
-    private static final QPost POST = QPost.post;
-    private static final QUser USER = QUser.user;
-    private static final QComment COMMENT = QComment.comment;
-    private static final QPostLike POST_LIKE = QPostLike.postLike;
+    private static final QPost post = QPost.post;
+    private static final QUser user = QUser.user;
+    private static final QComment comment = QComment.comment;
+    private static final QPostLike commentLike = QPostLike.postLike;
 
     /**
      * <h3>ID로 게시글 조회</h3>
@@ -70,7 +70,7 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<SimplePostResDTO> findByPage(Pageable pageable) {
-        BooleanExpression condition = POST.isNotice.isFalse();
+        BooleanExpression condition = post.isNotice.isFalse();
         return findPostsWithCondition(condition, pageable, false);
     }
 
@@ -103,7 +103,7 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable) {
-        BooleanExpression condition = USER.id.eq(userId);
+        BooleanExpression condition = user.id.eq(userId);
         return findPostsWithCondition(condition, pageable, false);
     }
 
@@ -124,9 +124,9 @@ public class PostQueryAdapter implements PostQueryPort {
         
         // 1. 게시글 기본 정보 조회 (댓글 JOIN 제외)
         List<SimplePostResDTO> content = buildBasePostQueryWithoutComments()
-                .join(userPostLike).on(POST.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
-                .groupBy(POST.id, USER.id)
-                .orderBy(POST.createdAt.desc())
+                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
+                .groupBy(post.id, user.id)
+                .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -146,9 +146,9 @@ public class PostQueryAdapter implements PostQueryPort {
         });
 
         Long total = jpaQueryFactory
-                .select(POST.countDistinct())
-                .from(POST)
-                .join(userPostLike).on(POST.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
+                .select(post.countDistinct())
+                .from(post)
+                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
@@ -170,8 +170,8 @@ public class PostQueryAdapter implements PostQueryPort {
         // 1. 게시글 기본 정보 조회 (댓글 JOIN 제외)
         List<SimplePostResDTO> content = buildBasePostQueryWithoutComments()
                 .where(condition)
-                .groupBy(POST.id, USER.id)
-                .orderBy(POST.createdAt.desc())
+                .groupBy(post.id, user.id)
+                .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -207,19 +207,19 @@ public class PostQueryAdapter implements PostQueryPort {
     private JPAQuery<SimplePostResDTO> buildBasePostQueryWithoutComments() {
         return jpaQueryFactory
                 .select(Projections.constructor(SimplePostResDTO.class,
-                        POST.id,
-                        POST.title,
-                        POST.views.coalesce(0),
-                        POST.isNotice,
-                        POST.postCacheFlag,
-                        POST.createdAt,
-                        USER.id,
-                        USER.userName,
+                        post.id,
+                        post.title,
+                        post.views.coalesce(0),
+                        post.isNotice,
+                        post.postCacheFlag,
+                        post.createdAt,
+                        user.id,
+                        user.userName,
                         Expressions.constant(0), // 댓글 수는 나중에 설정
-                        POST_LIKE.countDistinct().intValue()))
-                .from(POST)
-                .leftJoin(POST.user, USER)
-                .leftJoin(POST_LIKE).on(POST.id.eq(POST_LIKE.post.id));
+                        commentLike.countDistinct().intValue()))
+                .from(post)
+                .leftJoin(post.user, user)
+                .leftJoin(commentLike).on(post.id.eq(commentLike.post.id));
     }
 
     /**
@@ -236,20 +236,20 @@ public class PostQueryAdapter implements PostQueryPort {
     private JPAQuery<SimplePostResDTO> buildBasePostQuery() {
         return jpaQueryFactory
                 .select(Projections.constructor(SimplePostResDTO.class,
-                        POST.id,
-                        POST.title,
-                        POST.views.coalesce(0),
-                        POST.isNotice,
-                        POST.postCacheFlag,
-                        POST.createdAt,
-                        USER.id,
-                        USER.userName,
-                        COMMENT.countDistinct().intValue(),
-                        POST_LIKE.countDistinct().intValue()))
-                .from(POST)
-                .leftJoin(POST.user, USER)
-                .leftJoin(COMMENT).on(POST.id.eq(COMMENT.post.id))
-                .leftJoin(POST_LIKE).on(POST.id.eq(POST_LIKE.post.id));
+                        post.id,
+                        post.title,
+                        post.views.coalesce(0),
+                        post.isNotice,
+                        post.postCacheFlag,
+                        post.createdAt,
+                        user.id,
+                        user.userName,
+                        comment.countDistinct().intValue(),
+                        commentLike.countDistinct().intValue()))
+                .from(post)
+                .leftJoin(post.user, user)
+                .leftJoin(comment).on(post.id.eq(comment.post.id))
+                .leftJoin(commentLike).on(post.id.eq(commentLike.post.id));
     }
 
     /**
@@ -264,11 +264,11 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     private Long buildCountQuery(BooleanExpression condition, boolean isSearchQuery) {
         JPAQuery<Long> countQuery = jpaQueryFactory
-                .select(POST.count())
-                .from(POST);
+                .select(post.count())
+                .from(post);
 
         if (isSearchQuery) {
-            countQuery.leftJoin(POST.user, USER);
+            countQuery.leftJoin(post.user, user);
         }
 
         return countQuery.where(condition).fetchOne();
