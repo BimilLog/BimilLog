@@ -1,5 +1,7 @@
 package jaeik.growfarm.domain.notification.entity;
 
+import lombok.Getter;
+
 /**
  * <h2>알림 이벤트</h2>
  * <p>
@@ -11,10 +13,13 @@ package jaeik.growfarm.domain.notification.entity;
  * @version 2.0.0
  * @since 2.0.0
  */
+@Getter
 public class NotificationEvent {
 
     private final NotificationType type;
+
     private final String message;
+
     private final String url;
 
     /**
@@ -48,36 +53,4 @@ public class NotificationEvent {
         return new NotificationEvent(type, message, url);
     }
 
-    /**
-     * <h3>알림 유형 조회</h3>
-     *
-     * @return 알림 유형
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public NotificationType getType() {
-        return type;
-    }
-
-    /**
-     * <h3>알림 메시지 조회</h3>
-     *
-     * @return 알림 메시지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public String getMessage() {
-        return message;
-    }
-
-    /**
-     * <h3>알림 URL 조회</h3>
-     *
-     * @return 알림 URL
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public String getUrl() {
-        return url;
-    }
 }
