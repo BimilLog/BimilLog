@@ -40,6 +40,7 @@ class SocialLoginAdapterTest {
     private SocialLoginAdapter socialLoginAdapter;
 
     private SocialLoginUserData testUserData;
+    private SocialLoginPort.SocialUserProfile testUserProfile;
     private TokenVO testTokenVO;
     private SocialLoginStrategy.StrategyLoginResult testStrategyResult;
 
@@ -55,6 +56,8 @@ class SocialLoginAdapterTest {
         // 테스트 데이터 설정
         testUserData = new SocialLoginUserData("123456789", "test@example.com", 
                 SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url", "fcm-token");
+        testUserProfile = new SocialLoginPort.SocialUserProfile("123456789", "test@example.com", 
+                SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url");
         
         testTokenVO = TokenVO.builder()
                 .accessToken("access-token-12345")
@@ -78,7 +81,7 @@ class SocialLoginAdapterTest {
 
         // Then: 신규 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isTrue();
-        assertThat(result.userData()).isEqualTo(testUserData);
+        assertThat(result.userProfile()).isEqualTo(testUserProfile);
         assertThat(result.token()).isEqualTo(testTokenVO);
         
         verify(kakaoStrategy).login(code);
@@ -109,7 +112,7 @@ class SocialLoginAdapterTest {
 
         // Then: 기존 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isFalse();
-        assertThat(result.userData()).isEqualTo(testUserData);
+        assertThat(result.userProfile()).isEqualTo(testUserProfile);
         assertThat(result.token()).isEqualTo(testTokenVO);
         
         verify(kakaoStrategy).login(code);

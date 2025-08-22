@@ -3,6 +3,7 @@ package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.exception.CustomException;
@@ -38,6 +39,7 @@ class TempDataAdapterTest {
     @InjectMocks private TempDataAdapter tempDataAdapter;
 
     private SocialLoginUserData testUserData;
+    private SocialLoginPort.SocialUserProfile testUserProfile;
     private TokenVO testTokenVO;
     private String testUuid;
 
@@ -52,6 +54,7 @@ class TempDataAdapterTest {
                 .profileImageUrl("https://example.com/profile.jpg")
                 .fcmToken("fcm-token-12345")
                 .build();
+        testUserProfile = new SocialLoginPort.SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "testUser", "https://example.com/profile.jpg");
         testTokenVO = TokenVO.builder()
                 .accessToken("access-token-12345")
                 .refreshToken("refresh-token-12345")
@@ -62,13 +65,13 @@ class TempDataAdapterTest {
     @DisplayName("임시 데이터 저장 - 정상적인 데이터로 저장")
     void shouldSaveTempData_WhenValidDataProvided() {
         // When: 임시 데이터 저장
-        tempDataAdapter.saveTempData(testUuid, testUserData, testTokenVO);
+        tempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO);
 
         // Then: 저장된 데이터 조회 검증
         Optional<TemporaryUserDataDTO> savedData = tempDataAdapter.getTempData(testUuid);
         
         assertThat(savedData).isPresent();
-        assertThat(savedData.get().getSocialLoginUserData()).isEqualTo(testUserData);
+        assertThat(savedData.get().toDomainProfile()).isEqualTo(testUserProfile);
         assertThat(savedData.get().getTokenVO()).isEqualTo(testTokenVO);
         assertThat(savedData.get().getFcmToken()).isEqualTo("fcm-token-12345");
     }
@@ -79,7 +82,7 @@ class TempDataAdapterTest {
         
         // Given: null 값들
         String nullUuid = null;
-        SocialLoginUserData nullUserData = null;
+        SocialLoginPort.SocialUserProfile nullUserData = null;
         TokenVO nullTokenVO = null;
 
         // When & Then: null 값들로 저장 시도 시 예외 발생해야 함
@@ -97,7 +100,7 @@ class TempDataAdapterTest {
     @DisplayName("임시 데이터 조회 - 존재하는 UUID로 조회")
     void shouldReturnTempData_WhenUuidExists() {
         // Given: 저장된 데이터
-        tempDataAdapter.saveTempData(testUuid, testUserData, testTokenVO);
+        tempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO);
 
         // When: 존재하는 UUID로 조회
         Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(testUuid);
@@ -141,7 +144,7 @@ class TempDataAdapterTest {
     @DisplayName("임시 데이터 삭제 - 존재하는 데이터 삭제")
     void shouldRemoveTempData_WhenDataExists() {
         // Given: 저장된 데이터
-        tempDataAdapter.saveTempData(testUuid, testUserData, testTokenVO);
+        tempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO);
         assertThat(tempDataAdapter.getTempData(testUuid)).isPresent();
 
         // When: 데이터 삭제
@@ -239,23 +242,17 @@ class TempDataAdapterTest {
     @DisplayName("데이터 덮어쓰기 - 동일 UUID로 여러 번 저장")
     void shouldOverwriteData_WhenSameUuidSavedMultipleTimes() {
         // Given: 첫 번째 데이터 저장
-        tempDataAdapter.saveTempData(testUuid, testUserData, testTokenVO);
+        tempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO);
         
         // 새로운 데이터
-        SocialLoginUserData newUserData = SocialLoginUserData.builder()
-                .provider(SocialProvider.KAKAO)
-                .socialId("987654321")
-                .nickname("newUser")
-                .profileImageUrl("https://example.com/new-profile.jpg")
-                .fcmToken("new-fcm-token")
-                .build();
+        SocialLoginPort.SocialUserProfile newUserProfile = new SocialLoginPort.SocialUserProfile("987654321", "new@example.com", SocialProvider.KAKAO, "newUser", "https://example.com/new-profile.jpg");
         TokenVO newTokenVO = TokenVO.builder()
                 .accessToken("new-access-token")
                 .refreshToken("new-refresh-token")
                 .build();
 
         // When: 동일한 UUID로 새 데이터 저장
-        tempDataAdapter.saveTempData(testUuid, newUserData, newTokenVO);
+        tempDataAdapter.saveTempData(testUuid, newUserProfile, newTokenVO);
 
         // Then: 새 데이터로 덮어써짐
         Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(testUuid);
@@ -272,20 +269,12 @@ class TempDataAdapterTest {
         String uuid1 = "uuid-1";
         String uuid2 = "uuid-2";
         
-        SocialLoginUserData userData1 = SocialLoginUserData.builder()
-                .provider(SocialProvider.KAKAO)
-                .socialId("111")
-                .nickname("user1")
-                .build();
-        SocialLoginUserData userData2 = SocialLoginUserData.builder()
-                .provider(SocialProvider.KAKAO)
-                .socialId("222")
-                .nickname("user2")
-                .build();
+        SocialLoginPort.SocialUserProfile userProfile1 = new SocialLoginPort.SocialUserProfile("111", "user1@example.com", SocialProvider.KAKAO, "user1", "https://example.com/profile1.jpg");
+        SocialLoginPort.SocialUserProfile userProfile2 = new SocialLoginPort.SocialUserProfile("222", "user2@example.com", SocialProvider.KAKAO, "user2", "https://example.com/profile2.jpg");
 
         // When: 동시에 저장 및 조회
-        tempDataAdapter.saveTempData(uuid1, userData1, testTokenVO);
-        tempDataAdapter.saveTempData(uuid2, userData2, testTokenVO);
+        tempDataAdapter.saveTempData(uuid1, userProfile1, testTokenVO);
+        tempDataAdapter.saveTempData(uuid2, userProfile2, testTokenVO);
 
         // Then: 각각의 데이터가 독립적으로 저장되고 조회됨
         Optional<TemporaryUserDataDTO> result1 = tempDataAdapter.getTempData(uuid1);
@@ -301,7 +290,7 @@ class TempDataAdapterTest {
     @DisplayName("자동 정리 스케줄링 - 5분 후 데이터 자동 삭제 (단위 테스트용 단축)")
     void shouldScheduleCleanup_WhenDataSaved() {
         // Given: 테스트용 짧은 시간 (실제로는 5분이지만 테스트에서는 검증 불가)
-        tempDataAdapter.saveTempData(testUuid, testUserData, testTokenVO);
+        tempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO);
         
         // When: 데이터가 저장됨
         Optional<TemporaryUserDataDTO> immediateResult = tempDataAdapter.getTempData(testUuid);
@@ -322,12 +311,8 @@ class TempDataAdapterTest {
         // When: 대량 데이터 저장
         for (int i = 0; i < dataCount; i++) {
             String uuid = "uuid-" + i;
-            SocialLoginUserData userData = SocialLoginUserData.builder()
-                    .provider(SocialProvider.KAKAO)
-                    .socialId("id-" + i)
-                    .nickname("user-" + i)
-                    .build();
-            tempDataAdapter.saveTempData(uuid, userData, testTokenVO);
+            SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile("id-" + i, "user" + i + "@example.com", SocialProvider.KAKAO, "user-" + i, "https://example.com/profile" + i + ".jpg");
+            tempDataAdapter.saveTempData(uuid, userProfile, testTokenVO);
         }
 
         // Then: 모든 데이터가 정상 저장되고 조회됨

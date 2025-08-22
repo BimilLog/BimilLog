@@ -54,6 +54,7 @@ class SocialLoginServiceTest {
     private SocialLoginService socialLoginService;
 
     private SocialLoginUserData testUserData;
+    private SocialLoginPort.SocialUserProfile testUserProfile;
     private TokenVO testTokenVO;
     private SocialLoginPort.LoginResult existingUserResult;
     private SocialLoginPort.LoginResult newUserResult;
@@ -61,13 +62,14 @@ class SocialLoginServiceTest {
     @BeforeEach
     void setUp() {
         testUserData = new SocialLoginUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "fcm-token");
+        testUserProfile = new SocialLoginPort.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
         testTokenVO = TokenVO.builder()
                 .accessToken("access-token")
                 .refreshToken("refresh-token")
                 .build();
 
-        existingUserResult = new SocialLoginPort.LoginResult(testUserData, testTokenVO, false); // 기존 사용자
-        newUserResult = new SocialLoginPort.LoginResult(testUserData, testTokenVO, true); // 신규 사용자
+        existingUserResult = new SocialLoginPort.LoginResult(testUserProfile, testTokenVO, false); // 기존 사용자
+        newUserResult = new SocialLoginPort.LoginResult(testUserProfile, testTokenVO, true); // 신규 사용자
     }
 
     @Test
@@ -84,7 +86,7 @@ class SocialLoginServiceTest {
 
             given(socialLoginPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(existingUserResult);
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
-            given(saveUserPort.handleExistingUserLogin(testUserData, testTokenVO, fcmToken)).willReturn(cookies);
+            given(saveUserPort.handleExistingUserLogin(testUserProfile, testTokenVO, fcmToken)).willReturn(cookies);
 
             // When
             LoginResponseDTO<?> result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", fcmToken);
@@ -94,7 +96,7 @@ class SocialLoginServiceTest {
             assertThat(result.getData()).isEqualTo(cookies);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
-            verify(saveUserPort).handleExistingUserLogin(testUserData, testTokenVO, fcmToken);
+            verify(saveUserPort).handleExistingUserLogin(testUserProfile, testTokenVO, fcmToken);
         }
     }
 
@@ -121,7 +123,7 @@ class SocialLoginServiceTest {
             assertThat(result.getData()).isEqualTo(tempCookie);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
-            verify(tempDataPort).saveTempData(anyString(), eq(testUserData), eq(testTokenVO));
+            verify(tempDataPort).saveTempData(anyString(), eq(testUserProfile), eq(testTokenVO));
             verify(tempDataPort).createTempCookie(anyString());
         }
     }

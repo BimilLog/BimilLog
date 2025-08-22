@@ -6,6 +6,7 @@ import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +67,16 @@ class SignUpServiceTest {
                 .refreshToken("refresh-token")
                 .build();
         
-        testTempData = TemporaryUserDataDTO.fromDomainProfile(testSocialProfile, testTokenVO);
+        testTempData = new TemporaryUserDataDTO(
+                SocialLoginUserData.builder()
+                        .socialId(testSocialProfile.socialId())
+                        .email(testSocialProfile.email())
+                        .provider(testSocialProfile.provider())
+                        .nickname(testSocialProfile.nickname())
+                        .profileImageUrl(testSocialProfile.profileImageUrl())
+                        .build(),
+                testTokenVO, 
+                "fcm-token");
         
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-token").build(),
@@ -82,7 +92,7 @@ class SignUpServiceTest {
         given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
-                eq(testSocialData), 
+                eq(testSocialProfile), 
                 eq(testTokenVO),
                 eq("fcm-token")
         )).willReturn(testCookies);
@@ -98,7 +108,7 @@ class SignUpServiceTest {
         verify(saveUserPort).saveNewUser(
                 testUserName, 
                 testUuid, 
-                testSocialData,
+                testSocialProfile,
                 testTokenVO,
                 "fcm-token"
         );
@@ -120,7 +130,7 @@ class SignUpServiceTest {
         verify(saveUserPort, never()).saveNewUser(
                 eq(testUserName), 
                 eq(nonExistentUuid), 
-                eq(testSocialData), 
+                eq(testSocialProfile), 
                 eq(testTokenVO),
                 eq("fcm-token")
         );
@@ -130,13 +140,21 @@ class SignUpServiceTest {
     @DisplayName("FCM 토큰이 없는 임시 데이터로 회원 가입")
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
-        TemporaryUserDataDTO tempDataWithoutFcm = new TemporaryUserDataDTO(testSocialData, testTokenVO, null);
+        TemporaryUserDataDTO tempDataWithoutFcm = new TemporaryUserDataDTO(
+                SocialLoginUserData.builder()
+                        .socialId(testSocialProfile.socialId())
+                        .email(testSocialProfile.email())
+                        .provider(testSocialProfile.provider())
+                        .nickname(testSocialProfile.nickname())
+                        .profileImageUrl(testSocialProfile.profileImageUrl())
+                        .build(),
+                testTokenVO, null);
         
         given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
-                eq(testSocialData), 
+                eq(testSocialProfile), 
                 eq(testTokenVO),
                 eq(null)
         )).willReturn(testCookies);
@@ -148,7 +166,7 @@ class SignUpServiceTest {
         assertThat(result).isEqualTo(testCookies);
         
         verify(tempDataPort).getTempData(testUuid);
-        verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialData, testTokenVO, null);
+        verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialProfile, testTokenVO, null);
     }
 
     @Test
@@ -163,7 +181,7 @@ class SignUpServiceTest {
             given(saveUserPort.saveNewUser(
                     eq(userName), 
                     eq(testUuid), 
-                    eq(testSocialData), 
+                    eq(testSocialProfile), 
                     eq(testTokenVO),
                     eq("fcm-token")
             )).willReturn(testCookies);
@@ -173,7 +191,7 @@ class SignUpServiceTest {
 
             // Then
             assertThat(result).isEqualTo(testCookies);
-            verify(saveUserPort).saveNewUser(userName, testUuid, testSocialData, testTokenVO, "fcm-token");
+            verify(saveUserPort).saveNewUser(userName, testUuid, testSocialProfile, testTokenVO, "fcm-token");
         }
     }
 
@@ -186,7 +204,7 @@ class SignUpServiceTest {
         given(saveUserPort.saveNewUser(
                 eq(emptyUserName), 
                 eq(testUuid), 
-                eq(testSocialData), 
+                eq(testSocialProfile), 
                 eq(testTokenVO),
                 eq("fcm-token")
         )).willReturn(testCookies);
@@ -196,7 +214,7 @@ class SignUpServiceTest {
 
         // Then
         assertThat(result).isEqualTo(testCookies);
-        verify(saveUserPort).saveNewUser(emptyUserName, testUuid, testSocialData, testTokenVO, "fcm-token");
+        verify(saveUserPort).saveNewUser(emptyUserName, testUuid, testSocialProfile, testTokenVO, "fcm-token");
     }
 
     @Test
@@ -208,7 +226,7 @@ class SignUpServiceTest {
         given(saveUserPort.saveNewUser(
                 eq(nullUserName), 
                 eq(testUuid), 
-                eq(testSocialData), 
+                eq(testSocialProfile), 
                 eq(testTokenVO),
                 eq("fcm-token")
         )).willReturn(testCookies);
@@ -218,7 +236,7 @@ class SignUpServiceTest {
 
         // Then
         assertThat(result).isEqualTo(testCookies);
-        verify(saveUserPort).saveNewUser(nullUserName, testUuid, testSocialData, testTokenVO, "fcm-token");
+        verify(saveUserPort).saveNewUser(nullUserName, testUuid, testSocialProfile, testTokenVO, "fcm-token");
     }
 
     @Test
@@ -230,7 +248,7 @@ class SignUpServiceTest {
         given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
-                eq(testSocialData), 
+                eq(testSocialProfile), 
                 eq(testTokenVO),
                 eq("fcm-token")
         )).willReturn(emptyCookies);
@@ -240,6 +258,6 @@ class SignUpServiceTest {
 
         // Then
         assertThat(result).isEmpty();
-        verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialData, testTokenVO, "fcm-token");
+        verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialProfile, testTokenVO, "fcm-token");
     }
 }
