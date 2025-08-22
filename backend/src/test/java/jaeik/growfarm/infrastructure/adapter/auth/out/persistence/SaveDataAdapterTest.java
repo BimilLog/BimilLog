@@ -1,22 +1,21 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence;
 
-import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.SaveUserAdapter;
 import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.TempDataAdapter;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
+import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
-import jaeik.growfarm.domain.user.entity.Setting;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>SaveDataAdapter 단위 테스트</h2>
@@ -43,6 +43,7 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
+//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 테스트 작성 필요
 @ExtendWith(MockitoExtension.class)
 class SaveDataAdapterTest {
 

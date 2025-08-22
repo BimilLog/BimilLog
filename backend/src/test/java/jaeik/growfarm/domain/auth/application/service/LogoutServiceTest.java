@@ -4,8 +4,6 @@ import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLogoutPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
-import jaeik.growfarm.infrastructure.exception.CustomException;
-import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -34,6 +31,7 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
+//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 단위 테스트 작성 필요
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LogoutService 단위 테스트")
 class LogoutServiceTest {

@@ -2,12 +2,12 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
 import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
-import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +30,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -42,6 +41,7 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
+//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 단위 테스트 작성 필요
 @ExtendWith(MockitoExtension.class)
 class SocialLoginServiceTest {
 

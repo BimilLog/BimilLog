@@ -1,18 +1,17 @@
 package jaeik.growfarm.domain.user.application.service;
 
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.out.UserCommandPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,6 +31,7 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
+//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 단위 테스트 작성 필요
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserCommandService 테스트")
 class UserCommandServiceTest {

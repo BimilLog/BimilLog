@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 테스트 작성 필요
 /**
  * <h2>SocialAdapter 계약 테스트</h2>
  * <p>SocialAdapter 인터페이스의 계약과 동작을 검증하는 추상 테스트</p>
