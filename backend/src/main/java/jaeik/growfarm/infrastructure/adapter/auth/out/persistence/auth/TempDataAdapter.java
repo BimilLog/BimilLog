@@ -1,9 +1,9 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -41,7 +41,7 @@ public class TempDataAdapter implements TempDataPort {
      * <ul>
      *   <li>UUID는 필수 (null, 빈 문자열 불허)</li>
      *   <li>userData는 필수 (null 불허)</li> 
-     *   <li>tokenDTO는 필수 (null 불허)</li>
+     *   <li>tokenValue는 필수 (null 불허)</li>
      *   <li>fcmToken은 선택적 (null 허용)</li>
      *   <li>동일 UUID 재저장 시 덮어쓰기</li>
      *   <li>5분 후 자동 삭제 스케줄링</li>
@@ -49,13 +49,13 @@ public class TempDataAdapter implements TempDataPort {
      *
      * @param uuid UUID 키
      * @param userData 소셜 로그인 사용자 정보
-     * @param tokenDTO 토큰 정보
-     * @throws CustomException UUID, userData, tokenDTO가 유효하지 않은 경우
+     * @param tokenVO 토큰 정보
+     * @throws CustomException UUID, userData, tokenValue가 유효하지 않은 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public void saveTempData(String uuid, SocialLoginUserData userData, TokenDTO tokenDTO) {
+    public void saveTempData(String uuid, SocialLoginUserData userData, TokenVO tokenVO) {
         // TODO: 테스트 실패 수정 - 메인 로직에 Input Validation 추가
         // NPE 방지를 위한 필수 파라미터 검증
         
@@ -71,8 +71,8 @@ public class TempDataAdapter implements TempDataPort {
             throw new CustomException(ErrorCode.INVALID_USER_DATA);
         }
         
-        // 3. tokenDTO 검증 - 회원가입 프로세스에서 토큰은 필수
-        if (tokenDTO == null) {
+        // 3. tokenValue 검증 - 회원가입 프로세스에서 토큰은 필수
+        if (tokenVO == null) {
             log.warn("Invalid token data provided for UUID: {}", uuid);
             throw new CustomException(ErrorCode.INVALID_TOKEN_DATA);
         }
@@ -82,7 +82,7 @@ public class TempDataAdapter implements TempDataPort {
             String fcmToken = userData.fcmToken(); // null 허용
             
             // 5. 임시 데이터 저장
-            tempUserDataStore.put(uuid, new TemporaryUserDataDTO(userData, tokenDTO, fcmToken));
+            tempUserDataStore.put(uuid, new TemporaryUserDataDTO(userData, tokenVO, fcmToken));
             
             // 6. 자동 정리 스케줄링
             scheduleCleanup(uuid);

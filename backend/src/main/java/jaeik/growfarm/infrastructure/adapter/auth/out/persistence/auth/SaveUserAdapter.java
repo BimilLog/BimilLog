@@ -6,9 +6,9 @@ import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.Token;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.UserDTO;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
@@ -44,7 +44,7 @@ public class SaveUserAdapter implements SaveUserPort {
      * <p>소셜 로그인 사용자 정보를 업데이트하고, FCM 토큰을 등록합니다.</p>
      *
      * @param userData  소셜 로그인 사용자 데이터
-     * @param tokenDTO  토큰 정보
+     * @param tokenVO  토큰 정보
      * @param fcmToken  FCM 토큰 (선택적)
      * @return ResponseCookie 리스트
      * @since 2.0.0
@@ -52,15 +52,15 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> handleExistingUserLogin(SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) { // fcmToken 인자 추가
+    public List<ResponseCookie> handleExistingUserLogin(SocialLoginUserData userData, TokenVO tokenVO, String fcmToken) { // fcmToken 인자 추가
         User user = userQueryUseCase.findByProviderAndSocialId(userData.provider(), userData.socialId())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
 
         Token newToken = Token.builder()
-                .accessToken(tokenDTO.accessToken())
-                .refreshToken(tokenDTO.refreshToken())
+                .accessToken(tokenVO.accessToken())
+                .refreshToken(tokenVO.refreshToken())
                 .users(user)
                 .build();
 
@@ -80,7 +80,7 @@ public class SaveUserAdapter implements SaveUserPort {
      * @param userName  사용자의 이름
      * @param uuid      임시 UUID
      * @param userData  소셜 로그인 사용자 데이터
-     * @param tokenDTO  토큰 정보
+     * @param tokenVO  토큰 정보
      * @param fcmToken  FCM 토큰 (선택적)
      * @return ResponseCookie 리스트
      * @since 2.0.0
@@ -88,7 +88,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenDTO tokenDTO, String fcmToken) { // fcmToken 인자 추가
+    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginUserData userData, TokenVO tokenVO, String fcmToken) { // fcmToken 인자 추가
         Setting setting = Setting.createSetting();
         
         User user = userCommandUseCase.save(User.createUser(userData, userName, setting));
@@ -99,7 +99,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         tempDataAdapter.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
-                tokenRepository.save(Token.createToken(tokenDTO, user)).getId(),
+                tokenRepository.save(Token.createToken(tokenVO, user)).getId(),
                 null));
     }
 }

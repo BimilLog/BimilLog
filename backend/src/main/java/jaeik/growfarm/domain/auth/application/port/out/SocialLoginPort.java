@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 
 /**
  * <h2>소셜 로그인 포트</h2>
@@ -23,7 +23,7 @@ public interface SocialLoginPort {
      * @since 2.0.0
      * @author Jaeik
      */
-    record LoginResult(SocialLoginUserData userData, TokenDTO token, boolean isNewUser) {}
+    record LoginResult(SocialLoginUserData userData, TokenVO token, boolean isNewUser) {}
 
     /**
      * <h3>소셜 로그인</h3>

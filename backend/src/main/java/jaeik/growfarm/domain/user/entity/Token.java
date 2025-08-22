@@ -1,6 +1,5 @@
 package jaeik.growfarm.domain.user.entity;
 
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import jaeik.growfarm.domain.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -56,16 +55,16 @@ public class Token extends BaseEntity {
 
     /**
      * <h3>토큰 생성</h3>
-     * <p>TokenDTO와 Users 객체를 사용하여 Token 엔티티를 생성합니다.</p>
+     * <p>TokenValue와 Users 객체를 사용하여 Token 엔티티를 생성합니다.</p>
      *
-     * @param tokenDTO TokenDTO 객체
+     * @param tokenVO TokenValue 객체
      * @param user Users 객체
      * @return 생성된 Token 엔티티
      */
-    public static Token createToken(TokenDTO tokenDTO, User user) {
+    public static Token createToken(TokenVO tokenVO, User user) {
         return Token.builder()
-                .accessToken(tokenDTO.accessToken())
-                .refreshToken(tokenDTO.refreshToken())
+                .accessToken(tokenVO.accessToken())
+                .refreshToken(tokenVO.refreshToken())
                 .users(user)
                 .build();
     }

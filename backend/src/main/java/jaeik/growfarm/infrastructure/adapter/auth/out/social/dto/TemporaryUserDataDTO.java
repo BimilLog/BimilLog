@@ -1,17 +1,17 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.social.dto;
 
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import lombok.Getter;
 
 @Getter
 public class TemporaryUserDataDTO {
     public SocialLoginUserData socialLoginUserData;
-    public TokenDTO tokenDTO;
+    public TokenVO tokenVO;
     public String fcmToken;
 
-    public TemporaryUserDataDTO(SocialLoginUserData socialLoginUserData, TokenDTO tokenDTO, String fcmToken) {
+    public TemporaryUserDataDTO(SocialLoginUserData socialLoginUserData, TokenVO tokenVO, String fcmToken) {
         this.socialLoginUserData = socialLoginUserData;
-        this.tokenDTO = tokenDTO;
+        this.tokenVO = tokenVO;
         this.fcmToken = fcmToken;
     }
 }

@@ -5,11 +5,11 @@ import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.Token;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.SaveUserAdapter;
 import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.TempDataAdapter;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.UserDTO;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
@@ -65,7 +65,7 @@ class SaveDataAdapterTest {
                 .profileImageUrl("https://updated-profile.jpg")
                 .build();
 
-        TokenDTO tokenDTO = TokenDTO.builder()
+        TokenVO tokenDTO = TokenVO.builder()
                 .accessToken("new-access-token")
                 .refreshToken("new-refresh-token")
                 .build();
@@ -134,7 +134,7 @@ class SaveDataAdapterTest {
                 .profileImageUrl("https://example.jpg")
                 .build();
 
-        TokenDTO tokenDTO = TokenDTO.builder()
+        TokenVO tokenDTO = TokenVO.builder()
                 .accessToken("access-token")
                 .refreshToken("refresh-token")
                 .build();
@@ -163,7 +163,7 @@ class SaveDataAdapterTest {
                 .profileImageUrl("https://example.jpg")
                 .build();
 
-        TokenDTO tokenDTO = TokenDTO.builder()
+        TokenVO tokenDTO = TokenVO.builder()
                 .accessToken("access-token")
                 .refreshToken("refresh-token")
                 .build();
@@ -214,7 +214,7 @@ class SaveDataAdapterTest {
                 .profileImageUrl("https://new-profile.jpg")
                 .build();
 
-        TokenDTO tokenDTO = TokenDTO.builder()
+        TokenVO tokenDTO = TokenVO.builder()
                 .accessToken("new-user-access-token")
                 .refreshToken("new-user-refresh-token")
                 .build();
@@ -285,7 +285,7 @@ class SaveDataAdapterTest {
                 .profileImageUrl("https://no-fcm.jpg")
                 .build();
 
-        TokenDTO tokenDTO = TokenDTO.builder()
+        TokenVO tokenDTO = TokenVO.builder()
                 .accessToken("no-fcm-access")
                 .refreshToken("no-fcm-refresh")
                 .build();

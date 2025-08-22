@@ -3,10 +3,10 @@ package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.user;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +53,7 @@ public class SocialLoginAdapter implements SocialLoginPort {
         SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code);
 
         SocialLoginUserData userData = initialResult.userData();
-        TokenDTO tokenDTO = initialResult.token();
+        TokenVO tokenVO = initialResult.token();
 
         // 기존 사용자 확인
         Optional<User> existingUser = userQueryUseCase.findByProviderAndSocialId(provider, userData.socialId());
@@ -61,9 +61,9 @@ public class SocialLoginAdapter implements SocialLoginPort {
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
-            return new LoginResult(userData, tokenDTO, false); // 기존 사용자
+            return new LoginResult(userData, tokenVO, false); // 기존 사용자
         } else {
-            return new LoginResult(userData, tokenDTO, true); // 신규 사용자
+            return new LoginResult(userData, tokenVO, true); // 신규 사용자
         }
     }
 

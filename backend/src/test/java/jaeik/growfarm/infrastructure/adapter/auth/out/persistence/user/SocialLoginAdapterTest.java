@@ -3,12 +3,12 @@ package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.user;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ class SocialLoginAdapterTest {
     private SocialLoginAdapter socialLoginAdapter;
 
     private SocialLoginUserData testUserData;
-    private TokenDTO testTokenDTO;
+    private TokenVO testTokenVO;
     private SocialLoginStrategy.StrategyLoginResult testStrategyResult;
 
     @BeforeEach
@@ -56,12 +56,12 @@ class SocialLoginAdapterTest {
         testUserData = new SocialLoginUserData("123456789", "test@example.com", 
                 SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url", "fcm-token");
         
-        testTokenDTO = TokenDTO.builder()
+        testTokenVO = TokenVO.builder()
                 .accessToken("access-token-12345")
                 .refreshToken("refresh-token-12345")
                 .build();
 
-        testStrategyResult = new SocialLoginStrategy.StrategyLoginResult(testUserData, testTokenDTO);
+        testStrategyResult = new SocialLoginStrategy.StrategyLoginResult(testUserData, testTokenVO);
     }
 
     @Test
@@ -79,7 +79,7 @@ class SocialLoginAdapterTest {
         // Then: 신규 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isTrue();
         assertThat(result.userData()).isEqualTo(testUserData);
-        assertThat(result.token()).isEqualTo(testTokenDTO);
+        assertThat(result.token()).isEqualTo(testTokenVO);
         
         verify(kakaoStrategy).login(code);
         verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");
@@ -110,7 +110,7 @@ class SocialLoginAdapterTest {
         // Then: 기존 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isFalse();
         assertThat(result.userData()).isEqualTo(testUserData);
-        assertThat(result.token()).isEqualTo(testTokenDTO);
+        assertThat(result.token()).isEqualTo(testTokenVO);
         
         verify(kakaoStrategy).login(code);
         verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");

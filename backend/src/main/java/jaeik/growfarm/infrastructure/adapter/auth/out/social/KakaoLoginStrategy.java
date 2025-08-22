@@ -1,10 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.social;
 
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.exception.CustomException;
-import jaeik.growfarm.infrastructure.exception.ErrorCode;
+import jaeik.growfarm.domain.user.entity.TokenVO;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.auth.KakaoKeyVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
@@ -42,9 +40,9 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      */
     @Override
     public StrategyLoginResult login(String code) {
-        TokenDTO tokenDTO = getToken(code);
-        SocialLoginUserData userData = getUserInfo(tokenDTO.accessToken());
-        return new StrategyLoginResult(userData, tokenDTO);
+        TokenVO tokenVO = getToken(code);
+        SocialLoginUserData userData = getUserInfo(tokenVO.accessToken());
+        return new StrategyLoginResult(userData, tokenVO);
     }
 
     /**
@@ -97,11 +95,11 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * <p>카카오 로그인 코드를 사용하여 액세스 토큰과 리프레시 토큰을 요청합니다.</p>
      *
      * @param code 카카오 로그인 코드
-     * @return TokenDTO 액세스 토큰과 리프레시 토큰을 포함하는 DTO
+     * @return TokenValue 액세스 토큰과 리프레시 토큰을 포함하는 값 객체
      * @since 2.0.0
      * @author Jaeik
      */
-    private TokenDTO getToken(String code) {
+    private TokenVO getToken(String code) {
         WebClient webClient = webClientBuilder.build();
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
@@ -118,7 +116,7 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
 
         Map<String, Object> responseBody = response.block();
-        return TokenDTO.builder()
+        return TokenVO.builder()
                 .accessToken((String) responseBody.get("access_token"))
                 .refreshToken((String) responseBody.get("refresh_token"))
                 .build();

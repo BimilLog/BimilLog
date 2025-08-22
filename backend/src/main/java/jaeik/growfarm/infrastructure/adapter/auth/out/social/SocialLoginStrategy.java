@@ -1,8 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.social;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 
 /**
  * <h2>소셜 로그인 전략 인터페이스</h2>
@@ -22,7 +22,7 @@ public interface SocialLoginStrategy {
      * @since 2.0.0
      * @author Jaeik
      */
-    record StrategyLoginResult(SocialLoginUserData userData, TokenDTO token) {}
+    record StrategyLoginResult(SocialLoginUserData userData, TokenVO token) {}
 
     /**
      * <h3>소셜 로그인 처리</h3>

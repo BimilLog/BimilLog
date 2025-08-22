@@ -45,7 +45,7 @@ public class SignUpService implements SignUpUseCase {
         if (tempUserData.isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         } else {
-            return saveUserPort.saveNewUser(userName, uuid, tempUserData.get().socialLoginUserData, tempUserData.get().tokenDTO, tempUserData.get().getFcmToken());
+            return saveUserPort.saveNewUser(userName, uuid, tempUserData.get().socialLoginUserData, tempUserData.get().tokenVO, tempUserData.get().getFcmToken());
         }
     }
 }
