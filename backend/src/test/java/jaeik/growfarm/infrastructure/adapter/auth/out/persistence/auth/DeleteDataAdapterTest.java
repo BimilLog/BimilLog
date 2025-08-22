@@ -30,7 +30,6 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 테스트 작성 필요
 @ExtendWith(MockitoExtension.class)
 class DeleteDataAdapterTest {
 
@@ -68,10 +67,10 @@ class DeleteDataAdapterTest {
         // Given: null 사용자 ID
         Long nullUserId = null;
 
-        // When: null 사용자 ID로 로그아웃 시도
-        deleteDataAdapter.logoutUser(nullUserId, 123L);
+        // When: null 사용자 ID로 모든 토큰 삭제 (tokenId = null)
+        deleteDataAdapter.logoutUser(nullUserId, null);
 
-        // Then: 토큰 삭제와 이벤트 발행이 호출됨 (null 처리는 비즈니스 로직에서 검증)
+        // Then: 모든 토큰 삭제와 이벤트 발행이 호출됨
         verify(tokenRepository).deleteAllByUserId(nullUserId);
         verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
     }
@@ -82,10 +81,10 @@ class DeleteDataAdapterTest {
         // Given: 존재하지 않는 사용자 ID
         Long nonExistentUserId = 999L;
 
-        // When: 존재하지 않는 사용자 ID로 로그아웃
-        deleteDataAdapter.logoutUser(nonExistentUserId, 123L);
+        // When: 존재하지 않는 사용자 ID로 모든 토큰 삭제 (tokenId = null)
+        deleteDataAdapter.logoutUser(nonExistentUserId, null);
 
-        // Then: 토큰 삭제 시도 및 이벤트 발행 (실제 존재 여부는 repository에서 처리)
+        // Then: 모든 토큰 삭제 시도 및 이벤트 발행 (실제 존재 여부는 repository에서 처리)
         verify(tokenRepository).deleteAllByUserId(nonExistentUserId);
         verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
     }

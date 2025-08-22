@@ -31,7 +31,6 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 테스트 작성 필요
 @ExtendWith(MockitoExtension.class)
 class TempDataAdapterTest {
 
@@ -74,7 +73,8 @@ class TempDataAdapterTest {
         assertThat(savedData).isPresent();
         assertThat(savedData.get().toDomainProfile()).isEqualTo(testUserProfile);
         assertThat(savedData.get().getTokenVO()).isEqualTo(testTokenVO);
-        assertThat(savedData.get().getFcmToken()).isEqualTo("fcm-token-12345");
+        // FCM 토큰은 소셜 로그인과 별도 관리되므로 null이 정상
+        assertThat(savedData.get().getFcmToken()).isNull();
     }
 
     @Test

@@ -2,6 +2,9 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLogoutPort;
+
+// TODO: 작은 변경 필요 - SocialLogoutPort 사용 확인 필요
+// 변경 사유: 소셜로그인 비즈니스 로직 리팩토링으로 공통화된 SocialLogoutPort 사용
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +34,6 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 단위 테스트 작성 필요
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LogoutService 단위 테스트")
 class LogoutServiceTest {

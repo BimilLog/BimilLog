@@ -1,10 +1,13 @@
 package jaeik.growfarm.domain.auth.application.service;
 
-import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.growfarm.domain.auth.application.port.out.SocialLogoutPort;
+
+// TODO: 작은 변경 필요 - SocialLogoutPort 추가 및 LogoutUseCase 의존성 제거
+// 변경 사유: 소셜로그인 비즈니스 로직 리팩토링으로 SocialLogoutPort가 새로 추가되고 LogoutUseCase 순환 의존성 제거됨
 import jaeik.growfarm.domain.auth.event.UserWithdrawnEvent;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
@@ -39,7 +42,6 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 단위 테스트 작성 필요
 @ExtendWith(MockitoExtension.class)
 @DisplayName("WithdrawService 단위 테스트")
 class WithdrawServiceTest {
@@ -54,13 +56,13 @@ class WithdrawServiceTest {
     private SocialLoginPort socialLoginPort;
 
     @Mock
+    private SocialLogoutPort socialLogoutPort;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private TokenBlacklistUseCase tokenBlacklistUseCase;
-
-    @Mock
-    private LogoutUseCase logoutUseCase;
 
     @Mock
     private CustomUserDetails userDetails;
@@ -92,7 +94,7 @@ class WithdrawServiceTest {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(logoutUseCase.logout(userDetails)).willReturn(logoutCookies);
+        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         // When
         List<ResponseCookie> result = withdrawService.withdraw(userDetails);
@@ -102,6 +104,9 @@ class WithdrawServiceTest {
 
         // 토큰 블랙리스트 등록 검증
         verify(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
+
+        // 소셜 로그아웃 검증
+        verify(socialLogoutPort).performSocialLogout(userDetails);
 
         // 소셜 로그인 연결 해제 검증
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
@@ -116,8 +121,8 @@ class WithdrawServiceTest {
         UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(100L);
 
-        // 로그아웃 처리 검증
-        verify(logoutUseCase).logout(userDetails);
+        // 로그아웃 쿠키 생성 검증
+        verify(deleteUserPort).getLogoutCookies();
     }
 
     @Test
@@ -251,13 +256,14 @@ class WithdrawServiceTest {
 
             given(userDetails.getUserId()).willReturn(100L);
             given(loadUserPort.findById(100L)).willReturn(Optional.of(user));
-            given(logoutUseCase.logout(userDetails)).willReturn(logoutCookies);
+            given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
             // When
             List<ResponseCookie> result = withdrawService.withdraw(userDetails);
 
             // Then
             assertThat(result).isEqualTo(logoutCookies);
+            verify(socialLogoutPort).performSocialLogout(userDetails);
             verify(socialLoginPort).unlink(provider, "social123");
         }
     }

@@ -19,8 +19,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
-//TODO 비즈니스 로직의 변경으로 테스트코드와 비즈니스 로직의 흐름이 맞지 않을 시 테스트 코드의 변경이 적으면 테스트 수정 필요 변경이 많으면 Deprecated 처리 후 새로운 테스트 작성 필요
 /**
  * <h2>TokenAdapter 테스트</h2>
  * <p>토큰 어댑터의 persistence 동작 검증</p>
@@ -162,16 +162,17 @@ class TokenAdapterTest {
     @Test
     @DisplayName("경계값 - null ID로 토큰 조회")
     void shouldHandleNullId_WhenNullIdProvided() {
-        // Given: null ID
+        // Given: null ID - adapter의 null 방어 로직 테스트
         Long nullId = null;
-        given(tokenRepository.findById(any())).willReturn(Optional.empty());
+        // Note: null 방어 로직으로 repository 호출이 방지되므로 mock 설정 불필요
 
         // When: null ID로 토큰 조회 실행
         Optional<Token> result = tokenAdapter.findById(nullId);
 
-        // Then: Repository에 null이 전달되는지 검증
+        // Then: null 방어 로직에 의해 빈 Optional 반환, repository 호출 없음
         assertThat(result).isEmpty();
-        verify(tokenRepository).findById(nullId);
+        // null 방어 로직이 정상 동작하므로 repository는 호출되지 않아야 함
+        verify(tokenRepository, never()).findById(any());
     }
 
     @Test

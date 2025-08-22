@@ -27,7 +27,7 @@ public class TemporaryUserDataDTO {
                 .provider(userProfile.provider())
                 .nickname(userProfile.nickname())
                 .profileImageUrl(userProfile.profileImageUrl())
-                .fcmToken(null) // FCM 토큰은 별도 관리
+                .fcmToken(null) // FCM 토큰은 소셜 로그인과 별도 관리
                 .build();
 
         return new TemporaryUserDataDTO(socialLoginUserData, tokenVO, null);
