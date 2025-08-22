@@ -5,7 +5,7 @@ import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -43,25 +43,30 @@ public class AuthCommandController {
      * @param provider 소셜 제공자 (예: KAKAO, NAVER 등)
      * @param code     소셜 로그인 인증 코드
      * @param fcmToken Firebase Cloud Messaging 토큰 (선택적)
-     * @return 로그인 응답 DTO 또는 임시 UUID
+     * @return 타입 안전성이 보장된 로그인 응답
      * @author Jaeik
      * @since 2.0.0
      */
     @PostMapping("/login")
     public ResponseEntity<?> socialLogin(@RequestParam String provider, @RequestParam String code,
                                          @RequestParam(required = false) String fcmToken) {
-        LoginResponseDTO<?> loginResponse = socialLoginUseCase.processSocialLogin(SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
+        LoginResponse loginResponse = socialLoginUseCase.processSocialLogin(
+                SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
 
-        if (loginResponse.getType() == LoginResponseDTO.LoginType.NEW_USER) {
-            Map<String, String> uuidData = new HashMap<>();
-            String uuid = (String) loginResponse.getData();
-            uuidData.put("uuid", uuid);
-            return ResponseEntity.ok().header("Set-Cookie", authCookieManager.createTempCookie(uuid).toString()).body(uuidData);
-        }
-
-        List<ResponseCookie> cookies = (List<ResponseCookie>) loginResponse.getData();
-        return ResponseEntity.ok().headers(headers -> cookies.forEach(cookie ->
-                headers.add("Set-Cookie", cookie.toString()))).body("OK");
+        return switch (loginResponse) {
+            case LoginResponse.NewUser(var uuid, var tempCookie) -> {
+                Map<String, String> uuidData = new HashMap<>();
+                uuidData.put("uuid", uuid);
+                yield ResponseEntity.ok()
+                        .header("Set-Cookie", tempCookie.toString())
+                        .body(uuidData);
+            }
+            case LoginResponse.ExistingUser(var cookies) -> 
+                    ResponseEntity.ok()
+                            .headers(headers -> cookies.forEach(cookie ->
+                                    headers.add("Set-Cookie", cookie.toString())))
+                            .body("OK");
+        };
     }
 
     /**

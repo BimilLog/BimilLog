@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * <h2>소셜 로그인 어댑터</h2>
@@ -70,7 +67,16 @@ public class SocialLoginAdapter implements SocialLoginPort {
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            user.updateUserInfo(rawData.nickname(), rawData.profileImageUrl());
+            
+            // 조건부 사용자 정보 업데이트: 변경된 정보가 있을 때만 업데이트
+            boolean needsUpdate = !Objects.equals(user.getSocialNickname(), rawData.nickname());
+            if (!Objects.equals(user.getThumbnailImage(), rawData.profileImageUrl())) {
+                needsUpdate = true;
+            }
+            
+            if (needsUpdate) {
+                user.updateUserInfo(rawData.nickname(), rawData.profileImageUrl());
+            }
             return new LoginResult(userProfile, tokenVO, false); // 기존 사용자
         } else {
             return new LoginResult(userProfile, tokenVO, true); // 신규 사용자

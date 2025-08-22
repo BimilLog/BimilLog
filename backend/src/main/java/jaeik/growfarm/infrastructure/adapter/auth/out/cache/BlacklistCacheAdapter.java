@@ -86,15 +86,8 @@ public class BlacklistCacheAdapter implements BlacklistCachePort {
 
 
     /**
-     * <h3>토큰 블랙리스트 정보 저장용 내부 클래스</h3>
-     */
-    private static class TokenBlacklistInfo {
-        public final String reason;
-        public final long timestamp;
-
-        public TokenBlacklistInfo(String reason, long timestamp) {
-            this.reason = reason;
-            this.timestamp = timestamp;
-        }
+         * <h3>토큰 블랙리스트 정보 저장용 내부 클래스</h3>
+         */
+        private record TokenBlacklistInfo(String reason, long timestamp) {
     }
 }

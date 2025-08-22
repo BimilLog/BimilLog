@@ -1,7 +1,7 @@
 
 package jaeik.growfarm.domain.auth.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 
 /**
@@ -20,11 +20,11 @@ public interface SocialLoginUseCase {
      * @param provider  소셜 제공자
      * @param code      인가 코드
      * @param fcmToken  Firebase Cloud Messaging 토큰
-     * @return 로그인 응답 DTO
+     * @return 타입 안전성이 보장된 로그인 응답
      * @since 2.0.0
      * @author Jaeik
      */
-    LoginResponseDTO<?> processSocialLogin(SocialProvider provider, String code, String fcmToken);
+    LoginResponse processSocialLogin(SocialProvider provider, String code, String fcmToken);
 
 
 }

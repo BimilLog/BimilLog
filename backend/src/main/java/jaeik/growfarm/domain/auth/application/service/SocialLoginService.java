@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -45,14 +45,14 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @param provider 소셜 제공자
      * @param code     인가 코드
      * @param fcmToken Firebase Cloud Messaging 토큰
-     * @return 로그인 응답 DTO
+     * @return 타입 안전성이 보장된 로그인 응답
      * @throws CustomException 블랙리스트 사용자인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public LoginResponseDTO<?> processSocialLogin(SocialProvider provider, String code, String fcmToken) {
+    public LoginResponse processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
         SocialLoginPort.LoginResult loginResult = socialLoginPort.login(provider, code);
@@ -75,15 +75,15 @@ public class SocialLoginService implements SocialLoginUseCase {
      *
      * @param loginResult 로그인 결과
      * @param fcmToken    Firebase Cloud Messaging 토큰
-     * @return 로그인 응답 DTO
+     * @return 기존 사용자 로그인 응답
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResponseDTO<List<ResponseCookie>> handleExistingUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
+    private LoginResponse.ExistingUser handleExistingUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
         List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(
                 loginResult.userProfile(), loginResult.token(), fcmToken
         );
-        return new LoginResponseDTO<>(LoginResponseDTO.LoginType.EXISTING_USER, cookies);
+        return new LoginResponse.ExistingUser(cookies);
     }
     
     /**
@@ -91,15 +91,15 @@ public class SocialLoginService implements SocialLoginUseCase {
      * <p>신규 사용자의 로그인 결과를 처리하고 임시 데이터를 저장합니다.</p>
      *
      * @param loginResult 로그인 결과
-     * @return 로그인 응답 DTO
+     * @return 신규 사용자 로그인 응답
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResponseDTO<ResponseCookie> handleNewUser(SocialLoginPort.LoginResult loginResult) {
+    private LoginResponse.NewUser handleNewUser(SocialLoginPort.LoginResult loginResult) {
         String uuid = UUID.randomUUID().toString();
         tempDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token());
         ResponseCookie tempCookie = tempDataPort.createTempCookie(uuid);
-        return new LoginResponseDTO<>(LoginResponseDTO.LoginType.NEW_USER, tempCookie);
+        return new LoginResponse.NewUser(uuid, tempCookie);
     }
     
     /**

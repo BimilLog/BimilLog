@@ -5,7 +5,7 @@ import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
@@ -82,18 +82,19 @@ class SocialLoginServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             SecurityContext securityContext = mock(SecurityContext.class);
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of()));
+            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
 
             given(socialLoginPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(existingUserResult);
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
             given(saveUserPort.handleExistingUserLogin(testUserProfile, testTokenVO, fcmToken)).willReturn(cookies);
 
             // When
-            LoginResponseDTO<?> result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", fcmToken);
+            LoginResponse result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", fcmToken);
 
             // Then
-            assertThat(result.getType()).isEqualTo(LoginResponseDTO.LoginType.EXISTING_USER);
-            assertThat(result.getData()).isEqualTo(cookies);
+            assertThat(result).isInstanceOf(LoginResponse.ExistingUser.class);
+            LoginResponse.ExistingUser existingUserResponse = (LoginResponse.ExistingUser) result;
+            assertThat(existingUserResponse.cookies()).isEqualTo(cookies);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
             verify(saveUserPort).handleExistingUserLogin(testUserProfile, testTokenVO, fcmToken);
@@ -109,18 +110,19 @@ class SocialLoginServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             SecurityContext securityContext = mock(SecurityContext.class);
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of()));
+            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
 
             given(socialLoginPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(newUserResult);
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
             given(tempDataPort.createTempCookie(anyString())).willReturn(tempCookie);
 
             // When
-            LoginResponseDTO<?> result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token");
+            LoginResponse result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token");
 
             // Then
-            assertThat(result.getType()).isEqualTo(LoginResponseDTO.LoginType.NEW_USER);
-            assertThat(result.getData()).isEqualTo(tempCookie);
+            assertThat(result).isInstanceOf(LoginResponse.NewUser.class);
+            LoginResponse.NewUser newUserResponse = (LoginResponse.NewUser) result;
+            assertThat(newUserResponse.tempCookie()).isEqualTo(tempCookie);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
             verify(tempDataPort).saveTempData(anyString(), eq(testUserProfile), eq(testTokenVO));
@@ -135,7 +137,7 @@ class SocialLoginServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             SecurityContext securityContext = mock(SecurityContext.class);
             mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of()));
+            given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
 
             given(socialLoginPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(existingUserResult);
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(true);

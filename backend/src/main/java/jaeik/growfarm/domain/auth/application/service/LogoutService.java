@@ -1,9 +1,8 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.LogoutUseCase;
-import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
 import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
-import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.growfarm.domain.auth.application.port.out.SocialLogoutPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -31,8 +30,7 @@ import java.util.List;
 public class LogoutService implements LogoutUseCase {
 
     private final DeleteUserPort deleteUserPort;
-    private final SocialLoginPort socialLoginPort;
-    private final LoadTokenPort loadTokenPort;
+    private final SocialLogoutPort socialLogoutPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -47,30 +45,13 @@ public class LogoutService implements LogoutUseCase {
     @Override
     public List<ResponseCookie> logout(CustomUserDetails userDetails) {
         try {
-            logoutSocial(userDetails);
+            // 공통화된 소셜 로그아웃 포트 사용
+            socialLogoutPort.performSocialLogout(userDetails);
             eventPublisher.publishEvent(UserLoggedOutEvent.of(userDetails.getUserId(), userDetails.getTokenId()));
             SecurityContextHolder.clearContext();
             return deleteUserPort.getLogoutCookies();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
         }
-    }
-
-    /**
-     * <h3>소셜 로그아웃 처리</h3>
-     * <p>사용자의 소셜 로그아웃을 수행합니다.</p>
-     *
-     * @param userDetails 현재 사용자 정보
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @Transactional(readOnly = true)
-    public void logoutSocial(CustomUserDetails userDetails) {
-        loadTokenPort.findById(userDetails.getTokenId()).ifPresent(token -> {
-            User user = token.getUsers();
-            if (user != null) {
-                socialLoginPort.logout(user.getProvider(), token.getAccessToken());
-            }
-        });
     }
 }
