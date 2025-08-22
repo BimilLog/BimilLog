@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.entity;
 
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.BaseEntity;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jakarta.persistence.*;
@@ -127,21 +127,21 @@ public class User extends BaseEntity {
      * <h3>사용자 생성</h3>
      *
      * <p>
-     * 카카오 정보와 사용자 이름을 기반으로 새로운 사용자 엔티티를 생성한다.
+     * 소셜 사용자 프로필과 사용자 이름을 기반으로 새로운 사용자 엔티티를 생성한다.
      * Setting은 명시적으로 전달되어야 한다.
      * </p>
      *
-     * @param userData 카카오 정보 DTO
+     * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
      * @param userName 사용자 이름
      * @param setting 사용자 설정
      * @return 생성된 사용자 엔티티
      */
-    public static User createUser(SocialLoginUserData userData, String userName, Setting setting) {
+    public static User createUser(SocialLoginPort.SocialUserProfile userProfile, String userName, Setting setting) {
         return User.builder()
-                .socialId(userData.socialId())
-                .provider(userData.provider())
-                .socialNickname(userData.nickname())
-                .thumbnailImage(userData.profileImageUrl())
+                .socialId(userProfile.socialId())
+                .provider(userProfile.provider())
+                .socialNickname(userProfile.nickname())
+                .thumbnailImage(userProfile.profileImageUrl())
                 .userName(userName)
                 .role(UserRole.USER)
                 .setting(setting)

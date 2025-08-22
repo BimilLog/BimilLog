@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
 import jaeik.growfarm.domain.user.entity.TokenVO;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import org.springframework.http.ResponseCookie;
 
@@ -20,10 +19,10 @@ public interface TempDataPort {
      * <h3>임시 사용자 데이터 저장</h3>
      *
      * @param uuid UUID 키
-     * @param userData 소셜 로그인 사용자 정보
+     * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
      * @param tokenVO 토큰 정보
      */
-    void saveTempData(String uuid, SocialLoginUserData userData, TokenVO tokenVO);
+    void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO);
 
     /**
      * <h3>임시 사용자 데이터 조회</h3>

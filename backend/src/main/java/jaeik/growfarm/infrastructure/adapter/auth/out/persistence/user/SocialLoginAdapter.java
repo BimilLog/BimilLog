@@ -39,6 +39,7 @@ public class SocialLoginAdapter implements SocialLoginPort {
      * <h3>소셜 로그인</h3>
      * <p>소셜 로그인 요청을 처리하고, 로그인 결과를 반환</p>
      * <p>기존 사용자 확인 및 정보 업데이트 로직 포함</p>
+     * <p>인프라 DTO를 도메인 모델로 변환하여 의존성 역전 원칙 준수</p>
      *
      * @param provider 소셜 제공자 (예: KAKAO, NAVER 등)
      * @param code     소셜 로그인 인증 코드
@@ -52,18 +53,27 @@ public class SocialLoginAdapter implements SocialLoginPort {
         SocialLoginStrategy strategy = strategies.get(provider);
         SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code);
 
-        SocialLoginUserData userData = initialResult.userData();
+        SocialLoginUserData rawData = initialResult.userData();
         TokenVO tokenVO = initialResult.token();
 
+        // 인프라 DTO → 도메인 모델 변환 (의존성 역전 원칙 준수)
+        SocialUserProfile userProfile = new SocialUserProfile(
+                rawData.socialId(),
+                rawData.email(),
+                rawData.provider(),
+                rawData.nickname(),
+                rawData.profileImageUrl()
+        );
+
         // 기존 사용자 확인
-        Optional<User> existingUser = userQueryUseCase.findByProviderAndSocialId(provider, userData.socialId());
+        Optional<User> existingUser = userQueryUseCase.findByProviderAndSocialId(provider, rawData.socialId());
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
-            return new LoginResult(userData, tokenVO, false); // 기존 사용자
+            user.updateUserInfo(rawData.nickname(), rawData.profileImageUrl());
+            return new LoginResult(userProfile, tokenVO, false); // 기존 사용자
         } else {
-            return new LoginResult(userData, tokenVO, true); // 신규 사용자
+            return new LoginResult(userProfile, tokenVO, true); // 신규 사용자
         }
     }
 

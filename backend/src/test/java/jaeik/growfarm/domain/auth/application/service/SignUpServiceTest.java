@@ -4,7 +4,7 @@ import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -50,7 +50,7 @@ class SignUpServiceTest {
 
     private String testUserName;
     private String testUuid;
-    private SocialLoginUserData testSocialData;
+    private SocialLoginPort.SocialUserProfile testSocialProfile;
     private TokenVO testTokenVO;
     private TemporaryUserDataDTO testTempData;
     private List<ResponseCookie> testCookies;
@@ -60,13 +60,13 @@ class SignUpServiceTest {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
         
-        testSocialData = new SocialLoginUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "fcm-token");
+        testSocialProfile = new SocialLoginPort.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
         testTokenVO = TokenVO.builder()
                 .accessToken("access-token")
                 .refreshToken("refresh-token")
                 .build();
         
-        testTempData = new TemporaryUserDataDTO(testSocialData, testTokenVO, "fcm-token");
+        testTempData = TemporaryUserDataDTO.fromDomainProfile(testSocialProfile, testTokenVO);
         
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-token").build(),

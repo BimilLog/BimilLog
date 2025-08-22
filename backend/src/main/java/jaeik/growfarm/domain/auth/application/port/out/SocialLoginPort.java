@@ -2,7 +2,6 @@ package jaeik.growfarm.domain.auth.application.port.out;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 
 /**
  * <h2>소셜 로그인 포트</h2>
@@ -14,16 +13,31 @@ import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUser
 public interface SocialLoginPort {
 
     /**
+     * <h3>소셜 사용자 프로필</h3>
+     * <p>소셜 로그인으로부터 받은 사용자 프로필 정보를 담는 순수 도메인 모델</p>
+     *
+     * @param socialId 소셜 ID
+     * @param email 이메일 주소
+     * @param provider 소셜 제공자
+     * @param nickname 사용자 닉네임
+     * @param profileImageUrl 프로필 이미지 URL
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    record SocialUserProfile(String socialId, String email, SocialProvider provider, 
+                           String nickname, String profileImageUrl) {}
+
+    /**
      * <h3>소셜 로그인 결과</h3>
      * <p>소셜 로그인 처리 결과를 담는 레코드 클래스</p>
      *
-     * @param userData 소셜 사용자 데이터
+     * @param userProfile 소셜 사용자 프로필
      * @param token 토큰 정보
      * @param isNewUser 신규 사용자 여부
      * @since 2.0.0
      * @author Jaeik
      */
-    record LoginResult(SocialLoginUserData userData, TokenVO token, boolean isNewUser) {}
+    record LoginResult(SocialUserProfile userProfile, TokenVO token, boolean isNewUser) {}
 
     /**
      * <h3>소셜 로그인</h3>

@@ -8,7 +8,6 @@ import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponseDTO;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -57,9 +56,9 @@ public class SocialLoginService implements SocialLoginUseCase {
         validateLogin();
 
         SocialLoginPort.LoginResult loginResult = socialLoginPort.login(provider, code);
-        SocialLoginUserData userData = loginResult.userData();
+        SocialLoginPort.SocialUserProfile userProfile = loginResult.userProfile();
         
-        if (blacklistPort.existsByProviderAndSocialId(provider, userData.socialId())) {
+        if (blacklistPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
             throw new CustomException(ErrorCode.BLACKLIST_USER);
         }
 
@@ -82,7 +81,7 @@ public class SocialLoginService implements SocialLoginUseCase {
      */
     private LoginResponseDTO<List<ResponseCookie>> handleExistingUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
         List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(
-                loginResult.userData(), loginResult.token(), fcmToken
+                loginResult.userProfile(), loginResult.token(), fcmToken
         );
         return new LoginResponseDTO<>(LoginResponseDTO.LoginType.EXISTING_USER, cookies);
     }
@@ -98,7 +97,7 @@ public class SocialLoginService implements SocialLoginUseCase {
      */
     private LoginResponseDTO<ResponseCookie> handleNewUser(SocialLoginPort.LoginResult loginResult) {
         String uuid = UUID.randomUUID().toString();
-        tempDataPort.saveTempData(uuid, loginResult.userData(), loginResult.token());
+        tempDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token());
         ResponseCookie tempCookie = tempDataPort.createTempCookie(uuid);
         return new LoginResponseDTO<>(LoginResponseDTO.LoginType.NEW_USER, tempCookie);
     }
