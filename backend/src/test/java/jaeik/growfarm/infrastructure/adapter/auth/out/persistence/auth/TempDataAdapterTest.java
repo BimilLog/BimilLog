@@ -189,7 +189,7 @@ class TempDataAdapterTest {
         given(authCookieManager.createTempCookie(testUuid)).willReturn(expectedCookie);
 
         // When: 임시 쿠키 생성
-        ResponseCookie actualCookie = tempDataAdapter.saveTempDataAndCreateCookie(testUuid);
+        ResponseCookie actualCookie = tempDataAdapter.createTempCookie(testUuid);
 
         // Then: 올바른 쿠키 생성 검증
         assertThat(actualCookie).isEqualTo(expectedCookie);
