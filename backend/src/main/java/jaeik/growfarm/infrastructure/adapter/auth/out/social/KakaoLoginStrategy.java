@@ -1,6 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.social;
 
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
@@ -37,18 +36,15 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * <p>카카오 소셜 로그인 코드를 받아 사용자 정보를 조회하고 로그인 결과를 반환합니다.</p>
      *
      * @param code 카카오 소셜 로그인 코드
-     * @return 로그인 결과 DTO
+     * @return 로그인 결과
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public LoginResultDTO login(String code) {
+    public StrategyLoginResult login(String code) {
         TokenDTO tokenDTO = getToken(code);
         SocialLoginUserData userData = getUserInfo(tokenDTO.accessToken());
-        return LoginResultDTO.builder()
-                .userData(userData)
-                .tokenDTO(tokenDTO)
-                .build();
+        return new StrategyLoginResult(userData, tokenDTO);
     }
 
     /**

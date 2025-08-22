@@ -1,7 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.social;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
+import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 
 /**
  * <h2>소셜 로그인 전략 인터페이스</h2>
@@ -13,15 +14,26 @@ import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 public interface SocialLoginStrategy {
 
     /**
+     * <h3>전략별 로그인 결과</h3>
+     * <p>Strategy 레벨에서의 로그인 결과를 담는 레코드 클래스</p>
+     *
+     * @param userData 소셜 사용자 데이터
+     * @param token 토큰 정보
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    record StrategyLoginResult(SocialLoginUserData userData, TokenDTO token) {}
+
+    /**
      * <h3>소셜 로그인 처리</h3>
      * <p>소셜 로그인 코드를 받아 사용자 정보를 조회하고 로그인 결과를 반환합니다.</p>
      *
      * @param code 소셜 로그인 코드
-     * @return 로그인 결과 DTO
+     * @return 로그인 결과
      * @since 2.0.0
      * @author Jaeik
      */
-    LoginResultDTO login(String code);
+    StrategyLoginResult login(String code);
 
     /**
      * <h3>소셜 계정 연결 해제</h3>

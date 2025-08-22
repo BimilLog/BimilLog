@@ -5,7 +5,6 @@ import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.LoginResultDTO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.TokenDTO;
 import lombok.RequiredArgsConstructor;
@@ -43,18 +42,18 @@ public class SocialLoginAdapter implements SocialLoginPort {
      *
      * @param provider 소셜 제공자 (예: KAKAO, NAVER 등)
      * @param code     소셜 로그인 인증 코드
-     * @return 로그인 결과 DTO (LoginResultDTO.LoginType 포함)
+     * @return 로그인 결과 (isNewUser 포함)
      * @since 2.1.0
      * @author Jaeik
      */
     @Override
     @Transactional
-    public LoginResultDTO login(SocialProvider provider, String code) {
+    public LoginResult login(SocialProvider provider, String code) {
         SocialLoginStrategy strategy = strategies.get(provider);
-        LoginResultDTO initialLoginResult = strategy.login(code);
+        SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code);
 
-        SocialLoginUserData userData = initialLoginResult.getUserData();
-        TokenDTO tokenDTO = initialLoginResult.getTokenDTO();
+        SocialLoginUserData userData = initialResult.userData();
+        TokenDTO tokenDTO = initialResult.token();
 
         // 기존 사용자 확인
         Optional<User> existingUser = userQueryUseCase.findByProviderAndSocialId(provider, userData.socialId());
@@ -62,9 +61,9 @@ public class SocialLoginAdapter implements SocialLoginPort {
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             user.updateUserInfo(userData.nickname(), userData.profileImageUrl());
-            return new LoginResultDTO(userData, tokenDTO, LoginResultDTO.LoginType.EXISTING_USER);
+            return new LoginResult(userData, tokenDTO, false); // 기존 사용자
         } else {
-            return new LoginResultDTO(userData, tokenDTO, LoginResultDTO.LoginType.NEW_USER);
+            return new LoginResult(userData, tokenDTO, true); // 신규 사용자
         }
     }
 
