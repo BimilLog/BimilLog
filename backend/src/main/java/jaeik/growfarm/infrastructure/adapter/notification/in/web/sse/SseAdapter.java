@@ -8,7 +8,7 @@ import jaeik.growfarm.domain.notification.application.port.out.SsePort;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.EventDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationEvent;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -64,16 +64,16 @@ public class SseAdapter implements SsePort, NotificationSender {
      * <p>지정된 사용자에게 SSE 알림을 전송하고 데이터베이스에 알림을 저장합니다.</p>
      *
      * @param userId 알림을 받을 사용자의 ID
-     * @param eventDTO 전송할 이벤트 정보 DTO
+     * @param event 전송할 알림 이벤트 (도메인 엔티티)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void send(Long userId, EventDTO eventDTO) {
+    public void send(Long userId, NotificationEvent event) {
         try {
-            NotificationType type = eventDTO.getType();
-            String data = eventDTO.getData();
-            String url = eventDTO.getUrl();
+            NotificationType type = event.getType();
+            String data = event.getMessage();
+            String url = event.getUrl();
 
             User user = userQueryUseCase.findById(userId)
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));

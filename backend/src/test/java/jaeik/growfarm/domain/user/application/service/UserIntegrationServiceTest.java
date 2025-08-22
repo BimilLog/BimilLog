@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;

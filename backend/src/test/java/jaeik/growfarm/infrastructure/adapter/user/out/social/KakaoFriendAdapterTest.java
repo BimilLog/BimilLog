@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.social;
 
 import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

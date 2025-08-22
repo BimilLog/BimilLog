@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.out;
 
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 
 /**
  * <h2>카카오 친구 목록 조회 포트</h2>

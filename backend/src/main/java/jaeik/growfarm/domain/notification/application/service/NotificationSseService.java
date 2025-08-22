@@ -3,10 +3,8 @@ package jaeik.growfarm.domain.notification.application.service;
 import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.SsePort;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
-import jaeik.growfarm.domain.notification.application.service.NotificationUrlGenerator;
-import jaeik.growfarm.domain.notification.application.port.out.NotificationUtilPort;
+import jaeik.growfarm.domain.notification.entity.NotificationEvent;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.EventDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -25,7 +23,6 @@ public class NotificationSseService implements NotificationSseUseCase {
     private final SsePort ssePort;
     private final NotificationSender notificationSender;
     private final NotificationUrlGenerator urlGenerator;
-    private final NotificationUtilPort notificationUtilPort;
 
     /**
      * <h3>알림 구독</h3>
@@ -66,8 +63,8 @@ public class NotificationSseService implements NotificationSseUseCase {
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = urlGenerator.generatePostUrl(postId);
-        EventDTO eventDTO = notificationUtilPort.createEventDTO(NotificationType.COMMENT, message, url);
-        notificationSender.send(postUserId, eventDTO);
+        NotificationEvent event = NotificationEvent.create(NotificationType.COMMENT, message, url);
+        notificationSender.send(postUserId, event);
     }
 
     /**
@@ -80,8 +77,8 @@ public class NotificationSseService implements NotificationSseUseCase {
     public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = urlGenerator.generatePaperUrl(userName);
-        EventDTO eventDTO = notificationUtilPort.createEventDTO(NotificationType.PAPER, message, url);
-        notificationSender.send(farmOwnerId, eventDTO);
+        NotificationEvent event = NotificationEvent.create(NotificationType.PAPER, message, url);
+        notificationSender.send(farmOwnerId, event);
     }
 
     /**
@@ -94,7 +91,7 @@ public class NotificationSseService implements NotificationSseUseCase {
     @Override
     public void sendPostFeaturedNotification(Long userId, String message, Long postId) {
         String url = urlGenerator.generatePostUrl(postId);
-        EventDTO eventDTO = notificationUtilPort.createEventDTO(NotificationType.POST_FEATURED, message, url);
-        notificationSender.send(userId, eventDTO);
+        NotificationEvent event = NotificationEvent.create(NotificationType.POST_FEATURED, message, url);
+        notificationSender.send(userId, event);
     }
 }

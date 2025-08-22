@@ -5,7 +5,6 @@ import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.EventDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -24,25 +23,6 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
 
     private final UserQueryUseCase userQueryUseCase;
 
-    /**
-     * <h3>이벤트 DTO 생성</h3>
-     * <p>주어진 알림 타입, 메시지, URL을 사용하여 EventDTO를 생성합니다.</p>
-     *
-     * @param type 알림 유형
-     * @param message 알림 메시지
-     * @param url 알림 URL
-     * @return 생성된 EventDTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public EventDTO createEventDTO(NotificationType type, String message, String url) {
-        EventDTO eventDTO = new EventDTO();
-        eventDTO.setType(type);
-        eventDTO.setData(message);
-        eventDTO.setUrl(url);
-        return eventDTO;
-    }
 
     /**
      * <h3>시간 포함 Emitter ID 생성</h3>

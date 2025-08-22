@@ -1,6 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.web.dto;
 
-import jaeik.growfarm.domain.notification.entity.Notification;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,14 +21,4 @@ public class NotificationDTO {
     private boolean isRead;
     private Instant createdAt;
 
-    public static NotificationDTO fromEntity(Notification notification) {
-        return NotificationDTO.builder()
-                .id(notification.getId())
-                .content(notification.getContent())
-                .url(notification.getUrl())
-                .notificationType(notification.getNotificationType())
-                .isRead(notification.isRead())
-                .createdAt(notification.getCreatedAt())
-                .build();
-    }
 }

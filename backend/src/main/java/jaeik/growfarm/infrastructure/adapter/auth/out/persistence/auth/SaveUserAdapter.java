@@ -9,7 +9,7 @@ import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.UserDTO;
+import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.exception.CustomException;

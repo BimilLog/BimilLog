@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.Token;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;

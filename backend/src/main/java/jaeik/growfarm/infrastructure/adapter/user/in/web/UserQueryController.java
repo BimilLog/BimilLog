@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

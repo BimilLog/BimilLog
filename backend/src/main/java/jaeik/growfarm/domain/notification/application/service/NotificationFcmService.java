@@ -86,11 +86,11 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             String body = "지금 확인해보세요!";
             
             for (FcmToken token : fcmTokens) {
-                FcmSendDTO fcmSendDto = FcmSendDTO.builder()
-                        .token(token.getFcmRegistrationToken())
-                        .title(title)
-                        .body(body)
-                        .build();
+                FcmSendDTO fcmSendDto = new FcmSendDTO(
+                        token.getFcmRegistrationToken(),
+                        title,
+                        body
+                );
                 fcmPort.sendMessageTo(fcmSendDto);
             }
             log.info("댓글 알림 FCM 전송 완료: userId={}, tokenCount={}", postUserId, fcmTokens.size());
@@ -117,11 +117,11 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             String body = "지금 확인해보세요!";
             
             for (FcmToken token : fcmTokens) {
-                FcmSendDTO fcmSendDto = FcmSendDTO.builder()
-                        .token(token.getFcmRegistrationToken())
-                        .title(title)
-                        .body(body)
-                        .build();
+                FcmSendDTO fcmSendDto = new FcmSendDTO(
+                        token.getFcmRegistrationToken(),
+                        title,
+                        body
+                );
                 fcmPort.sendMessageTo(fcmSendDto);
             }
             log.info("롤링페이퍼 메시지 알림 FCM 전송 완료: userId={}, tokenCount={}", farmOwnerId, fcmTokens.size());
@@ -147,11 +147,11 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             }
             
             for (FcmToken token : fcmTokens) {
-                FcmSendDTO fcmSendDto = FcmSendDTO.builder()
-                        .token(token.getFcmRegistrationToken())
-                        .title(title)
-                        .body(body)
-                        .build();
+                FcmSendDTO fcmSendDto = new FcmSendDTO(
+                        token.getFcmRegistrationToken(),
+                        title,
+                        body
+                );
                 fcmPort.sendMessageTo(fcmSendDto);
             }
             log.info("인기글 등극 알림 FCM 전송 완료: userId={}, tokenCount={}", userId, fcmTokens.size());

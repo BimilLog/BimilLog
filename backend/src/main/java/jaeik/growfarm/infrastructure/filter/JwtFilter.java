@@ -2,7 +2,7 @@ package jaeik.growfarm.infrastructure.filter;
 
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.UserDTO;
+import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.auth.JwtHandler;

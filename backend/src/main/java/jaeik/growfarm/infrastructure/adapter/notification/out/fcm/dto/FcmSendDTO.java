@@ -17,12 +17,17 @@ import lombok.*;
 public class FcmSendDTO {
 
     private String token;
-
     private String title;
-
     private String body;
 
-    @Builder(toBuilder = true)
+    /**
+     * <h3>FCM 전송 DTO 생성자</h3>
+     * <p>모든 필드를 초기화하는 생성자</p>
+     *
+     * @param token FCM 토큰
+     * @param title 알림 제목
+     * @param body  알림 내용
+     */
     public FcmSendDTO(String token, String title, String body) {
         this.token = token;
         this.title = title;

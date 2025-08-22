@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.social;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendsResponse;
+import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 
 /**
  * <h2>소셜 어댑터 인터페이스</h2>

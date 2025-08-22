@@ -9,7 +9,7 @@ import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmMessageDTO;
 import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
 import jaeik.growfarm.infrastructure.adapter.notification.out.persistence.notification.FcmTokenRepository;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.EventDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationEvent;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -75,23 +75,24 @@ public class FcmAdapter implements FcmPort, NotificationSender {
      * <p>지정된 사용자에게 FCM 알림을 비동기적으로 전송합니다.</p>
      *
      * @param userId 알림을 받을 사용자의 ID
-     * @param eventDTO 전송할 이벤트 정보 DTO
+     * @param event 전송할 알림 이벤트 (도메인 엔티티)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Async("fcmNotificationExecutor")
-    public void send(Long userId, EventDTO eventDTO) {
+    public void send(Long userId, NotificationEvent event) {
         try {
             List<FcmToken> fcmTokens = findValidFcmTokensForMessageNotification(userId);
             if (fcmTokens == null || fcmTokens.isEmpty()) return;
 
             for (FcmToken fcmToken : fcmTokens) {
-                sendMessageTo(FcmSendDTO.builder()
-                        .token(fcmToken.getFcmRegistrationToken())
-                        .title(eventDTO.getData())
-                        .body("지금 확인해보세요!")
-                        .build());
+                FcmSendDTO fcmSendDto = new FcmSendDTO(
+                        fcmToken.getFcmRegistrationToken(),
+                        event.getMessage(),
+                        "지금 확인해보세요!"
+                );
+                sendMessageTo(fcmSendDto);
             }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FCM_SEND_ERROR, e);

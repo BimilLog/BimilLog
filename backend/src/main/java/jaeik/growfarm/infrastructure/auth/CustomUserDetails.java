@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.auth;
 
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.UserDTO;
+import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.UserDTO;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

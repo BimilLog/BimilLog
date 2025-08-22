@@ -1,6 +1,7 @@
-package jaeik.growfarm.infrastructure.adapter.user.out.social.dto;
+package jaeik.growfarm.infrastructure.adapter.user.in.web.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

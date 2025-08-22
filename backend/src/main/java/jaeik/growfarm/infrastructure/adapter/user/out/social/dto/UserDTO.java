@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.user.in.web.dto;
+package jaeik.growfarm.infrastructure.adapter.user.out.social.dto;
 
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
