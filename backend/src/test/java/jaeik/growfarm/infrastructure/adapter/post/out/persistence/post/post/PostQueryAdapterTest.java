@@ -3,10 +3,13 @@ package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.GrowfarmApplication;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.PostLike;
+import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.strategy.SearchStrategyFactory;
@@ -126,10 +129,10 @@ class PostQueryAdapterTest {
         testUser = User.builder()
                 .userName("testUser")
                 .socialId("123456")
-                .provider(jaeik.growfarm.domain.common.entity.SocialProvider.KAKAO)
+                .provider(SocialProvider.KAKAO)
                 .socialNickname("테스트유저")
-                .role(jaeik.growfarm.domain.user.entity.UserRole.USER)
-                .setting(jaeik.growfarm.domain.user.entity.Setting.builder()
+                .role(UserRole.USER)
+                .setting(Setting.builder()
                         .messageNotification(true)
                         .commentNotification(true)
                         .postFeaturedNotification(true)
@@ -315,10 +318,10 @@ class PostQueryAdapterTest {
         User likeUser = User.builder()
                 .userName("likeUser")
                 .socialId("like123")
-                .provider(jaeik.growfarm.domain.common.entity.SocialProvider.KAKAO)
+                .provider(SocialProvider.KAKAO)
                 .socialNickname("좋아요유저")
-                .role(jaeik.growfarm.domain.user.entity.UserRole.USER)
-                .setting(jaeik.growfarm.domain.user.entity.Setting.builder()
+                .role(UserRole.USER)
+                .setting(Setting.builder()
                         .messageNotification(true)
                         .commentNotification(true)
                         .postFeaturedNotification(true)
@@ -369,10 +372,10 @@ class PostQueryAdapterTest {
         User newUser = User.builder()
                 .userName("newUser")
                 .socialId("new123")
-                .provider(jaeik.growfarm.domain.common.entity.SocialProvider.KAKAO)
+                .provider(SocialProvider.KAKAO)
                 .socialNickname("새로운유저")
-                .role(jaeik.growfarm.domain.user.entity.UserRole.USER)
-                .setting(jaeik.growfarm.domain.user.entity.Setting.builder()
+                .role(UserRole.USER)
+                .setting(Setting.builder()
                         .messageNotification(true)
                         .commentNotification(true)
                         .postFeaturedNotification(true)
