@@ -202,7 +202,7 @@ class PostCacheCommandAdapterTest {
     @DisplayName("경계값 - 빈 게시글 목록 캐시")
     void shouldCacheEmptyList_WhenEmptyListProvided() {
         // Given: 빈 게시글 목록
-        List<SimplePostResDTO> emptyList = Arrays.asList();
+        List<SimplePostResDTO> emptyList = List.of();
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         
         // When: 빈 목록 캐시 저장
@@ -424,7 +424,7 @@ class PostCacheCommandAdapterTest {
         PostCacheFlag cacheFlag = PostCacheFlag.REALTIME;
 
         // QueryDSL Mock 설정
-        JPAUpdateClause updateClause = mock(com.querydsl.jpa.impl.JPAUpdateClause.class);
+        JPAUpdateClause updateClause = mock(JPAUpdateClause.class);
         given(jpaQueryFactory.update(any())).willReturn(updateClause);
         given(updateClause.set(any(Path.class), any(Object.class))).willReturn(updateClause);
         given(updateClause.where(any())).willReturn(updateClause);
@@ -464,7 +464,7 @@ class PostCacheCommandAdapterTest {
         // QueryDSL Mock 설정
         JPAUpdateClause updateClause = mock(JPAUpdateClause.class);
         given(jpaQueryFactory.update(any())).willReturn(updateClause);
-        given(updateClause.set(any(com.querydsl.core.types.Path.class), any(Object.class))).willReturn(updateClause);
+        given(updateClause.set(any(Path.class), any(Object.class))).willReturn(updateClause);
         given(updateClause.where(any())).willReturn(updateClause);
         given(updateClause.execute()).willReturn(1000L);
 
