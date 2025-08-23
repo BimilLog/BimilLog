@@ -30,6 +30,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
@@ -392,16 +393,16 @@ class PaperCommandAdapterTest {
                         return e; // 실패 시 예외 반환
                     }
                 }))
-                .collect(java.util.stream.Collectors.toList());
+                .toList();
 
         // When: 모든 작업 완료 대기
         List<Exception> results = futures.stream()
                 .map(CompletableFuture::join)
-                .collect(java.util.stream.Collectors.toList());
+                .toList();
 
         // Then: 하나만 성공하고 나머지는 제약조건 위반
-        long successCount = results.stream().filter(result -> result == null).count();
-        long failureCount = results.stream().filter(result -> result != null).count();
+        long successCount = results.stream().filter(Objects::isNull).count();
+        long failureCount = results.stream().filter(Objects::nonNull).count();
         
         assertThat(successCount).isEqualTo(1);
         assertThat(failureCount).isEqualTo(2);

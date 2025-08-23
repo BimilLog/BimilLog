@@ -175,7 +175,6 @@ class UserAdapterLoadTest {
     private TestEntityManager entityManager;
 
     private User testUser;
-    private User otherUser;
 
     @BeforeEach
     void setUp() {
@@ -194,7 +193,7 @@ class UserAdapterLoadTest {
                 .build();
         entityManager.persistAndFlush(testUser);
 
-        otherUser = User.builder()
+        User otherUser = User.builder()
                 .userName("otherUser")
                 .socialId("789012")
                 .provider(SocialProvider.NAVER)

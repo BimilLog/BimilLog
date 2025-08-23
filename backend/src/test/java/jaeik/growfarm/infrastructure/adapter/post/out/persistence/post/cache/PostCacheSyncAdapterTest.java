@@ -329,8 +329,8 @@ class PostCacheSyncAdapterTest extends RedisContainer {
 
         // Then: JOIN 조건에 맞는 게시글만 조회됨
         assertThat(results).hasSize(1); // 좋아요가 있는 게시글만
-        assertThat(results.get(0).getTitle()).isEqualTo("사용자있음");
-        assertThat(results.get(0).getUserName()).isEqualTo(testUser.getUserName()); // LEFT JOIN 결과
+        assertThat(results.getFirst().getTitle()).isEqualTo("사용자있음");
+        assertThat(results.getFirst().getUserName()).isEqualTo(testUser.getUserName()); // LEFT JOIN 결과
     }
 
     @Test
@@ -403,7 +403,7 @@ class PostCacheSyncAdapterTest extends RedisContainer {
 
         // Then: DB 데이터가 정확히 조회됨 (캐시 독립적)
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getTitle()).isEqualTo("캐시테스트");
+        assertThat(results.getFirst().getTitle()).isEqualTo("캐시테스트");
         assertThat(detail).isNotNull();
         assertThat(detail.getTitle()).isEqualTo("캐시테스트");
         assertThat(detail.getLikeCount()).isEqualTo(5);
@@ -514,7 +514,7 @@ class PostCacheSyncAdapterTest extends RedisContainer {
         
         // 전설: 전설급만 (50개 >= 20)
         assertThat(legendaryPosts).hasSize(1);
-        assertThat(legendaryPosts.get(0).getTitle()).isEqualTo("전설급");
+        assertThat(legendaryPosts.getFirst().getTitle()).isEqualTo("전설급");
         
         // 상세 조회 정확성
         assertThat(realtimeDetail.getTitle()).isEqualTo("실시간인기");

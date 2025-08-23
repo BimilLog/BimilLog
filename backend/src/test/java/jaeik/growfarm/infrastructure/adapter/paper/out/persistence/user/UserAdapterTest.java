@@ -32,8 +32,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * <h2>Paper 도메인의 UserAdapter 통합 테스트</h2>
  *
@@ -181,14 +179,10 @@ class UserAdapterTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private User testUser;
-    private User otherUser;
-    private User duplicateNameUser;
-
     @BeforeEach
     void setUp() {
         // 테스트 사용자들 생성 및 저장
-        testUser = User.builder()
+        User testUser = User.builder()
                 .userName("testUser")
                 .socialId("123456")
                 .provider(SocialProvider.KAKAO)
@@ -202,7 +196,7 @@ class UserAdapterTest {
                 .build();
         entityManager.persistAndFlush(testUser);
 
-        otherUser = User.builder()
+        User otherUser = User.builder()
                 .userName("otherUser")
                 .socialId("789012")
                 .provider(SocialProvider.NAVER)
@@ -213,7 +207,7 @@ class UserAdapterTest {
         entityManager.persistAndFlush(otherUser);
 
         // 연관데이터가 있는 사용자 (지연 로딩 테스트용)
-        duplicateNameUser = User.builder()
+        User duplicateNameUser = User.builder()
                 .userName("duplicateTest")
                 .socialId("999999")
                 .provider(SocialProvider.GOOGLE)

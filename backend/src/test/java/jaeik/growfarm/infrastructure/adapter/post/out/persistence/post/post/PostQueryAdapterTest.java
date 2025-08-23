@@ -101,9 +101,8 @@ class PostQueryAdapterTest {
         
         @Bean
         public CommentQueryUseCase commentQueryUseCase() {
-            CommentQueryUseCase mock = Mockito.mock(CommentQueryUseCase.class);
             // 기본 Mock 동작 설정
-            return mock;
+            return Mockito.mock(CommentQueryUseCase.class);
         }
     }
 
@@ -246,7 +245,7 @@ class PostQueryAdapterTest {
         assertThat(titles).doesNotContain("공지사항 제목");
         
         // 댓글 수가 설정되어 있는지 확인
-        assertThat(result.getContent().get(0).getCommentCount()).isNotNull();
+        assertThat(result.getContent().getFirst().getCommentCount()).isNotNull();
     }
 
     @Test
@@ -540,7 +539,7 @@ class PostQueryAdapterTest {
         Page<SimplePostResDTO> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 모든 필드가 정확히 매핑됨
-        SimplePostResDTO dto = result.getContent().get(0);
+        SimplePostResDTO dto = result.getContent().getFirst();
         
         assertThat(dto.getId()).isEqualTo(testPost1.getId());
         assertThat(dto.getTitle()).isEqualTo(testPost1.getTitle());

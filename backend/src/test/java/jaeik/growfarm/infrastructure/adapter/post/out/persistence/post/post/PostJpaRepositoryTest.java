@@ -146,8 +146,8 @@ class PostJpaRepositoryTest {
 
         // Then: 모든 게시글 조회 성공
         assertThat(allPosts).hasSize(5);
-        assertThat(allPosts.get(0).getTitle()).contains("제목");
-        assertThat(allPosts.get(0).getContent()).contains("내용");
+        assertThat(allPosts.getFirst().getTitle()).contains("제목");
+        assertThat(allPosts.getFirst().getContent()).contains("내용");
     }
 
     @Test
