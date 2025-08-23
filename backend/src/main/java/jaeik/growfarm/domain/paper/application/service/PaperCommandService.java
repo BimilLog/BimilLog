@@ -4,7 +4,6 @@ import jaeik.growfarm.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperCommandPort;
-import jaeik.growfarm.domain.paper.application.port.out.PublishEventPort;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
@@ -13,6 +12,7 @@ import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +34,7 @@ public class PaperCommandService implements PaperCommandUseCase {
     private final PaperCommandPort paperCommandPort;
     private final PaperQueryPort paperQueryPort;
     private final LoadUserPort loadUserPort;
-    private final PublishEventPort publishEventPort;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     /**
@@ -86,9 +86,10 @@ public class PaperCommandService implements PaperCommandUseCase {
         Message message = Message.createMessage(user, messageDTO);
         paperCommandPort.save(message);
 
-        publishEventPort.publishMessageEvent(new MessageEvent(
+        eventPublisher.publishEvent(new MessageEvent(
                 this,
                 user.getId(),
-                userName));
+                userName
+        ));
     }
 }

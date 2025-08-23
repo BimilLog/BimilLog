@@ -3,7 +3,6 @@ package jaeik.growfarm.domain.paper.application.service;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.growfarm.domain.paper.application.port.out.PublishEventPort;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.paper.event.MessageEvent;
 import jaeik.growfarm.domain.user.entity.User;
@@ -45,8 +44,6 @@ class PaperCommandServiceTest {
     @Mock
     private LoadUserPort loadUserPort;
 
-    @Mock
-    private PublishEventPort publishEventPort;
 
     @Mock
     private CustomUserDetails userDetails;
