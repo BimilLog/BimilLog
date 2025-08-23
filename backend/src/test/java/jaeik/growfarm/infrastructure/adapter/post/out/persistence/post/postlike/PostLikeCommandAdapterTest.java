@@ -259,9 +259,6 @@ class PostLikeCommandAdapterTest {
         PostLike secondLike = PostLike.builder().user(user).post(post).build();
         
         // Then: 중복 저장으로 인한 제약조건 위반이나 예외 처리 확인
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // 중복 추천 방지 로직이 PostLike 엔티티나 서비스 레벨에서 처리되어야 함
-        // 현재 어댑터 레벨에서는 단순 저장만 수행
         try {
             postLikeCommandAdapter.save(secondLike);
             entityManager.flush();

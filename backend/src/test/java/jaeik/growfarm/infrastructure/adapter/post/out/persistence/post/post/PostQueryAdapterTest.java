@@ -1,5 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.GrowfarmApplication;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
@@ -15,7 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import jakarta.persistence.EntityManager;
+import org.mockito.Mockito;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
@@ -47,10 +53,19 @@ import static org.mockito.BDDMockito.given;
 @DataJpaTest(
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = jaeik.growfarm.GrowfarmApplication.class
+                classes = GrowfarmApplication.class
         )
 )
 @Testcontainers
+@EntityScan(basePackages = {
+        "jaeik.growfarm.domain.post.entity",
+        "jaeik.growfarm.domain.user.entity",
+        "jaeik.growfarm.domain.common.entity"
+})
+@EnableJpaRepositories(basePackages = {
+        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post",
+        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike"
+})
 @Import({PostQueryAdapter.class, PostQueryAdapterTest.TestConfig.class})
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
@@ -72,11 +87,22 @@ class PostQueryAdapterTest {
 
     @TestConfiguration
     static class TestConfig {
-        @MockBean
-        private SearchStrategyFactory searchStrategyFactory;
+        @Bean
+        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+            return new JPAQueryFactory(entityManager);
+        }
         
-        @MockBean
-        private CommentQueryUseCase commentQueryUseCase;
+        @Bean
+        public SearchStrategyFactory searchStrategyFactory() {
+            return Mockito.mock(SearchStrategyFactory.class);
+        }
+        
+        @Bean
+        public CommentQueryUseCase commentQueryUseCase() {
+            CommentQueryUseCase mock = Mockito.mock(CommentQueryUseCase.class);
+            // 기본 Mock 동작 설정
+            return mock;
+        }
     }
 
     @Autowired
@@ -85,10 +111,10 @@ class PostQueryAdapterTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    @MockBean
+    @Autowired
     private SearchStrategyFactory searchStrategyFactory;
-
-    @MockBean
+    
+    @Autowired
     private CommentQueryUseCase commentQueryUseCase;
 
     private User testUser;

@@ -205,16 +205,17 @@ public class PostQueryAdapter implements PostQueryPort {
     private JPAQuery<SimplePostResDTO> buildBasePostQueryWithoutComments() {
         return jpaQueryFactory
                 .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        user.id,
-                        user.userName,
-                        Expressions.constant(0), // 댓글 수는 나중에 설정
-                        commentLike.countDistinct().intValue()))
+                        post.id,                           // Long id
+                        post.title,                        // String title  
+                        post.content,                      // String content - 누락되었던 필드 추가
+                        post.views.coalesce(0),           // Integer viewCount
+                        commentLike.countDistinct().intValue(), // Integer likeCount
+                        post.postCacheFlag,               // PostCacheFlag postCacheFlag
+                        post.createdAt,                   // Instant createdAt
+                        user.id,                          // Long userId
+                        user.userName,                    // String userName
+                        Expressions.constant(0),         // Integer commentCount - 나중에 설정
+                        post.isNotice))                   // boolean isNotice
                 .from(post)
                 .leftJoin(post.user, user)
                 .leftJoin(commentLike).on(post.id.eq(commentLike.post.id));

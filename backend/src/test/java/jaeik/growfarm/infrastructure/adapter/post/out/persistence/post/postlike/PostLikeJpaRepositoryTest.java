@@ -20,7 +20,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -33,7 +32,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * <h2>PostLikeJpaRepository 테스트</h2>
@@ -365,11 +363,6 @@ class PostLikeJpaRepositoryTest {
                 .user(user)
                 .post(post)
                 .build();
-
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // 중복 추천 방지 로직이 엔티티나 서비스 레벨에서 처리되어야 함
-        // 현재 Repository 레벨에서는 단순 저장만 수행
-        // 가능한 해결책: 1) 복합 유니크 제약조건 2) 서비스 레벨 중복 검사
         try {
             postLikeJpaRepository.save(secondLike);
             entityManager.flush();
