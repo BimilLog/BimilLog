@@ -45,7 +45,7 @@ class PostNoticeServiceTest {
     private Post post;
 
     @InjectMocks
-    private PostNoticeService postNoticeService;
+    private PostAdminService postAdminService;
 
     @Test
     @DisplayName("게시글 공지 설정 - 성공")
@@ -58,7 +58,7 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When
-        postNoticeService.setPostAsNotice(postId);
+        postAdminService.setPostAsNotice(postId);
 
         // Then
         verify(postQueryPort).findById(postId);
@@ -81,7 +81,7 @@ class PostNoticeServiceTest {
         given(postQueryPort.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> postNoticeService.setPostAsNotice(postId))
+        assertThatThrownBy(() -> postAdminService.setPostAsNotice(postId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
@@ -97,7 +97,7 @@ class PostNoticeServiceTest {
         Long postId = null;
 
         // When & Then
-        assertThatThrownBy(() -> postNoticeService.setPostAsNotice(postId))
+        assertThatThrownBy(() -> postAdminService.setPostAsNotice(postId))
                 .isInstanceOf(Exception.class);
 
         verify(postQueryPort).findById(postId);
@@ -116,7 +116,7 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When
-        postNoticeService.unsetPostAsNotice(postId);
+        postAdminService.unsetPostAsNotice(postId);
 
         // Then
         verify(postQueryPort).findById(postId);
@@ -139,7 +139,7 @@ class PostNoticeServiceTest {
         given(postQueryPort.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> postNoticeService.unsetPostAsNotice(postId))
+        assertThatThrownBy(() -> postAdminService.unsetPostAsNotice(postId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
@@ -155,7 +155,7 @@ class PostNoticeServiceTest {
         Long postId = null;
 
         // When & Then
-        assertThatThrownBy(() -> postNoticeService.unsetPostAsNotice(postId))
+        assertThatThrownBy(() -> postAdminService.unsetPostAsNotice(postId))
                 .isInstanceOf(Exception.class);
 
         verify(postQueryPort).findById(postId);
@@ -174,7 +174,7 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When
-        postNoticeService.setPostAsNotice(postId);
+        postAdminService.setPostAsNotice(postId);
 
         // Then
         ArgumentCaptor<PostSetAsNoticeEvent> eventCaptor = ArgumentCaptor.forClass(PostSetAsNoticeEvent.class);
@@ -198,7 +198,7 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When
-        postNoticeService.unsetPostAsNotice(postId);
+        postAdminService.unsetPostAsNotice(postId);
 
         // Then
         ArgumentCaptor<PostUnsetAsNoticeEvent> eventCaptor = ArgumentCaptor.forClass(PostUnsetAsNoticeEvent.class);
@@ -222,9 +222,9 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When - 공지 설정 -> 해제 -> 다시 설정
-        postNoticeService.setPostAsNotice(postId);
-        postNoticeService.unsetPostAsNotice(postId);
-        postNoticeService.setPostAsNotice(postId);
+        postAdminService.setPostAsNotice(postId);
+        postAdminService.unsetPostAsNotice(postId);
+        postAdminService.setPostAsNotice(postId);
 
         // Then
         verify(postQueryPort, times(3)).findById(postId);
@@ -247,7 +247,7 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When - 이미 공지인 게시글을 다시 공지 설정
-        postNoticeService.setPostAsNotice(postId);
+        postAdminService.setPostAsNotice(postId);
 
         // Then - 정상적으로 처리되어야 함 (비즈니스 로직에서 중복 확인은 하지 않음)
         verify(postQueryPort).findById(postId);
@@ -266,7 +266,7 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When - 공지가 아닌 게시글을 공지 해제
-        postNoticeService.unsetPostAsNotice(postId);
+        postAdminService.unsetPostAsNotice(postId);
 
         // Then - 정상적으로 처리되어야 함 (비즈니스 로직에서 상태 확인은 하지 않음)
         verify(postQueryPort).findById(postId);
@@ -286,8 +286,8 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When - @Transactional 메서드들 호출
-        postNoticeService.setPostAsNotice(postId1);
-        postNoticeService.unsetPostAsNotice(postId2);
+        postAdminService.setPostAsNotice(postId1);
+        postAdminService.unsetPostAsNotice(postId2);
 
         // Then - 모든 작업이 트랜잭션 내에서 수행됨
         verify(postQueryPort, times(2)).findById(any());
@@ -322,7 +322,7 @@ class PostNoticeServiceTest {
         given(postQueryPort.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> postNoticeService.setPostAsNotice(postId))
+        assertThatThrownBy(() -> postAdminService.setPostAsNotice(postId))
                 .isInstanceOf(CustomException.class);
 
         // 예외 발생 시 이벤트 발행되지 않음
@@ -340,7 +340,7 @@ class PostNoticeServiceTest {
         given(post.getTitle()).willReturn(postTitle);
 
         // When
-        postNoticeService.setPostAsNotice(postId);
+        postAdminService.setPostAsNotice(postId);
 
         // Then - 실행 순서 검증 (InOrder를 사용)
         var inOrder = inOrder(postQueryPort, post, eventPublisher);
@@ -362,9 +362,9 @@ class PostNoticeServiceTest {
         // When - 100번의 공지 설정/해제 수행
         for (int i = 0; i < operationCount; i++) {
             if (i % 2 == 0) {
-                postNoticeService.setPostAsNotice((long) i);
+                postAdminService.setPostAsNotice((long) i);
             } else {
-                postNoticeService.unsetPostAsNotice((long) i);
+                postAdminService.unsetPostAsNotice((long) i);
             }
         }
 

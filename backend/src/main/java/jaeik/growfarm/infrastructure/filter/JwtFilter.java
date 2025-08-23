@@ -55,7 +55,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param request HTTP 요청 객체
      * @return 필터를 적용하지 않을 경우 true, 적용할 경우 false
      * @author Jaeik
-     * @since 1.0.9
+     * @since 2.0.0
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -67,8 +67,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return true;
         }
 
-        return path.equals("/") ||
-                path.equals("/api/auth/login");
+        return path.equals("/api/auth/login, /api/auth/signup, /api/auth/health");
     }
 
     /**

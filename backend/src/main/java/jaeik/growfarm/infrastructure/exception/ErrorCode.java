@@ -43,8 +43,7 @@ public enum ErrorCode {
     INVALID_TEMP_UUID(HttpStatus.BAD_REQUEST, "임시 사용자 UUID가 유효하지 않습니다.", LogLevel.WARN),
     INVALID_USER_DATA(HttpStatus.BAD_REQUEST, "사용자 데이터가 유효하지 않습니다.", LogLevel.WARN),  
     INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", LogLevel.WARN),
-    TEMP_DATA_EXPIRED(HttpStatus.NOT_FOUND, "임시 데이터가 만료되었습니다.", LogLevel.INFO),
-    TEMP_DATA_NOT_FOUND(HttpStatus.NOT_FOUND, "임시 데이터를 찾을 수 없습니다.", LogLevel.INFO),
+
 
     /**
      * <h3>게시판 관련 에러 코드</h3>

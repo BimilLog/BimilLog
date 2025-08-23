@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.service;
 
-import jaeik.growfarm.domain.post.application.port.in.PostNoticeUseCase;
+import jaeik.growfarm.domain.post.application.port.in.PostAdminUseCase;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.event.PostSetAsNoticeEvent;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <h2>게시글 공지사항 서비스</h2>
+ * <h2>게시글 관리자 서비스</h2>
  * <p>PostNoticeUseCase의 구현체로, 게시글 공지사항 설정/해제 관련 비즈니스 로직을 처리합니다.</p>
  * <p>관리자 권한이 필요한 기능들을 담당합니다.</p>
  *
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class PostNoticeService implements PostNoticeUseCase {
+public class PostAdminService implements PostAdminUseCase {
 
     private final PostQueryPort postQueryPort;
     private final ApplicationEventPublisher eventPublisher;

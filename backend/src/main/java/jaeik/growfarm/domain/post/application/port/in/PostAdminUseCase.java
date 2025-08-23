@@ -17,7 +17,7 @@ import jaeik.growfarm.infrastructure.exception.CustomException;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface PostNoticeUseCase {
+public interface PostAdminUseCase {
 
     /**
      * <h3>게시글 공지 설정</h3>

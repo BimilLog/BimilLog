@@ -6,16 +6,13 @@ import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
-import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,7 +31,6 @@ public class AuthCommandController {
     private final SignUpUseCase signUpUseCase;
     private final LogoutUseCase logoutUseCase;
     private final WithdrawUseCase withdrawUseCase;
-    private final AuthCookieManager authCookieManager;
 
     /**
      * <h3>소셜 로그인 API</h3>

@@ -66,7 +66,7 @@ class PaperQueryAdapterTest {
                 .user(testUser)
                 .content("Hello World")
                 .decoType(DecoType.POTATO)
-                .anonymity("테스트익명") // Changed from boolean to String
+                .anonymity("테스트익명")
                 .width(100)
                 .height(200)
                 .createdAt(Instant.now())
@@ -77,7 +77,7 @@ class PaperQueryAdapterTest {
         testMessageDTO.setUserId(1L);
         testMessageDTO.setContent("Hello World");
         testMessageDTO.setDecoType(DecoType.POTATO);
-        testMessageDTO.setAnonymity("테스트익명"); // Changed from null to String
+        testMessageDTO.setAnonymity("테스트익명");
         testMessageDTO.setWidth(100);
         testMessageDTO.setHeight(200);
         testMessageDTO.setCreatedAt(Instant.now());

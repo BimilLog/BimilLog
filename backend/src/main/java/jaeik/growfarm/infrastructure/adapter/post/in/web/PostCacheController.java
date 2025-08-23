@@ -20,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/post/cache")
+@RequestMapping("/api/post")
 public class PostCacheController {
 
     private final PostQueryUseCase postQueryUseCase;
