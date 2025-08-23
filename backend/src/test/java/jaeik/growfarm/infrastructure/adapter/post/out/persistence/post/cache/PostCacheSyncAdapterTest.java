@@ -1,6 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.cache;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
@@ -13,7 +12,6 @@ import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike.PostLikeJpaRepository;
 import jaeik.growfarm.util.RedisContainer;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,11 +19,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -34,8 +36,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.springframework.data.redis.connection.RedisConnection; // Correct import
-import org.springframework.boot.test.context.TestConfiguration;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -45,6 +45,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+// TODO : DB 연결 문제 해결 필요
 /**
  * <h2>PostCacheSyncAdapter 테스트</h2>
  * <p>PostCacheSyncAdapter가 인기 게시글 조회 및 상세 조회 기능을 정확히 수행하는지 테스트합니다.</p>
@@ -52,7 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @author Jaeik
  * @version 2.0.0
  */
-@DataJpaTest
+@SpringBootTest // mysql과 redis 모두 필요하기 때문에 @SpringBootTest 사용
 @Testcontainers
 @EntityScan(basePackages = {
         "jaeik.growfarm.domain.admin.entity",
@@ -65,7 +66,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 })
 @EnableJpaRepositories(basePackages = {
         "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post",
-        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike"
+        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike",
+        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment",
+        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentclosure",
+        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.user",
+        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.setting",
+        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token"
 })
 @Import({PostCacheSyncAdapter.class})
 @ActiveProfiles("test")
@@ -93,12 +99,15 @@ class PostCacheSyncAdapterTest extends RedisContainer {
 
     @TestConfiguration
     static class TestConfig {
+
         @Bean
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
+        public RedisConnectionFactory redisConnectionFactory() {
+            // Spring Boot의 Redis 자동설정 프로퍼티 사용 (RedisContainer에서 설정됨)
+            LettuceConnectionFactory factory = new LettuceConnectionFactory();
+            factory.afterPropertiesSet();
+            return factory;
         }
     }
-
 
     @Autowired
     private PostCacheSyncAdapter postCacheSyncAdapter;

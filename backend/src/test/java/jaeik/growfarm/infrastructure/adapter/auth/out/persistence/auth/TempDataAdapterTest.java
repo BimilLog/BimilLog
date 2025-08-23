@@ -329,4 +329,12 @@ class TempDataAdapterTest {
             tempDataAdapter.removeTempData("uuid-" + i);
         }
     }
+
+    public SocialLoginUserData getTestUserData() {
+        return testUserData;
+    }
+
+    public void setTestUserData(SocialLoginUserData testUserData) {
+        this.testUserData = testUserData;
+    }
 }
