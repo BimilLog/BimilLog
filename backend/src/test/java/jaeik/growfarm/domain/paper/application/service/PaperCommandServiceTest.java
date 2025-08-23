@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -44,6 +45,8 @@ class PaperCommandServiceTest {
     @Mock
     private LoadUserPort loadUserPort;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private CustomUserDetails userDetails;
@@ -141,8 +144,8 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
-        verifyNoMoreInteractions(loadUserPort, paperCommandPort, publishEventPort);
+        verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
+        verifyNoMoreInteractions(loadUserPort, paperCommandPort, eventPublisher);
     }
 
     @Test
@@ -162,7 +165,7 @@ class PaperCommandServiceTest {
 
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());
-        verify(publishEventPort, never()).publishMessageEvent(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -182,7 +185,7 @@ class PaperCommandServiceTest {
 
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());
-        verify(publishEventPort, never()).publishMessageEvent(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -203,7 +206,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
 
     @Test
@@ -220,7 +223,7 @@ class PaperCommandServiceTest {
 
         verify(loadUserPort, never()).findByUserName(any());
         verify(paperCommandPort, never()).save(any());
-        verify(publishEventPort, never()).publishMessageEvent(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -239,7 +242,7 @@ class PaperCommandServiceTest {
         paperCommandService.writeMessage(userName, messageDTO);
 
         // Then
-        verify(publishEventPort, times(1)).publishMessageEvent(argThat(event -> 
+        verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 
             event.getPaperOwnerId().equals(userId) && 
             event.getUserName().equals(userName)
         ));
@@ -293,7 +296,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
 
     @Test
@@ -315,7 +318,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
 
     @Test
@@ -338,7 +341,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(argThat(event -> 
+        verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 
             event.getPaperOwnerId().equals(userId) && 
             event.getUserName().equals(userName)
         ));
@@ -388,7 +391,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
 
     @Test

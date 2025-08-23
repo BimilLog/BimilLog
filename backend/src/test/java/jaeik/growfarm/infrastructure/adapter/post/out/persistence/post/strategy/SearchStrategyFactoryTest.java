@@ -38,7 +38,6 @@ class SearchStrategyFactoryTest {
     private BooleanExpression mockBooleanExpression;
 
     private SearchStrategyFactory searchStrategyFactory;
-    private List<SearchStrategy> searchStrategies;
 
     @BeforeEach
     void setUp() {
@@ -47,7 +46,7 @@ class SearchStrategyFactoryTest {
         given(likeSearchStrategy.getStrategyName()).willReturn("LikeSearchStrategy");
         
         // SearchStrategy 목록 준비
-        searchStrategies = Arrays.asList(fullTextSearchStrategy, likeSearchStrategy);
+        List<SearchStrategy> searchStrategies = Arrays.asList(fullTextSearchStrategy, likeSearchStrategy);
         
         // SearchStrategyFactory 인스턴스 생성
         searchStrategyFactory = new SearchStrategyFactory(searchStrategies);

@@ -1,35 +1,41 @@
 package jaeik.growfarm.infrastructure.adapter.paper.out.persistence.paper;
 
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.growfarm.GrowfarmApplication;
+import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.paper.entity.DecoType;
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.domain.paper.entity.QMessage;
-import jaeik.growfarm.domain.user.entity.QUser;
+import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
+import jaeik.growfarm.infrastructure.security.EncryptionUtil;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  * <h2>PaperQueryAdapter 테스트</h2>
@@ -38,77 +44,108 @@ import static org.mockito.Mockito.when;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
+@DataJpaTest(
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = GrowfarmApplication.class
+        )
+)
+@Testcontainers
+@EntityScan(basePackages = {
+        "jaeik.growfarm.domain.admin.entity", 
+        "jaeik.growfarm.domain.user.entity",
+        "jaeik.growfarm.domain.paper.entity",
+        "jaeik.growfarm.domain.post.entity",
+        "jaeik.growfarm.domain.comment.entity",
+        "jaeik.growfarm.domain.notification.entity",
+        "jaeik.growfarm.domain.common.entity"
+})
+@Import(PaperQueryAdapter.class)
+@TestPropertySource(properties = {
+        "spring.jpa.hibernate.ddl-auto=create"
+})
 class PaperQueryAdapterTest {
 
-    @Mock
-    private JPAQueryFactory jpaQueryFactory;
+    @Container
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
 
-    @InjectMocks
+    @DynamicPropertySource
+    static void dynamicProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+        registry.add("spring.datasource.username", mysql::getUsername);
+        registry.add("spring.datasource.password", mysql::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+            return new JPAQueryFactory(entityManager);
+        }
+
+        // EncryptionUtil 빈 정의: MessageEncryptConverter의 의존성을 만족시킵니다.
+        @Bean
+        public EncryptionUtil encryptionUtil() {
+            return new EncryptionUtil();
+        }
+    }
+
+    @Autowired
+    private TestEntityManager entityManager;
+    
+    @Autowired
     private PaperQueryAdapter paperQueryAdapter;
 
-    @Mock
-    private JPAQuery<Message> mockMessageJPAQuery;
-    @Mock
-    private JPAQuery<MessageDTO> mockMessageDTOJPAQuery;
-    @Mock
-    private JPAQuery<VisitMessageDTO> mockVisitMessageDTOJPAQuery;
-
-    private Message testMessage;
-    private MessageDTO testMessageDTO;
-    private VisitMessageDTO testVisitMessageDTO;
+    private User testUser;
+    private Message testMessage1;
+    private Message testMessage2;
 
     @BeforeEach
     void setUp() {
-        User testUser = User.builder().id(1L).userName("testUser").build();
-        testMessage = Message.builder()
-                .id(1L)
+        // 테스트 사용자 생성
+        testUser = User.builder()
+                .userName("testUser")
+                .socialId("test123")
+                .provider(SocialProvider.KAKAO)
+                .socialNickname("테스트사용자")
+                .role(UserRole.USER)
+                .setting(Setting.builder().build())
+                .build();
+        entityManager.persistAndFlush(testUser);
+
+        // 테스트 메시지들 생성
+        testMessage1 = Message.builder()
                 .user(testUser)
-                .content("Hello World")
+                .content("Hello World 1")
                 .decoType(DecoType.POTATO)
-                .anonymity("테스트익명")
+                .anonymity("테스트익명1")
                 .width(100)
                 .height(200)
-                .createdAt(Instant.now())
                 .build();
-
-        testMessageDTO = new MessageDTO();
-        testMessageDTO.setId(1L);
-        testMessageDTO.setUserId(1L);
-        testMessageDTO.setContent("Hello World");
-        testMessageDTO.setDecoType(DecoType.POTATO);
-        testMessageDTO.setAnonymity("테스트익명");
-        testMessageDTO.setWidth(100);
-        testMessageDTO.setHeight(200);
-        testMessageDTO.setCreatedAt(Instant.now());
-
-        testVisitMessageDTO = new VisitMessageDTO();
-        testVisitMessageDTO.setId(1L);
-        testVisitMessageDTO.setUserId(1L);
-        testVisitMessageDTO.setDecoType(DecoType.POTATO);
-        testVisitMessageDTO.setWidth(100);
-        testVisitMessageDTO.setHeight(200);
-
-        when(jpaQueryFactory.selectFrom(any(QMessage.class))).thenReturn(mockMessageJPAQuery);
-        when(jpaQueryFactory.select(any(Expression.class))).thenReturn(mockMessageDTOJPAQuery);
-        when(mockMessageDTOJPAQuery.from(any(QMessage.class))).thenReturn(mockMessageDTOJPAQuery);
-        when(mockMessageDTOJPAQuery.where(any(BooleanExpression.class))).thenReturn(mockMessageDTOJPAQuery);
-        when(mockMessageDTOJPAQuery.orderBy(any(OrderSpecifier.class))).thenReturn(mockMessageDTOJPAQuery);
-
-        when(jpaQueryFactory.select(any(Expression.class))).thenReturn(mockVisitMessageDTOJPAQuery);
-        when(mockVisitMessageDTOJPAQuery.from(any(QMessage.class))).thenReturn(mockVisitMessageDTOJPAQuery);
-        when(mockVisitMessageDTOJPAQuery.join(any(QUser.class), any(QUser.class))).thenReturn(mockVisitMessageDTOJPAQuery);
-        when(mockVisitMessageDTOJPAQuery.on(any(BooleanExpression.class))).thenReturn(mockVisitMessageDTOJPAQuery);
-        when(mockVisitMessageDTOJPAQuery.where(any(BooleanExpression.class))).thenReturn(mockVisitMessageDTOJPAQuery);
+        
+        testMessage2 = Message.builder()
+                .user(testUser)
+                .content("Hello World 2")
+                .decoType(DecoType.CARROT)
+                .anonymity("테스트익명2")
+                .width(150)
+                .height(250)
+                .build();
+        
+        entityManager.persistAndFlush(testMessage1);
+        entityManager.persistAndFlush(testMessage2);
+        entityManager.clear();
     }
 
     @Test
     @DisplayName("정상 케이스 - 메시지 ID로 메시지 조회")
     void shouldFindMessageById_WhenValidIdProvided() {
         // Given
-        Long messageId = 1L;
-        given(mockMessageJPAQuery.where(any(BooleanExpression.class))).willReturn(mockMessageJPAQuery);
-        given(mockMessageJPAQuery.fetchOne()).willReturn(testMessage);
+        Long messageId = testMessage1.getId();
 
         // When
         Optional<Message> result = paperQueryAdapter.findMessageById(messageId);
@@ -116,80 +153,70 @@ class PaperQueryAdapterTest {
         // Then
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo(messageId);
-        assertThat(result.get().getContent()).isEqualTo("Hello World");
-        verify(mockMessageJPAQuery).where(any(BooleanExpression.class));
-        verify(mockMessageJPAQuery).fetchOne();
+        assertThat(result.get().getContent()).isEqualTo("Hello World 1");
+        assertThat(result.get().getUser().getUserName()).isEqualTo("testUser");
     }
 
     @Test
     @DisplayName("경계값 - 존재하지 않는 메시지 ID로 메시지 조회")
     void shouldReturnEmpty_WhenNonExistentMessageIdProvided() {
         // Given
-        Long nonExistentMessageId = 999L;
-        given(mockMessageJPAQuery.where(any(BooleanExpression.class))).willReturn(mockMessageJPAQuery);
-        given(mockMessageJPAQuery.fetchOne()).willReturn(null);
+        Long nonExistentMessageId = 999999L;
 
         // When
         Optional<Message> result = paperQueryAdapter.findMessageById(nonExistentMessageId);
 
         // Then
         assertThat(result).isEmpty();
-        verify(mockMessageJPAQuery).where(any(BooleanExpression.class));
-        verify(mockMessageJPAQuery).fetchOne();
     }
 
+    // TODO: 테스트 실패 - 메인 로직 문제 의심
+    // QueryDSL 정렬 로직: 마이크로초 단위 시간차가 없어 동일 시간으로 생성되는 경우 발생
+    // 가능한 문제: 1) 테스트 환경에서 빠른 연속 생성으로 인한 시간 중복 2) 정렬 기준 모호성
+    // 수정 필요: 1) ID 기준 추가 정렬 2) 테스트 데이터 생성 시 시간 간격 조정
     @Test
     @DisplayName("정상 케이스 - 사용자 ID로 MessageDTO 목록 조회")
     void shouldFindMessageDTOsByUserId_WhenValidUserIdProvided() {
         // Given
-        Long userId = 1L;
-        given(mockMessageDTOJPAQuery.fetch()).willReturn(Collections.singletonList(testMessageDTO));
+        Long userId = testUser.getId();
 
         // When
         List<MessageDTO> result = paperQueryAdapter.findMessageDTOsByUserId(userId);
 
         // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getUserId()).isEqualTo(userId);
-        assertThat(result.getFirst().getContent()).isEqualTo("Hello World");
-        verify(mockMessageDTOJPAQuery).where(any(BooleanExpression.class));
-        verify(mockMessageDTOJPAQuery).orderBy(any(OrderSpecifier.class));
-        verify(mockMessageDTOJPAQuery).fetch();
+        assertThat(result).hasSize(2); // testMessage1, testMessage2
+        assertThat(result.get(0).getUserId()).isEqualTo(userId);
+        assertThat(result.get(0).getContent()).isNotEmpty();
+        // ID 기준 정렬 확인 (시간 정렬 대신 안정적인 ID 정렬)
+        assertThat(result.get(0).getId()).isGreaterThan(result.get(1).getId());
     }
 
     @Test
     @DisplayName("경계값 - 메시지가 없는 사용자 ID로 MessageDTO 목록 조회")
     void shouldReturnEmptyList_WhenUserHasNoMessages() {
         // Given
-        Long userIdWithoutMessages = 999L;
-        given(mockMessageDTOJPAQuery.fetch()).willReturn(List.of());
+        Long userIdWithoutMessages = 999999L;
 
         // When
         List<MessageDTO> result = paperQueryAdapter.findMessageDTOsByUserId(userIdWithoutMessages);
 
         // Then
         assertThat(result).isEmpty();
-        verify(mockMessageDTOJPAQuery).where(any(BooleanExpression.class));
-        verify(mockMessageDTOJPAQuery).orderBy(any(OrderSpecifier.class));
-        verify(mockMessageDTOJPAQuery).fetch();
     }
 
     @Test
     @DisplayName("정상 케이스 - 사용자 이름으로 VisitMessageDTO 목록 조회")
     void shouldFindVisitMessageDTOsByUserName_WhenValidUserNameProvided() {
         // Given
-        String userName = "testUser";
-        given(mockVisitMessageDTOJPAQuery.fetch()).willReturn(Collections.singletonList(testVisitMessageDTO));
+        String userName = testUser.getUserName();
 
         // When
         List<VisitMessageDTO> result = paperQueryAdapter.findVisitMessageDTOsByUserName(userName);
 
         // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getUserId()).isEqualTo(testVisitMessageDTO.getUserId());
-        verify(mockVisitMessageDTOJPAQuery).join(any(QUser.class));
-        verify(mockVisitMessageDTOJPAQuery).where(any(BooleanExpression.class));
-        verify(mockVisitMessageDTOJPAQuery).fetch();
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getUserId()).isEqualTo(testUser.getId());
+        assertThat(result.get(0).getDecoType()).isNotNull();
     }
 
     @Test
@@ -197,15 +224,41 @@ class PaperQueryAdapterTest {
     void shouldReturnEmptyList_WhenUserHasNoVisitMessages() {
         // Given
         String userNameWithoutMessages = "nonExistentUser";
-        given(mockVisitMessageDTOJPAQuery.fetch()).willReturn(List.of());
 
         // When
         List<VisitMessageDTO> result = paperQueryAdapter.findVisitMessageDTOsByUserName(userNameWithoutMessages);
 
         // Then
         assertThat(result).isEmpty();
-        verify(mockVisitMessageDTOJPAQuery).join(any(QUser.class));
-        verify(mockVisitMessageDTOJPAQuery).where(any(BooleanExpression.class));
-        verify(mockVisitMessageDTOJPAQuery).fetch();
+    }
+
+    // TODO: 테스트 실패 - 메인 로직 문제 의심
+    // QueryDSL null 처리: eq(null) 사용 시 IllegalArgumentException 발생
+    // 가능한 문제: 1) QueryDSL 조건식에서 null 값 처리 누락 2) 방어 코드 부족
+    // 수정 필요: PaperQueryAdapter에서 null 입력에 대한 early return 또는 isNull() 사용
+    @Test
+    @DisplayName("예외 처리 - null 입력 처리")
+    void shouldHandleGracefully_WhenNullInputProvided() {
+        // When & Then: null 입력 처리 - 예외 대신 빈 결과 반환
+        assertThatNoException().isThrownBy(() -> {
+            Optional<Message> nullIdResult = paperQueryAdapter.findMessageById(null);
+            assertThat(nullIdResult).isEmpty();
+        });
+        
+        assertThatNoException().isThrownBy(() -> {
+            List<MessageDTO> nullUserIdResult = paperQueryAdapter.findMessageDTOsByUserId(null);
+            assertThat(nullUserIdResult).isEmpty();
+        });
+        
+        assertThatNoException().isThrownBy(() -> {
+            List<VisitMessageDTO> nullUserNameResult = paperQueryAdapter.findVisitMessageDTOsByUserName(null);
+            assertThat(nullUserNameResult).isEmpty();
+        });
+        
+        // 빈 문자열 처리
+        assertThatNoException().isThrownBy(() -> {
+            List<VisitMessageDTO> emptyUserNameResult = paperQueryAdapter.findVisitMessageDTOsByUserName("");
+            assertThat(emptyUserNameResult).isEmpty();
+        });
     }
 }
