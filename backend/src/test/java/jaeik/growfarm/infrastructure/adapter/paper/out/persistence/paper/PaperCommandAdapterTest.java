@@ -40,8 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * <h2>PaperCommandAdapter 통합 테스트</h2>
- * <p>CLAUDE.md 테스트 원칙에 따른 풍부한 TestContainer 기반 어댑터 테스트</p>
- * 
+ *
  * <p><strong>테스트 커버리지:</strong></p>
  * <ul>
  *   <li>정상 케이스: 메시지 저장/삭제 성공</li>

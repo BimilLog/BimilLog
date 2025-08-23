@@ -36,8 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <h2>Paper 도메인의 UserAdapter 통합 테스트</h2>
- * <p>CLAUDE.md 테스트 원칙에 따른 풍부한 TestContainer 기반 도메인 간 어댑터 테스트</p>
- * 
+ *
  * <p><strong>테스트 커버리지:</strong></p>
  * <ul>
  *   <li>정상 케이스: 사용자 이름으로 조회/존재 확인</li>

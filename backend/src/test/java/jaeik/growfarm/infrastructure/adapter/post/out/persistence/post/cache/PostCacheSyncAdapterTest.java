@@ -56,24 +56,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @SpringBootTest // mysql과 redis 모두 필요하기 때문에 @SpringBootTest 사용
 @Testcontainers
 @EntityScan(basePackages = {
-        "jaeik.growfarm.domain.admin.entity",
         "jaeik.growfarm.domain.user.entity",
-        "jaeik.growfarm.domain.paper.entity",
         "jaeik.growfarm.domain.post.entity",
-        "jaeik.growfarm.domain.comment.entity",
-        "jaeik.growfarm.domain.notification.entity",
         "jaeik.growfarm.domain.common.entity"
 })
 @EnableJpaRepositories(basePackages = {
         "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post",
         "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike",
-        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment",
-        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentclosure",
-        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.user",
-        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.setting",
-        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token"
+        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.user"
 })
-@Import({PostCacheSyncAdapter.class})
+@Import({PostCacheSyncAdapter.class, PostCacheSyncAdapterTest.TestConfig.class})
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
@@ -93,7 +85,6 @@ class PostCacheSyncAdapterTest extends RedisContainer {
         registry.add("spring.datasource.url", mysql::getJdbcUrl);
         registry.add("spring.datasource.username", mysql::getUsername);
         registry.add("spring.datasource.password", mysql::getPassword);
-        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
     }
 
 

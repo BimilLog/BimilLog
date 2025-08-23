@@ -36,8 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * <h2>PostJpaRepository 테스트</h2>
  * <p>게시글 JPA Repository의 모든 기능을 테스트합니다.</p>
- * <p>CLAUDE.md 테스트 철학: 완벽한 테스트로 메인 로직 문제 발견</p>
- * 
+ *
  * @author Jaeik
  * @version 2.0.0
  */
