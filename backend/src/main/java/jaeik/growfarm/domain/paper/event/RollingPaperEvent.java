@@ -14,7 +14,7 @@ import org.springframework.context.ApplicationEvent;
  * @since 2.0.0
  */
 @Getter
-public class MessageEvent extends ApplicationEvent {
+public class RollingPaperEvent extends ApplicationEvent {
 
     /**
      * 롤링페이퍼 주인 ID (알림을 받을 사용자)
@@ -38,7 +38,7 @@ public class MessageEvent extends ApplicationEvent {
      * @author Jaeik
      * @since 2.0.0
      */
-    public MessageEvent(Object source, Long paperOwnerId, String userName) {
+    public RollingPaperEvent(Object source, Long paperOwnerId, String userName) {
         super(source);
         this.paperOwnerId = paperOwnerId;
         this.userName = userName;

@@ -4,7 +4,7 @@ import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.domain.paper.event.MessageEvent;
+import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -141,7 +141,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(MessageEvent.class));
+        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
         verifyNoMoreInteractions(loadUserPort, paperCommandPort, publishEventPort);
     }
 
@@ -203,7 +203,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(MessageEvent.class));
+        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
     }
 
     @Test
@@ -293,7 +293,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(MessageEvent.class));
+        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
     }
 
     @Test
@@ -315,7 +315,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(MessageEvent.class));
+        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
     }
 
     @Test
@@ -388,7 +388,7 @@ class PaperCommandServiceTest {
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
-        verify(publishEventPort, times(1)).publishMessageEvent(any(MessageEvent.class));
+        verify(publishEventPort, times(1)).publishMessageEvent(any(RollingPaperEvent.class));
     }
 
     @Test

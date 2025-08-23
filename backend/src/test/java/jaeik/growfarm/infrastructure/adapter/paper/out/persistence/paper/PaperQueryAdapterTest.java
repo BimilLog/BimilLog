@@ -2,7 +2,6 @@ package jaeik.growfarm.infrastructure.adapter.paper.out.persistence.paper;
 
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -22,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,14 +54,13 @@ class PaperQueryAdapterTest {
     @Mock
     private JPAQuery<VisitMessageDTO> mockVisitMessageDTOJPAQuery;
 
-    private User testUser;
     private Message testMessage;
     private MessageDTO testMessageDTO;
     private VisitMessageDTO testVisitMessageDTO;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder().id(1L).userName("testUser").build();
+        User testUser = User.builder().id(1L).userName("testUser").build();
         testMessage = Message.builder()
                 .id(1L)
                 .user(testUser)
@@ -92,12 +90,12 @@ class PaperQueryAdapterTest {
         testVisitMessageDTO.setHeight(200);
 
         when(jpaQueryFactory.selectFrom(any(QMessage.class))).thenReturn(mockMessageJPAQuery);
-        when(jpaQueryFactory.select(any(Expression.class))).thenReturn((JPAQuery) mockMessageDTOJPAQuery);
+        when(jpaQueryFactory.select(any(Expression.class))).thenReturn(mockMessageDTOJPAQuery);
         when(mockMessageDTOJPAQuery.from(any(QMessage.class))).thenReturn(mockMessageDTOJPAQuery);
         when(mockMessageDTOJPAQuery.where(any(BooleanExpression.class))).thenReturn(mockMessageDTOJPAQuery);
         when(mockMessageDTOJPAQuery.orderBy(any(OrderSpecifier.class))).thenReturn(mockMessageDTOJPAQuery);
 
-        when(jpaQueryFactory.select(any(Expression.class))).thenReturn((JPAQuery) mockVisitMessageDTOJPAQuery);
+        when(jpaQueryFactory.select(any(Expression.class))).thenReturn(mockVisitMessageDTOJPAQuery);
         when(mockVisitMessageDTOJPAQuery.from(any(QMessage.class))).thenReturn(mockVisitMessageDTOJPAQuery);
         when(mockVisitMessageDTOJPAQuery.join(any(QUser.class), any(QUser.class))).thenReturn(mockVisitMessageDTOJPAQuery);
         when(mockVisitMessageDTOJPAQuery.on(any(BooleanExpression.class))).thenReturn(mockVisitMessageDTOJPAQuery);
@@ -145,15 +143,15 @@ class PaperQueryAdapterTest {
     void shouldFindMessageDTOsByUserId_WhenValidUserIdProvided() {
         // Given
         Long userId = 1L;
-        given(mockMessageDTOJPAQuery.fetch()).willReturn(Arrays.asList(testMessageDTO));
+        given(mockMessageDTOJPAQuery.fetch()).willReturn(Collections.singletonList(testMessageDTO));
 
         // When
         List<MessageDTO> result = paperQueryAdapter.findMessageDTOsByUserId(userId);
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getUserId()).isEqualTo(userId);
-        assertThat(result.get(0).getContent()).isEqualTo("Hello World");
+        assertThat(result.getFirst().getUserId()).isEqualTo(userId);
+        assertThat(result.getFirst().getContent()).isEqualTo("Hello World");
         verify(mockMessageDTOJPAQuery).where(any(BooleanExpression.class));
         verify(mockMessageDTOJPAQuery).orderBy(any(OrderSpecifier.class));
         verify(mockMessageDTOJPAQuery).fetch();
@@ -181,14 +179,14 @@ class PaperQueryAdapterTest {
     void shouldFindVisitMessageDTOsByUserName_WhenValidUserNameProvided() {
         // Given
         String userName = "testUser";
-        given(mockVisitMessageDTOJPAQuery.fetch()).willReturn(Arrays.asList(testVisitMessageDTO));
+        given(mockVisitMessageDTOJPAQuery.fetch()).willReturn(Collections.singletonList(testVisitMessageDTO));
 
         // When
         List<VisitMessageDTO> result = paperQueryAdapter.findVisitMessageDTOsByUserName(userName);
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getUserId()).isEqualTo(testVisitMessageDTO.getUserId());
+        assertThat(result.getFirst().getUserId()).isEqualTo(testVisitMessageDTO.getUserId());
         verify(mockVisitMessageDTOJPAQuery).join(any(QUser.class));
         verify(mockVisitMessageDTOJPAQuery).where(any(BooleanExpression.class));
         verify(mockVisitMessageDTOJPAQuery).fetch();

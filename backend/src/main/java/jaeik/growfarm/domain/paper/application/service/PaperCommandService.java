@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
-import jaeik.growfarm.domain.paper.event.MessageEvent;
+import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -86,7 +86,7 @@ public class PaperCommandService implements PaperCommandUseCase {
         Message message = Message.createMessage(user, messageDTO);
         paperCommandPort.save(message);
 
-        eventPublisher.publishEvent(new MessageEvent(
+        eventPublisher.publishEvent(new RollingPaperEvent(
                 this,
                 user.getId(),
                 userName
