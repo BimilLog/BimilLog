@@ -172,71 +172,101 @@ class SignUpServiceTest {
     @Test
     @DisplayName("다양한 사용자 이름으로 회원 가입 테스트")
     void shouldSignUp_WithDifferentUserNames() {
+        // TODO: 테스트 설계 개선
+        // 기존: 모든 사용자명에 같은 FCM 토큰 재사용하는 비논리적 설계
+        // 수정: 각 사용자별로 고유한 UUID와 임시 데이터 사용
+        
         // Given
         String[] userNames = {"사용자1", "User2", "user_3", "user-4"};
-        
-        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        String[] uniqueUuids = {"uuid-1", "uuid-2", "uuid-3", "uuid-4"};
+        String[] uniqueFcmTokens = {"fcm-token-1", "fcm-token-2", "fcm-token-3", "fcm-token-4"};
 
-        for (String userName : userNames) {
+        for (int i = 0; i < userNames.length; i++) {
+            String userName = userNames[i];
+            String uniqueUuid = uniqueUuids[i];
+            String uniqueFcmToken = uniqueFcmTokens[i];
+            
+            // 각 사용자별로 고유한 임시 데이터 생성
+            TemporaryUserDataDTO uniqueTempData = new TemporaryUserDataDTO(
+                    SocialLoginUserData.builder()
+                            .socialId("kakao" + (i + 1))
+                            .email("test" + (i + 1) + "@example.com")
+                            .provider(testSocialProfile.provider())
+                            .nickname("testUser" + (i + 1))
+                            .profileImageUrl("profile" + (i + 1) + ".jpg")
+                            .build(),
+                    testTokenVO, 
+                    uniqueFcmToken);
+            
+            given(tempDataPort.getTempData(uniqueUuid)).willReturn(Optional.of(uniqueTempData));
             given(saveUserPort.saveNewUser(
                     eq(userName), 
-                    eq(testUuid), 
-                    eq(testSocialProfile), 
+                    eq(uniqueUuid), 
+                    eq(uniqueTempData.toDomainProfile()), 
                     eq(testTokenVO),
-                    eq("fcm-token")
+                    eq(uniqueFcmToken)
             )).willReturn(testCookies);
 
             // When
-            List<ResponseCookie> result = signUpService.signUp(userName, testUuid);
+            List<ResponseCookie> result = signUpService.signUp(userName, uniqueUuid);
 
             // Then
             assertThat(result).isEqualTo(testCookies);
-            verify(saveUserPort).saveNewUser(userName, testUuid, testSocialProfile, testTokenVO, "fcm-token");
+            verify(tempDataPort).getTempData(uniqueUuid);
+            verify(saveUserPort).saveNewUser(userName, uniqueUuid, uniqueTempData.toDomainProfile(), testTokenVO, uniqueFcmToken);
         }
     }
 
     @Test
-    @DisplayName("빈 문자열 사용자 이름으로 회원 가입")
-    void shouldSignUp_WithEmptyUserName() {
+    @DisplayName("빈 문자열 사용자 이름으로 회원 가입 시 INVALID_INPUT_VALUE 예외 발생")
+    void shouldThrowException_WhenEmptyUserName() {
+        // TODO: 테스트 실패 - 메인 로직 문제 의심
+        // 기존: 빈 문자열이 성공하는 비논리적 테스트
+        // 수정: 올바른 입력 검증으로 예외 발생 확인
+        
         // Given
         String emptyUserName = "";
-        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
-        given(saveUserPort.saveNewUser(
+
+        // When & Then
+        assertThatThrownBy(() -> signUpService.signUp(emptyUserName, testUuid))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+
+        // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
+        verify(tempDataPort, never()).getTempData(testUuid);
+        verify(saveUserPort, never()).saveNewUser(
                 eq(emptyUserName), 
                 eq(testUuid), 
                 eq(testSocialProfile), 
                 eq(testTokenVO),
                 eq("fcm-token")
-        )).willReturn(testCookies);
-
-        // When
-        List<ResponseCookie> result = signUpService.signUp(emptyUserName, testUuid);
-
-        // Then
-        assertThat(result).isEqualTo(testCookies);
-        verify(saveUserPort).saveNewUser(emptyUserName, testUuid, testSocialProfile, testTokenVO, "fcm-token");
+        );
     }
 
     @Test
-    @DisplayName("null 사용자 이름으로 회원 가입")
-    void shouldSignUp_WithNullUserName() {
+    @DisplayName("null 사용자 이름으로 회원 가입 시 INVALID_INPUT_VALUE 예외 발생")
+    void shouldThrowException_WhenNullUserName() {
+        // TODO: 테스트 실패 - 메인 로직 문제 의심
+        // 기존: null userName이 성공하는 비논리적 테스트
+        // 수정: 올바른 입력 검증으로 예외 발생 확인
+        
         // Given
         String nullUserName = null;
-        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
-        given(saveUserPort.saveNewUser(
+
+        // When & Then
+        assertThatThrownBy(() -> signUpService.signUp(nullUserName, testUuid))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+
+        // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
+        verify(tempDataPort, never()).getTempData(testUuid);
+        verify(saveUserPort, never()).saveNewUser(
                 eq(nullUserName), 
                 eq(testUuid), 
                 eq(testSocialProfile), 
                 eq(testTokenVO),
                 eq("fcm-token")
-        )).willReturn(testCookies);
-
-        // When
-        List<ResponseCookie> result = signUpService.signUp(nullUserName, testUuid);
-
-        // Then
-        assertThat(result).isEqualTo(testCookies);
-        verify(saveUserPort).saveNewUser(nullUserName, testUuid, testSocialProfile, testTokenVO, "fcm-token");
+        );
     }
 
     @Test
@@ -259,5 +289,71 @@ class SignUpServiceTest {
         // Then
         assertThat(result).isEmpty();
         verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialProfile, testTokenVO, "fcm-token");
+    }
+
+    @Test
+    @DisplayName("null UUID로 회원 가입 시 INVALID_TEMP_UUID 예외 발생")
+    void shouldThrowException_WhenNullUuid() {
+        // Given
+        String nullUuid = null;
+
+        // When & Then
+        assertThatThrownBy(() -> signUpService.signUp(testUserName, nullUuid))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_UUID);
+
+        // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
+        verify(tempDataPort, never()).getTempData(nullUuid);
+        verify(saveUserPort, never()).saveNewUser(
+                eq(testUserName), 
+                eq(nullUuid), 
+                eq(testSocialProfile), 
+                eq(testTokenVO),
+                eq("fcm-token")
+        );
+    }
+
+    @Test
+    @DisplayName("빈 문자열 UUID로 회원 가입 시 INVALID_TEMP_UUID 예외 발생")
+    void shouldThrowException_WhenEmptyUuid() {
+        // Given
+        String emptyUuid = "";
+
+        // When & Then
+        assertThatThrownBy(() -> signUpService.signUp(testUserName, emptyUuid))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_UUID);
+
+        // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
+        verify(tempDataPort, never()).getTempData(emptyUuid);
+        verify(saveUserPort, never()).saveNewUser(
+                eq(testUserName), 
+                eq(emptyUuid), 
+                eq(testSocialProfile), 
+                eq(testTokenVO),
+                eq("fcm-token")
+        );
+    }
+
+    @Test
+    @DisplayName("공백만 있는 사용자 이름으로 회원 가입 시 INVALID_INPUT_VALUE 예외 발생")
+    void shouldThrowException_WhenWhitespaceOnlyUserName() {
+        // Given
+        String whitespaceUserName = "   ";
+
+        // When & Then
+        assertThatThrownBy(() -> signUpService.signUp(whitespaceUserName, testUuid))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+
+        // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
+        verify(tempDataPort, never()).getTempData(testUuid);
+        verify(saveUserPort, never()).saveNewUser(
+                eq(whitespaceUserName), 
+                eq(testUuid), 
+                eq(testSocialProfile), 
+                eq(testTokenVO),
+                eq("fcm-token")
+        );
     }
 }

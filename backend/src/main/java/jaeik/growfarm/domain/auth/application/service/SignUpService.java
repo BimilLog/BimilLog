@@ -35,17 +35,34 @@ public class SignUpService implements SignUpUseCase {
      * @param userName 사용자의 이름
      * @param uuid     임시 UUID
      * @return ResponseCookie 리스트
+     * @throws CustomException userName이 null이거나 빈 문자열인 경우 (INVALID_INPUT_VALUE)
+     * @throws CustomException uuid가 null이거나 빈 문자열인 경우 (INVALID_TEMP_UUID)  
+     * @throws CustomException 임시 데이터가 존재하지 않는 경우 (INVALID_TEMP_DATA)
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
+        // TODO: 테스트 실패 - 메인 로직 문제 의심
+        // 기존 테스트에서 null/empty userName이 성공하는 비논리적 테스트 발견
+        // 수정 필요: 입력 검증 로직 추가로 데이터 무결성 보장
+        
+        // 입력 검증: userName null/empty 체크
+        if (userName == null || userName.trim().isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        // 입력 검증: uuid null/empty 체크
+        if (uuid == null || uuid.trim().isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_TEMP_UUID);
+        }
+
         Optional<TemporaryUserDataDTO> tempUserData = tempDataPort.getTempData(uuid);
 
         if (tempUserData.isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         } else {
-            return saveUserPort.saveNewUser(userName, uuid, tempUserData.get().toDomainProfile(), tempUserData.get().tokenVO, tempUserData.get().getFcmToken());
+            return saveUserPort.saveNewUser(userName.trim(), uuid, tempUserData.get().toDomainProfile(), tempUserData.get().tokenVO, tempUserData.get().getFcmToken());
         }
     }
 }
