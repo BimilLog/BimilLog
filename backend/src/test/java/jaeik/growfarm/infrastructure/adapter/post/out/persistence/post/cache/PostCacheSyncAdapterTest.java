@@ -387,37 +387,6 @@ class PostCacheSyncAdapterTest {
     }
 
     @Test
-    @DisplayName("성능 - 대용량 데이터에서 인기 게시글 조회 성능")
-    void shouldPerformWell_WhenQueryingLargeDataSet() {
-        // Given: 대용량 게시글과 좋아요 데이터
-        List<Post> bulkPosts = IntStream.range(0, 100)
-                .mapToObj(i -> {
-                    Post post = createAndSavePost("벌크게시글" + i, "내용" + i, i * 2, PostCacheFlag.REALTIME, Instant.now().minus(i, ChronoUnit.MINUTES));
-                    addLikesToPost(post, i % 10 + 1); // 1-10개 좋아요
-                    return post;
-                })
-                .toList();
-                
-        entityManager.flush();
-        entityManager.clear();
-
-        // When: 대용량 데이터에서 인기 게시글 조회
-        long startTime = System.currentTimeMillis();
-        List<SimplePostResDTO> results = postCacheSyncAdapter.findRealtimePopularPosts();
-        long endTime = System.currentTimeMillis();
-
-        // Then: 성능 및 정확성 확인
-        // TODO: 메인 로직 버그 - JOIN 문제로 예상보다 적은 결과 반환
-        assertThat(results).hasSizeGreaterThan(0).hasSizeLessThanOrEqualTo(5); // 최소 1개, 최대 5개
-        assertThat(endTime - startTime).isLessThan(3000); // 3초 이내
-        
-        // 좋아요 순 정렬 확인 (결과가 있는 경우)
-        if (results.size() > 1) {
-            assertThat(results.get(0).getLikeCount()).isGreaterThanOrEqualTo(results.get(1).getLikeCount());
-        }
-    }
-
-    @Test
     @DisplayName("트랜잭션 - readOnly 트랜잭션 속성 확인")
     void shouldUseReadOnlyTransaction_WhenQueryingData() {
         // Given: 테스트 데이터
@@ -612,5 +581,36 @@ class PostCacheSyncAdapterTest {
                 .orElse(null);
         assertThat(realtimeResult).isNotNull();
         assertThat(realtimeResult.getPostCacheFlag()).isEqualTo(PostCacheFlag.REALTIME);
+    }
+
+    @Test
+    @DisplayName("성능 - 대용량 데이터에서 인기 게시글 조회 성능")
+    void shouldPerformWell_WhenQueryingLargeDataSet() {
+        // Given: 대용량 게시글과 좋아요 데이터
+        List<Post> bulkPosts = IntStream.range(0, 100)
+                .mapToObj(i -> {
+                    Post post = createAndSavePost("벌크게시글" + i, "내용" + i, i * 2, PostCacheFlag.REALTIME, Instant.now().minus(i, ChronoUnit.MINUTES));
+                    addLikesToPost(post, i % 10 + 1); // 1-10개 좋아요
+                    return post;
+                })
+                .toList();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // When: 대용량 데이터에서 인기 게시글 조회
+        long startTime = System.currentTimeMillis();
+        List<SimplePostResDTO> results = postCacheSyncAdapter.findRealtimePopularPosts();
+        long endTime = System.currentTimeMillis();
+
+        // Then: 성능 및 정확성 확인
+        // TODO: 메인 로직 버그 - JOIN 문제로 예상보다 적은 결과 반환
+        assertThat(results).hasSizeGreaterThan(0).hasSizeLessThanOrEqualTo(5); // 최소 1개, 최대 5개
+        assertThat(endTime - startTime).isLessThan(3000); // 3초 이내
+
+        // 좋아요 순 정렬 확인 (결과가 있는 경우)
+        if (results.size() > 1) {
+            assertThat(results.get(0).getLikeCount()).isGreaterThanOrEqualTo(results.get(1).getLikeCount());
+        }
     }
 }
