@@ -47,7 +47,7 @@ class PostInteractionServiceTest {
     private PostLikeQueryPort postLikeQueryPort;
 
     @Mock
-    private UserLoadPort userLoadPort;
+    private LoadUserInfoPort loadUserInfoPort;
 
     @Mock
     private User user;
@@ -65,7 +65,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
@@ -73,7 +73,7 @@ class PostInteractionServiceTest {
         postInteractionService.likePost(userId, postId);
 
         // Then
-        verify(userLoadPort).getReferenceById(userId);
+        verify(loadUserInfoPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         
@@ -96,7 +96,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
@@ -104,7 +104,7 @@ class PostInteractionServiceTest {
         postInteractionService.likePost(userId, postId);
 
         // Then
-        verify(userLoadPort).getReferenceById(userId);
+        verify(loadUserInfoPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         
@@ -122,7 +122,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 999L;
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
@@ -130,7 +130,7 @@ class PostInteractionServiceTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(userLoadPort).getReferenceById(userId);
+        verify(loadUserInfoPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         
         // 추천 관련 작업은 수행되지 않음
@@ -147,14 +147,14 @@ class PostInteractionServiceTest {
         Long postId = 123L;
 
         doThrow(new IllegalArgumentException("User ID cannot be null"))
-                .when(userLoadPort).getReferenceById(userId);
+                .when(loadUserInfoPort).getReferenceById(userId);
 
         // When & Then
         assertThatThrownBy(() -> postInteractionService.likePost(userId, postId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("User ID cannot be null");
 
-        verify(userLoadPort).getReferenceById(userId);
+        verify(loadUserInfoPort).getReferenceById(userId);
         verifyNoInteractions(postQueryPort, postLikeQueryPort, postLikeCommandPort);
     }
 
@@ -214,7 +214,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         
         // 첫 번째 호출: 추천 안됨 -> 추천 추가
@@ -229,7 +229,7 @@ class PostInteractionServiceTest {
         postInteractionService.likePost(userId, postId);
 
         // Then
-        verify(userLoadPort, times(2)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(2)).getReferenceById(userId);
         verify(postQueryPort, times(2)).findById(postId);
         verify(postLikeQueryPort, times(2)).existsByUserAndPost(user, post);
         
@@ -249,8 +249,8 @@ class PostInteractionServiceTest {
         User user1 = mock(User.class);
         User user2 = mock(User.class);
 
-        given(userLoadPort.getReferenceById(userId1)).willReturn(user1);
-        given(userLoadPort.getReferenceById(userId2)).willReturn(user2);
+        given(loadUserInfoPort.getReferenceById(userId1)).willReturn(user1);
+        given(loadUserInfoPort.getReferenceById(userId2)).willReturn(user2);
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.existsByUserAndPost(user1, post)).willReturn(false);
         given(postLikeQueryPort.existsByUserAndPost(user2, post)).willReturn(false);
@@ -260,8 +260,8 @@ class PostInteractionServiceTest {
         postInteractionService.likePost(userId2, postId);
 
         // Then
-        verify(userLoadPort).getReferenceById(userId1);
-        verify(userLoadPort).getReferenceById(userId2);
+        verify(loadUserInfoPort).getReferenceById(userId1);
+        verify(loadUserInfoPort).getReferenceById(userId2);
         verify(postQueryPort, times(2)).findById(postId);
         verify(postLikeCommandPort, times(2)).save(any(PostLike.class));
     }
@@ -296,7 +296,7 @@ class PostInteractionServiceTest {
         int threadCount = 100;
         int operationsPerThread = 10;
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
@@ -306,7 +306,7 @@ class PostInteractionServiceTest {
         }
 
         // Then
-        verify(userLoadPort, times(threadCount * operationsPerThread)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(threadCount * operationsPerThread)).getReferenceById(userId);
         verify(postQueryPort, times(threadCount * operationsPerThread)).findById(postId);
     }
 
@@ -317,7 +317,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
@@ -326,7 +326,7 @@ class PostInteractionServiceTest {
         postInteractionService.incrementViewCount(postId);
 
         // Then - 모든 포트 메서드가 트랜잭션 내에서 호출됨
-        verify(userLoadPort).getReferenceById(userId);
+        verify(loadUserInfoPort).getReferenceById(userId);
         verify(postQueryPort, times(2)).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         verify(postLikeCommandPort).save(any(PostLike.class));
@@ -340,7 +340,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
         doThrow(new RuntimeException("DB 오류")).when(postLikeCommandPort).save(any());
@@ -351,7 +351,7 @@ class PostInteractionServiceTest {
                 .hasMessage("DB 오류");
 
         // 예외 발생 전까지의 호출만 확인
-        verify(userLoadPort).getReferenceById(userId);
+        verify(loadUserInfoPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         verify(postLikeCommandPort).save(any(PostLike.class));

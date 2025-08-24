@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
-import jaeik.growfarm.domain.post.application.port.out.UserLoadPort;
+import jaeik.growfarm.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -35,7 +35,7 @@ public class PostCommandService implements PostCommandUseCase {
 
     private final PostCommandPort postCommandPort;
     private final PostQueryPort postQueryPort;
-    private final UserLoadPort userLoadPort;
+    private final LoadUserInfoPort loadUserInfoPort;
     private final ApplicationEventPublisher eventPublisher;
     private final PostCacheCommandPort postCacheCommandPort;
 
@@ -56,7 +56,7 @@ public class PostCommandService implements PostCommandUseCase {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         
-        User user = userLoadPort.getReferenceById(userId);
+        User user = loadUserInfoPort.getReferenceById(userId);
         Post newPost = Post.createPost(user, postReqDTO);
         Post savedPost = postCommandPort.save(newPost);
         return savedPost.getId();

@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.post.application.service;
 
 import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.growfarm.domain.post.application.port.out.*;
-import jaeik.growfarm.domain.post.application.port.out.UserLoadPort;
+import jaeik.growfarm.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostLike;
 import jaeik.growfarm.domain.user.entity.User;
@@ -30,7 +30,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     private final PostQueryPort postQueryPort;
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostLikeQueryPort postLikeQueryPort;
-    private final UserLoadPort userLoadPort;
+    private final LoadUserInfoPort loadUserInfoPort;
 
     /**
      * <h3>게시글 추천</h3>
@@ -45,7 +45,7 @@ public class PostInteractionService implements PostInteractionUseCase {
      */
     @Override
     public void likePost(Long userId, Long postId) {
-        User user = userLoadPort.getReferenceById(userId);
+        User user = loadUserInfoPort.getReferenceById(userId);
         Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 

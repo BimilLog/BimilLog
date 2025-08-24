@@ -73,7 +73,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "jaeik.growfarm.domain.notification.entity",
         "jaeik.growfarm.domain.common.entity"
 })
-@Import({UserAdapterLoad.class, UserAdapterLoadTest.TestUserQueryUseCase.class})
+@Import({LoadUserInfoAdapter.class, UserAdapterLoadTest.TestUserQueryUseCase.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create",
@@ -174,7 +174,7 @@ class UserAdapterLoadTest {
     }
 
     @Autowired
-    private UserAdapterLoad userAdapterLoad;
+    private LoadUserInfoAdapter loadUserInfoAdapter;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -215,7 +215,7 @@ class UserAdapterLoadTest {
     @DisplayName("정상 케이스 - ID로 사용자 프록시 조회 성공")
     void shouldReturnUserProxy_WhenValidUserIdProvided() {
         // When: 실제 사용자 ID로 프록시 조회
-        User resultUser = userAdapterLoad.getReferenceById(testUser.getId());
+        User resultUser = loadUserInfoAdapter.getReferenceById(testUser.getId());
 
         // Then: JPA 프록시 객체 반환 확인
         assertThat(resultUser).isNotNull();
@@ -254,7 +254,7 @@ class UserAdapterLoadTest {
 
         // When: getReferenceById 성능 테스트
         long startTime = System.currentTimeMillis();
-        User proxyUser = userAdapterLoad.getReferenceById(targetUserId);
+        User proxyUser = loadUserInfoAdapter.getReferenceById(targetUserId);
         long proxyTime = System.currentTimeMillis() - startTime;
         
         // getReferenceById는 즉시 실행되어야 함 (DB 조회 없이 프록시 생성)
@@ -274,7 +274,7 @@ class UserAdapterLoadTest {
         Long nonExistentUserId = 99999L;
 
         // When: 존재하지 않는 ID로 프록시 조회
-        User proxyUser = userAdapterLoad.getReferenceById(nonExistentUserId);
+        User proxyUser = loadUserInfoAdapter.getReferenceById(nonExistentUserId);
         
         // Then: 프록시는 생성되지만 Lazy Loading 시 예외 발생
         assertThat(proxyUser).isNotNull(); // 프록시는 생성됨
@@ -291,7 +291,7 @@ class UserAdapterLoadTest {
     void shouldThrowException_WhenNullUserIdProvided() {
         // When & Then: null ID로 프록시 조회 시 예외 발생
         assertThatThrownBy(() -> {
-            userAdapterLoad.getReferenceById(null);
+            loadUserInfoAdapter.getReferenceById(null);
         }).isInstanceOf(IllegalArgumentException.class)
           .hasMessage("User ID cannot be null");
     }
@@ -300,7 +300,7 @@ class UserAdapterLoadTest {
     @DisplayName("JPA 프록시 - 실제 데이터 Lazy Loading 검증")
     void shouldLazyLoadData_WhenAccessingProxyFields() {
         // When: 프록시 생성 (영속성 컨텍스트 유지)
-        User proxyUser = userAdapterLoad.getReferenceById(testUser.getId());
+        User proxyUser = loadUserInfoAdapter.getReferenceById(testUser.getId());
         
         // Then: 같은 트랜잭션 내에서 Lazy Loading 가능
         assertThat(proxyUser.getId()).isEqualTo(testUser.getId()); // ID는 즉시 사용 가능
@@ -325,7 +325,7 @@ class UserAdapterLoadTest {
         Long userId = testUser.getId();
         
         // When: UserAdapterLoad를 통해 Post -> User 도메인 연결
-        User userReference = userAdapterLoad.getReferenceById(userId);
+        User userReference = loadUserInfoAdapter.getReferenceById(userId);
         
         // Then: 도메인 간 결합도 확인
         // 1. User 도메인의 UseCase를 통한 연결
@@ -347,7 +347,7 @@ class UserAdapterLoadTest {
 
         // When: 동일 스레드에서 순차적 프록시 요청 (동시성 시뮬레이션)
         List<User> results = IntStream.range(0, 5)
-                .mapToObj(i -> userAdapterLoad.getReferenceById(userId))
+                .mapToObj(i -> loadUserInfoAdapter.getReferenceById(userId))
                 .toList();
 
         // Then: 모든 요청이 성공적으로 프록시 반환
@@ -367,7 +367,7 @@ class UserAdapterLoadTest {
     @DisplayName("트랜잭션 경계 - 프록시 ID 접근은 트랜잭션 경계와 무관")
     void shouldWorkAcrossTransactions_WhenUsingProxyInDifferentTransactions() {
         // Given: 어댱터를 통해 프록시 생성
-        User proxyUser = userAdapterLoad.getReferenceById(testUser.getId());
+        User proxyUser = loadUserInfoAdapter.getReferenceById(testUser.getId());
         
         // 영속성 컨텍스트 분리 (트랜잭션 경계 시뮤레이션)
         entityManager.flush();
@@ -400,7 +400,7 @@ class UserAdapterLoadTest {
         Long userId = testUser.getId();
         
         // When: 정상 상황에서의 프록시 생성 (오류 상황 시뮤레이션 어려움)
-        User proxyUser = userAdapterLoad.getReferenceById(userId);
+        User proxyUser = loadUserInfoAdapter.getReferenceById(userId);
         
         // Then: 기본적인 오류 처리는 JPA 레벨에서 처리됨
         assertThat(proxyUser).isNotNull();
@@ -416,7 +416,7 @@ class UserAdapterLoadTest {
         Long userId = testUser.getId();
         
         // When: 어댑터를 통한 도메인 간 연결
-        User userFromAdapter = userAdapterLoad.getReferenceById(userId);
+        User userFromAdapter = loadUserInfoAdapter.getReferenceById(userId);
         
         // Then: 아키텍처 경계 준수 확인
         // 1. Post 도메인은 User 도메인의 구현에 의존하지 않음

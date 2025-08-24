@@ -2,6 +2,7 @@ package jaeik.growfarm.infrastructure.adapter.user.in.web;
 
 import jaeik.growfarm.domain.user.application.port.in.SettingQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.growfarm.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserQueryController {
 
     private final UserQueryUseCase userQueryUseCase;
+    private final UserActivityUseCase userActivityUseCase;
     private final SettingQueryUseCase settingQueryUseCase;
     private final UserIntegrationUseCase userIntegrationUseCase;
 
@@ -83,7 +85,7 @@ public class UserQueryController {
                                                               @RequestParam int size,
                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimplePostResDTO> postList = userQueryUseCase.getUserPosts(userDetails.getUserId(), pageable);
+        Page<SimplePostResDTO> postList = userActivityUseCase.getUserPosts(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(postList);
     }
 
@@ -103,7 +105,7 @@ public class UserQueryController {
                                                                    @RequestParam int size,
                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimplePostResDTO> likedPosts = userQueryUseCase.getUserLikedPosts(userDetails.getUserId(), pageable);
+        Page<SimplePostResDTO> likedPosts = userActivityUseCase.getUserLikedPosts(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(likedPosts);
     }
 
@@ -123,7 +125,7 @@ public class UserQueryController {
                                                                  @RequestParam int size,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentDTO> commentList = userQueryUseCase.getUserComments(userDetails.getUserId(), pageable);
+        Page<SimpleCommentDTO> commentList = userActivityUseCase.getUserComments(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(commentList);
     }
 
@@ -143,7 +145,7 @@ public class UserQueryController {
                                                                       @RequestParam int size,
                                                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentDTO> likedComments = userQueryUseCase.getUserLikedComments(userDetails.getUserId(), pageable);
+        Page<SimpleCommentDTO> likedComments = userActivityUseCase.getUserLikedComments(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(likedComments);
     }
 

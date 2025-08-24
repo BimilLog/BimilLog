@@ -48,7 +48,7 @@ class PostQueryServiceTest {
     private PostLikeQueryPort postLikeQueryPort;
 
     @Mock
-    private UserLoadPort userLoadPort;
+    private LoadUserInfoPort loadUserInfoPort;
 
     @Mock
     private PostCacheSyncService postCacheSyncService;
@@ -117,7 +117,7 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.getCachedPostList(any())).willReturn(Collections.emptyList());
         
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postLikeQueryPort.countByPost(post)).willReturn(5L);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
@@ -127,7 +127,7 @@ class PostQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         verify(postQueryPort).findById(postId);
-        verify(userLoadPort).getReferenceById(userId);
+        verify(loadUserInfoPort).getReferenceById(userId);
         verify(postLikeQueryPort).countByPost(post);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
     }
@@ -149,7 +149,7 @@ class PostQueryServiceTest {
         
         // 좋아요 정보만 추가 확인
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
         // When
@@ -180,7 +180,7 @@ class PostQueryServiceTest {
         
         // DB에서 조회
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postLikeQueryPort.countByPost(post)).willReturn(3L);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
@@ -216,7 +216,7 @@ class PostQueryServiceTest {
         assertThat(result).isNotNull();
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).countByPost(post);
-        verify(userLoadPort, never()).getReferenceById(any());
+        verify(loadUserInfoPort, never()).getReferenceById(any());
         verify(postLikeQueryPort, never()).existsByUserAndPost(any(), any());
     }
 

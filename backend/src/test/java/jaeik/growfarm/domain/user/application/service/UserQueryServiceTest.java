@@ -1,14 +1,10 @@
 package jaeik.growfarm.domain.user.application.service;
 
-import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
-import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,10 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -45,11 +37,6 @@ class UserQueryServiceTest {
     @Mock
     private UserQueryPort userQueryPort;
     
-    @Mock
-    private LoadPostPort loadPostPort;
-    
-    @Mock
-    private LoadCommentPort loadCommentPort;
     
     @Mock
     private TokenPort tokenPort;
@@ -216,120 +203,6 @@ class UserQueryServiceTest {
         assertThat(result).isEmpty();
     }
 
-    @Test
-    @DisplayName("사용자 작성 게시글 목록 조회 - 정상 케이스")
-    void shouldGetUserPosts_WhenValidUserId() {
-        // Given
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-        
-        List<SimplePostResDTO> posts = Arrays.asList(
-                SimplePostResDTO.builder()
-                        .id(1L)
-                        .title("게시글 1")
-                        .content("내용 1")
-                        .createdAt(Instant.now())
-                        .build(),
-                SimplePostResDTO.builder()
-                        .id(2L)
-                        .title("게시글 2")
-                        .content("내용 2")
-                        .createdAt(Instant.now())
-                        .build()
-        );
-        
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(posts, pageable, posts.size());
-
-        given(loadPostPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
-
-        // When
-        Page<SimplePostResDTO> result = userQueryService.getUserPosts(userId, pageable);
-
-        // Then
-        verify(loadPostPort).findPostsByUserId(userId, pageable);
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("게시글 1");
-        assertThat(result.getContent().get(1).getTitle()).isEqualTo("게시글 2");
-    }
-
-    @Test
-    @DisplayName("사용자 추천한 게시글 목록 조회 - 정상 케이스")
-    void shouldGetUserLikedPosts_WhenValidUserId() {
-        // Given
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-        
-        List<SimplePostResDTO> likedPosts = Arrays.asList(
-                SimplePostResDTO.builder()
-                        .id(3L)
-                        .title("추천한 게시글 1")
-                        .content("내용 3")
-                        .createdAt(Instant.now())
-                        .build()
-        );
-        
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(likedPosts, pageable, likedPosts.size());
-
-        given(loadPostPort.findLikedPostsByUserId(userId, pageable)).willReturn(expectedPage);
-
-        // When
-        Page<SimplePostResDTO> result = userQueryService.getUserLikedPosts(userId, pageable);
-
-        // Then
-        verify(loadPostPort).findLikedPostsByUserId(userId, pageable);
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("추천한 게시글 1");
-    }
-
-    @Test
-    @DisplayName("사용자 작성 댓글 목록 조회 - 정상 케이스")
-    void shouldGetUserComments_WhenValidUserId() {
-        // Given
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-        
-        List<SimpleCommentDTO> comments = Arrays.asList(
-                new SimpleCommentDTO(1L, 1L, "testUser", "댓글 1", Instant.now(), 0, false),
-                new SimpleCommentDTO(2L, 1L, "testUser", "댓글 2", Instant.now(), 0, false)
-        );
-        
-        Page<SimpleCommentDTO> expectedPage = new PageImpl<>(comments, pageable, comments.size());
-
-        given(loadCommentPort.findCommentsByUserId(userId, pageable)).willReturn(expectedPage);
-
-        // When
-        Page<SimpleCommentDTO> result = userQueryService.getUserComments(userId, pageable);
-
-        // Then
-        verify(loadCommentPort).findCommentsByUserId(userId, pageable);
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getContent()).isEqualTo("댓글 1");
-        assertThat(result.getContent().get(1).getContent()).isEqualTo("댓글 2");
-    }
-
-    @Test
-    @DisplayName("사용자 추천한 댓글 목록 조회 - 정상 케이스")
-    void shouldGetUserLikedComments_WhenValidUserId() {
-        // Given
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-        
-        List<SimpleCommentDTO> likedComments = Arrays.asList(
-                new SimpleCommentDTO(3L, 1L, "testUser", "추천한 댓글 1", Instant.now(), 0, false)
-        );
-        
-        Page<SimpleCommentDTO> expectedPage = new PageImpl<>(likedComments, pageable, likedComments.size());
-
-        given(loadCommentPort.findLikedCommentsByUserId(userId, pageable)).willReturn(expectedPage);
-
-        // When
-        Page<SimpleCommentDTO> result = userQueryService.getUserLikedComments(userId, pageable);
-
-        // Then
-        verify(loadCommentPort).findLikedCommentsByUserId(userId, pageable);
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getContent()).isEqualTo("추천한 댓글 1");
-    }
 
     @Test
     @DisplayName("ID로 사용자 프록시 조회 - 정상 케이스")
@@ -374,43 +247,6 @@ class UserQueryServiceTest {
         assertThat(result.get().getRefreshToken()).isEqualTo("refresh_token");
     }
 
-    @Test
-    @DisplayName("빈 게시글 목록 조회")
-    void shouldReturnEmptyPage_WhenNoUserPosts() {
-        // Given
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
-
-        given(loadPostPort.findPostsByUserId(userId, pageable)).willReturn(emptyPage);
-
-        // When
-        Page<SimplePostResDTO> result = userQueryService.getUserPosts(userId, pageable);
-
-        // Then
-        verify(loadPostPort).findPostsByUserId(userId, pageable);
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("빈 댓글 목록 조회")
-    void shouldReturnEmptyPage_WhenNoUserComments() {
-        // Given
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<SimpleCommentDTO> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
-
-        given(loadCommentPort.findCommentsByUserId(userId, pageable)).willReturn(emptyPage);
-
-        // When
-        Page<SimpleCommentDTO> result = userQueryService.getUserComments(userId, pageable);
-
-        // Then
-        verify(loadCommentPort).findCommentsByUserId(userId, pageable);
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
-    }
 
     @Test
     @DisplayName("모든 소셜 제공자에 대한 사용자 조회")

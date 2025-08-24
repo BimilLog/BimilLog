@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.post.application.service;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
-import jaeik.growfarm.domain.post.application.port.out.UserLoadPort;
+import jaeik.growfarm.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.event.PostDeletedEvent;
 import jaeik.growfarm.domain.user.entity.User;
@@ -46,7 +46,7 @@ class PostCommandServiceTest {
     private PostQueryPort postQueryPort;
 
     @Mock
-    private UserLoadPort userLoadPort;
+    private LoadUserInfoPort loadUserInfoPort;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -74,7 +74,7 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
@@ -84,9 +84,9 @@ class PostCommandServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedPostId);
 
-        verify(userLoadPort, times(1)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, times(1)).save(any(Post.class));
-        verifyNoMoreInteractions(userLoadPort, postCommandPort);
+        verifyNoMoreInteractions(loadUserInfoPort, postCommandPort);
     }
 
     @Test
@@ -236,7 +236,7 @@ class PostCommandServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
 
         // null 검증이 먼저 실행되므로 userLoadPort는 호출되지 않음
-        verify(userLoadPort, never()).getReferenceById(any());
+        verify(loadUserInfoPort, never()).getReferenceById(any());
         verify(postCommandPort, never()).save(any());
     }
 
@@ -298,7 +298,7 @@ class PostCommandServiceTest {
         postReqDTO.setTitle("");
         postReqDTO.setContent("");
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
@@ -308,7 +308,7 @@ class PostCommandServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedPostId);
 
-        verify(userLoadPort, times(1)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, times(1)).save(any(Post.class));
     }
 
@@ -322,14 +322,14 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(userLoadPort.getReferenceById(userId)).willThrow(new IllegalArgumentException("User ID cannot be null"));
+        given(loadUserInfoPort.getReferenceById(userId)).willThrow(new IllegalArgumentException("User ID cannot be null"));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("User ID cannot be null");
 
-        verify(userLoadPort, times(1)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, never()).save(any());
     }
 
@@ -343,14 +343,14 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(userLoadPort.getReferenceById(userId)).willThrow(new RuntimeException("User not found"));
+        given(loadUserInfoPort.getReferenceById(userId)).willThrow(new RuntimeException("User not found"));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("User not found");
 
-        verify(userLoadPort, times(1)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, never()).save(any());
     }
 
@@ -364,7 +364,7 @@ class PostCommandServiceTest {
         postReqDTO.setTitle("A".repeat(255)); // 긴 제목
         postReqDTO.setContent("B".repeat(5000)); // 긴 내용
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
@@ -374,7 +374,7 @@ class PostCommandServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedPostId);
 
-        verify(userLoadPort, times(1)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, times(1)).save(any(Post.class));
     }
 
@@ -469,14 +469,14 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(userLoadPort.getReferenceById(userId)).willThrow(new RuntimeException("Invalid user ID"));
+        given(loadUserInfoPort.getReferenceById(userId)).willThrow(new RuntimeException("Invalid user ID"));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Invalid user ID");
 
-        verify(userLoadPort, times(1)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, never()).save(any());
     }
 
@@ -528,7 +528,7 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
@@ -538,7 +538,7 @@ class PostCommandServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedPostId);
 
-        verify(userLoadPort, times(1)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, times(1)).save(any(Post.class));
     }
 
@@ -623,7 +623,7 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long[] expectedPostIds = {100L, 200L, 300L};
         
-        given(userLoadPort.getReferenceById(userId)).willReturn(user);
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         
         for (int i = 0; i < expectedPostIds.length; i++) {
             PostReqDTO postReqDTO = new PostReqDTO();
@@ -641,7 +641,7 @@ class PostCommandServiceTest {
             assertThat(result).isEqualTo(expectedPostIds[i]);
         }
         
-        verify(userLoadPort, times(expectedPostIds.length)).getReferenceById(userId);
+        verify(loadUserInfoPort, times(expectedPostIds.length)).getReferenceById(userId);
         verify(postCommandPort, times(expectedPostIds.length)).save(any(Post.class));
     }
 
