@@ -440,7 +440,7 @@ class UserAdapterTest {
     }
 
     @Test
-    @DisplayName("헥사고널 아키텍처 - 어댑터 위임 패턴 확인")
+    @DisplayName("헥사고날 아키텍처 - 어댑터 위임 패턴 확인")
     void shouldFollowAdapterPattern_InHexagonalArchitecture() {
         // Given: Hexagonal Architecture에서의 어댑터 역할
         String userName = "testUser";

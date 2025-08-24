@@ -70,6 +70,8 @@ dependencies {
     // ==== TestContainers (실제 DB 테스트) ====
     testImplementation 'org.testcontainers:junit-jupiter:1.19.3' // TestContainers JUnit 지원
     testImplementation 'org.testcontainers:mysql:1.19.3' // MySQL TestContainer
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+
 
     // ==== 알림 관련 ====
     implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
