@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>FULLTEXT 인덱스 생성이 정상적으로 실행되는지 확인합니다.</p>
  * <p>컨테이너 내부에서 직접 인덱스 존재 여부를 확인하여 정확성을 높입니다.</p>
  * @author Jaeik
- * @version 2.1.0
+ * @version 2.0.0
  */
 @SpringBootTest
 @Testcontainers
@@ -39,8 +39,7 @@ class DatabaseInitializerIntegrationTest {
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
             .withDatabaseName("testdb")
             .withUsername("test")
-            .withPassword("test")
-            .withEnv("MYSQL_INITDB_SKIP_TZINFO", "true");
+            .withPassword("test");
 
     @DynamicPropertySource
     static void dynamicProperties(DynamicPropertyRegistry registry) {
@@ -128,27 +127,6 @@ class DatabaseInitializerIntegrationTest {
     }
 
     /**
-     * 인덱스 존재 여부를 확인합니다. (EntityManager 사용)
-     * 이 메서드는 DatabaseInitializer 내부 로직에서 사용되는 것과 동일합니다.
-     */
-    private boolean checkIndexExists(String tableName, String indexName) {
-        try {
-            Long count = (Long) entityManager.createNativeQuery(
-                            "SELECT COUNT(*) FROM information_schema.statistics " +
-                                    "WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ?"
-                    )
-                    .setParameter(1, tableName)
-                    .setParameter(2, indexName)
-                    .getSingleResult();
-
-            return count > 0;
-        } catch (Exception e) {
-            System.err.println("인덱스 존재 여부 확인 중 오류 (EntityManager): " + e.getMessage());
-            return false;
-        }
-    }
-
-    /**
      * 컨테이너 내부에서 직접 MySQL 명령어를 실행하여 인덱스 존재 여부를 확인합니다.
      */
     private boolean checkIndexExistsInContainer(String tableName, String indexName) throws IOException, InterruptedException {
@@ -197,6 +175,7 @@ class DatabaseInitializerIntegrationTest {
             String command = String.format("mysql -u %s -p%s %s -e \"ALTER TABLE %s DROP INDEX %s;\"",
                     mysql.getUsername(), mysql.getPassword(), mysql.getDatabaseName(), tableName, indexName);
             org.testcontainers.containers.Container.ExecResult execResult = mysql.execInContainer("/bin/bash", "-c", command);
+
 
             if (execResult.getExitCode() == 0) {
                 System.out.println("컨테이너 인덱스 삭제 완료: " + indexName);
