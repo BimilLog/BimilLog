@@ -10,7 +10,6 @@ import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jakarta.persistence.EntityManager;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +22,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -58,12 +59,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 class PostLikeQueryAdapterTest {
 
-    public static final DockerImageName MYSQL_IMAGE = DockerImageName.parse("mysql:8.0");
+    @Container
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
 
-    @ClassRule
-    public static GenericContainer<?> mysql = new GenericContainer<>(MYSQL_IMAGE)
-            .withExposedPorts(3309);
-
+    @DynamicPropertySource
+    static void dynamicProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+        registry.add("spring.datasource.username", mysql::getUsername);
+        registry.add("spring.datasource.password", mysql::getPassword);
+    }
 
     @TestConfiguration
     static class TestConfig {

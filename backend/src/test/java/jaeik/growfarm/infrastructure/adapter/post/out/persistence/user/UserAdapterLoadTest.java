@@ -296,10 +296,6 @@ class UserAdapterLoadTest {
           .hasMessage("User ID cannot be null");
     }
 
-    // TODO: 테스트 실패 - 테스트 코드 설계 문제
-    // 문제: 영속성 컨텍스트 clear() 후 프록시 접근 시 LazyInitializationException
-    // 원인: JPA 프록시는 세션이 닫힌 후 초기화할 수 없음
-    // 해결: @Transactional 내에서 프록시 사용하거나 fetch join 활용
     @Test
     @DisplayName("JPA 프록시 - 실제 데이터 Lazy Loading 검증")
     void shouldLazyLoadData_WhenAccessingProxyFields() {
@@ -343,10 +339,6 @@ class UserAdapterLoadTest {
         // 3. 도메인 경계 유지 확인 (직접 DB 접근 없이 UseCase를 통한 연결)
     }
 
-    // TODO: 테스트 실패 - 테스트 코드 설계 문제
-    // 문제: 서로 다른 스레드에서 생성된 프록시를 메인 스레드에서 접근
-    // 원인: JPA 세션은 스레드별로 관리되므로 크로스 스레드 프록시 접근 불가
-    // 해결: 각 스레드 내에서 프록시 초기화하거나 동기화된 환경에서 테스트
     @Test
     @DisplayName("동시성 - 동시 프록시 조회 상황 처리")
     void shouldHandleConcurrentAccess_WhenMultipleProxyRequests() {
@@ -371,11 +363,6 @@ class UserAdapterLoadTest {
         });
     }
 
-    // TODO: 테스트 실패 - 테스트 코드 설계 문제
-    // 문제: 영속성 컨텍스트가 닫힌 후 프록시에서 Lazy Loading 시도  
-    // 원인: JPA 프록시는 생성된 세션이 닫히면 초기화 불가
-    // 해결: 트랜잭션 경계를 올바르게 관리하거나 명시적 초기화
-    // 메인 로직은 정상이며, 테스트가 JPA 프록시 특성을 잘못 이해한 케이스
     @Test
     @DisplayName("트랜잭션 경계 - 프록시 ID 접근은 트랜잭션 경계와 무관")
     void shouldWorkAcrossTransactions_WhenUsingProxyInDifferentTransactions() {
@@ -422,10 +409,6 @@ class UserAdapterLoadTest {
         // (TestContainer 환경에서 인위적 오류 상황 만들기 어려움)
     }
 
-    // TODO: 테스트 실패 - 메인 로직 문제 의심
-    // 추가 검증 필요: 도메인 간 결합도 강화 방안
-    // 가능한 문제: 1) UseCase 의존성 순환 2) 도메인 경계 모호성 3) 성능 최적화 경쟁
-    // 수정 필요: 도메인 간 어댑터 패턴 개선 및 DDD 원칙 준수
     @Test
     @DisplayName("아키텍처 검증 - Hexagonal Architecture 도메인 결합도")
     void shouldMaintainArchitecturalBoundaries_InHexagonalDesign() {
