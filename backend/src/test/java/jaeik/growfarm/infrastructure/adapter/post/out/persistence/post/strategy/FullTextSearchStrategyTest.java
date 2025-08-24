@@ -108,7 +108,6 @@ class FullTextSearchStrategyTest {
     private User testUser;
     private Post testPost1;
     private Post testPost2;
-    private Post testPost3;
 
     @BeforeEach
     void setUp() {
@@ -161,7 +160,7 @@ class FullTextSearchStrategyTest {
 
         testPost1 = createTestPost("스프링부트 테스트 가이드", "JUnit과 TestContainers를 활용한 테스트 방법을 설명합니다.");
         testPost2 = createTestPost("MySQL 풀텍스트 검색", "ngram 파서를 사용한 한국어 검색 최적화 방법입니다.");
-        testPost3 = createTestPost("짧은제목", "간단한 내용입니다.");
+        Post testPost3 = createTestPost("짧은제목", "간단한 내용입니다.");
     }
 
     /**
