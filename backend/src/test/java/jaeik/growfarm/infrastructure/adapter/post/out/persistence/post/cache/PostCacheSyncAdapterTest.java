@@ -1,6 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.cache;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.GrowfarmApplication;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -13,31 +12,20 @@ import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike.PostLikeJpaRepository;
-import jakarta.persistence.EntityManager;
+import jaeik.growfarm.util.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.*;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
@@ -63,20 +51,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
         )
 )
 @Testcontainers
-@EntityScan(basePackages = {
-        "jaeik.growfarm.domain.user.entity",
-        "jaeik.growfarm.domain.post.entity",
-        "jaeik.growfarm.domain.comment.entity",
-        "jaeik.growfarm.domain.common.entity"
-})
-@EnableJpaRepositories(basePackages = {
-        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post",
-        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike",
-        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.user",
-        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment"
-})
-@Import({PostCacheSyncAdapter.class, PostCacheSyncAdapterTest.TestConfig.class})
-@ActiveProfiles("test")
+//@EntityScan(basePackages = {
+//        "jaeik.growfarm.domain.user.entity",
+//        "jaeik.growfarm.domain.post.entity",
+//        "jaeik.growfarm.domain.comment.entity",
+//        "jaeik.growfarm.domain.common.entity"
+//})
+//@EnableJpaRepositories(basePackages = {
+//        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post",
+//        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike",
+//        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.user",
+//        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment"
+//})
+@Import({PostCacheSyncAdapter.class, TestContainersConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create",
@@ -84,60 +71,60 @@ import static org.junit.jupiter.api.Assertions.assertNull;
         "logging.level.org.springframework.transaction=DEBUG"
 })
 class PostCacheSyncAdapterTest {
+//
+//    @Container
+//    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+//            .withDatabaseName("testdb")
+//            .withUsername("test")
+//            .withPassword("test");
+//
+//    @Container
+//    static GenericContainer<?> redis = new GenericContainer<>("redis:latest")
+//            .withExposedPorts(6379)
+//            .withReuse(true);
+//
+//    @DynamicPropertySource
+//    static void dynamicProperties(DynamicPropertyRegistry registry) {
+//        // MySQL 설정
+//        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+//        registry.add("spring.datasource.username", mysql::getUsername);
+//        registry.add("spring.datasource.password", mysql::getPassword);
+//        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
+//
+//        // Redis 설정
+//        registry.add("spring.data.redis.host", redis::getHost);
+//        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+//    }
 
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
+//    @TestConfiguration
+//    static class TestConfig {
+//
+//        @Bean
+//        @Primary
+//        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+//            return new JPAQueryFactory(entityManager);
+//        }
 
-    @Container
-    static GenericContainer<?> redis = new GenericContainer<>("redis:latest")
-            .withExposedPorts(6379)
-            .withReuse(true);
+//        @Bean
+//        public RedisConnectionFactory redisConnectionFactory() {
+//            LettuceConnectionFactory factory = new LettuceConnectionFactory(
+//                redis.getHost(), redis.getMappedPort(6379)
+//            );
+//            factory.setValidateConnection(true);
+//            factory.afterPropertiesSet();
+//            return factory;
+//        }
 
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        // MySQL 설정
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
-        
-        // Redis 설정
-        registry.add("spring.data.redis.host", redis::getHost);
-        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        
-        @Bean
-        @Primary
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
-        }
-
-        @Bean
-        public RedisConnectionFactory redisConnectionFactory() {
-            LettuceConnectionFactory factory = new LettuceConnectionFactory(
-                redis.getHost(), redis.getMappedPort(6379)
-            );
-            factory.setValidateConnection(true);
-            factory.afterPropertiesSet();
-            return factory;
-        }
-
-        @Bean
-        public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-            RedisTemplate<String, Object> template = new RedisTemplate<>();
-            template.setConnectionFactory(connectionFactory);
-            template.setKeySerializer(new StringRedisSerializer());
-            template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-            template.afterPropertiesSet();
-            return template;
-        }
-    }
+//        @Bean
+//        public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+//            RedisTemplate<String, Object> template = new RedisTemplate<>();
+//            template.setConnectionFactory(connectionFactory);
+//            template.setKeySerializer(new StringRedisSerializer());
+//            template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+//            template.afterPropertiesSet();
+//            return template;
+//        }
+//    }
 
     @Autowired
     private PostCacheSyncAdapter postCacheSyncAdapter;

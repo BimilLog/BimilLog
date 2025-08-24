@@ -6,6 +6,13 @@ import jakarta.persistence.EntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 
 @TestConfiguration(proxyBeanMethods = false)
@@ -20,27 +27,38 @@ public class TestContainersConfiguration {
                 .withPassword("test");
     }
 
-//    @DynamicPropertySource
-//    static void dynamicProperties(DynamicPropertyRegistry registry) {
-//        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-//        registry.add("spring.datasource.username", mysql::getUsername);
-//        registry.add("spring.datasource.password", mysql::getPassword);
-//    }
+    static GenericContainer<?> redis = new GenericContainer<>("redis:latest")
+            .withExposedPorts(6379)
+            .withReuse(true);
 
+    static {
+        redis.start();
+    }
 
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
-        }
+    @Bean
+    @Primary
+    public RedisConnectionFactory redisConnectionFactory() {
+        return new LettuceConnectionFactory(redis.getHost(), redis.getMappedPort(6379));
+    }
 
-        // EncryptionUtil 빈 정의: MessageEncryptConverter의 의존성을 만족시킵니다.
-        @Bean
-        public EncryptionUtil encryptionUtil() {
-            // 테스트를 위해 간단한 더미 인스턴스를 반환합니다.
-            // 실제 EncryptionUtil이 복잡한 의존성을 가진다면 Mockito.mock(EncryptionUtil.class)를 사용할 수 있습니다.
-            return new EncryptionUtil();
-        }
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    @Bean
+    public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+        return new JPAQueryFactory(entityManager);
+    }
+
+    @Bean
+    public EncryptionUtil encryptionUtil() {
+        return new EncryptionUtil();
     }
 }
+
