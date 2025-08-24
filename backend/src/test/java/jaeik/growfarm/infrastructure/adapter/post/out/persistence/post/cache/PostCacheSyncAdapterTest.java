@@ -36,6 +36,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+// 아래 주석들은 지우지 않음 Claude가 참고할 수 있게 그대로 둘 예정 (MySQL + Redis 컨테이너 재사용 사례)
 /**
  * <h2>PostCacheSyncAdapter 테스트</h2>
  * <p>PostCacheSyncAdapter가 인기 게시글 조회 및 상세 조회 기능을 정확히 수행하는지 테스트합니다.</p>

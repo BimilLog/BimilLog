@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// 아래 주석들은 지우지 않음 Claude가 참고할 수 있게 그대로 둘 예정 (MySQL 컨테이너 재사용 사례)
 /**
  * <h2>CommentClosureQueryAdapter 통합 테스트</h2>
  * <p>실제 MySQL 데이터베이스를 사용한 CommentClosureQueryAdapter의 통합 테스트</p>
