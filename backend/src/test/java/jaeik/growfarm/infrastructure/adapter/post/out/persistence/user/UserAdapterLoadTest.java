@@ -8,8 +8,6 @@ import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,8 +24,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -145,26 +141,6 @@ class UserAdapterLoadTest {
         @Override
         public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
             return Optional.empty();
-        }
-
-        @Override
-        public Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable) {
-            return Page.empty();
-        }
-
-        @Override
-        public Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable) {
-            return Page.empty();
-        }
-
-        @Override
-        public Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
-            return Page.empty();
-        }
-
-        @Override
-        public Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
-            return Page.empty();
         }
 
         @Override

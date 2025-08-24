@@ -147,25 +147,6 @@ class UserAdapterTest {
             return java.util.Optional.empty();
         }
         
-        @Override
-        public org.springframework.data.domain.Page<jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO> getUserPosts(Long userId, org.springframework.data.domain.Pageable pageable) {
-            return org.springframework.data.domain.Page.empty();
-        }
-        
-        @Override
-        public org.springframework.data.domain.Page<jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO> getUserLikedPosts(Long userId, org.springframework.data.domain.Pageable pageable) {
-            return org.springframework.data.domain.Page.empty();
-        }
-        
-        @Override
-        public org.springframework.data.domain.Page<jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO> getUserComments(Long userId, org.springframework.data.domain.Pageable pageable) {
-            return org.springframework.data.domain.Page.empty();
-        }
-        
-        @Override
-        public org.springframework.data.domain.Page<jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO> getUserLikedComments(Long userId, org.springframework.data.domain.Pageable pageable) {
-            return org.springframework.data.domain.Page.empty();
-        }
         
         @Override
         public java.util.Optional<jaeik.growfarm.domain.user.entity.Token> findTokenById(Long tokenId) {
