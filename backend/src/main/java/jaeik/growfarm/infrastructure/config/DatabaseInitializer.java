@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
@@ -16,6 +17,7 @@ public class DatabaseInitializer {
     private final EntityManager entityManager;
 
     @PostConstruct
+    @Transactional
     public void initializeIndexes() {
         try {
             // 'post' 테이블이 생성되었는지 확인 후 인덱스 생성 시도

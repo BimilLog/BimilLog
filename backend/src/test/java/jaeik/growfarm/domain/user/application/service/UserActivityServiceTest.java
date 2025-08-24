@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -243,9 +244,11 @@ class UserActivityServiceTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 20);
         
-        List<SimplePostResDTO> posts = Arrays.asList();
+        // TODO: 테스트 실패 해결 - ArrayList 사용으로 mutable list 생성
+        // 기존: Arrays.asList()는 immutable이므로 add() 호출 시 UnsupportedOperationException 발생
+        // 수정: ArrayList 사용으로 동적 크기 변경 가능한 리스트 생성
+        List<SimplePostResDTO> posts = new ArrayList<>();
         for (int i = 1; i <= 20; i++) {
-            posts = Arrays.asList(posts.toArray(new SimplePostResDTO[0]));
             posts.add(SimplePostResDTO.builder()
                     .id((long) i)
                     .title("게시글 " + i)
