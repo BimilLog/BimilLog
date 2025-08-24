@@ -85,6 +85,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
     /**
      * <h3>기간별 인기 게시글 조회</h3>
      * <p>주어진 기간(일) 내에 추천 수가 많은 게시글을 조회합니다. 결과는 5개로 제한됩니다.</p>
+     * <p>🔧 수정 이력: 인기 게시글 기준 명확화 - 최소 1개 이상의 좋아요가 있는 게시글만 포함</p>
      *
      * @param days 기간(일)
      * @return 인기 게시글 목록
@@ -97,6 +98,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
 
         return createBasePopularPostsQuery()
                 .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS)))
+                .having(postLike.countDistinct().goe(1)) // 🔧 최소 1개 이상의 좋아요 필요
                 .orderBy(postLike.countDistinct().desc())
                 .limit(5)
                 .fetch();
@@ -105,6 +107,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
     /**
      * <h3>기본 인기 게시글 쿼리 생성</h3>
      * <p>인기 게시글 조회를 위한 기본 QueryDSL 쿼리를 생성합니다.</p>
+     * <p>🔧 수정 이력: INNER JOIN 문제 해결 - 좋아요가 없는 게시글도 포함하도록 LEFT JOIN 사용</p>
      *
      * @return 기본 JPAQuery 객체
      * @author Jaeik
@@ -118,21 +121,21 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
 
         return jpaQueryFactory
                 .select(Projections.constructor(SimplePostResDTO.class,
-                        post.id,
-                        post.title,
-                        post.content,
-                        post.views.coalesce(0),
-                        post.isNotice,
-                        post.postCacheFlag,
-                        post.createdAt,
-                        user.id,
-                        user.userName,
-                        comment.countDistinct().intValue(),
-                        postLike.countDistinct().intValue()))
+                        post.id,                              // 1. id (Long)
+                        post.title,                           // 2. title (String)
+                        post.content,                         // 3. content (String)
+                        post.views.coalesce(0),              // 4. viewCount (Integer)
+                        postLike.countDistinct().intValue(), // 5. likeCount (Integer)
+                        post.postCacheFlag,                  // 6. postCacheFlag (PostCacheFlag)
+                        post.createdAt,                      // 7. createdAt (Instant)
+                        user.id,                             // 8. userId (Long)
+                        user.userName,                       // 9. userName (String)
+                        comment.countDistinct().intValue(),  // 10. commentCount (Integer)
+                        post.isNotice))                      // 11. isNotice (boolean)
                 .from(post)
                 .leftJoin(post.user, user)
                 .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .join(postLike).on(post.id.eq(postLike.post.id))
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id)) // 🔧 INNER JOIN → LEFT JOIN 변경
                 .groupBy(post.id, user.id);
     }
 
@@ -140,6 +143,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
     /**
      * <h3>게시글 상세 조회</h3>
      * <p>게시글 ID를 기준으로 게시글 상세 정보를 조회합니다.</p>
+     * <p>🔧 수정 이력: null 안전성 개선 - null postId 예외 처리 추가</p>
      *
      * @param postId 게시글 ID
      * @return 게시글 상세 정보 DTO
@@ -148,6 +152,11 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
      */
     @Override
     public FullPostResDTO findPostDetail(Long postId) {
+        // 🔧 null 안전성 검사 추가
+        if (postId == null) {
+            return null;
+        }
+        
         QPost post = QPost.post;
         QUser user = QUser.user;
         QPostLike postLike = QPostLike.postLike;
