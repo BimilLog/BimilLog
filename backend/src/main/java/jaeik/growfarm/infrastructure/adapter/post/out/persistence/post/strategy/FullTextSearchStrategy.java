@@ -107,10 +107,10 @@ public class FullTextSearchStrategy implements SearchStrategy {
      */
     private BooleanExpression createTitleFullTextCondition(String query) {
         try {
-            // MySQL FULLTEXT 검색으로 게시글 ID 목록 조회
+            // MySQL FULLTEXT 검색으로 게시글 ID 목록 조회 (main 브랜치와 완전히 동일한 방식)
             List<Long> postIds = executeFullTextQuery(
                 "SELECT p.post_id FROM post p WHERE p.is_notice = false AND MATCH(p.title) AGAINST(?1 IN BOOLEAN MODE)",
-                query
+                query.trim()
             );
             
             // 결과가 없으면 결과 없음 조건 반환
@@ -139,10 +139,10 @@ public class FullTextSearchStrategy implements SearchStrategy {
      */
     private BooleanExpression createTitleContentFullTextCondition(String query) {
         try {
-            // MySQL FULLTEXT 검색으로 게시글 ID 목록 조회 (제목과 내용 모두 검색)
+            // MySQL FULLTEXT 검색으로 게시글 ID 목록 조회 (제목과 내용 모두 검색, main 브랜치와 완전히 동일한 방식)
             List<Long> postIds = executeFullTextQuery(
                 "SELECT p.post_id FROM post p WHERE p.is_notice = false AND MATCH(p.title, p.content) AGAINST(?1 IN BOOLEAN MODE)",
-                query
+                query.trim()
             );
             
             // 결과가 없으면 결과 없음 조건 반환
@@ -207,5 +207,45 @@ public class FullTextSearchStrategy implements SearchStrategy {
                      nativeQuery, searchTerm, e.getMessage(), e);
             throw new RuntimeException("FULLTEXT 검색 실행 실패", e);
         }
+    }
+
+    /**
+     * <h3>ngram 토큰에 맞춘 검색어 전처리</h3>
+     * <p>검색어를 2글자 ngram 토큰으로 분리하여 BOOLEAN MODE OR 검색 쿼리 생성</p>
+     * <p>예: "테스트" → "테스 OR 스트"</p>
+     * 
+     * @param query 원본 검색어
+     * @return 전처리된 BOOLEAN MODE 검색어
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private String preprocessQueryForNgram(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return query;
+        }
+        
+        String trimmed = query.trim();
+        
+        // 2글자 미만이면 그대로 반환
+        if (trimmed.length() < 2) {
+            return trimmed;
+        }
+        
+        // 2글자면 그대로 반환
+        if (trimmed.length() == 2) {
+            return trimmed;
+        }
+        
+        // 3글자 이상이면 2글자 ngram 토큰으로 분리
+        StringBuilder processedQuery = new StringBuilder();
+        for (int i = 0; i <= trimmed.length() - 2; i++) {
+            if (i > 0) {
+                processedQuery.append(" OR ");
+            }
+            String token = trimmed.substring(i, i + 2);
+            processedQuery.append(token);
+        }
+        
+        return processedQuery.toString();
     }
 }
