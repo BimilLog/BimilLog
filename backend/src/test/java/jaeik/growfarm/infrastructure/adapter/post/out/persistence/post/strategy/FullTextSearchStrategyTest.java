@@ -20,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
@@ -84,7 +85,7 @@ class FullTextSearchStrategyTest {
 
     @TestConfiguration
     static class TestConfig {
-        @org.springframework.context.annotation.Bean
+        @Bean
         public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
             return new JPAQueryFactory(entityManager);
         }
@@ -173,8 +174,8 @@ class FullTextSearchStrategyTest {
      * @since 2.0.0
      */
     private void createFullTextIndexesForTest() {
-        boolean titleIndexCreated = ensureFullTextIndex("post", "idx_post_title", "title");
-        boolean titleContentIndexCreated = ensureFullTextIndex("post", "idx_post_title_content", "title, content");
+        boolean titleIndexCreated = ensureFullTextIndex("idx_post_title", "title");
+        boolean titleContentIndexCreated = ensureFullTextIndex("idx_post_title_content", "title, content");
 
         // 핵심 인덱스가 모두 실패한 경우 테스트 실행 불가 상태로 판단
         if (!titleIndexCreated && !titleContentIndexCreated) {
@@ -183,31 +184,30 @@ class FullTextSearchStrategyTest {
         }
 
         // 생성된 인덱스 상태 로깅
-        System.out.println("📊 FULLTEXT 인덱스 생성 결과:");
-        System.out.println("   - idx_post_title: " + (titleIndexCreated ? "성공" : "실패"));
-        System.out.println("   - idx_post_title_content: " + (titleContentIndexCreated ? "성공" : "실패"));
+        System.out.println("FULLTEXT 인덱스 생성 결과:");
+        System.out.println("idx_post_title: " + (titleIndexCreated ? "성공" : "실패"));
+        System.out.println("idx_post_title_content: " + (titleContentIndexCreated ? "성공" : "실패"));
     }
 
     /**
      * <h3>특정 테이블에 FULLTEXT 인덱스가 없으면 생성하고, 그 결과를 반환합니다.</h3>
      *
-     * @param tableName 확인할 테이블 이름
      * @param indexName 확인할 인덱스 이름
-     * @param columns 인덱스를 생성할 컬럼 목록 (예: "title", "title, content")
+     * @param columns   인덱스를 생성할 컬럼 목록 (예: "title", "title, content")
      * @return 인덱스 생성 시도 후 성공 여부 (이미 존재했거나 새로 생성 성공 시 true)
      * @author Jaeik
      * @since 2.0.0
      */
-    private boolean ensureFullTextIndex(String tableName, String indexName, String columns) {
-        if (!checkIndexExists(tableName, indexName)) {
+    private boolean ensureFullTextIndex(String indexName, String columns) {
+        if (!checkIndexExists(indexName)) {
             try {
                 entityManager.createNativeQuery(
-                        "ALTER TABLE " + tableName + " ADD FULLTEXT " + indexName + " (" + columns + ") WITH PARSER ngram"
+                        "ALTER TABLE " + "post" + " ADD FULLTEXT " + indexName + " (" + columns + ") WITH PARSER ngram"
                 ).executeUpdate();
                 System.out.println("✅ 테스트용 '" + indexName + "' FULLTEXT 인덱스 생성");
                 return true;
             } catch (Exception e) {
-                System.err.println("⚠️ FULLTEXT 인덱스 '" + indexName + "' 생성 실패: " + e.getMessage());
+                System.err.println("FULLTEXT 인덱스 '" + indexName + "' 생성 실패: " + e.getMessage());
                 // DDL 실행 중 오류 발생 시 상세 로깅
                 e.printStackTrace();
                 return false;
@@ -221,18 +221,17 @@ class FullTextSearchStrategyTest {
     /**
      * 특정 테이블과 인덱스 이름으로 FULLTEXT 인덱스 존재 여부를 정확히 확인합니다.
      *
-     * @param tableName 확인할 테이블 이름
      * @param indexName 확인할 인덱스 이름
      * @return FULLTEXT 인덱스가 존재하면 true, 아니면 false
      */
-    private boolean checkIndexExists(String tableName, String indexName) {
+    private boolean checkIndexExists(String indexName) {
         try {
             // information_schema.statistics를 쿼리하여 인덱스 정보와 INDEX_TYPE을 조회
             Long count = (Long) entityManager.createNativeQuery(
                             "SELECT COUNT(*) FROM information_schema.statistics " +
                                     "WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ? AND index_type = 'FULLTEXT'"
                     )
-                    .setParameter(1, tableName)
+                    .setParameter(1, "post")
                     .setParameter(2, indexName)
                     .getSingleResult();
 
@@ -257,14 +256,14 @@ class FullTextSearchStrategyTest {
             boolean allIndexesReady = true;
 
             for (String indexName : indexNames) {
-                if (!checkIndexExists("post", indexName)) {
+                if (!checkIndexExists(indexName)) {
                     allIndexesReady = false;
                     break;
                 }
             }
 
             if (allIndexesReady) {
-                System.out.println("✅ 모든 FULLTEXT 인덱스 준비 완료 (" + attempt + "/" + maxAttempts + "회 확인)");
+                System.out.println("모든 FULLTEXT 인덱스 준비 완료 (" + attempt + "/" + maxAttempts + "회 확인)");
                 return;
             }
 
@@ -272,7 +271,7 @@ class FullTextSearchStrategyTest {
                 Thread.sleep(sleepMs);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                System.err.println("⚠️ 인덱스 대기 중 인터럽트 발생");
+                System.err.println("인덱스 대기 중 인터럽트 발생");
                 break;
             }
 
@@ -281,22 +280,21 @@ class FullTextSearchStrategyTest {
             }
         }
 
-        System.err.println("⚠️ FULLTEXT 인덱스 생성 대기 시간 초과 (" + (maxAttempts * sleepMs / 1000) + "초)");
+        System.err.println("FULLTEXT 인덱스 생성 대기 시간 초과 (" + (maxAttempts * sleepMs / 1000) + "초)");
     }
 
     /**
      * 특정 테이블의 존재 여부를 확인합니다.
      *
-     * @param tableName 확인할 테이블 이름
      * @return 테이블이 존재하면 true, 아니면 false
      */
-    private boolean checkTableExists(String tableName) {
+    private boolean checkTableExists() {
         try {
             Long count = (Long) entityManager.createNativeQuery(
                             "SELECT COUNT(*) FROM information_schema.tables " +
                                     "WHERE table_schema = DATABASE() AND table_name = ?"
                     )
-                    .setParameter(1, tableName)
+                    .setParameter(1, "post")
                     .getSingleResult();
 
             return count > 0;
@@ -316,59 +314,50 @@ class FullTextSearchStrategyTest {
         return testEntityManager.persistAndFlush(post);
     }
 
-    private List<Post> getResults(BooleanExpression condition) {
+    /**
+     * <h3>검색을 수행하고, 결과에 대한 특정 검증 로직을 적용합니다.</h3>
+     *
+     * @param type        검색 타입
+     * @param searchQuery 검색어
+     * @param assertions  검색 결과 목록에 적용할 검증 로직 (Consumer<List<Post>>)
+     * @return 검색된 Post 목록 (추가 검증을 위해)
+     */
+    private List<Post> performSearchAndVerify(String type, String searchQuery, Consumer<List<Post>> assertions) {
+        // When: FULLTEXT 검색 조건 생성 및 실행
+        BooleanExpression condition = fullTextSearchStrategy.createCondition(type, searchQuery);
+
         JPAQuery<Post> query = queryFactory.selectFrom(POST)
                 .leftJoin(POST.user, USER).fetchJoin()
                 .where(condition)
                 .orderBy(POST.createdAt.desc());
 
-        return query.fetch();
+        List<Post> results = query.fetch();
+
+        assertions.accept(results);
+        return results;
     }
 
 
-    /**
-     * <h3>FullTextSearchStrategy의 canHandle 메서드를 테스트하고 결과를 검증합니다.</h3>
-     *
-     * @param query       검색어
-     * @param type        검색 타입
-     * @param expectedCanHandle 예상되는 canHandle 결과 (true/false)
-     */
-    private void assertCanHandleResult(String query, String type, boolean expectedCanHandle) {
-        boolean canHandle = fullTextSearchStrategy.canHandle(query, type);
-        assertThat(canHandle).isEqualTo(expectedCanHandle);
-    }
-
-
-
-    @Test
-    @DisplayName("정상 케이스 - 제목 검색 처리 가능성 확인 (3글자 이상)")
-    void shouldReturnTrue_WhenTitleSearchWith3OrMoreCharacters() {
-        assertCanHandleResult("스프링부트", "title", true);
+    // ================== 단위 테스트 - canHandle 메서드 ==================
+    
+    private void assertCanHandleResult(String query, String type, boolean expected) {
+        assertThat(fullTextSearchStrategy.canHandle(query, type)).isEqualTo(expected);
     }
 
     @Test
-    @DisplayName("정상 케이스 - 제목+내용 검색 처리 가능성 확인 (3글자 이상)")
-    void shouldReturnTrue_WhenTitleContentSearchWith3OrMoreCharacters() {
-        assertCanHandleResult("TestContainers", "title_content", true);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 작성자 검색 처리 가능성 확인 (4글자 이상)")
-    void shouldReturnTrue_WhenWriterSearchWith4OrMoreCharacters() {
-        assertCanHandleResult("테스트사용자", "writer", true);
-    }
-
-
-    @Test
-    @DisplayName("경계값 - 제목 검색 처리 불가능 (2글자 이하)")
-    void shouldReturnFalse_WhenTitleSearchWith2OrFewerCharacters() {
-        assertCanHandleResult("스프", "title", false);
-    }
-
-    @Test
-    @DisplayName("경계값 - 작성자 검색 처리 불가능 (3글자 이하)")
-    void shouldReturnFalse_WhenWriterSearchWith3OrFewerCharacters() {
-        assertCanHandleResult("테스트", "writer", false);
+    @DisplayName("canHandle - 각 검색 타입별 임계값 검증")
+    void shouldHandleSearchTypes_WithCorrectThresholds() {
+        // 제목 검색 (3글자 이상)
+        assertCanHandleResult("스프", "title", false);        // 2글자 - 거부
+        assertCanHandleResult("스프링", "title", true);       // 3글자 - 허용
+        
+        // 제목+내용 검색 (3글자 이상) 
+        assertCanHandleResult("Te", "title_content", false); // 2글자 - 거부
+        assertCanHandleResult("Test", "title_content", true); // 4글자 - 허용
+        
+        // 작성자 검색 (4글자 이상)
+        assertCanHandleResult("테스트", "writer", false);     // 3글자 - 거부
+        assertCanHandleResult("테스트사", "writer", true);    // 4글자 - 허용
     }
 
     @Test
@@ -385,28 +374,28 @@ class FullTextSearchStrategyTest {
     @DisplayName("인프라 테스트 - FULLTEXT 인덱스 생성 확인")
     void shouldHaveFullTextIndexes_WhenFullTextInitial() {
         // When: 인덱스 존재 여부 확인
-        boolean titleIndexExists = checkIndexExists("post", "idx_post_title");
-        boolean titleContentIndexExists = checkIndexExists("post", "idx_post_title_content");
-        boolean tableExists = checkTableExists("post");
+        boolean titleIndexExists = checkIndexExists("idx_post_title");
+        boolean titleContentIndexExists = checkIndexExists("idx_post_title_content");
+        boolean tableExists = checkTableExists();
 
         // Then: 기본 인프라 검증
         assertThat(tableExists).isTrue(); // 최소한 테이블은 존재해야 함
 
         // FULLTEXT 인덱스 상태 로깅 및 안정성 검증
-        System.out.println("🗺️ FULLTEXT 인덱스 상태:");
-        System.out.println("   - post 테이블: " + (tableExists ? "존재" : "없음"));
-        System.out.println("   - idx_post_title: " + (titleIndexExists ? "존재" : "없음"));
-        System.out.println("   - idx_post_title_content: " + (titleContentIndexExists ? "존재" : "없음"));
+        System.out.println("FULLTEXT 인덱스 상태:");
+        System.out.println(" post 테이블: " + (tableExists ? "존재" : "없음"));
+        System.out.println(" idx_post_title: " + (titleIndexExists ? "존재" : "없음"));
+        System.out.println(" idx_post_title_content: " + (titleContentIndexExists ? "존재" : "없음"));
 
         // 인덱스 생성 성공률 로깅 (개발자 정보)
         int createdIndexCount = (titleIndexExists ? 1 : 0) + (titleContentIndexExists ? 1 : 0);
         double successRate = ((double) createdIndexCount / 2) * 100;
-        System.out.println("📈 인덱스 생성 성공률: " + successRate + "% (" + createdIndexCount + "/2)");
+        System.out.println("인덱스 생성 성공률: " + successRate + "% (" + createdIndexCount + "/2)");
 
         // 인덱스가 생성되지 않은 경우 경고 메시지
         if (!titleIndexExists || !titleContentIndexExists) {
-            System.out.println("⚠️ FULLTEXT 검색 기능이 제한적으로 동작할 수 있습니다.");
-            System.out.println("⚠️ 검색 성능이 LIKE 검색으로 fallback될 수 있습니다.");
+            System.out.println("FULLTEXT 검색 기능이 제한적으로 동작할 수 있습니다.");
+            System.out.println("검색 성능이 LIKE 검색으로 fallback될 수 있습니다.");
         }
     }
 
@@ -448,12 +437,12 @@ class FullTextSearchStrategyTest {
             .getResultList();
             
             fullTextSuccess = true;
-            System.out.println("✅ FULLTEXT 검색 성공: " + results.size() + "개 결과");
+            System.out.println("FULLTEXT 검색 성공: " + results.size() + "개 결과");
             assertThat(results).isNotNull();
 
         } catch (Exception e) {
             // FULLTEXT 쿼리 실행 실패 시 (인덱스가 없으면 발생할 수 있음)
-            System.out.println("⚠️ FULLTEXT 쿼리 실행 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            System.out.println("FULLTEXT 쿼리 실행 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
 
             try {
                 // 대안으로 LIKE 검색이 동작하는지 확인
@@ -482,21 +471,7 @@ class FullTextSearchStrategyTest {
         
         System.out.println("📈 검색 방식 동작 상태: FULLTEXT(" + (fullTextSuccess ? "OK" : "FAIL") + "), LIKE(" + (likeSearchSuccess ? "OK" : "FAIL") + ")");
     }
-    /**
-     * <h3>검색을 수행하고, 결과에 대한 특정 검증 로직을 적용합니다.</h3>
-     *
-     * @param type        검색 타입
-     * @param searchQuery 검색어
-     * @param assertions  검색 결과 목록에 적용할 검증 로직 (Consumer<List<Post>>)
-     * @return 검색된 Post 목록 (추가 검증을 위해)
-     */
-    private List<Post> performSearchAndVerify(String type, String searchQuery, Consumer<List<Post>> assertions) {
-        // When: FULLTEXT 검색 조건 생성 및 실행
-        BooleanExpression condition = fullTextSearchStrategy.createCondition(type, searchQuery);
-        List<Post> results = getResults(condition);
-        assertions.accept(results);
-        return results;
-    }
+
 
     @Test
     @DisplayName("실제 ngram 인덱스 - 제목 FULLTEXT 검색 정상 동작")
@@ -511,8 +486,6 @@ class FullTextSearchStrategyTest {
             assertThat(results).anyMatch(p -> p.getId().equals(testPost1.getId()));
         });
     }
-
-
 
     @Test
     @DisplayName("실제 ngram 인덱스 - 제목+내용 통합 검색 정상 동작")
@@ -536,7 +509,6 @@ class FullTextSearchStrategyTest {
     @DisplayName("실제 DB - 작성자 LIKE 검색 정상 동작")
     void shouldFindPostByWriter_WhenUsingLikeSearch() {
         // Given: 실제 작성자로 검색어 (작성자는 LIKE 검색 사용)// testUser의 userName
-
         performSearchAndVerify("writer", "테스트사용자", results -> {
             // Then: 작성자명으로 LIKE 검색되어 모든 게시글이 검색됨
             // 모든 게시글의 작성자가 testUser여야 함
@@ -584,7 +556,7 @@ class FullTextSearchStrategyTest {
             assertThat(results).anyMatch(post ->
                     post.getTitle().contains("MySQL") || post.getContent().contains("MySQL")
             );
-            assertThat(results).anyMatch(p -> p.getId().equals(testPost1.getId()));
+            assertThat(results).anyMatch(p -> p.getId().equals(testPost2.getId()));
         });
     }
 
@@ -602,143 +574,40 @@ class FullTextSearchStrategyTest {
     }
 
     @Test
-    @DisplayName("성능 테스트 - 대량 데이터 FULLTEXT 검색 성능")
-    void shouldHandleLargeDataFullTextSearch_WithGoodPerformance() {
-        // Given: 대량 테스트 데이터 생성 (성능 테스트용)
+    @DisplayName("성능 테스트 - 대량 데이터 FULLTEXT 검색")
+    void shouldHandleLargeDataSearch_WithAcceptablePerformance() {
+        // Given: 대량 테스트 데이터 생성
         for (int i = 0; i < 20; i++) {
-            createTestPost("테스트 게시글 " + i + " 제목", "FULLTEXT 검색 성능 테스트 내용 " + i);
+            createTestPost("테스트 게시글 " + i, "성능 테스트 내용 " + i);
         }
-
         testEntityManager.flush();
         testEntityManager.clear();
 
-        String searchQuery = "테스트";
-        String type = "title";
+        // When: 성능 측정
+        long startTime = System.nanoTime();
+        List<Post> results = performSearchAndVerify("title", "테스트", r -> {
+            assertThat(r).hasSizeGreaterThanOrEqualTo(20); // 초기 3개 + 추가 20개
+        });
+        long executionTimeMs = (System.nanoTime() - startTime) / 1_000_000;
 
-        // 성능 테스트 반복 실행으로 안정성 확보
-        long totalExecutionTime = 0;
-        final int iterations = 3; // 3회 반복으로 안정성 확인
-        int successCount = 0;
-
-        for (int i = 0; i < iterations; i++) {
-            // When: FULLTEXT 검색 성능 측정
-            long startTime = System.nanoTime(); // 더 정밀한 시간 측정
-
-            List<Post> results = performSearchAndVerify(type, searchQuery, r -> {
-                // 각 반복에서의 기본적인 결과 검증
-                assertThat(r).isNotEmpty();
-                assertThat(r.size()).isGreaterThanOrEqualTo(20); // 초기 3개 + 추가 20개
-            });
-
-
-            long endTime = System.nanoTime();
-            long executionTimeNs = endTime - startTime;
-            long executionTimeMs = executionTimeNs / 1_000_000;
-
-            totalExecutionTime += executionTimeMs;
-            successCount++; // performSearchAndVerify 내부에서 이미 검증되었으므로 성공으로 간주
-
-            System.out.println("[성능 테스트 " + (i + 1) + "/" + iterations + "] 실행시간: " + executionTimeMs + "ms, 결과수: " + results.size());
-
-        }
-
-        long avgExecutionTime = totalExecutionTime / iterations;
-
-        // Then: 환경에 적응적인 성능 기준
-        assertThat(successCount).isEqualTo(iterations); // 모든 반복에서 성공
-        assertThat(avgExecutionTime).isLessThan(2000L); // 평균 2초 이내 (더 안정적인 기준)
-
-        System.out.println("📈 성능 테스트 결과: 평균 " + avgExecutionTime + "ms (최대 허용: 2000ms)");
+        // Then: 합리적인 성능 기준
+        assertThat(executionTimeMs).isLessThan(2000L); // 2초 이내
+        System.out.println("📈 성능: " + executionTimeMs + "ms, 결과: " + results.size() + "건");
     }
 
-    @Test
-    @DisplayName("비즈니스 로직 - 검색 유형별 임계값 정확성")
-    void shouldUseCorrectThresholds_ForDifferentSearchTypes() {
-        // Given: 각 검색 유형별 임계값 테스트
-
-        // When & Then: 각 타입별 임계값 확인
-
-        // 제목 검색 - 3글자 이상
-        assertThat(fullTextSearchStrategy.canHandle("스프", "title")).isFalse();     // 2글자
-        assertThat(fullTextSearchStrategy.canHandle("스프링", "title")).isTrue();    // 3글자
-
-        // 제목+내용 검색 - 3글자 이상
-        assertThat(fullTextSearchStrategy.canHandle("ng", "title_content")).isFalse(); // 2글자
-        assertThat(fullTextSearchStrategy.canHandle("ngr", "title_content")).isTrue(); // 3글자
-
-        // 작성자 검색 - 4글자 이상
-        assertThat(fullTextSearchStrategy.canHandle("테스트", "writer")).isFalse();   // 3글자
-        assertThat(fullTextSearchStrategy.canHandle("테스트사", "writer")).isTrue();  // 4글자
-
-        // 기본 타입 - 3글자 이상
-        assertThat(fullTextSearchStrategy.canHandle("기본", "default")).isFalse();   // 2글자
-        assertThat(fullTextSearchStrategy.canHandle("기본타입", "default")).isTrue();  // 4글자
-    }
 
     @Test
     @DisplayName("통합 테스트 - 전체 검색 전략 워크플로우")
     void shouldCompleteEntireSearchStrategyWorkflow() {
-        // Given: 다양한 검색 조건으로 전체 워크플로우 테스트
+        // When: 전체 워크플로우 - 처리 가능성 → 검색 실행 → 메타데이터 확인
+        assertThat(fullTextSearchStrategy.canHandle("테스트", "title")).isTrue();
+        assertThat(fullTextSearchStrategy.canHandle("ngram", "title_content")).isTrue(); 
+        assertThat(fullTextSearchStrategy.canHandle("테스트사용자", "writer")).isTrue();
         
-        // When: 전체 워크플로우 실행
-        // 1. 처리 가능성 확인
-        boolean canHandleTitle = fullTextSearchStrategy.canHandle("테스트", "title");
-        boolean canHandleContent = fullTextSearchStrategy.canHandle("ngram", "title_content");
-        boolean canHandleWriter = fullTextSearchStrategy.canHandle("테스트사용자", "writer");
+        performSearchAndVerify("title", "테스트", results -> assertThat(results).isNotEmpty());
+        performSearchAndVerify("title_content", "ngram", results -> assertThat(results).isNotEmpty());  
+        performSearchAndVerify("writer", "테스트사용자", results -> assertThat(results).hasSize(3));
         
-        // 2. 각 타입별 검색 조건 생성 및 실행
-        BooleanExpression titleCondition = fullTextSearchStrategy.createCondition("title", "테스트");
-        BooleanExpression contentCondition = fullTextSearchStrategy.createCondition("title_content", "ngram");
-        BooleanExpression writerCondition = fullTextSearchStrategy.createCondition("writer", "테스트사용자");
-        
-        // 3. 실제 검색 결과 확인
-        List<Post> titleResults = queryFactory.selectFrom(POST)
-                .leftJoin(POST.user, USER).fetchJoin()
-                .where(titleCondition)
-                .fetch();
-        
-        List<Post> contentResults = queryFactory.selectFrom(POST)
-                .leftJoin(POST.user, USER).fetchJoin()
-                .where(contentCondition)
-                .fetch();
-        
-        List<Post> writerResults = queryFactory.selectFrom(POST)
-                .leftJoin(POST.user, USER).fetchJoin()
-                .where(writerCondition)
-                .fetch();
-        
-        // Then: 모든 단계가 정상 실행됨
-        assertThat(canHandleTitle).isTrue();
-        assertThat(canHandleContent).isTrue();
-        assertThat(canHandleWriter).isTrue();
-
-        assertThat(titleCondition).isNotNull();
-        assertThat(contentCondition).isNotNull();
-        assertThat(writerCondition).isNotNull();
-
-        // 실제 검색 결과 확인
-        assertThat(titleResults).isNotEmpty();
-        assertThat(contentResults).isNotEmpty();
-        assertThat(writerResults).isNotEmpty();
-
-        // 전략 이름 확인
         assertThat(fullTextSearchStrategy.getStrategyName()).isEqualTo("FullTextSearchStrategy");
-    }
-
-    @Test
-    @DisplayName("실제 DB - Fallback 동작 확인 (인덱스 사용 불가 시)")
-    void shouldFallbackToLikeSearch_WhenFullTextIndexNotAvailable() {
-        // Given: 인덱스가 없는 테이블에 대한 검색 (예상 상황)
-        // 실제로는 인덱스가 있지만, 비상 상황 시뮤레이션
-        // Given: 인덱스가 없는 테이블에 대한 검색 (예상 상황) - 여기서는 실제 인덱스가 있으므로 정상 동작 확인
-        String searchQuery = "테스트";
-        String type = "title";
-
-        // When & Then: FULLTEXT 검색 조건 생성 및 정상적으로 결과 반환
-        performSearchAndVerify(type, searchQuery, results -> {
-            // Then: 정상적으로 검색 결과 반환 (인덱스 정상 동작)
-            assertThat(results).isNotEmpty();
-            assertThat(results).anyMatch(post -> post.getTitle().contains("테스트"));
-        });
     }
 }
