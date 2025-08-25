@@ -6,6 +6,9 @@ import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -104,5 +107,44 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
         }
         return null;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Page<SimplePostResDTO> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
+        CacheMetadata metadata = getCacheMetadata(type);
+        try {
+            // Redis List 구조에서 페이징 처리
+            String listKey = metadata.key() + ":list"; // List 형태로 저장된 키
+            
+            // 전체 크기 조회
+            Long totalSize = redisTemplate.opsForList().size(listKey);
+            if (totalSize == null || totalSize == 0) {
+                return new PageImpl<>(Collections.emptyList(), pageable, 0);
+            }
+            
+            // 페이징 계산
+            int page = pageable.getPageNumber();
+            int size = pageable.getPageSize();
+            long start = (long) page * size;
+            long end = start + size - 1;
+            
+            // Redis List에서 범위 조회 (LRANGE 명령어)
+            List<Object> cachedObjects = redisTemplate.opsForList().range(listKey, start, end);
+            if (cachedObjects == null) {
+                return new PageImpl<>(Collections.emptyList(), pageable, totalSize);
+            }
+            
+            // Object를 SimplePostResDTO로 변환
+            List<SimplePostResDTO> posts = cachedObjects.stream()
+                    .filter(obj -> obj instanceof SimplePostResDTO)
+                    .map(obj -> (SimplePostResDTO) obj)
+                    .toList();
+            
+            return new PageImpl<>(posts, pageable, totalSize);
+            
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
+        }
     }
 }

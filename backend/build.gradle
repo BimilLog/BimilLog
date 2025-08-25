@@ -44,6 +44,7 @@ dependencies {
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api' // Jakarta Persistence API 지원
     implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 데이터베이스 지원
     implementation 'org.springframework.boot:spring-boot-starter-cache' // 캐시 지원
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch' // Elasticsearch 지원
 
     // ==== JWT (토큰 인증) 관련 ====
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // JWT API

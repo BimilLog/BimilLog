@@ -3,6 +3,8 @@ package jaeik.growfarm.domain.post.application.port.out;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -47,4 +49,16 @@ public interface PostCacheQueryPort {
      * @since 2.0.0
      */
     boolean hasPopularPostsCache(PostCacheFlag type);
+
+    /**
+     * <h3>캐시글 목록 페이지네이션 조회</h3>
+     * <p>지정된 유형의 캐시글 목록을 페이지네이션으로 조회합니다. Redis List 구조를 활용합니다.</p>
+     *
+     * @param type 캐시할 게시글 유형 (예: LEGEND)
+     * @param pageable 페이지 정보
+     * @return 캐시된 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<SimplePostResDTO> getCachedPostListPaged(PostCacheFlag type, Pageable pageable);
 }
