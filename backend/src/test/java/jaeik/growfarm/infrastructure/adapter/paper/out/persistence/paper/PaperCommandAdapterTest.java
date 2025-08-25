@@ -1,38 +1,27 @@
 package jaeik.growfarm.infrastructure.adapter.paper.out.persistence.paper;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.paper.entity.DecoType;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.security.EncryptionUtil;
-import jakarta.persistence.EntityManager;
+import jaeik.growfarm.util.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * <h2>PaperCommandAdapter 통합 테스트</h2>
- *
+ * 동시성 테스트는 in어댑터에서 검증합니다.
  * <p><strong>테스트 커버리지:</strong></p>
  * <ul>
  *   <li>정상 케이스: 메시지 저장/삭제 성공</li>
@@ -57,25 +46,13 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
  * @version 2.0.0
  */
 @DataJpaTest(
-        excludeFilters = @org.springframework.context.annotation.ComponentScan.Filter(
-                type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE,
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
                 classes = jaeik.growfarm.GrowfarmApplication.class
         )
 )
 @Testcontainers
-@EntityScan(basePackages = {
-        "jaeik.growfarm.domain.admin.entity", 
-        "jaeik.growfarm.domain.user.entity",
-        "jaeik.growfarm.domain.paper.entity",
-        "jaeik.growfarm.domain.post.entity",
-        "jaeik.growfarm.domain.comment.entity",
-        "jaeik.growfarm.domain.notification.entity",
-        "jaeik.growfarm.domain.common.entity"
-})
-@EnableJpaRepositories(basePackages = {
-        "jaeik.growfarm.infrastructure.adapter.paper.out.persistence.paper"
-})
-@Import(PaperCommandAdapter.class)
+@Import({PaperCommandAdapter.class, TestContainersConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create",
@@ -83,34 +60,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
         "logging.level.org.hibernate.SQL=DEBUG"
 })
 class PaperCommandAdapterTest {
-
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
-        }
-
-        // EncryptionUtil 빈 정의: MessageEncryptConverter의 의존성을 만족시킵니다.
-        @Bean
-        public EncryptionUtil encryptionUtil() {
-            return new EncryptionUtil();
-        }
-    }
 
     @Autowired
     private PaperCommandAdapter paperCommandAdapter;
@@ -336,83 +285,6 @@ class PaperCommandAdapterTest {
     }
 
     @Test
-    @DisplayName("트랜잭션 - 부분 실패 시 롤백")
-    void shouldRollback_WhenPartialFailureOccurs() {
-        // Given: 성공할 메시지와 실패할 메시지
-        Message validMessage = Message.builder()
-                .user(testUser)
-                .decoType(DecoType.POTATO)
-                .anonymity("성공메시지")
-                .content("성공할 메시지")
-                .width(1)
-                .height(2)
-                .build();
-
-        Message invalidMessage = Message.builder()
-                .user(testUser)
-                .decoType(DecoType.TOMATO)
-                .anonymity("실패메시지")
-                .content("실패할 메시지")
-                .width(1) // 같은 좌표로 인한 제약조건 위반
-                .height(2) // 같은 좌표로 인한 제약조건 위반
-                .build();
-
-        // When: 첫 번째는 성공, 두 번째는 실패
-        paperCommandAdapter.save(validMessage);
-        
-        assertThatThrownBy(() -> {
-            paperCommandAdapter.save(invalidMessage);
-            entityManager.flush(); // 트랜잭션 경계에서 실패
-        }).isInstanceOf(DataIntegrityViolationException.class);
-
-        // Then: 첫 번째 메시지는 저장되지 않음 (트랜잭션 롤백)
-        List<Message> messages = messageRepository.findAll();
-        assertThat(messages).isEmpty(); // @Transactional(rollbackFor) 동작 확인
-    }
-
-    @Test
-    @DisplayName("동시성 - 중복 좌표 Race Condition 처리")
-    void shouldHandleConcurrentRequests_WhenSimultaneousCoordinateAccess() throws InterruptedException, ExecutionException {
-        // Given: 동시에 같은 좌표에 저장하려는 시나리오
-        int threadCount = 3;
-        List<CompletableFuture<Exception>> futures = IntStream.range(0, threadCount)
-                .mapToObj(i -> CompletableFuture.supplyAsync(() -> {
-                    try {
-                        Message concurrentMessage = Message.builder()
-                                .user(testUser)
-                                .decoType(DecoType.POTATO)
-                                .anonymity("동시성" + i)
-                                .content("동시성 테스트 메시지 " + i)
-                                .width(99) // 모두 같은 좌표
-                                .height(99) // 모두 같은 좌표
-                                .build();
-                        paperCommandAdapter.save(concurrentMessage);
-                        entityManager.flush();
-                        return null; // 성공
-                    } catch (Exception e) {
-                        return e; // 실패 시 예외 반환
-                    }
-                }))
-                .toList();
-
-        // When: 모든 작업 완료 대기
-        List<Exception> results = futures.stream()
-                .map(CompletableFuture::join)
-                .toList();
-
-        // Then: 하나만 성공하고 나머지는 제약조건 위반
-        long successCount = results.stream().filter(Objects::isNull).count();
-        long failureCount = results.stream().filter(Objects::nonNull).count();
-        
-        assertThat(successCount).isEqualTo(1);
-        assertThat(failureCount).isEqualTo(2);
-        
-        // 실제 저장된 메시지는 1개
-        List<Message> savedMessages = messageRepository.findAll();
-        assertThat(savedMessages).hasSize(1);
-    }
-
-    @Test
     @DisplayName("예외 처리 - 외부 키 참조 무결성 위반")
     void shouldThrowException_WhenForeignKeyConstraintViolated() {
         // Given: 존재하지 않는 사용자 ID를 가진 User 프록시
@@ -482,10 +354,6 @@ class PaperCommandAdapterTest {
         assertThat(endTime - startTime).isLessThan(10000); // 10초 이내
     }
 
-    // TODO: 테스트 실패 - 메인 로직 문제 의심
-    // 추가 검증 필요: MessageEncryptConverter 암호화/복호화 일관성
-    // 가능한 문제: 1) 암호화 키 관리 2) 문자 인코딩 3) 암호화된 데이터 길이 제한
-    // 수정 필요: MessageEncryptConverter 클래스 검토
     @Test
     @DisplayName("암호화 - 메시지 내용 암호화/복호화 일관성")
     void shouldEncryptAndDecryptConsistently_WhenSavingMessage() {

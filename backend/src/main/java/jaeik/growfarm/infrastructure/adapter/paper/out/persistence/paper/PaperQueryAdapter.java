@@ -12,6 +12,7 @@ import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +39,10 @@ public class PaperQueryAdapter implements PaperQueryPort {
      */
     @Override
     public Optional<Message> findMessageById(Long messageId) {
+        if (messageId == null) {
+            return Optional.empty();
+        }
+        
         QMessage message = QMessage.message;
         return Optional.ofNullable(
                 jpaQueryFactory
@@ -60,6 +65,10 @@ public class PaperQueryAdapter implements PaperQueryPort {
      */
     @Override
     public List<MessageDTO> findMessageDTOsByUserId(Long userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+        
         QMessage message = QMessage.message;
 
         return jpaQueryFactory
@@ -93,6 +102,10 @@ public class PaperQueryAdapter implements PaperQueryPort {
      */
     @Override
     public List<VisitMessageDTO> findVisitMessageDTOsByUserName(String userName) {
+        if (userName == null || userName.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        
         QMessage message = QMessage.message;
         QUser user = QUser.user;
 
