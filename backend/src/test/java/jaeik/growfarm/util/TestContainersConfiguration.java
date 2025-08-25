@@ -24,7 +24,8 @@ public class TestContainersConfiguration {
         return new MySQLContainer<>("mysql:8.0")
                 .withDatabaseName("testdb")
                 .withUsername("test")
-                .withPassword("test");
+                .withPassword("test")
+                .withReuse(true);
     }
 
     static GenericContainer<?> redis = new GenericContainer<>("redis:latest")
