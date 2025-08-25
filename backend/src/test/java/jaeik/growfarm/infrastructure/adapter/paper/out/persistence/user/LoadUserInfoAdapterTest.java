@@ -49,11 +49,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 )
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({UserAdapter.class, UserAdapterTest.TestUserQueryUseCase.class, TestContainersConfiguration.class})
+@Import({UserAdapter.class, LoadUserInfoAdapterTest.TestUserQueryUseCase.class, TestContainersConfiguration.class})
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
-class UserAdapterTest {
+class LoadUserInfoAdapterTest {
 
     // TestUserQueryUseCase: UserQueryUseCase 실제 구현체 테스트용 버전
     @org.springframework.stereotype.Component

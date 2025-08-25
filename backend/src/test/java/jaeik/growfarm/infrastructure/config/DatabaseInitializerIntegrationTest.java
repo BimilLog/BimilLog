@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @Testcontainers
-@Import({DatabaseInitializer.class, DatabaseInitializerIntegrationTest.TestConfig.class})
+@Import({DatabaseInitializer.class})
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.jpa.show-sql=true",
