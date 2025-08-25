@@ -75,11 +75,12 @@ public interface PostQueryUseCase {
      *     레전드 인기 게시글 목록을 페이지네이션으로 조회합니다.
      * </p>
      * @param type 조회할 인기 게시글 유형 (PostCacheFlag.LEGEND)
+     * @param pageable 페이지 정보
      * @return 레전드 인기 게시글 목록 페이지
      * @since 2.0.0
      * @author jaeik
      */
-    Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type);
+    Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type, Pageable pageable);
 
     /**
      * <h3>공지사항 목록 조회</h3>

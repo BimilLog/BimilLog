@@ -160,6 +160,7 @@ public class PostQueryService implements PostQueryUseCase {
             switch (type) {
                 case REALTIME -> postCacheSyncService.updateRealtimePopularPosts();
                 case WEEKLY -> postCacheSyncService.updateWeeklyPopularPosts();
+                case LEGEND -> postCacheSyncService.updateLegendaryPosts();
                 default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
             }
         }
@@ -167,46 +168,28 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>레전드 인기 게시글 목록 조회</h3>
-     * <p>캐시된 레전드 게시글을 조회합니다. 캐시가 없는 경우 업데이트 후 조회합니다.</p>
+     * <h3>레전드 인기 게시글 목록 조회 (페이징)</h3>
+     * <p>캐시된 레전드 게시글을 페이지네이션으로 조회합니다. 캐시가 없는 경우 업데이트 후 조회합니다.</p>
+     * <p>Redis List 구조를 활용하여 효율적인 페이징을 제공합니다.</p>
      *
-     * @param type 조회할 인기 게시글 유형
-     * @return 인기 게시글 목록
+     * @param type 조회할 인기 게시글 유형 (PostCacheFlag.LEGEND만 지원)
+     * @param pageable 페이지 정보
+     * @return 인기 게시글 목록 페이지
      * @throws CustomException 유효하지 않은 캐시 유형인 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    //1. Redis List 구조 활용 (추천)
-    //
-    //레전드 인기 게시글을 순서 있는 컬렉션으로 캐싱할 때는 보통 LIST나 ZSET을 씁니다.
-    //
-    //저장할 때:
-    //
-    //// ex) key: popular:legend
-    //redisTemplate.opsForList().rightPushAll("popular:legend", dtoList);
-    //
-    //
-    //페이징 조회할 때:
-    //Redis List는 LRANGE key start stop을 지원합니다.
-    //
-    //int start = page * size;
-    //int end = start + size - 1;
-    //List<SimplePostResDTO> subList = redisTemplate.opsForList()
-    //    .range("popular:legend", start, end);
-    //
-    //
-    //Spring Data에서 Page로 감싸기:
-    //
-    //long total = redisTemplate.opsForList().size("popular:legend");
-    //return new PageImpl<>(subList, PageRequest.of(page, size), total);
     @Override
-    public Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type) {
-        if (!postCacheQueryPort.hasPopularPostsCache(type)) {
-            if (Objects.requireNonNull(type) == PostCacheFlag.LEGEND) {
-                postCacheSyncService.updateLegendaryPosts();
-            }
+    public Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
+        // 타입 검증: LEGEND만 허용
+        if (type != PostCacheFlag.LEGEND) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
-        return postCacheQueryPort.getCachedPostList(type);
+        
+        if (!postCacheQueryPort.hasPopularPostsCache(type)) {
+            postCacheSyncService.updateLegendaryPosts();
+        }
+        return postCacheQueryPort.getCachedPostListPaged(type, pageable);
     }
 
     /**

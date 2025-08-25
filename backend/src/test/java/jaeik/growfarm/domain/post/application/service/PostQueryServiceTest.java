@@ -349,6 +349,147 @@ class PostQueryServiceTest {
     }
 
     @Test
+    @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 있음")
+    void shouldGetPopularPostLegend_WhenCacheExists() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.LEGEND;
+        Pageable pageable = PageRequest.of(0, 10);
+        
+        SimplePostResDTO legendPost1 = createSimplePostResDTO(1L, "레전드 게시글 1");
+        SimplePostResDTO legendPost2 = createSimplePostResDTO(2L, "레전드 게시글 2");
+        Page<SimplePostResDTO> expectedPage = new PageImpl<>(List.of(legendPost1, legendPost2), pageable, 2);
+
+        given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
+        given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(expectedPage);
+
+        // When
+        Page<SimplePostResDTO> result = postQueryService.getPopularPostLegend(type, pageable);
+
+        // Then
+        assertThat(result).isEqualTo(expectedPage);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("레전드 게시글 1");
+        assertThat(result.getContent().get(1).getTitle()).isEqualTo("레전드 게시글 2");
+        
+        verify(postCacheQueryPort).hasPopularPostsCache(type);
+        verify(postCacheQueryPort).getCachedPostListPaged(type, pageable);
+        verify(postCacheSyncService, never()).updateLegendaryPosts();
+    }
+
+    @Test
+    @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 없음, 업데이트 후 조회")
+    void shouldGetPopularPostLegend_WhenNoCacheUpdateThenGet() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.LEGEND;
+        Pageable pageable = PageRequest.of(0, 5);
+        
+        SimplePostResDTO legendPost = createSimplePostResDTO(1L, "업데이트된 레전드 게시글");
+        Page<SimplePostResDTO> updatedPage = new PageImpl<>(List.of(legendPost), pageable, 1);
+
+        given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(false);
+        given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(updatedPage);
+
+        // When
+        Page<SimplePostResDTO> result = postQueryService.getPopularPostLegend(type, pageable);
+
+        // Then
+        assertThat(result).isEqualTo(updatedPage);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("업데이트된 레전드 게시글");
+        
+        verify(postCacheQueryPort).hasPopularPostsCache(type);
+        verify(postCacheSyncService).updateLegendaryPosts();
+        verify(postCacheQueryPort).getCachedPostListPaged(type, pageable);
+    }
+
+    @Test
+    @DisplayName("레전드 인기 게시글 페이징 조회 - 빈 결과")
+    void shouldGetPopularPostLegend_WhenEmptyResults() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.LEGEND;
+        Pageable pageable = PageRequest.of(0, 10);
+        
+        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
+        given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(emptyPage);
+
+        // When
+        Page<SimplePostResDTO> result = postQueryService.getPopularPostLegend(type, pageable);
+
+        // Then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+        
+        verify(postCacheQueryPort).hasPopularPostsCache(type);
+        verify(postCacheQueryPort).getCachedPostListPaged(type, pageable);
+        verify(postCacheSyncService, never()).updateLegendaryPosts();
+    }
+
+    @Test
+    @DisplayName("레전드 인기 게시글 페이징 조회 - 다양한 페이지 크기 처리")
+    void shouldGetPopularPostLegend_WithDifferentPageSizes() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.LEGEND;
+        Pageable smallPage = PageRequest.of(1, 5);  // 두 번째 페이지, 5개씩
+        
+        List<SimplePostResDTO> legendPosts = List.of(
+            createSimplePostResDTO(6L, "레전드 6"),
+            createSimplePostResDTO(7L, "레전드 7"),
+            createSimplePostResDTO(8L, "레전드 8")
+        );
+        Page<SimplePostResDTO> expectedPage = new PageImpl<>(legendPosts, smallPage, 15); // 전체 15개 중 6~8번
+
+        given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
+        given(postCacheQueryPort.getCachedPostListPaged(type, smallPage)).willReturn(expectedPage);
+
+        // When
+        Page<SimplePostResDTO> result = postQueryService.getPopularPostLegend(type, smallPage);
+
+        // Then
+        assertThat(result.getContent()).hasSize(3);
+        assertThat(result.getNumber()).isEqualTo(1); // 현재 페이지
+        assertThat(result.getSize()).isEqualTo(5); // 페이지 크기
+        assertThat(result.getTotalElements()).isEqualTo(15); // 전체 요소 수
+        assertThat(result.getTotalPages()).isEqualTo(3); // 전체 페이지 수
+        
+        verify(postCacheQueryPort).getCachedPostListPaged(type, smallPage);
+    }
+
+    @Test
+    @DisplayName("레전드 인기 게시글 페이징 조회 - 잘못된 타입으로 호출시 예외 발생")
+    void shouldThrowException_WhenGetPopularPostLegendWithNonLegendType() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.REALTIME; // LEGEND가 아닌 타입
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When & Then
+        assertThatThrownBy(() -> postQueryService.getPopularPostLegend(type, pageable))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+
+        // 타입 검증에서 바로 예외가 발생하므로 다른 메서드들은 호출되지 않음
+        verifyNoInteractions(postCacheQueryPort);
+        verifyNoInteractions(postCacheSyncService);
+    }
+
+    @Test
+    @DisplayName("레전드 인기 게시글 페이징 조회 - null 타입으로 호출시 예외 발생")
+    void shouldThrowException_WhenGetPopularPostLegendWithNullType() {
+        // Given
+        PostCacheFlag type = null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When & Then
+        assertThatThrownBy(() -> postQueryService.getPopularPostLegend(type, pageable))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+
+        verifyNoInteractions(postCacheQueryPort);
+        verifyNoInteractions(postCacheSyncService);
+    }
+
+    @Test
     @DisplayName("인기 게시글 조회 - 잘못된 캐시 타입")
     void shouldThrowException_WhenInvalidCacheType() {
         // Given

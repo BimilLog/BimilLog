@@ -5,6 +5,7 @@ import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,19 +62,20 @@ public class PostCacheController {
     }
 
     /**
-     * <h3>레전드 인기글 조회 API</h3>
+     * <h3>레전드 인기글 조회 API (페이징)</h3>
      *
      * <p>
-     * 레전드 인기글로 선정된 게시글 목록을 조회한다.
+     * 레전드 인기글로 선정된 게시글 목록을 페이지네이션으로 조회한다.
      * </p>
      *
+     * @param pageable 페이지 정보
      * @since 2.0.0
      * @author Jaeik
-     * @return 레전드 게시글 목록
+     * @return 레전드 게시글 목록 페이지
      */
     @GetMapping("/legend")
-    public ResponseEntity<Page<SimplePostResDTO>> getLegendBoard() {
-        Page<SimplePostResDTO> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND);
+    public ResponseEntity<Page<SimplePostResDTO>> getLegendBoard(Pageable pageable) {
+        Page<SimplePostResDTO> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
         return ResponseEntity.ok(legendPopularPosts);
     }
 
