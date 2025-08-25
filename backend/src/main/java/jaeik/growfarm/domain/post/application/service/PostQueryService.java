@@ -176,6 +176,29 @@ public class PostQueryService implements PostQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
+    //1. Redis List 구조 활용 (추천)
+    //
+    //레전드 인기 게시글을 순서 있는 컬렉션으로 캐싱할 때는 보통 LIST나 ZSET을 씁니다.
+    //
+    //저장할 때:
+    //
+    //// ex) key: popular:legend
+    //redisTemplate.opsForList().rightPushAll("popular:legend", dtoList);
+    //
+    //
+    //페이징 조회할 때:
+    //Redis List는 LRANGE key start stop을 지원합니다.
+    //
+    //int start = page * size;
+    //int end = start + size - 1;
+    //List<SimplePostResDTO> subList = redisTemplate.opsForList()
+    //    .range("popular:legend", start, end);
+    //
+    //
+    //Spring Data에서 Page로 감싸기:
+    //
+    //long total = redisTemplate.opsForList().size("popular:legend");
+    //return new PageImpl<>(subList, PageRequest.of(page, size), total);
     @Override
     public Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type) {
         if (!postCacheQueryPort.hasPopularPostsCache(type)) {
@@ -183,7 +206,7 @@ public class PostQueryService implements PostQueryUseCase {
                 postCacheSyncService.updateLegendaryPosts();
             }
         }
-        return postCacheQueryPort.getCachedPostLegend(type);
+        return postCacheQueryPort.getCachedPostList(type);
     }
 
     /**
