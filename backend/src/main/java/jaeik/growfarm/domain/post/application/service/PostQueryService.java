@@ -76,7 +76,7 @@ public class PostQueryService implements PostQueryUseCase {
                 // 캐시된 인기글 목록 조회
                 List<PostSearchResult> cachedPosts = postCacheQueryPort.getCachedPostList(flag);
                 // 해당 ID의 게시글이 목록에 있는지 확인
-                if (cachedPosts.stream().anyMatch(post -> post.getId().equals(postId))) {
+                if (cachedPosts.stream().anyMatch(post -> post.id().equals(postId))) {
                     return true;
                 }
             }
@@ -100,7 +100,7 @@ public class PostQueryService implements PostQueryUseCase {
     public PostDetail getPost(Long postId, Long userId) {
         // 1. 인기글인 경우 캐시에서 조회 시도
         if (isPopularPost(postId)) {
-            FullPostResDTO cachedPost = postCacheQueryPort.getCachedPost(postId);
+            PostDetail cachedPost = postCacheQueryPort.getCachedPost(postId);
             if (cachedPost != null) {
                 // 사용자의 좋아요 정보만 추가 확인 필요
                 if (userId != null) {
@@ -108,7 +108,21 @@ public class PostQueryService implements PostQueryUseCase {
                             .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
                     User user = loadUserInfoPort.getReferenceById(userId);
                     boolean isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
-                    cachedPost.setLiked(isLiked);
+                    // PostDetail은 불변이므로 새로운 객체 생성
+                    return PostDetail.builder()
+                            .id(cachedPost.id())
+                            .title(cachedPost.title())
+                            .content(cachedPost.content())
+                            .viewCount(cachedPost.viewCount())
+                            .likeCount(cachedPost.likeCount())
+                            .postCacheFlag(cachedPost.postCacheFlag())
+                            .createdAt(cachedPost.createdAt())
+                            .userId(cachedPost.userId())
+                            .userName(cachedPost.userName())
+                            .commentCount(cachedPost.commentCount())
+                            .isNotice(cachedPost.isNotice())
+                            .isLiked(isLiked)
+                            .build();
                 }
                 return cachedPost;
             }

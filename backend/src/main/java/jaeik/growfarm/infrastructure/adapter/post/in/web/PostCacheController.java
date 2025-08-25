@@ -40,7 +40,10 @@ public class PostCacheController {
      */
     @GetMapping("/realtime")
     public ResponseEntity<List<SimplePostResDTO>> getRealtimeBoard() {
-        List<SimplePostResDTO> realtimePopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.REALTIME);
+        List<SimplePostResDTO> realtimePopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.REALTIME)
+                .stream()
+                .map(SimplePostResDTO::from)
+                .toList();
         return ResponseEntity.ok(realtimePopularPosts);
     }
 
@@ -57,7 +60,10 @@ public class PostCacheController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<List<SimplePostResDTO>> getWeeklyBoard() {
-        List<SimplePostResDTO> weeklyPopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.WEEKLY);
+        List<SimplePostResDTO> weeklyPopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.WEEKLY)
+                .stream()
+                .map(SimplePostResDTO::from)
+                .toList();
         return ResponseEntity.ok(weeklyPopularPosts);
     }
 
@@ -75,7 +81,8 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<SimplePostResDTO>> getLegendBoard(Pageable pageable) {
-        Page<SimplePostResDTO> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
+        Page<SimplePostResDTO> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable)
+                .map(SimplePostResDTO::from);
         return ResponseEntity.ok(legendPopularPosts);
     }
 
@@ -92,7 +99,10 @@ public class PostCacheController {
      */
     @GetMapping("/notice")
     public ResponseEntity<List<SimplePostResDTO>> getNoticeBoard() {
-        List<SimplePostResDTO> noticePosts = postQueryUseCase.getNoticePosts();
+        List<SimplePostResDTO> noticePosts = postQueryUseCase.getNoticePosts()
+                .stream()
+                .map(SimplePostResDTO::from)
+                .toList();
         return ResponseEntity.ok(noticePosts);
     }
 }

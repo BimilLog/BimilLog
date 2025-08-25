@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -26,18 +26,18 @@ public interface PostCacheQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<SimplePostResDTO> getCachedPostList(PostCacheFlag type);
+    List<PostSearchResult> getCachedPostList(PostCacheFlag type);
 
     /**
      * <h3>캐시글 상세 조회</h3>
      * <p>지정된 게시글 ID의 캐시된 전체 게시글 상세 정보를 조회합니다.</p>
      *
      * @param postId 게시글 ID
-     * @return 캐시된 FullPostResDTO
+     * @return 캐시된 PostDetail
      * @author Jaeik
      * @since 2.0.0
      */
-    FullPostResDTO getCachedPost(Long postId);
+    PostDetail getCachedPost(Long postId);
 
     /**
      * <h3>인기 게시글 캐시 존재 여부 확인</h3>
@@ -60,5 +60,5 @@ public interface PostCacheQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimplePostResDTO> getCachedPostListPaged(PostCacheFlag type, Pageable pageable);
+    Page<PostSearchResult> getCachedPostListPaged(PostCacheFlag type, Pageable pageable);
 }

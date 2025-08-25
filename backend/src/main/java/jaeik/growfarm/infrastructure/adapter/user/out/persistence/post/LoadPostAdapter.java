@@ -23,11 +23,13 @@ public class LoadPostAdapter implements LoadPostPort {
 
     @Override
     public Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable) {
-        return postQueryUseCase.getUserPosts(userId, pageable);
+        return postQueryUseCase.getUserPosts(userId, pageable)
+                .map(SimplePostResDTO::from);
     }
 
     @Override
     public Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
-        return postQueryUseCase.getUserLikedPosts(userId, pageable);
+        return postQueryUseCase.getUserLikedPosts(userId, pageable)
+                .map(SimplePostResDTO::from);
     }
 }

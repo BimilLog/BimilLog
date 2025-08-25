@@ -2,6 +2,8 @@ package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.cache;
 
 import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
@@ -82,12 +84,27 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<SimplePostResDTO> getCachedPostList(PostCacheFlag type) {
+    public List<PostSearchResult> getCachedPostList(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
             Object cached = redisTemplate.opsForValue().get(metadata.key());
             if (cached instanceof List) {
-                return (List<SimplePostResDTO>) cached;
+                List<SimplePostResDTO> dtoList = (List<SimplePostResDTO>) cached;
+                return dtoList.stream()
+                        .map(dto -> PostSearchResult.builder()
+                                .id(dto.getId())
+                                .title(dto.getTitle())
+                                .content(dto.getContent())
+                                .viewCount(dto.getViewCount())
+                                .likeCount(dto.getLikeCount())
+                                .postCacheFlag(dto.getPostCacheFlag())
+                                .createdAt(dto.getCreatedAt())
+                                .userId(dto.getUserId())
+                                .userName(dto.getUserName())
+                                .commentCount(dto.getCommentCount())
+                                .isNotice(dto.isNotice())
+                                .build())
+                        .toList();
             }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
@@ -96,12 +113,25 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
     }
 
     @Override
-    public FullPostResDTO getCachedPost(Long postId) {
+    public PostDetail getCachedPost(Long postId) {
         String key = FULL_POST_CACHE_PREFIX + postId;
         try {
             Object cached = redisTemplate.opsForValue().get(key);
-            if (cached instanceof FullPostResDTO) {
-                return (FullPostResDTO) cached;
+            if (cached instanceof FullPostResDTO dto) {
+                return PostDetail.builder()
+                        .id(dto.getId())
+                        .title(dto.getTitle())
+                        .content(dto.getContent())
+                        .viewCount(dto.getViewCount())
+                        .likeCount(dto.getLikeCount())
+                        .postCacheFlag(dto.getPostCacheFlag())
+                        .createdAt(dto.getCreatedAt())
+                        .userId(dto.getUserId())
+                        .userName(dto.getUserName())
+                        .commentCount(dto.getCommentCount())
+                        .isNotice(dto.isNotice())
+                        .isLiked(dto.isLiked())
+                        .build();
             }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
@@ -111,7 +141,7 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Page<SimplePostResDTO> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
+    public Page<PostSearchResult> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
             // Redis List 구조에서 페이징 처리
@@ -135,10 +165,23 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
                 return new PageImpl<>(Collections.emptyList(), pageable, totalSize);
             }
             
-            // Object를 SimplePostResDTO로 변환
-            List<SimplePostResDTO> posts = cachedObjects.stream()
+            // Object를 PostSearchResult로 변환
+            List<PostSearchResult> posts = cachedObjects.stream()
                     .filter(obj -> obj instanceof SimplePostResDTO)
                     .map(obj -> (SimplePostResDTO) obj)
+                    .map(dto -> PostSearchResult.builder()
+                            .id(dto.getId())
+                            .title(dto.getTitle())
+                            .content(dto.getContent())
+                            .viewCount(dto.getViewCount())
+                            .likeCount(dto.getLikeCount())
+                            .postCacheFlag(dto.getPostCacheFlag())
+                            .createdAt(dto.getCreatedAt())
+                            .userId(dto.getUserId())
+                            .userName(dto.getUserName())
+                            .commentCount(dto.getCommentCount())
+                            .isNotice(dto.isNotice())
+                            .build())
                     .toList();
             
             return new PageImpl<>(posts, pageable, totalSize);
