@@ -48,8 +48,8 @@ class PostCacheQueryAdapterTest {
 
     @BeforeEach
     void setUp() {
-        // RedisTemplate Mock 설정
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        // RedisTemplate Mock 설정 - lenient()로 불필요한 스터빙 허용
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         
         // PostCacheQueryAdapter 인스턴스 생성
         postCacheQueryAdapter = new PostCacheQueryAdapter(redisTemplate);
