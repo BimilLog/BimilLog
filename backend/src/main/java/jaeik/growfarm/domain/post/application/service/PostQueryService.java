@@ -76,7 +76,7 @@ public class PostQueryService implements PostQueryUseCase {
                 // 캐시된 인기글 목록 조회
                 List<PostSearchResult> cachedPosts = postCacheQueryPort.getCachedPostList(flag);
                 // 해당 ID의 게시글이 목록에 있는지 확인
-                if (cachedPosts.stream().anyMatch(post -> post.id().equals(postId))) {
+                if (cachedPosts.stream().anyMatch(post -> post.getId().equals(postId))) {
                     return true;
                 }
             }

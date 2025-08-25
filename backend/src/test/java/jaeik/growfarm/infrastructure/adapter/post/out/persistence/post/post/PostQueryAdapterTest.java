@@ -1,28 +1,27 @@
 package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.GrowfarmApplication;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.PostLike;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
-// SearchStrategyFactory removed - using direct search logic
+import jaeik.growfarm.util.TestContainersConfiguration;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -30,10 +29,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -53,53 +49,27 @@ import static org.mockito.BDDMockito.given;
  * @version 2.0.0
  */
 @DataJpaTest(
-        excludeFilters = @ComponentScan.Filter(
+        includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = GrowfarmApplication.class
+                classes = {PostQueryAdapter.class}
         )
 )
 @Testcontainers
-@EntityScan(basePackages = {
-        "jaeik.growfarm.domain.post.entity",
-        "jaeik.growfarm.domain.user.entity",
-        "jaeik.growfarm.domain.common.entity"
-})
-@EnableJpaRepositories(basePackages = {
-        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post",
-        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike"
-})
-@Import({PostQueryAdapter.class, PostQueryAdapterTest.TestConfig.class})
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
-})
+@Import({PostQueryAdapterTest.TestConfig.class, TestContainersConfiguration.class})
 class PostQueryAdapterTest {
 
     @Container
+    @ServiceConnection
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test");
-
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-    }
 
     @TestConfiguration
     static class TestConfig {
         @Bean
         public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
             return new JPAQueryFactory(entityManager);
-        }
-        
-        // SearchStrategyFactory removed - using direct search logic
-        
-        @Bean
-        public CommentQueryUseCase commentQueryUseCase() {
-            // 기본 Mock 동작 설정
-            return Mockito.mock(CommentQueryUseCase.class);
         }
     }
 
@@ -109,8 +79,11 @@ class PostQueryAdapterTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    @Autowired
+    @MockitoBean
     private CommentQueryUseCase commentQueryUseCase;
+
+    @MockitoBean
+    private PostLikeQueryPort postLikeQueryPort;
 
     private User testUser;
     private Post testPost1, testPost2, testPost3, noticePost;
@@ -142,8 +115,17 @@ class PostQueryAdapterTest {
         commentCounts.put(testPost3.getId(), 0);
         commentCounts.put(noticePost.getId(), 3);
         
+        // 추천 수 Mock 설정 (기본값)
+        Map<Long, Integer> likeCounts = new HashMap<>();
+        likeCounts.put(testPost1.getId(), 5);
+        likeCounts.put(testPost2.getId(), 3);
+        likeCounts.put(testPost3.getId(), 1);
+        likeCounts.put(noticePost.getId(), 8);
+        
         given(commentQueryUseCase.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(commentCounts);
+        given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
+                .willReturn(likeCounts);
     }
 
     private void createTestPosts() {
@@ -224,7 +206,7 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 2);
 
         // When: 페이지별 게시글 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findByPage(pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 공지사항이 제외된 일반 게시글만 조회됨
         assertThat(result).isNotNull();
@@ -234,18 +216,19 @@ class PostQueryAdapterTest {
 
         // 공지사항은 제외되어야 함
         List<String> titles = result.getContent().stream()
-                .map(SimplePostResDTO::getTitle)
+                .map(PostSearchResult::getTitle)
                 .toList();
         assertThat(titles).doesNotContain("공지사항 제목");
         
-        // 댓글 수가 설정되어 있는지 확인
-        assertThat(result.getContent().getFirst().getCommentCount()).isNotNull();
+        // 댓글 수와 추천 수가 설정되어 있는지 확인
+        assertThat(result.getContent().get(0).getCommentCount()).isNotNull();
+        assertThat(result.getContent().get(0).getLikeCount()).isNotNull();
     }
 
     @Test
     @DisplayName("경계값 - 빈 페이지 요청")
     void shouldReturnEmptyPage_WhenNoPostsExist() {
-        // Given: 모든 게시글 삭제
+        // Given: 모든 일반 게시글 삭제
         entityManager.getEntityManager()
                 .createQuery("DELETE FROM Post p WHERE p.isNotice = false")
                 .executeUpdate();
@@ -255,7 +238,7 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 빈 페이지 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findByPage(pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 빈 페이지 반환
         assertThat(result).isNotNull();
@@ -272,7 +255,7 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자별 게시글 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findPostsByUserId(userId, pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findPostsByUserId(userId, pageable);
 
         // Then: 해당 사용자의 게시글만 조회됨
         assertThat(result).isNotNull();
@@ -281,7 +264,7 @@ class PostQueryAdapterTest {
 
         // 모든 게시글의 작성자가 해당 사용자인지 확인
         List<String> userNames = result.getContent().stream()
-                .map(SimplePostResDTO::getUserName)
+                .map(PostSearchResult::getUserName)
                 .distinct()
                 .toList();
         assertThat(userNames).containsExactly("testUser");
@@ -295,7 +278,7 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 존재하지 않는 사용자의 게시글 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findPostsByUserId(nonExistentUserId, pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findPostsByUserId(nonExistentUserId, pageable);
 
         // Then: 빈 페이지 반환
         assertThat(result).isNotNull();
@@ -338,7 +321,7 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자 추천 게시글 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findLikedPostsByUserId(likeUser.getId(), pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findLikedPostsByUserId(likeUser.getId(), pageable);
 
         // Then: 추천한 게시글들이 조회됨
         assertThat(result).isNotNull();
@@ -346,15 +329,16 @@ class PostQueryAdapterTest {
         assertThat(result.getTotalElements()).isEqualTo(2L);
 
         List<String> likedPostTitles = result.getContent().stream()
-                .map(SimplePostResDTO::getTitle)
+                .map(PostSearchResult::getTitle)
                 .toList();
         assertThat(likedPostTitles).containsExactlyInAnyOrder(
                 "첫 번째 게시글", 
                 "두 번째 게시글"
         );
 
-        // 댓글 수도 설정되어 있는지 확인
+        // 댓글 수와 추천 수도 설정되어 있는지 확인
         assertThat(result.getContent()).allMatch(post -> post.getCommentCount() != null);
+        assertThat(result.getContent()).allMatch(post -> post.getLikeCount() != null);
     }
 
     @Test
@@ -378,12 +362,63 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 추천 게시글 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findLikedPostsByUserId(newUser.getId(), pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findLikedPostsByUserId(newUser.getId(), pageable);
 
         // Then: 빈 페이지 반환
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 제목 검색")
+    void shouldFindPostsByTitleSearch_WhenValidSearchQueryProvided() {
+        // Given: 제목 검색어
+        String searchType = "title";
+        String query = "첫 번째";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When: 제목 검색
+        Page<PostSearchResult> result = postQueryAdapter.findBySearch(searchType, query, pageable);
+
+        // Then: 해당 제목이 포함된 게시글 조회됨
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getTitle()).contains("첫 번째");
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 작성자 검색")
+    void shouldFindPostsByWriterSearch_WhenValidWriterQueryProvided() {
+        // Given: 작성자 검색어
+        String searchType = "writer";
+        String query = "test";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When: 작성자 검색
+        Page<PostSearchResult> result = postQueryAdapter.findBySearch(searchType, query, pageable);
+
+        // Then: 해당 작성자의 게시글들이 조회됨
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSizeGreaterThan(0);
+        assertThat(result.getContent()).allMatch(post -> 
+                post.getUserName().toLowerCase().contains(query.toLowerCase()));
+    }
+
+    @Test
+    @DisplayName("경계값 - 빈 검색어로 검색")
+    void shouldReturnAllPosts_WhenEmptySearchQueryProvided() {
+        // Given: 빈 검색어
+        String searchType = "title";
+        String query = "";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When: 빈 검색어로 검색
+        Page<PostSearchResult> result = postQueryAdapter.findBySearch(searchType, query, pageable);
+
+        // Then: 모든 일반 게시글 조회됨 (공지사항 제외)
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개
     }
 
     @Test
@@ -400,20 +435,24 @@ class PostQueryAdapterTest {
             entityManager.persistAndFlush(post);
         }
 
-        // Mock 댓글 수 업데이트
+        // Mock 댓글 수와 추천 수 업데이트
         Map<Long, Integer> allCommentCounts = new HashMap<>();
+        Map<Long, Integer> allLikeCounts = new HashMap<>();
         for (int i = 1; i <= 10; i++) {
             allCommentCounts.put((long) i, i % 3); // 0, 1, 2 순환
+            allLikeCounts.put((long) i, i % 5); // 0, 1, 2, 3, 4 순환
         }
         given(commentQueryUseCase.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(allCommentCounts);
+        given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
+                .willReturn(allLikeCounts);
 
         // When: 첫 페이지와 두 번째 페이지 조회
         Pageable firstPage = PageRequest.of(0, 3);
         Pageable secondPage = PageRequest.of(1, 3);
 
-        Page<SimplePostResDTO> firstResult = postQueryAdapter.findByPage(firstPage);
-        Page<SimplePostResDTO> secondResult = postQueryAdapter.findByPage(secondPage);
+        Page<PostSearchResult> firstResult = postQueryAdapter.findByPage(firstPage);
+        Page<PostSearchResult> secondResult = postQueryAdapter.findByPage(secondPage);
 
         // Then: 페이지네이션이 정상 동작함
         assertThat(firstResult.getContent()).hasSize(3);
@@ -423,10 +462,10 @@ class PostQueryAdapterTest {
         
         // 각 페이지의 내용이 다름을 확인
         Set<Long> firstPageIds = firstResult.getContent().stream()
-                .map(SimplePostResDTO::getId)
+                .map(PostSearchResult::getId)
                 .collect(java.util.stream.Collectors.toSet());
         Set<Long> secondPageIds = secondResult.getContent().stream()
-                .map(SimplePostResDTO::getId)
+                .map(PostSearchResult::getId)
                 .collect(java.util.stream.Collectors.toSet());
         
         // 두 페이지 결과가 중복되지 않는지 검증
@@ -440,13 +479,13 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 일반 게시글 페이지 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findByPage(pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 공지사항은 제외되고 일반 게시글만 조회됨
         assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개
         
         List<Boolean> noticeFlags = result.getContent().stream()
-                .map(SimplePostResDTO::isNotice)
+                .map(PostSearchResult::isNotice)
                 .toList();
         assertThat(noticeFlags).allMatch(isNotice -> !isNotice); // 모두 false여야 함
     }
@@ -458,11 +497,11 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 게시글 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findByPage(pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 최신 게시글부터 정렬됨 (createdAt 내림차순)
         List<java.time.Instant> createdAts = result.getContent().stream()
-                .map(SimplePostResDTO::getCreatedAt)
+                .map(PostSearchResult::getCreatedAt)
                 .toList();
 
         for (int i = 1; i < createdAts.size(); i++) {
@@ -473,36 +512,41 @@ class PostQueryAdapterTest {
     @Test
     @DisplayName("통합 테스트 - N+1 문제 해결 확인")
     void shouldAvoidNPlusOneProblem_WhenFetchingPostsWithComments() {
-        // Given: 게시글들과 댓글 수 Mock
+        // Given: 게시글들과 댓글 수, 추천 수 Mock
         Map<Long, Integer> commentCounts = new HashMap<>();
         commentCounts.put(testPost1.getId(), 5);
         commentCounts.put(testPost2.getId(), 3);
         commentCounts.put(testPost3.getId(), 1);
         
+        Map<Long, Integer> likeCounts = new HashMap<>();
+        likeCounts.put(testPost1.getId(), 8);
+        likeCounts.put(testPost2.getId(), 6);
+        likeCounts.put(testPost3.getId(), 2);
+        
         given(commentQueryUseCase.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(commentCounts);
+        given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
+                .willReturn(likeCounts);
 
         Pageable pageable = PageRequest.of(0, 3);
 
-        // When: 게시글과 댓글 수 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findByPage(pageable);
+        // When: 게시글과 댓글 수, 추천 수 조회
+        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
 
-        // Then: 배치로 댓글 수가 조회되어 N+1 문제 없음
+        // Then: 배치로 댓글 수와 추천 수가 조회되어 N+1 문제 없음
         assertThat(result.getContent()).hasSize(3);
         
-        // 모든 게시글에 댓글 수가 설정됨
+        // 모든 게시글에 댓글 수와 추천 수가 설정됨
         assertThat(result.getContent()).allMatch(post -> post.getCommentCount() != null);
+        assertThat(result.getContent()).allMatch(post -> post.getLikeCount() != null);
         
-        // 댓글 수가 Mock으로 설정한 값과 일치
-        Map<Long, Integer> actualCommentCounts = result.getContent().stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        SimplePostResDTO::getId, 
-                        SimplePostResDTO::getCommentCount
-                ));
-        
-        for (SimplePostResDTO post : result.getContent()) {
+        // 댓글 수와 추천 수가 Mock으로 설정한 값과 일치
+        for (PostSearchResult post : result.getContent()) {
             if (commentCounts.containsKey(post.getId())) {
                 assertThat(post.getCommentCount()).isEqualTo(commentCounts.get(post.getId()));
+            }
+            if (likeCounts.containsKey(post.getId())) {
+                assertThat(post.getLikeCount()).isEqualTo(likeCounts.get(post.getId()));
             }
         }
     }
@@ -513,7 +557,7 @@ class PostQueryAdapterTest {
         // Given: null Pageable
         Pageable nullPageable = null;
 
-        // When & Then: 적절한 예외 처리 또는 기본값 사용
+        // When & Then: 적절한 예외 처리
         assertThatThrownBy(() -> {
             postQueryAdapter.findByPage(nullPageable);
         }).isInstanceOf(Exception.class); // NullPointerException 또는 적절한 예외
@@ -521,7 +565,7 @@ class PostQueryAdapterTest {
 
     @Test
     @DisplayName("데이터 매핑 - 모든 필드 정확히 매핑")
-    void shouldMapAllFields_WhenCreatingSimplePostResDTO() {
+    void shouldMapAllFields_WhenCreatingPostSearchResult() {
         // Given: 캐시 플래그가 설정된 게시글
         testPost1.setPostCacheFlag(PostCacheFlag.REALTIME);
         entityManager.merge(testPost1);
@@ -530,10 +574,10 @@ class PostQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 1);
 
         // When: 게시글 조회
-        Page<SimplePostResDTO> result = postQueryAdapter.findByPage(pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 모든 필드가 정확히 매핑됨
-        SimplePostResDTO dto = result.getContent().getFirst();
+        PostSearchResult dto = result.getContent().get(0);
         
         assertThat(dto.getId()).isEqualTo(testPost1.getId());
         assertThat(dto.getTitle()).isEqualTo(testPost1.getTitle());
@@ -544,5 +588,6 @@ class PostQueryAdapterTest {
         assertThat(dto.getCreatedAt()).isNotNull();
         assertThat(dto.getCommentCount()).isNotNull();
         assertThat(dto.getLikeCount()).isNotNull();
+        assertThat(dto.getViewCount()).isNotNull();
     }
 }

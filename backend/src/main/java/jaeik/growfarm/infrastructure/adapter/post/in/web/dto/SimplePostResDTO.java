@@ -48,16 +48,16 @@ public class SimplePostResDTO {
      */
     public static SimplePostResDTO from(PostSearchResult searchResult) {
         return SimplePostResDTO.builder()
-                .id(searchResult.id())
-                .title(searchResult.title())
-                .content(searchResult.content())
-                .viewCount(searchResult.viewCount())
-                .likeCount(searchResult.likeCount())
-                .postCacheFlag(searchResult.postCacheFlag())
-                .createdAt(searchResult.createdAt())
-                .userId(searchResult.userId())
-                .userName(searchResult.userName())
-                .commentCount(searchResult.commentCount())
+                .id(searchResult.getId())
+                .title(searchResult.getTitle())
+                .content(searchResult.getContent())
+                .viewCount(searchResult.getViewCount())
+                .likeCount(searchResult.getLikeCount())
+                .postCacheFlag(searchResult.getPostCacheFlag())
+                .createdAt(searchResult.getCreatedAt())
+                .userId(searchResult.getUserId())
+                .userName(searchResult.getUserName())
+                .commentCount(searchResult.getCommentCount())
                 .isNotice(searchResult.isNotice())
                 .build();
     }

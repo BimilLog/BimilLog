@@ -6,12 +6,13 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
-import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.fulltext.PostFulltextRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,6 @@ public class PostQueryAdapter implements PostQueryPort {
 
     private static final QPost post = QPost.post;
     private static final QUser user = QUser.user;
-    private static final QPostLike postLike = QPostLike.postLike;
 
     /**
      * <h3>ID로 게시글 조회</h3>
@@ -187,11 +187,11 @@ public class PostQueryAdapter implements PostQueryPort {
         
         // LIKE 검색
         BooleanExpression likeCondition = switch (type) {
-            case "title" -> post.title.containsIgnoreCase(query);
+            case "title" -> post.title.contains(query);
             case "writer" -> createWriterLikeCondition(query);
-            case "title_content" -> post.title.containsIgnoreCase(query)
-                                   .or(post.content.containsIgnoreCase(query));
-            default -> post.title.containsIgnoreCase(query);
+            case "title_content" -> post.title.contains(query)
+                                   .or(post.content.contains(query));
+            default -> post.title.contains(query);
         };
         
         return likeCondition.and(post.isNotice.isFalse());
@@ -210,10 +210,10 @@ public class PostQueryAdapter implements PostQueryPort {
     private BooleanExpression createWriterLikeCondition(String query) {
         if (query.length() >= 4) {
             // 4글자 이상: LIKE% 검색 (인덱스 효율성)
-            return user.userName.startsWithIgnoreCase(query);
+            return user.userName.startsWith(query);
         } else {
             // 1-3글자: %LIKE% 검색 (완전 일치)
-            return user.userName.containsIgnoreCase(query);
+            return user.userName.contains(query);
         }
     }
 

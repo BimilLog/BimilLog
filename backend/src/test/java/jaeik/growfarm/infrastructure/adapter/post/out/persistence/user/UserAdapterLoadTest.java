@@ -77,7 +77,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "logging.level.org.hibernate.SQL=DEBUG",
         "logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE"
 })
-class UserAdapterLoadTest {
+class  UserAdapterLoadTest {
 
     @Container
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")

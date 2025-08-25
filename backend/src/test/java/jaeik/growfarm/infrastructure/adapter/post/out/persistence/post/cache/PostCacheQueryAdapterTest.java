@@ -1,8 +1,10 @@
 package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.cache;
 
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -21,8 +27,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 
 /**
  * <h2>PostCacheQueryAdapter 테스트</h2>
@@ -40,16 +48,20 @@ class PostCacheQueryAdapterTest {
 
     @Mock
     private ValueOperations<String, Object> valueOperations;
+    
+    @Mock
+    private ListOperations<String, Object> listOperations;
 
     private PostCacheQueryAdapter postCacheQueryAdapter;
 
-    private List<SimplePostResDTO> testSimplePosts;
-    private FullPostResDTO testFullPost;
+    private List<SimplePostResDTO> testSimplePostDTOs;
+    private FullPostResDTO testFullPostDTO;
 
     @BeforeEach
     void setUp() {
         // RedisTemplate Mock 설정 - lenient()로 불필요한 스터빙 허용
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        lenient().when(redisTemplate.opsForList()).thenReturn(listOperations);
         
         // PostCacheQueryAdapter 인스턴스 생성
         postCacheQueryAdapter = new PostCacheQueryAdapter(redisTemplate);
@@ -59,8 +71,8 @@ class PostCacheQueryAdapterTest {
     }
 
     private void createTestData() {
-        // SimplePostResDTO 테스트 데이터
-        testSimplePosts = Arrays.asList(
+        // SimplePostResDTO 테스트 데이터 (실제 Redis에 저장되는 형태)
+        testSimplePostDTOs = Arrays.asList(
             SimplePostResDTO.builder()
                 .id(1L)
                 .title("인기 게시글 1")
@@ -89,8 +101,8 @@ class PostCacheQueryAdapterTest {
                 .build()
         );
 
-        // FullPostResDTO 테스트 데이터
-        testFullPost = FullPostResDTO.builder()
+        // FullPostResDTO 테스트 데이터 (실제 Redis에 저장되는 형태)
+        testFullPostDTO = FullPostResDTO.builder()
             .id(1L)
             .title("상세 게시글")
             .content("상세 게시글 내용입니다.")
@@ -137,13 +149,13 @@ class PostCacheQueryAdapterTest {
     @Test
     @DisplayName("정상 케이스 - LEGEND 캐시 게시글 목록 조회")
     void shouldReturnCachedPosts_WhenLegendCacheExists() {
-        // Given: LEGEND 캐시에 게시글 목록 존재
-        given(valueOperations.get("cache:posts:legend")).willReturn(testSimplePosts);
+        // Given: LEGEND 캐시에 게시글 DTO 목록 존재
+        given(valueOperations.get("cache:posts:legend")).willReturn(testSimplePostDTOs);
         
         // When: 캐시된 게시글 목록 조회
-        List<SimplePostResDTO> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.LEGEND);
+        List<PostSearchResult> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.LEGEND);
         
-        // Then: 캐시된 게시글 목록 반환
+        // Then: 캐시된 게시글 목록이 변환되어 반환됨
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getTitle()).isEqualTo("인기 게시글 1");
@@ -158,7 +170,7 @@ class PostCacheQueryAdapterTest {
         given(valueOperations.get("cache:posts:notice")).willReturn(null);
         
         // When: 캐시된 게시글 목록 조회
-        List<SimplePostResDTO> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE);
+        List<PostSearchResult> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE);
         
         // Then: 빈 목록 반환
         assertThat(result).isNotNull();
@@ -169,19 +181,19 @@ class PostCacheQueryAdapterTest {
     @Test
     @DisplayName("정상 케이스 - 개별 게시글 캐시 조회")
     void shouldReturnCachedPost_WhenPostCacheExists() {
-        // Given: 개별 게시글 캐시 존재
+        // Given: 개별 게시글 캐시에 DTO 존재
         Long postId = 1L;
         String expectedKey = "cache:post:" + postId;
-        given(valueOperations.get(expectedKey)).willReturn(testFullPost);
+        given(valueOperations.get(expectedKey)).willReturn(testFullPostDTO);
         
         // When: 캐시된 게시글 조회
-        FullPostResDTO result = postCacheQueryAdapter.getCachedPost(postId);
+        PostDetail result = postCacheQueryAdapter.getCachedPost(postId);
         
-        // Then: 캐시된 게시글 반환
+        // Then: 캐시된 게시글이 변환되어 반환됨
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getTitle()).isEqualTo("상세 게시글");
-        assertThat(result.getContent()).isEqualTo("상세 게시글 내용입니다.");
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.title()).isEqualTo("상세 게시글");
+        assertThat(result.content()).isEqualTo("상세 게시글 내용입니다.");
         assertThat(result.isLiked()).isTrue();
         verify(valueOperations).get(expectedKey);
     }
@@ -195,11 +207,58 @@ class PostCacheQueryAdapterTest {
         given(valueOperations.get(expectedKey)).willReturn(null);
         
         // When: 캐시된 게시글 조회
-        FullPostResDTO result = postCacheQueryAdapter.getCachedPost(postId);
+        PostDetail result = postCacheQueryAdapter.getCachedPost(postId);
         
         // Then: null 반환
         assertThat(result).isNull();
         verify(valueOperations).get(expectedKey);
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 페이지별 캐시 조회")
+    void shouldReturnPagedCachedPosts_WhenCacheExistsWithPagination() {
+        // Given: 캐시 리스트에 데이터 존재
+        String listKey = "cache:posts:realtime:list";
+        given(listOperations.size(listKey)).willReturn(5L);
+        given(listOperations.range(listKey, 0L, 1L)).willReturn(
+            Arrays.asList(testSimplePostDTOs.get(0), testSimplePostDTOs.get(1))
+        );
+        
+        Pageable pageable = PageRequest.of(0, 2);
+        
+        // When: 페이지별 캐시 조회
+        Page<PostSearchResult> result = postCacheQueryAdapter.getCachedPostListPaged(PostCacheFlag.REALTIME, pageable);
+        
+        // Then: 페이지 데이터 반환
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(5L);
+        assertThat(result.getTotalPages()).isEqualTo(3);
+        
+        verify(listOperations).size(listKey);
+        verify(listOperations).range(listKey, 0L, 1L);
+    }
+
+    @Test
+    @DisplayName("경계값 - 빈 페이지 캐시 조회")
+    void shouldReturnEmptyPage_WhenCacheListIsEmpty() {
+        // Given: 빈 캐시 리스트
+        String listKey = "cache:posts:legend:list";
+        given(listOperations.size(listKey)).willReturn(0L);
+        
+        Pageable pageable = PageRequest.of(0, 10);
+        
+        // When: 페이지별 캐시 조회
+        Page<PostSearchResult> result = postCacheQueryAdapter.getCachedPostListPaged(PostCacheFlag.LEGEND, pageable);
+        
+        // Then: 빈 페이지 반환
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0L);
+        assertThat(result.getTotalPages()).isEqualTo(0);
+        
+        verify(listOperations).size(listKey);
+        verify(listOperations, never()).range(any(), anyLong(), anyLong());
     }
 
     @Test
@@ -257,13 +316,34 @@ class PostCacheQueryAdapterTest {
     }
 
     @Test
+    @DisplayName("예외 케이스 - Redis List 조회 오류 시 getCachedPostListPaged CustomException 발생")
+    void shouldThrowCustomException_WhenRedisListErrorInGetCachedPaged() {
+        // Given: Redis List 조회 오류 발생
+        String listKey = "cache:posts:weekly:list";
+        given(listOperations.size(listKey))
+            .willThrow(new RuntimeException("Redis list operation failed"));
+        
+        Pageable pageable = PageRequest.of(0, 10);
+        
+        // When & Then: CustomException 발생
+        assertThatThrownBy(() -> {
+            postCacheQueryAdapter.getCachedPostListPaged(PostCacheFlag.WEEKLY, pageable);
+        })
+        .isInstanceOf(CustomException.class)
+        .satisfies(ex -> {
+            CustomException customEx = (CustomException) ex;
+            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_READ_ERROR.getStatus());
+        });
+    }
+
+    @Test
     @DisplayName("경계값 - 잘못된 타입의 캐시 데이터가 있을 때 빈 목록 반환")
     void shouldReturnEmptyList_WhenCacheContainsWrongDataType() {
         // Given: 잘못된 타입의 데이터가 캐시에 있음
         given(valueOperations.get("cache:posts:realtime")).willReturn("wrong type data");
         
         // When: 캐시된 게시글 목록 조회
-        List<SimplePostResDTO> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
+        List<PostSearchResult> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
         
         // Then: 빈 목록 반환 (타입 안전성)
         assertThat(result).isNotNull();
@@ -279,7 +359,7 @@ class PostCacheQueryAdapterTest {
         given(valueOperations.get(expectedKey)).willReturn("wrong type data");
         
         // When: 캐시된 게시글 조회
-        FullPostResDTO result = postCacheQueryAdapter.getCachedPost(postId);
+        PostDetail result = postCacheQueryAdapter.getCachedPost(postId);
         
         // Then: null 반환 (타입 안전성)
         assertThat(result).isNull();
@@ -318,24 +398,24 @@ class PostCacheQueryAdapterTest {
     void shouldCompleteEntireCacheQueryWorkflow() {
         // Given: 다양한 캐시 데이터 존재
         given(redisTemplate.hasKey("cache:posts:realtime")).willReturn(true);
-        given(valueOperations.get("cache:posts:realtime")).willReturn(testSimplePosts);
-        given(valueOperations.get("cache:post:1")).willReturn(testFullPost);
+        given(valueOperations.get("cache:posts:realtime")).willReturn(testSimplePostDTOs);
+        given(valueOperations.get("cache:post:1")).willReturn(testFullPostDTO);
         
         // When: 전체 워크플로우 실행
         // 1. 캐시 존재 여부 확인
         boolean hasCache = postCacheQueryAdapter.hasPopularPostsCache(PostCacheFlag.REALTIME);
         
         // 2. 캐시된 게시글 목록 조회
-        List<SimplePostResDTO> posts = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
+        List<PostSearchResult> posts = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
         
         // 3. 개별 게시글 상세 조회
-        FullPostResDTO postDetail = postCacheQueryAdapter.getCachedPost(1L);
+        PostDetail postDetail = postCacheQueryAdapter.getCachedPost(1L);
         
         // Then: 모든 단계가 정상 실행됨
         assertThat(hasCache).isTrue();
         assertThat(posts).hasSize(2);
         assertThat(postDetail).isNotNull();
-        assertThat(postDetail.getTitle()).isEqualTo("상세 게시글");
+        assertThat(postDetail.title()).isEqualTo("상세 게시글");
         
         // 적절한 Redis 호출 검증
         verify(redisTemplate).hasKey("cache:posts:realtime");
@@ -347,12 +427,12 @@ class PostCacheQueryAdapterTest {
     @DisplayName("성능 테스트 - 대량 캐시 조회")
     void shouldHandleLargeCacheData_WhenRetrievingPosts() {
         
-        // Given: 대량 캐시 데이터 (100개 게시글)
-        List<SimplePostResDTO> largePosts = Collections.nCopies(100, testSimplePosts.get(0));
+        // Given: 대량 캐시 데이터 (100개 게시글 DTO)
+        List<SimplePostResDTO> largePosts = Collections.nCopies(100, testSimplePostDTOs.get(0));
         given(valueOperations.get("cache:posts:weekly")).willReturn(largePosts);
         
         // When: 대량 캐시 데이터 조회
-        List<SimplePostResDTO> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
+        List<PostSearchResult> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
         
         // Then: 성능 문제 없이 정상 처리됨
         assertThat(result).isNotNull();

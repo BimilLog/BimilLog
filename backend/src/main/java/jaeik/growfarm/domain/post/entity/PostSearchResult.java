@@ -25,7 +25,6 @@ import java.time.Instant;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class PostSearchResult {
     
     private Long id;

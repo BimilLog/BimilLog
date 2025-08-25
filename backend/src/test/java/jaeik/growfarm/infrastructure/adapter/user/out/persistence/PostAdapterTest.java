@@ -1,6 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.persistence;
 
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.post.LoadPostAdapter;
 import org.junit.jupiter.api.DisplayName;
@@ -49,28 +51,36 @@ class PostAdapterTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         
-        List<SimplePostResDTO> posts = Arrays.asList(
-            SimplePostResDTO.builder()
+        List<PostSearchResult> posts = Arrays.asList(
+            PostSearchResult.builder()
                 .id(1L)
                 .title("첫 번째 게시글")
                 .content("첫 번째 게시글 내용")
                 .userName("작성자1")
+                .userId(userId)
                 .createdAt(Instant.now().minusSeconds(86400))
                 .likeCount(5)
                 .commentCount(3)
+                .viewCount(10)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .isNotice(false)
                 .build(),
-            SimplePostResDTO.builder()
+            PostSearchResult.builder()
                 .id(2L)
                 .title("두 번째 게시글")
                 .content("두 번째 게시글 내용")
                 .userName("작성자1")
+                .userId(userId)
                 .createdAt(Instant.now().minusSeconds(172800))
                 .likeCount(10)
                 .commentCount(7)
+                .viewCount(20)
+                .postCacheFlag(PostCacheFlag.WEEKLY)
+                .isNotice(false)
                 .build()
         );
         
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(posts, pageable, posts.size());
+        Page<PostSearchResult> expectedPage = new PageImpl<>(posts, pageable, posts.size());
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(expectedPage);
 
         // When: 사용자 작성 게시글 목록 조회 실행
@@ -93,28 +103,36 @@ class PostAdapterTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 5);
         
-        List<SimplePostResDTO> likedPosts = Arrays.asList(
-            SimplePostResDTO.builder()
+        List<PostSearchResult> likedPosts = Arrays.asList(
+            PostSearchResult.builder()
                 .id(3L)
                 .title("추천한 게시글 1")
                 .content("추천한 게시글 1 내용")
                 .userName("다른작성자1")
+                .userId(101L)
                 .createdAt(Instant.now().minusSeconds(259200))
                 .likeCount(15)
                 .commentCount(8)
+                .viewCount(50)
+                .postCacheFlag(PostCacheFlag.LEGEND)
+                .isNotice(false)
                 .build(),
-            SimplePostResDTO.builder()
+            PostSearchResult.builder()
                 .id(4L)
                 .title("추천한 게시글 2")
                 .content("추천한 게시글 2 내용")
                 .userName("다른작성자2")
+                .userId(102L)
                 .createdAt(Instant.now().minusSeconds(345600))
                 .likeCount(20)
                 .commentCount(12)
+                .viewCount(80)
+                .postCacheFlag(PostCacheFlag.WEEKLY)
+                .isNotice(false)
                 .build()
         );
         
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(likedPosts, pageable, likedPosts.size());
+        Page<PostSearchResult> expectedPage = new PageImpl<>(likedPosts, pageable, likedPosts.size());
         given(postQueryUseCase.getUserLikedPosts(eq(userId), any(Pageable.class))).willReturn(expectedPage);
 
         // When: 사용자 추천 게시글 목록 조회 실행
@@ -136,7 +154,7 @@ class PostAdapterTest {
         // Given: 게시글이 없는 사용자 ID와 빈 페이지 결과
         Long userId = 999L;
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
         
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(emptyPage);
 
@@ -156,7 +174,7 @@ class PostAdapterTest {
         // Given: 추천 게시글이 없는 사용자 ID와 빈 페이지 결과
         Long userId = 999L;
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
         
         given(postQueryUseCase.getUserLikedPosts(eq(userId), any(Pageable.class))).willReturn(emptyPage);
 
@@ -173,42 +191,60 @@ class PostAdapterTest {
     @Test
     @DisplayName("예외 케이스 - null 사용자 ID로 게시글 조회")
     void shouldHandleNullUserId_WhenNullUserIdProvided() {
-        // Given: null 사용자 ID
+        // Given: null 사용자 ID와 빈 페이지 반환 설정
         Long nullUserId = null;
         Pageable pageable = PageRequest.of(0, 10);
+        
+        // 비즈니스 로직: null userId도 처리 가능하다면 빈 페이지 반환
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        given(postQueryUseCase.getUserPosts(eq(nullUserId), eq(pageable))).willReturn(emptyPage);
 
         // When: null 사용자 ID로 게시글 조회 실행
-        loadPostAdapter.findPostsByUserId(nullUserId, pageable);
+        Page<SimplePostResDTO> result = loadPostAdapter.findPostsByUserId(nullUserId, pageable);
 
-        // Then: UseCase에 null이 전달되는지 검증
+        // Then: 빈 결과 반환 검증
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
         verify(postQueryUseCase).getUserPosts(eq(nullUserId), eq(pageable));
     }
 
     @Test
     @DisplayName("예외 케이스 - null 페이지로 게시글 조회")
     void shouldHandleNullPageable_WhenNullPageableProvided() {
-        // Given: 정상 사용자 ID와 null 페이지 정보
+        // Given: 정상 사용자 ID와 null 페이지 정보, 빈 페이지 반환 설정
         Long userId = 1L;
         Pageable nullPageable = null;
+        
+        // 비즈니스 로직: null pageable도 처리 가능하다면 빈 페이지 반환
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
+        given(postQueryUseCase.getUserPosts(eq(userId), eq(nullPageable))).willReturn(emptyPage);
 
         // When: null 페이지 정보로 게시글 조회 실행
-        loadPostAdapter.findPostsByUserId(userId, nullPageable);
+        Page<SimplePostResDTO> result = loadPostAdapter.findPostsByUserId(userId, nullPageable);
 
-        // Then: UseCase에 null 페이지가 전달되는지 검증
+        // Then: 빈 결과 반환 검증
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
         verify(postQueryUseCase).getUserPosts(eq(userId), eq(nullPageable));
     }
 
     @Test
     @DisplayName("예외 케이스 - null 사용자 ID로 추천 게시글 조회")
     void shouldHandleNullUserIdForLikedPosts_WhenNullUserIdProvided() {
-        // Given: null 사용자 ID
+        // Given: null 사용자 ID와 빈 페이지 반환 설정
         Long nullUserId = null;
         Pageable pageable = PageRequest.of(0, 10);
+        
+        // 비즈니스 로직: null userId도 처리 가능하다면 빈 페이지 반환
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        given(postQueryUseCase.getUserLikedPosts(eq(nullUserId), eq(pageable))).willReturn(emptyPage);
 
         // When: null 사용자 ID로 추천 게시글 조회 실행
-        loadPostAdapter.findLikedPostsByUserId(nullUserId, pageable);
+        Page<SimplePostResDTO> result = loadPostAdapter.findLikedPostsByUserId(nullUserId, pageable);
 
-        // Then: UseCase에 null이 전달되는지 검증
+        // Then: 빈 결과 반환 검증
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
         verify(postQueryUseCase).getUserLikedPosts(eq(nullUserId), eq(pageable));
     }
 
@@ -219,18 +255,22 @@ class PostAdapterTest {
         Long userId = 1L;
         Pageable largePage = PageRequest.of(0, 1000);
         
-        List<SimplePostResDTO> largePostList = Collections.nCopies(1000, 
-            SimplePostResDTO.builder()
+        List<PostSearchResult> largePostList = Collections.nCopies(1000, 
+            PostSearchResult.builder()
                 .id(1L)
                 .title("대용량 테스트 게시글")
                 .content("대용량 테스트 내용")
                 .userName("테스트작성자")
+                .userId(userId)
                 .createdAt(Instant.now())
                 .likeCount(1)
                 .commentCount(0)
+                .viewCount(1)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .isNotice(false)
                 .build());
         
-        Page<SimplePostResDTO> largePage_ = new PageImpl<>(largePostList, largePage, 1000);
+        Page<PostSearchResult> largePage_ = new PageImpl<>(largePostList, largePage, 1000);
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(largePage_);
 
         // When: 대용량 게시글 목록 조회
@@ -251,13 +291,37 @@ class PostAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
         
         // 작성 게시글
-        Page<SimplePostResDTO> userPosts = new PageImpl<>(Collections.singletonList(
-                SimplePostResDTO.builder().id(1L).title("작성 게시글").build()
+        Page<PostSearchResult> userPosts = new PageImpl<>(Collections.singletonList(
+                PostSearchResult.builder()
+                    .id(1L)
+                    .title("작성 게시글")
+                    .content("작성한 게시글 내용")
+                    .userName("testUser")
+                    .userId(userId)
+                    .createdAt(Instant.now())
+                    .likeCount(1)
+                    .commentCount(0)
+                    .viewCount(5)
+                    .postCacheFlag(PostCacheFlag.REALTIME)
+                    .isNotice(false)
+                    .build()
         ), pageable, 1);
         
         // 추천 게시글
-        Page<SimplePostResDTO> likedPosts = new PageImpl<>(Collections.singletonList(
-                SimplePostResDTO.builder().id(2L).title("추천 게시글").build()
+        Page<PostSearchResult> likedPosts = new PageImpl<>(Collections.singletonList(
+                PostSearchResult.builder()
+                    .id(2L)
+                    .title("추천 게시글")
+                    .content("추천한 게시글 내용")
+                    .userName("otherUser")
+                    .userId(2L)
+                    .createdAt(Instant.now())
+                    .likeCount(10)
+                    .commentCount(3)
+                    .viewCount(50)
+                    .postCacheFlag(PostCacheFlag.WEEKLY)
+                    .isNotice(false)
+                    .build()
         ), pageable, 1);
         
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(userPosts);
@@ -268,10 +332,54 @@ class PostAdapterTest {
         Page<SimplePostResDTO> likedPostsResult = loadPostAdapter.findLikedPostsByUserId(userId, pageable);
 
         // Then: 각각 올바른 결과가 반환되는지 검증
-        assertThat(userPostsResult.getContent().getFirst().getTitle()).isEqualTo("작성 게시글");
-        assertThat(likedPostsResult.getContent().getFirst().getTitle()).isEqualTo("추천 게시글");
+        assertThat(userPostsResult.getContent().get(0).getTitle()).isEqualTo("작성 게시글");
+        assertThat(likedPostsResult.getContent().get(0).getTitle()).isEqualTo("추천 게시글");
         
         verify(postQueryUseCase).getUserPosts(eq(userId), eq(pageable));
         verify(postQueryUseCase).getUserLikedPosts(eq(userId), eq(pageable));
+    }
+
+    @Test
+    @DisplayName("데이터 매핑 - PostSearchResult에서 SimplePostResDTO로 변환 검증")
+    void shouldCorrectlyMapData_WhenConvertingFromPostSearchResultToSimplePostResDTO() {
+        // Given: 상세한 PostSearchResult 데이터
+        Long userId = 1L;
+        Pageable pageable = PageRequest.of(0, 1);
+        
+        PostSearchResult postSearchResult = PostSearchResult.builder()
+                .id(100L)
+                .title("매핑 테스트 게시글")
+                .content("매핑 테스트 내용")
+                .userName("매핑테스트유저")
+                .userId(userId)
+                .createdAt(Instant.parse("2023-12-25T10:30:00Z"))
+                .likeCount(25)
+                .commentCount(15)
+                .viewCount(100)
+                .postCacheFlag(PostCacheFlag.LEGEND)
+                .isNotice(true)
+                .build();
+        
+        Page<PostSearchResult> postPage = new PageImpl<>(Collections.singletonList(postSearchResult), pageable, 1);
+        given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(postPage);
+
+        // When: 어댑터를 통해 변환 실행
+        Page<SimplePostResDTO> result = loadPostAdapter.findPostsByUserId(userId, pageable);
+
+        // Then: 모든 필드가 올바르게 매핑되었는지 검증
+        assertThat(result.getContent()).hasSize(1);
+        SimplePostResDTO dto = result.getContent().get(0);
+        
+        assertThat(dto.getId()).isEqualTo(100L);
+        assertThat(dto.getTitle()).isEqualTo("매핑 테스트 게시글");
+        assertThat(dto.getContent()).isEqualTo("매핑 테스트 내용");
+        assertThat(dto.getUserName()).isEqualTo("매핑테스트유저");
+        assertThat(dto.getUserId()).isEqualTo(userId);
+        assertThat(dto.getCreatedAt()).isEqualTo(Instant.parse("2023-12-25T10:30:00Z"));
+        assertThat(dto.getLikeCount()).isEqualTo(25);
+        assertThat(dto.getCommentCount()).isEqualTo(15);
+        assertThat(dto.getViewCount()).isEqualTo(100);
+        assertThat(dto.getPostCacheFlag()).isEqualTo(PostCacheFlag.LEGEND);
+        assertThat(dto.isNotice()).isTrue();
     }
 }

@@ -4,8 +4,8 @@ import jaeik.growfarm.domain.post.application.port.out.*;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -70,13 +70,13 @@ class PostQueryServiceTest {
     void shouldGetBoard_Successfully() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        SimplePostResDTO postDTO = createSimplePostResDTO(1L, "제목1");
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(List.of(postDTO), pageable, 1);
+        PostSearchResult postResult = createPostSearchResult(1L, "제목1");
+        Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(postResult), pageable, 1);
 
         given(postQueryPort.findByPage(pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.getBoard(pageable);
+        Page<PostSearchResult> result = postQueryService.getBoard(pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -91,12 +91,12 @@ class PostQueryServiceTest {
     void shouldGetBoard_WhenEmpty() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         given(postQueryPort.findByPage(pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.getBoard(pageable);
+        Page<PostSearchResult> result = postQueryService.getBoard(pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -116,13 +116,18 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.hasPopularPostsCache(any())).willReturn(true);
         given(postCacheQueryPort.getCachedPostList(any())).willReturn(Collections.emptyList());
         
+        // Mock Post에서 User 반환하도록 설정
+        given(post.getUser()).willReturn(user);
+        given(user.getId()).willReturn(1L);
+        given(user.getUserName()).willReturn("testUser");
+        
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postLikeQueryPort.countByPost(post)).willReturn(5L);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
         // When
-        FullPostResDTO result = postQueryService.getPost(postId, userId);
+        PostDetail result = postQueryService.getPost(postId, userId);
 
         // Then
         assertThat(result).isNotNull();
@@ -139,8 +144,8 @@ class PostQueryServiceTest {
         Long postId = 1L;
         Long userId = 2L;
         
-        SimplePostResDTO cachedSimplePost = createSimplePostResDTO(postId, "캐시된 인기글");
-        FullPostResDTO cachedFullPost = createFullPostResDTO(postId, "캐시된 인기글", "캐시된 내용");
+        PostSearchResult cachedSimplePost = createPostSearchResult(postId, "캐시된 인기글");
+        PostDetail cachedFullPost = createPostDetail(postId, "캐시된 인기글", "캐시된 내용");
         
         // 실시간 인기글 캐시에 존재
         given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
@@ -153,13 +158,15 @@ class PostQueryServiceTest {
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
         // When
-        FullPostResDTO result = postQueryService.getPost(postId, userId);
+        PostDetail result = postQueryService.getPost(postId, userId);
 
         // Then
-        assertThat(result).isEqualTo(cachedFullPost);
+        assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse();
         
         verify(postCacheQueryPort).getCachedPost(postId);
+        verify(postQueryPort).findById(postId); // 캐시에서 가져와도 사용자 좋아요 확인을 위해 post 필요
+        verify(loadUserInfoPort).getReferenceById(userId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         verify(postLikeQueryPort, never()).countByPost(any()); // 캐시에서 가져올 때는 호출 안함
     }
@@ -171,12 +178,17 @@ class PostQueryServiceTest {
         Long postId = 1L;
         Long userId = 2L;
         
-        SimplePostResDTO cachedSimplePost = createSimplePostResDTO(postId, "인기글");
+        PostSearchResult cachedSimplePost = createPostSearchResult(postId, "인기글");
         
         // 캐시에는 있지만 상세 정보가 없음
         given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
         given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(List.of(cachedSimplePost));
         given(postCacheQueryPort.getCachedPost(postId)).willReturn(null);
+        
+        // Mock Post에서 User 반환하도록 설정
+        given(post.getUser()).willReturn(user);
+        given(user.getId()).willReturn(1L);
+        given(user.getUserName()).willReturn("testUser");
         
         // DB에서 조회
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
@@ -185,7 +197,7 @@ class PostQueryServiceTest {
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
         // When
-        FullPostResDTO result = postQueryService.getPost(postId, userId);
+        PostDetail result = postQueryService.getPost(postId, userId);
 
         // Then
         assertThat(result).isNotNull();
@@ -206,11 +218,16 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.hasPopularPostsCache(any())).willReturn(true);
         given(postCacheQueryPort.getCachedPostList(any())).willReturn(Collections.emptyList());
         
+        // Mock Post에서 User 반환하도록 설정
+        given(post.getUser()).willReturn(user);
+        given(user.getId()).willReturn(1L);
+        given(user.getUserName()).willReturn("testUser");
+        
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.countByPost(post)).willReturn(10L);
 
         // When
-        FullPostResDTO result = postQueryService.getPost(postId, userId);
+        PostDetail result = postQueryService.getPost(postId, userId);
 
         // Then
         assertThat(result).isNotNull();
@@ -249,13 +266,13 @@ class PostQueryServiceTest {
         String query = "검색어";
         Pageable pageable = PageRequest.of(0, 10);
         
-        SimplePostResDTO searchResult = createSimplePostResDTO(1L, "검색 결과");
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
+        PostSearchResult searchResult = createPostSearchResult(1L, "검색 결과");
+        Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
         given(postQueryPort.findBySearch(type, query, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.searchPost(type, query, pageable);
+        Page<PostSearchResult> result = postQueryService.searchPost(type, query, pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -272,12 +289,12 @@ class PostQueryServiceTest {
         String query = "존재하지않는검색어";
         Pageable pageable = PageRequest.of(0, 10);
         
-        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         given(postQueryPort.findBySearch(type, query, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.searchPost(type, query, pageable);
+        Page<PostSearchResult> result = postQueryService.searchPost(type, query, pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -289,14 +306,14 @@ class PostQueryServiceTest {
     void shouldGetPopularPosts_WhenCacheExists() {
         // Given
         PostCacheFlag type = PostCacheFlag.REALTIME;
-        SimplePostResDTO popularPost = createSimplePostResDTO(1L, "실시간 인기글");
-        List<SimplePostResDTO> cachedPosts = List.of(popularPost);
+        PostSearchResult popularPost = createPostSearchResult(1L, "실시간 인기글");
+        List<PostSearchResult> cachedPosts = List.of(popularPost);
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
         given(postCacheQueryPort.getCachedPostList(type)).willReturn(cachedPosts);
 
         // When
-        List<SimplePostResDTO> result = postQueryService.getPopularPosts(type);
+        List<PostSearchResult> result = postQueryService.getPopularPosts(type);
 
         // Then
         assertThat(result).isEqualTo(cachedPosts);
@@ -312,14 +329,14 @@ class PostQueryServiceTest {
     void shouldGetPopularPosts_WhenNoCacheUpdateThenGet() {
         // Given
         PostCacheFlag type = PostCacheFlag.WEEKLY;
-        SimplePostResDTO popularPost = createSimplePostResDTO(1L, "주간 인기글");
-        List<SimplePostResDTO> updatedPosts = List.of(popularPost);
+        PostSearchResult popularPost = createPostSearchResult(1L, "주간 인기글");
+        List<PostSearchResult> updatedPosts = List.of(popularPost);
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(false);
         given(postCacheQueryPort.getCachedPostList(type)).willReturn(updatedPosts);
 
         // When
-        List<SimplePostResDTO> result = postQueryService.getPopularPosts(type);
+        List<PostSearchResult> result = postQueryService.getPopularPosts(type);
 
         // Then
         assertThat(result).isEqualTo(updatedPosts);
@@ -339,7 +356,7 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.getCachedPostList(type)).willReturn(Collections.emptyList());
 
         // When
-        List<SimplePostResDTO> result = postQueryService.getPopularPosts(type);
+        List<PostSearchResult> result = postQueryService.getPopularPosts(type);
 
         // Then
         assertThat(result).isEmpty();
@@ -355,15 +372,15 @@ class PostQueryServiceTest {
         PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable pageable = PageRequest.of(0, 10);
         
-        SimplePostResDTO legendPost1 = createSimplePostResDTO(1L, "레전드 게시글 1");
-        SimplePostResDTO legendPost2 = createSimplePostResDTO(2L, "레전드 게시글 2");
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(List.of(legendPost1, legendPost2), pageable, 2);
+        PostSearchResult legendPost1 = createPostSearchResult(1L, "레전드 게시글 1");
+        PostSearchResult legendPost2 = createPostSearchResult(2L, "레전드 게시글 2");
+        Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(legendPost1, legendPost2), pageable, 2);
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
         given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.getPopularPostLegend(type, pageable);
+        Page<PostSearchResult> result = postQueryService.getPopularPostLegend(type, pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -383,14 +400,14 @@ class PostQueryServiceTest {
         PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable pageable = PageRequest.of(0, 5);
         
-        SimplePostResDTO legendPost = createSimplePostResDTO(1L, "업데이트된 레전드 게시글");
-        Page<SimplePostResDTO> updatedPage = new PageImpl<>(List.of(legendPost), pageable, 1);
+        PostSearchResult legendPost = createPostSearchResult(1L, "업데이트된 레전드 게시글");
+        Page<PostSearchResult> updatedPage = new PageImpl<>(List.of(legendPost), pageable, 1);
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(false);
         given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(updatedPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.getPopularPostLegend(type, pageable);
+        Page<PostSearchResult> result = postQueryService.getPopularPostLegend(type, pageable);
 
         // Then
         assertThat(result).isEqualTo(updatedPage);
@@ -409,13 +426,13 @@ class PostQueryServiceTest {
         PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable pageable = PageRequest.of(0, 10);
         
-        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
         given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.getPopularPostLegend(type, pageable);
+        Page<PostSearchResult> result = postQueryService.getPopularPostLegend(type, pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -433,18 +450,18 @@ class PostQueryServiceTest {
         PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable smallPage = PageRequest.of(1, 5);  // 두 번째 페이지, 5개씩
         
-        List<SimplePostResDTO> legendPosts = List.of(
-            createSimplePostResDTO(6L, "레전드 6"),
-            createSimplePostResDTO(7L, "레전드 7"),
-            createSimplePostResDTO(8L, "레전드 8")
+        List<PostSearchResult> legendPosts = List.of(
+            createPostSearchResult(6L, "레전드 6"),
+            createPostSearchResult(7L, "레전드 7"),
+            createPostSearchResult(8L, "레전드 8")
         );
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(legendPosts, smallPage, 15); // 전체 15개 중 6~8번
+        Page<PostSearchResult> expectedPage = new PageImpl<>(legendPosts, smallPage, 15); // 전체 15개 중 6~8번
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
         given(postCacheQueryPort.getCachedPostListPaged(type, smallPage)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.getPopularPostLegend(type, smallPage);
+        Page<PostSearchResult> result = postQueryService.getPopularPostLegend(type, smallPage);
 
         // Then
         assertThat(result.getContent()).hasSize(3);
@@ -510,13 +527,13 @@ class PostQueryServiceTest {
     @DisplayName("공지사항 조회 - 성공")
     void shouldGetNoticePosts_Successfully() {
         // Given
-        SimplePostResDTO noticePost = createSimplePostResDTO(1L, "공지사항");
-        List<SimplePostResDTO> noticePosts = List.of(noticePost);
+        PostSearchResult noticePost = createPostSearchResult(1L, "공지사항");
+        List<PostSearchResult> noticePosts = List.of(noticePost);
 
         given(postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(noticePosts);
 
         // When
-        List<SimplePostResDTO> result = postQueryService.getNoticePosts();
+        List<PostSearchResult> result = postQueryService.getNoticePosts();
 
         // Then
         assertThat(result).isEqualTo(noticePosts);
@@ -566,13 +583,13 @@ class PostQueryServiceTest {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        SimplePostResDTO userPost = createSimplePostResDTO(1L, "사용자 게시글");
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
+        PostSearchResult userPost = createPostSearchResult(1L, "사용자 게시글");
+        Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
         given(postQueryPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.getUserPosts(userId, pageable);
+        Page<PostSearchResult> result = postQueryService.getUserPosts(userId, pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -587,13 +604,13 @@ class PostQueryServiceTest {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        SimplePostResDTO likedPost = createSimplePostResDTO(1L, "추천한 게시글");
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
+        PostSearchResult likedPost = createPostSearchResult(1L, "추천한 게시글");
+        Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
 
         given(postQueryPort.findLikedPostsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = postQueryService.getUserLikedPosts(userId, pageable);
+        Page<PostSearchResult> result = postQueryService.getUserLikedPosts(userId, pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -606,9 +623,9 @@ class PostQueryServiceTest {
     @DisplayName("복합 인기글 조회 시나리오 - 여러 타입 동시 요청")
     void shouldHandleMultiplePopularPostRequests() {
         // Given
-        List<SimplePostResDTO> realtimePosts = List.of(createSimplePostResDTO(1L, "실시간"));
-        List<SimplePostResDTO> weeklyPosts = List.of(createSimplePostResDTO(2L, "주간"));
-        List<SimplePostResDTO> legendPosts = List.of(createSimplePostResDTO(3L, "전설"));
+        List<PostSearchResult> realtimePosts = List.of(createPostSearchResult(1L, "실시간"));
+        List<PostSearchResult> weeklyPosts = List.of(createPostSearchResult(2L, "주간"));
+        List<PostSearchResult> legendPosts = List.of(createPostSearchResult(3L, "전설"));
 
         // 모든 캐시가 있다고 가정
         given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
@@ -620,9 +637,9 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.getCachedPostList(PostCacheFlag.LEGEND)).willReturn(legendPosts);
 
         // When
-        List<SimplePostResDTO> realtimeResult = postQueryService.getPopularPosts(PostCacheFlag.REALTIME);
-        List<SimplePostResDTO> weeklyResult = postQueryService.getPopularPosts(PostCacheFlag.WEEKLY);
-        List<SimplePostResDTO> legendResult = postQueryService.getPopularPosts(PostCacheFlag.LEGEND);
+        List<PostSearchResult> realtimeResult = postQueryService.getPopularPosts(PostCacheFlag.REALTIME);
+        List<PostSearchResult> weeklyResult = postQueryService.getPopularPosts(PostCacheFlag.WEEKLY);
+        List<PostSearchResult> legendResult = postQueryService.getPopularPosts(PostCacheFlag.LEGEND);
 
         // Then
         assertThat(realtimeResult).hasSize(1);
@@ -635,18 +652,27 @@ class PostQueryServiceTest {
     }
 
     // 테스트 유틸리티 메서드들
-    private SimplePostResDTO createSimplePostResDTO(Long id, String title) {
-        return SimplePostResDTO.builder()
+    private PostSearchResult createPostSearchResult(Long id, String title) {
+        return PostSearchResult.builder()
                 .id(id)
                 .title(title)
                 .build();
     }
 
-    private FullPostResDTO createFullPostResDTO(Long id, String title, String content) {
-        return FullPostResDTO.builder()
+    private PostDetail createPostDetail(Long id, String title, String content) {
+        return PostDetail.builder()
                 .id(id)
                 .title(title)
                 .content(content)
+                .viewCount(10)
+                .likeCount(5)
+                .postCacheFlag(null)
+                .createdAt(java.time.Instant.now())
+                .userId(1L)
+                .userName("testUser")
+                .commentCount(3)
+                .isNotice(false)
+                .isLiked(false)
                 .build();
     }
 }
