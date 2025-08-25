@@ -48,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 //        }
 //    });
 //}
+//TODO 향후 엘라스틱 서치로 풀텍스트 전환후에 다시 테스트
 /**
  * <h2>FullTextSearchStrategy 통합 테스트</h2>
  * <p>MySQL FULLTEXT 검색 전략의 모든 기능을 실제 DB와 함께 테스트합니다.</p>
