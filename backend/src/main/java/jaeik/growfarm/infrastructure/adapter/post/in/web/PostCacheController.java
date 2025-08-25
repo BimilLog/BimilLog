@@ -4,6 +4,7 @@ import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,8 +72,8 @@ public class PostCacheController {
      * @return 레전드 게시글 목록
      */
     @GetMapping("/legend")
-    public ResponseEntity<List<SimplePostResDTO>> getLegendBoard() {
-        List<SimplePostResDTO> legendPopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.LEGEND);
+    public ResponseEntity<Page<SimplePostResDTO>> getLegendBoard() {
+        Page<SimplePostResDTO> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND);
         return ResponseEntity.ok(legendPopularPosts);
     }
 

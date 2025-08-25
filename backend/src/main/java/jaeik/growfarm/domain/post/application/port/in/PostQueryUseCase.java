@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.post.application.port.in;
 
+import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
@@ -7,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>PostQueryUseCase</h2>
@@ -68,6 +70,18 @@ public interface PostQueryUseCase {
     List<SimplePostResDTO> getPopularPosts(PostCacheFlag type);
 
     /**
+     * <h3>레전드 인기 게시글 목록 조회 (페이징)</h3>
+     * <p>
+     *     레전드 인기 게시글 목록을 페이지네이션으로 조회합니다.
+     * </p>
+     * @param type 조회할 인기 게시글 유형 (PostCacheFlag.LEGEND)
+     * @return 레전드 인기 게시글 목록 페이지
+     * @since 2.0.0
+     * @author jaeik
+     */
+    Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type);
+
+    /**
      * <h3>공지사항 목록 조회</h3>
      * <p>
      *     캐시된 공지사항 목록을 조회합니다.
@@ -88,7 +102,7 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    java.util.Optional<jaeik.growfarm.domain.post.entity.Post> findById(Long postId);
+    Optional<Post> findById(Long postId);
 
     /**
      * <h3>사용자 작성 게시글 목록 조회 (도메인 간 연동용)</h3>

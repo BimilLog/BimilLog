@@ -346,10 +346,6 @@ class PostCacheQueryAdapterTest {
     @Test
     @DisplayName("성능 테스트 - 대량 캐시 조회")
     void shouldHandleLargeCacheData_WhenRetrievingPosts() {
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // Mock 검증 실패: 실제 Service 동작과 테스트 기대값 불일치  
-        // 가능한 문제: 1) 대량 데이터 처리 로직 누락 2) 메모리 사용량 최적화 3) 캐시 타임아웃 설정
-        // 수정 필요: PostCacheQueryAdapter.getCachedPostList() 메서드 검토
         
         // Given: 대량 캐시 데이터 (100개 게시글)
         List<SimplePostResDTO> largePosts = Collections.nCopies(100, testSimplePosts.get(0));
