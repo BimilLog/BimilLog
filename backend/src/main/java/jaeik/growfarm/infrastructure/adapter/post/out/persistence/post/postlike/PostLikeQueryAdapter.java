@@ -1,10 +1,17 @@
 package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 추천 쿼리 영속성 어댑터</h2>
@@ -18,6 +25,9 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class PostLikeQueryAdapter implements PostLikeQueryPort {
     private final PostLikeJpaRepository postLikeJpaRepository;
+    private final JPAQueryFactory jpaQueryFactory;
+    
+    private static final QPostLike postLike = QPostLike.postLike;
 
     /**
      * <h3>사용자와 게시글로 추천 존재 여부 확인</h3>
@@ -46,5 +56,42 @@ public class PostLikeQueryAdapter implements PostLikeQueryPort {
     @Override
     public long countByPost(Post post) {
         return postLikeJpaRepository.countByPost(post);
+    }
+    
+    /**
+     * <h3>게시글 ID 목록에 대한 추천 수 배치 조회</h3>
+     * <p>여러 게시글의 추천 수를 한 번의 쿼리로 조회하여 N+1 문제를 해결합니다.</p>
+     *
+     * @param postIds 게시글 ID 목록
+     * @return Map<Long, Integer> 게시글 ID를 키로, 추천 수를 값으로 하는 맵
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Map<Long, Integer> findLikeCountsByPostIds(List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return Map.of();
+        }
+        
+        List<Tuple> results = jpaQueryFactory
+                .select(postLike.post.id, postLike.count())
+                .from(postLike)
+                .where(postLike.post.id.in(postIds))
+                .groupBy(postLike.post.id)
+                .fetch();
+        
+        // 결과를 Map으로 변환
+        Map<Long, Integer> likeCounts = results.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(postLike.post.id),
+                        tuple -> tuple.get(postLike.count()).intValue()
+                ));
+        
+        // 조회 결과가 없는 게시글은 0으로 설정
+        for (Long postId : postIds) {
+            likeCounts.putIfAbsent(postId, 0);
+        }
+        
+        return likeCounts;
     }
 }

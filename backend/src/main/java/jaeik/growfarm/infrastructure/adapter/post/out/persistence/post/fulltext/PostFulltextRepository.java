@@ -38,6 +38,7 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
             WHERE p.is_notice = false
             AND MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY p.created_at DESC
+            LIMIT :#{#pageable.pageSize} OFFSET :#{#pageable.offset}
             """, nativeQuery = true)
     List<Object[]> findByTitleFullText(@Param("keyword") String keyword, Pageable pageable);
 
@@ -58,6 +59,7 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
             WHERE p.is_notice = false
             AND MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY p.created_at DESC
+            LIMIT :#{#pageable.pageSize} OFFSET :#{#pageable.offset}
             """, nativeQuery = true)
     List<Object[]> findByTitleContentFullText(@Param("keyword") String keyword, Pageable pageable);
 

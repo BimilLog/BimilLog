@@ -3,6 +3,9 @@ package jaeik.growfarm.domain.post.application.port.out;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <h2>글 추천 조회 포트</h2>
  * <p>
@@ -34,4 +37,16 @@ public interface PostLikeQueryPort {
      * @return 추천 개수
      */
     long countByPost(Post post);
+    
+    /**
+     * <h3>게시글 ID 목록에 대한 추천 수 배치 조회</h3>
+     * <p>
+     *     여러 게시글의 추천 수를 한 번의 쿼리로 조회하여 N+1 문제를 해결합니다.
+     * </p>
+     * @param postIds 게시글 ID 목록
+     * @return Map<Long, Integer> 게시글 ID를 키로, 추천 수를 값으로 하는 맵
+     * @since 2.0.0
+     * @author jaeik
+     */
+    Map<Long, Integer> findLikeCountsByPostIds(List<Long> postIds);
 }

@@ -1,46 +1,44 @@
 package jaeik.growfarm.domain.post.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.Instant;
 
 /**
  * <h3>게시글 검색 결과 값 객체</h3>
  * <p>
- * 게시글 검색/목록 조회 결과를 담는 도메인 순수 값 객체
+ * 게시글 검색/목록 조회 결과를 담는 도메인 전용 객체
  * SimplePostResDTO의 도메인 전용 대체
  * </p>
+ * <p>
+ * 성능 최적화를 위해 mutable로 변경 - 댓글수, 추천수를 나중에 설정 가능
+ * </p>
  *
- * @param id 게시글 ID
- * @param title 제목
- * @param content 내용
- * @param viewCount 조회수
- * @param likeCount 추천수
- * @param postCacheFlag 캐시 플래그
- * @param createdAt 작성일시
- * @param userId 작성자 ID
- * @param userName 작성자명
- * @param commentCount 댓글수
- * @param isNotice 공지여부
  * @author Jaeik
  * @since 2.0.0
  */
-public record PostSearchResult(
-        Long id,
-        String title,
-        String content,
-        Integer viewCount,
-        Integer likeCount,
-        PostCacheFlag postCacheFlag,
-        Instant createdAt,
-        Long userId,
-        String userName,
-        Integer commentCount,
-        boolean isNotice
-) {
-
-    @Builder
-    public PostSearchResult {
-    }
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PostSearchResult {
+    
+    private Long id;
+    private String title;
+    private String content;
+    private Integer viewCount;
+    private Integer likeCount;
+    private PostCacheFlag postCacheFlag;
+    private Instant createdAt;
+    private Long userId;
+    private String userName;
+    private Integer commentCount;
+    private boolean isNotice;
 
     /**
      * <h3>게시글 검색 결과 생성</h3>
@@ -77,5 +75,25 @@ public record PostSearchResult(
      */
     public static PostSearchResult of(Post post, Integer likeCount) {
         return of(post, likeCount, 0);
+    }
+    
+    /**
+     * <h3>생성자 - QueryDSL Projection용</h3>
+     * <p>QueryDSL Projections.constructor를 위한 생성자</p>
+     */
+    public PostSearchResult(Long id, String title, String content, Integer viewCount, 
+                           Integer likeCount, PostCacheFlag postCacheFlag, Instant createdAt,
+                           Long userId, String userName, Integer commentCount, boolean isNotice) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.viewCount = viewCount;
+        this.likeCount = likeCount;
+        this.postCacheFlag = postCacheFlag;
+        this.createdAt = createdAt;
+        this.userId = userId;
+        this.userName = userName;
+        this.commentCount = commentCount;
+        this.isNotice = isNotice;
     }
 }
