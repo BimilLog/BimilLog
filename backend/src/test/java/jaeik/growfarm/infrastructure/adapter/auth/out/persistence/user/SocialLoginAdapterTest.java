@@ -47,7 +47,7 @@ class SocialLoginAdapterTest {
     @BeforeEach
     void setUp() {
         // 🔥 CRITICAL: Mock 설정을 생성자 호출 전에 수행
-        // NPE 방지: SocialLoginAdapter 생성자에서 strategy.getProvider() 호출 시 null 방지
+        // NPE 방지: SocialLoginAdapter 생성자에서 fulltext.getProvider() 호출 시 null 방지
         given(kakaoStrategy.getProvider()).willReturn(SocialProvider.KAKAO);
         
         // SocialLoginAdapter 생성자에 전략 리스트 전달

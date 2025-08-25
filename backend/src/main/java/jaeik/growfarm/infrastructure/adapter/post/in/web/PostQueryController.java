@@ -31,7 +31,8 @@ public class PostQueryController {
      */
     @GetMapping
     public ResponseEntity<Page<SimplePostResDTO>> getBoard(Pageable pageable) {
-        Page<SimplePostResDTO> postList = postQueryUseCase.getBoard(pageable);
+        Page<SimplePostResDTO> postList = postQueryUseCase.getBoard(pageable)
+                .map(SimplePostResDTO::from);
         return ResponseEntity.ok(postList);
     }
 
@@ -50,7 +51,8 @@ public class PostQueryController {
     public ResponseEntity<Page<SimplePostResDTO>> searchPost(@RequestParam String type,
                                                              @RequestParam String query,
                                                              Pageable pageable) {
-        Page<SimplePostResDTO> postList = postQueryUseCase.searchPost(type, query, pageable);
+        Page<SimplePostResDTO> postList = postQueryUseCase.searchPost(type, query, pageable)
+                .map(SimplePostResDTO::from);
         return ResponseEntity.ok(postList);
     }
 
@@ -69,7 +71,7 @@ public class PostQueryController {
                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         postInteractionUseCase.incrementViewCount(postId); // 조회수 증가 (Command)
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        FullPostResDTO fullPostResDTO = postQueryUseCase.getPost(postId, userId); // 게시글 조회 (Query)
+        FullPostResDTO fullPostResDTO = FullPostResDTO.from(postQueryUseCase.getPost(postId, userId)); // 게시글 조회 (Query)
         return ResponseEntity.ok(fullPostResDTO);
     }
 }

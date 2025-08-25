@@ -11,9 +11,10 @@ import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.strategy.SearchStrategyFactory;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
+import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.fulltext.PostFulltextRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,21 +28,23 @@ import java.util.Optional;
  * <h2>게시글 쿼리 영속성 어댑터</h2>
  * <p>게시글 조회와 관련된 데이터베이스 작업을 처리합니다.</p>
  * <p>PostQueryPort 인터페이스를 구현하여 게시글 조회 기능을 제공합니다.</p>
+ * <p>단순화된 검색 로직: Strategy Pattern 제거하고 직접 구현</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class PostQueryAdapter implements PostQueryPort {
     private final JPAQueryFactory jpaQueryFactory;
     private final PostJpaRepository postJpaRepository;
-    private final SearchStrategyFactory searchStrategyFactory;
+    private final PostFulltextRepository postFullTextRepository;
     private final CommentQueryUseCase commentQueryUseCase;
 
     private static final QPost post = QPost.post;
     private static final QUser user = QUser.user;
-    private static final QPostLike commentLike = QPostLike.postLike;
+    private static final QPostLike postLike = QPostLike.postLike;
 
     /**
      * <h3>ID로 게시글 조회</h3>
@@ -67,16 +70,17 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> findByPage(Pageable pageable) {
+    public Page<PostSearchResult> findByPage(Pageable pageable) {
         BooleanExpression condition = post.isNotice.isFalse();
-        return findPostsWithCondition(condition, pageable, false);
+        return findPostsWithCondition(condition, pageable);
     }
 
     /**
      * <h3>검색을 통한 게시글 조회</h3>
      * <p>검색 유형과 쿼리에 따라 게시글을 검색하고 페이지네이션합니다.</p>
+     * <p>단순화된 검색 로직: 3글자 이상이고 writer가 아니면 FULLTEXT, 아니면 LIKE</p>
      *
-     * @param type     검색 유형
+     * @param type     검색 유형 (title, writer, title_content)
      * @param query    검색어
      * @param pageable 페이지 정보
      * @return 검색된 게시글 목록 페이지
@@ -84,9 +88,14 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> findBySearch(String type, String query, Pageable pageable) {
-        BooleanExpression condition = getSearchCondition(type, query);
-        return findPostsWithCondition(condition, pageable, true);
+    public Page<PostSearchResult> findBySearch(String type, String query, Pageable pageable) {
+        if (query == null || query.trim().isEmpty()) {
+            return findByPage(pageable);
+        }
+
+        String trimmedQuery = query.trim();
+        BooleanExpression condition = createSearchCondition(type, trimmedQuery);
+        return findPostsWithCondition(condition, pageable);
     }
 
     /**
@@ -100,9 +109,9 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable) {
+    public Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable) {
         BooleanExpression condition = user.id.eq(userId);
-        return findPostsWithCondition(condition, pageable, false);
+        return findPostsWithCondition(condition, pageable);
     }
 
     /**
@@ -117,11 +126,11 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
+    public Page<PostSearchResult> findLikedPostsByUserId(Long userId, Pageable pageable) {
         QPostLike userPostLike = new QPostLike("userPostLike");
         
         // 1. 게시글 기본 정보 조회 (댓글 JOIN 제외)
-        List<SimplePostResDTO> content = buildBasePostQueryWithoutComments()
+        List<PostSearchResult> content = buildBasePostQueryWithoutComments()
                 .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
                 .groupBy(post.id, user.id)
                 .orderBy(post.createdAt.desc())
@@ -131,17 +140,28 @@ public class PostQueryAdapter implements PostQueryPort {
 
         // 2. 게시글 ID 목록 추출
         List<Long> postIds = content.stream()
-                .map(SimplePostResDTO::getId)
+                .map(PostSearchResult::id)
                 .toList();
 
         // 3. 배치로 댓글 수 조회 (N+1 문제 해결)
         Map<Long, Integer> commentCounts = commentQueryUseCase.findCommentCountsByPostIds(postIds);
 
-        // 4. 댓글 수 설정
-        content.forEach(post -> {
-            Integer commentCount = commentCounts.getOrDefault(post.getId(), 0);
-            post.setCommentCount(commentCount);
-        });
+        // 4. 댓글 수 설정 - PostSearchResult는 immutable이므로 새 객체 생성
+        List<PostSearchResult> updatedContent = content.stream()
+                .map(post -> PostSearchResult.builder()
+                        .id(post.id())
+                        .title(post.title())
+                        .content(post.content())
+                        .viewCount(post.viewCount())
+                        .likeCount(post.likeCount())
+                        .postCacheFlag(post.postCacheFlag())
+                        .createdAt(post.createdAt())
+                        .userId(post.userId())
+                        .userName(post.userName())
+                        .commentCount(commentCounts.getOrDefault(post.id(), 0))
+                        .isNotice(post.isNotice())
+                        .build())
+                .toList();
 
         Long total = jpaQueryFactory
                 .select(post.countDistinct())
@@ -149,7 +169,98 @@ public class PostQueryAdapter implements PostQueryPort {
                 .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
                 .fetchOne();
 
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+        return new PageImpl<>(updatedContent, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * <h3>단순화된 검색 조건 생성</h3>
+     * <p>Strategy Pattern 제거 후 직접 구현한 단순한 검색 로직</p>
+     * <p>규칙: 3글자 이상이고 writer가 아니면 FULLTEXT, 아니면 LIKE</p>
+     *
+     * @param type  검색 유형 (title, writer, title_content)
+     * @param query 검색어 (이미 trim된 상태)
+     * @return 생성된 BooleanExpression
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private BooleanExpression createSearchCondition(String type, String query) {
+        // 3글자 이상이고 writer가 아니면 FULLTEXT 검색 시도
+        boolean shouldTryFullText = query.length() >= 3 && !"writer".equals(type);
+        
+        if (shouldTryFullText) {
+            List<Long> postIds = getPostIdsByFullTextSearch(type, query);
+            if (!postIds.isEmpty()) {
+                return post.id.in(postIds).and(post.isNotice.isFalse());
+            }
+            // FULLTEXT 결과가 없으면 LIKE로 fallback
+        }
+        
+        // LIKE 검색
+        BooleanExpression likeCondition = switch (type) {
+            case "title" -> post.title.containsIgnoreCase(query);
+            case "writer" -> createWriterLikeCondition(query);
+            case "title_content" -> post.title.containsIgnoreCase(query)
+                                   .or(post.content.containsIgnoreCase(query));
+            default -> post.title.containsIgnoreCase(query);
+        };
+        
+        return likeCondition.and(post.isNotice.isFalse());
+    }
+
+    /**
+     * <h3>작성자 LIKE 검색 조건 최적화</h3>
+     * <p>글자 수에 따라 검색 패턴을 최적화합니다.</p>
+     * <p>1-3글자: %LIKE% (완전 매칭), 4글자+: LIKE% (인덱스 효율성)</p>
+     *
+     * @param query 검색어
+     * @return 최적화된 작성자 검색 조건
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private BooleanExpression createWriterLikeCondition(String query) {
+        if (query.length() >= 4) {
+            // 4글자 이상: LIKE% 검색 (인덱스 효율성)
+            return user.userName.startsWithIgnoreCase(query);
+        } else {
+            // 1-3글자: %LIKE% 검색 (완전 일치)
+            return user.userName.containsIgnoreCase(query);
+        }
+    }
+
+    /**
+     * <h3>FULLTEXT 검색으로 Post ID 목록 조회</h3>
+     * <p>PostFullTextRepository를 사용하여 네이티브 쿼리로 검색합니다.</p>
+     * 
+     * @param type 검색 유형
+     * @param query 검색어
+     * @return 검색된 Post ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private List<Long> getPostIdsByFullTextSearch(String type, String query) {
+        try {
+            String searchTerm = query.trim() + "*";
+            
+            List<Object[]> results = switch (type) {
+                case "title" -> {
+                    Pageable fullResults = Pageable.unpaged();
+                    yield postFullTextRepository.findByTitleFullText(searchTerm, fullResults);
+                }
+                case "title_content" -> {
+                    Pageable fullResults = Pageable.unpaged();
+                    yield postFullTextRepository.findByTitleContentFullText(searchTerm, fullResults);
+                }
+                default -> List.of();
+            };
+            
+            return results.stream()
+                    .map(row -> ((Number) row[0]).longValue())
+                    .toList();
+                    
+        } catch (Exception e) {
+            log.warn("FULLTEXT 검색 중 오류 발생 - type: {}, query: {}, LIKE 검색으로 fallback", type, query);
+            return List.of(); // 빈 목록 반환하여 LIKE 검색으로 폴백
+        }
     }
 
     /**
@@ -157,16 +268,15 @@ public class PostQueryAdapter implements PostQueryPort {
      * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
      * <p><strong>성능 최적화</strong>: N+1 문제 해결을 위해 댓글 수를 배치 조회로 처리</p>
      *
-     * @param condition       WHERE 조건
-     * @param pageable       페이지 정보
-     * @param isSearchQuery  검색 쿼리 여부 (count 쿼리에서 JOIN 포함 여부 결정)
+     * @param condition WHERE 조건
+     * @param pageable  페이지 정보
      * @return 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    private Page<SimplePostResDTO> findPostsWithCondition(BooleanExpression condition, Pageable pageable, boolean isSearchQuery) {
+    private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable) {
         // 1. 게시글 기본 정보 조회 (댓글 JOIN 제외)
-        List<SimplePostResDTO> content = buildBasePostQueryWithoutComments()
+        List<PostSearchResult> content = buildBasePostQueryWithoutComments()
                 .where(condition)
                 .groupBy(post.id, user.id)
                 .orderBy(post.createdAt.desc())
@@ -176,21 +286,38 @@ public class PostQueryAdapter implements PostQueryPort {
 
         // 2. 게시글 ID 목록 추출
         List<Long> postIds = content.stream()
-                .map(SimplePostResDTO::getId)
+                .map(PostSearchResult::id)
                 .toList();
 
         // 3. 배치로 댓글 수 조회 (N+1 문제 해결)
         Map<Long, Integer> commentCounts = commentQueryUseCase.findCommentCountsByPostIds(postIds);
 
-        // 4. 댓글 수 설정
-        content.forEach(post -> {
-            Integer commentCount = commentCounts.getOrDefault(post.getId(), 0);
-            post.setCommentCount(commentCount);
-        });
+        // 4. 댓글 수 설정 - PostSearchResult는 immutable이므로 새 객체 생성
+        List<PostSearchResult> updatedContent = content.stream()
+                .map(post -> PostSearchResult.builder()
+                        .id(post.id())
+                        .title(post.title())
+                        .content(post.content())
+                        .viewCount(post.viewCount())
+                        .likeCount(post.likeCount())
+                        .postCacheFlag(post.postCacheFlag())
+                        .createdAt(post.createdAt())
+                        .userId(post.userId())
+                        .userName(post.userName())
+                        .commentCount(commentCounts.getOrDefault(post.id(), 0))
+                        .isNotice(post.isNotice())
+                        .build())
+                .toList();
 
-        Long total = buildCountQuery(condition, isSearchQuery);
+        // 5. 총 개수 조회
+        Long total = jpaQueryFactory
+                .select(post.count())
+                .from(post)
+                .leftJoin(post.user, user)
+                .where(condition)
+                .fetchOne();
 
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+        return new PageImpl<>(updatedContent, pageable, total != null ? total : 0L);
     }
 
     /**
@@ -202,14 +329,14 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private JPAQuery<SimplePostResDTO> buildBasePostQueryWithoutComments() {
+    private JPAQuery<PostSearchResult> buildBasePostQueryWithoutComments() {
         return jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
+                .select(Projections.constructor(PostSearchResult.class,
                         post.id,                           // Long id
                         post.title,                        // String title  
-                        post.content,                      // String content - 누락되었던 필드 추가
+                        post.content,                      // String content
                         post.views.coalesce(0),           // Integer viewCount
-                        commentLike.countDistinct().intValue(), // Integer likeCount
+                        postLike.countDistinct().intValue(), // Integer likeCount
                         post.postCacheFlag,               // PostCacheFlag postCacheFlag
                         post.createdAt,                   // Instant createdAt
                         user.id,                          // Long userId
@@ -218,43 +345,6 @@ public class PostQueryAdapter implements PostQueryPort {
                         post.isNotice))                   // boolean isNotice
                 .from(post)
                 .leftJoin(post.user, user)
-                .leftJoin(commentLike).on(post.id.eq(commentLike.post.id));
-    }
-
-    /**
-     * <h3>개수 조회 쿼리 빌더</h3>
-     * <p>주어진 조건에 따라 총 개수를 조회합니다.</p>
-     *
-     * @param condition      WHERE 조건
-     * @param isSearchQuery  검색 쿼리 여부 (JOIN 포함 여부 결정)
-     * @return 총 개수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Long buildCountQuery(BooleanExpression condition, boolean isSearchQuery) {
-        JPAQuery<Long> countQuery = jpaQueryFactory
-                .select(post.count())
-                .from(post);
-
-        if (isSearchQuery) {
-            countQuery.leftJoin(post.user, user);
-        }
-
-        return countQuery.where(condition).fetchOne();
-    }
-
-    /**
-     * <h3>검색 조건 생성</h3>
-     * <p>주어진 검색 유형과 쿼리에 따라 최적화된 검색 조건을 생성합니다.</p>
-     * <p>Strategy Pattern과 Factory Pattern을 사용하여 적절한 검색 전략을 선택합니다.</p>
-     *
-     * @param type  검색 유형
-     * @param query 검색어
-     * @return 생성된 BooleanExpression
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private BooleanExpression getSearchCondition(String type, String query) {
-        return searchStrategyFactory.createSearchCondition(type, query);
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id));
     }
 }

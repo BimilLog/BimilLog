@@ -2,6 +2,7 @@ package jaeik.growfarm.infrastructure.adapter.post.in.web.dto;
 
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostDetail;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -78,6 +79,31 @@ public class FullPostResDTO {
                 .createdAt(post.getCreatedAt())
                 .isLiked(isLiked)
                 .commentCount(0) // 기본값으로 0 설정
+                .build();
+    }
+
+    /**
+     * <h3>도메인 PostDetail로부터 DTO 생성</h3>
+     * <p>헥사고날 아키텍처 패턴: 도메인 순수 객체를 인프라 DTO로 변환</p>
+     *
+     * @param postDetail 도메인 게시글 상세 객체
+     * @return FullPostResDTO 인프라 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static FullPostResDTO from(PostDetail postDetail) {
+        return FullPostResDTO.builder()
+                .id(postDetail.id())
+                .userId(postDetail.userId())
+                .userName(postDetail.userName())
+                .title(postDetail.title())
+                .content(postDetail.content())
+                .viewCount(postDetail.viewCount())
+                .likeCount(postDetail.likeCount())
+                .isNotice(postDetail.isNotice())
+                .createdAt(postDetail.createdAt())
+                .isLiked(postDetail.isLiked())
+                .commentCount(postDetail.commentCount())
                 .build();
     }
 }

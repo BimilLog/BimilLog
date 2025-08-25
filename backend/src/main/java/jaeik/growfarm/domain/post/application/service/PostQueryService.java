@@ -6,8 +6,8 @@ import jaeik.growfarm.domain.post.application.port.out.*;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> getBoard(Pageable pageable) {
+    public Page<PostSearchResult> getBoard(Pageable pageable) {
         return postQueryPort.findByPage(pageable);
     }
 
@@ -74,7 +74,7 @@ public class PostQueryService implements PostQueryUseCase {
             // 해당 타입의 캐시가 있는지 확인
             if (postCacheQueryPort.hasPopularPostsCache(flag)) {
                 // 캐시된 인기글 목록 조회
-                List<SimplePostResDTO> cachedPosts = postCacheQueryPort.getCachedPostList(flag);
+                List<PostSearchResult> cachedPosts = postCacheQueryPort.getCachedPostList(flag);
                 // 해당 ID의 게시글이 목록에 있는지 확인
                 if (cachedPosts.stream().anyMatch(post -> post.getId().equals(postId))) {
                     return true;
@@ -97,7 +97,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public FullPostResDTO getPost(Long postId, Long userId) {
+    public PostDetail getPost(Long postId, Long userId) {
         // 1. 인기글인 경우 캐시에서 조회 시도
         if (isPopularPost(postId)) {
             FullPostResDTO cachedPost = postCacheQueryPort.getCachedPost(postId);
@@ -125,7 +125,7 @@ public class PostQueryService implements PostQueryUseCase {
             isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
         }
 
-        return FullPostResDTO.from(post, Math.toIntExact(likeCount), isLiked);
+        return PostDetail.of(post, Math.toIntExact(likeCount), 0, isLiked); // TODO: 댓글 수 추가 필요
     }
 
     /**
@@ -140,7 +140,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> searchPost(String type, String query, Pageable pageable) {
+    public Page<PostSearchResult> searchPost(String type, String query, Pageable pageable) {
         return postQueryPort.findBySearch(type, query, pageable);
     }
 
@@ -155,7 +155,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public List<SimplePostResDTO> getPopularPosts(PostCacheFlag type) {
+    public List<PostSearchResult> getPopularPosts(PostCacheFlag type) {
         if (!postCacheQueryPort.hasPopularPostsCache(type)) {
             switch (type) {
                 case REALTIME -> postCacheSyncService.updateRealtimePopularPosts();
@@ -180,7 +180,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
+    public Page<PostSearchResult> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
         // 타입 검증: LEGEND만 허용
         if (type != PostCacheFlag.LEGEND) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
@@ -201,7 +201,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public List<SimplePostResDTO> getNoticePosts() {
+    public List<PostSearchResult> getNoticePosts() {
         return postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
     }
 
@@ -230,7 +230,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable) {
+    public Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable) {
         return postQueryPort.findPostsByUserId(userId, pageable);
     }
 
@@ -245,7 +245,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable) {
+    public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
         return postQueryPort.findLikedPostsByUserId(userId, pageable);
     }
 }

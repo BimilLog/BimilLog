@@ -2,8 +2,8 @@ package jaeik.growfarm.domain.post.application.port.in;
 
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -30,7 +30,7 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    Page<SimplePostResDTO> getBoard(Pageable pageable);
+    Page<PostSearchResult> getBoard(Pageable pageable);
 
     /**
      * <h3>게시글 상세 조회</h3>
@@ -43,7 +43,7 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    FullPostResDTO getPost(Long postId, Long userId);
+    PostDetail getPost(Long postId, Long userId);
 
     /**
      * <h3>게시글 검색</h3>
@@ -57,7 +57,7 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    Page<SimplePostResDTO> searchPost(String type, String query, Pageable pageable);
+    Page<PostSearchResult> searchPost(String type, String query, Pageable pageable);
 
     /**
      * <h3>인기 게시글 목록 조회</h3>
@@ -67,7 +67,7 @@ public interface PostQueryUseCase {
      * @param type 조회할 인기 게시글 유형
      * @return 인기 게시글 목록
      */
-    List<SimplePostResDTO> getPopularPosts(PostCacheFlag type);
+    List<PostSearchResult> getPopularPosts(PostCacheFlag type);
 
     /**
      * <h3>레전드 인기 게시글 목록 조회 (페이징)</h3>
@@ -80,7 +80,7 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type, Pageable pageable);
+    Page<PostSearchResult> getPopularPostLegend(PostCacheFlag type, Pageable pageable);
 
     /**
      * <h3>공지사항 목록 조회</h3>
@@ -91,7 +91,7 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    List<SimplePostResDTO> getNoticePosts();
+    List<PostSearchResult> getNoticePosts();
 
     /**
      * <h3>게시글 ID로 조회 (내부 도메인용)</h3>
@@ -116,7 +116,7 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable);
+    Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 게시글 목록 조회 (도메인 간 연동용)</h3>
@@ -129,5 +129,5 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable);
+    Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable);
 }

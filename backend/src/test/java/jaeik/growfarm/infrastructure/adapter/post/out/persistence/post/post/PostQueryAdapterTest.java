@@ -12,7 +12,7 @@ import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.strategy.SearchStrategyFactory;
+// SearchStrategyFactory removed - using direct search logic
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -94,10 +94,7 @@ class PostQueryAdapterTest {
             return new JPAQueryFactory(entityManager);
         }
         
-        @Bean
-        public SearchStrategyFactory searchStrategyFactory() {
-            return Mockito.mock(SearchStrategyFactory.class);
-        }
+        // SearchStrategyFactory removed - using direct search logic
         
         @Bean
         public CommentQueryUseCase commentQueryUseCase() {
@@ -112,9 +109,6 @@ class PostQueryAdapterTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    @Autowired
-    private SearchStrategyFactory searchStrategyFactory;
-    
     @Autowired
     private CommentQueryUseCase commentQueryUseCase;
 

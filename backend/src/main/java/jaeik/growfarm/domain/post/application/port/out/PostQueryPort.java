@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
 import jaeik.growfarm.domain.post.entity.Post;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -36,7 +36,7 @@ public interface PostQueryPort {
      * @param pageable 페이지 정보
      * @return 게시글 목록 페이지
      */
-    Page<SimplePostResDTO> findByPage(Pageable pageable);
+    Page<PostSearchResult> findByPage(Pageable pageable);
 
     /**
      * <h3>게시글 검색</h3>
@@ -48,7 +48,7 @@ public interface PostQueryPort {
      * @param pageable 페이지 정보
      * @return 검색된 게시글 목록 페이지
      */
-    Page<SimplePostResDTO> findBySearch(String type, String query, Pageable pageable);
+    Page<PostSearchResult> findBySearch(String type, String query, Pageable pageable);
 
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>
@@ -60,7 +60,7 @@ public interface PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable);
+    Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
@@ -72,7 +72,7 @@ public interface PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
+    Page<PostSearchResult> findLikedPostsByUserId(Long userId, Pageable pageable);
 
 
 }
