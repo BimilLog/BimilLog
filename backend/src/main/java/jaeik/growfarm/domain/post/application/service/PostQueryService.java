@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <h2>PostQueryService</h2>
@@ -144,8 +145,8 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>인기 게시글 목록 조회</h3>
-     * <p>캐시된 인기 게시글 목록(실시간, 주간, 레전드)을 조회합니다. 캐시가 없는 경우 업데이트 후 조회합니다.</p>
+     * <h3>실시간, 주간 인기 게시글 목록 조회</h3>
+     * <p>캐시된 인기 게시글 목록(실시간, 주간)을 조회합니다. 캐시가 없는 경우 업데이트 후 조회합니다.</p>
      *
      * @param type 조회할 인기 게시글 유형
      * @return 인기 게시글 목록
@@ -159,11 +160,30 @@ public class PostQueryService implements PostQueryUseCase {
             switch (type) {
                 case REALTIME -> postCacheSyncService.updateRealtimePopularPosts();
                 case WEEKLY -> postCacheSyncService.updateWeeklyPopularPosts();
-                case LEGEND -> postCacheSyncService.updateLegendaryPosts();
                 default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
             }
         }
         return postCacheQueryPort.getCachedPostList(type);
+    }
+
+    /**
+     * <h3>레전드 인기 게시글 목록 조회</h3>
+     * <p>캐시된 레전드 게시글을 조회합니다. 캐시가 없는 경우 업데이트 후 조회합니다.</p>
+     *
+     * @param type 조회할 인기 게시글 유형
+     * @return 인기 게시글 목록
+     * @throws CustomException 유효하지 않은 캐시 유형인 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<SimplePostResDTO> getPopularPostLegend(PostCacheFlag type) {
+        if (!postCacheQueryPort.hasPopularPostsCache(type)) {
+            if (Objects.requireNonNull(type) == PostCacheFlag.LEGEND) {
+                postCacheSyncService.updateLegendaryPosts();
+            }
+        }
+        return postCacheQueryPort.getCachedPostLegend(type);
     }
 
     /**
