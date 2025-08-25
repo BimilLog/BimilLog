@@ -52,6 +52,10 @@ public class LikeSearchStrategy implements SearchStrategy {
      */
     @Override
     public boolean canHandle(String query, String type) {
+        if (query == null) {
+            return false; // null 검색어는 처리할 수 없음
+        }
+        
         int threshold = getThreshold(type);
         return query.length() < threshold;
     }

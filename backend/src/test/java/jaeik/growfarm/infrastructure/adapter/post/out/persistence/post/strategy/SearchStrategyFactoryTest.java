@@ -41,11 +41,6 @@ class SearchStrategyFactoryTest {
 
     @BeforeEach
     void setUp() {
-        // Mock 전략들 설정
-        given(fullTextSearchStrategy.getStrategyName()).willReturn("FullTextSearchStrategy");
-        given(likeSearchStrategy.getStrategyName()).willReturn("LikeSearchStrategy");
-        
-        // SearchStrategy 목록 준비
         List<SearchStrategy> searchStrategies = Arrays.asList(fullTextSearchStrategy, likeSearchStrategy);
         
         // SearchStrategyFactory 인스턴스 생성
@@ -60,7 +55,7 @@ class SearchStrategyFactoryTest {
         String type = "title";
         
         given(fullTextSearchStrategy.canHandle(query, type)).willReturn(true);
-        given(likeSearchStrategy.canHandle(query, type)).willReturn(false);
+        // given(likeSearchStrategy.canHandle(query, type)).willReturn(false); // 불필요한 stubbing 제거
         given(fullTextSearchStrategy.createCondition(type, query)).willReturn(mockBooleanExpression);
         
         // When: 검색 조건 생성
@@ -246,7 +241,7 @@ class SearchStrategyFactoryTest {
         String type = "title";
         
         given(fullTextSearchStrategy.canHandle(query, type)).willReturn(true);
-        given(likeSearchStrategy.canHandle(query, type)).willReturn(true);
+
         given(fullTextSearchStrategy.createCondition(type, query)).willReturn(mockBooleanExpression);
         
         // When: 검색 조건 생성
@@ -266,10 +261,6 @@ class SearchStrategyFactoryTest {
     @Test
     @DisplayName("성능 테스트 - 대량 검색 요청 처리")
     void shouldHandleManySearchRequests_WithoutPerformanceIssues() {
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // Mock 검증 실패: 실제 Service 동작과 테스트 기대값 불일치
-        // 가능한 문제: 1) 전략 선택 캐싱 로직 누락 2) 스트림 연산 최적화 3) 로깅 오버헤드
-        // 수정 필요: SearchStrategyFactory.selectStrategy() 메서드 검토
         
         // Given: 대량 검색 요청 (1000개)
         String[] manyQueries = new String[1000];
@@ -370,6 +361,7 @@ class SearchStrategyFactoryTest {
         
         given(fullTextSearchStrategy.canHandle(query, type)).willReturn(true);
         given(fullTextSearchStrategy.createCondition(type, query)).willReturn(mockBooleanExpression);
+        given(fullTextSearchStrategy.getStrategyName()).willReturn("FullTextSearchStrategy");
         
         // When: 검색 조건 생성
         BooleanExpression condition = searchStrategyFactory.createSearchCondition(type, query);

@@ -28,7 +28,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.annotation.Commit;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -38,6 +37,17 @@ import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// BEFORE ALL에 인덱스 생성 및 글 생성 필요
+// @BeforeAll + @Autowired 파라미터 주입
+// 방법 예시 : @BeforeAll
+// static void setUpIndex(@Autowired EntityManager em) {
+//    em.unwrap(Session.class).doWork(connection -> {
+//        try (Statement stmt = connection.createStatement()) {
+//            stmt.execute("CREATE FULLTEXT INDEX IF NOT EXISTS idx_fulltext_title_content " +
+//                         "ON post(title, content) WITH PARSER ngram");
+//        }
+//    });
+//}
 /**
  * <h2>FullTextSearchStrategy 통합 테스트</h2>
  * <p>MySQL FULLTEXT 검색 전략의 모든 기능을 실제 DB와 함께 테스트합니다.</p>
