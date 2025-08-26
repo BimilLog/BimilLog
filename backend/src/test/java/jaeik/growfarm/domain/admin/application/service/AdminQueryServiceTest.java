@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.growfarm.domain.admin.entity.ReportType;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.growfarm.domain.admin.entity.ReportSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,12 +43,12 @@ class AdminQueryServiceTest {
     @InjectMocks
     private AdminQueryService adminQueryService;
 
-    private List<ReportDTO> testReports;
+    private List<ReportSummary> testReports;
 
     @BeforeEach
     void setUp() {
         testReports = List.of(
-                ReportDTO.builder()
+                ReportSummary.builder()
                         .id(1L)
                         .reporterId(100L)
                         .reporterName("reporter1")
@@ -57,7 +57,7 @@ class AdminQueryServiceTest {
                         .content("부적절한 게시글")
                         .createdAt(Instant.now())
                         .build(),
-                ReportDTO.builder()
+                ReportSummary.builder()
                         .id(2L)
                         .reporterId(101L)
                         .reporterName("reporter2")
@@ -66,7 +66,7 @@ class AdminQueryServiceTest {
                         .content("욕설 댓글")
                         .createdAt(Instant.now().minusSeconds(3600))
                         .build(),
-                ReportDTO.builder()
+                ReportSummary.builder()
                         .id(3L)
                         .reporterId(102L)
                         .reporterName("reporter3")
@@ -85,13 +85,13 @@ class AdminQueryServiceTest {
         int page = 0;
         int size = 10;
         ReportType reportType = ReportType.POST;
-        Page<ReportDTO> expectedPage = new PageImpl<>(testReports);
+        Page<ReportSummary> expectedPage = new PageImpl<>(testReports);
 
         given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportDTO> result = adminQueryService.getReportList(page, size, reportType);
+        Page<ReportSummary> result = adminQueryService.getReportList(page, size, reportType);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -114,13 +114,13 @@ class AdminQueryServiceTest {
         int page = 1;
         int size = 5;
         ReportType reportType = null;
-        Page<ReportDTO> expectedPage = new PageImpl<>(testReports.subList(0, 2));
+        Page<ReportSummary> expectedPage = new PageImpl<>(testReports.subList(0, 2));
 
         given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportDTO> result = adminQueryService.getReportList(page, size, reportType);
+        Page<ReportSummary> result = adminQueryService.getReportList(page, size, reportType);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -142,21 +142,21 @@ class AdminQueryServiceTest {
         int page = 0;
         int size = 10;
         ReportType reportType = ReportType.COMMENT;
-        List<ReportDTO> commentReports = testReports.stream()
-                .filter(report -> report.getReportType() == ReportType.COMMENT)
+        List<ReportSummary> commentReports = testReports.stream()
+                .filter(report -> report.reportType() == ReportType.COMMENT)
                 .toList();
-        Page<ReportDTO> expectedPage = new PageImpl<>(commentReports);
+        Page<ReportSummary> expectedPage = new PageImpl<>(commentReports);
 
         given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportDTO> result = adminQueryService.getReportList(page, size, reportType);
+        Page<ReportSummary> result = adminQueryService.getReportList(page, size, reportType);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().getReportType()).isEqualTo(ReportType.COMMENT);
+        assertThat(result.getContent().getFirst().reportType()).isEqualTo(ReportType.COMMENT);
         verify(adminQueryPort).findReportsWithPaging(eq(reportType), any(Pageable.class));
     }
 
@@ -167,13 +167,13 @@ class AdminQueryServiceTest {
         int page = 99;
         int size = 10;
         ReportType reportType = ReportType.POST;
-        Page<ReportDTO> emptyPage = new PageImpl<>(List.of());
+        Page<ReportSummary> emptyPage = new PageImpl<>(List.of());
 
         given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
                 .willReturn(emptyPage);
 
         // When
-        Page<ReportDTO> result = adminQueryService.getReportList(page, size, reportType);
+        Page<ReportSummary> result = adminQueryService.getReportList(page, size, reportType);
 
         // Then
         assertThat(result).isEqualTo(emptyPage);
@@ -187,12 +187,12 @@ class AdminQueryServiceTest {
     void shouldGetReportList_WithPageSize20() {
         // Given
         int size = 20;
-        Page<ReportDTO> expectedPage = new PageImpl<>(testReports);
+        Page<ReportSummary> expectedPage = new PageImpl<>(testReports);
         given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportDTO> result = adminQueryService.getReportList(0, size, null);
+        Page<ReportSummary> result = adminQueryService.getReportList(0, size, null);
 
         // Then
         assertThat(result).isNotNull();
@@ -208,7 +208,7 @@ class AdminQueryServiceTest {
     @DisplayName("올바른 정렬 조건 확인 - createdAt DESC")
     void shouldApplyCorrectSorting_CreatedAtDescending() {
         // Given
-        Page<ReportDTO> expectedPage = new PageImpl<>(testReports);
+        Page<ReportSummary> expectedPage = new PageImpl<>(testReports);
         given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
                 .willReturn(expectedPage);
 
@@ -233,12 +233,12 @@ class AdminQueryServiceTest {
     void shouldHandleLargePageSize() {
         // Given
         int largePageSize = 1000;
-        Page<ReportDTO> expectedPage = new PageImpl<>(testReports);
+        Page<ReportSummary> expectedPage = new PageImpl<>(testReports);
         given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportDTO> result = adminQueryService.getReportList(0, largePageSize, null);
+        Page<ReportSummary> result = adminQueryService.getReportList(0, largePageSize, null);
 
         // Then
         assertThat(result).isNotNull();
@@ -269,10 +269,10 @@ class AdminQueryServiceTest {
         ReportType[] allTypes = {ReportType.POST, ReportType.COMMENT, ReportType.PAPER};
         
         for (ReportType type : allTypes) {
-            List<ReportDTO> filteredReports = testReports.stream()
-                    .filter(report -> report.getReportType() == type)
+            List<ReportSummary> filteredReports = testReports.stream()
+                    .filter(report -> report.reportType() == type)
                     .toList();
-            Page<ReportDTO> expectedPage = new PageImpl<>(filteredReports);
+            Page<ReportSummary> expectedPage = new PageImpl<>(filteredReports);
             
             given(adminQueryPort.findReportsWithPaging(eq(type), any(Pageable.class)))
                     .willReturn(expectedPage);
@@ -280,7 +280,7 @@ class AdminQueryServiceTest {
 
         // When & Then
         for (ReportType type : allTypes) {
-            Page<ReportDTO> result = adminQueryService.getReportList(0, 10, type);
+            Page<ReportSummary> result = adminQueryService.getReportList(0, 10, type);
             assertThat(result).isNotNull();
             verify(adminQueryPort).findReportsWithPaging(eq(type), any(Pageable.class));
         }

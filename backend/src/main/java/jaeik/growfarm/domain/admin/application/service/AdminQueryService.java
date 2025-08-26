@@ -3,8 +3,8 @@ package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminQueryUseCase;
 import jaeik.growfarm.domain.admin.application.port.out.AdminQueryPort;
+import jaeik.growfarm.domain.admin.entity.ReportSummary;
 import jaeik.growfarm.domain.admin.entity.ReportType;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,12 +35,12 @@ public class AdminQueryService implements AdminQueryUseCase {
      * @param page       페이지 번호
      * @param size       페이지 크기
      * @param reportType 신고 유형 (선택 사항)
-     * @return Page<ReportDTO> 신고 목록 페이지
+     * @return Page<ReportSummary> 신고 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<ReportDTO> getReportList(int page, int size, ReportType reportType) {
+    public Page<ReportSummary> getReportList(int page, int size, ReportType reportType) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return adminQueryPort.findReportsWithPaging(reportType, pageable);
     }

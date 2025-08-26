@@ -6,8 +6,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.growfarm.domain.admin.entity.QReport;
 import jaeik.growfarm.domain.admin.entity.Report;
+import jaeik.growfarm.domain.admin.entity.ReportSummary;
 import jaeik.growfarm.domain.admin.entity.ReportType;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -39,30 +39,27 @@ public class AdminQueryAdapter implements AdminQueryPort {
      *
      * @param reportType 신고 유형 (null 가능, 전체 조회 시)
      * @param pageable   페이지 정보
-     * @return Page<ReportDTO> 신고 목록 페이지
+     * @return Page<ReportSummary> 신고 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<ReportDTO> findReportsWithPaging(ReportType reportType, Pageable pageable) {
+    public Page<ReportSummary> findReportsWithPaging(ReportType reportType, Pageable pageable) {
         QReport report = QReport.report;
         BooleanExpression whereClause = (reportType != null) ? report.reportType.eq(reportType) : null;
 
-        List<ReportDTO> content = queryFactory
-                .select(Projections.bean(ReportDTO.class,
-                        report.id,
-                        report.reporter.id.as("reporterId"),
-                        report.reporter.userName.as("reporterName"),
-                        report.reportType,
-                        report.targetId,
-                        report.content,
-                        report.createdAt))
+        List<Report> reports = queryFactory
+                .select(report)
                 .from(report)
                 .where(whereClause)
                 .orderBy(report.createdAt.desc(), report.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+        
+        List<ReportSummary> content = reports.stream()
+                .map(ReportSummary::from)
+                .toList();
 
         Long count = queryFactory
                 .select(report.count())

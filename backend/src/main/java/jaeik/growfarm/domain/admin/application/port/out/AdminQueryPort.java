@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.admin.application.port.out;
 
 import jaeik.growfarm.domain.admin.entity.Report;
+import jaeik.growfarm.domain.admin.entity.ReportSummary;
 import jaeik.growfarm.domain.admin.entity.ReportType;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -23,11 +23,11 @@ public interface AdminQueryPort {
      *
      * @param reportType 신고 유형 (null 가능, 전체 조회 시)
      * @param pageable   페이지 정보
-     * @return Page<ReportDTO> 신고 목록 페이지
+     * @return Page<ReportSummary> 신고 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<ReportDTO> findReportsWithPaging(ReportType reportType, Pageable pageable);
+    Page<ReportSummary> findReportsWithPaging(ReportType reportType, Pageable pageable);
 
     /**
      * <h3>ID로 신고 조회</h3>

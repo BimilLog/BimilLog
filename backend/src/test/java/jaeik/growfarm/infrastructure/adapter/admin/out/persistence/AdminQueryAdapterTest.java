@@ -8,7 +8,7 @@ import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.growfarm.domain.admin.entity.ReportSummary;
 import jaeik.growfarm.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -124,22 +124,22 @@ class AdminQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전체 신고 목록 조회 (reportType = null)
-        Page<ReportDTO> result = adminQueryAdapter.findReportsWithPaging(null, pageable);
+        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(null, pageable);
 
         // Then: 모든 신고가 조회되는지 검증 (정렬 순서는 ID 기준으로 검증)
         assertThat(result.getContent()).hasSize(3);
         assertThat(result.getTotalElements()).isEqualTo(3);
         
         // 정렬 검증은 ID 기준으로 변경 (시간은 마이크로초 차이로 불안정함)
-        assertThat(result.getContent().get(0).getId()).isGreaterThan(result.getContent().get(1).getId());
-        assertThat(result.getContent().get(1).getId()).isGreaterThan(result.getContent().get(2).getId());
+        assertThat(result.getContent().get(0).id()).isGreaterThan(result.getContent().get(1).id());
+        assertThat(result.getContent().get(1).id()).isGreaterThan(result.getContent().get(2).id());
         
         // ReportDTO 매핑 검증 (마지막으로 생성된 것이 첫 번째로 와야 함)
-        ReportDTO firstReport = result.getContent().get(0);
-        assertThat(firstReport.getReporterId()).isNotNull();
-        assertThat(firstReport.getReporterName()).isNotNull();
-        assertThat(firstReport.getContent()).isNotNull();
-        assertThat(firstReport.getTargetId()).isNotNull();
+        ReportSummary firstReport = result.getContent().get(0);
+        assertThat(firstReport.reporterId()).isNotNull();
+        assertThat(firstReport.reporterName()).isNotNull();
+        assertThat(firstReport.content()).isNotNull();
+        assertThat(firstReport.targetId()).isNotNull();
     }
 
     /**
@@ -161,12 +161,12 @@ class AdminQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: POST 타입만 조회
-        Page<ReportDTO> result = adminQueryAdapter.findReportsWithPaging(ReportType.POST, pageable);
+        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(ReportType.POST, pageable);
 
         // Then: POST 타입 신고만 조회되는지 검증
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent()).allMatch(report -> report.getReportType() == ReportType.POST);
+        assertThat(result.getContent()).allMatch(report -> report.reportType() == ReportType.POST);
     }
 
     /**
@@ -185,7 +185,7 @@ class AdminQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: PAPER 타입으로 조회
-        Page<ReportDTO> result = adminQueryAdapter.findReportsWithPaging(ReportType.PAPER, pageable);
+        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(ReportType.PAPER, pageable);
 
         // Then: 빈 결과 반환
         assertThat(result.getContent()).isEmpty();
@@ -211,7 +211,7 @@ class AdminQueryAdapterTest {
         Pageable pageable = PageRequest.of(1, 2); // 두 번째 페이지, 크기 2
 
         // When: 두 번째 페이지 조회
-        Page<ReportDTO> result = adminQueryAdapter.findReportsWithPaging(null, pageable);
+        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(null, pageable);
 
         // Then: 페이징 정보 검증
         assertThat(result.getContent()).hasSize(2);

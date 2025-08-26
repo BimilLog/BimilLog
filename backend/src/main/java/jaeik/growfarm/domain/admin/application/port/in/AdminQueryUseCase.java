@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.admin.application.port.in;
 
+import jaeik.growfarm.domain.admin.entity.ReportSummary;
 import jaeik.growfarm.domain.admin.entity.ReportType;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import org.springframework.data.domain.Page;
 
 /**
@@ -20,9 +20,9 @@ public interface AdminQueryUseCase {
      * @param page       페이지 번호
      * @param size       페이지 크기
      * @param reportType 신고 유형 (선택 사항)
-     * @return Page<ReportDTO> 신고 목록 페이지
+     * @return Page<ReportSummary> 신고 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<ReportDTO> getReportList(int page, int size, ReportType reportType);
+    Page<ReportSummary> getReportList(int page, int size, ReportType reportType);
 }

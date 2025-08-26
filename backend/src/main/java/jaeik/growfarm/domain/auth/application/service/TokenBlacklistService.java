@@ -2,7 +2,6 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.AuthPort;
-import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
 import jaeik.growfarm.domain.auth.application.port.out.LoadTokenPort;
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistCachePort;
 import jaeik.growfarm.domain.user.entity.Token;

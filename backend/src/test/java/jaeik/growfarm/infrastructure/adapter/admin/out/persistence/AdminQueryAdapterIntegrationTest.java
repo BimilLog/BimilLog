@@ -8,7 +8,7 @@ import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.growfarm.domain.admin.entity.ReportSummary;
 import jaeik.growfarm.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -110,18 +110,18 @@ class AdminQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전체 신고 목록 조회 (reportType = null)
-        Page<ReportDTO> result = adminQueryAdapter.findReportsWithPaging(null, pageable);
+        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(null, pageable);
 
         // Then: 모든 신고가 조회되는지 검증
         assertThat(result.getContent()).hasSize(3);
         assertThat(result.getTotalElements()).isEqualTo(3);
 
         // ReportDTO 매핑 검증
-        ReportDTO firstReport = result.getContent().getFirst();
-        assertThat(firstReport.getReporterId()).isNotNull();
-        assertThat(firstReport.getReporterName()).isNotNull();
-        assertThat(firstReport.getContent()).isNotNull();
-        assertThat(firstReport.getTargetId()).isNotNull();
+        ReportSummary firstReport = result.getContent().getFirst();
+        assertThat(firstReport.reporterId()).isNotNull();
+        assertThat(firstReport.reporterName()).isNotNull();
+        assertThat(firstReport.content()).isNotNull();
+        assertThat(firstReport.targetId()).isNotNull();
     }
 
     /**
@@ -142,12 +142,12 @@ class AdminQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: POST 타입만 조회
-        Page<ReportDTO> result = adminQueryAdapter.findReportsWithPaging(ReportType.POST, pageable);
+        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(ReportType.POST, pageable);
 
         // Then: POST 타입 신고만 조회되는지 검증
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent()).allMatch(report -> report.getReportType() == ReportType.POST);
+        assertThat(result.getContent()).allMatch(report -> report.reportType() == ReportType.POST);
     }
 
     /**

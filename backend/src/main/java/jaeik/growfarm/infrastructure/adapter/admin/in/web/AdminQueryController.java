@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.admin.in.web;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminQueryUseCase;
+import jaeik.growfarm.domain.admin.entity.ReportSummary;
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,16 @@ public class AdminQueryController {
     public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size,
                                                          @RequestParam(required = false) ReportType reportType) {
-        Page<ReportDTO> reportList = adminQueryUseCase.getReportList(page, size, reportType);
+        Page<ReportSummary> reportSummaries = adminQueryUseCase.getReportList(page, size, reportType);
+        Page<ReportDTO> reportList = reportSummaries.map(reportSummary -> ReportDTO.builder()
+                .id(reportSummary.id())
+                .reporterId(reportSummary.reporterId())
+                .reporterName(reportSummary.reporterName())
+                .reportType(reportSummary.reportType())
+                .targetId(reportSummary.targetId())
+                .content(reportSummary.content())
+                .createdAt(reportSummary.createdAt())
+                .build());
         return ResponseEntity.ok(reportList);
     }
 }
