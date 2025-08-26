@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.out;
 
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,11 +20,11 @@ public interface LoadCommentPort {
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentDTO> 작성한 댓글 목록 페이지
+     * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> findCommentsByUserId(Long userId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
@@ -32,9 +32,9 @@ public interface LoadCommentPort {
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentDTO> 추천한 댓글 목록 페이지
+     * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> findLikedCommentsByUserId(Long userId, Pageable pageable);
 }

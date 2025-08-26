@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.user.application.service;
 
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,17 +118,33 @@ class UserActivityServiceTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         
-        List<SimpleCommentDTO> comments = Arrays.asList(
-                new SimpleCommentDTO(1L, 1L, "testUser", "댓글 1", Instant.now(), 0, false),
-                new SimpleCommentDTO(2L, 1L, "testUser", "댓글 2", Instant.now(), 0, false)
+        List<SimpleCommentInfo> comments = Arrays.asList(
+                SimpleCommentInfo.builder()
+                        .id(1L)
+                        .postId(1L)
+                        .userName("testUser")
+                        .content("댓글 1")
+                        .createdAt(Instant.now())
+                        .likeCount(0)
+                        .userLike(false)
+                        .build(),
+                SimpleCommentInfo.builder()
+                        .id(2L)
+                        .postId(1L)
+                        .userName("testUser")
+                        .content("댓글 2")
+                        .createdAt(Instant.now())
+                        .likeCount(0)
+                        .userLike(false)
+                        .build()
         );
         
-        Page<SimpleCommentDTO> expectedPage = new PageImpl<>(comments, pageable, comments.size());
+        Page<SimpleCommentInfo> expectedPage = new PageImpl<>(comments, pageable, comments.size());
 
         given(loadCommentPort.findCommentsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimpleCommentDTO> result = userActivityService.getUserComments(userId, pageable);
+        Page<SimpleCommentInfo> result = userActivityService.getUserComments(userId, pageable);
 
         // Then
         verify(loadCommentPort).findCommentsByUserId(userId, pageable);
@@ -144,16 +160,24 @@ class UserActivityServiceTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         
-        List<SimpleCommentDTO> likedComments = Arrays.asList(
-                new SimpleCommentDTO(3L, 1L, "testUser", "추천한 댓글 1", Instant.now(), 0, false)
+        List<SimpleCommentInfo> likedComments = Arrays.asList(
+                SimpleCommentInfo.builder()
+                        .id(3L)
+                        .postId(1L)
+                        .userName("testUser")
+                        .content("추천한 댓글 1")
+                        .createdAt(Instant.now())
+                        .likeCount(0)
+                        .userLike(false)
+                        .build()
         );
         
-        Page<SimpleCommentDTO> expectedPage = new PageImpl<>(likedComments, pageable, likedComments.size());
+        Page<SimpleCommentInfo> expectedPage = new PageImpl<>(likedComments, pageable, likedComments.size());
 
         given(loadCommentPort.findLikedCommentsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimpleCommentDTO> result = userActivityService.getUserLikedComments(userId, pageable);
+        Page<SimpleCommentInfo> result = userActivityService.getUserLikedComments(userId, pageable);
 
         // Then
         verify(loadCommentPort).findLikedCommentsByUserId(userId, pageable);
@@ -186,12 +210,12 @@ class UserActivityServiceTest {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimpleCommentDTO> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
+        Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
         given(loadCommentPort.findCommentsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimpleCommentDTO> result = userActivityService.getUserComments(userId, pageable);
+        Page<SimpleCommentInfo> result = userActivityService.getUserComments(userId, pageable);
 
         // Then
         verify(loadCommentPort).findCommentsByUserId(userId, pageable);
@@ -224,12 +248,12 @@ class UserActivityServiceTest {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimpleCommentDTO> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
+        Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
         given(loadCommentPort.findLikedCommentsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimpleCommentDTO> result = userActivityService.getUserLikedComments(userId, pageable);
+        Page<SimpleCommentInfo> result = userActivityService.getUserLikedComments(userId, pageable);
 
         // Then
         verify(loadCommentPort).findLikedCommentsByUserId(userId, pageable);

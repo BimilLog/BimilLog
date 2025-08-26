@@ -2,7 +2,6 @@ package jaeik.growfarm.infrastructure.adapter.user.out.persistence;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.comment.LoadCommentAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,7 +58,7 @@ class LoadCommentAdapterTest {
         given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(domainPage);
 
         // When: 사용자 작성 댓글 목록 조회 실행
-        Page<SimpleCommentDTO> result = loadCommentAdapter.findCommentsByUserId(userId, pageable);
+        Page<SimpleCommentInfo> result = loadCommentAdapter.findCommentsByUserId(userId, pageable);
 
         // Then: 올바른 댓글 목록이 반환되고 UseCase가 호출되었는지 검증
         assertThat(result).isNotNull();
@@ -85,7 +84,7 @@ class LoadCommentAdapterTest {
         given(commentQueryUseCase.getUserLikedComments(eq(userId), any(Pageable.class))).willReturn(domainPage);
 
         // When: 사용자 추천 댓글 목록 조회 실행
-        Page<SimpleCommentDTO> result = loadCommentAdapter.findLikedCommentsByUserId(userId, pageable);
+        Page<SimpleCommentInfo> result = loadCommentAdapter.findLikedCommentsByUserId(userId, pageable);
 
         // Then: 올바른 추천 댓글 목록이 반환되고 UseCase가 호출되었는지 검증
         assertThat(result).isNotNull();
@@ -106,7 +105,7 @@ class LoadCommentAdapterTest {
         given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(emptyDomainPage);
 
         // When: 댓글이 없는 사용자의 댓글 목록 조회
-        Page<SimpleCommentDTO> result = loadCommentAdapter.findCommentsByUserId(userId, pageable);
+        Page<SimpleCommentInfo> result = loadCommentAdapter.findCommentsByUserId(userId, pageable);
 
         // Then: 빈 페이지가 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
@@ -126,7 +125,7 @@ class LoadCommentAdapterTest {
         given(commentQueryUseCase.getUserLikedComments(eq(userId), any(Pageable.class))).willReturn(emptyDomainPage);
 
         // When: 추천 댓글이 없는 사용자의 추천 댓글 목록 조회
-        Page<SimpleCommentDTO> result = loadCommentAdapter.findLikedCommentsByUserId(userId, pageable);
+        Page<SimpleCommentInfo> result = loadCommentAdapter.findLikedCommentsByUserId(userId, pageable);
 
         // Then: 빈 페이지가 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
@@ -177,7 +176,7 @@ class LoadCommentAdapterTest {
         given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(largeDomainPage);
 
         // When: 대용량 댓글 목록 조회
-        Page<SimpleCommentDTO> result = loadCommentAdapter.findCommentsByUserId(userId, largePage);
+        Page<SimpleCommentInfo> result = loadCommentAdapter.findCommentsByUserId(userId, largePage);
 
         // Then: 대용량 데이터도 올바르게 처리되는지 검증
         assertThat(result).isNotNull();

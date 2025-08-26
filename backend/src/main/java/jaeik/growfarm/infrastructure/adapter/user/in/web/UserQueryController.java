@@ -4,6 +4,7 @@ import jaeik.growfarm.domain.user.application.port.in.SettingQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserIntegrationUseCase;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
@@ -125,7 +126,8 @@ public class UserQueryController {
                                                                  @RequestParam int size,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentDTO> commentList = userActivityUseCase.getUserComments(userDetails.getUserId(), pageable);
+        Page<SimpleCommentInfo> commentInfoList = userActivityUseCase.getUserComments(userDetails.getUserId(), pageable);
+        Page<SimpleCommentDTO> commentList = commentInfoList.map(this::convertToSimpleCommentDTO);
         return ResponseEntity.ok(commentList);
     }
 
@@ -145,8 +147,30 @@ public class UserQueryController {
                                                                       @RequestParam int size,
                                                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentDTO> likedComments = userActivityUseCase.getUserLikedComments(userDetails.getUserId(), pageable);
+        Page<SimpleCommentInfo> likedCommentsInfo = userActivityUseCase.getUserLikedComments(userDetails.getUserId(), pageable);
+        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
         return ResponseEntity.ok(likedComments);
+    }
+
+    /**
+     * <h3>SimpleCommentInfo를 SimpleCommentDTO로 변환</h3>
+     * <p>도메인 객체를 인프라스트럭처 DTO로 변환하여 API 응답에 사용</p>
+     *
+     * @param info 도메인 SimpleCommentInfo 객체
+     * @return SimpleCommentDTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private SimpleCommentDTO convertToSimpleCommentDTO(SimpleCommentInfo info) {
+        return new SimpleCommentDTO(
+            info.getId(),
+            info.getPostId(),
+            info.getUserName(),
+            info.getContent(),
+            info.getCreatedAt(),
+            info.getLikeCount(),
+            info.isUserLike()
+        );
     }
 
     /**

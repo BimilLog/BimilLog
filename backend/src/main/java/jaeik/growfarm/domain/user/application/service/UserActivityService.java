@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.user.application.service;
 import jaeik.growfarm.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -69,7 +69,7 @@ public class UserActivityService implements UserActivityUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
+    public Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable) {
         return loadCommentPort.findCommentsByUserId(userId, pageable);
     }
 
@@ -85,7 +85,7 @@ public class UserActivityService implements UserActivityUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
+    public Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable) {
         return loadCommentPort.findLikedCommentsByUserId(userId, pageable);
     }
 }
