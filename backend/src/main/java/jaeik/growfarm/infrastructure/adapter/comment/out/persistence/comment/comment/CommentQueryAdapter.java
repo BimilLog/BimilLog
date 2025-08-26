@@ -209,6 +209,25 @@ public class CommentQueryAdapter implements CommentQueryPort {
     }
 
     /**
+     * <h3>단일 게시글의 댓글 수 조회</h3>
+     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return Integer 댓글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Integer countByPostId(Long postId) {
+        Long count = jpaQueryFactory
+                .select(comment.count())
+                .from(comment)
+                .where(comment.post.id.eq(postId))
+                .fetchOne();
+        return count != null ? count.intValue() : 0;
+    }
+
+    /**
      * <h3>과거순 댓글 조회</h3>
      * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다. 사용자가 추천를 누른 댓글 정보도 포함합니다.</p>
      *

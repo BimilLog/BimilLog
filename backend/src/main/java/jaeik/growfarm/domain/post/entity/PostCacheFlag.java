@@ -16,5 +16,17 @@ package jaeik.growfarm.domain.post.entity;
  * @author Jaeik
  */
 public enum PostCacheFlag {
-    REALTIME, WEEKLY, LEGEND, NOTICE
+    REALTIME, WEEKLY, LEGEND, NOTICE;
+
+    /**
+     * <h3>인기글 캐시 타입 목록 반환</h3>
+     * <p>인기글 확인에 사용되는 캐시 타입들을 배열로 반환합니다.</p>
+     *
+     * @return PostCacheFlag[] 인기글 캐시 타입 배열
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static PostCacheFlag[] getPopularPostTypes() {
+        return new PostCacheFlag[]{REALTIME, WEEKLY, LEGEND, NOTICE};
+    }
 }

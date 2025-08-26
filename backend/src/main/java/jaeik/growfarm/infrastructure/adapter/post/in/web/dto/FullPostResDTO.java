@@ -1,8 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.post.in.web.dto;
 
-import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.domain.post.entity.PostDetail;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -55,55 +53,4 @@ public class FullPostResDTO {
         this.postCacheFlag = postCacheFlag;
     }
 
-    /**
-     * <h3>FullPostResDTO로 변환</h3>
-     * <p>Post 엔티티, 추천 수, 추천 여부를 FullPostResDTO로 변환합니다.</p>
-     *
-     * @param post      게시글 엔티티
-     * @param likeCount 추천 수
-     * @param isLiked   사용자가 추천를 눌렀는지 여부
-     * @return FullPostResDTO 변환된 게시글 응답 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static FullPostResDTO from(Post post, Integer likeCount, boolean isLiked) {
-        return FullPostResDTO.builder()
-                .id(post.getId())
-                .userId(post.getUser() != null ? post.getUser().getId() : null)
-                .userName(post.getUser() != null ? post.getUser().getUserName() : "익명")
-                .title(post.getTitle())
-                .content(post.getContent())
-                .viewCount(post.getViews())
-                .likeCount(likeCount)
-                .isNotice(post.isNotice())
-                .createdAt(post.getCreatedAt())
-                .isLiked(isLiked)
-                .commentCount(0) // 기본값으로 0 설정
-                .build();
-    }
-
-    /**
-     * <h3>도메인 PostDetail로부터 DTO 생성</h3>
-     * <p>헥사고날 아키텍처 패턴: 도메인 순수 객체를 인프라 DTO로 변환</p>
-     *
-     * @param postDetail 도메인 게시글 상세 객체
-     * @return FullPostResDTO 인프라 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static FullPostResDTO from(PostDetail postDetail) {
-        return FullPostResDTO.builder()
-                .id(postDetail.id())
-                .userId(postDetail.userId())
-                .userName(postDetail.userName())
-                .title(postDetail.title())
-                .content(postDetail.content())
-                .viewCount(postDetail.viewCount())
-                .likeCount(postDetail.likeCount())
-                .isNotice(postDetail.isNotice())
-                .createdAt(postDetail.createdAt())
-                .isLiked(postDetail.isLiked())
-                .commentCount(postDetail.commentCount())
-                .build();
-    }
 }

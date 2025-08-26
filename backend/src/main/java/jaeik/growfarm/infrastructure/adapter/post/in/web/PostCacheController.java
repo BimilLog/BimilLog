@@ -2,6 +2,7 @@ package jaeik.growfarm.infrastructure.adapter.post.in.web;
 
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import java.util.List;
 public class PostCacheController {
 
     private final PostQueryUseCase postQueryUseCase;
+    private final PostResponseMapper postResponseMapper;
 
     /**
      * <h3>실시간 인기글 조회 API</h3>
@@ -40,11 +42,11 @@ public class PostCacheController {
      */
     @GetMapping("/realtime")
     public ResponseEntity<List<SimplePostResDTO>> getRealtimeBoard() {
-        List<SimplePostResDTO> realtimePopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.REALTIME)
-                .stream()
-                .map(SimplePostResDTO::from)
+        List<PostSearchResult> realtimePopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.REALTIME);
+        List<SimplePostResDTO> dtoList = realtimePopularPosts.stream()
+                .map(postResponseMapper::convertToSimplePostResDTO)
                 .toList();
-        return ResponseEntity.ok(realtimePopularPosts);
+        return ResponseEntity.ok(dtoList);
     }
 
     /**
@@ -60,11 +62,11 @@ public class PostCacheController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<List<SimplePostResDTO>> getWeeklyBoard() {
-        List<SimplePostResDTO> weeklyPopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.WEEKLY)
-                .stream()
-                .map(SimplePostResDTO::from)
+        List<PostSearchResult> weeklyPopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.WEEKLY);
+        List<SimplePostResDTO> dtoList = weeklyPopularPosts.stream()
+                .map(postResponseMapper::convertToSimplePostResDTO)
                 .toList();
-        return ResponseEntity.ok(weeklyPopularPosts);
+        return ResponseEntity.ok(dtoList);
     }
 
     /**
@@ -81,9 +83,9 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<SimplePostResDTO>> getLegendBoard(Pageable pageable) {
-        Page<SimplePostResDTO> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable)
-                .map(SimplePostResDTO::from);
-        return ResponseEntity.ok(legendPopularPosts);
+        Page<PostSearchResult> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
+        Page<SimplePostResDTO> dtoList = legendPopularPosts.map(postResponseMapper::convertToSimplePostResDTO);
+        return ResponseEntity.ok(dtoList);
     }
 
     /**
@@ -101,7 +103,7 @@ public class PostCacheController {
     public ResponseEntity<List<SimplePostResDTO>> getNoticeBoard() {
         List<SimplePostResDTO> noticePosts = postQueryUseCase.getNoticePosts()
                 .stream()
-                .map(SimplePostResDTO::from)
+                .map(postResponseMapper::convertToSimplePostResDTO)
                 .toList();
         return ResponseEntity.ok(noticePosts);
     }

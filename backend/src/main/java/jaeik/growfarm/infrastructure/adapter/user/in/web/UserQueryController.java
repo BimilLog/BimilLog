@@ -6,8 +6,11 @@ import jaeik.growfarm.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
+import jaeik.growfarm.infrastructure.adapter.post.in.web.PostResponseMapper;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.CommentResponseMapper;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +41,8 @@ public class UserQueryController {
     private final UserActivityUseCase userActivityUseCase;
     private final SettingQueryUseCase settingQueryUseCase;
     private final UserIntegrationUseCase userIntegrationUseCase;
+    private final PostResponseMapper postResponseMapper;
+    private final CommentResponseMapper commentResponseMapper;
 
     /**
      * <h3>닉네임 중복 확인 API</h3>
@@ -86,9 +91,9 @@ public class UserQueryController {
                                                               @RequestParam int size,
                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimplePostResDTO> postList = userActivityUseCase.getUserPosts(userDetails.getUserId(), pageable)
-                .map(SimplePostResDTO::from);
-        return ResponseEntity.ok(postList);
+        Page<PostSearchResult> postList = userActivityUseCase.getUserPosts(userDetails.getUserId(), pageable);
+        Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        return ResponseEntity.ok(dtoList);
     }
 
     /**
@@ -107,9 +112,9 @@ public class UserQueryController {
                                                                    @RequestParam int size,
                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimplePostResDTO> likedPosts = userActivityUseCase.getUserLikedPosts(userDetails.getUserId(), pageable)
-                .map(SimplePostResDTO::from);
-        return ResponseEntity.ok(likedPosts);
+        Page<PostSearchResult> likedPosts = userActivityUseCase.getUserLikedPosts(userDetails.getUserId(), pageable);
+        Page<SimplePostResDTO> dtoList = likedPosts.map(postResponseMapper::convertToSimplePostResDTO);
+        return ResponseEntity.ok(dtoList);
     }
 
     /**
@@ -129,7 +134,7 @@ public class UserQueryController {
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SimpleCommentInfo> commentInfoList = userActivityUseCase.getUserComments(userDetails.getUserId(), pageable);
-        Page<SimpleCommentDTO> commentList = commentInfoList.map(this::convertToSimpleCommentDTO);
+        Page<SimpleCommentDTO> commentList = commentInfoList.map(commentResponseMapper::convertToSimpleCommentDTO);
         return ResponseEntity.ok(commentList);
     }
 
@@ -150,30 +155,19 @@ public class UserQueryController {
                                                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SimpleCommentInfo> likedCommentsInfo = userActivityUseCase.getUserLikedComments(userDetails.getUserId(), pageable);
-        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
+        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(commentResponseMapper::convertToSimpleCommentDTO);
         return ResponseEntity.ok(likedComments);
     }
 
     /**
-     * <h3>SimpleCommentInfo를 SimpleCommentDTO로 변환</h3>
+     * <h3>PostSearchResult를 SimplePostResDTO로 변환</h3>
      * <p>도메인 객체를 인프라스트럭처 DTO로 변환하여 API 응답에 사용</p>
      *
-     * @param info 도메인 SimpleCommentInfo 객체
-     * @return SimpleCommentDTO
+     * @param postSearchResult 도메인 PostSearchResult 객체
+     * @return SimplePostResDTO
      * @author Jaeik
      * @since 2.0.0
      */
-    private SimpleCommentDTO convertToSimpleCommentDTO(SimpleCommentInfo info) {
-        return new SimpleCommentDTO(
-            info.getId(),
-            info.getPostId(),
-            info.getUserName(),
-            info.getContent(),
-            info.getCreatedAt(),
-            info.getLikeCount(),
-            info.isUserLike()
-        );
-    }
 
     /**
      * <h3>카카오 친구 목록 조회 API</h3>

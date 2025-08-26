@@ -192,4 +192,19 @@ public class CommentQueryService implements CommentQueryUseCase {
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
         return commentQueryPort.findCommentCountsByPostIds(postIds);
     }
+
+    /**
+     * <h3>단일 게시글의 댓글 수 조회</h3>
+     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return Integer 댓글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Integer countByPostId(Long postId) {
+        return commentQueryPort.countByPostId(postId);
+    }
 }

@@ -32,7 +32,27 @@ public interface CommentQueryPort {
      */
     List<CommentInfo> findPopularComments(Long postId, List<Long> likedCommentIds);
 
+    /**
+     * <h3>게시글 ID 목록에 대한 댓글 수 조회 (배치)</h3>
+     * <p>여러 게시글의 댓글 수를 배치로 조회하여 N+1 문제를 해결합니다.</p>
+     *
+     * @param postIds 게시글 ID 목록
+     * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
+     * @author Jaeik
+     * @since 2.0.0
+     */
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
+
+    /**
+     * <h3>단일 게시글의 댓글 수 조회</h3>
+     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return Integer 댓글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Integer countByPostId(Long postId);
 
     /**
      * <h3>과거순 댓글 목록 조회</h3>

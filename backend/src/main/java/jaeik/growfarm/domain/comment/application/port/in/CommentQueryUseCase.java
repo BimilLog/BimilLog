@@ -91,4 +91,15 @@ public interface CommentQueryUseCase {
      */
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
 
+    /**
+     * <h3>단일 게시글의 댓글 수 조회</h3>
+     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return Integer 댓글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Integer countByPostId(Long postId);
+
 }

@@ -83,4 +83,30 @@ public record PostDetail(
     public static PostDetail of(Post post, Integer likeCount, Integer commentCount) {
         return of(post, likeCount, commentCount, false);
     }
+
+    /**
+     * <h3>추천 여부를 변경한 새로운 PostDetail 생성</h3>
+     * <p>캐시된 PostDetail의 isLiked 필드만 변경하여 새로운 객체를 생성합니다.</p>
+     *
+     * @param isLiked 사용자 추천 여부
+     * @return PostDetail 새로운 PostDetail 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public PostDetail withIsLiked(boolean isLiked) {
+        return PostDetail.builder()
+                .id(this.id)
+                .title(this.title)
+                .content(this.content)
+                .viewCount(this.viewCount)
+                .likeCount(this.likeCount)
+                .postCacheFlag(this.postCacheFlag)
+                .createdAt(this.createdAt)
+                .userId(this.userId)
+                .userName(this.userName)
+                .commentCount(this.commentCount)
+                .isNotice(this.isNotice)
+                .isLiked(isLiked)
+                .build();
+    }
 }

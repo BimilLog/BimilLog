@@ -1,7 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.post.in.web.dto;
 
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,28 +36,4 @@ public class SimplePostResDTO {
     private Integer commentCount;
     private boolean isNotice;
 
-    /**
-     * <h3>도메인 PostSearchResult로부터 DTO 생성</h3>
-     * <p>헥사고날 아키텍처 패턴: 도메인 순수 객체를 인프라 DTO로 변환</p>
-     *
-     * @param searchResult 도메인 검색 결과 객체
-     * @return SimplePostResDTO 인프라 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static SimplePostResDTO from(PostSearchResult searchResult) {
-        return SimplePostResDTO.builder()
-                .id(searchResult.getId())
-                .title(searchResult.getTitle())
-                .content(searchResult.getContent())
-                .viewCount(searchResult.getViewCount())
-                .likeCount(searchResult.getLikeCount())
-                .postCacheFlag(searchResult.getPostCacheFlag())
-                .createdAt(searchResult.getCreatedAt())
-                .userId(searchResult.getUserId())
-                .userName(searchResult.getUserName())
-                .commentCount(searchResult.getCommentCount())
-                .isNotice(searchResult.isNotice())
-                .build();
-    }
 }

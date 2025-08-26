@@ -2,6 +2,8 @@ package jaeik.growfarm.infrastructure.adapter.post.in.web;
 
 import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -19,6 +21,7 @@ public class PostQueryController {
 
     private final PostQueryUseCase postQueryUseCase;
     private final PostInteractionUseCase postInteractionUseCase;
+    private final PostResponseMapper postResponseMapper;
 
     /**
      * <h3>게시판 목록 조회 API</h3>
@@ -31,9 +34,9 @@ public class PostQueryController {
      */
     @GetMapping
     public ResponseEntity<Page<SimplePostResDTO>> getBoard(Pageable pageable) {
-        Page<SimplePostResDTO> postList = postQueryUseCase.getBoard(pageable)
-                .map(SimplePostResDTO::from);
-        return ResponseEntity.ok(postList);
+        Page<PostSearchResult> postList = postQueryUseCase.getBoard(pageable);
+        Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        return ResponseEntity.ok(dtoList);
     }
 
     /**
@@ -51,9 +54,9 @@ public class PostQueryController {
     public ResponseEntity<Page<SimplePostResDTO>> searchPost(@RequestParam String type,
                                                              @RequestParam String query,
                                                              Pageable pageable) {
-        Page<SimplePostResDTO> postList = postQueryUseCase.searchPost(type, query, pageable)
-                .map(SimplePostResDTO::from);
-        return ResponseEntity.ok(postList);
+        Page<PostSearchResult> postList = postQueryUseCase.searchPost(type, query, pageable);
+        Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        return ResponseEntity.ok(dtoList);
     }
 
     /**
@@ -71,7 +74,9 @@ public class PostQueryController {
                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         postInteractionUseCase.incrementViewCount(postId); // 조회수 증가 (Command)
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        FullPostResDTO fullPostResDTO = FullPostResDTO.from(postQueryUseCase.getPost(postId, userId)); // 게시글 조회 (Query)
+        PostDetail postDetail = postQueryUseCase.getPost(postId, userId); // 게시글 조회 (Query)
+        FullPostResDTO fullPostResDTO = postResponseMapper.convertToFullPostResDTO(postDetail);
         return ResponseEntity.ok(fullPostResDTO);
     }
+
 }

@@ -1,6 +1,7 @@
 package jaeik.growfarm.domain.post.application.service;
 
 
+import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.growfarm.domain.post.application.port.out.*;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -39,6 +40,7 @@ public class PostQueryService implements PostQueryUseCase {
     private final LoadUserInfoPort loadUserInfoPort;
     private final PostCacheSyncService postCacheSyncService;
     private final PostCacheQueryPort postCacheQueryPort;
+    private final CommentQueryUseCase commentQueryUseCase;
 
     /**
      * <h3>게시판 조회</h3>
@@ -65,12 +67,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     private boolean isPopularPost(Long postId) {
         // 모든 인기글 타입에 대해 확인
-        for (PostCacheFlag flag : new PostCacheFlag[]{
-                PostCacheFlag.REALTIME, 
-                PostCacheFlag.WEEKLY, 
-                PostCacheFlag.LEGEND, 
-                PostCacheFlag.NOTICE
-        }) {
+        for (PostCacheFlag flag : PostCacheFlag.getPopularPostTypes()) {
             // 해당 타입의 캐시가 있는지 확인
             if (postCacheQueryPort.hasPopularPostsCache(flag)) {
                 // 캐시된 인기글 목록 조회
@@ -104,25 +101,8 @@ public class PostQueryService implements PostQueryUseCase {
             if (cachedPost != null) {
                 // 사용자의 좋아요 정보만 추가 확인 필요
                 if (userId != null) {
-                    Post post = postQueryPort.findById(postId)
-                            .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-                    User user = loadUserInfoPort.getReferenceById(userId);
-                    boolean isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
-                    // PostDetail은 불변이므로 새로운 객체 생성
-                    return PostDetail.builder()
-                            .id(cachedPost.id())
-                            .title(cachedPost.title())
-                            .content(cachedPost.content())
-                            .viewCount(cachedPost.viewCount())
-                            .likeCount(cachedPost.likeCount())
-                            .postCacheFlag(cachedPost.postCacheFlag())
-                            .createdAt(cachedPost.createdAt())
-                            .userId(cachedPost.userId())
-                            .userName(cachedPost.userName())
-                            .commentCount(cachedPost.commentCount())
-                            .isNotice(cachedPost.isNotice())
-                            .isLiked(isLiked)
-                            .build();
+                    boolean isLiked = checkUserLikedPost(postId, userId);
+                    return cachedPost.withIsLiked(isLiked);
                 }
                 return cachedPost;
             }
@@ -133,13 +113,9 @@ public class PostQueryService implements PostQueryUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         long likeCount = postLikeQueryPort.countByPost(post);
-        boolean isLiked = false;
-        if (userId != null) {
-            User user = loadUserInfoPort.getReferenceById(userId);
-            isLiked = postLikeQueryPort.existsByUserAndPost(user, post);
-        }
-
-        return PostDetail.of(post, Math.toIntExact(likeCount), 0, isLiked); // TODO: 댓글 수 추가 필요
+        boolean isLiked = (userId != null) ? checkUserLikedPost(postId, userId) : false;
+        int commentCount = commentQueryUseCase.countByPostId(postId);
+        return PostDetail.of(post, Math.toIntExact(likeCount), commentCount, isLiked);
     }
 
     /**
@@ -261,5 +237,22 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
         return postQueryPort.findLikedPostsByUserId(userId, pageable);
+    }
+
+    /**
+     * <h3>사용자 게시글 좋아요 여부 확인</h3>
+     * <p>중복 로직을 제거하기 위한 private 메서드</p>
+     *
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID
+     * @return boolean 좋아요 여부
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private boolean checkUserLikedPost(Long postId, Long userId) {
+        Post post = postQueryPort.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        User user = loadUserInfoPort.getReferenceById(userId);
+        return postLikeQueryPort.existsByUserAndPost(user, post);
     }
 }
