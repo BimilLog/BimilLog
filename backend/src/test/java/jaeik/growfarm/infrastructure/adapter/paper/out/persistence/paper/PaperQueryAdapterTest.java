@@ -1,6 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.paper.out.persistence.paper;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.GrowfarmApplication;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.paper.entity.DecoType;
@@ -8,25 +7,18 @@ import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.security.EncryptionUtil;
-import jakarta.persistence.EntityManager;
+import jaeik.growfarm.util.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
@@ -48,38 +40,16 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
                 classes = GrowfarmApplication.class
         )
 )
-@Import({PaperQueryAdapter.class, PaperQueryAdapterTest.TestConfig.class})
+@Import({PaperQueryAdapter.class, TestContainersConfiguration.class})
 @Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.hibernate.ddl-auto=create",
+        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect",
         "logging.level.org.hibernate.SQL=DEBUG"
 })
 @DisplayName("PaperQueryAdapter 통합 테스트")
 class PaperQueryAdapterTest {
-
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("testuser")
-            .withPassword("testpass")
-            .withReuse(true);
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-        registry.add("spring.datasource.driver-class-name", mysql::getDriverClassName);
-    }
-
-    @TestConfiguration
-    @EntityScan(basePackages = {"jaeik.growfarm.domain"})
-    static class TestConfig {
-        @Bean
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
-        }
-    }
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -315,7 +285,7 @@ class PaperQueryAdapterTest {
                 .user(user)
                 .content(content)
                 .decoType(decoType)
-                .anonymity("익명" + user.getUserName())
+                .anonymity("익명123")  // anonymity는 8자 제한이므로 짧게 변경
                 .width(width)
                 .height(height)
                 .build();

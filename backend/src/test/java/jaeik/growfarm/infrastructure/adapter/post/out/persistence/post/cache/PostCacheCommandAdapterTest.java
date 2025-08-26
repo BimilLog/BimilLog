@@ -63,7 +63,7 @@ class PostCacheCommandAdapterTest {
         // RedisTemplate Mock 설정
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         
-        // PostCacheCommandAdapter 인스턴스 생성
+        // PostCacheCommandAdapter 인스턴스 생성 - @RequiredArgsConstructor 사용
         postCacheCommandAdapter = new PostCacheCommandAdapter(redisTemplate, jpaQueryFactory);
 
         // 테스트 데이터 준비

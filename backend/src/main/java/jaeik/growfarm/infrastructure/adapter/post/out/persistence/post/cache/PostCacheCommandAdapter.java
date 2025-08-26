@@ -31,29 +31,19 @@ import java.util.Map;
 public class PostCacheCommandAdapter implements PostCacheCommandPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
+    private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap = initializeCacheMetadata();
     private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
     private static final Duration FULL_POST_CACHE_TTL = Duration.ofDays(1);
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    /**
-     * <h3>RedisCacheAdapter 생성자</h3>
-     * <p>RedisTemplate과 JPAQueryFactory를 주입받아 캐시 메타데이터를 초기화합니다.</p>
-     *
-     * @param redisTemplate Redis 작업을 위한 템플릿
-     * @param jpaQueryFactory JPA 쿼리 작업을 위한 팩토리
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public PostCacheCommandAdapter(RedisTemplate<String, Object> redisTemplate, JPAQueryFactory jpaQueryFactory) {
-        this.redisTemplate = redisTemplate;
-        this.jpaQueryFactory = jpaQueryFactory;
-        this.cacheMetadataMap = new EnumMap<>(PostCacheFlag.class);
-        cacheMetadataMap.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(30)));
-        cacheMetadataMap.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofDays(1)));
-        cacheMetadataMap.put(PostCacheFlag.LEGEND, new CacheMetadata("cache:posts:legend", Duration.ofDays(1)));
-        cacheMetadataMap.put(PostCacheFlag.NOTICE, new CacheMetadata("cache:posts:notice", Duration.ofDays(7)));
+    private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
+        Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
+        map.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(30)));
+        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofDays(1)));
+        map.put(PostCacheFlag.LEGEND, new CacheMetadata("cache:posts:legend", Duration.ofDays(1)));
+        map.put(PostCacheFlag.NOTICE, new CacheMetadata("cache:posts:notice", Duration.ofDays(7)));
+        return map;
     }
 
     private record CacheMetadata(String key, Duration ttl) {}
