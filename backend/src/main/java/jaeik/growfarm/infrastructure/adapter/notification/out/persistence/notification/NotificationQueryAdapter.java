@@ -5,7 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationQueryPort;
 import jaeik.growfarm.domain.notification.entity.QNotification;
 import jaeik.growfarm.domain.user.entity.QUser;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.NotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -40,10 +40,10 @@ public class NotificationQueryAdapter implements NotificationQueryPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationDTO> getNotificationList(CustomUserDetails userDetails) {
+    public List<NotificationInfo> getNotificationList(CustomUserDetails userDetails) {
 
         return jpaQueryFactory
-                .select(Projections.constructor(NotificationDTO.class,
+                .select(Projections.constructor(NotificationInfo.class,
                         notification.id,
                         notification.content,
                         notification.url,

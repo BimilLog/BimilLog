@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.NotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.util.TestContainersConfiguration;
 import jakarta.persistence.EntityManager;
@@ -128,30 +128,30 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 알림 목록 조회
-        List<NotificationDTO> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
 
         // Then: 조회 결과 검증
         assertThat(result).isNotNull();
         assertThat(result).hasSize(3); // 현재 사용자의 알림만 3개
 
         // 최신순 정렬 확인 (가장 나중에 생성된 것이 먼저)
-        NotificationDTO firstNotification = result.get(0);
-        assertThat(firstNotification.getNotificationType()).isEqualTo(NotificationType.POST_FEATURED);
-        assertThat(firstNotification.getContent()).isEqualTo("세 번째 인기글 알림");
-        assertThat(firstNotification.getUrl()).isEqualTo("/post/3");
+        NotificationInfo firstNotification = result.get(0);
+        assertThat(firstNotification.notificationType()).isEqualTo(NotificationType.POST_FEATURED);
+        assertThat(firstNotification.content()).isEqualTo("세 번째 인기글 알림");
+        assertThat(firstNotification.url()).isEqualTo("/post/3");
         assertThat(firstNotification.isRead()).isFalse();
-        assertThat(firstNotification.getCreatedAt()).isNotNull();
+        assertThat(firstNotification.createdAt()).isNotNull();
 
-        NotificationDTO secondNotification = result.get(1);
-        assertThat(secondNotification.getNotificationType()).isEqualTo(NotificationType.PAPER);
-        assertThat(secondNotification.getContent()).isEqualTo("두 번째 메시지 알림");
-        assertThat(secondNotification.getUrl()).isEqualTo("/paper/2");
+        NotificationInfo secondNotification = result.get(1);
+        assertThat(secondNotification.notificationType()).isEqualTo(NotificationType.PAPER);
+        assertThat(secondNotification.content()).isEqualTo("두 번째 메시지 알림");
+        assertThat(secondNotification.url()).isEqualTo("/paper/2");
         assertThat(secondNotification.isRead()).isTrue();
 
-        NotificationDTO thirdNotification = result.get(2);
-        assertThat(thirdNotification.getNotificationType()).isEqualTo(NotificationType.COMMENT);
-        assertThat(thirdNotification.getContent()).isEqualTo("첫 번째 댓글 알림");
-        assertThat(thirdNotification.getUrl()).isEqualTo("/post/1");
+        NotificationInfo thirdNotification = result.get(2);
+        assertThat(thirdNotification.notificationType()).isEqualTo(NotificationType.COMMENT);
+        assertThat(thirdNotification.content()).isEqualTo("첫 번째 댓글 알림");
+        assertThat(thirdNotification.url()).isEqualTo("/post/1");
         assertThat(thirdNotification.isRead()).isFalse();
     }
 
@@ -166,7 +166,7 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 알림이 없는 사용자의 알림 목록 조회
-        List<NotificationDTO> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
 
         // Then: 빈 목록 반환
         assertThat(result).isNotNull();
@@ -188,14 +188,14 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 알림 목록 조회
-        List<NotificationDTO> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
 
         // Then: 모든 유형의 알림이 조회되는지 확인
         assertThat(result).hasSize(5);
 
         // 각 유형별로 존재 확인
         assertThat(result)
-                .extracting(NotificationDTO::getNotificationType)
+                .extracting(NotificationInfo::notificationType)
                 .containsExactlyInAnyOrder(
                         NotificationType.COMMENT,
                         NotificationType.PAPER,
@@ -231,19 +231,19 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 알림 목록 조회
-        List<NotificationDTO> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
 
         // Then: 최신순으로 정렬되어 반환되는지 확인
         assertThat(result).hasSize(3);
 
         // 첫 번째가 가장 최신
-        assertThat(result.get(0).getContent()).isEqualTo("가장 최신 알림");
-        assertThat(result.get(1).getContent()).isEqualTo("중간 알림");
-        assertThat(result.get(2).getContent()).isEqualTo("가장 오래된 알림");
+        assertThat(result.get(0).content()).isEqualTo("가장 최신 알림");
+        assertThat(result.get(1).content()).isEqualTo("중간 알림");
+        assertThat(result.get(2).content()).isEqualTo("가장 오래된 알림");
 
         // 시간 순서 확인
-        assertThat(result.get(0).getCreatedAt()).isAfter(result.get(1).getCreatedAt());
-        assertThat(result.get(1).getCreatedAt()).isAfter(result.get(2).getCreatedAt());
+        assertThat(result.get(0).createdAt()).isAfter(result.get(1).createdAt());
+        assertThat(result.get(1).createdAt()).isAfter(result.get(2).createdAt());
     }
 
     @Test
@@ -261,18 +261,18 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 현재 사용자의 알림 목록 조회
-        List<NotificationDTO> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
 
         // Then: 현재 사용자의 알림만 조회되어야 함
         assertThat(result).hasSize(2);
 
         assertThat(result)
-                .extracting(NotificationDTO::getContent)
+                .extracting(NotificationInfo::content)
                 .containsExactlyInAnyOrder("내 댓글 알림", "내 메시지 알림");
 
         // 다른 사용자의 알림 내용은 포함되지 않아야 함
         assertThat(result)
-                .extracting(NotificationDTO::getContent)
+                .extracting(NotificationInfo::content)
                 .doesNotContain("다른 사용자의 관리자 알림", "다른 사용자의 인기글 알림");
     }
 
@@ -293,7 +293,7 @@ class NotificationQueryAdapterTest {
 
         // When: 대용량 데이터 조회
         long startTime = System.currentTimeMillis();
-        List<NotificationDTO> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
         long endTime = System.currentTimeMillis();
 
         // Then: 모든 데이터가 정상적으로 조회되는지 확인
@@ -304,8 +304,8 @@ class NotificationQueryAdapterTest {
         assertThat(executionTime).isLessThan(1000);
 
         // 최신순 정렬 확인 (마지막에 생성된 것이 첫 번째)
-        assertThat(result.getFirst().getContent()).isEqualTo("알림 #100");
-        assertThat(result.get(99).getContent()).isEqualTo("알림 #1");
+        assertThat(result.getFirst().content()).isEqualTo("알림 #100");
+        assertThat(result.get(99).content()).isEqualTo("알림 #1");
 
 
         // 읽음 상태 분포 확인

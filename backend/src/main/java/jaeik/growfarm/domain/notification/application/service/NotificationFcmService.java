@@ -5,7 +5,7 @@ import jaeik.growfarm.domain.notification.application.port.out.FcmPort;
 import jaeik.growfarm.domain.notification.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
+import jaeik.growfarm.domain.notification.entity.FcmMessage;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -86,12 +86,12 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             String body = "지금 확인해보세요!";
             
             for (FcmToken token : fcmTokens) {
-                FcmSendDTO fcmSendDto = new FcmSendDTO(
+                FcmMessage fcmMessage = FcmMessage.of(
                         token.getFcmRegistrationToken(),
                         title,
                         body
                 );
-                fcmPort.sendMessageTo(fcmSendDto);
+                fcmPort.sendMessageTo(fcmMessage);
             }
             log.info("댓글 알림 FCM 전송 완료: userId={}, tokenCount={}", postUserId, fcmTokens.size());
         } catch (Exception e) {
@@ -117,12 +117,12 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             String body = "지금 확인해보세요!";
             
             for (FcmToken token : fcmTokens) {
-                FcmSendDTO fcmSendDto = new FcmSendDTO(
+                FcmMessage fcmMessage = FcmMessage.of(
                         token.getFcmRegistrationToken(),
                         title,
                         body
                 );
-                fcmPort.sendMessageTo(fcmSendDto);
+                fcmPort.sendMessageTo(fcmMessage);
             }
             log.info("롤링페이퍼 메시지 알림 FCM 전송 완료: userId={}, tokenCount={}", farmOwnerId, fcmTokens.size());
         } catch (Exception e) {
@@ -147,12 +147,12 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             }
             
             for (FcmToken token : fcmTokens) {
-                FcmSendDTO fcmSendDto = new FcmSendDTO(
+                FcmMessage fcmMessage = FcmMessage.of(
                         token.getFcmRegistrationToken(),
                         title,
                         body
                 );
-                fcmPort.sendMessageTo(fcmSendDto);
+                fcmPort.sendMessageTo(fcmMessage);
             }
             log.info("인기글 등극 알림 FCM 전송 완료: userId={}, tokenCount={}", userId, fcmTokens.size());
         } catch (Exception e) {

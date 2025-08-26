@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.UpdateNotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.util.TestContainersConfiguration;
 import jakarta.persistence.EntityManager;
@@ -131,12 +131,10 @@ class NotificationCommandAdapterTest {
         testEntityManager.clear();
 
         List<Long> deleteIds = Arrays.asList(notification1.getId(), notification3.getId());
-        UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setDeletedIds(deleteIds);
-        updateDTO.setReadIds(Collections.emptyList());
+        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(Collections.emptyList(), deleteIds);
 
         // When: 일괄 삭제 실행
-        notificationCommandAdapter.batchUpdate(testUserDetails, updateDTO);
+        notificationCommandAdapter.batchUpdate(testUserDetails, updateCommand);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -161,12 +159,10 @@ class NotificationCommandAdapterTest {
         testEntityManager.clear();
 
         List<Long> readIds = Arrays.asList(notification1.getId(), notification2.getId());
-        UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setDeletedIds(Collections.emptyList());
-        updateDTO.setReadIds(readIds);
+        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, Collections.emptyList());
 
         // When: 일괄 읽음 처리 실행
-        notificationCommandAdapter.batchUpdate(testUserDetails, updateDTO);
+        notificationCommandAdapter.batchUpdate(testUserDetails, updateCommand);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -201,12 +197,10 @@ class NotificationCommandAdapterTest {
         List<Long> deleteIds = Arrays.asList(notification1.getId(), notification2.getId());
         List<Long> readIds = Arrays.asList(notification3.getId(), notification4.getId());
 
-        UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setDeletedIds(deleteIds);
-        updateDTO.setReadIds(readIds);
+        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, deleteIds);
 
         // When: 일괄 삭제 및 읽음 처리 실행
-        notificationCommandAdapter.batchUpdate(testUserDetails, updateDTO);
+        notificationCommandAdapter.batchUpdate(testUserDetails, updateCommand);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -231,12 +225,10 @@ class NotificationCommandAdapterTest {
         testEntityManager.flush();
         long beforeCount = notificationRepository.count();
 
-        UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setDeletedIds(Collections.emptyList());
-        updateDTO.setReadIds(Collections.emptyList());
+        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(Collections.emptyList(), Collections.emptyList());
 
         // When: 빈 목록으로 일괄 업데이트 실행
-        notificationCommandAdapter.batchUpdate(testUserDetails, updateDTO);
+        notificationCommandAdapter.batchUpdate(testUserDetails, updateCommand);
 
         testEntityManager.flush();
 
@@ -259,12 +251,10 @@ class NotificationCommandAdapterTest {
         testEntityManager.flush();
         long beforeCount = notificationRepository.count();
 
-        UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setDeletedIds(null);
-        updateDTO.setReadIds(null);
+        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(null, null);
 
         // When: null 목록으로 일괄 업데이트 실행
-        notificationCommandAdapter.batchUpdate(testUserDetails, updateDTO);
+        notificationCommandAdapter.batchUpdate(testUserDetails, updateCommand);
 
         testEntityManager.flush();
 
@@ -313,12 +303,10 @@ class NotificationCommandAdapterTest {
         testEntityManager.clear();
 
         List<Long> deleteIds = Arrays.asList(myNotification.getId(), otherNotification.getId());
-        UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setDeletedIds(deleteIds);
-        updateDTO.setReadIds(Collections.emptyList());
+        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(Collections.emptyList(), deleteIds);
 
         // When: 현재 사용자가 다른 사용자의 알림까지 포함해서 삭제 시도
-        notificationCommandAdapter.batchUpdate(testUserDetails, updateDTO);
+        notificationCommandAdapter.batchUpdate(testUserDetails, updateCommand);
 
         testEntityManager.flush();
         testEntityManager.clear();

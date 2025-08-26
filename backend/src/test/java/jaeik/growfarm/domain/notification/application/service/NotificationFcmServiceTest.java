@@ -4,7 +4,7 @@ import jaeik.growfarm.domain.notification.application.port.out.FcmPort;
 import jaeik.growfarm.domain.notification.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
+import jaeik.growfarm.domain.notification.entity.FcmMessage;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -149,7 +149,7 @@ class NotificationFcmServiceTest {
 
         // Then
         verify(fcmPort, times(1)).findValidFcmTokensForCommentNotification(postUserId);
-        verify(fcmPort, times(2)).sendMessageTo(any(FcmSendDTO.class));
+        verify(fcmPort, times(2)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
 
@@ -207,7 +207,7 @@ class NotificationFcmServiceTest {
 
         // Then
         verify(fcmPort, times(1)).findValidFcmTokensForMessageNotification(farmOwnerId);
-        verify(fcmPort, times(2)).sendMessageTo(any(FcmSendDTO.class));
+        verify(fcmPort, times(2)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
 
@@ -247,7 +247,7 @@ class NotificationFcmServiceTest {
 
         // Then
         verify(fcmPort, times(1)).findValidFcmTokensForPostFeaturedNotification(userId);
-        verify(fcmPort, times(1)).sendMessageTo(any(FcmSendDTO.class));
+        verify(fcmPort, times(1)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
 
@@ -374,7 +374,7 @@ class NotificationFcmServiceTest {
 
         // Then
         verify(fcmPort, times(1)).findValidFcmTokensForCommentNotification(postUserId);
-        verify(fcmPort, times(1)).sendMessageTo(any(FcmSendDTO.class));
+        verify(fcmPort, times(1)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
 
@@ -414,7 +414,7 @@ class NotificationFcmServiceTest {
 
         // Then
         verify(fcmPort, times(1)).findValidFcmTokensForPostFeaturedNotification(userId);
-        verify(fcmPort, times(1)).sendMessageTo(any(FcmSendDTO.class));
+        verify(fcmPort, times(1)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
 

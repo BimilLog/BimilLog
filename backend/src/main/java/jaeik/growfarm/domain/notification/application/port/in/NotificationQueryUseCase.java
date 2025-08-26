@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.NotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 import java.util.List;
@@ -21,5 +21,5 @@ public interface NotificationQueryUseCase {
      * @param userDetails 현재 로그인한 유저 정보
      * @return 알림 리스트
      */
-    List<NotificationDTO> getNotificationList(CustomUserDetails userDetails);
+    List<NotificationInfo> getNotificationList(CustomUserDetails userDetails);
 }

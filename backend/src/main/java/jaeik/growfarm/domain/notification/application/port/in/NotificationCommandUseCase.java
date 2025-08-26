@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.notification.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.UpdateNotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 /**
@@ -19,5 +19,5 @@ public interface NotificationCommandUseCase {
      * @param userDetails           현재 로그인한 유저 정보
      * @param updateNotificationDTO 알림 업데이트 정보
      */
-    void batchUpdate(CustomUserDetails userDetails, UpdateNotificationDTO updateNotificationDTO);
+    void batchUpdate(CustomUserDetails userDetails, NotificationUpdateCommand updateCommand);
 }

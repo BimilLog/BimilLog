@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.notification.entity.Notification;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.notification.entity.QNotification;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.UpdateNotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -34,15 +34,15 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * <p>주어진 알림 ID 목록에 따라 알림을 삭제하거나 읽음 상태로 변경합니다.</p>
      *
      * @param userDetails           현재 로그인한 사용자 정보
-     * @param updateNotificationDTO 업데이트할 알림 정보 DTO (삭제할 ID 목록, 읽음 처리할 ID 목록 포함)
+     * @param updateCommand 업데이트할 알림 정보 명령 (삭제할 ID 목록, 읽음 처리할 ID 목록 포함)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void batchUpdate(CustomUserDetails userDetails, UpdateNotificationDTO updateNotificationDTO) {
+    public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateCommand updateCommand) {
         Long userId = userDetails.getUserId();
-        List<Long> deleteIds = updateNotificationDTO.getDeletedIds();
-        List<Long> readIds = updateNotificationDTO.getReadIds();
+        List<Long> deleteIds = updateCommand.deletedIds();
+        List<Long> readIds = updateCommand.readIds();
 
         if (deleteIds != null && !deleteIds.isEmpty()) {
             jpaQueryFactory

@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationQueryPort;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.NotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,8 +45,8 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 성공")
     void shouldGetNotificationList_WhenValidUser() {
         // Given
-        List<NotificationDTO> expectedNotifications = Arrays.asList(
-                NotificationDTO.builder()
+        List<NotificationInfo> expectedNotifications = Arrays.asList(
+                NotificationInfo.builder()
                         .id(1L)
                         .content("새로운 댓글이 달렸습니다.")
                         .url("/post/123")
@@ -54,7 +54,7 @@ class NotificationQueryServiceTest {
                         .isRead(false)
                         .createdAt(Instant.now())
                         .build(),
-                NotificationDTO.builder()
+                NotificationInfo.builder()
                         .id(2L)
                         .content("축하합니다! 게시글이 인기글로 선정되었습니다.")
                         .url("/post/456")
@@ -68,19 +68,19 @@ class NotificationQueryServiceTest {
                 .willReturn(expectedNotifications);
 
         // When
-        List<NotificationDTO> result = notificationQueryService.getNotificationList(userDetails);
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(0).getContent()).isEqualTo("새로운 댓글이 달렸습니다.");
-        assertThat(result.get(0).getNotificationType()).isEqualTo(NotificationType.COMMENT);
+        assertThat(result.get(0).id()).isEqualTo(1L);
+        assertThat(result.get(0).content()).isEqualTo("새로운 댓글이 달렸습니다.");
+        assertThat(result.get(0).notificationType()).isEqualTo(NotificationType.COMMENT);
         assertThat(result.get(0).isRead()).isFalse();
         
-        assertThat(result.get(1).getId()).isEqualTo(2L);
-        assertThat(result.get(1).getContent()).isEqualTo("축하합니다! 게시글이 인기글로 선정되었습니다.");
-        assertThat(result.get(1).getNotificationType()).isEqualTo(NotificationType.POST_FEATURED);
+        assertThat(result.get(1).id()).isEqualTo(2L);
+        assertThat(result.get(1).content()).isEqualTo("축하합니다! 게시글이 인기글로 선정되었습니다.");
+        assertThat(result.get(1).notificationType()).isEqualTo(NotificationType.POST_FEATURED);
         assertThat(result.get(1).isRead()).isTrue();
 
         verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
@@ -91,12 +91,12 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 빈 목록")
     void shouldGetNotificationList_WhenNoNotifications() {
         // Given
-        List<NotificationDTO> emptyList = Collections.emptyList();
+        List<NotificationInfo> emptyList = Collections.emptyList();
         given(notificationQueryPort.getNotificationList(userDetails))
                 .willReturn(emptyList);
 
         // When
-        List<NotificationDTO> result = notificationQueryService.getNotificationList(userDetails);
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
         assertThat(result).isNotNull();
@@ -110,8 +110,8 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 단일 알림")
     void shouldGetNotificationList_WhenSingleNotification() {
         // Given
-        List<NotificationDTO> singleNotification = Arrays.asList(
-                NotificationDTO.builder()
+        List<NotificationInfo> singleNotification = Arrays.asList(
+                NotificationInfo.builder()
                         .id(1L)
                         .content("새로운 메시지가 도착했습니다.")
                         .url("/paper/test")
@@ -125,14 +125,14 @@ class NotificationQueryServiceTest {
                 .willReturn(singleNotification);
 
         // When
-        List<NotificationDTO> result = notificationQueryService.getNotificationList(userDetails);
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(0).getContent()).isEqualTo("새로운 메시지가 도착했습니다.");
-        assertThat(result.get(0).getNotificationType()).isEqualTo(NotificationType.PAPER);
+        assertThat(result.get(0).id()).isEqualTo(1L);
+        assertThat(result.get(0).content()).isEqualTo("새로운 메시지가 도착했습니다.");
+        assertThat(result.get(0).notificationType()).isEqualTo(NotificationType.PAPER);
         assertThat(result.get(0).isRead()).isFalse();
 
         verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
@@ -143,8 +143,8 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 읽은 알림과 안읽은 알림 혼재")
     void shouldGetNotificationList_WhenMixedReadStatus() {
         // Given
-        List<NotificationDTO> mixedNotifications = Arrays.asList(
-                NotificationDTO.builder()
+        List<NotificationInfo> mixedNotifications = Arrays.asList(
+                NotificationInfo.builder()
                         .id(1L)
                         .content("읽지 않은 알림")
                         .url("/test/1")
@@ -152,7 +152,7 @@ class NotificationQueryServiceTest {
                         .isRead(false)
                         .createdAt(Instant.now())
                         .build(),
-                NotificationDTO.builder()
+                NotificationInfo.builder()
                         .id(2L)
                         .content("읽은 알림")
                         .url("/test/2")
@@ -160,7 +160,7 @@ class NotificationQueryServiceTest {
                         .isRead(true)
                         .createdAt(Instant.now().minusSeconds(1800))
                         .build(),
-                NotificationDTO.builder()
+                NotificationInfo.builder()
                         .id(3L)
                         .content("또 다른 읽지 않은 알림")
                         .url("/test/3")
@@ -174,7 +174,7 @@ class NotificationQueryServiceTest {
                 .willReturn(mixedNotifications);
 
         // When
-        List<NotificationDTO> result = notificationQueryService.getNotificationList(userDetails);
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
         assertThat(result).isNotNull();
@@ -185,7 +185,7 @@ class NotificationQueryServiceTest {
         assertThat(unreadCount).isEqualTo(2);
         
         // 읽은 알림 확인
-        long readCount = result.stream().filter(NotificationDTO::isRead).count();
+        long readCount = result.stream().filter(NotificationInfo::isRead).count();
         assertThat(readCount).isEqualTo(1);
 
         verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
@@ -197,12 +197,12 @@ class NotificationQueryServiceTest {
     void shouldGetNotificationList_WhenNullUser() {
         // Given
         CustomUserDetails nullUserDetails = null;
-        List<NotificationDTO> emptyList = Collections.emptyList();
+        List<NotificationInfo> emptyList = Collections.emptyList();
         given(notificationQueryPort.getNotificationList(nullUserDetails))
                 .willReturn(emptyList);
 
         // When
-        List<NotificationDTO> result = notificationQueryService.getNotificationList(nullUserDetails);
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(nullUserDetails);
 
         // Then
         assertThat(result).isNotNull();
@@ -216,30 +216,30 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 대량 알림")
     void shouldGetNotificationList_WhenLargeAmountOfNotifications() {
         // Given
-        List<NotificationDTO> largeNotificationList = Arrays.asList(
-                createNotificationDTO(1L, NotificationType.COMMENT),
-                createNotificationDTO(2L, NotificationType.POST_FEATURED),
-                createNotificationDTO(3L, NotificationType.PAPER),
-                createNotificationDTO(4L, NotificationType.POST_FEATURED),
-                createNotificationDTO(5L, NotificationType.COMMENT),
-                createNotificationDTO(6L, NotificationType.POST_FEATURED),
-                createNotificationDTO(7L, NotificationType.PAPER),
-                createNotificationDTO(8L, NotificationType.POST_FEATURED),
-                createNotificationDTO(9L, NotificationType.COMMENT),
-                createNotificationDTO(10L, NotificationType.POST_FEATURED)
+        List<NotificationInfo> largeNotificationList = Arrays.asList(
+                createNotificationInfo(1L, NotificationType.COMMENT),
+                createNotificationInfo(2L, NotificationType.POST_FEATURED),
+                createNotificationInfo(3L, NotificationType.PAPER),
+                createNotificationInfo(4L, NotificationType.POST_FEATURED),
+                createNotificationInfo(5L, NotificationType.COMMENT),
+                createNotificationInfo(6L, NotificationType.POST_FEATURED),
+                createNotificationInfo(7L, NotificationType.PAPER),
+                createNotificationInfo(8L, NotificationType.POST_FEATURED),
+                createNotificationInfo(9L, NotificationType.COMMENT),
+                createNotificationInfo(10L, NotificationType.POST_FEATURED)
         );
 
         given(notificationQueryPort.getNotificationList(userDetails))
                 .willReturn(largeNotificationList);
 
         // When
-        List<NotificationDTO> result = notificationQueryService.getNotificationList(userDetails);
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(10);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(9).getId()).isEqualTo(10L);
+        assertThat(result.get(0).id()).isEqualTo(1L);
+        assertThat(result.get(9).id()).isEqualTo(10L);
 
         verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
         verifyNoMoreInteractions(notificationQueryPort);
@@ -249,30 +249,30 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 모든 알림 타입 포함")
     void shouldGetNotificationList_WhenAllNotificationTypes() {
         // Given
-        List<NotificationDTO> allTypesNotifications = Arrays.asList(
-                createNotificationDTO(1L, NotificationType.COMMENT),
-                createNotificationDTO(2L, NotificationType.POST_FEATURED),
-                createNotificationDTO(3L, NotificationType.PAPER),
-                createNotificationDTO(4L, NotificationType.POST_FEATURED),
-                createNotificationDTO(5L, NotificationType.PAPER)
+        List<NotificationInfo> allTypesNotifications = Arrays.asList(
+                createNotificationInfo(1L, NotificationType.COMMENT),
+                createNotificationInfo(2L, NotificationType.POST_FEATURED),
+                createNotificationInfo(3L, NotificationType.PAPER),
+                createNotificationInfo(4L, NotificationType.POST_FEATURED),
+                createNotificationInfo(5L, NotificationType.PAPER)
         );
 
         given(notificationQueryPort.getNotificationList(userDetails))
                 .willReturn(allTypesNotifications);
 
         // When
-        List<NotificationDTO> result = notificationQueryService.getNotificationList(userDetails);
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(5);
         
         // 알림 타입별 검증
-        assertThat(result.get(0).getNotificationType()).isEqualTo(NotificationType.COMMENT);
-        assertThat(result.get(1).getNotificationType()).isEqualTo(NotificationType.POST_FEATURED);
-        assertThat(result.get(2).getNotificationType()).isEqualTo(NotificationType.PAPER);
-        assertThat(result.get(3).getNotificationType()).isEqualTo(NotificationType.POST_FEATURED);
-        assertThat(result.get(4).getNotificationType()).isEqualTo(NotificationType.PAPER);
+        assertThat(result.get(0).notificationType()).isEqualTo(NotificationType.COMMENT);
+        assertThat(result.get(1).notificationType()).isEqualTo(NotificationType.POST_FEATURED);
+        assertThat(result.get(2).notificationType()).isEqualTo(NotificationType.PAPER);
+        assertThat(result.get(3).notificationType()).isEqualTo(NotificationType.POST_FEATURED);
+        assertThat(result.get(4).notificationType()).isEqualTo(NotificationType.PAPER);
 
         verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
         verifyNoMoreInteractions(notificationQueryPort);
@@ -286,7 +286,7 @@ class NotificationQueryServiceTest {
                 .willReturn(null);
 
         // When
-        List<NotificationDTO> result = notificationQueryService.getNotificationList(userDetails);
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
         assertThat(result).isNull(); // 서비스에서 null을 그대로 전달
@@ -295,8 +295,8 @@ class NotificationQueryServiceTest {
         verifyNoMoreInteractions(notificationQueryPort);
     }
 
-    private NotificationDTO createNotificationDTO(Long id, NotificationType type) {
-        return NotificationDTO.builder()
+    private NotificationInfo createNotificationInfo(Long id, NotificationType type) {
+        return NotificationInfo.builder()
                 .id(id)
                 .content("테스트 알림 " + id)
                 .url("/test/" + id)

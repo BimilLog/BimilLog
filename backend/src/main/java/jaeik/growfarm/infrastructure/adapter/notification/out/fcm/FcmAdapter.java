@@ -7,6 +7,7 @@ import jaeik.growfarm.domain.notification.application.port.out.FcmPort;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
 import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmMessageDTO;
+import jaeik.growfarm.domain.notification.entity.FcmMessage;
 import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
 import jaeik.growfarm.infrastructure.adapter.notification.out.persistence.notification.FcmTokenRepository;
 import jaeik.growfarm.domain.notification.entity.NotificationEvent;
@@ -47,14 +48,15 @@ public class FcmAdapter implements FcmPort, NotificationSender {
      * <h3>FCM 메시지 전송</h3>
      * <p>주어진 FCM 전송 DTO를 사용하여 메시지를 특정 기기로 전송합니다.</p>
      *
-     * @param fcmSendDto 전송할 FCM 메시지 정보
+     * @param fcmMessage 전송할 FCM 메시지 정보
      * @throws IOException 메시지 전송 중 발생할 수 있는 IO 예외
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void sendMessageTo(FcmSendDTO fcmSendDto) throws IOException {
+    public void sendMessageTo(FcmMessage fcmMessage) throws IOException {
 
+        FcmSendDTO fcmSendDto = toDto(fcmMessage);
         String message = makeMessage(fcmSendDto);
         RestTemplate restTemplate = new RestTemplate();
 
@@ -92,7 +94,12 @@ public class FcmAdapter implements FcmPort, NotificationSender {
                         event.getMessage(),
                         "지금 확인해보세요!"
                 );
-                sendMessageTo(fcmSendDto);
+                FcmMessage fcmMessage = FcmMessage.of(
+                        fcmToken.getFcmRegistrationToken(),
+                        event.getMessage(),
+                        "지금 확인해보세요!"
+                );
+                sendMessageTo(fcmMessage);
             }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FCM_SEND_ERROR, e);
@@ -210,5 +217,16 @@ public class FcmAdapter implements FcmPort, NotificationSender {
                         .build())
                 .validateOnly(false).build();
         return om.writeValueAsString(fcmMessageDto);
+    }
+
+    /**
+     * <h3>도메인 FCM 메시지를 DTO로 변환</h3>
+     * <p>FcmMessage 도메인 값 객체를 FcmSendDTO로 변환합니다.</p>
+     *
+     * @param fcmMessage 도메인 FCM 메시지
+     * @return FcmSendDTO
+     */
+    private FcmSendDTO toDto(FcmMessage fcmMessage) {
+        return new FcmSendDTO(fcmMessage.token(), fcmMessage.title(), fcmMessage.body());
     }
 }

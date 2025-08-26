@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.application.port.out;
 
 import jaeik.growfarm.domain.notification.entity.FcmToken;
-import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
+import jaeik.growfarm.domain.notification.entity.FcmMessage;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,7 +45,7 @@ public interface FcmPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void sendMessageTo(FcmSendDTO fcmSendDto) throws IOException;
+    void sendMessageTo(FcmMessage fcmMessage) throws IOException;
 
 
     /**

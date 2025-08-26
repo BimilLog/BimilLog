@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.web;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationQueryUseCase;
+import jaeik.growfarm.domain.notification.entity.NotificationInfo;
 import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.NotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,28 @@ public class NotificationQueryController {
     @GetMapping("/list")
     public ResponseEntity<List<NotificationDTO>> getNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<NotificationDTO> notificationDTOS = notificationQueryUseCase.getNotificationList(userDetails);
+        List<NotificationInfo> notificationInfos = notificationQueryUseCase.getNotificationList(userDetails);
+        List<NotificationDTO> notificationDTOS = notificationInfos.stream()
+                .map(this::toDto)
+                .toList();
         return ResponseEntity.ok(notificationDTOS);
+    }
+
+    /**
+     * <h3>도메인 값 객체를 DTO로 변환</h3>
+     * <p>NotificationInfo를 NotificationDTO로 변환합니다.</p>
+     *
+     * @param notificationInfo 도메인 알림 정보
+     * @return NotificationDTO
+     */
+    private NotificationDTO toDto(NotificationInfo notificationInfo) {
+        return NotificationDTO.builder()
+                .id(notificationInfo.id())
+                .content(notificationInfo.content())
+                .url(notificationInfo.url())
+                .notificationType(notificationInfo.notificationType())
+                .isRead(notificationInfo.isRead())
+                .createdAt(notificationInfo.createdAt())
+                .build();
     }
 }

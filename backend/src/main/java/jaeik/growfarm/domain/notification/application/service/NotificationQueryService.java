@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationQueryUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationQueryPort;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.NotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class NotificationQueryService implements NotificationQueryUseCase {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationDTO> getNotificationList(CustomUserDetails userDetails) {
+    public List<NotificationInfo> getNotificationList(CustomUserDetails userDetails) {
         return notificationQueryPort.getNotificationList(userDetails);
     }
 }

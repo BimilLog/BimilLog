@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationCommandPort;
-import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.UpdateNotificationDTO;
+import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,13 +25,13 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      * <p>사용자의 알림 상태를 일괄적으로 업데이트합니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param updateNotificationDTO 업데이트할 알림 정보 DTO
+     * @param updateCommand 업데이트할 알림 정보 명령
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void batchUpdate(CustomUserDetails userDetails, UpdateNotificationDTO updateNotificationDTO) {
-        notificationCommandPort.batchUpdate(userDetails, updateNotificationDTO);
+    public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateCommand updateCommand) {
+        notificationCommandPort.batchUpdate(userDetails, updateCommand);
     }
 
 
