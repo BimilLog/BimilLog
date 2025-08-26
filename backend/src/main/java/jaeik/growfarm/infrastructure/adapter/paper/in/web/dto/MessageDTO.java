@@ -1,6 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.paper.in.web.dto;
 
 import jaeik.growfarm.domain.paper.entity.DecoType;
+import jaeik.growfarm.domain.paper.entity.MessageDetail;
+import jaeik.growfarm.domain.paper.entity.MessageCommand;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,4 +42,46 @@ public class MessageDTO {
     private int height;
 
     private Instant createdAt;
+
+    /**
+     * <h3>도메인 VO로부터 DTO 생성</h3>
+     * <p>MessageDetail 도메인 값 객체를 DTO로 변환합니다.</p>
+     *
+     * @param messageDetail 도메인 값 객체
+     * @return MessageDTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static MessageDTO from(MessageDetail messageDetail) {
+        MessageDTO dto = new MessageDTO();
+        dto.id = messageDetail.id();
+        dto.userId = messageDetail.userId();
+        dto.decoType = messageDetail.decoType();
+        dto.anonymity = messageDetail.anonymity();
+        dto.content = messageDetail.content();
+        dto.width = messageDetail.width();
+        dto.height = messageDetail.height();
+        dto.createdAt = messageDetail.createdAt();
+        return dto;
+    }
+
+    /**
+     * <h3>DTO를 도메인 Command로 변환</h3>
+     * <p>MessageDTO를 MessageCommand 도메인 값 객체로 변환합니다.</p>
+     *
+     * @return MessageCommand
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public MessageCommand toCommand() {
+        return MessageCommand.builder()
+                .id(this.id)
+                .userId(this.userId)
+                .decoType(this.decoType)
+                .anonymity(this.anonymity)
+                .content(this.content)
+                .width(this.width)
+                .height(this.height)
+                .build();
+    }
 }

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.paper.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
+import jaeik.growfarm.domain.paper.entity.MessageCommand;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 
@@ -25,12 +25,12 @@ public interface PaperCommandUseCase {
      * </p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @param messageDTO  삭제할 메시지 정보
+     * @param messageCommand 삭제할 메시지 정보
      * @throws CustomException 삭제 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageDTO messageDTO);
+    void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageCommand messageCommand);
 
     /**
      * <h3>메시지 작성</h3>
@@ -41,11 +41,11 @@ public interface PaperCommandUseCase {
      * - 알림 이벤트 발행 (MessageEvent)
      * </p>
      *
-     * @param userName   롤링페이퍼 소유자의 사용자명
-     * @param messageDTO 작성할 메시지 정보
+     * @param userName 롤링페이퍼 소유자의 사용자명
+     * @param messageCommand 작성할 메시지 정보
      * @throws CustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    void writeMessage(String userName, MessageDTO messageDTO);
+    void writeMessage(String userName, MessageCommand messageCommand);
 }

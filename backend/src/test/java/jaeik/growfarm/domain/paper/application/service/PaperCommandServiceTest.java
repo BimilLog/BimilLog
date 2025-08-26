@@ -4,6 +4,7 @@ import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.entity.Message;
+import jaeik.growfarm.domain.paper.entity.MessageCommand;
 import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
@@ -75,7 +76,7 @@ class PaperCommandServiceTest {
         given(message.getId()).willReturn(messageId);
 
         // When
-        paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO);
+        paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand());
 
         // Then
         verify(paperQueryPort, times(1)).findMessageById(messageId);
@@ -95,7 +96,7 @@ class PaperCommandServiceTest {
         given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
 
@@ -117,7 +118,7 @@ class PaperCommandServiceTest {
         given(message.isOwner(userId)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
@@ -139,7 +140,7 @@ class PaperCommandServiceTest {
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO);
+        paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
@@ -159,7 +160,7 @@ class PaperCommandServiceTest {
         given(loadUserPort.findByUserName(userName)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
@@ -179,7 +180,7 @@ class PaperCommandServiceTest {
         given(loadUserPort.findByUserName(userName)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
@@ -201,7 +202,7 @@ class PaperCommandServiceTest {
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO);
+        paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
@@ -210,14 +211,14 @@ class PaperCommandServiceTest {
     }
 
     @Test
-    @DisplayName("메시지 작성 - null 메시지 DTO")
-    void shouldThrowException_WhenNullMessageDTO() {
+    @DisplayName("메시지 작성 - null 메시지 Command")
+    void shouldThrowException_WhenNullMessageCommand() {
         // Given
         String userName = "testuser";
-        MessageDTO messageDTO = null;
+        MessageCommand messageCommand = null;
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageCommand))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
 
@@ -239,7 +240,7 @@ class PaperCommandServiceTest {
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO);
+        paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
         verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 
@@ -249,13 +250,13 @@ class PaperCommandServiceTest {
     }
 
     @Test
-    @DisplayName("내 롤링페이퍼 메시지 삭제 - null DTO")
-    void shouldThrowException_WhenMessageDTOIsNull() {
+    @DisplayName("내 롤링페이퍼 메시지 삭제 - null Command")
+    void shouldThrowException_WhenMessageCommandIsNull() {
         // Given
-        MessageDTO messageDTO = null;
+        MessageCommand messageCommand = null;
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageCommand))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
     }
@@ -270,7 +271,7 @@ class PaperCommandServiceTest {
         given(paperQueryPort.findMessageById(null)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
 
@@ -291,7 +292,7 @@ class PaperCommandServiceTest {
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO);
+        paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
@@ -313,7 +314,7 @@ class PaperCommandServiceTest {
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO);
+        paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
@@ -336,7 +337,7 @@ class PaperCommandServiceTest {
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO);
+        paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
@@ -366,7 +367,7 @@ class PaperCommandServiceTest {
             given(mockMessage.getId()).willReturn(messageId);
             
             // When
-            paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO);
+            paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand());
             
             // Then
             verify(paperCommandPort, times(1)).deleteById(messageId);
@@ -386,7 +387,7 @@ class PaperCommandServiceTest {
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO);
+        paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
         verify(loadUserPort, times(1)).findByUserName(userName);
@@ -408,7 +409,7 @@ class PaperCommandServiceTest {
         given(message.isOwner(userId)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_DELETE_FORBIDDEN);
 

@@ -4,8 +4,8 @@ import jaeik.growfarm.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
+import jaeik.growfarm.domain.paper.entity.MessageDetail;
+import jaeik.growfarm.domain.paper.entity.VisitMessageDetail;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -40,8 +40,11 @@ public class PaperQueryService implements PaperQueryUseCase {
      * <p>기존 PaperReadServiceImpl.myPaper() 메서드의 로직을 완전히 보존</p>
      */
     @Override
-    public List<MessageDTO> getMyPaper(CustomUserDetails userDetails) {
-        return paperQueryPort.findMessageDTOsByUserId(userDetails.getUserId());
+    public List<MessageDetail> getMyPaper(CustomUserDetails userDetails) {
+        List<Message> messages = paperQueryPort.findMessagesByUserId(userDetails.getUserId());
+        return messages.stream()
+                .map(MessageDetail::from)
+                .toList();
     }
 
     /**
@@ -55,12 +58,15 @@ public class PaperQueryService implements PaperQueryUseCase {
      * </ul>
      */
     @Override
-    public List<VisitMessageDTO> visitPaper(String userName) {
+    public List<VisitMessageDetail> visitPaper(String userName) {
         boolean exists = loadUserPort.existsByUserName(userName);
         if (!exists) {
             throw new CustomException(ErrorCode.USERNAME_NOT_FOUND);
         }
-        return paperQueryPort.findVisitMessageDTOsByUserName(userName);
+        List<Message> messages = paperQueryPort.findMessagesByUserName(userName);
+        return messages.stream()
+                .map(VisitMessageDetail::from)
+                .toList();
     }
 
     @Override

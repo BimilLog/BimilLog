@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.paper.entity;
 
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
 import jaeik.growfarm.domain.common.entity.BaseEntity;
 import jaeik.growfarm.infrastructure.security.MessageEncryptConverter;
 import jakarta.persistence.*;
@@ -65,19 +64,19 @@ public class Message extends BaseEntity {
      * <p>새로운 롤링페이퍼 메시지 엔티티를 생성합니다.</p>
      *
      * @param user 사용자 엔티티
-     * @param messageDTO 메시지 DTO
+     * @param messageCommand 메시지 명령
      * @return 생성된 메시지 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Message createMessage(User user, MessageDTO messageDTO) {
+    public static Message createMessage(User user, MessageCommand messageCommand) {
         return Message.builder()
                 .user(user)
-                .decoType(messageDTO.getDecoType())
-                .anonymity(messageDTO.getAnonymity())
-                .content(messageDTO.getContent())
-                .width(messageDTO.getWidth())
-                .height(messageDTO.getHeight())
+                .decoType(messageCommand.decoType())
+                .anonymity(messageCommand.anonymity())
+                .content(messageCommand.content())
+                .width(messageCommand.width())
+                .height(messageCommand.height())
                 .build();
     }
 
@@ -95,6 +94,18 @@ public class Message extends BaseEntity {
             return false;
         }
         return this.user.getId().equals(userId);
+    }
+
+    /**
+     * <h3>메시지 작성자 ID 조회</h3>
+     * <p>메시지 작성자의 사용자 ID를 반환합니다.</p>
+     *
+     * @return 작성자 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public Long getUserId() {
+        return this.user != null ? this.user.getId() : null;
     }
 }
 

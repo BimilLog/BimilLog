@@ -140,7 +140,6 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Page<PostSearchResult> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {

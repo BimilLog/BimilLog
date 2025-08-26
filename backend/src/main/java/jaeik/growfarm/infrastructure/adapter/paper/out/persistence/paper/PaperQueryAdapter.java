@@ -1,14 +1,10 @@
 package jaeik.growfarm.infrastructure.adapter.paper.out.persistence.paper;
 
-import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.paper.entity.QMessage;
 import jaeik.growfarm.domain.user.entity.QUser;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -58,13 +54,12 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * <p>기존 PaperReadRepositoryImpl.findMessageDTOsByUserId() 메서드의 로직을 완전히 보존:</p>
      * <ul>
      *   <li>동일한 QueryDSL 쿼리 구조</li>
-     *   <li>동일한 Projections.fields 매핑</li>
+     *   <li>Message 엔티티 반환으로 변경하여 Service에서 VO 변환</li>
      *   <li>동일한 정렬 조건 (createdAt desc)</li>
-     *   <li>동일한 필드 별칭 (userId)</li>
      * </ul>
      */
     @Override
-    public List<MessageDTO> findMessageDTOsByUserId(Long userId) {
+    public List<Message> findMessagesByUserId(Long userId) {
         if (userId == null) {
             return Collections.emptyList();
         }
@@ -72,17 +67,8 @@ public class PaperQueryAdapter implements PaperQueryPort {
         QMessage message = QMessage.message;
 
         return jpaQueryFactory
-                .select(Projections.fields(MessageDTO.class,
-                        message.id,
-                        message.user.id.as("userId"),
-                        message.decoType,
-                        message.anonymity,
-                        message.content,
-                        message.width,
-                        message.height,
-                        message.createdAt
-                ))
-                .from(message)
+                .selectFrom(message)
+                .leftJoin(message.user).fetchJoin()
                 .where(message.user.id.eq(userId))
                 .orderBy(message.createdAt.desc())
                 .fetch();
@@ -94,14 +80,12 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * <p>기존 PaperReadRepositoryImpl.findVisitMessageDTOsByUserName() 메서드의 로직을 완전히 보존:</p>
      * <ul>
      *   <li>동일한 QueryDSL 쿼리 구조</li>
-     *   <li>동일한 Projections.fields 매핑</li>
+     *   <li>Message 엔티티 반환으로 변경하여 Service에서 VisitMessageDetail VO 변환</li>
      *   <li>동일한 JOIN 조건</li>
-     *   <li>동일한 ExpressionUtils.as 사용법</li>
-     *   <li>방문자용 필드만 포함 (content, anonymity 제외)</li>
      * </ul>
      */
     @Override
-    public List<VisitMessageDTO> findVisitMessageDTOsByUserName(String userName) {
+    public List<Message> findMessagesByUserName(String userName) {
         if (userName == null || userName.trim().isEmpty()) {
             return Collections.emptyList();
         }
@@ -110,16 +94,9 @@ public class PaperQueryAdapter implements PaperQueryPort {
         QUser user = QUser.user;
 
         return jpaQueryFactory
-                .select(Projections.fields(VisitMessageDTO.class,
-                        message.id,
-                        ExpressionUtils.as(message.user.id, "userId"),
-                        message.decoType,
-                        message.width,
-                        message.height
-                ))
-                .from(message)
-                .join(message.user, user)
-                .where(user.userName.eq(userName))
+                .selectFrom(message)
+                .leftJoin(message.user).fetchJoin()
+                .where(message.user.userName.eq(userName))
                 .fetch();
     }
 }

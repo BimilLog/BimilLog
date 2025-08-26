@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.paper.in.web.dto;
 
 import jaeik.growfarm.domain.paper.entity.DecoType;
+import jaeik.growfarm.domain.paper.entity.VisitMessageDetail;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,4 +27,23 @@ public class VisitMessageDTO {
     private int width;
 
     private int height;
+
+    /**
+     * <h3>도메인 VO로부터 DTO 생성</h3>
+     * <p>VisitMessageDetail 도메인 값 객체를 DTO로 변환합니다.</p>
+     *
+     * @param visitMessageDetail 도메인 값 객체
+     * @return VisitMessageDTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static VisitMessageDTO from(VisitMessageDetail visitMessageDetail) {
+        VisitMessageDTO dto = new VisitMessageDTO();
+        dto.id = visitMessageDetail.id();
+        dto.userId = visitMessageDetail.userId();
+        dto.decoType = visitMessageDetail.decoType();
+        dto.width = visitMessageDetail.width();
+        dto.height = visitMessageDetail.height();
+        return dto;
+    }
 }

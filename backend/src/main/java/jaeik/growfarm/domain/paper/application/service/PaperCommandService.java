@@ -1,16 +1,16 @@
 package jaeik.growfarm.domain.paper.application.service;
 
 import jaeik.growfarm.domain.paper.application.port.in.PaperCommandUseCase;
-import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperCommandPort;
+import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
+import jaeik.growfarm.domain.paper.entity.MessageCommand;
 import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
+import jaeik.growfarm.domain.user.entity.User;
+import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -19,8 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * <h2>롤링페이퍼 명령 서비스</h2>
  * <p>
- * Use Case Implementation: 롤링페이퍼 메시지 생성/삭제 관련 비즈니스 로직 구현
- * 기존 PaperWriteServiceImpl, PaperDeleteServiceImpl의 모든 로직을 완전히 보존하여 이전
+ * 롤링페이퍼 메시지 생성/삭제 관련 비즈니스 로직 구현
  * </p>
  *
  * @author Jaeik
@@ -38,22 +37,23 @@ public class PaperCommandService implements PaperCommandUseCase {
 
 
     /**
-     * {@inheritDoc}
+     * <h3>메시지 삭제</h3>
      * 
-     * <p>기존 PaperDeleteServiceImpl.deleteMessageInMyPaper() 메서드의 로직을 완전히 보존:</p>
      * <ul>
      *   <li>메시지 소유권 검증 (userId 일치 확인)</li>
      *   <li>동일한 예외 처리 (MESSAGE_DELETE_FORBIDDEN)</li>
      *   <li>메시지 ID로 삭제 수행</li>
      * </ul>
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
-    public void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageDTO messageDTO) {
-        if (messageDTO == null) {
+    public void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageCommand messageCommand) {
+        if (messageCommand == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         
-        Message message = paperQueryPort.findMessageById(messageDTO.getId())
+        Message message = paperQueryPort.findMessageById(messageCommand.id())
                 .orElseThrow(() -> new CustomException(ErrorCode.MESSAGE_NOT_FOUND));
 
         if (!message.isOwner(userDetails.getUserId())) {
@@ -63,9 +63,8 @@ public class PaperCommandService implements PaperCommandUseCase {
     }
 
     /**
-     * {@inheritDoc}
+     * <h3>메시지 작성</h3>
      *
-     * <p>기존 PaperWriteServiceImpl.writeMessage() 메서드의 로직을 완전히 보존:</p>
      * <ul>
      *   <li>사용자 존재 여부 검증 (null 체크)</li>
      *   <li>동일한 예외 처리 (USERNAME_NOT_FOUND)</li>
@@ -73,17 +72,20 @@ public class PaperCommandService implements PaperCommandUseCase {
      *   <li>메시지 저장 후 MessageEvent 이벤트 발행</li>
      *   <li>동일한 이벤트 데이터 (userId, userName)</li>
      * </ul>
+     *
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
-    public void writeMessage(String userName, MessageDTO messageDTO) {
-        if (messageDTO == null) {
+    public void writeMessage(String userName, MessageCommand messageCommand) {
+        if (messageCommand == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         
         User user = loadUserPort.findByUserName(userName)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Message message = Message.createMessage(user, messageDTO);
+        Message message = Message.createMessage(user, messageCommand);
         paperCommandPort.save(message);
 
         eventPublisher.publishEvent(new RollingPaperEvent(

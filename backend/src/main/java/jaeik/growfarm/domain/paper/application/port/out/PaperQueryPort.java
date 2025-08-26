@@ -1,8 +1,6 @@
 package jaeik.growfarm.domain.paper.application.port.out;
 
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +32,7 @@ public interface PaperQueryPort {
      * <h3>사용자 ID로 메시지 조회</h3>
      * <p>
      * 기존 PaperReadRepository.findMessageDTOsByUserId() 메서드와 동일한 기능
-     * QueryDSL을 사용한 복잡한 프로젝션 포함
+     * 도메인 엔티티를 반환하여 Service에서 VO로 변환
      * </p>
      *
      * @param userId 조회할 사용자 ID
@@ -42,19 +40,19 @@ public interface PaperQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<MessageDTO> findMessageDTOsByUserId(Long userId);
+    List<Message> findMessagesByUserId(Long userId);
 
     /**
      * <h3>사용자명으로 방문용 메시지 조회</h3>
      * <p>
      * 기존 PaperReadRepository.findVisitMessageDTOsByUserName() 메서드와 동일한 기능
-     * 방문자에게 노출할 최소한의 정보만 포함 (익명화)
+     * 도메인 엔티티를 반환하여 Service에서 VisitMessageDetail VO로 변환
      * </p>
      *
      * @param userName 조회할 사용자명
-     * @return 방문용 메시지 목록 (content, anonymity 제외)
+     * @return 방문용 메시지 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<VisitMessageDTO> findVisitMessageDTOsByUserName(String userName);
+    List<Message> findMessagesByUserName(String userName);
 }

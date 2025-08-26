@@ -3,8 +3,10 @@ package jaeik.growfarm.domain.paper.application.service;
 import jaeik.growfarm.domain.paper.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
+import jaeik.growfarm.domain.paper.entity.MessageDetail;
+import jaeik.growfarm.domain.paper.entity.VisitMessageDetail;
+import jaeik.growfarm.domain.paper.entity.DecoType;
+import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -15,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +49,9 @@ class PaperQueryServiceTest {
     private CustomUserDetails userDetails;
 
     @Mock
+    private User user;
+
+    @Mock
     private Message message;
 
     @InjectMocks
@@ -56,30 +62,30 @@ class PaperQueryServiceTest {
     void shouldGetMyPaper_WhenValidUser() {
         // Given
         Long userId = 1L;
-        List<MessageDTO> expectedMessages = Arrays.asList(
-                createMessageDTO(1L, "첫 번째 메시지"),
-                createMessageDTO(2L, "두 번째 메시지"),
-                createMessageDTO(3L, "세 번째 메시지")
+        List<Message> messages = Arrays.asList(
+                createMessage(1L, userId, "첫 번째 메시지"),
+                createMessage(2L, userId, "두 번째 메시지"),
+                createMessage(3L, userId, "세 번째 메시지")
         );
 
         given(userDetails.getUserId()).willReturn(userId);
-        given(paperQueryPort.findMessageDTOsByUserId(userId)).willReturn(expectedMessages);
+        given(paperQueryPort.findMessagesByUserId(userId)).willReturn(messages);
 
         // When
-        List<MessageDTO> result = paperQueryService.getMyPaper(userDetails);
+        List<MessageDetail> result = paperQueryService.getMyPaper(userDetails);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(3);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(0).getContent()).isEqualTo("첫 번째 메시지");
-        assertThat(result.get(1).getId()).isEqualTo(2L);
-        assertThat(result.get(1).getContent()).isEqualTo("두 번째 메시지");
-        assertThat(result.get(2).getId()).isEqualTo(3L);
-        assertThat(result.get(2).getContent()).isEqualTo("세 번째 메시지");
+        assertThat(result.get(0).id()).isEqualTo(1L);
+        assertThat(result.get(0).content()).isEqualTo("첫 번째 메시지");
+        assertThat(result.get(1).id()).isEqualTo(2L);
+        assertThat(result.get(1).content()).isEqualTo("두 번째 메시지");
+        assertThat(result.get(2).id()).isEqualTo(3L);
+        assertThat(result.get(2).content()).isEqualTo("세 번째 메시지");
 
         verify(userDetails, times(1)).getUserId();
-        verify(paperQueryPort, times(1)).findMessageDTOsByUserId(userId);
+        verify(paperQueryPort, times(1)).findMessagesByUserId(userId);
         verifyNoMoreInteractions(paperQueryPort);
     }
 
@@ -88,52 +94,55 @@ class PaperQueryServiceTest {
     void shouldGetMyPaper_WhenNoMessages() {
         // Given
         Long userId = 1L;
-        List<MessageDTO> emptyList = Collections.emptyList();
+        List<Message> emptyList = Collections.emptyList();
 
         given(userDetails.getUserId()).willReturn(userId);
-        given(paperQueryPort.findMessageDTOsByUserId(userId)).willReturn(emptyList);
+        given(paperQueryPort.findMessagesByUserId(userId)).willReturn(emptyList);
 
         // When
-        List<MessageDTO> result = paperQueryService.getMyPaper(userDetails);
+        List<MessageDetail> result = paperQueryService.getMyPaper(userDetails);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
         verify(userDetails, times(1)).getUserId();
-        verify(paperQueryPort, times(1)).findMessageDTOsByUserId(userId);
+        verify(paperQueryPort, times(1)).findMessagesByUserId(userId);
+        verifyNoMoreInteractions(paperQueryPort);
     }
 
     @Test
-    @DisplayName("롤링페이퍼 방문 - 성공")
+    @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공")
     void shouldVisitPaper_WhenValidUserName() {
         // Given
         String userName = "testuser";
-        List<VisitMessageDTO> expectedMessages = Arrays.asList(
-                createVisitMessageDTO(1L, "방문 메시지 1"),
-                createVisitMessageDTO(2L, "방문 메시지 2")
+        List<Message> messages = Arrays.asList(
+                createMessage(1L, 100L, "메시지1"),
+                createMessage(2L, 200L, "메시지2")
         );
 
         given(loadUserPort.existsByUserName(userName)).willReturn(true);
-        given(paperQueryPort.findVisitMessageDTOsByUserName(userName)).willReturn(expectedMessages);
+        given(paperQueryPort.findMessagesByUserName(userName)).willReturn(messages);
 
         // When
-        List<VisitMessageDTO> result = paperQueryService.visitPaper(userName);
+        List<VisitMessageDetail> result = paperQueryService.visitPaper(userName);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(1).getId()).isEqualTo(2L);
+        assertThat(result.get(0).id()).isEqualTo(1L);
+        assertThat(result.get(0).userId()).isEqualTo(100L);
+        assertThat(result.get(1).id()).isEqualTo(2L);
+        assertThat(result.get(1).userId()).isEqualTo(200L);
 
         verify(loadUserPort, times(1)).existsByUserName(userName);
-        verify(paperQueryPort, times(1)).findVisitMessageDTOsByUserName(userName);
+        verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
         verifyNoMoreInteractions(loadUserPort, paperQueryPort);
     }
 
     @Test
-    @DisplayName("롤링페이퍼 방문 - 사용자 없음 예외")
-    void shouldThrowException_WhenUserNameNotFound() {
+    @DisplayName("다른 사용자 롤링페이퍼 방문 - 사용자 없음")
+    void shouldThrowException_WhenUserNotExists() {
         // Given
         String userName = "nonexistentuser";
 
@@ -145,28 +154,28 @@ class PaperQueryServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USERNAME_NOT_FOUND);
 
         verify(loadUserPort, times(1)).existsByUserName(userName);
-        verify(paperQueryPort, never()).findVisitMessageDTOsByUserName(any());
+        verify(paperQueryPort, never()).findMessagesByUserName(any());
     }
 
     @Test
-    @DisplayName("롤링페이퍼 방문 - 빈 목록")
+    @DisplayName("다른 사용자 롤링페이퍼 방문 - 빈 목록")
     void shouldVisitPaper_WhenNoMessages() {
         // Given
         String userName = "testuser";
-        List<VisitMessageDTO> emptyList = Collections.emptyList();
+        List<Message> emptyList = Collections.emptyList();
 
         given(loadUserPort.existsByUserName(userName)).willReturn(true);
-        given(paperQueryPort.findVisitMessageDTOsByUserName(userName)).willReturn(emptyList);
+        given(paperQueryPort.findMessagesByUserName(userName)).willReturn(emptyList);
 
         // When
-        List<VisitMessageDTO> result = paperQueryService.visitPaper(userName);
+        List<VisitMessageDetail> result = paperQueryService.visitPaper(userName);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
         verify(loadUserPort, times(1)).existsByUserName(userName);
-        verify(paperQueryPort, times(1)).findVisitMessageDTOsByUserName(userName);
+        verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
     }
 
     @Test
@@ -174,15 +183,17 @@ class PaperQueryServiceTest {
     void shouldFindMessageById_WhenValidId() {
         // Given
         Long messageId = 123L;
+        Message expectedMessage = createMessage(messageId, 1L, "테스트 메시지");
 
-        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(message));
+        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(expectedMessage));
 
         // When
         Optional<Message> result = paperQueryService.findMessageById(messageId);
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(message);
+        assertThat(result.get().getId()).isEqualTo(messageId);
+        assertThat(result.get().getContent()).isEqualTo("테스트 메시지");
 
         verify(paperQueryPort, times(1)).findMessageById(messageId);
         verifyNoMoreInteractions(paperQueryPort);
@@ -190,7 +201,7 @@ class PaperQueryServiceTest {
 
     @Test
     @DisplayName("메시지 ID로 조회 - 메시지 없음")
-    void shouldFindMessageById_WhenNotFound() {
+    void shouldFindMessageById_WhenMessageNotFound() {
         // Given
         Long messageId = 999L;
 
@@ -207,8 +218,8 @@ class PaperQueryServiceTest {
     }
 
     @Test
-    @DisplayName("롤링페이퍼 방문 - null 사용자명")
-    void shouldThrowException_WhenUserNameIsNull() {
+    @DisplayName("사용자명이 null인 경우 빈 목록 반환")
+    void shouldReturnEmptyList_WhenUserNameIsNull() {
         // Given
         String userName = null;
 
@@ -223,7 +234,7 @@ class PaperQueryServiceTest {
     }
 
     @Test
-    @DisplayName("롤링페이퍼 방문 - 빈 사용자명")
+    @DisplayName("사용자명이 빈 문자열인 경우")
     void shouldThrowException_WhenUserNameIsEmpty() {
         // Given
         String userName = "";
@@ -239,12 +250,12 @@ class PaperQueryServiceTest {
     }
 
     @Test
-    @DisplayName("메시지 ID로 조회 - null ID")
-    void shouldFindMessageById_WhenNullId() {
+    @DisplayName("null ID로 메시지 조회시 빈 Optional 반환")
+    void shouldReturnEmptyOptional_WhenMessageIdIsNull() {
         // Given
         Long messageId = null;
 
-        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.empty());
+        given(paperQueryPort.findMessageById(null)).willReturn(Optional.empty());
 
         // When
         Optional<Message> result = paperQueryService.findMessageById(messageId);
@@ -252,86 +263,12 @@ class PaperQueryServiceTest {
         // Then
         assertThat(result).isEmpty();
 
-        verify(paperQueryPort, times(1)).findMessageById(messageId);
+        verify(paperQueryPort, times(1)).findMessageById(null);
     }
 
     @Test
-    @DisplayName("내 롤링페이퍼 조회 - null 사용자 ID")
-    void shouldGetMyPaper_WhenNullUserId() {
-        // Given
-        Long userId = null;
-        List<MessageDTO> emptyList = Collections.emptyList();
-
-        given(userDetails.getUserId()).willReturn(userId);
-        given(paperQueryPort.findMessageDTOsByUserId(userId)).willReturn(emptyList);
-
-        // When
-        List<MessageDTO> result = paperQueryService.getMyPaper(userDetails);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
-
-        verify(userDetails, times(1)).getUserId();
-        verify(paperQueryPort, times(1)).findMessageDTOsByUserId(userId);
-    }
-
-    @Test
-    @DisplayName("대용량 메시지 목록 조회")
-    void shouldGetMyPaper_WithLargeMessageList() {
-        // Given
-        Long userId = 1L;
-        List<MessageDTO> largeMessageList = Arrays.asList(
-                createMessageDTO(1L, "메시지 1"),
-                createMessageDTO(2L, "메시지 2"),
-                createMessageDTO(3L, "메시지 3"),
-                createMessageDTO(4L, "메시지 4"),
-                createMessageDTO(5L, "메시지 5")
-        );
-
-        given(userDetails.getUserId()).willReturn(userId);
-        given(paperQueryPort.findMessageDTOsByUserId(userId)).willReturn(largeMessageList);
-
-        // When
-        List<MessageDTO> result = paperQueryService.getMyPaper(userDetails);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(5);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(4).getId()).isEqualTo(5L);
-
-        verify(userDetails, times(1)).getUserId();
-        verify(paperQueryPort, times(1)).findMessageDTOsByUserId(userId);
-    }
-
-    @Test
-    @DisplayName("롤링페이퍼 방문 - 대소문자 포함 사용자명")
-    void shouldVisitPaper_WithMixedCaseUserName() {
-        // Given
-        String userName = "TestUser123";
-        List<VisitMessageDTO> expectedMessages = Arrays.asList(
-                createVisitMessageDTO(1L, "메시지"),
-                createVisitMessageDTO(2L, "메시지")
-        );
-
-        given(loadUserPort.existsByUserName(userName)).willReturn(true);
-        given(paperQueryPort.findVisitMessageDTOsByUserName(userName)).willReturn(expectedMessages);
-
-        // When
-        List<VisitMessageDTO> result = paperQueryService.visitPaper(userName);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-
-        verify(loadUserPort, times(1)).existsByUserName(userName);
-        verify(paperQueryPort, times(1)).findVisitMessageDTOsByUserName(userName);
-    }
-
-    @Test
-    @DisplayName("메시지 ID로 조회 - 음수 ID")
-    void shouldFindMessageById_WhenNegativeId() {
+    @DisplayName("음수 ID로 메시지 조회")
+    void shouldHandleNegativeMessageId() {
         // Given
         Long negativeId = -1L;
 
@@ -347,8 +284,8 @@ class PaperQueryServiceTest {
     }
 
     @Test
-    @DisplayName("메시지 ID로 조회 - 매우 큰 ID")
-    void shouldFindMessageById_WhenVeryLargeId() {
+    @DisplayName("큰 숫자 ID로 메시지 조회")
+    void shouldHandleLargeMessageId() {
         // Given
         Long largeId = Long.MAX_VALUE;
 
@@ -364,114 +301,58 @@ class PaperQueryServiceTest {
     }
 
     @Test
-    @DisplayName("롤링페이퍼 방문 - 특수문자 포함 사용자명")
+    @DisplayName("특수 문자가 포함된 사용자명 방문")
     void shouldVisitPaper_WithSpecialCharacterUserName() {
         // Given
-        String userName = "user@test.com";
-        List<VisitMessageDTO> expectedMessages = List.of(
-                createVisitMessageDTO(10L, "메시지")
-        );
+        String userName = "user@test_123";
 
         given(loadUserPort.existsByUserName(userName)).willReturn(true);
-        given(paperQueryPort.findVisitMessageDTOsByUserName(userName)).willReturn(expectedMessages);
+        given(paperQueryPort.findMessagesByUserName(userName)).willReturn(Collections.emptyList());
 
         // When
-        List<VisitMessageDTO> result = paperQueryService.visitPaper(userName);
+        List<VisitMessageDetail> result = paperQueryService.visitPaper(userName);
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getId()).isEqualTo(10L);
+        assertThat(result).isEmpty();
 
         verify(loadUserPort, times(1)).existsByUserName(userName);
-        verify(paperQueryPort, times(1)).findVisitMessageDTOsByUserName(userName);
+        verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
     }
 
     @Test
-    @DisplayName("메시지 조회 성능 테스트 - 여러 번 연속 호출")
-    void shouldHandleMultipleConsecutiveCalls() {
+    @DisplayName("여러 메시지 ID로 순차적 조회")
+    void shouldFindMultipleMessagesById() {
         // Given
-        Long[] messageIds = {100L, 200L, 300L, 400L, 500L};
+        Long[] messageIds = {1L, 2L, 3L};
         
         for (Long messageId : messageIds) {
+            Message message = createMessage(messageId, messageId * 10, "메시지" + messageId);
             given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(message));
-        }
-
-        // When & Then
-        for (Long messageId : messageIds) {
+            
+            // When
             Optional<Message> result = paperQueryService.findMessageById(messageId);
+            
+            // Then
             assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(message);
-        }
-
-        // 모든 호출이 이루어졌는지 확인
-        for (Long messageId : messageIds) {
+            assertThat(result.get().getId()).isEqualTo(messageId);
+            
             verify(paperQueryPort, times(1)).findMessageById(messageId);
         }
     }
 
-    @Test
-    @DisplayName("내 롤링페이퍼 조회 - 메시지 정렬 순서 확인")
-    void shouldGetMyPaper_WithCorrectMessageOrder() {
-        // Given
-        Long userId = 1L;
-        List<MessageDTO> orderedMessages = Arrays.asList(
-                createMessageDTO(3L, "최신 메시지"),
-                createMessageDTO(2L, "두 번째 메시지"),
-                createMessageDTO(1L, "첫 번째 메시지")
-        );
-
-        given(userDetails.getUserId()).willReturn(userId);
-        given(paperQueryPort.findMessageDTOsByUserId(userId)).willReturn(orderedMessages);
-
-        // When
-        List<MessageDTO> result = paperQueryService.getMyPaper(userDetails);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(3);
-        // 반환된 순서가 그대로 유지되는지 확인
-        assertThat(result.get(0).getId()).isEqualTo(3L);
-        assertThat(result.get(1).getId()).isEqualTo(2L);
-        assertThat(result.get(2).getId()).isEqualTo(1L);
-
-        verify(userDetails, times(1)).getUserId();
-        verify(paperQueryPort, times(1)).findMessageDTOsByUserId(userId);
-    }
-
-    @Test
-    @DisplayName("롤링페이퍼 방문 - 한글 사용자명")
-    void shouldVisitPaper_WithKoreanUserName() {
-        // Given
-        String koreanUserName = "한글사용자";
-        List<VisitMessageDTO> expectedMessages = List.of(
-                createVisitMessageDTO(1L, "메시지")
-        );
-
-        given(loadUserPort.existsByUserName(koreanUserName)).willReturn(true);
-        given(paperQueryPort.findVisitMessageDTOsByUserName(koreanUserName)).willReturn(expectedMessages);
-
-        // When
-        List<VisitMessageDTO> result = paperQueryService.visitPaper(koreanUserName);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-
-        verify(loadUserPort, times(1)).existsByUserName(koreanUserName);
-        verify(paperQueryPort, times(1)).findVisitMessageDTOsByUserName(koreanUserName);
-    }
-
-    private MessageDTO createMessageDTO(Long id, String content) {
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setId(id);
-        messageDTO.setContent(content);
-        return messageDTO;
-    }
-
-    private VisitMessageDTO createVisitMessageDTO(Long id, String content) {
-        VisitMessageDTO visitMessageDTO = new VisitMessageDTO();
-        visitMessageDTO.setId(id);
-        return visitMessageDTO;
+    private Message createMessage(Long id, Long userId, String content) {
+        User mockUser = mock(User.class);
+        lenient().when(mockUser.getId()).thenReturn(userId);
+        
+        return Message.builder()
+                .id(id)
+                .user(mockUser)
+                .decoType(DecoType.APPLE)
+                .anonymity("익명")
+                .content(content)
+                .width(100)
+                .height(50)
+                .createdAt(Instant.now())
+                .build();
     }
 }

@@ -1,6 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.paper.in.web;
 
 import jaeik.growfarm.domain.paper.application.port.in.PaperQueryUseCase;
+import jaeik.growfarm.domain.paper.entity.MessageDetail;
+import jaeik.growfarm.domain.paper.entity.VisitMessageDetail;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -43,7 +45,10 @@ public class PaperQueryController {
      */
     @GetMapping
     public ResponseEntity<List<MessageDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<MessageDTO> messageDTOs = paperQueryUseCase.getMyPaper(userDetails);
+        List<MessageDetail> messageDetails = paperQueryUseCase.getMyPaper(userDetails);
+        List<MessageDTO> messageDTOs = messageDetails.stream()
+                .map(MessageDTO::from)
+                .toList();
         return ResponseEntity.ok(messageDTOs);
     }
 
@@ -58,7 +63,10 @@ public class PaperQueryController {
      */
     @GetMapping("{userName}")
     public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String userName) {
-        List<VisitMessageDTO> visitMessageDTOs = paperQueryUseCase.visitPaper(userName);
+        List<VisitMessageDetail> visitMessageDetails = paperQueryUseCase.visitPaper(userName);
+        List<VisitMessageDTO> visitMessageDTOs = visitMessageDetails.stream()
+                .map(VisitMessageDTO::from)
+                .toList();
         return ResponseEntity.ok(visitMessageDTOs);
     }
 }

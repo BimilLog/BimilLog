@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.paper.application.port.in;
 
 import jaeik.growfarm.domain.paper.entity.Message;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
-import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.VisitMessageDTO;
+import jaeik.growfarm.domain.paper.entity.MessageDetail;
+import jaeik.growfarm.domain.paper.entity.VisitMessageDetail;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 
@@ -32,7 +32,7 @@ public interface PaperQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<MessageDTO> getMyPaper(CustomUserDetails userDetails);
+    List<MessageDetail> getMyPaper(CustomUserDetails userDetails);
 
     /**
      * <h3>다른 사용자 롤링페이퍼 방문 조회</h3>
@@ -47,7 +47,7 @@ public interface PaperQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<VisitMessageDTO> visitPaper(String userName);
+    List<VisitMessageDetail> visitPaper(String userName);
 
     Optional<Message> findMessageById(Long messageId);
 }
