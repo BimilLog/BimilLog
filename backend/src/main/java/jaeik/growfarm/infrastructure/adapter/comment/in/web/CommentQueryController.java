@@ -1,7 +1,10 @@
 package jaeik.growfarm.infrastructure.adapter.comment.in.web;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.comment.entity.CommentInfo;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,7 +45,9 @@ public class CommentQueryController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
-        return ResponseEntity.ok(commentQueryUseCase.getCommentsOldestOrder(postId, page, userDetails));
+        Page<CommentInfo> commentInfoPage = commentQueryUseCase.getCommentsOldestOrder(postId, page, userDetails);
+        Page<CommentDTO> commentDtoPage = commentInfoPage.map(this::convertToCommentDTO);
+        return ResponseEntity.ok(commentDtoPage);
     }
 
     /**
@@ -60,6 +65,37 @@ public class CommentQueryController {
     public ResponseEntity<List<CommentDTO>> getPopularComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId) {
-        return ResponseEntity.ok(commentQueryUseCase.getPopularComments(postId, userDetails));
+        List<CommentInfo> commentInfoList = commentQueryUseCase.getPopularComments(postId, userDetails);
+        List<CommentDTO> commentDtoList = commentInfoList.stream()
+                .map(this::convertToCommentDTO)
+                .toList();
+        return ResponseEntity.ok(commentDtoList);
+    }
+
+    /**
+     * <h3>도메인 객체를 DTO로 변환</h3>
+     * <p>CommentInfo(도메인)를 CommentDTO로 변환합니다.</p>
+     * <p>헥사고날 아키텍처에서 도메인 계층과 인프라스트럭처 계층을 분리하기 위한 변환 로직</p>
+     *
+     * @param commentInfo 도메인 댓글 정보
+     * @return CommentDTO DTO 댓글 정보
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private CommentDTO convertToCommentDTO(CommentInfo commentInfo) {
+        CommentDTO commentDTO = new CommentDTO(
+                commentInfo.getId(),
+                commentInfo.getPostId(),
+                commentInfo.getUserId(),
+                commentInfo.getUserName(),
+                commentInfo.getContent(),
+                commentInfo.isDeleted(),
+                commentInfo.getCreatedAt(),
+                commentInfo.getParentId(),
+                commentInfo.getLikeCount()
+        );
+        commentDTO.setPopular(commentInfo.isPopular());
+        commentDTO.setUserLike(commentInfo.isUserLike());
+        return commentDTO;
     }
 }

@@ -3,8 +3,8 @@ package jaeik.growfarm.domain.comment.application.service;
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
+import jaeik.growfarm.domain.comment.entity.CommentInfo;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,13 +45,13 @@ public class CommentQueryService implements CommentQueryUseCase {
      *
      * @param postId      게시글 ID
      * @param userDetails 사용자 인증 정보
-     * @return List<CommentDTO> 인기 댓글 DTO 목록
+     * @return List<CommentInfo> 인기 댓글 정보 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails) {
+    public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
         List<Long> likedCommentIds = getUserLikedCommentIdsForPopular(postId, userDetails);
 
         return commentQueryPort.findPopularComments(postId, likedCommentIds);
@@ -73,12 +73,12 @@ public class CommentQueryService implements CommentQueryUseCase {
             return Collections.emptyList();
         }
 
-        List<CommentDTO> popularComments = commentQueryPort.findPopularComments(postId, Collections.emptyList());
+        List<CommentInfo> popularComments = commentQueryPort.findPopularComments(postId, Collections.emptyList());
         if (popularComments.isEmpty()) {
             return Collections.emptyList();
         }
         
-        List<Long> popularCommentIds = popularComments.stream().map(CommentDTO::getId).collect(Collectors.toList());
+        List<Long> popularCommentIds = popularComments.stream().map(CommentInfo::getId).collect(Collectors.toList());
         return commentQueryPort.findUserLikedCommentIds(popularCommentIds, userDetails.getUserId());
     }
 
@@ -99,12 +99,12 @@ public class CommentQueryService implements CommentQueryUseCase {
             return Collections.emptyList();
         }
 
-        Page<CommentDTO> commentPage = commentQueryPort.findCommentsWithOldestOrder(postId, pageable, Collections.emptyList());
+        Page<CommentInfo> commentPage = commentQueryPort.findCommentsWithOldestOrder(postId, pageable, Collections.emptyList());
         if (!commentPage.hasContent()) {
             return Collections.emptyList();
         }
         
-        List<Long> pageCommentIds = commentPage.getContent().stream().map(CommentDTO::getId).collect(Collectors.toList());
+        List<Long> pageCommentIds = commentPage.getContent().stream().map(CommentInfo::getId).collect(Collectors.toList());
         return commentQueryPort.findUserLikedCommentIds(pageCommentIds, userDetails.getUserId());
     }
 
@@ -115,13 +115,13 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @param postId      게시글 ID
      * @param page        페이지 번호
      * @param userDetails 사용자 인증 정보
-     * @return Page<CommentDTO> 과거순 댓글 페이지
+     * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<CommentDTO> getCommentsOldestOrder(Long postId, int page, CustomUserDetails userDetails) {
+    public Page<CommentInfo> getCommentsOldestOrder(Long postId, int page, CustomUserDetails userDetails) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
         List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
 
@@ -150,13 +150,13 @@ public class CommentQueryService implements CommentQueryUseCase {
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentDTO> 작성한 댓글 목록 페이지
+     * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable) {
+    public Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable) {
         return commentQueryPort.findCommentsByUserId(userId, pageable);
     }
 
@@ -167,13 +167,13 @@ public class CommentQueryService implements CommentQueryUseCase {
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentDTO> 추천한 댓글 목록 페이지
+     * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable) {
+    public Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable) {
         return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
     }
 

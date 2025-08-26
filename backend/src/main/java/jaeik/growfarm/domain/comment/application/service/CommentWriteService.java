@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
+import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -35,8 +35,8 @@ public class CommentWriteService implements CommentWriteUseCase {
 
 
     @Override
-    public void writeComment(CustomUserDetails userDetails, CommentReqDTO commentReqDto) {
-        Post post = loadPostPort.findById(commentReqDto.getPostId())
+    public void writeComment(CustomUserDetails userDetails, CommentRequest commentRequest) {
+        Post post = loadPostPort.findById(commentRequest.postId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         User user = null;
@@ -50,16 +50,16 @@ public class CommentWriteService implements CommentWriteUseCase {
         saveCommentWithClosure(
                 post,
                 user,
-                commentReqDto.getContent(),
-                commentReqDto.getPassword(),
-                commentReqDto.getParentId());
+                commentRequest.content(),
+                commentRequest.password(),
+                commentRequest.parentId());
 
         if (post.getUser() != null) {
             eventPublisher.publishEvent(new CommentCreatedEvent(
                     this,
                     post.getUser().getId(),
                     userName,
-                    commentReqDto.getPostId()));
+                    commentRequest.postId()));
         }
     }
 

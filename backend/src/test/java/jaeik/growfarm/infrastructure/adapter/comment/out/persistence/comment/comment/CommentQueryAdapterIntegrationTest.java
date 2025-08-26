@@ -9,8 +9,8 @@ import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
+import jaeik.growfarm.domain.comment.entity.CommentInfo;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike.CommentLikeRepository;
 import jaeik.growfarm.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
@@ -286,7 +286,7 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 특정 사용자의 댓글 조회
-        Page<SimpleCommentDTO> userComments = commentQueryAdapter
+        Page<SimpleCommentInfo> userComments = commentQueryAdapter
                 .findCommentsByUserId(testUser1.getId(), pageable);
 
         // Then: 해당 사용자의 댓글만 조회되는지 검증
@@ -316,7 +316,7 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자가 추천한 댓글 조회
-        Page<SimpleCommentDTO> likedComments = commentQueryAdapter
+        Page<SimpleCommentInfo> likedComments = commentQueryAdapter
                 .findLikedCommentsByUserId(testUser2.getId(), pageable);
 
         // Then: 추천한 댓글들이 조회되는지 검증
@@ -357,7 +357,7 @@ class CommentQueryAdapterIntegrationTest {
         List<Long> likedCommentIds = Collections.singletonList(comment1.getId());
 
         // When: 인기 댓글 조회
-        List<CommentDTO> popularComments = commentQueryAdapter
+        List<CommentInfo> popularComments = commentQueryAdapter
                 .findPopularComments(testPost.getId(), likedCommentIds);
 
         // Then: 인기 댓글들이 조회되는지 검증
@@ -388,7 +388,7 @@ class CommentQueryAdapterIntegrationTest {
         List<Long> likedCommentIds = List.of();
 
         // When: 과거순 댓글 조회
-        Page<CommentDTO> oldestComments = commentQueryAdapter
+        Page<CommentInfo> oldestComments = commentQueryAdapter
                 .findCommentsWithOldestOrder(testPost.getId(), pageable, likedCommentIds);
 
         // Then: 과거순으로 댓글들이 조회되는지 검증

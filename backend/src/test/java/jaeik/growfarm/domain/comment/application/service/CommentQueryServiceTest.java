@@ -3,8 +3,8 @@ package jaeik.growfarm.domain.comment.application.service;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
+import jaeik.growfarm.domain.comment.entity.CommentInfo;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,8 +49,8 @@ class CommentQueryServiceTest {
     private CommentQueryService commentQueryService;
 
     private Comment testComment;
-    private CommentDTO commentDTO;
-    private SimpleCommentDTO simpleCommentDTO;
+    private CommentInfo commentInfo;
+    private SimpleCommentInfo simpleCommentInfo;
 
     @BeforeEach
     void setUp() {
@@ -67,14 +67,15 @@ class CommentQueryServiceTest {
                 .deleted(false)
                 .build();
 
-        commentDTO = new CommentDTO();
-        commentDTO.setId(200L);
-        commentDTO.setContent("테스트 댓글");
-        commentDTO.setUserName("testUser");
-        commentDTO.setLikeCount(5);
-        commentDTO.setUserLike(false);
+        commentInfo = CommentInfo.builder()
+                .id(200L)
+                .content("테스트 댓글")
+                .userName("testUser")
+                .likeCount(5)
+                .userLike(false)
+                .build();
 
-        simpleCommentDTO = new SimpleCommentDTO(
+        simpleCommentInfo = new SimpleCommentInfo(
                 200L, 
                 300L, 
                 "testUser", 
@@ -90,7 +91,7 @@ class CommentQueryServiceTest {
     void shouldGetPopularComments_WhenLoggedInUser() {
         // Given
         Long postId = 300L;
-        List<CommentDTO> popularComments = Collections.singletonList(commentDTO);
+        List<CommentInfo> popularComments = Collections.singletonList(commentInfo);
         List<Long> popularCommentIds = List.of(200L);
         List<Long> likedCommentIds = List.of(200L);
 
@@ -102,7 +103,7 @@ class CommentQueryServiceTest {
         given(commentQueryPort.findPopularComments(postId, likedCommentIds)).willReturn(popularComments);
 
         // When
-        List<CommentDTO> result = commentQueryService.getPopularComments(postId, userDetails);
+        List<CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
 
         // Then
         assertThat(result).hasSize(1);
@@ -119,12 +120,12 @@ class CommentQueryServiceTest {
     void shouldGetPopularComments_WhenAnonymousUser() {
         // Given
         Long postId = 300L;
-        List<CommentDTO> popularComments = Collections.singletonList(commentDTO);
+        List<CommentInfo> popularComments = Collections.singletonList(commentInfo);
 
         given(commentQueryPort.findPopularComments(postId, Collections.emptyList())).willReturn(popularComments);
 
         // When
-        List<CommentDTO> result = commentQueryService.getPopularComments(postId, null);
+        List<CommentInfo> result = commentQueryService.getPopularComments(postId, null);
 
         // Then
         assertThat(result).hasSize(1);
@@ -139,12 +140,12 @@ class CommentQueryServiceTest {
     void shouldReturnEmptyList_WhenNoPopularComments() {
         // Given
         Long postId = 300L;
-        List<CommentDTO> emptyComments = Collections.emptyList();
+        List<CommentInfo> emptyComments = Collections.emptyList();
 
         given(commentQueryPort.findPopularComments(postId, Collections.emptyList())).willReturn(emptyComments);
 
         // When
-        List<CommentDTO> result = commentQueryService.getPopularComments(postId, userDetails);
+        List<CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
 
         // Then
         assertThat(result).isEmpty();
@@ -159,8 +160,8 @@ class CommentQueryServiceTest {
         // Given
         Long postId = 300L;
         int page = 0;
-        List<CommentDTO> comments = Collections.singletonList(commentDTO);
-        Page<CommentDTO> commentPage = new PageImpl<>(comments);
+        List<CommentInfo> comments = Collections.singletonList(commentInfo);
+        Page<CommentInfo> commentPage = new PageImpl<>(comments);
         List<Long> pageCommentIds = List.of(200L);
         List<Long> likedCommentIds = List.of(200L);
 
@@ -172,7 +173,7 @@ class CommentQueryServiceTest {
                 .willReturn(commentPage);
 
         // When
-        Page<CommentDTO> result = commentQueryService.getCommentsOldestOrder(postId, page, userDetails);
+        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, page, userDetails);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -185,14 +186,14 @@ class CommentQueryServiceTest {
         // Given
         Long postId = 300L;
         int page = 0;
-        List<CommentDTO> comments = Collections.singletonList(commentDTO);
-        Page<CommentDTO> commentPage = new PageImpl<>(comments);
+        List<CommentInfo> comments = Collections.singletonList(commentInfo);
+        Page<CommentInfo> commentPage = new PageImpl<>(comments);
 
         given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
                 .willReturn(commentPage);
 
         // When
-        Page<CommentDTO> result = commentQueryService.getCommentsOldestOrder(postId, page, null);
+        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, page, null);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -208,13 +209,13 @@ class CommentQueryServiceTest {
         // Given
         Long postId = 300L;
         int page = 0;
-        Page<CommentDTO> emptyPage = new PageImpl<>(Collections.emptyList());
+        Page<CommentInfo> emptyPage = new PageImpl<>(Collections.emptyList());
 
         given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
                 .willReturn(emptyPage);
 
         // When
-        Page<CommentDTO> result = commentQueryService.getCommentsOldestOrder(postId, page, userDetails);
+        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, page, userDetails);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -263,13 +264,13 @@ class CommentQueryServiceTest {
         // Given
         Long userId = 100L;
         Pageable pageable = Pageable.ofSize(20).withPage(0);
-        List<SimpleCommentDTO> comments = Collections.singletonList(simpleCommentDTO);
-        Page<SimpleCommentDTO> commentPage = new PageImpl<>(comments);
+        List<SimpleCommentInfo> comments = Collections.singletonList(simpleCommentInfo);
+        Page<SimpleCommentInfo> commentPage = new PageImpl<>(comments);
 
         given(commentQueryPort.findCommentsByUserId(userId, pageable)).willReturn(commentPage);
 
         // When
-        Page<SimpleCommentDTO> result = commentQueryService.getUserComments(userId, pageable);
+        Page<SimpleCommentInfo> result = commentQueryService.getUserComments(userId, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -285,12 +286,12 @@ class CommentQueryServiceTest {
         // Given
         Long userId = 100L;
         Pageable pageable = Pageable.ofSize(20).withPage(0);
-        Page<SimpleCommentDTO> emptyPage = new PageImpl<>(Collections.emptyList());
+        Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Collections.emptyList());
 
         given(commentQueryPort.findCommentsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimpleCommentDTO> result = commentQueryService.getUserComments(userId, pageable);
+        Page<SimpleCommentInfo> result = commentQueryService.getUserComments(userId, pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -305,16 +306,16 @@ class CommentQueryServiceTest {
         // Given
         Long userId = 100L;
         Pageable pageable = Pageable.ofSize(20).withPage(0);
-        SimpleCommentDTO likedComment = new SimpleCommentDTO(
+        SimpleCommentInfo likedComment = new SimpleCommentInfo(
                 200L, 300L, "anotherUser", "추천한 댓글", Instant.now(), 10, true
         );
-        List<SimpleCommentDTO> likedComments = List.of(likedComment);
-        Page<SimpleCommentDTO> commentPage = new PageImpl<>(likedComments);
+        List<SimpleCommentInfo> likedComments = List.of(likedComment);
+        Page<SimpleCommentInfo> commentPage = new PageImpl<>(likedComments);
 
         given(commentQueryPort.findLikedCommentsByUserId(userId, pageable)).willReturn(commentPage);
 
         // When
-        Page<SimpleCommentDTO> result = commentQueryService.getUserLikedComments(userId, pageable);
+        Page<SimpleCommentInfo> result = commentQueryService.getUserLikedComments(userId, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -331,12 +332,12 @@ class CommentQueryServiceTest {
         // Given
         Long userId = 100L;
         Pageable pageable = Pageable.ofSize(20).withPage(0);
-        Page<SimpleCommentDTO> emptyPage = new PageImpl<>(Collections.emptyList());
+        Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Collections.emptyList());
 
         given(commentQueryPort.findLikedCommentsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimpleCommentDTO> result = commentQueryService.getUserLikedComments(userId, pageable);
+        Page<SimpleCommentInfo> result = commentQueryService.getUserLikedComments(userId, pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -349,11 +350,11 @@ class CommentQueryServiceTest {
     @DisplayName("익명 댓글 처리 검증")
     void shouldHandleAnonymousComments() {
         // Given
-        SimpleCommentDTO anonymousComment = new SimpleCommentDTO(
+        SimpleCommentInfo anonymousComment = new SimpleCommentInfo(
                 203L, 300L, null, "익명 댓글", Instant.now(), 3, false
         );
         
-        // SimpleCommentDTO 생성자에서 userName이 null이면 "익명"으로 처리됨을 검증
+        // SimpleCommentInfo 생성자에서 userName이 null이면 "익명"으로 처리됨을 검증
         assertThat(anonymousComment.getUserName()).isEqualTo("익명");
         assertThat(anonymousComment.getContent()).isEqualTo("익명 댓글");
         assertThat(anonymousComment.getId()).isEqualTo(203L);

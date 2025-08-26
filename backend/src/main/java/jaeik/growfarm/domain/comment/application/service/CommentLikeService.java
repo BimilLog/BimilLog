@@ -8,7 +8,7 @@ import jaeik.growfarm.domain.comment.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentLike;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
+import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -31,8 +31,8 @@ public class CommentLikeService implements CommentLikeUseCase {
 
 
     @Override
-    public void likeComment(CommentReqDTO commentReqDto, CustomUserDetails userDetails) {
-        Long commentId = commentReqDto.getId();
+    public void likeComment(CommentRequest commentRequest, CustomUserDetails userDetails) {
+        Long commentId = commentRequest.id();
         Long userId = userDetails.getUserId();
 
         Comment comment = commentQueryPort.findById(commentId)

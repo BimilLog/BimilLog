@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
+import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -75,7 +75,7 @@ class CommentWriteServiceTest {
     private Post testPost;
     private Comment testComment;
     private Comment parentComment;
-    private CommentReqDTO commentDTO;
+    private CommentRequest commentRequest;
 
     @BeforeEach
     void setUp() {
@@ -114,10 +114,11 @@ class CommentWriteServiceTest {
                 .deleted(false)
                 .build();
 
-        commentDTO = new CommentReqDTO();
-        commentDTO.setPostId(300L);
-        commentDTO.setContent("테스트 댓글 내용");
-        commentDTO.setPassword(1234);
+        commentRequest = CommentRequest.builder()
+                .postId(300L)
+                .content("테스트 댓글 내용")
+                .password(1234)
+                .build();
     }
 
     @Test
@@ -131,7 +132,7 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
 
         // When
-        commentWriteService.writeComment(userDetails, commentDTO);
+        commentWriteService.writeComment(userDetails, commentRequest);
 
         // Then
         verify(loadPostPort).findById(300L);
@@ -152,13 +153,17 @@ class CommentWriteServiceTest {
     @DisplayName("익명 사용자의 댓글 작성 성공")
     void shouldWriteComment_WhenAnonymousUser() {
         // Given
-        commentDTO.setPassword(1234);
+        CommentRequest anonymousRequest = CommentRequest.builder()
+                .postId(300L)
+                .content("테스트 댓글 내용")
+                .password(1234)
+                .build();
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
         willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
 
         // When
-        commentWriteService.writeComment(null, commentDTO);
+        commentWriteService.writeComment(null, anonymousRequest);
 
         // Then
         verify(loadPostPort).findById(300L);
@@ -179,7 +184,12 @@ class CommentWriteServiceTest {
     void shouldWriteReplyComment_WithClosureTableUpdate() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        commentDTO.setParentId(500L); // 부모 댓글 ID 설정
+        CommentRequest replyRequest = CommentRequest.builder()
+                .postId(300L)
+                .content("테스트 댓글 내용")
+                .password(1234)
+                .parentId(500L)
+                .build();
 
         List<CommentClosure> parentClosures = Arrays.asList(
                 CommentClosure.createCommentClosure(parentComment, parentComment, 0), // 자기 자신
@@ -194,7 +204,7 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
 
         // When
-        commentWriteService.writeComment(userDetails, commentDTO);
+        commentWriteService.writeComment(userDetails, replyRequest);
 
         // Then
         verify(commentQueryPort).findById(500L);
@@ -213,7 +223,7 @@ class CommentWriteServiceTest {
         given(loadPostPort.findById(300L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentDTO))
+        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
@@ -232,7 +242,7 @@ class CommentWriteServiceTest {
         given(loadUserPort.findById(100L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentDTO))
+        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
@@ -247,7 +257,12 @@ class CommentWriteServiceTest {
     void shouldThrowException_WhenParentCommentNotFound() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        commentDTO.setParentId(999L); // 존재하지 않는 부모 댓글 ID
+        CommentRequest requestWithInvalidParent = CommentRequest.builder()
+                .postId(300L)
+                .content("테스트 댓글 내용")
+                .password(1234)
+                .parentId(999L) // 존재하지 않는 부모 댓글 ID
+                .build();
 
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
@@ -256,7 +271,7 @@ class CommentWriteServiceTest {
         given(commentQueryPort.findById(999L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentDTO))
+        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, requestWithInvalidParent))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PARENT_COMMENT_NOT_FOUND);
 
@@ -269,7 +284,12 @@ class CommentWriteServiceTest {
     void shouldThrowException_WhenParentCommentClosureNotFound() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        commentDTO.setParentId(500L);
+        CommentRequest requestWithParent = CommentRequest.builder()
+                .postId(300L)
+                .content("테스트 댓글 내용")
+                .password(1234)
+                .parentId(500L)
+                .build();
 
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
@@ -279,7 +299,7 @@ class CommentWriteServiceTest {
         given(commentClosureQueryPort.findByDescendantId(500L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentDTO))
+        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, requestWithParent))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PARENT_COMMENT_NOT_FOUND);
 
@@ -305,7 +325,7 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
 
         // When
-        commentWriteService.writeComment(userDetails, commentDTO);
+        commentWriteService.writeComment(userDetails, commentRequest);
 
         // Then
         verify(commentCommandPort).save(any(Comment.class));
@@ -323,7 +343,7 @@ class CommentWriteServiceTest {
         given(commentCommandPort.save(any(Comment.class))).willThrow(new RuntimeException("Database error"));
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentDTO))
+        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
@@ -343,7 +363,7 @@ class CommentWriteServiceTest {
         willThrow(new RuntimeException("Closure error")).given(commentClosureCommandPort).save(any(CommentClosure.class));
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentDTO))
+        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
@@ -357,7 +377,12 @@ class CommentWriteServiceTest {
     void shouldHandleMultiLevelReplyStructure() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        commentDTO.setParentId(500L);
+        CommentRequest replyRequest = CommentRequest.builder()
+                .postId(300L)
+                .content("테스트 댓글 내용")
+                .password(1234)
+                .parentId(500L)
+                .build();
 
         // 부모 댓글의 클로저 관계: 깊이 0(자기 자신), 깊이 1(부모와의 관계)
         List<CommentClosure> parentClosures = Arrays.asList(
@@ -374,7 +399,7 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
 
         // When
-        commentWriteService.writeComment(userDetails, commentDTO);
+        commentWriteService.writeComment(userDetails, replyRequest);
 
         // Then
         // 자기 자신 클로저(1개) + 부모 클로저들(3개) = 총 4개 클로저 저장
@@ -396,7 +421,11 @@ class CommentWriteServiceTest {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         String longContent = "이것은 매우 긴 댓글 내용입니다. ".repeat(20); // 약 600자
-        commentDTO.setContent(longContent);
+        CommentRequest longContentRequest = CommentRequest.builder()
+                .postId(300L)
+                .content(longContent)
+                .password(1234)
+                .build();
 
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
@@ -404,7 +433,7 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
 
         // When
-        commentWriteService.writeComment(userDetails, commentDTO);
+        commentWriteService.writeComment(userDetails, longContentRequest);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
@@ -422,7 +451,11 @@ class CommentWriteServiceTest {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         String specialContent = "특수문자 테스트: !@#$%^&*()_+{}|:\"<>?[];',./`~";
-        commentDTO.setContent(specialContent);
+        CommentRequest specialContentRequest = CommentRequest.builder()
+                .postId(300L)
+                .content(specialContent)
+                .password(1234)
+                .build();
 
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
@@ -430,7 +463,7 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
 
         // When
-        commentWriteService.writeComment(userDetails, commentDTO);
+        commentWriteService.writeComment(userDetails, specialContentRequest);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);

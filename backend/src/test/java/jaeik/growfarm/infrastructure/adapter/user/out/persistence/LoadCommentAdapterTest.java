@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.persistence;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.comment.LoadCommentAdapter;
 import org.junit.jupiter.api.DisplayName;
@@ -49,13 +50,13 @@ class LoadCommentAdapterTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         
-        List<SimpleCommentDTO> comments = Arrays.asList(
-            new SimpleCommentDTO(1L, 1L, "작성자1", "첫 번째 댓글", Instant.now(), 0, false),
-            new SimpleCommentDTO(2L, 2L, "작성자2", "두 번째 댓글", Instant.now(), 0, false)
+        List<SimpleCommentInfo> domainComments = Arrays.asList(
+            new SimpleCommentInfo(1L, 1L, "작성자1", "첫 번째 댓글", Instant.now(), 0, false),
+            new SimpleCommentInfo(2L, 2L, "작성자2", "두 번째 댓글", Instant.now(), 0, false)
         );
         
-        Page<SimpleCommentDTO> expectedPage = new PageImpl<>(comments, pageable, comments.size());
-        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(expectedPage);
+        Page<SimpleCommentInfo> domainPage = new PageImpl<>(domainComments, pageable, domainComments.size());
+        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(domainPage);
 
         // When: 사용자 작성 댓글 목록 조회 실행
         Page<SimpleCommentDTO> result = loadCommentAdapter.findCommentsByUserId(userId, pageable);
@@ -75,13 +76,13 @@ class LoadCommentAdapterTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 5);
         
-        List<SimpleCommentDTO> likedComments = Arrays.asList(
-            new SimpleCommentDTO(3L, 3L, "다른작성자1", "추천한 댓글 1", Instant.now(), 5, true),
-            new SimpleCommentDTO(4L, 4L, "다른작성자2", "추천한 댓글 2", Instant.now(), 8, true)
+        List<SimpleCommentInfo> domainLikedComments = Arrays.asList(
+            new SimpleCommentInfo(3L, 3L, "다른작성자1", "추천한 댓글 1", Instant.now(), 5, true),
+            new SimpleCommentInfo(4L, 4L, "다른작성자2", "추천한 댓글 2", Instant.now(), 8, true)
         );
         
-        Page<SimpleCommentDTO> expectedPage = new PageImpl<>(likedComments, pageable, likedComments.size());
-        given(commentQueryUseCase.getUserLikedComments(eq(userId), any(Pageable.class))).willReturn(expectedPage);
+        Page<SimpleCommentInfo> domainPage = new PageImpl<>(domainLikedComments, pageable, domainLikedComments.size());
+        given(commentQueryUseCase.getUserLikedComments(eq(userId), any(Pageable.class))).willReturn(domainPage);
 
         // When: 사용자 추천 댓글 목록 조회 실행
         Page<SimpleCommentDTO> result = loadCommentAdapter.findLikedCommentsByUserId(userId, pageable);
@@ -100,9 +101,9 @@ class LoadCommentAdapterTest {
         // Given: 댓글이 없는 사용자 ID와 빈 페이지 결과
         Long userId = 999L;
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimpleCommentDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<SimpleCommentInfo> emptyDomainPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
         
-        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(emptyPage);
+        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(emptyDomainPage);
 
         // When: 댓글이 없는 사용자의 댓글 목록 조회
         Page<SimpleCommentDTO> result = loadCommentAdapter.findCommentsByUserId(userId, pageable);
@@ -120,9 +121,9 @@ class LoadCommentAdapterTest {
         // Given: 추천 댓글이 없는 사용자 ID와 빈 페이지 결과
         Long userId = 999L;
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimpleCommentDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<SimpleCommentInfo> emptyDomainPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
         
-        given(commentQueryUseCase.getUserLikedComments(eq(userId), any(Pageable.class))).willReturn(emptyPage);
+        given(commentQueryUseCase.getUserLikedComments(eq(userId), any(Pageable.class))).willReturn(emptyDomainPage);
 
         // When: 추천 댓글이 없는 사용자의 추천 댓글 목록 조회
         Page<SimpleCommentDTO> result = loadCommentAdapter.findLikedCommentsByUserId(userId, pageable);
@@ -169,11 +170,11 @@ class LoadCommentAdapterTest {
         Long userId = 1L;
         Pageable largePage = PageRequest.of(0, 1000);
         
-        List<SimpleCommentDTO> largeCommentList = Collections.nCopies(1000, 
-            new SimpleCommentDTO(1L, 1L, "테스트작성자", "대용량 테스트 댓글", Instant.now(), 0, false));
+        List<SimpleCommentInfo> largeCommentList = Collections.nCopies(1000, 
+            new SimpleCommentInfo(1L, 1L, "테스트작성자", "대용량 테스트 댓글", Instant.now(), 0, false));
         
-        Page<SimpleCommentDTO> largePage_ = new PageImpl<>(largeCommentList, largePage, 1000);
-        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(largePage_);
+        Page<SimpleCommentInfo> largeDomainPage = new PageImpl<>(largeCommentList, largePage, 1000);
+        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(largeDomainPage);
 
         // When: 대용량 댓글 목록 조회
         Page<SimpleCommentDTO> result = loadCommentAdapter.findCommentsByUserId(userId, largePage);

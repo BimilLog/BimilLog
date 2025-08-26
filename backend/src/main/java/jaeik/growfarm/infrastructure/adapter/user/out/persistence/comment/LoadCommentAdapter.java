@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.persistence.comment;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,8 @@ public class LoadCommentAdapter implements LoadCommentPort {
      */
     @Override
     public Page<SimpleCommentDTO> findCommentsByUserId(Long userId, Pageable pageable) {
-        return commentQueryUseCase.getUserComments(userId, pageable);
+        Page<SimpleCommentInfo> simpleCommentInfoPage = commentQueryUseCase.getUserComments(userId, pageable);
+        return simpleCommentInfoPage.map(this::convertToSimpleCommentDTO);
     }
 
     /**
@@ -49,6 +51,29 @@ public class LoadCommentAdapter implements LoadCommentPort {
      */
     @Override
     public Page<SimpleCommentDTO> findLikedCommentsByUserId(Long userId, Pageable pageable) {
-        return commentQueryUseCase.getUserLikedComments(userId, pageable);
+        Page<SimpleCommentInfo> simpleCommentInfoPage = commentQueryUseCase.getUserLikedComments(userId, pageable);
+        return simpleCommentInfoPage.map(this::convertToSimpleCommentDTO);
+    }
+
+    /**
+     * <h3>도메인 객체를 DTO로 변환</h3>
+     * <p>SimpleCommentInfo(도메인)를 SimpleCommentDTO로 변환합니다.</p>
+     * <p>헥사고날 아키텍처에서 도메인 간 의존성을 관리하기 위한 변환 로직</p>
+     *
+     * @param simpleCommentInfo 도메인 간편 댓글 정보
+     * @return SimpleCommentDTO DTO 간편 댓글 정보
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private SimpleCommentDTO convertToSimpleCommentDTO(SimpleCommentInfo simpleCommentInfo) {
+        return new SimpleCommentDTO(
+                simpleCommentInfo.getId(),
+                simpleCommentInfo.getPostId(),
+                simpleCommentInfo.getUserName(),
+                simpleCommentInfo.getContent(),
+                simpleCommentInfo.getCreatedAt(),
+                simpleCommentInfo.getLikeCount(),
+                simpleCommentInfo.isUserLike()
+        );
     }
 }

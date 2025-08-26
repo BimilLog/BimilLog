@@ -3,6 +3,7 @@ package jaeik.growfarm.infrastructure.adapter.comment.in.web;
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.comment.application.port.in.CommentLikeUseCase;
 import jaeik.growfarm.domain.comment.application.port.in.CommentWriteUseCase;
+import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -47,7 +48,8 @@ public class CommentCommandController {
     public ResponseEntity<String> writeComment(
             @Valid @RequestBody CommentReqDTO commentReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        commentWriteUseCase.writeComment(userDetails, commentReqDto);
+        CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
+        commentWriteUseCase.writeComment(userDetails, commentRequest);
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
@@ -68,7 +70,8 @@ public class CommentCommandController {
     public ResponseEntity<String> updateComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        commentCommandUseCase.updateComment(commentReqDto, userDetails);
+        CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
+        commentCommandUseCase.updateComment(commentRequest, userDetails);
         return ResponseEntity.ok("댓글 수정 완료");
     }
 
@@ -89,7 +92,8 @@ public class CommentCommandController {
     public ResponseEntity<String> deleteComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        commentCommandUseCase.deleteComment(commentReqDto, userDetails);
+        CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
+        commentCommandUseCase.deleteComment(commentRequest, userDetails);
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 
@@ -113,7 +117,29 @@ public class CommentCommandController {
     public ResponseEntity<String> likeComment(
             @RequestBody @Valid CommentReqDTO commentReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        commentLikeUseCase.likeComment(commentReqDto, userDetails);
+        CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
+        commentLikeUseCase.likeComment(commentRequest, userDetails);
         return ResponseEntity.ok("추천 처리 완료");
+    }
+
+    /**
+     * <h3>DTO를 도메인 객체로 변환</h3>
+     * <p>CommentReqDTO를 CommentRequest(도메인)로 변환합니다.</p>
+     * <p>헥사고날 아키텍처에서 인프라스트럭처 계층과 도메인 계층을 분리하기 위한 변환 로직</p>
+     *
+     * @param commentReqDto DTO 댓글 요청
+     * @return CommentRequest 도메인 댓글 요청
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private CommentRequest convertToCommentRequest(CommentReqDTO commentReqDto) {
+        return CommentRequest.builder()
+                .id(commentReqDto.getId())
+                .parentId(commentReqDto.getParentId())
+                .postId(commentReqDto.getPostId())
+                .userId(commentReqDto.getUserId())
+                .content(commentReqDto.getContent())
+                .password(commentReqDto.getPassword())
+                .build();
     }
 }

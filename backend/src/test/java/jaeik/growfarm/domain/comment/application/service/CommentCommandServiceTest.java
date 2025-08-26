@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.comment.application.port.out.CommentCommandPort;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
+import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -59,7 +59,7 @@ class CommentCommandServiceTest {
 
     private User testUser;
     private Comment testComment;
-    private CommentReqDTO commentDTO;
+    private CommentRequest commentRequest;
 
     @BeforeEach
     void setUp() {
@@ -77,9 +77,10 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        commentDTO = new CommentReqDTO();
-        commentDTO.setId(200L);
-        commentDTO.setContent("수정된 댓글");
+        commentRequest = CommentRequest.builder()
+                .id(200L)
+                .content("수정된 댓글")
+                .build();
     }
 
     @Test
@@ -90,7 +91,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
 
         // When
-        commentCommandService.updateComment(commentDTO, userDetails);
+        commentCommandService.updateComment(commentRequest, userDetails);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -110,15 +111,16 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentReqDTO anonymousCommentDTO = new CommentReqDTO();
-        anonymousCommentDTO.setId(200L);
-        anonymousCommentDTO.setContent("수정된 익명 댓글");
-        anonymousCommentDTO.setPassword(1234);
+        CommentRequest anonymousCommentRequest = CommentRequest.builder()
+                .id(200L)
+                .content("수정된 익명 댓글")
+                .password(1234)
+                .build();
 
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(anonymousComment));
 
         // When
-        commentCommandService.updateComment(anonymousCommentDTO, null);
+        commentCommandService.updateComment(anonymousCommentRequest, null);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -132,7 +134,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(commentDTO, userDetails))
+        assertThatThrownBy(() -> commentCommandService.updateComment(commentRequest, userDetails))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
@@ -152,15 +154,16 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentReqDTO wrongPasswordDTO = new CommentReqDTO();
-        wrongPasswordDTO.setId(200L);
-        wrongPasswordDTO.setContent("수정된 댓글");
-        wrongPasswordDTO.setPassword(9999);
+        CommentRequest wrongPasswordRequest = CommentRequest.builder()
+                .id(200L)
+                .content("수정된 댓글")
+                .password(9999)
+                .build();
 
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(passwordComment));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(wrongPasswordDTO, null))
+        assertThatThrownBy(() -> commentCommandService.updateComment(wrongPasswordRequest, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_PASSWORD_NOT_MATCH);
 
@@ -189,7 +192,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(anotherUserComment));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(commentDTO, userDetails))
+        assertThatThrownBy(() -> commentCommandService.updateComment(commentRequest, userDetails))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
@@ -206,7 +209,7 @@ class CommentCommandServiceTest {
         given(commentClosureQueryPort.hasDescendants(200L)).willReturn(false);
 
         // When
-        commentCommandService.deleteComment(commentDTO, userDetails);
+        commentCommandService.deleteComment(commentRequest, userDetails);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -225,7 +228,7 @@ class CommentCommandServiceTest {
         given(commentClosureQueryPort.hasDescendants(200L)).willReturn(true);
 
         // When
-        commentCommandService.deleteComment(commentDTO, userDetails);
+        commentCommandService.deleteComment(commentRequest, userDetails);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -244,7 +247,7 @@ class CommentCommandServiceTest {
         doThrow(new RuntimeException("삭제 실패")).when(commentClosureQueryPort).hasDescendants(200L);
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.deleteComment(commentDTO, userDetails))
+        assertThatThrownBy(() -> commentCommandService.deleteComment(commentRequest, userDetails))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_DELETE_FAILED);
 
@@ -259,7 +262,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(commentDTO, null))
+        assertThatThrownBy(() -> commentCommandService.updateComment(commentRequest, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
@@ -283,7 +286,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(deletedComment));
 
         // When
-        commentCommandService.updateComment(commentDTO, userDetails);
+        commentCommandService.updateComment(commentRequest, userDetails);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -302,15 +305,16 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentReqDTO emptyPasswordDTO = new CommentReqDTO();
-        emptyPasswordDTO.setId(200L);
-        emptyPasswordDTO.setContent("수정된 댓글");
-        emptyPasswordDTO.setPassword(null);
+        CommentRequest emptyPasswordRequest = CommentRequest.builder()
+                .id(200L)
+                .content("수정된 댓글")
+                .password(null)
+                .build();
 
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(emptyPasswordComment));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(emptyPasswordDTO, null))
+        assertThatThrownBy(() -> commentCommandService.updateComment(emptyPasswordRequest, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 

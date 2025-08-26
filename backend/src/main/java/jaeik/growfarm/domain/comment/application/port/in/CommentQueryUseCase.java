@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.comment.application.port.in;
 
 import jaeik.growfarm.domain.comment.entity.Comment;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
+import jaeik.growfarm.domain.comment.entity.CommentInfo;
+import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,11 +26,11 @@ public interface CommentQueryUseCase {
      *
      * @param postId      게시글 ID
      * @param userDetails 사용자 인증 정보
-     * @return List<CommentDTO> 인기 댓글 DTO 목록
+     * @return List<CommentInfo> 인기 댓글 정보 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<CommentDTO> getPopularComments(Long postId, CustomUserDetails userDetails);
+    List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails);
 
     /**
      * <h3>과거순 댓글 조회</h3>
@@ -39,11 +39,11 @@ public interface CommentQueryUseCase {
      * @param postId      게시글 ID
      * @param page        페이지 번호
      * @param userDetails 사용자 인증 정보
-     * @return Page<CommentDTO> 과거순 댓글 페이지
+     * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<CommentDTO> getCommentsOldestOrder(Long postId, int page, CustomUserDetails userDetails);
+    Page<CommentInfo> getCommentsOldestOrder(Long postId, int page, CustomUserDetails userDetails);
 
     /**
      * <h3>ID로 댓글 조회</h3>
@@ -62,11 +62,11 @@ public interface CommentQueryUseCase {
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentDTO> 작성한 댓글 목록 페이지
+     * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentDTO> getUserComments(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
@@ -74,11 +74,11 @@ public interface CommentQueryUseCase {
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentDTO> 추천한 댓글 목록 페이지
+     * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentDTO> getUserLikedComments(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable);
 
     /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
