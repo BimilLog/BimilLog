@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 /**
@@ -25,7 +26,9 @@ import java.time.Instant;
 @Setter
 @Builder
 @NoArgsConstructor
-public class PostSearchResult {
+public class PostSearchResult implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
     
     private Long id;
     private String title;

@@ -4,8 +4,6 @@ import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.PostDetail;
 import jaeik.growfarm.domain.post.entity.PostSearchResult;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.springframework.data.domain.Page;
@@ -88,22 +86,11 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
             Object cached = redisTemplate.opsForValue().get(metadata.key());
-            if (cached instanceof List) {
-                List<SimplePostResDTO> dtoList = (List<SimplePostResDTO>) cached;
-                return dtoList.stream()
-                        .map(dto -> PostSearchResult.builder()
-                                .id(dto.getId())
-                                .title(dto.getTitle())
-                                .content(dto.getContent())
-                                .viewCount(dto.getViewCount())
-                                .likeCount(dto.getLikeCount())
-                                .postCacheFlag(dto.getPostCacheFlag())
-                                .createdAt(dto.getCreatedAt())
-                                .userId(dto.getUserId())
-                                .userName(dto.getUserName())
-                                .commentCount(dto.getCommentCount())
-                                .isNotice(dto.isNotice())
-                                .build())
+            if (cached instanceof List<?> list) {
+                // Redis에서 직접 PostSearchResult로 저장하므로 캐스팅만 필요
+                return list.stream()
+                        .filter(PostSearchResult.class::isInstance)
+                        .map(PostSearchResult.class::cast)
                         .toList();
             }
         } catch (Exception e) {
@@ -117,21 +104,9 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         String key = FULL_POST_CACHE_PREFIX + postId;
         try {
             Object cached = redisTemplate.opsForValue().get(key);
-            if (cached instanceof FullPostResDTO dto) {
-                return PostDetail.builder()
-                        .id(dto.getId())
-                        .title(dto.getTitle())
-                        .content(dto.getContent())
-                        .viewCount(dto.getViewCount())
-                        .likeCount(dto.getLikeCount())
-                        .postCacheFlag(dto.getPostCacheFlag())
-                        .createdAt(dto.getCreatedAt())
-                        .userId(dto.getUserId())
-                        .userName(dto.getUserName())
-                        .commentCount(dto.getCommentCount())
-                        .isNotice(dto.isNotice())
-                        .isLiked(dto.isLiked())
-                        .build();
+            if (cached instanceof PostDetail postDetail) {
+                // Redis에서 직접 PostDetail로 저장하므로 캐스팅만 필요
+                return postDetail;
             }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
@@ -166,21 +141,8 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
             
             // Object를 PostSearchResult로 변환
             List<PostSearchResult> posts = cachedObjects.stream()
-                    .filter(obj -> obj instanceof SimplePostResDTO)
-                    .map(obj -> (SimplePostResDTO) obj)
-                    .map(dto -> PostSearchResult.builder()
-                            .id(dto.getId())
-                            .title(dto.getTitle())
-                            .content(dto.getContent())
-                            .viewCount(dto.getViewCount())
-                            .likeCount(dto.getLikeCount())
-                            .postCacheFlag(dto.getPostCacheFlag())
-                            .createdAt(dto.getCreatedAt())
-                            .userId(dto.getUserId())
-                            .userName(dto.getUserName())
-                            .commentCount(dto.getCommentCount())
-                            .isNotice(dto.isNotice())
-                            .build())
+                    .filter(PostSearchResult.class::isInstance)
+                    .map(PostSearchResult.class::cast)
                     .toList();
             
             return new PageImpl<>(posts, pageable, totalSize);

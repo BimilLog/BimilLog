@@ -296,28 +296,27 @@ class PostCommandServiceTest {
     }
 
     @Test
-    @DisplayName("게시글 작성 - 빈 제목과 내용")
-    void shouldWritePost_WhenEmptyTitleAndContent() {
-        // Given
-        Long userId = 1L;
-        Long expectedPostId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
+    @DisplayName("게시글 작성 - 빈 제목 예외")
+    void shouldThrowException_WhenEmptyTitle() {
+        // When & Then
+        assertThatThrownBy(() -> PostReqVO.builder()
                 .title("")
+                .content("내용")
+                .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("게시글 제목은 필수입니다.");
+    }
+
+    @Test
+    @DisplayName("게시글 작성 - 빈 내용 예외")
+    void shouldThrowException_WhenEmptyContent() {
+        // When & Then
+        assertThatThrownBy(() -> PostReqVO.builder()
+                .title("제목")
                 .content("")
-                .build();
-
-        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
-        given(postCommandPort.save(any(Post.class))).willReturn(post);
-        given(post.getId()).willReturn(expectedPostId);
-
-        // When
-        Long result = postCommandService.writePost(userId, postReqDTO);
-
-        // Then
-        assertThat(result).isEqualTo(expectedPostId);
-
-        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
-        verify(postCommandPort, times(1)).save(any(Post.class));
+                .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("게시글 내용은 필수입니다.");
     }
 
     @Test

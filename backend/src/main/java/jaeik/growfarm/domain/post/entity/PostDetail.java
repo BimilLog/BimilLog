@@ -1,6 +1,7 @@
 package jaeik.growfarm.domain.post.entity;
 
 import lombok.Builder;
+import java.io.Serializable;
 import java.time.Instant;
 
 /**
@@ -38,7 +39,9 @@ public record PostDetail(
         Integer commentCount,
         boolean isNotice,
         boolean isLiked
-) {
+) implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Builder
     public PostDetail {

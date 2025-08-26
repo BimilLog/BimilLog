@@ -5,8 +5,8 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,8 +55,8 @@ class PostCacheCommandAdapterTest {
 
     private PostCacheCommandAdapter postCacheCommandAdapter;
 
-    private List<SimplePostResDTO> testSimplePosts;
-    private FullPostResDTO testFullPost;
+    private List<PostSearchResult> testSimplePosts;
+    private PostDetail testFullPost;
 
     @BeforeEach
     void setUp() {
@@ -71,9 +71,9 @@ class PostCacheCommandAdapterTest {
     }
 
     private void createTestData() {
-        // SimplePostResDTO 테스트 데이터
+        // PostSearchResult 테스트 데이터
         testSimplePosts = Arrays.asList(
-            SimplePostResDTO.builder()
+            PostSearchResult.builder()
                 .id(1L)
                 .title("인기 게시글 1")
                 .content("인기 게시글 내용 1")
@@ -86,7 +86,7 @@ class PostCacheCommandAdapterTest {
                 .commentCount(10)
                 .isNotice(false)
                 .build(),
-            SimplePostResDTO.builder()
+            PostSearchResult.builder()
                 .id(2L)
                 .title("인기 게시글 2")
                 .content("인기 게시글 내용 2")
@@ -101,8 +101,8 @@ class PostCacheCommandAdapterTest {
                 .build()
         );
 
-        // FullPostResDTO 테스트 데이터
-        testFullPost = FullPostResDTO.builder()
+        // PostDetail 테스트 데이터
+        testFullPost = PostDetail.builder()
             .id(1L)
             .title("상세 게시글")
             .content("상세 게시글 내용입니다.")
@@ -114,6 +114,7 @@ class PostCacheCommandAdapterTest {
             .userName("testUser")
             .commentCount(15)
             .isNotice(false)
+            .isLiked(false)
             .build();
     }
 
@@ -192,7 +193,7 @@ class PostCacheCommandAdapterTest {
         postCacheCommandAdapter.cacheFullPost(testFullPost);
 
         // Then: Redis에 적절한 키와 TTL로 저장됨
-        String expectedKey = "cache:post:" + testFullPost.getId();
+        String expectedKey = "cache:post:" + testFullPost.id();
         Duration expectedTtl = Duration.ofDays(1);
         
         verify(valueOperations).set(expectedKey, testFullPost, expectedTtl);
@@ -202,7 +203,7 @@ class PostCacheCommandAdapterTest {
     @DisplayName("경계값 - 빈 게시글 목록 캐시")
     void shouldCacheEmptyList_WhenEmptyListProvided() {
         // Given: 빈 게시글 목록
-        List<SimplePostResDTO> emptyList = List.of();
+        List<PostSearchResult> emptyList = List.of();
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         
         // When: 빈 목록 캐시 저장
@@ -449,7 +450,7 @@ class PostCacheCommandAdapterTest {
         verify(valueOperations).set(eq("cache:posts:realtime"), eq(testSimplePosts), any(Duration.class));
         
         // 상세 캐시 검증
-        verify(valueOperations).set(eq("cache:post:" + testFullPost.getId()), eq(testFullPost), any(Duration.class));
+        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), any(Duration.class));
     }
 
     @Test

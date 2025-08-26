@@ -355,7 +355,7 @@ class PostCacheSyncAdapterTest {
         assertThat(postDetail.title()).isEqualTo("상세 조회 게시글");
         assertThat(postDetail.content()).isEqualTo("상세 내용");
         assertThat(postDetail.likeCount()).isEqualTo(3);
-        assertThat(postDetail.userName()).isEqualTo(testUser.userName());
+        assertThat(postDetail.userName()).isEqualTo(testUser.getUserName());
     }
 
     @Test

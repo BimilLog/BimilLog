@@ -3,8 +3,6 @@ package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.cache;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.post.entity.PostDetail;
 import jaeik.growfarm.domain.post.entity.PostSearchResult;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,8 +52,8 @@ class PostCacheQueryAdapterTest {
 
     private PostCacheQueryAdapter postCacheQueryAdapter;
 
-    private List<SimplePostResDTO> testSimplePostDTOs;
-    private FullPostResDTO testFullPostDTO;
+    private List<PostSearchResult> testSimplePostDTOs;
+    private PostDetail testFullPostDTO;
 
     @BeforeEach
     void setUp() {
@@ -71,9 +69,9 @@ class PostCacheQueryAdapterTest {
     }
 
     private void createTestData() {
-        // SimplePostResDTO 테스트 데이터 (실제 Redis에 저장되는 형태)
+        // PostSearchResult 테스트 데이터 (실제 Redis에 저장되는 형태)
         testSimplePostDTOs = Arrays.asList(
-            SimplePostResDTO.builder()
+            PostSearchResult.builder()
                 .id(1L)
                 .title("인기 게시글 1")
                 .content("인기 게시글 내용 1")
@@ -86,7 +84,7 @@ class PostCacheQueryAdapterTest {
                 .commentCount(10)
                 .isNotice(false)
                 .build(),
-            SimplePostResDTO.builder()
+            PostSearchResult.builder()
                 .id(2L)
                 .title("인기 게시글 2")
                 .content("인기 게시글 내용 2")
@@ -101,8 +99,8 @@ class PostCacheQueryAdapterTest {
                 .build()
         );
 
-        // FullPostResDTO 테스트 데이터 (실제 Redis에 저장되는 형태)
-        testFullPostDTO = FullPostResDTO.builder()
+        // PostDetail 테스트 데이터 (실제 Redis에 저장되는 형태)
+        testFullPostDTO = PostDetail.builder()
             .id(1L)
             .title("상세 게시글")
             .content("상세 게시글 내용입니다.")
@@ -427,8 +425,8 @@ class PostCacheQueryAdapterTest {
     @DisplayName("성능 테스트 - 대량 캐시 조회")
     void shouldHandleLargeCacheData_WhenRetrievingPosts() {
         
-        // Given: 대량 캐시 데이터 (100개 게시글 DTO)
-        List<SimplePostResDTO> largePosts = Collections.nCopies(100, testSimplePostDTOs.get(0));
+        // Given: 대량 캐시 데이터 (100개 게시글)
+        List<PostSearchResult> largePosts = Collections.nCopies(100, testSimplePostDTOs.get(0));
         given(valueOperations.get("cache:posts:weekly")).willReturn(largePosts);
         
         // When: 대량 캐시 데이터 조회

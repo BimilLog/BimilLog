@@ -544,21 +544,21 @@ class PostQueryAdapterTest {
     @Test
     @DisplayName("데이터 매핑 - 모든 필드 정확히 매핑")
     void shouldMapAllFields_WhenCreatingPostSearchResult() {
-        // Given: 캐시 플래그가 설정된 게시글
-        testPost1.setPostCacheFlag(PostCacheFlag.REALTIME);
-        entityManager.merge(testPost1);
+        // Given: 캐시 플래그가 설정된 게시글 (가장 최신)
+        testPost3.setPostCacheFlag(PostCacheFlag.REALTIME);
+        entityManager.merge(testPost3);
         entityManager.flush();
 
         Pageable pageable = PageRequest.of(0, 1);
 
-        // When: 게시글 조회
+        // When: 게시글 조회 (최신순 정렬로 testPost3가 첫 번째)
         Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 모든 필드가 정확히 매핑됨
         PostSearchResult dto = result.getContent().get(0);
         
-        assertThat(dto.getId()).isEqualTo(testPost1.getId());
-        assertThat(dto.getTitle()).isEqualTo(testPost1.getTitle());
+        assertThat(dto.getId()).isEqualTo(testPost3.getId());
+        assertThat(dto.getTitle()).isEqualTo(testPost3.getTitle());
         assertThat(dto.getUserId()).isEqualTo(testUser.getId());
         assertThat(dto.getUserName()).isEqualTo(testUser.getUserName());
         assertThat(dto.getPostCacheFlag()).isEqualTo(PostCacheFlag.REALTIME);

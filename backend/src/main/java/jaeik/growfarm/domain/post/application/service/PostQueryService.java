@@ -101,7 +101,9 @@ public class PostQueryService implements PostQueryUseCase {
             if (cachedPost != null) {
                 // 사용자의 좋아요 정보만 추가 확인 필요
                 if (userId != null) {
-                    boolean isLiked = checkUserLikedPost(postId, userId);
+                    Post post = postQueryPort.findById(postId)
+                            .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                    boolean isLiked = checkUserLikedPost(post, userId);
                     return cachedPost.withIsLiked(isLiked);
                 }
                 return cachedPost;
@@ -113,7 +115,7 @@ public class PostQueryService implements PostQueryUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         long likeCount = postLikeQueryPort.countByPost(post);
-        boolean isLiked = (userId != null) ? checkUserLikedPost(postId, userId) : false;
+        boolean isLiked = (userId != null) ? checkUserLikedPost(post, userId) : false;
         int commentCount = commentQueryUseCase.countByPostId(postId);
         return PostDetail.of(post, Math.toIntExact(likeCount), commentCount, isLiked);
     }
@@ -243,15 +245,13 @@ public class PostQueryService implements PostQueryUseCase {
      * <h3>사용자 게시글 좋아요 여부 확인</h3>
      * <p>중복 로직을 제거하기 위한 private 메서드</p>
      *
-     * @param postId 게시글 ID
+     * @param post 게시글 엔티티
      * @param userId 사용자 ID
      * @return boolean 좋아요 여부
      * @author Jaeik
      * @since 2.0.0
      */
-    private boolean checkUserLikedPost(Long postId, Long userId) {
-        Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+    private boolean checkUserLikedPost(Post post, Long userId) {
         User user = loadUserInfoPort.getReferenceById(userId);
         return postLikeQueryPort.existsByUserAndPost(user, post);
     }

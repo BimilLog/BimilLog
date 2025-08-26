@@ -57,9 +57,10 @@ class PostFulltextRepositoryTest {
     @BeforeEach
     void setUp() {
         // 테스트 사용자 생성
-        String uniqueSocialId = "fulltext_" + UUID.randomUUID();
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        String uniqueSocialId = "fulltext_" + uniqueId;
         testUser = User.builder()
-                .userName("fullTextUser")
+                .userName("fullTextUser_" + uniqueId)
                 .socialId(uniqueSocialId)
                 .provider(SocialProvider.KAKAO)
                 .socialNickname("풀텍스트테스터")

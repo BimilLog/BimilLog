@@ -11,8 +11,6 @@ import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,10 +44,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
     @Override
     @Transactional(readOnly = true)
     public List<PostSearchResult> findRealtimePopularPosts() {
-        List<SimplePostResDTO> dtos = findPopularPostsByDays(1);
-        return dtos.stream()
-                .map(this::convertToPostSearchResult)
-                .toList();
+        return findPopularPostsByDays(1);
     }
 
     /**
@@ -63,10 +58,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
     @Override
     @Transactional(readOnly = true)
     public List<PostSearchResult> findWeeklyPopularPosts() {
-        List<SimplePostResDTO> dtos = findPopularPostsByDays(7);
-        return dtos.stream()
-                .map(this::convertToPostSearchResult)
-                .toList();
+        return findPopularPostsByDays(7);
     }
 
     /**
@@ -82,15 +74,11 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
     public List<PostSearchResult> findLegendaryPosts() {
         QPostLike postLike = QPostLike.postLike;
 
-        List<SimplePostResDTO> dtos = createBasePopularPostsQuery()
+        return createBasePopularPostsQuery()
                 .having(postLike.countDistinct().goe(20))
                 .orderBy(postLike.countDistinct().desc())
                 .limit(50)
                 .fetch();
-        
-        return dtos.stream()
-                .map(this::convertToPostSearchResult)
-                .toList();
     }
 
 
@@ -104,7 +92,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private List<SimplePostResDTO> findPopularPostsByDays(int days) {
+    private List<PostSearchResult> findPopularPostsByDays(int days) {
         QPost post = QPost.post;
         QPostLike postLike = QPostLike.postLike;
 
@@ -125,14 +113,14 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private JPAQuery<SimplePostResDTO> createBasePopularPostsQuery() {
+    private JPAQuery<PostSearchResult> createBasePopularPostsQuery() {
         QPost post = QPost.post;
         QUser user = QUser.user;
         QPostLike postLike = QPostLike.postLike;
         QComment comment = QComment.comment;
 
         return jpaQueryFactory
-                .select(Projections.constructor(SimplePostResDTO.class,
+                .select(Projections.constructor(PostSearchResult.class,
                         post.id,                              // 1. id (Long)
                         post.title,                           // 2. title (String)
                         post.content,                         // 3. content (String)
@@ -192,57 +180,19 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
                 .where(postLike.post.id.eq(postId))
                 .fetchOne() : 0L;
 
-        // DTO를 먼저 생성하고 PostDetail로 변환
-        FullPostResDTO dto = FullPostResDTO.from(entity, Math.toIntExact(likeCount), false);
-        return convertToPostDetail(dto);
+        // 댓글 수 조회
+        QComment comment = QComment.comment;
+        long commentCount = jpaQueryFactory
+                .select(comment.count())
+                .from(comment)
+                .where(comment.post.id.eq(postId))
+                .fetchOne() != null ? jpaQueryFactory.select(comment.count())
+                .from(comment)
+                .where(comment.post.id.eq(postId))
+                .fetchOne() : 0L;
+
+        // PostDetail 직접 생성
+        return PostDetail.of(entity, Math.toIntExact(likeCount), Math.toIntExact(commentCount), false);
     }
 
-    /**
-     * <h3>SimplePostResDTO를 PostSearchResult로 변환</h3>
-     *
-     * @param dto 변환할 DTO
-     * @return PostSearchResult 도메인 객체
-     * @author jaeik
-     * @since 2.0.0
-     */
-    private PostSearchResult convertToPostSearchResult(SimplePostResDTO dto) {
-        return PostSearchResult.builder()
-                .id(dto.getId())
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .viewCount(dto.getViewCount())
-                .likeCount(dto.getLikeCount())
-                .postCacheFlag(dto.getPostCacheFlag())
-                .createdAt(dto.getCreatedAt())
-                .userId(dto.getUserId())
-                .userName(dto.getUserName())
-                .commentCount(dto.getCommentCount())
-                .isNotice(dto.isNotice())
-                .build();
-    }
-
-    /**
-     * <h3>FullPostResDTO를 PostDetail로 변환</h3>
-     *
-     * @param dto 변환할 DTO
-     * @return PostDetail 도메인 객체
-     * @author jaeik
-     * @since 2.0.0
-     */
-    private PostDetail convertToPostDetail(FullPostResDTO dto) {
-        return PostDetail.builder()
-                .id(dto.getId())
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .viewCount(dto.getViewCount())
-                .likeCount(dto.getLikeCount())
-                .postCacheFlag(dto.getPostCacheFlag())
-                .createdAt(dto.getCreatedAt())
-                .userId(dto.getUserId())
-                .userName(dto.getUserName())
-                .commentCount(dto.getCommentCount())
-                .isNotice(dto.isNotice())
-                .isLiked(dto.isLiked())
-                .build();
-    }
 }

@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.post.application.service;
 
+import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.post.application.port.out.*;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
@@ -55,6 +56,9 @@ class PostQueryServiceTest {
 
     @Mock
     private PostCacheQueryPort postCacheQueryPort;
+
+    @Mock
+    private CommentQueryUseCase commentQueryUseCase;
 
     @Mock
     private User user;
@@ -125,6 +129,7 @@ class PostQueryServiceTest {
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postLikeQueryPort.countByPost(post)).willReturn(5L);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
+        given(commentQueryUseCase.countByPostId(postId)).willReturn(3);
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -195,6 +200,7 @@ class PostQueryServiceTest {
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postLikeQueryPort.countByPost(post)).willReturn(3L);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
+        given(commentQueryUseCase.countByPostId(postId)).willReturn(7);
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -225,6 +231,7 @@ class PostQueryServiceTest {
         
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.countByPost(post)).willReturn(10L);
+        given(commentQueryUseCase.countByPostId(postId)).willReturn(5);
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
