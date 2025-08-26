@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
+import jaeik.growfarm.domain.auth.entity.LoginResult;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -45,14 +45,14 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @param provider 소셜 제공자
      * @param code     인가 코드
      * @param fcmToken Firebase Cloud Messaging 토큰
-     * @return 타입 안전성이 보장된 로그인 응답
+     * @return 타입 안전성이 보장된 로그인 결과
      * @throws CustomException 블랙리스트 사용자인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public LoginResponse processSocialLogin(SocialProvider provider, String code, String fcmToken) {
+    public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
         SocialLoginPort.LoginResult loginResult = socialLoginPort.login(provider, code);
@@ -79,11 +79,11 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResponse.ExistingUser handleExistingUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
+    private LoginResult.ExistingUser handleExistingUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
         List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(
                 loginResult.userProfile(), loginResult.token(), fcmToken
         );
-        return new LoginResponse.ExistingUser(cookies);
+        return new LoginResult.ExistingUser(cookies);
     }
     
     /**
@@ -95,11 +95,11 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResponse.NewUser handleNewUser(SocialLoginPort.LoginResult loginResult) {
+    private LoginResult.NewUser handleNewUser(SocialLoginPort.LoginResult loginResult) {
         String uuid = UUID.randomUUID().toString();
         tempDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token());
         ResponseCookie tempCookie = tempDataPort.createTempCookie(uuid);
-        return new LoginResponse.NewUser(uuid, tempCookie);
+        return new LoginResult.NewUser(uuid, tempCookie);
     }
     
     /**

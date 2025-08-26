@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
-import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
+import jaeik.growfarm.domain.auth.entity.LoginResult;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -88,11 +88,11 @@ class SocialLoginServiceTest {
             given(saveUserPort.handleExistingUserLogin(testUserProfile, testTokenVO, fcmToken)).willReturn(cookies);
 
             // When
-            LoginResponse result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", fcmToken);
+            LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", fcmToken);
 
             // Then
-            assertThat(result).isInstanceOf(LoginResponse.ExistingUser.class);
-            LoginResponse.ExistingUser existingUserResponse = (LoginResponse.ExistingUser) result;
+            assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
+            LoginResult.ExistingUser existingUserResponse = (LoginResult.ExistingUser) result;
             assertThat(existingUserResponse.cookies()).isEqualTo(cookies);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
@@ -116,11 +116,11 @@ class SocialLoginServiceTest {
             given(tempDataPort.createTempCookie(anyString())).willReturn(tempCookie);
 
             // When
-            LoginResponse result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token");
+            LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token");
 
             // Then
-            assertThat(result).isInstanceOf(LoginResponse.NewUser.class);
-            LoginResponse.NewUser newUserResponse = (LoginResponse.NewUser) result;
+            assertThat(result).isInstanceOf(LoginResult.NewUser.class);
+            LoginResult.NewUser newUserResponse = (LoginResult.NewUser) result;
             assertThat(newUserResponse.tempCookie()).isEqualTo(tempCookie);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");

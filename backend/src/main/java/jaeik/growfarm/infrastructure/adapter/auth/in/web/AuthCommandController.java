@@ -5,6 +5,7 @@ import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
+import jaeik.growfarm.domain.auth.entity.LoginResult;
 import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +47,10 @@ public class AuthCommandController {
     @PostMapping("/login")
     public ResponseEntity<?> socialLogin(@RequestParam String provider, @RequestParam String code,
                                          @RequestParam(required = false) String fcmToken) {
-        LoginResponse loginResponse = socialLoginUseCase.processSocialLogin(
+        LoginResult loginResult = socialLoginUseCase.processSocialLogin(
                 SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
+
+        LoginResponse loginResponse = convertToLoginResponse(loginResult);
 
         return switch (loginResponse) {
             case LoginResponse.NewUser(var uuid, var tempCookie) -> {
@@ -106,5 +109,24 @@ public class AuthCommandController {
     @DeleteMapping("/withdraw")
     public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok().headers(headers -> withdrawUseCase.withdraw(userDetails).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
+    }
+
+    /**
+     * <h3>도메인 객체를 DTO로 변환</h3>
+     * <p>LoginResult(도메인)를 LoginResponse(DTO)로 변환합니다.</p>
+     * <p>헥사고날 아키텍처에서 도메인 계층과 인프라스트럭처 계층을 분리하기 위한 변환 로직</p>
+     *
+     * @param loginResult 도메인 로그인 결과
+     * @return DTO 로그인 응답
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private LoginResponse convertToLoginResponse(LoginResult loginResult) {
+        return switch (loginResult) {
+            case LoginResult.NewUser(var uuid, var tempCookie) ->
+                    new LoginResponse.NewUser(uuid, tempCookie);
+            case LoginResult.ExistingUser(var cookies) ->
+                    new LoginResponse.ExistingUser(cookies);
+        };
     }
 }
