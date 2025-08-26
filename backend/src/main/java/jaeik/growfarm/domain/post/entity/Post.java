@@ -2,7 +2,6 @@ package jaeik.growfarm.domain.post.entity;
 
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.common.entity.BaseEntity;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -75,23 +74,23 @@ public class Post extends BaseEntity {
      * </p>
      *
      * @param user       작성자 정보
-     * @param postReqDTO 게시글 작성 요청 DTO
+     * @param postReqVO 게시글 작성 요청 값 객체
      * @return 생성된 Post 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Post createPost(User user, PostReqDTO postReqDTO) {
-        if (postReqDTO == null) {
-            throw new IllegalArgumentException("PostReqDTO cannot be null");
+    public static Post createPost(User user, PostReqVO postReqVO) {
+        if (postReqVO == null) {
+            throw new IllegalArgumentException("PostReqVO cannot be null");
         }
         
         return Post.builder()
                 .user(user)
-                .title(postReqDTO.getTitle())
-                .content(postReqDTO.getContent())
+                .title(postReqVO.title())
+                .content(postReqVO.content())
                 .views(0)
                 .isNotice(false)
-                .password(postReqDTO.getPassword())
+                .password(postReqVO.password())
                 .postCacheFlag(null)
                 .build();
     }
@@ -103,17 +102,17 @@ public class Post extends BaseEntity {
      * 게시글의 제목과 내용을 업데이트한다.
      * </p>
      *
-     * @param postReqDTO 업데이트할 게시글 정보
+     * @param postReqVO 업데이트할 게시글 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    public void updatePost(PostReqDTO postReqDTO) {
-        if (postReqDTO == null) {
-            throw new IllegalArgumentException("PostReqDTO cannot be null");
+    public void updatePost(PostReqVO postReqVO) {
+        if (postReqVO == null) {
+            throw new IllegalArgumentException("PostReqVO cannot be null");
         }
         
-        this.title = postReqDTO.getTitle();
-        this.content = postReqDTO.getContent();
+        this.title = postReqVO.title();
+        this.content = postReqVO.content();
     }
 
     /**

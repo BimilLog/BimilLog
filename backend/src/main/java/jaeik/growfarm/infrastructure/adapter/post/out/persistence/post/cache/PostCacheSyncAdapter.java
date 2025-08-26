@@ -6,6 +6,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.entity.QComment;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
@@ -43,8 +45,11 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<SimplePostResDTO> findRealtimePopularPosts() {
-        return findPopularPostsByDays(1);
+    public List<PostSearchResult> findRealtimePopularPosts() {
+        List<SimplePostResDTO> dtos = findPopularPostsByDays(1);
+        return dtos.stream()
+                .map(this::convertToPostSearchResult)
+                .toList();
     }
 
     /**
@@ -57,8 +62,11 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<SimplePostResDTO> findWeeklyPopularPosts() {
-        return findPopularPostsByDays(7);
+    public List<PostSearchResult> findWeeklyPopularPosts() {
+        List<SimplePostResDTO> dtos = findPopularPostsByDays(7);
+        return dtos.stream()
+                .map(this::convertToPostSearchResult)
+                .toList();
     }
 
     /**
@@ -71,14 +79,18 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<SimplePostResDTO> findLegendaryPosts() {
+    public List<PostSearchResult> findLegendaryPosts() {
         QPostLike postLike = QPostLike.postLike;
 
-        return createBasePopularPostsQuery()
+        List<SimplePostResDTO> dtos = createBasePopularPostsQuery()
                 .having(postLike.countDistinct().goe(20))
                 .orderBy(postLike.countDistinct().desc())
                 .limit(50)
                 .fetch();
+        
+        return dtos.stream()
+                .map(this::convertToPostSearchResult)
+                .toList();
     }
 
 
@@ -151,7 +163,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
      * @since 2.0.0
      */
     @Override
-    public FullPostResDTO findPostDetail(Long postId) {
+    public PostDetail findPostDetail(Long postId) {
         // 🔧 null 안전성 검사 추가
         if (postId == null) {
             return null;
@@ -180,6 +192,57 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
                 .where(postLike.post.id.eq(postId))
                 .fetchOne() : 0L;
 
-        return FullPostResDTO.from(entity, Math.toIntExact(likeCount), false);
+        // DTO를 먼저 생성하고 PostDetail로 변환
+        FullPostResDTO dto = FullPostResDTO.from(entity, Math.toIntExact(likeCount), false);
+        return convertToPostDetail(dto);
+    }
+
+    /**
+     * <h3>SimplePostResDTO를 PostSearchResult로 변환</h3>
+     *
+     * @param dto 변환할 DTO
+     * @return PostSearchResult 도메인 객체
+     * @author jaeik
+     * @since 2.0.0
+     */
+    private PostSearchResult convertToPostSearchResult(SimplePostResDTO dto) {
+        return PostSearchResult.builder()
+                .id(dto.getId())
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .viewCount(dto.getViewCount())
+                .likeCount(dto.getLikeCount())
+                .postCacheFlag(dto.getPostCacheFlag())
+                .createdAt(dto.getCreatedAt())
+                .userId(dto.getUserId())
+                .userName(dto.getUserName())
+                .commentCount(dto.getCommentCount())
+                .isNotice(dto.isNotice())
+                .build();
+    }
+
+    /**
+     * <h3>FullPostResDTO를 PostDetail로 변환</h3>
+     *
+     * @param dto 변환할 DTO
+     * @return PostDetail 도메인 객체
+     * @author jaeik
+     * @since 2.0.0
+     */
+    private PostDetail convertToPostDetail(FullPostResDTO dto) {
+        return PostDetail.builder()
+                .id(dto.getId())
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .viewCount(dto.getViewCount())
+                .likeCount(dto.getLikeCount())
+                .postCacheFlag(dto.getPostCacheFlag())
+                .createdAt(dto.getCreatedAt())
+                .userId(dto.getUserId())
+                .userName(dto.getUserName())
+                .commentCount(dto.getCommentCount())
+                .isNotice(dto.isNotice())
+                .isLiked(dto.isLiked())
+                .build();
     }
 }

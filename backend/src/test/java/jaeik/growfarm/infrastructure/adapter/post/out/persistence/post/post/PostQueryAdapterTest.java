@@ -10,7 +10,7 @@ import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 import jaeik.growfarm.util.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -108,7 +108,7 @@ class PostQueryAdapterTest {
 
     private void createTestPosts() {
         // 일반 게시글 1
-        PostReqDTO postReqDTO1 = PostReqDTO.builder()
+        PostReqVO postReqDTO1 = PostReqVO.builder()
                 .title("첫 번째 게시글")
                 .content("첫 번째 게시글 내용")
                 .password(1234)
@@ -117,7 +117,7 @@ class PostQueryAdapterTest {
         entityManager.persistAndFlush(testPost1);
 
         // 일반 게시글 2
-        PostReqDTO postReqDTO2 = PostReqDTO.builder()
+        PostReqVO postReqDTO2 = PostReqVO.builder()
                 .title("두 번째 게시글")
                 .content("두 번째 게시글 내용")
                 .password(1234)
@@ -126,7 +126,7 @@ class PostQueryAdapterTest {
         entityManager.persistAndFlush(testPost2);
 
         // 일반 게시글 3
-        PostReqDTO postReqDTO3 = PostReqDTO.builder()
+        PostReqVO postReqDTO3 = PostReqVO.builder()
                 .title("세 번째 게시글")
                 .content("세 번째 게시글 내용")
                 .password(1234)
@@ -135,7 +135,7 @@ class PostQueryAdapterTest {
         entityManager.persistAndFlush(testPost3);
 
         // 공지사항 게시글
-        PostReqDTO noticeReqDTO = PostReqDTO.builder()
+        PostReqVO noticeReqDTO = PostReqVO.builder()
                 .title("공지사항 제목")
                 .content("중요한 공지사항입니다.")
                 .password(1234)
@@ -404,7 +404,7 @@ class PostQueryAdapterTest {
     void shouldHandlePagination_WhenMultiplePagesRequested() {
         // Given: 더 많은 게시글 생성 (총 10개)
         for (int i = 4; i <= 10; i++) {
-            PostReqDTO postReqDTO = PostReqDTO.builder()
+            PostReqVO postReqDTO = PostReqVO.builder()
                     .title("추가 게시글 " + i)
                     .content("추가 게시글 내용 " + i)
                     .password(1234)

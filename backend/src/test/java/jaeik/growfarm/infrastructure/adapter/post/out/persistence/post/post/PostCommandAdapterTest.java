@@ -8,7 +8,7 @@ import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -105,7 +105,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("테스트 제목")
                 .content("테스트 내용입니다.")
                 .password(1234)
@@ -149,7 +149,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqDTO originalDTO = PostReqDTO.builder()
+        PostReqVO originalDTO = PostReqVO.builder()
                 .title("원본 제목")
                 .content("원본 내용")
                 .password(1234)
@@ -160,7 +160,7 @@ class PostCommandAdapterTest {
         entityManager.flush();
 
         // 수정할 내용
-        PostReqDTO updateDTO = PostReqDTO.builder()
+        PostReqVO updateDTO = PostReqVO.builder()
                 .title("수정된 제목")
                 .content("수정된 내용입니다.")
                 .password(5678)
@@ -202,7 +202,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("삭제할 제목")
                 .content("삭제할 내용")
                 .password(1234)
@@ -240,7 +240,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("조회수 테스트")
                 .content("조회수 증가 테스트 내용")
                 .password(1234)
@@ -282,7 +282,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("다중 조회수 테스트")
                 .content("다중 조회수 증가 테스트")
                 .password(1234)
@@ -308,7 +308,7 @@ class PostCommandAdapterTest {
     @DisplayName("경계값 - null 사용자로 게시글 생성")
     void shouldSavePost_WhenUserIsNull() {
         // Given: null 사용자와 게시글 (익명 게시글 시나리오)
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("익명 게시글")
                 .content("익명으로 작성한 게시글입니다.")
                 .password(1234)
@@ -348,7 +348,7 @@ class PostCommandAdapterTest {
         String longTitle = "a".repeat(30); // 30자 제목
         String longContent = "긴 내용입니다. ".repeat(100); // 매우 긴 내용
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title(longTitle)
                 .content(longContent)
                 .password(1234)
@@ -385,7 +385,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("공지사항이 될 게시글")
                 .content("중요한 공지입니다.")
                 .password(1234)
@@ -423,7 +423,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("인기 게시글")
                 .content("많이 본 게시글입니다.")
                 .password(1234)
@@ -461,7 +461,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        // 직접 빌더로 null 제목 설정 (PostReqDTO 검증 우회)
+        // 직접 빌더로 null 제목 설정 (PostReqVO 검증 우회)
         Post post = Post.builder()
                 .user(user)
                 .title(null) // NULL 제목
@@ -530,7 +530,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("즉시 조회 테스트")
                 .content("저장 후 바로 조회되는지 확인")
                 .password(1234)
@@ -570,7 +570,7 @@ class PostCommandAdapterTest {
 
         // When: 10개 게시글 저장
         for (int i = 1; i <= 10; i++) {
-            PostReqDTO postReqDTO = PostReqDTO.builder()
+            PostReqVO postReqDTO = PostReqVO.builder()
                     .title("대량 테스트 게시글 " + i)
                     .content("대량 저장 테스트 내용 " + i)
                     .password(1234)

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 
 /**
  * <h2>게시글 기본 명령 유스케이스</h2>
@@ -17,12 +17,12 @@ public interface PostCommandUseCase {
      * <p>작성자 정보와 함께 게시글을 생성하고 데이터베이스에 저장합니다.</p>
      *
      * @param userId     현재 로그인한 사용자 ID
-     * @param postReqDTO 게시글 작성 요청 DTO
+     * @param postReqVO 게시글 작성 요청 값 객체
      * @return 생성된 게시글의 ID
      * @since 2.0.0
      * @author Jaeik
      */
-    Long writePost(Long userId, PostReqDTO postReqDTO);
+    Long writePost(Long userId, PostReqVO postReqVO);
 
     /**
      * <h3>게시글 수정</h3>
@@ -31,11 +31,11 @@ public interface PostCommandUseCase {
      *
      * @param userId     현재 로그인한 사용자 ID
      * @param postId     수정할 게시글 ID
-     * @param postReqDTO 수정할 게시글 정보 DTO
+     * @param postReqVO 수정할 게시글 정보 값 객체
      * @since 2.0.0
      * @author Jaeik
      */
-    void updatePost(Long userId, Long postId, PostReqDTO postReqDTO);
+    void updatePost(Long userId, Long postId, PostReqVO postReqVO);
 
     /**
      * <h3>게시글 삭제</h3>

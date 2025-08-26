@@ -8,8 +8,8 @@ import jaeik.growfarm.domain.post.entity.PostLike;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike.PostLikeJpaRepository;
 import jaeik.growfarm.util.TestContainersConfiguration;
@@ -267,7 +267,7 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: 실시간 인기 게시글 조회
-        List<SimplePostResDTO> popularPosts = postCacheSyncAdapter.findRealtimePopularPosts();
+        List<PostSearchResult> popularPosts = postCacheSyncAdapter.findRealtimePopularPosts();
 
         // Then: 최근 1일 이내 게시글 중 추천 1개 이상만 인기글로 조회됨
         assertThat(popularPosts).hasSize(2); // 추천 있는 게시글만
@@ -290,7 +290,7 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: 주간 인기 게시글 조회
-        List<SimplePostResDTO> popularPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
+        List<PostSearchResult> popularPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
 
         // Then: 최근 7일 이내 게시글 중 추천 1개 이상만 인기글로 조회됨
         assertThat(popularPosts).hasSize(2); // 추천 있는 게시글만
@@ -314,7 +314,7 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: 전설의 게시글 조회
-        List<SimplePostResDTO> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
+        List<PostSearchResult> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
 
         // Then: 추천 20개 이상 게시글 중 좋아요 순으로 정렬되어 조회되는지 확인 (50개 제한)
         assertThat(legendaryPosts).hasSize(2);
@@ -327,9 +327,9 @@ class PostCacheSyncAdapterTest {
     void shouldReturnEmptyList_WhenNoPopularPosts() {
         // Given: 게시글이 없는 상태 (setup에서 flushAll 했으므로 비어있음)
         // When: 인기 게시글 조회
-        List<SimplePostResDTO> realtimePosts = postCacheSyncAdapter.findRealtimePopularPosts();
-        List<SimplePostResDTO> weeklyPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
-        List<SimplePostResDTO> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
+        List<PostSearchResult> realtimePosts = postCacheSyncAdapter.findRealtimePopularPosts();
+        List<PostSearchResult> weeklyPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
+        List<PostSearchResult> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
 
         // Then: 빈 목록 반환 확인
         assertThat(realtimePosts).isEmpty();
@@ -348,14 +348,14 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: 게시글 상세 조회
-        FullPostResDTO postDetail = postCacheSyncAdapter.findPostDetail(post.getId());
+        PostDetail postDetail = postCacheSyncAdapter.findPostDetail(post.getId());
 
         // Then: 상세 정보 및 좋아요 수 일치 확인
         assertThat(postDetail).isNotNull();
-        assertThat(postDetail.getTitle()).isEqualTo("상세 조회 게시글");
-        assertThat(postDetail.getContent()).isEqualTo("상세 내용");
-        assertThat(postDetail.getLikeCount()).isEqualTo(3);
-        assertThat(postDetail.getUserName()).isEqualTo(testUser.getUserName());
+        assertThat(postDetail.title()).isEqualTo("상세 조회 게시글");
+        assertThat(postDetail.content()).isEqualTo("상세 내용");
+        assertThat(postDetail.likeCount()).isEqualTo(3);
+        assertThat(postDetail.userName()).isEqualTo(testUser.userName());
     }
 
     @Test
@@ -365,7 +365,7 @@ class PostCacheSyncAdapterTest {
         Long nonExistentPostId = 999L;
 
         // When: 상세 조회
-        FullPostResDTO postDetail = postCacheSyncAdapter.findPostDetail(nonExistentPostId);
+        PostDetail postDetail = postCacheSyncAdapter.findPostDetail(nonExistentPostId);
 
         // Then: null 반환 확인
         assertNull(postDetail);
@@ -387,7 +387,7 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: 인기 게시글 조회
-        List<SimplePostResDTO> results = postCacheSyncAdapter.findRealtimePopularPosts();
+        List<PostSearchResult> results = postCacheSyncAdapter.findRealtimePopularPosts();
 
         // Then: 모든 게시글이 조회되어야 함 (좋아요 없어도)
         assertThat(results).hasSizeGreaterThanOrEqualTo(1); // 최소 1개 (좋아요 있는 게시글)
@@ -409,9 +409,9 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: readOnly 트랜잭션에서 조회
-        List<SimplePostResDTO> realtimePosts = postCacheSyncAdapter.findRealtimePopularPosts();
-        List<SimplePostResDTO> weeklyPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
-        List<SimplePostResDTO> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
+        List<PostSearchResult> realtimePosts = postCacheSyncAdapter.findRealtimePopularPosts();
+        List<PostSearchResult> weeklyPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
+        List<PostSearchResult> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
 
         // Then: 조회 성공 (readOnly 트랜잭션 내에서 수행됨)
         assertThat(realtimePosts).isNotEmpty();
@@ -436,22 +436,22 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: 캐시 플러시 후 DB에서 직접 조회
-        List<SimplePostResDTO> results = postCacheSyncAdapter.findRealtimePopularPosts();
-        FullPostResDTO detail = postCacheSyncAdapter.findPostDetail(cachedPost.getId());
+        List<PostSearchResult> results = postCacheSyncAdapter.findRealtimePopularPosts();
+        PostDetail detail = postCacheSyncAdapter.findPostDetail(cachedPost.getId());
 
         // Then: DB 데이터가 정확히 조회됨 (캐시 독립적)
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().getTitle()).isEqualTo("캐시테스트");
         assertThat(detail).isNotNull();
-        assertThat(detail.getTitle()).isEqualTo("캐시테스트");
-        assertThat(detail.getLikeCount()).isEqualTo(5);
+        assertThat(detail.title()).isEqualTo("캐시테스트");
+        assertThat(detail.likeCount()).isEqualTo(5);
     }
 
     @Test
     @DisplayName("예외 처리 - null 입력값 처리")
     void shouldHandleGracefully_WhenNullInputProvided() {
         // When & Then: null ID로 상세 조회
-        FullPostResDTO result = postCacheSyncAdapter.findPostDetail(null);
+        PostDetail result = postCacheSyncAdapter.findPostDetail(null);
         assertThat(result).isNull(); // null 반환 또는 예외 처리 확인
     }
 
@@ -479,15 +479,15 @@ class PostCacheSyncAdapterTest {
                     try {
                         // 각 스레드에서 다른 메소드 호출
                         if (i % 3 == 0) {
-                            List<SimplePostResDTO> results = postCacheSyncAdapter.findRealtimePopularPosts();
+                            List<PostSearchResult> results = postCacheSyncAdapter.findRealtimePopularPosts();
                             // 🔧 비즈니스 로직: 추천 1개 이상 게시글만 반환 (빈 결과 가능)
                             assertThat(results).isNotNull(); // null이 아닌지만 확인
                         } else if (i % 3 == 1) {
-                            List<SimplePostResDTO> results = postCacheSyncAdapter.findWeeklyPopularPosts();
+                            List<PostSearchResult> results = postCacheSyncAdapter.findWeeklyPopularPosts();
                             // 🔧 비즈니스 로직: 추천 1개 이상 게시글만 반환 (빈 결과 가능)
                             assertThat(results).isNotNull(); // null이 아닌지만 확인
                         } else {
-                            FullPostResDTO detail = postCacheSyncAdapter.findPostDetail(postId);
+                            PostDetail detail = postCacheSyncAdapter.findPostDetail(postId);
                             // 🔧 게시글 존재하므로 null이 아니어야 함
                             assertThat(detail).isNotNull();
                         }
@@ -548,12 +548,12 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: 모든 조회 타입 실행
-        List<SimplePostResDTO> realtimePosts = postCacheSyncAdapter.findRealtimePopularPosts();
-        List<SimplePostResDTO> weeklyPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
-        List<SimplePostResDTO> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
+        List<PostSearchResult> realtimePosts = postCacheSyncAdapter.findRealtimePopularPosts();
+        List<PostSearchResult> weeklyPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
+        List<PostSearchResult> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
         
-        FullPostResDTO realtimeDetail = postCacheSyncAdapter.findPostDetail(realtimePopular.getId());
-        FullPostResDTO legendaryDetail = postCacheSyncAdapter.findPostDetail(legendary.getId());
+        PostDetail realtimeDetail = postCacheSyncAdapter.findPostDetail(realtimePopular.getId());
+        PostDetail legendaryDetail = postCacheSyncAdapter.findPostDetail(legendary.getId());
 
         // Then: 복합 조건 정확성 검증 (추천 1개 이상만)
         // 🔧 시간 기준 정확성 분석:
@@ -574,9 +574,9 @@ class PostCacheSyncAdapterTest {
         assertThat(legendaryPosts.getFirst().getTitle()).isEqualTo("전설급");
         
         // 상세 조회 정확성
-        assertThat(realtimeDetail.getTitle()).isEqualTo("실시간인기");
-        assertThat(realtimeDetail.getLikeCount()).isEqualTo(15);
-        assertThat(legendaryDetail.getLikeCount()).isEqualTo(50);
+        assertThat(realtimeDetail.title()).isEqualTo("실시간인기");
+        assertThat(realtimeDetail.likeCount()).isEqualTo(15);
+        assertThat(legendaryDetail.likeCount()).isEqualTo(50);
     }
     
     @Test
@@ -601,9 +601,9 @@ class PostCacheSyncAdapterTest {
         entityManager.clear();
 
         // When: 각 카테고리 조회
-        List<SimplePostResDTO> realtimePosts = postCacheSyncAdapter.findRealtimePopularPosts();
-        List<SimplePostResDTO> weeklyPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
-        List<SimplePostResDTO> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
+        List<PostSearchResult> realtimePosts = postCacheSyncAdapter.findRealtimePopularPosts();
+        List<PostSearchResult> weeklyPosts = postCacheSyncAdapter.findWeeklyPopularPosts();
+        List<PostSearchResult> legendaryPosts = postCacheSyncAdapter.findLegendaryPosts();
         
 
         // Then: 플래그와 무관하게 시간/좋아요 조건으로만 분류됨 (추천 1개 이상만)
@@ -616,7 +616,7 @@ class PostCacheSyncAdapterTest {
         assertThat(legendaryPosts).hasSize(1); // 전설플래그만 (25개 >= 20)
         
         // DTO에 플래그 정보 정확히 매핑되는지 확인
-        SimplePostResDTO realtimeResult = realtimePosts.stream()
+        PostSearchResult realtimeResult = realtimePosts.stream()
                 .filter(p -> p.getTitle().equals("실시간플래그"))
                 .findFirst()
                 .orElse(null);
@@ -641,7 +641,7 @@ class PostCacheSyncAdapterTest {
 
         // When: 대용량 데이터에서 인기 게시글 조회
         long startTime = System.currentTimeMillis();
-        List<SimplePostResDTO> results = postCacheSyncAdapter.findRealtimePopularPosts();
+        List<PostSearchResult> results = postCacheSyncAdapter.findRealtimePopularPosts();
         long endTime = System.currentTimeMillis();
 
         // Then: 성능 및 정확성 확인

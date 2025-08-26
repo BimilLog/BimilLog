@@ -3,8 +3,8 @@ package jaeik.growfarm.domain.post.application.service;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.post.event.PostFeaturedEvent;
 import jaeik.growfarm.domain.post.event.PostSetAsNoticeEvent;
 import jaeik.growfarm.domain.post.event.PostUnsetAsNoticeEvent;
@@ -49,15 +49,15 @@ public class PostCacheSyncService {
     @Transactional
     public void updateRealtimePopularPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.REALTIME);
-        List<SimplePostResDTO> posts = postCacheSyncPort.findRealtimePopularPosts();
+        List<PostSearchResult> posts = postCacheSyncPort.findRealtimePopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.REALTIME, posts);
-            List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
+            List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
             
             // 인기글의 상세 정보도 함께 캐싱
-            for (SimplePostResDTO post : posts) {
-                FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
+            for (PostSearchResult post : posts) {
+                PostDetail fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
                     postCacheCommandPort.cacheFullPost(fullPost);
                 }
@@ -77,15 +77,15 @@ public class PostCacheSyncService {
     @Transactional
     public void updateWeeklyPopularPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.WEEKLY);
-        List<SimplePostResDTO> posts = postCacheSyncPort.findWeeklyPopularPosts();
+        List<PostSearchResult> posts = postCacheSyncPort.findWeeklyPopularPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.WEEKLY, posts);
-            List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
+            List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
             
             // 인기글의 상세 정보도 함께 캐싱
-            for (SimplePostResDTO post : posts) {
-                FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
+            for (PostSearchResult post : posts) {
+                PostDetail fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
                     postCacheCommandPort.cacheFullPost(fullPost);
                 }
@@ -118,15 +118,15 @@ public class PostCacheSyncService {
     @Transactional
     public void updateLegendaryPosts() {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.LEGEND);
-        List<SimplePostResDTO> posts = postCacheSyncPort.findLegendaryPosts();
+        List<PostSearchResult> posts = postCacheSyncPort.findLegendaryPosts();
         if (!posts.isEmpty()) {
             postCacheCommandPort.cachePosts(PostCacheFlag.LEGEND, posts);
-            List<Long> postIds = posts.stream().map(SimplePostResDTO::getId).collect(Collectors.toList());
+            List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
             
             // 인기글의 상세 정보도 함께 캐싱
-            for (SimplePostResDTO post : posts) {
-                FullPostResDTO fullPost = postCacheSyncPort.findPostDetail(post.getId());
+            for (PostSearchResult post : posts) {
+                PostDetail fullPost = postCacheSyncPort.findPostDetail(post.getId());
                 if (fullPost != null) {
                     postCacheCommandPort.cacheFullPost(fullPost);
                 }

@@ -86,7 +86,8 @@ public class UserQueryController {
                                                               @RequestParam int size,
                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimplePostResDTO> postList = userActivityUseCase.getUserPosts(userDetails.getUserId(), pageable);
+        Page<SimplePostResDTO> postList = userActivityUseCase.getUserPosts(userDetails.getUserId(), pageable)
+                .map(SimplePostResDTO::from);
         return ResponseEntity.ok(postList);
     }
 
@@ -106,7 +107,8 @@ public class UserQueryController {
                                                                    @RequestParam int size,
                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimplePostResDTO> likedPosts = userActivityUseCase.getUserLikedPosts(userDetails.getUserId(), pageable);
+        Page<SimplePostResDTO> likedPosts = userActivityUseCase.getUserLikedPosts(userDetails.getUserId(), pageable)
+                .map(SimplePostResDTO::from);
         return ResponseEntity.ok(likedPosts);
     }
 

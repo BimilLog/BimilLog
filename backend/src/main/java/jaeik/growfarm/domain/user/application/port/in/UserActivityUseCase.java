@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
 import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -24,7 +24,7 @@ public interface UserActivityUseCase {
      * @author jaeik
      * @since 2.0.0
      */
-    Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable);
+    Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
@@ -36,7 +36,7 @@ public interface UserActivityUseCase {
      * @author jaeik
      * @since 2.0.0
      */
-    Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable);
+    Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable);
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>

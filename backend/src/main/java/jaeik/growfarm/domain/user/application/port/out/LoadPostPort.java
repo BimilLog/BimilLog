@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.out;
 
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -23,7 +23,7 @@ public interface LoadPostPort {
      * @author jaeik
      * @version 2.0.0
      */
-    Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable);
+    Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
@@ -35,5 +35,5 @@ public interface LoadPostPort {
      * @author jaeik
      * @version 2.0.0
      */
-    Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable);
+    Page<PostSearchResult> findLikedPostsByUserId(Long userId, Pageable pageable);
 }

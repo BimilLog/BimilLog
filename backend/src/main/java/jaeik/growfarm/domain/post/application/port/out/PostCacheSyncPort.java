@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public interface PostCacheSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<SimplePostResDTO> findRealtimePopularPosts();
+    List<PostSearchResult> findRealtimePopularPosts();
 
     /**
      * <h3>주간 인기 게시글 조회</h3>
@@ -33,7 +33,7 @@ public interface PostCacheSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<SimplePostResDTO> findWeeklyPopularPosts();
+    List<PostSearchResult> findWeeklyPopularPosts();
 
     /**
      * <h3>전설의 게시글 조회</h3>
@@ -43,16 +43,16 @@ public interface PostCacheSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<SimplePostResDTO> findLegendaryPosts();
+    List<PostSearchResult> findLegendaryPosts();
     
     /**
      * <h3>게시글 상세 정보 조회</h3>
      * <p>게시글 ID로 상세 정보를 조회하여 캐싱할 수 있는 형태로 반환합니다.</p>
      *
      * @param postId 게시글 ID
-     * @return 게시글 상세 정보 DTO
+     * @return 게시글 상세 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    FullPostResDTO findPostDetail(Long postId);
+    PostDetail findPostDetail(Long postId);
 }

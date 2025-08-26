@@ -3,11 +3,11 @@ package jaeik.growfarm.domain.post.application.service;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.post.event.PostFeaturedEvent;
 import jaeik.growfarm.domain.post.event.PostSetAsNoticeEvent;
 import jaeik.growfarm.domain.post.event.PostUnsetAsNoticeEvent;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,12 +53,12 @@ class PostCacheSyncServiceTest {
     @DisplayName("실시간 인기 게시글 업데이트 - 성공 (게시글 있음)")
     void shouldUpdateRealtimePopularPosts_WhenPostsExist() {
         // Given
-        SimplePostResDTO post1 = createSimplePostResDTO(1L, "제목1", 1L);
-        SimplePostResDTO post2 = createSimplePostResDTO(2L, "제목2", 2L);
-        List<SimplePostResDTO> posts = List.of(post1, post2);
+        PostSearchResult post1 = createPostSearchResult(1L, "제목1", 1L);
+        PostSearchResult post2 = createPostSearchResult(2L, "제목2", 2L);
+        List<PostSearchResult> posts = List.of(post1, post2);
         
-        FullPostResDTO fullPost1 = createFullPostResDTO(1L, "제목1", "내용1");
-        FullPostResDTO fullPost2 = createFullPostResDTO(2L, "제목2", "내용2");
+        PostDetail fullPost1 = createPostDetail(1L, "제목1", "내용1");
+        PostDetail fullPost2 = createPostDetail(2L, "제목2", "내용2");
 
         given(postCacheSyncPort.findRealtimePopularPosts()).willReturn(posts);
         given(postCacheSyncPort.findPostDetail(1L)).willReturn(fullPost1);
@@ -101,12 +101,12 @@ class PostCacheSyncServiceTest {
     @DisplayName("주간 인기 게시글 업데이트 - 성공 (이벤트 발행 포함)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
-        SimplePostResDTO post1 = createSimplePostResDTO(1L, "주간인기글1", 1L);
-        SimplePostResDTO post2 = createSimplePostResDTO(2L, "주간인기글2", 2L);
-        List<SimplePostResDTO> posts = List.of(post1, post2);
+        PostSearchResult post1 = createPostSearchResult(1L, "주간인기글1", 1L);
+        PostSearchResult post2 = createPostSearchResult(2L, "주간인기글2", 2L);
+        List<PostSearchResult> posts = List.of(post1, post2);
         
-        FullPostResDTO fullPost1 = createFullPostResDTO(1L, "주간인기글1", "내용1");
-        FullPostResDTO fullPost2 = createFullPostResDTO(2L, "주간인기글2", "내용2");
+        PostDetail fullPost1 = createPostDetail(1L, "주간인기글1", "내용1");
+        PostDetail fullPost2 = createPostDetail(2L, "주간인기글2", "내용2");
 
         given(postCacheSyncPort.findWeeklyPopularPosts()).willReturn(posts);
         given(postCacheSyncPort.findPostDetail(1L)).willReturn(fullPost1);
@@ -138,12 +138,12 @@ class PostCacheSyncServiceTest {
     @DisplayName("주간 인기 게시글 업데이트 - 익명 게시글 포함 (이벤트 발행 안함)")
     void shouldUpdateWeeklyPopularPosts_WhenAnonymousPostsIncluded() {
         // Given
-        SimplePostResDTO anonymousPost = createSimplePostResDTO(1L, "익명글", null); // userId가 null
-        SimplePostResDTO userPost = createSimplePostResDTO(2L, "회원글", 2L);
-        List<SimplePostResDTO> posts = List.of(anonymousPost, userPost);
+        PostSearchResult anonymousPost = createPostSearchResult(1L, "익명글", null); // userId가 null
+        PostSearchResult userPost = createPostSearchResult(2L, "회원글", 2L);
+        List<PostSearchResult> posts = List.of(anonymousPost, userPost);
         
-        FullPostResDTO fullPost1 = createFullPostResDTO(1L, "익명글", "내용1");
-        FullPostResDTO fullPost2 = createFullPostResDTO(2L, "회원글", "내용2");
+        PostDetail fullPost1 = createPostDetail(1L, "익명글", "내용1");
+        PostDetail fullPost2 = createPostDetail(2L, "회원글", "내용2");
 
         given(postCacheSyncPort.findWeeklyPopularPosts()).willReturn(posts);
         given(postCacheSyncPort.findPostDetail(1L)).willReturn(fullPost1);
@@ -170,10 +170,10 @@ class PostCacheSyncServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 성공 (명예의 전당 메시지)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
-        SimplePostResDTO legendPost = createSimplePostResDTO(1L, "전설의글", 1L);
-        List<SimplePostResDTO> posts = List.of(legendPost);
+        PostSearchResult legendPost = createPostSearchResult(1L, "전설의글", 1L);
+        List<PostSearchResult> posts = List.of(legendPost);
         
-        FullPostResDTO fullPost = createFullPostResDTO(1L, "전설의글", "전설적인 내용");
+        PostDetail fullPost = createPostDetail(1L, "전설의글", "전설적인 내용");
 
         given(postCacheSyncPort.findLegendaryPosts()).willReturn(posts);
         given(postCacheSyncPort.findPostDetail(1L)).willReturn(fullPost);
@@ -202,8 +202,8 @@ class PostCacheSyncServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 상세 정보 null인 경우")
     void shouldUpdateLegendaryPosts_WhenPostDetailIsNull() {
         // Given
-        SimplePostResDTO legendPost = createSimplePostResDTO(1L, "전설의글", 1L);
-        List<SimplePostResDTO> posts = List.of(legendPost);
+        PostSearchResult legendPost = createPostSearchResult(1L, "전설의글", 1L);
+        List<PostSearchResult> posts = List.of(legendPost);
 
         given(postCacheSyncPort.findLegendaryPosts()).willReturn(posts);
         given(postCacheSyncPort.findPostDetail(1L)).willReturn(null);
@@ -283,8 +283,8 @@ class PostCacheSyncServiceTest {
     @DisplayName("대량 게시글 처리 - 성능 테스트 시나리오")
     void shouldHandleLargeNumberOfPosts_PerformanceScenario() {
         // Given - 대량의 게시글 생성 (1000개로 원복)
-        List<SimplePostResDTO> largePosts = createLargePostList(1000);
-        List<Long> postIds = largePosts.stream().map(SimplePostResDTO::getId).toList();
+        List<PostSearchResult> largePosts = createLargePostList(1000);
+        List<Long> postIds = largePosts.stream().map(PostSearchResult::getId).toList();
 
         given(postCacheSyncPort.findWeeklyPopularPosts()).willReturn(largePosts);
         // 모든 상세 정보는 null로 설정하여 상세 캐싱 건너뛰기
@@ -303,25 +303,34 @@ class PostCacheSyncServiceTest {
     }
 
     // 테스트 유틸리티 메서드들
-    private SimplePostResDTO createSimplePostResDTO(Long id, String title, Long userId) {
-        return SimplePostResDTO.builder()
+    private PostSearchResult createPostSearchResult(Long id, String title, Long userId) {
+        return PostSearchResult.builder()
                 .id(id)
                 .title(title)
                 .userId(userId)
                 .build();
     }
 
-    private FullPostResDTO createFullPostResDTO(Long id, String title, String content) {
-        return FullPostResDTO.builder()
+    private PostDetail createPostDetail(Long id, String title, String content) {
+        return PostDetail.builder()
                 .id(id)
                 .title(title)
                 .content(content)
+                .viewCount(0)
+                .likeCount(0)
+                .postCacheFlag(null)
+                .createdAt(java.time.Instant.now())
+                .userId(1L)
+                .userName("테스트 사용자")
+                .commentCount(0)
+                .isNotice(false)
+                .isLiked(false)
                 .build();
     }
 
-    private List<SimplePostResDTO> createLargePostList(int count) {
+    private List<PostSearchResult> createLargePostList(int count) {
         return java.util.stream.IntStream.range(0, count)
-                .mapToObj(i -> createSimplePostResDTO(
+                .mapToObj(i -> createPostSearchResult(
                         (long) i, 
                         "제목" + i, 
                         i % 2 == 0 ? (long) i : null // 짝수만 userId 설정

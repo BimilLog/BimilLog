@@ -5,9 +5,9 @@ import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 import jaeik.growfarm.domain.post.event.PostDeletedEvent;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -69,7 +69,7 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long expectedPostId = 123L;
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("테스트 제목")
                 .content("테스트 내용")
                 .build();
@@ -95,9 +95,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqDTO postReqDTO = new PostReqDTO();
-        postReqDTO.setTitle("수정된 제목");
-        postReqDTO.setContent("수정된 내용");
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("수정된 제목")
+                .content("수정된 내용")
+                .build();
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(true);
@@ -120,7 +121,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 999L;
-        PostReqDTO postReqDTO = new PostReqDTO();
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("테스트 제목")
+                .content("테스트 내용")
+                .build();
 
         given(postQueryPort.findById(postId)).willReturn(Optional.empty());
 
@@ -140,7 +144,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqDTO postReqDTO = new PostReqDTO();
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("테스트 제목")
+                .content("테스트 내용")
+                .build();
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(false);
@@ -228,7 +235,7 @@ class PostCommandServiceTest {
     void shouldThrowException_WhenNullDTO() {
         // Given
         Long userId = 1L;
-        PostReqDTO postReqDTO = null;
+        PostReqVO postReqDTO = null;
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
@@ -246,7 +253,7 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqDTO postReqDTO = null;
+        PostReqVO postReqDTO = null;
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(true);
@@ -294,9 +301,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long expectedPostId = 123L;
-        PostReqDTO postReqDTO = new PostReqDTO();
-        postReqDTO.setTitle("");
-        postReqDTO.setContent("");
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("")
+                .content("")
+                .build();
 
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
@@ -317,7 +325,7 @@ class PostCommandServiceTest {
     void shouldThrowException_WhenNullUserId() {
         // Given
         Long userId = null;
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("테스트 제목")
                 .content("테스트 내용")
                 .build();
@@ -338,7 +346,7 @@ class PostCommandServiceTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         Long userId = 999L;
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("테스트 제목")
                 .content("테스트 내용")
                 .build();
@@ -360,9 +368,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long expectedPostId = 123L;
-        PostReqDTO postReqDTO = new PostReqDTO();
-        postReqDTO.setTitle("A".repeat(255)); // 긴 제목
-        postReqDTO.setContent("B".repeat(5000)); // 긴 내용
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("A".repeat(255)) // 긴 제목
+                .content("B".repeat(5000)) // 긴 내용
+                .build();
 
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
@@ -384,9 +393,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = null;
         Long postId = 123L;
-        PostReqDTO postReqDTO = new PostReqDTO();
-        postReqDTO.setTitle("수정된 제목");
-        postReqDTO.setContent("수정된 내용");
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("수정된 제목")
+                .content("수정된 내용")
+                .build();
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(false);
@@ -408,7 +418,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = null;
-        PostReqDTO postReqDTO = new PostReqDTO();
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("테스트 제목")
+                .content("테스트 내용")
+                .build();
 
         given(postQueryPort.findById(postId)).willReturn(Optional.empty());
 
@@ -464,7 +477,7 @@ class PostCommandServiceTest {
     void shouldThrowException_WhenNegativeUserId() {
         // Given
         Long userId = -1L;
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("테스트 제목")
                 .content("테스트 내용")
                 .build();
@@ -486,7 +499,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = -1L;
-        PostReqDTO postReqDTO = new PostReqDTO();
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("테스트 제목")
+                .content("테스트 내용")
+                .build();
 
         given(postQueryPort.findById(postId)).willReturn(Optional.empty());
 
@@ -523,7 +539,7 @@ class PostCommandServiceTest {
         // Given
         Long userId = Long.MAX_VALUE;
         Long expectedPostId = 123L;
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title("테스트 제목")
                 .content("테스트 내용")
                 .build();
@@ -548,9 +564,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqDTO postReqDTO = new PostReqDTO();
-        postReqDTO.setTitle("수정된 제목");
-        postReqDTO.setContent("수정된 내용");
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("수정된 제목")
+                .content("수정된 내용")
+                .build();
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(false);
@@ -626,9 +643,10 @@ class PostCommandServiceTest {
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         
         for (int i = 0; i < expectedPostIds.length; i++) {
-            PostReqDTO postReqDTO = new PostReqDTO();
-            postReqDTO.setTitle("제목 " + (i + 1));
-            postReqDTO.setContent("내용 " + (i + 1));
+            PostReqVO postReqDTO = PostReqVO.builder()
+                    .title("제목 " + (i + 1))
+                    .content("내용 " + (i + 1))
+                    .build();
             
             Post mockPost = mock(Post.class);
             given(postCommandPort.save(any(Post.class))).willReturn(mockPost);
@@ -651,9 +669,10 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqDTO postReqDTO = new PostReqDTO();
-        postReqDTO.setTitle("수정된 제목");
-        postReqDTO.setContent("수정된 내용");
+        PostReqVO postReqDTO = PostReqVO.builder()
+                .title("수정된 제목")
+                .content("수정된 내용")
+                .build();
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(true);

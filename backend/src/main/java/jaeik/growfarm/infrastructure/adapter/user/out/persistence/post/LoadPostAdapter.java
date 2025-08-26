@@ -1,8 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.persistence.post;
 
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,14 +22,12 @@ public class LoadPostAdapter implements LoadPostPort {
     private final PostQueryUseCase postQueryUseCase;
 
     @Override
-    public Page<SimplePostResDTO> findPostsByUserId(Long userId, Pageable pageable) {
-        return postQueryUseCase.getUserPosts(userId, pageable)
-                .map(SimplePostResDTO::from);
+    public Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable) {
+        return postQueryUseCase.getUserPosts(userId, pageable);
     }
 
     @Override
-    public Page<SimplePostResDTO> findLikedPostsByUserId(Long userId, Pageable pageable) {
-        return postQueryUseCase.getUserLikedPosts(userId, pageable)
-                .map(SimplePostResDTO::from);
+    public Page<PostSearchResult> findLikedPostsByUserId(Long userId, Pageable pageable) {
+        return postQueryUseCase.getUserLikedPosts(userId, pageable);
     }
 }

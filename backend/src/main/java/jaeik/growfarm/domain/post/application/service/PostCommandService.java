@@ -6,8 +6,8 @@ import jaeik.growfarm.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCommandPort;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.entity.Post;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jaeik.growfarm.domain.post.event.PostDeletedEvent;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -45,19 +45,19 @@ public class PostCommandService implements PostCommandUseCase {
      * <p>사용자가 작성한 게시글을 저장하고, 해당 게시글의 ID를 반환합니다.</p>
      *
      * @param userId      게시글 작성자의 사용자 ID
-     * @param postReqDTO  게시글 요청 DTO
+     * @param postReqVO  게시글 요청 값 객체
      * @return 저장된 게시글의 ID
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public Long writePost(Long userId, PostReqDTO postReqDTO) {
-        if (postReqDTO == null) {
+    public Long writePost(Long userId, PostReqVO postReqVO) {
+        if (postReqVO == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         
         User user = loadUserInfoPort.getReferenceById(userId);
-        Post newPost = Post.createPost(user, postReqDTO);
+        Post newPost = Post.createPost(user, postReqVO);
         Post savedPost = postCommandPort.save(newPost);
         return savedPost.getId();
     }
@@ -70,13 +70,13 @@ public class PostCommandService implements PostCommandUseCase {
      *
      * @param userId     현재 로그인한 사용자 ID
      * @param postId     수정할 게시글 ID
-     * @param postReqDTO 수정할 게시글 정보 DTO
+     * @param postReqVO 수정할 게시글 정보 값 객체
      * @throws CustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public void updatePost(Long userId, Long postId, PostReqDTO postReqDTO) {
+    public void updatePost(Long userId, Long postId, PostReqVO postReqVO) {
         Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
@@ -84,16 +84,16 @@ public class PostCommandService implements PostCommandUseCase {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        if (postReqDTO == null) {
+        if (postReqVO == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        post.updatePost(postReqDTO);
+        post.updatePost(postReqVO);
         postCommandPort.save(post);
         postCacheCommandPort.deleteFullPostCache(postId);
         
         log.info("Post updated: postId={}, userId={}, title={}", postId, userId, 
-                 postReqDTO != null ? postReqDTO.getTitle() : "null");
+                 postReqVO != null ? postReqVO.title() : "null");
     }
 
     /**

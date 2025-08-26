@@ -1,8 +1,8 @@
 package jaeik.growfarm.domain.post.application.port.out;
 
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 
 import java.util.List;
 
@@ -20,21 +20,21 @@ public interface PostCacheCommandPort {
      * <p>게시글 목록을 캐시합니다.</p>
      *
      * @param type       캐시할 게시글 유형 (예: REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @param cachePosts 캐시할 SimplePostResDTO 목록
+     * @param cachePosts 캐시할 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    void cachePosts(PostCacheFlag type, List<SimplePostResDTO> cachePosts);
+    void cachePosts(PostCacheFlag type, List<PostSearchResult> cachePosts);
 
     /**
      * <h3>게시글 상세 캐시</h3>
      * <p>게시글 상세 정보를 캐시합니다.</p>
      *
-     * @param post 캐시할 FullPostResDTO
+     * @param post 캐시할 게시글 상세 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    void cacheFullPost(FullPostResDTO post);
+    void cacheFullPost(PostDetail post);
 
     /**
      * <h3>인기 게시글 캐시 삭제</h3>

@@ -8,7 +8,7 @@ import jaeik.growfarm.domain.post.entity.PostLike;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -397,7 +397,7 @@ class PostLikeQueryAdapterTest {
     }
 
     private Post createTestPost(User user, String title, String content) {
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title(title)
                 .content(content)
                 .password(1234)

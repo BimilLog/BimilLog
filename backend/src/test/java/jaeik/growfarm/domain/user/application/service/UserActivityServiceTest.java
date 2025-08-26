@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.user.application.service;
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
 import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,14 +53,14 @@ class UserActivityServiceTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         
-        List<SimplePostResDTO> posts = Arrays.asList(
-                SimplePostResDTO.builder()
+        List<PostSearchResult> posts = Arrays.asList(
+                PostSearchResult.builder()
                         .id(1L)
                         .title("게시글 1")
                         .content("내용 1")
                         .createdAt(Instant.now())
                         .build(),
-                SimplePostResDTO.builder()
+                PostSearchResult.builder()
                         .id(2L)
                         .title("게시글 2")
                         .content("내용 2")
@@ -68,12 +68,12 @@ class UserActivityServiceTest {
                         .build()
         );
         
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(posts, pageable, posts.size());
+        Page<PostSearchResult> expectedPage = new PageImpl<>(posts, pageable, posts.size());
 
         given(loadPostPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = userActivityService.getUserPosts(userId, pageable);
+        Page<PostSearchResult> result = userActivityService.getUserPosts(userId, pageable);
 
         // Then
         verify(loadPostPort).findPostsByUserId(userId, pageable);
@@ -89,8 +89,8 @@ class UserActivityServiceTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         
-        List<SimplePostResDTO> likedPosts = Arrays.asList(
-                SimplePostResDTO.builder()
+        List<PostSearchResult> likedPosts = Arrays.asList(
+                PostSearchResult.builder()
                         .id(3L)
                         .title("추천한 게시글 1")
                         .content("내용 3")
@@ -98,12 +98,12 @@ class UserActivityServiceTest {
                         .build()
         );
         
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(likedPosts, pageable, likedPosts.size());
+        Page<PostSearchResult> expectedPage = new PageImpl<>(likedPosts, pageable, likedPosts.size());
 
         given(loadPostPort.findLikedPostsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = userActivityService.getUserLikedPosts(userId, pageable);
+        Page<PostSearchResult> result = userActivityService.getUserLikedPosts(userId, pageable);
 
         // Then
         verify(loadPostPort).findLikedPostsByUserId(userId, pageable);
@@ -191,12 +191,12 @@ class UserActivityServiceTest {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
         given(loadPostPort.findPostsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimplePostResDTO> result = userActivityService.getUserPosts(userId, pageable);
+        Page<PostSearchResult> result = userActivityService.getUserPosts(userId, pageable);
 
         // Then
         verify(loadPostPort).findPostsByUserId(userId, pageable);
@@ -229,12 +229,12 @@ class UserActivityServiceTest {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        Page<SimplePostResDTO> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
         given(loadPostPort.findLikedPostsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimplePostResDTO> result = userActivityService.getUserLikedPosts(userId, pageable);
+        Page<PostSearchResult> result = userActivityService.getUserLikedPosts(userId, pageable);
 
         // Then
         verify(loadPostPort).findLikedPostsByUserId(userId, pageable);
@@ -271,9 +271,9 @@ class UserActivityServiceTest {
         // TODO: 테스트 실패 해결 - ArrayList 사용으로 mutable list 생성
         // 기존: Arrays.asList()는 immutable이므로 add() 호출 시 UnsupportedOperationException 발생
         // 수정: ArrayList 사용으로 동적 크기 변경 가능한 리스트 생성
-        List<SimplePostResDTO> posts = new ArrayList<>();
+        List<PostSearchResult> posts = new ArrayList<>();
         for (int i = 1; i <= 20; i++) {
-            posts.add(SimplePostResDTO.builder()
+            posts.add(PostSearchResult.builder()
                     .id((long) i)
                     .title("게시글 " + i)
                     .content("내용 " + i)
@@ -281,12 +281,12 @@ class UserActivityServiceTest {
                     .build());
         }
         
-        Page<SimplePostResDTO> expectedPage = new PageImpl<>(posts, pageable, posts.size());
+        Page<PostSearchResult> expectedPage = new PageImpl<>(posts, pageable, posts.size());
 
         given(loadPostPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<SimplePostResDTO> result = userActivityService.getUserPosts(userId, pageable);
+        Page<PostSearchResult> result = userActivityService.getUserPosts(userId, pageable);
 
         // Then
         verify(loadPostPort).findPostsByUserId(userId, pageable);
@@ -302,28 +302,28 @@ class UserActivityServiceTest {
         Pageable firstPage = PageRequest.of(0, 5);
         Pageable secondPage = PageRequest.of(1, 5);
         
-        List<SimplePostResDTO> firstPagePosts = Arrays.asList(
-                SimplePostResDTO.builder().id(1L).title("게시글 1").build(),
-                SimplePostResDTO.builder().id(2L).title("게시글 2").build(),
-                SimplePostResDTO.builder().id(3L).title("게시글 3").build(),
-                SimplePostResDTO.builder().id(4L).title("게시글 4").build(),
-                SimplePostResDTO.builder().id(5L).title("게시글 5").build()
+        List<PostSearchResult> firstPagePosts = Arrays.asList(
+                PostSearchResult.builder().id(1L).title("게시글 1").build(),
+                PostSearchResult.builder().id(2L).title("게시글 2").build(),
+                PostSearchResult.builder().id(3L).title("게시글 3").build(),
+                PostSearchResult.builder().id(4L).title("게시글 4").build(),
+                PostSearchResult.builder().id(5L).title("게시글 5").build()
         );
         
-        List<SimplePostResDTO> secondPagePosts = Arrays.asList(
-                SimplePostResDTO.builder().id(6L).title("게시글 6").build(),
-                SimplePostResDTO.builder().id(7L).title("게시글 7").build()
+        List<PostSearchResult> secondPagePosts = Arrays.asList(
+                PostSearchResult.builder().id(6L).title("게시글 6").build(),
+                PostSearchResult.builder().id(7L).title("게시글 7").build()
         );
         
-        Page<SimplePostResDTO> firstPageResult = new PageImpl<>(firstPagePosts, firstPage, 7);
-        Page<SimplePostResDTO> secondPageResult = new PageImpl<>(secondPagePosts, secondPage, 7);
+        Page<PostSearchResult> firstPageResult = new PageImpl<>(firstPagePosts, firstPage, 7);
+        Page<PostSearchResult> secondPageResult = new PageImpl<>(secondPagePosts, secondPage, 7);
 
         given(loadPostPort.findPostsByUserId(userId, firstPage)).willReturn(firstPageResult);
         given(loadPostPort.findPostsByUserId(userId, secondPage)).willReturn(secondPageResult);
 
         // When
-        Page<SimplePostResDTO> page1 = userActivityService.getUserPosts(userId, firstPage);
-        Page<SimplePostResDTO> page2 = userActivityService.getUserPosts(userId, secondPage);
+        Page<PostSearchResult> page1 = userActivityService.getUserPosts(userId, firstPage);
+        Page<PostSearchResult> page2 = userActivityService.getUserPosts(userId, secondPage);
 
         // Then
         verify(loadPostPort).findPostsByUserId(userId, firstPage);

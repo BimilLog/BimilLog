@@ -2,6 +2,7 @@ package jaeik.growfarm.infrastructure.adapter.post.in.web;
 
 import jaeik.growfarm.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -41,7 +42,8 @@ public class PostCommandController {
     @PostMapping
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostReqDTO postReqDTO) {
-        Long postId = postCommandUseCase.writePost(userDetails.getUserId(), postReqDTO);
+        PostReqVO postReqVO = convertToPostReqVO(postReqDTO);
+        Long postId = postCommandUseCase.writePost(userDetails.getUserId(), postReqVO);
         return ResponseEntity.created(URI.create("/api/posts/" + postId)).build();
     }
 
@@ -60,7 +62,8 @@ public class PostCommandController {
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody @Valid PostReqDTO postReqDTO) {
-        postCommandUseCase.updatePost(userDetails.getUserId(), postId, postReqDTO);
+        PostReqVO postReqVO = convertToPostReqVO(postReqDTO);
+        postCommandUseCase.updatePost(userDetails.getUserId(), postId, postReqVO);
         return ResponseEntity.ok().build();
     }
 
@@ -96,6 +99,22 @@ public class PostCommandController {
                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
         postInteractionUseCase.likePost(userDetails.getUserId(), postId);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * <h3>PostReqDTO를 PostReqVO로 변환</h3>
+     *
+     * @param dto 변환할 DTO 객체
+     * @return PostReqVO 도메인 value object
+     * @author jaeik
+     * @since 2.0.0
+     */
+    private PostReqVO convertToPostReqVO(PostReqDTO dto) {
+        return PostReqVO.builder()
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .password(dto.getPassword())
+                .build();
     }
 }
 

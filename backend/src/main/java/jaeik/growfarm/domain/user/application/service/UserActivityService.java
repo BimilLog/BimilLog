@@ -4,7 +4,7 @@ import jaeik.growfarm.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.growfarm.domain.user.application.port.out.LoadCommentPort;
 import jaeik.growfarm.domain.user.application.port.out.LoadPostPort;
 import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +38,7 @@ public class UserActivityService implements UserActivityUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> getUserPosts(Long userId, Pageable pageable) {
+    public Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable) {
         return loadPostPort.findPostsByUserId(userId, pageable);
     }
 
@@ -53,7 +53,7 @@ public class UserActivityService implements UserActivityUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<SimplePostResDTO> getUserLikedPosts(Long userId, Pageable pageable) {
+    public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
         return loadPostPort.findLikedPostsByUserId(userId, pageable);
     }
 

@@ -3,6 +3,8 @@ package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.cache;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
+import jaeik.growfarm.domain.post.entity.PostDetail;
+import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
@@ -77,10 +79,14 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void cachePosts(PostCacheFlag type, List<SimplePostResDTO> cachePosts) {
+    public void cachePosts(PostCacheFlag type, List<PostSearchResult> cachePosts) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            redisTemplate.opsForValue().set(metadata.key(), cachePosts, metadata.ttl());
+            // 도메인 객체를 DTO로 변환해서 캐시 저장 (Redis 직렬화를 위해)
+            List<SimplePostResDTO> dtos = cachePosts.stream()
+                    .map(this::convertToSimplePostResDTO)
+                    .toList();
+            redisTemplate.opsForValue().set(metadata.key(), dtos, metadata.ttl());
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
         }
@@ -96,10 +102,12 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void cacheFullPost(FullPostResDTO post) {
-        String key = FULL_POST_CACHE_PREFIX + post.getId();
+    public void cacheFullPost(PostDetail post) {
+        String key = FULL_POST_CACHE_PREFIX + post.id();
         try {
-            redisTemplate.opsForValue().set(key, post, FULL_POST_CACHE_TTL);
+            // 도메인 객체를 DTO로 변환해서 캐시 저장 (Redis 직렬화를 위해)
+            FullPostResDTO dto = convertToFullPostResDTO(post);
+            redisTemplate.opsForValue().set(key, dto, FULL_POST_CACHE_TTL);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
         }
@@ -181,5 +189,54 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_DELETE_ERROR, e);
         }
+    }
+
+    /**
+     * <h3>PostSearchResult를 SimplePostResDTO로 변환</h3>
+     *
+     * @param domain 변환할 도메인 객체
+     * @return SimplePostResDTO
+     * @author jaeik
+     * @since 2.0.0
+     */
+    private SimplePostResDTO convertToSimplePostResDTO(PostSearchResult domain) {
+        return new SimplePostResDTO(
+                domain.getId(),
+                domain.getTitle(),
+                domain.getContent(),
+                domain.getViewCount(),
+                domain.getLikeCount(),
+                domain.getPostCacheFlag(),
+                domain.getCreatedAt(),
+                domain.getUserId(),
+                domain.getUserName(),
+                domain.getCommentCount(),
+                domain.isNotice()
+        );
+    }
+
+    /**
+     * <h3>PostDetail을 FullPostResDTO로 변환</h3>
+     *
+     * @param domain 변환할 도메인 객체
+     * @return FullPostResDTO
+     * @author jaeik
+     * @since 2.0.0
+     */
+    private FullPostResDTO convertToFullPostResDTO(PostDetail domain) {
+        return new FullPostResDTO(
+                domain.id(),
+                domain.userId(),
+                domain.userName(),
+                domain.title(),
+                domain.content(),
+                domain.viewCount(),
+                domain.likeCount(),
+                domain.isNotice(),
+                domain.createdAt(),
+                domain.isLiked(),
+                domain.commentCount(),
+                domain.postCacheFlag()
+        );
     }
 }

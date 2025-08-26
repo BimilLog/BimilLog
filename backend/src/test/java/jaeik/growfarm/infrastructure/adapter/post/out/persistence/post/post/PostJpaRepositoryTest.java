@@ -8,7 +8,7 @@ import jaeik.growfarm.domain.post.entity.PostCacheFlag;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -164,7 +164,7 @@ class PostJpaRepositoryTest {
 
         // When: 게시글 수정
         Post foundPost = postJpaRepository.findById(savedPost.getId()).get();
-        PostReqDTO updateDTO = PostReqDTO.builder()
+        PostReqVO updateDTO = PostReqVO.builder()
                 .title("수정된 제목")
                 .content("수정된 내용")
                 .password(5678)
@@ -429,7 +429,7 @@ class PostJpaRepositoryTest {
         Post post2 = postJpaRepository.findById(savedPost.getId()).get();
 
         // 첫 번째 수정
-        PostReqDTO update1 = PostReqDTO.builder()
+        PostReqVO update1 = PostReqVO.builder()
                 .title("첫 번째 수정")
                 .content("첫 번째 내용")
                 .password(1111)
@@ -440,7 +440,7 @@ class PostJpaRepositoryTest {
 
         // 두 번째 수정 (최신 데이터를 다시 조회해서 수정)
         Post latestPost = postJpaRepository.findById(savedPost.getId()).get();
-        PostReqDTO update2 = PostReqDTO.builder()
+        PostReqVO update2 = PostReqVO.builder()
                 .title("두 번째 수정")
                 .content("두 번째 내용")  
                 .password(2222)
@@ -471,7 +471,7 @@ class PostJpaRepositoryTest {
     }
 
     private Post createTestPost(User user, String title, String content) {
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title(title)
                 .content(content)
                 .password(1234)

@@ -5,7 +5,7 @@ import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
+import jaeik.growfarm.domain.post.entity.PostReqVO;
 import jaeik.growfarm.util.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -125,7 +125,7 @@ class PostFulltextRepositoryTest {
         mixedPost = createPost("React + Spring Boot 풀스택 개발", "React frontend와 Spring Boot backend를 연동한 full-stack web application 개발 방법을 설명합니다.");
         
         // 4. 공지사항 (검색에서 제외되어야 함)
-        PostReqDTO noticeReqDTO = PostReqDTO.builder()
+        PostReqVO noticeReqDTO = PostReqVO.builder()
                 .title("스프링 부트 공지사항")
                 .content("중요한 공지사항입니다.")
                 .password(1234)
@@ -145,7 +145,7 @@ class PostFulltextRepositoryTest {
     }
 
     private Post createPost(String title, String content) {
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostReqVO postReqDTO = PostReqVO.builder()
                 .title(title)
                 .content(content)
                 .password(1234)
