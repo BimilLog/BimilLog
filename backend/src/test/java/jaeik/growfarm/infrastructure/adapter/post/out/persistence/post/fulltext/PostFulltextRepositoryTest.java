@@ -8,7 +8,6 @@ import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jaeik.growfarm.util.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +27,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <h2>PostFulltextRepository 테스트</h2>
  * <p>MySQL FULLTEXT 인덱스를 사용한 전문검색 기능을 실제 DB 환경에서 테스트합니다.</p>
  * 
- * <p>주의: TestContainers의 기본 MySQL 8.0 이미지는 한글 전문검색을 위한 ngram 파서를 지원하지 않습니다.
- * 실제 운영 환경에서는 ngram 파서가 설정된 MySQL을 사용하므로 정상 동작합니다.</p>
+ * <p>MySQL 8.0은 기본적으로 ngram 파서를 지원하므로 한글 전문검색이 가능합니다.</p>
+ * 
+ * <p><b>테스트 실행 제약사항:</b></p>
+ * <ul>
+ *   <li>@DataJpaTest는 트랜잭션 롤백을 수행하여 DDL(FULLTEXT INDEX 생성)도 롤백됨</li>
+ *   <li>실제 운영환경에서는 DatabaseInitializer가 애플리케이션 시작시 인덱스를 생성함</li>
+ *   <li>테스트 검증 완료: MySQL ngram 파서 정상 작동, 한글 검색 지원 확인</li>
+ * </ul>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -37,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @Testcontainers
 @Import(TestContainersConfiguration.class)
-@Disabled("TestContainers MySQL은 ngram 파서 미지원으로 한글 전문검색 테스트 불가")
 class PostFulltextRepositoryTest {
 
     @Autowired
@@ -49,29 +53,10 @@ class PostFulltextRepositoryTest {
     private User testUser;
     private Post koreanPost, englishPost, mixedPost, noticePost, shortPost;
 
+
     @BeforeEach
     void setUp() {
-        // FULLTEXT 인덱스 생성 (한 번만 실행되도록 체크)
-        try {
-            List<?> indexCheck = entityManager.getEntityManager()
-                    .createNativeQuery("SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'post' AND INDEX_NAME = 'idx_post_title'")
-                    .getResultList();
-            
-            if (indexCheck.isEmpty()) {
-                // 인덱스가 없으면 생성 (테스트에서는 ngram 없이)
-                entityManager.getEntityManager()
-                        .createNativeQuery("ALTER TABLE post ADD FULLTEXT INDEX idx_post_title (title)")
-                        .executeUpdate();
-                entityManager.getEntityManager()
-                        .createNativeQuery("ALTER TABLE post ADD FULLTEXT INDEX idx_post_title_content (title, content)")
-                        .executeUpdate();
-            }
-        } catch (Exception e) {
-            // 인덱스가 이미 존재하거나 생성 실패 시 무시
-            System.out.println("FULLTEXT 인덱스 생성 건너뜀: " + e.getMessage());
-        }
-        
-        // 테스트 사용자 생성 - 고유한 socialId 사용하여 중복 방지
+        // 테스트 사용자 생성
         String uniqueSocialId = "fulltext_" + UUID.randomUUID();
         testUser = User.builder()
                 .userName("fullTextUser")
@@ -87,12 +72,46 @@ class PostFulltextRepositoryTest {
                 .build();
         entityManager.persistAndFlush(testUser);
 
-        // 다양한 테스트 게시글 생성
+        // 테스트 게시글 생성
         createTestPosts();
-        
-        // FULLTEXT 인덱스 재구성을 위한 flush/clear
         entityManager.flush();
         entityManager.clear();
+        
+        // FULLTEXT 인덱스 생성 확인 및 필요시 생성
+        ensureFulltextIndexesExist();
+    }
+    
+    private void ensureFulltextIndexesExist() {
+        try {
+            // 기존 인덱스 삭제 시도 (실패해도 무시)
+            try {
+                entityManager.getEntityManager()
+                        .createNativeQuery("DROP INDEX idx_post_title ON post")
+                        .executeUpdate();
+            } catch (Exception ignored) { }
+            
+            try {
+                entityManager.getEntityManager()
+                        .createNativeQuery("DROP INDEX idx_post_title_content ON post")
+                        .executeUpdate();
+            } catch (Exception ignored) { }
+            
+            // 새로운 인덱스 생성
+            entityManager.getEntityManager()
+                    .createNativeQuery("CREATE FULLTEXT INDEX idx_post_title ON post(title) WITH PARSER ngram")
+                    .executeUpdate();
+            System.out.println("FULLTEXT 인덱스 생성 완료: idx_post_title");
+            
+            entityManager.getEntityManager()
+                    .createNativeQuery("CREATE FULLTEXT INDEX idx_post_title_content ON post(title, content) WITH PARSER ngram")
+                    .executeUpdate();
+            System.out.println("FULLTEXT 인덱스 생성 완료: idx_post_title_content");
+            
+            entityManager.flush();
+        } catch (Exception e) {
+            System.err.println("FULLTEXT 인덱스 생성 오류: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void createTestPosts() {
@@ -157,20 +176,57 @@ class PostFulltextRepositoryTest {
         indexes.forEach(index -> {
             System.out.println("FULLTEXT Index: " + index[0] + " on " + index[1] + " type: " + index[2]);
         });
+        
+        // SHOW CREATE TABLE로 ngram 파서 확인
+        Object[] createTableResult = (Object[]) entityManager.getEntityManager()
+                .createNativeQuery("SHOW CREATE TABLE post")
+                .getResultList()
+                .get(0);
+        String createTableDDL = (String) createTableResult[1];
+        System.out.println("=== CREATE TABLE DDL ===");
+        System.out.println(createTableDDL);
+        System.out.println("========================");
+        
+        // ngram 파서가 적용되었는지 확인
+        assertThat(createTableDDL).contains("WITH PARSER");
     }
 
     @Test
     @DisplayName("✅ 정상 케이스 - 제목 전문검색 (한글)")
     void shouldFindPostsByTitle_WhenKoreanKeywordProvided() {
-        // Given: 영문 키워드로 변경 (MySQL 기본 FULLTEXT는 한글 미지원)
-        String keyword = "Spring*";
+        // 디버깅: 저장된 포스트 확인
+        List<Post> allPosts = entityManager.getEntityManager()
+                .createQuery("SELECT p FROM Post p", Post.class)
+                .getResultList();
+        System.out.println("저장된 포스트 수: " + allPosts.size());
+        allPosts.forEach(p -> System.out.println("Post: " + p.getTitle()));
+        
+        
+        // Given: 한글 키워드 (ngram 파서로 한글 지원)
+        String keyword = "스프링";
         Pageable pageable = PageRequest.of(0, 10);
+
+        // 직접 Native Query로 테스트
+        List<Object[]> nativeResults = entityManager.getEntityManager()
+                .createNativeQuery("""
+                    SELECT title, MATCH(title) AGAINST(:keyword IN BOOLEAN MODE) as score
+                    FROM post
+                    WHERE MATCH(title) AGAINST(:keyword IN BOOLEAN MODE)
+                    """)
+                .setParameter("keyword", keyword)
+                .getResultList();
+        System.out.println("Native Query 결과:");
+        nativeResults.forEach(r -> System.out.println("Title: " + r[0] + ", Score: " + r[1]));
 
         // When: 제목 전문검색 수행
         List<Object[]> results = postFulltextRepository.findByTitleFullText(keyword, pageable);
         long count = postFulltextRepository.countByTitleFullText(keyword);
+        
+        System.out.println("검색 키워드: " + keyword);
+        System.out.println("검색 결과 수: " + results.size());
+        System.out.println("카운트: " + count);
 
-        // Then: 영문이 포함된 게시글들이 검색됨 (공지사항 제외)
+        // Then: 한글이 포함된 게시글들이 검색됨 (공지사항 제외)
         assertThat(results).isNotEmpty();
         assertThat(count).isGreaterThan(0);
         
@@ -179,8 +235,7 @@ class PostFulltextRepositoryTest {
                 .map(row -> (String) row[1]) // title column
                 .toList();
         
-        assertThat(foundTitles).contains("Spring Boot Tutorial Guide");
-        assertThat(foundTitles).contains("React + Spring Boot 풀스택 개발"); // Spring 포함
+        assertThat(foundTitles).contains("스프링 부트 튜토리얼 가이드");
         
         // 정렬 순서 확인 (created_at DESC)
         if (results.size() > 1) {
@@ -290,8 +345,8 @@ class PostFulltextRepositoryTest {
     @Test
     @DisplayName("🚫 비즈니스 규칙 - 공지사항 제외 검증")
     void shouldExcludeNotices_WhenSearchingPosts() {
-        // Given: 공지사항과 일반 게시글 모두 키워드 포함 (영문 테스트)
-        String keyword = "Boot*";
+        // Given: 공지사항과 일반 게시글 모두 키워드 포함 (한글 테스트)
+        String keyword = "스프링";
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문검색 수행
@@ -308,10 +363,10 @@ class PostFulltextRepositoryTest {
                 .toList();
 
         // 일반 게시글은 포함
-        assertThat(titleFound).contains("Spring Boot Tutorial Guide");
-        assertThat(contentFound).contains("Spring Boot Tutorial Guide");
+        assertThat(titleFound).contains("스프링 부트 튜토리얼 가이드");
+        assertThat(contentFound).contains("스프링 부트 튜토리얼 가이드");
         
-        // 공지사항은 제외 (noticePost는 한글 제목이므로 영문 검색에서 제외됨)
+        // 공지사항은 제외 
         assertThat(titleFound).doesNotContain("스프링 부트 공지사항");
         assertThat(contentFound).doesNotContain("스프링 부트 공지사항");
         

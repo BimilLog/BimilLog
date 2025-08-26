@@ -30,11 +30,11 @@ import java.time.Instant;
 public abstract class BaseEntity {
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP")
+    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP(6)")
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(name = "modified_at", columnDefinition = "TIMESTAMP")
+    @Column(name = "modified_at", columnDefinition = "TIMESTAMP(6)")
     private Instant modifiedAt;
 
 }

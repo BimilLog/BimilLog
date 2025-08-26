@@ -45,9 +45,9 @@ public class NotificationQueryAdapter implements NotificationQueryPort {
         return jpaQueryFactory
                 .select(Projections.constructor(NotificationDTO.class,
                         notification.id,
-                        notification.notificationType,
                         notification.content,
                         notification.url,
+                        notification.notificationType,
                         notification.isRead,
                         notification.createdAt))
                 .from(notification)

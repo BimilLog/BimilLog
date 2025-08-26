@@ -28,10 +28,10 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @SuperBuilder
 @Table(indexes = {
-        @Index(name = "idx_post_notice_created", columnList = "isNotice, created_at DESC"),
-        @Index(name = "idx_post_created_at_popular", columnList = "created_at, popularFlag"),
+        @Index(name = "idx_post_notice_created", columnList = "is_notice, created_at DESC"),
+        @Index(name = "idx_post_created_at_popular", columnList = "created_at, post_cache_flag"),
         @Index(name = "idx_post_created", columnList = "created_at"),
-        @Index(name = "idx_post_popular_flag", columnList = "popularFlag"),
+        @Index(name = "idx_post_popular_flag", columnList = "post_cache_flag"),
 })
 public class Post extends BaseEntity {
 
@@ -58,10 +58,11 @@ public class Post extends BaseEntity {
     private int views;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(name = "is_notice", nullable = false)
     private boolean isNotice;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "post_cache_flag")
     private PostCacheFlag postCacheFlag;
 
     private Integer password;
