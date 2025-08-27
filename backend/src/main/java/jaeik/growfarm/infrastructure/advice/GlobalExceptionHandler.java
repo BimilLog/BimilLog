@@ -5,8 +5,12 @@ import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * <h2>글로벌 예외 처리기</h2>
@@ -71,12 +75,54 @@ public class GlobalExceptionHandler {
      * @author Jaeik
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleAll(Exception e) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        if (e instanceof ResponseStatusException ex) {
+            status = (HttpStatus) ex.getStatusCode();
+        } else if (e.getClass().isAnnotationPresent(ResponseStatus.class)) {
+            status = e.getClass().getAnnotation(ResponseStatus.class).value();
+        }
+
         ErrorResponse response = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Unknown",
+                status.value(),
+                e.getClass().getSimpleName(),
                 e.getMessage());
-        log.error("Exception: 메시지: {}, 스택트레이스: {}", e.getMessage(), e.getClass().getSimpleName(), e);
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        log.error("Exception: {}", e.getMessage(), e);
+        return ResponseEntity.status(status).body(response);
     }
+
+    /**
+     * <h3>시큐리티 권한 부족 예외 처리</h3>
+     * 시큐리티의 권한 에러를 잡는다.
+     * @param
+     * @return
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                e.getClass().getSimpleName(),
+                e.getMessage()
+        );
+        log.warn("AccessDeniedException: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    /**
+     * <h3>Spring Security 인증 실패 예외 처리</h3>
+     * 인증되지 않은 사용자가 접근했을 때 401 Unauthorized 반환
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                e.getClass().getSimpleName(),
+                e.getMessage()
+        );
+        log.warn("AuthenticationException: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
 }

@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.admin.in.web;
+package jaeik.growfarm.util;
 
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
