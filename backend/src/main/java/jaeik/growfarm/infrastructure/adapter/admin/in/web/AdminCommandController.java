@@ -32,7 +32,7 @@ public class AdminCommandController {
     @PostMapping("/reports/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> banUser(@RequestBody ReportDTO reportDTO) {
-        adminCommandUseCase.banUser(reportDTO);
+        adminCommandUseCase.banUser(reportDTO.toReportVO());
         return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
     }
 

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.admin.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.growfarm.domain.admin.entity.ReportVO;
 
 /**
  * <h2>관리자 명령 유스케이스</h2>
@@ -14,11 +14,11 @@ public interface AdminCommandUseCase {
      * <h3>사용자 제재</h3>
      * <p>주어진 신고 정보를 기반으로 사용자를 제재합니다.</p>
      *
-     * @param reportDTO 신고 정보 DTO
+     * @param reportVO 신고 정보 값 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    void banUser(ReportDTO reportDTO);
+    void banUser(ReportVO reportVO);
 
     /**
      * <h3>사용자 강제 탈퇴</h3>

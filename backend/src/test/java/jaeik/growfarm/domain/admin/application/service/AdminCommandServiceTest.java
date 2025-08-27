@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.admin.event.UserBannedEvent;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.growfarm.domain.admin.entity.ReportVO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +53,7 @@ class AdminCommandServiceTest {
     @InjectMocks
     private AdminCommandService adminCommandService;
 
-    private ReportDTO validReportDTO;
+    private ReportVO validReportVO;
     private User testUser;
 
     @BeforeEach
@@ -64,10 +64,7 @@ class AdminCommandServiceTest {
                 adminCommandPort
         );
 
-        validReportDTO = ReportDTO.builder()
-                .id(1L)
-                .reporterId(100L)
-                .reporterName("reporter")
+        validReportVO = ReportVO.builder()
                 .reportType(ReportType.POST)
                 .targetId(200L)
                 .content("불쾌한 내용")
@@ -89,7 +86,7 @@ class AdminCommandServiceTest {
         given(reportedUserResolver.resolve(200L)).willReturn(testUser);
 
         // When
-        adminCommandService.banUser(validReportDTO);
+        adminCommandService.banUser(validReportVO);
 
         // Then
         ArgumentCaptor<UserBannedEvent> eventCaptor = ArgumentCaptor.forClass(UserBannedEvent.class);
@@ -105,9 +102,10 @@ class AdminCommandServiceTest {
     @DisplayName("targetId가 null인 경우 INVALID_REPORT_TARGET 예외 발생")
     void shouldThrowException_WhenTargetIdIsNull() {
         // Given
-        ReportDTO invalidReport = ReportDTO.builder()
+        ReportVO invalidReport = ReportVO.builder()
                 .reportType(ReportType.POST)
                 .targetId(null)
+                .content("invalid report")
                 .build();
 
         // When & Then
@@ -126,7 +124,7 @@ class AdminCommandServiceTest {
         given(reportedUserResolver.resolve(200L)).willReturn(null);
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(validReportDTO))
+        assertThatThrownBy(() -> adminCommandService.banUser(validReportVO))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
@@ -140,7 +138,7 @@ class AdminCommandServiceTest {
         given(reportedUserResolver.supports()).willReturn(ReportType.COMMENT);
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(validReportDTO))
+        assertThatThrownBy(() -> adminCommandService.banUser(validReportVO))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
 
@@ -191,28 +189,19 @@ class AdminCommandServiceTest {
                 adminCommandPort
         );
 
-        ReportDTO postReport = ReportDTO.builder()
-                .id(1L)
-                .reporterId(100L)
-                .reporterName("reporter")
+        ReportVO postReport = ReportVO.builder()
                 .reportType(ReportType.POST)
                 .targetId(200L)
                 .content("부적절한 게시글")
                 .build();
         
-        ReportDTO commentReport = ReportDTO.builder()
-                .id(2L)
-                .reporterId(100L)
-                .reporterName("reporter")
+        ReportVO commentReport = ReportVO.builder()
                 .reportType(ReportType.COMMENT)
                 .targetId(300L)
                 .content("부적절한 댓글")
                 .build();
         
-        ReportDTO paperReport = ReportDTO.builder()
-                .id(3L)
-                .reporterId(100L)
-                .reporterName("reporter")
+        ReportVO paperReport = ReportVO.builder()
                 .reportType(ReportType.PAPER)
                 .targetId(400L)
                 .content("부적절한 메시지")
@@ -248,7 +237,7 @@ class AdminCommandServiceTest {
         );
 
         // When
-        adminCommandService.banUser(validReportDTO);
+        adminCommandService.banUser(validReportVO);
 
         // Then
         verify(postResolver).resolve(200L);

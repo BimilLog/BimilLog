@@ -5,8 +5,8 @@ import jaeik.growfarm.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.growfarm.domain.admin.application.port.in.ReportedUserResolver;
 import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.growfarm.domain.admin.entity.ReportType;
+import jaeik.growfarm.domain.admin.entity.ReportVO;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import jaeik.growfarm.domain.admin.event.UserBannedEvent;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -38,18 +38,18 @@ public class AdminCommandService implements AdminCommandUseCase {
      * <h3>사용자 제재</h3>
      * <p>주어진 신고 정보를 기반으로 사용자를 제재 처리하고 사용자 제재 이벤트를 발행합니다.</p>
      *
-     * @param reportDTO 신고 정보 DTO
+     * @param reportVO 신고 정보 값 객체
      * @throws CustomException 잘못된 신고 대상이거나 사용자를 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void banUser(ReportDTO reportDTO) {
-        if (reportDTO.getTargetId() == null) {
+    public void banUser(ReportVO reportVO) {
+        if (reportVO.targetId() == null) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
         }
 
-        User user = resolveUser(reportDTO.getReportType(), reportDTO.getTargetId());
+        User user = resolveUser(reportVO.reportType(), reportVO.targetId());
         if (user == null) {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }

@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.admin.entity;
 
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import jaeik.growfarm.domain.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -47,20 +46,20 @@ public class Report extends BaseEntity {
     private String content;
 
     /**
-     * <h3>ReportDTO로부터 Report 엔티티 생성</h3>
-     * <p>ReportDTO와 사용자 정보를 사용하여 새로운 Report 엔티티를 생성합니다.</p>
+     * <h3>ReportVO로부터 Report 엔티티 생성</h3>
+     * <p>ReportVO와 사용자 정보를 사용하여 새로운 Report 엔티티를 생성합니다.</p>
      *
-     * @param reportDTO 신고 정보 DTO
-     * @param user      신고한 사용자 엔티티
+     * @param reportVO 신고 정보 값 객체
+     * @param user     신고한 사용자 엔티티
      * @return Report 생성된 신고 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Report DtoToReport(ReportDTO reportDTO, User user) {
+    public static Report createReport(ReportVO reportVO, User user) {
         return Report.builder()
-                .content(reportDTO.getContent())
-                .reportType(reportDTO.getReportType())
-                .targetId(reportDTO.getTargetId())
+                .content(reportVO.content())
+                .reportType(reportVO.reportType())
+                .targetId(reportVO.targetId())
                 .reporter(user)
                 .build();
     }
