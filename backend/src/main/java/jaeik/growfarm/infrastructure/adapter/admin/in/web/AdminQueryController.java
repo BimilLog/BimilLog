@@ -7,6 +7,7 @@ import jaeik.growfarm.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -35,6 +36,7 @@ public class AdminQueryController {
      * @since 2.0.0
      */
     @GetMapping("/reports")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size,
                                                          @RequestParam(required = false) ReportType reportType) {
