@@ -19,7 +19,6 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>KakaoLoginStrategy 단위 테스트</h2>
  * <p>비즈니스 로직 위주로 테스트하며, WebClient는 의존성으로만 Mock 처리</p>
- * <p>테스트 축소나 우회 없이 모든 시나리오를 완벽하게 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -31,8 +30,6 @@ class KakaoLoginStrategyTest {
     @Mock private WebClient.Builder webClientBuilder;
 
     @InjectMocks private KakaoLoginStrategy kakaoLoginStrategy;
-
-    // @BeforeEach 제거: 각 테스트에서 필요한 스텁만 개별 설정하여 UnnecessaryStubbingException 방지
 
     @Test
     @DisplayName("소셜 제공자 확인 - 카카오 Provider 반환")

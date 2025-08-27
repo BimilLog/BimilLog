@@ -3,6 +3,7 @@ package jaeik.growfarm.infrastructure.adapter.paper.out.persistence.user;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.entity.Setting;
+import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.util.TestContainersConfiguration;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -56,7 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LoadUserInfoAdapterTest {
 
     // TestUserQueryUseCase: UserQueryUseCase 실제 구현체 테스트용 버전
-    @org.springframework.stereotype.Component
+    @Component
     static class TestUserQueryUseCase implements UserQueryUseCase {
         
         @Autowired
@@ -104,14 +106,14 @@ class LoadUserInfoAdapterTest {
         }
         
         @Override
-        public java.util.Optional<User> findByProviderAndSocialId(jaeik.growfarm.domain.common.entity.SocialProvider provider, String socialId) {
-            return java.util.Optional.empty();
+        public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+            return Optional.empty();
         }
         
         
         @Override
-        public java.util.Optional<jaeik.growfarm.domain.user.entity.Token> findTokenById(Long tokenId) {
-            return java.util.Optional.empty();
+        public Optional<Token> findTokenById(Long tokenId) {
+            return Optional.empty();
         }
     }
 
