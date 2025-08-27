@@ -124,7 +124,7 @@ class SocialLoginServiceTest {
             assertThat(newUserResponse.tempCookie()).isEqualTo(tempCookie);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
-            verify(tempDataPort).saveTempData(anyString(), eq(testUserProfile), eq(testTokenVO));
+            verify(tempDataPort).saveTempData(anyString(), eq(testUserProfile), eq(testTokenVO), eq("fcm-token"));
             verify(tempDataPort).createTempCookie(anyString());
         }
     }

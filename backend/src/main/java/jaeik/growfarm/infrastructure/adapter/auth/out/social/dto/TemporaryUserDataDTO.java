@@ -20,17 +20,17 @@ public class TemporaryUserDataDTO {
      * 도메인 모델에서 인프라 DTO로 변환하는 정적 팩토리 메서드
      * (의존성 역전 원칙을 준수하면서 어댑터에서 변환 처리)
      */
-    public static TemporaryUserDataDTO fromDomainProfile(SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO) {
+    public static TemporaryUserDataDTO fromDomainProfile(SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
         SocialLoginUserData socialLoginUserData = SocialLoginUserData.builder()
                 .socialId(userProfile.socialId())
                 .email(userProfile.email())
                 .provider(userProfile.provider())
                 .nickname(userProfile.nickname())
                 .profileImageUrl(userProfile.profileImageUrl())
-                .fcmToken(null) // FCM 토큰은 소셜 로그인과 별도 관리
+                .fcmToken(fcmToken) // FCM 토큰 저장
                 .build();
 
-        return new TemporaryUserDataDTO(socialLoginUserData, tokenVO, null);
+        return new TemporaryUserDataDTO(socialLoginUserData, tokenVO, fcmToken);
     }
 
     /**

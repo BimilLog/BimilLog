@@ -65,7 +65,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         if (!loginResult.isNewUser()) {
             return handleExistingUser(loginResult, fcmToken);
         } else {
-            return handleNewUser(loginResult);
+            return handleNewUser(loginResult, fcmToken);
         }
     }
     
@@ -91,13 +91,14 @@ public class SocialLoginService implements SocialLoginUseCase {
      * <p>신규 사용자의 로그인 결과를 처리하고 임시 데이터를 저장합니다.</p>
      *
      * @param loginResult 로그인 결과
+     * @param fcmToken Firebase Cloud Messaging 토큰
      * @return 신규 사용자 로그인 응답
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.NewUser handleNewUser(SocialLoginPort.LoginResult loginResult) {
+    private LoginResult.NewUser handleNewUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
-        tempDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token());
+        tempDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token(), fcmToken);
         ResponseCookie tempCookie = tempDataPort.createTempCookie(uuid);
         return new LoginResult.NewUser(uuid, tempCookie);
     }

@@ -55,7 +55,7 @@ public class TempDataAdapter implements TempDataPort {
      * @author Jaeik
      */
     @Override
-    public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO) {
+    public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
         // TODO: 테스트 실패 수정 - 메인 로직에 Input Validation 추가
         // NPE 방지를 위한 필수 파라미터 검증
         
@@ -79,7 +79,7 @@ public class TempDataAdapter implements TempDataPort {
         
         try {            
             // 4. 임시 데이터 저장 (인프라 DTO → 도메인 모델 변환 적용)
-            tempUserDataStore.put(uuid, TemporaryUserDataDTO.fromDomainProfile(userProfile, tokenVO));
+            tempUserDataStore.put(uuid, TemporaryUserDataDTO.fromDomainProfile(userProfile, tokenVO, fcmToken));
             
             // 6. 자동 정리 스케줄링
             scheduleCleanup(uuid);

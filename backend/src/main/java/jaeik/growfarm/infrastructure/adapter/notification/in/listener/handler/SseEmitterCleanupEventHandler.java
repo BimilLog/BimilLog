@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 /**
  * <h2>SSE 연결 정리 이벤트 핸들러</h2>
  * <p>사용자 로그아웃 시 SSE 연결 정리를 담당하는 이벤트 핸들러</p>
- * <p>단일 책임 원칙(SRP)에 따라 SSE 정리 로직만을 담당</p>
  *
  * @author Jaeik
  * @since 2.0.0

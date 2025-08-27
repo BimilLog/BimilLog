@@ -24,8 +24,6 @@ public class FcmTokenEventListener {
 
     private final NotificationFcmUseCase notificationFcmUseCase;
 
-    // FCM 토큰 등록은 SaveDataAdapter에서 직접 호출로 변경됨 (로그인/회원가입 시)
-
     /**
      * <h3>사용자 로그아웃 이벤트 처리 핸들러</h3>
      * <p>사용자 로그아웃 시 FCM 토큰을 삭제합니다.</p>
