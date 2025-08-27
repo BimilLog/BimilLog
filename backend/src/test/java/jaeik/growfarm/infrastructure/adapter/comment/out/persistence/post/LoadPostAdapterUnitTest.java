@@ -37,7 +37,7 @@ class LoadPostAdapterUnitTest {
     private PostQueryUseCase postQueryUseCase;
 
     @InjectMocks
-    private LoadPostAdapter loadPostAdapter;
+    private CommentLoadPostAdapter commentLoadPostAdapter;
 
     private User testUser;
     private Post testPost;
@@ -83,7 +83,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(postId)).willReturn(Optional.of(testPost));
 
         // When: 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(postId);
+        Optional<Post> result = commentLoadPostAdapter.findById(postId);
 
         // Then: 올바른 게시글이 반환되었는지 검증
         assertThat(result).isPresent();
@@ -106,7 +106,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(nonExistentPostId)).willReturn(Optional.empty());
 
         // When: 존재하지 않는 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(nonExistentPostId);
+        Optional<Post> result = commentLoadPostAdapter.findById(nonExistentPostId);
 
         // Then: 빈 Optional이 반환되었는지 검증
         assertThat(result).isEmpty();
@@ -123,7 +123,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(noticePostId)).willReturn(Optional.of(noticePost));
 
         // When: 공지사항 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(noticePostId);
+        Optional<Post> result = commentLoadPostAdapter.findById(noticePostId);
 
         // Then: 공지사항 게시글이 올바르게 반환되었는지 검증
         assertThat(result).isPresent();
@@ -145,7 +145,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(nullPostId)).willReturn(Optional.empty());
 
         // When: null ID로 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(nullPostId);
+        Optional<Post> result = commentLoadPostAdapter.findById(nullPostId);
 
         // Then: 빈 Optional이 반환되었는지 검증
         assertThat(result).isEmpty();
@@ -162,7 +162,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(negativePostId)).willReturn(Optional.empty());
 
         // When: 음수 ID로 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(negativePostId);
+        Optional<Post> result = commentLoadPostAdapter.findById(negativePostId);
 
         // Then: 빈 Optional이 반환되었는지 검증
         assertThat(result).isEmpty();
@@ -187,7 +187,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(postId)).willReturn(Optional.of(highViewPost));
 
         // When: 높은 조회수 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(postId);
+        Optional<Post> result = commentLoadPostAdapter.findById(postId);
 
         // Then: 높은 조회수 게시글이 올바르게 반환되었는지 검증
         assertThat(result).isPresent();
@@ -223,7 +223,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(postId)).willReturn(Optional.of(anotherUserPost));
 
         // When: 다른 사용자 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(postId);
+        Optional<Post> result = commentLoadPostAdapter.findById(postId);
 
         // Then: 다른 사용자 게시글이 올바르게 반환되었는지 검증
         assertThat(result).isPresent();
@@ -243,7 +243,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(maxPostId)).willReturn(Optional.empty());
 
         // When: 최대값 ID로 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(maxPostId);
+        Optional<Post> result = commentLoadPostAdapter.findById(maxPostId);
 
         // Then: 빈 Optional이 반환되었는지 검증
         assertThat(result).isEmpty();
@@ -262,7 +262,7 @@ class LoadPostAdapterUnitTest {
 
         // When & Then: 예외가 전파되는지 검증
         try {
-            loadPostAdapter.findById(postId);
+            commentLoadPostAdapter.findById(postId);
         } catch (RuntimeException actualException) {
             assertThat(actualException).isEqualTo(expectedException);
             assertThat(actualException.getMessage()).isEqualTo("Post service error");
@@ -280,9 +280,9 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(postId)).willReturn(Optional.of(testPost));
 
         // When: 동일한 ID로 여러 번 조회
-        Optional<Post> result1 = loadPostAdapter.findById(postId);
-        Optional<Post> result2 = loadPostAdapter.findById(postId);
-        Optional<Post> result3 = loadPostAdapter.findById(postId);
+        Optional<Post> result1 = commentLoadPostAdapter.findById(postId);
+        Optional<Post> result2 = commentLoadPostAdapter.findById(postId);
+        Optional<Post> result3 = commentLoadPostAdapter.findById(postId);
 
         // Then: 모든 결과가 일관되게 동일한 게시글을 반환해야 함
         assertThat(result1).isPresent();
@@ -305,7 +305,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(anyLong())).willReturn(Optional.of(testPost));
 
         // When: 포트 인터페이스 메서드 호출
-        Optional<Post> result = loadPostAdapter.findById(postId);
+        Optional<Post> result = commentLoadPostAdapter.findById(postId);
 
         // Then: 포트 계약에 따른 정확한 결과 반환 확인
         assertThat(result).isNotNull(); // Optional이 null이면 안됨
@@ -341,7 +341,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(postId)).willReturn(Optional.of(emptyContentPost));
 
         // When: 빈 내용 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(postId);
+        Optional<Post> result = commentLoadPostAdapter.findById(postId);
 
         // Then: 빈 내용 게시글이 올바르게 반환되었는지 검증
         assertThat(result).isPresent();
@@ -372,7 +372,7 @@ class LoadPostAdapterUnitTest {
         given(postQueryUseCase.findById(postId)).willReturn(Optional.of(complexPost));
 
         // When: 복잡한 게시글 조회
-        Optional<Post> result = loadPostAdapter.findById(postId);
+        Optional<Post> result = commentLoadPostAdapter.findById(postId);
 
         // Then: 복잡한 게시글이 올바르게 반환되었는지 검증
         assertThat(result).isPresent();

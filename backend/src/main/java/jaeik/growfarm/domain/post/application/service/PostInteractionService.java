@@ -1,5 +1,7 @@
 package jaeik.growfarm.domain.post.application.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.growfarm.domain.post.application.port.out.*;
 import jaeik.growfarm.domain.post.application.port.out.LoadUserInfoPort;
@@ -12,6 +14,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.*;
 
 /**
  * <h2>게시글 상호작용 서비스</h2>
@@ -60,7 +67,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     }
 
     /**
-     * <h3>게시글 조회수 증가</h3>
+     * <h3>게시글 조회수 증가 (간단)</h3>
      * <p>게시글의 조회수를 1 증가시킵니다.</p>
      * <p>엔티티의 더티 체킹에 의해 자동으로 저장됩니다.</p>
      *
@@ -75,5 +82,132 @@ public class PostInteractionService implements PostInteractionUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         postCommandPort.incrementView(post);
         log.debug("Post view count incremented: postId={}, newViewCount={}", postId, post.getViews());
+    }
+
+    /**
+     * <h3>게시글 조회수 증가 (쿠키 기반 중복 방지)</h3>
+     * <p>게시글의 조회수를 1 증가시킵니다.</p>
+     * <p>쿠키를 이용하여 동일한 사용자의 중복 조회를 방지합니다.</p>
+     * <p>24시간 동안 최대 100개의 게시글 조회 기록을 유지합니다.</p>
+     *
+     * @param postId   조회수를 증가시킬 게시글 ID
+     * @param request  HTTP 요청 (쿠키 확인용)
+     * @param response HTTP 응답 (쿠키 설정용)
+     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public void incrementViewCountWithCookie(Long postId, HttpServletRequest request, HttpServletResponse response) {
+        // 1. 게시글 존재 확인
+        if (!postQueryPort.findById(postId).isPresent()) {
+            throw new CustomException(ErrorCode.POST_NOT_FOUND);
+        }
+
+        // 2. 쿠키 확인
+        Cookie[] cookies = request.getCookies();
+
+        // 3. 쿠키가 없거나 해당 게시글을 아직 조회하지 않은 경우에만 조회수 증가
+        if (!hasViewedPost(cookies, postId)) {
+            incrementViewCount(postId); // 기존 메서드 재사용
+            updateViewCookie(response, cookies, postId);
+            log.debug("Post view count incremented with cookie protection: postId={}", postId);
+        } else {
+            log.debug("Post view count not incremented (already viewed): postId={}", postId);
+        }
+    }
+
+    /**
+     * <h3>조회 쿠키 업데이트</h3>
+     * <p>사용자가 조회한 게시글 ID를 쿠키에 저장합니다.</p>
+     * <p>JSON 배열을 Base64로 인코딩하여 저장하며, 최대 100개까지 유지합니다.</p>
+     *
+     * @param response HTTP 응답 (쿠키 설정용)
+     * @param cookies  현재 요청의 쿠키 배열
+     * @param postId   추가할 게시글 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    private void updateViewCookie(HttpServletResponse response, Cookie[] cookies, Long postId) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Long> viewedPostIds = new ArrayList<>();
+
+            if (cookies != null) {
+                Optional<Cookie> existingCookie = Arrays.stream(cookies)
+                        .filter(cookie -> "post_views".equals(cookie.getName()))
+                        .findFirst();
+
+                if (existingCookie.isPresent()) {
+                    try {
+                        String jsonValue = new String(Base64.getDecoder().decode(existingCookie.get().getValue()));
+                        viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<List<Long>>() {
+                        });
+                    } catch (Exception e) {
+                        // 기존 쿠키 값이 유효하지 않은 경우 빈 리스트로 시작
+                        viewedPostIds = new ArrayList<>();
+                        log.warn("Invalid cookie value, starting with empty list", e);
+                    }
+                }
+            }
+
+            // 이미 본 게시글이면 추가하지 않음
+            if (!viewedPostIds.contains(postId)) {
+                viewedPostIds.add(postId);
+
+                // 최대 100개까지만 유지
+                if (viewedPostIds.size() > 100) {
+                    viewedPostIds = viewedPostIds.subList(viewedPostIds.size() - 100, viewedPostIds.size());
+                }
+
+                // JSON으로 직렬화 - Base64로 인코딩
+                String jsonValue = objectMapper.writeValueAsString(viewedPostIds);
+                String encodedValue = Base64.getEncoder().encodeToString(jsonValue.getBytes());
+
+                Cookie viewCookie = new Cookie("post_views", encodedValue);
+                viewCookie.setMaxAge(24 * 60 * 60); // 24시간
+                viewCookie.setPath("/");
+                viewCookie.setHttpOnly(true);
+                response.addCookie(viewCookie);
+            }
+        } catch (Exception e) {
+            log.error("Failed to update view cookie for postId: {}", postId, e);
+        }
+    }
+
+    /**
+     * <h3>사용자가 게시글을 본 적 있는지 확인</h3>
+     * <p>쿠키를 통해 사용자가 해당 게시글을 본 적 있는지 확인합니다.</p>
+     *
+     * @param cookies 현재 요청의 쿠키 배열
+     * @param postId  확인할 게시글 ID
+     * @return 조회한 적이 있으면 true, 없으면 false
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    private boolean hasViewedPost(Cookie[] cookies, Long postId) {
+        if (cookies == null) {
+            return false;
+        }
+        
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return Arrays.stream(cookies)
+                    .filter(cookie -> "post_views".equals(cookie.getName()))
+                    .anyMatch(cookie -> {
+                        try {
+                            String jsonValue = new String(Base64.getDecoder().decode(cookie.getValue()));
+                            List<Long> viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<>() {
+                            });
+                            return viewedPostIds.contains(postId);
+                        } catch (Exception e) {
+                            log.warn("Failed to parse view cookie", e);
+                            return false;
+                        }
+                    });
+        } catch (Exception e) {
+            log.error("Error checking viewed posts for postId: {}", postId, e);
+            return false;
+        }
     }
 }

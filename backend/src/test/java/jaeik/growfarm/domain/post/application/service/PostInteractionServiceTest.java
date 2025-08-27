@@ -14,11 +14,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Base64;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -48,6 +53,12 @@ class PostInteractionServiceTest {
 
     @Mock
     private LoadUserInfoPort loadUserInfoPort;
+
+    @Mock
+    private HttpServletRequest request;
+
+    @Mock
+    private HttpServletResponse response;
 
     @Mock
     private User user;
@@ -355,5 +366,173 @@ class PostInteractionServiceTest {
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         verify(postLikeCommandPort).save(any(PostLike.class));
+    }
+
+    // ==================== 쿠키 기반 조회수 증가 테스트 ====================
+
+    @Test
+    @DisplayName("쿠키 기반 조회수 증가 - 처음 조회하는 경우 (조회수 증가)")
+    void shouldIncrementViewCountWithCookie_WhenFirstView() {
+        // Given
+        Long postId = 123L;
+
+        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(request.getCookies()).willReturn(null); // 쿠키 없음
+
+        // When
+        postInteractionService.incrementViewCountWithCookie(postId, request, response);
+
+        // Then
+        verify(postQueryPort, times(2)).findById(postId); // 존재 확인 + 조회수 증가용
+        verify(postCommandPort).incrementView(post); // 조회수 증가
+        
+        // 쿠키 생성 확인
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(response).addCookie(cookieCaptor.capture());
+        
+        Cookie savedCookie = cookieCaptor.getValue();
+        assertThat(savedCookie.getName()).isEqualTo("post_views");
+        assertThat(savedCookie.getMaxAge()).isEqualTo(24 * 60 * 60); // 24시간
+        assertThat(savedCookie.isHttpOnly()).isTrue();
+        assertThat(savedCookie.getPath()).isEqualTo("/");
+    }
+
+    @Test
+    @DisplayName("쿠키 기반 조회수 증가 - 이미 조회한 경우 (조회수 증가 안함)")
+    void shouldNotIncrementViewCountWithCookie_WhenAlreadyViewed() {
+        // Given
+        Long postId = 123L;
+        String existingCookieValue = Base64.getEncoder().encodeToString("[123]".getBytes());
+        Cookie existingCookie = new Cookie("post_views", existingCookieValue);
+
+        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(request.getCookies()).willReturn(new Cookie[]{existingCookie});
+
+        // When
+        postInteractionService.incrementViewCountWithCookie(postId, request, response);
+
+        // Then
+        verify(postQueryPort).findById(postId); // 존재 확인만
+        verify(postCommandPort, never()).incrementView(any()); // 조회수 증가 안함
+        verify(response, never()).addCookie(any()); // 쿠키 업데이트 안함
+    }
+
+    @Test
+    @DisplayName("쿠키 기반 조회수 증가 - 다른 게시글은 조회했지만 이 게시글은 처음인 경우")
+    void shouldIncrementViewCountWithCookie_WhenViewingDifferentPost() {
+        // Given
+        Long postId = 123L;
+        String existingCookieValue = Base64.getEncoder().encodeToString("[456, 789]".getBytes());
+        Cookie existingCookie = new Cookie("post_views", existingCookieValue);
+
+        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(request.getCookies()).willReturn(new Cookie[]{existingCookie});
+
+        // When
+        postInteractionService.incrementViewCountWithCookie(postId, request, response);
+
+        // Then
+        verify(postQueryPort, times(2)).findById(postId); // 존재 확인 + 조회수 증가용
+        verify(postCommandPort).incrementView(post); // 조회수 증가
+
+        // 쿠키 업데이트 확인
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(response).addCookie(cookieCaptor.capture());
+        
+        Cookie updatedCookie = cookieCaptor.getValue();
+        assertThat(updatedCookie.getName()).isEqualTo("post_views");
+    }
+
+    @Test
+    @DisplayName("쿠키 기반 조회수 증가 - 존재하지 않는 게시글인 경우")
+    void shouldThrowException_WhenIncrementViewWithCookieForNonExistentPost() {
+        // Given
+        Long postId = 999L;
+
+        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> postInteractionService.incrementViewCountWithCookie(postId, request, response))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+
+        verify(postQueryPort).findById(postId);
+        verify(postCommandPort, never()).incrementView(any());
+        verify(response, never()).addCookie(any());
+    }
+
+    @Test
+    @DisplayName("쿠키 기반 조회수 증가 - 잘못된 쿠키 값인 경우 (새 쿠키로 처리)")
+    void shouldIncrementViewCountWithCookie_WhenInvalidCookieValue() {
+        // Given
+        Long postId = 123L;
+        Cookie invalidCookie = new Cookie("post_views", "invalid-base64-value");
+
+        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(request.getCookies()).willReturn(new Cookie[]{invalidCookie});
+
+        // When
+        postInteractionService.incrementViewCountWithCookie(postId, request, response);
+
+        // Then - 잘못된 쿠키는 무시하고 새로 처리
+        verify(postQueryPort, times(2)).findById(postId);
+        verify(postCommandPort).incrementView(post); // 조회수 증가
+
+        // 새 쿠키 생성 확인
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(response).addCookie(cookieCaptor.capture());
+        
+        Cookie newCookie = cookieCaptor.getValue();
+        assertThat(newCookie.getName()).isEqualTo("post_views");
+    }
+
+    @Test
+    @DisplayName("쿠키 기반 조회수 증가 - 다양한 쿠키가 있는 경우")
+    void shouldIncrementViewCountWithCookie_WhenMultipleCookiesExist() {
+        // Given
+        Long postId = 123L;
+        String viewsCookieValue = Base64.getEncoder().encodeToString("[456]".getBytes());
+        
+        Cookie[] cookies = {
+            new Cookie("session_id", "abc123"),
+            new Cookie("post_views", viewsCookieValue),
+            new Cookie("user_pref", "dark_mode")
+        };
+
+        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(request.getCookies()).willReturn(cookies);
+
+        // When
+        postInteractionService.incrementViewCountWithCookie(postId, request, response);
+
+        // Then
+        verify(postQueryPort, times(2)).findById(postId);
+        verify(postCommandPort).incrementView(post); // 새 게시글이므로 조회수 증가
+
+        // 쿠키 업데이트 확인
+        verify(response).addCookie(any(Cookie.class));
+    }
+
+    @Test
+    @DisplayName("조회수 증가와 쿠키 기반 조회수 증가의 동작 차이 검증")
+    void shouldVerifyDifferenceBetweenSimpleAndCookieBasedViewIncrement() {
+        // Given
+        Long postId = 123L;
+        String existingCookieValue = Base64.getEncoder().encodeToString("[123]".getBytes());
+        Cookie existingCookie = new Cookie("post_views", existingCookieValue);
+
+        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+
+        // When & Then - 일반 조회수 증가 (항상 증가)
+        postInteractionService.incrementViewCount(postId);
+        verify(postCommandPort, times(1)).incrementView(post);
+
+        // When & Then - 쿠키 기반 조회수 증가 (중복 방지)
+        given(request.getCookies()).willReturn(new Cookie[]{existingCookie});
+        postInteractionService.incrementViewCountWithCookie(postId, request, response);
+        
+        // 추가 조회수 증가 없음 (이미 조회한 게시글)
+        verify(postCommandPort, times(1)).incrementView(post); // 여전히 1번만
+        verify(response, never()).addCookie(any());
     }
 }
