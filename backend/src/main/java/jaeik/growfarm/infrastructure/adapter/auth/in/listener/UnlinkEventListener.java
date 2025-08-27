@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class UserBannedEventListener {
+public class UnlinkEventListener {
 
     private final SocialLoginPort socialLoginPort;
 

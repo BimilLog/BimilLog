@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.user.application.service;
+package jaeik.growfarm.infrastructure.adapter.user.in.listener;
 
 import jaeik.growfarm.domain.user.application.port.out.UserCommandPort;
 import jaeik.growfarm.domain.user.entity.BlackList;
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class UserService {
+public class BlacklistEventListener {
 
     private final UserCommandPort userCommandPort;
 
