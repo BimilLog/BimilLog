@@ -32,20 +32,54 @@ public class NotificationEventListener {
     private final List<NotificationEventHandler> notificationEventHandlers;
 
     /**
-     * <h3>알림 이벤트 처리</h3>
-     * <p>
-     *     발생한 모든 {@link ApplicationEvent}를 비동기적으로 수신합니다.
-     *     자신이 처리할 수 있는 이벤트인지 각 핸들러에게 확인하고,
-     *     처리할 수 있는 핸들러가 있으면 해당 핸들러의 handle 메서드를 호출합니다.
-     * </p>
-     * @param event 발생한 애플리케이션 이벤트
+     * <h3>댓글 생성 알림 이벤트 처리</h3>
+     * <p>댓글 생성 이벤트를 처리하여 관련 알림을 전송합니다.</p>
+     * @param event 댓글 생성 이벤트
      * @author Jaeik
      * @since 2.0.0
      */
-    @EventListener
+    @EventListener(jaeik.growfarm.domain.comment.event.CommentCreatedEvent.class)
     @Async("sseNotificationExecutor")
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void handleNotificationEvent(ApplicationEvent event) {
+    public void handleCommentCreatedEvent(jaeik.growfarm.domain.comment.event.CommentCreatedEvent event) {
+        for (NotificationEventHandler handler : notificationEventHandlers) {
+            if (handler.supports(event)) {
+                handler.handle(event);
+                return;
+            }
+        }
+    }
+
+    /**
+     * <h3>롤링페이퍼 메시지 알림 이벤트 처리</h3>
+     * <p>롤링페이퍼 메시지 수신 이벤트를 처리하여 관련 알림을 전송합니다.</p>
+     * @param event 롤링페이퍼 이벤트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @EventListener(jaeik.growfarm.domain.paper.event.RollingPaperEvent.class)
+    @Async("sseNotificationExecutor")
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void handleRollingPaperEvent(jaeik.growfarm.domain.paper.event.RollingPaperEvent event) {
+        for (NotificationEventHandler handler : notificationEventHandlers) {
+            if (handler.supports(event)) {
+                handler.handle(event);
+                return;
+            }
+        }
+    }
+
+    /**
+     * <h3>인기글 선정 알림 이벤트 처리</h3>
+     * <p>인기글 선정 이벤트를 처리하여 관련 알림을 전송합니다.</p>
+     * @param event 인기글 선정 이벤트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @EventListener(jaeik.growfarm.domain.post.event.PostFeaturedEvent.class)
+    @Async("sseNotificationExecutor")
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void handlePostFeaturedEvent(jaeik.growfarm.domain.post.event.PostFeaturedEvent event) {
         for (NotificationEventHandler handler : notificationEventHandlers) {
             if (handler.supports(event)) {
                 handler.handle(event);
