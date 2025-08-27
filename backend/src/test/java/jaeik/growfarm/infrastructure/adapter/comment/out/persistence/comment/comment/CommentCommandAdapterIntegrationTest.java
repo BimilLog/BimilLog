@@ -58,7 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnableJpaRepositories(basePackages = {
         "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment"
 })
-@Import(CommentCommendAdapter.class)
+@Import(CommentCommandAdapter.class)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
@@ -92,7 +92,7 @@ class CommentCommandAdapterIntegrationTest {
     private CommentRepository commentRepository;
 
     @Autowired
-    private CommentCommendAdapter commentCommandAdapter;
+    private CommentCommandAdapter commentCommandAdapter;
 
     private User testUser;
     private Post testPost;

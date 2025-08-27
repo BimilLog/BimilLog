@@ -2,6 +2,8 @@ package jaeik.growfarm.domain.comment.application.port.out;
 
 import jaeik.growfarm.domain.comment.entity.CommentClosure;
 
+import java.util.List;
+
 /**
  * <h2>댓글 클로저 명령 포트</h2>
  * <p>댓글 클로저 엔티티 생성/수정/삭제를 위한 Out-Port</p>
@@ -41,4 +43,15 @@ public interface CommentClosureCommandPort {
      * @since 2.0.0
      */
     void deleteByDescendantId(Long commentId);
+
+    /**
+     * <h3>댓글 클로저 배치 저장</h3>
+     * <p>주어진 댓글 클로저 엔티티 목록을 배치로 저장합니다.</p>
+     * <p>성능 최적화를 위해 한 번의 트랜잭션으로 여러 엔티티를 저장합니다.</p>
+     *
+     * @param commentClosures 저장할 댓글 클로저 엔티티 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void saveAll(List<CommentClosure> commentClosures);
 }

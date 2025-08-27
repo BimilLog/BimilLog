@@ -295,29 +295,8 @@ class PostCommandServiceTest {
         assertThat(capturedEvent.postTitle()).isEqualTo(postTitle);
     }
 
-    @Test
-    @DisplayName("게시글 작성 - 빈 제목 예외")
-    void shouldThrowException_WhenEmptyTitle() {
-        // When & Then
-        assertThatThrownBy(() -> PostReqVO.builder()
-                .title("")
-                .content("내용")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("게시글 제목은 필수입니다.");
-    }
-
-    @Test
-    @DisplayName("게시글 작성 - 빈 내용 예외")
-    void shouldThrowException_WhenEmptyContent() {
-        // When & Then
-        assertThatThrownBy(() -> PostReqVO.builder()
-                .title("제목")
-                .content("")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("게시글 내용은 필수입니다.");
-    }
+    // PostReqVO 검증 테스트는 PostReqVOTest.java로 분리됨
+    // 서비스 테스트는 서비스 로직에만 집중하여 단일 책임 원칙 준수
 
     @Test
     @DisplayName("게시글 작성 - null 사용자 ID")
@@ -609,8 +588,10 @@ class PostCommandServiceTest {
     }
 
     @Test
-    @DisplayName("게시글 삭제 - 이벤트 발행 실패시 롤백")
+    @DisplayName("게시글 삭제 - 이벤트 발행 실패시 트랜잭션 처리")
     void shouldHandleEventPublishFailure() {
+        // 비즈니스 로직 개선: 이벤트 발행 실패시 현재는 예외가 전파되어 트랜잭션이 롤백됨
+        // 향후 @TransactionalEventListener 적용시 트랜잭션 커밋 후 이벤트 발행으로 개선 필요
         // Given
         Long userId = 1L;
         Long postId = 123L;
@@ -626,7 +607,8 @@ class PostCommandServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Event publish failed");
 
-        // 이벤트 발행은 실패하지만 삭제와 캐시 정리는 완료됨
+        // 현재 구현에서는 이벤트 발행 실패시 전체 트랜잭션이 롤백됨
+        // @Transactional 어노테이션에 의해 예외 발생시 롤백 처리
         verify(postCommandPort, times(1)).delete(post);
         verify(postCacheCommandPort, times(1)).deleteFullPostCache(postId);
         verify(eventPublisher, times(1)).publishEvent(any(PostDeletedEvent.class));

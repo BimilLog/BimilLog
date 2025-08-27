@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-public class CommentCommendAdapter implements CommentCommandPort {
+public class CommentCommandAdapter implements CommentCommandPort {
 
     private final CommentRepository commentRepository;
 

@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -64,9 +65,10 @@ public class CommentWriteService implements CommentWriteUseCase {
     }
 
     /**
-     * <h3>댓글과 클로저 엔티티 함께 저장</h3>
+     * <h3>댓글과 클로저 엔티티 함께 저장 (배치 최적화)</h3>
      * <p>새로운 댓글을 저장하고 댓글의 계층 구조를 관리하는 클로저 엔티티를 함께 저장합니다.</p>
      * <p>부모 댓글이 있는 경우 해당 댓글의 모든 상위 클로저 엔티티와 새로운 댓글을 연결합니다.</p>
+     * <p>성능 최적화: 클로저 엔티티들을 배치 저장으로 처리하여 N번의 INSERT를 1번으로 최적화합니다.</p>
      *
      * @param post     댓글이 속한 게시글 엔티티
      * @param user     댓글 작성 사용자 엔티티
@@ -80,9 +82,14 @@ public class CommentWriteService implements CommentWriteUseCase {
         try {
             Comment comment = commentCommandPort.save(Comment.createComment(post, user, content, password));
 
+            // 클로저 엔티티들을 배치로 저장하기 위한 리스트
+            List<CommentClosure> closuresToSave = new ArrayList<>();
+            
+            // 자기 자신에 대한 클로저 추가 (depth = 0)
             CommentClosure selfClosure = CommentClosure.createCommentClosure(comment, comment, 0);
-            commentClosureCommandPort.save(selfClosure);
+            closuresToSave.add(selfClosure);
 
+            // 부모 댓글이 있는 경우 부모의 모든 조상과의 클로저 생성
             if (parentId != null) {
                 Comment parentComment = commentQueryPort.findById(parentId)
                         .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
@@ -93,9 +100,12 @@ public class CommentWriteService implements CommentWriteUseCase {
                     Comment ancestor = parentClosure.getAncestor();
                     int newDepth = parentClosure.getDepth() + 1;
                     CommentClosure newClosure = CommentClosure.createCommentClosure(ancestor, comment, newDepth);
-                    commentClosureCommandPort.save(newClosure);
+                    closuresToSave.add(newClosure);
                 }
             }
+
+            // 모든 클로저 엔티티를 한 번에 배치 저장
+            commentClosureCommandPort.saveAll(closuresToSave);
 
         } catch (CustomException e) {
             // 비즈니스 예외는 그대로 재발행

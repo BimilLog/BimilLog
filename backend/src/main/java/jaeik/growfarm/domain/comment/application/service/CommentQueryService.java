@@ -52,35 +52,22 @@ public class CommentQueryService implements CommentQueryUseCase {
     @Override
     @Transactional(readOnly = true)
     public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
-        List<Long> likedCommentIds = getUserLikedCommentIdsForPopular(postId, userDetails);
-
-        return commentQueryPort.findPopularComments(postId, likedCommentIds);
-    }
-
-    /**
-     * <h3>인기 댓글에 대한 사용자 추천 ID 조회</h3>
-     * <p>주어진 게시글 ID에 대한 인기 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
-     * <p>성능 최적화: 인기 댓글 ID를 먼저 조회한 후, 해당 댓글들에 대해서만 추천 여부를 확인합니다.</p>
-     *
-     * @param postId      게시글 ID
-     * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private List<Long> getUserLikedCommentIdsForPopular(Long postId, CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            return Collections.emptyList();
-        }
-
+        // 첫 번째 조회로 인기 댓글을 가져온 후, 사용자가 로그인한 경우에만 추천 여부를 확인
         List<CommentInfo> popularComments = commentQueryPort.findPopularComments(postId, Collections.emptyList());
-        if (popularComments.isEmpty()) {
-            return Collections.emptyList();
-        }
         
-        List<Long> popularCommentIds = popularComments.stream().map(CommentInfo::getId).collect(Collectors.toList());
-        return commentQueryPort.findUserLikedCommentIds(popularCommentIds, userDetails.getUserId());
+        // 사용자가 로그인한 경우 추천 여부 설정
+        if (userDetails != null && !popularComments.isEmpty()) {
+            List<Long> popularCommentIds = popularComments.stream()
+                    .map(CommentInfo::getId)
+                    .collect(Collectors.toList());
+            List<Long> likedCommentIds = commentQueryPort.findUserLikedCommentIds(popularCommentIds, userDetails.getUserId());
+            
+            popularComments.forEach(info -> info.setUserLike(likedCommentIds.contains(info.getId())));
+        }
+
+        return popularComments;
     }
+
 
     /**
      * <h3>페이지별 사용자 추천 ID 조회</h3>

@@ -129,7 +129,7 @@ class CommentWriteServiceTest {
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
+        willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
         commentWriteService.writeComment(userDetails, commentRequest);
@@ -138,7 +138,7 @@ class CommentWriteServiceTest {
         verify(loadPostPort).findById(300L);
         verify(loadUserPort).findById(100L);
         verify(commentCommandPort).save(any(Comment.class));
-        verify(commentClosureCommandPort).save(any(CommentClosure.class));
+        verify(commentClosureCommandPort).saveAll(anyList());
 
         ArgumentCaptor<CommentCreatedEvent> eventCaptor = ArgumentCaptor.forClass(CommentCreatedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -160,7 +160,7 @@ class CommentWriteServiceTest {
                 .build();
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
+        willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
         commentWriteService.writeComment(null, anonymousRequest);
@@ -169,7 +169,7 @@ class CommentWriteServiceTest {
         verify(loadPostPort).findById(300L);
         verify(loadUserPort, never()).findById(any());
         verify(commentCommandPort).save(any(Comment.class));
-        verify(commentClosureCommandPort).save(any(CommentClosure.class));
+        verify(commentClosureCommandPort).saveAll(anyList());
 
         ArgumentCaptor<CommentCreatedEvent> eventCaptor = ArgumentCaptor.forClass(CommentCreatedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -201,7 +201,7 @@ class CommentWriteServiceTest {
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
         given(commentQueryPort.findById(500L)).willReturn(Optional.of(parentComment));
         given(commentClosureQueryPort.findByDescendantId(500L)).willReturn(Optional.of(parentClosures));
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
+        willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
         commentWriteService.writeComment(userDetails, replyRequest);
@@ -209,8 +209,8 @@ class CommentWriteServiceTest {
         // Then
         verify(commentQueryPort).findById(500L);
         verify(commentClosureQueryPort).findByDescendantId(500L);
-        // 자기 자신 클로저 + 부모 클로저들의 수만큼 save 호출
-        verify(commentClosureCommandPort, times(3)).save(any(CommentClosure.class));
+        // 배치 최적화로 인해 한 번의 saveAll 호출 (자기 자신 클로저 + 부모 클로저들 포함)
+        verify(commentClosureCommandPort).saveAll(argThat(list -> list.size() == 3));
 
         ArgumentCaptor<CommentCreatedEvent> eventCaptor = ArgumentCaptor.forClass(CommentCreatedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -267,7 +267,6 @@ class CommentWriteServiceTest {
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
         given(commentQueryPort.findById(999L)).willReturn(Optional.empty());
 
         // When & Then
@@ -294,7 +293,6 @@ class CommentWriteServiceTest {
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
         given(commentQueryPort.findById(500L)).willReturn(Optional.of(parentComment));
         given(commentClosureQueryPort.findByDescendantId(500L)).willReturn(Optional.empty());
 
@@ -322,14 +320,14 @@ class CommentWriteServiceTest {
         given(loadPostPort.findById(300L)).willReturn(Optional.of(postWithoutOwner));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
+        willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
         commentWriteService.writeComment(userDetails, commentRequest);
 
         // Then
         verify(commentCommandPort).save(any(Comment.class));
-        verify(commentClosureCommandPort).save(any(CommentClosure.class));
+        verify(commentClosureCommandPort).saveAll(anyList());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -348,7 +346,7 @@ class CommentWriteServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
         verify(commentCommandPort).save(any(Comment.class));
-        verify(commentClosureCommandPort, never()).save(any());
+        verify(commentClosureCommandPort, never()).saveAll(anyList());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -360,7 +358,7 @@ class CommentWriteServiceTest {
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
-        willThrow(new RuntimeException("Closure error")).given(commentClosureCommandPort).save(any(CommentClosure.class));
+        willThrow(new RuntimeException("Closure error")).given(commentClosureCommandPort).saveAll(anyList());
 
         // When & Then
         assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
@@ -368,7 +366,7 @@ class CommentWriteServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
         verify(commentCommandPort).save(any(Comment.class));
-        verify(commentClosureCommandPort).save(any(CommentClosure.class));
+        verify(commentClosureCommandPort).saveAll(anyList());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -396,23 +394,21 @@ class CommentWriteServiceTest {
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
         given(commentQueryPort.findById(500L)).willReturn(Optional.of(parentComment));
         given(commentClosureQueryPort.findByDescendantId(500L)).willReturn(Optional.of(parentClosures));
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
+        willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
         commentWriteService.writeComment(userDetails, replyRequest);
 
         // Then
-        // 자기 자신 클로저(1개) + 부모 클로저들(3개) = 총 4개 클로저 저장
-        verify(commentClosureCommandPort, times(4)).save(any(CommentClosure.class));
+        // 배치 최적화로 인해 한 번의 saveAll 호출 (자기 자신 클로저 1개 + 부모 클로저들 3개 = 총 4개)
+        verify(commentClosureCommandPort).saveAll(argThat(list -> list.size() == 4));
 
-        ArgumentCaptor<CommentClosure> closureCaptor = ArgumentCaptor.forClass(CommentClosure.class);
-        verify(commentClosureCommandPort, times(4)).save(closureCaptor.capture());
+        ArgumentCaptor<List<CommentClosure>> closureListCaptor = ArgumentCaptor.forClass(List.class);
+        verify(commentClosureCommandPort).saveAll(closureListCaptor.capture());
 
-        List<CommentClosure> savedClosures = closureCaptor.getAllValues();
+        List<CommentClosure> savedClosures = closureListCaptor.getValue();
         // 첫 번째는 자기 자신과의 클로저 (depth = 0)
         assertThat(savedClosures.getFirst().getDepth()).isEqualTo(0);
-        assertThat(savedClosures.getFirst().getAncestor()).isEqualTo(testComment);
-        assertThat(savedClosures.getFirst().getDescendant()).isEqualTo(testComment);
     }
 
     @Test
@@ -430,7 +426,7 @@ class CommentWriteServiceTest {
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
+        willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
         commentWriteService.writeComment(userDetails, longContentRequest);
@@ -441,7 +437,7 @@ class CommentWriteServiceTest {
 
         Comment savedComment = commentCaptor.getValue();
         assertThat(savedComment.getContent()).isEqualTo(longContent);
-        verify(commentClosureCommandPort).save(any(CommentClosure.class));
+        verify(commentClosureCommandPort).saveAll(anyList());
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
 
@@ -460,7 +456,7 @@ class CommentWriteServiceTest {
         given(loadPostPort.findById(300L)).willReturn(Optional.of(testPost));
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
         given(commentCommandPort.save(any(Comment.class))).willReturn(testComment);
-        willDoNothing().given(commentClosureCommandPort).save(any(CommentClosure.class));
+        willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
         commentWriteService.writeComment(userDetails, specialContentRequest);

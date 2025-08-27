@@ -96,11 +96,9 @@ class CommentQueryServiceTest {
         List<Long> likedCommentIds = List.of(200L);
 
         given(userDetails.getUserId()).willReturn(100L);
-        // 첫 번째 호출: 좋아요 ID 조회를 위해 빈 리스트로 호출
+        // 최적화된 방식: 한 번만 호출되고 내부에서 사용자 추천 상태 설정
         given(commentQueryPort.findPopularComments(postId, Collections.emptyList())).willReturn(popularComments);
         given(commentQueryPort.findUserLikedCommentIds(popularCommentIds, 100L)).willReturn(likedCommentIds);
-        // 두 번째 호출: 실제 결과 반환을 위해 좋아요 ID와 함께 호출
-        given(commentQueryPort.findPopularComments(postId, likedCommentIds)).willReturn(popularComments);
 
         // When
         List<CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
@@ -110,9 +108,9 @@ class CommentQueryServiceTest {
         assertThat(result.getFirst().getId()).isEqualTo(200L);
         assertThat(result.getFirst().getContent()).isEqualTo("테스트 댓글");
 
+        // 최적화로 인해 findPopularComments는 한 번만 호출됨
         verify(commentQueryPort).findPopularComments(postId, Collections.emptyList());
         verify(commentQueryPort).findUserLikedCommentIds(popularCommentIds, 100L);
-        verify(commentQueryPort).findPopularComments(postId, likedCommentIds);
     }
 
     @Test
@@ -150,7 +148,8 @@ class CommentQueryServiceTest {
         // Then
         assertThat(result).isEmpty();
 
-        verify(commentQueryPort, times(2)).findPopularComments(postId, Collections.emptyList());
+        // 최적화로 인해 댓글이 없으면 한 번만 호출됨
+        verify(commentQueryPort, times(1)).findPopularComments(postId, Collections.emptyList());
         verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
     }
 

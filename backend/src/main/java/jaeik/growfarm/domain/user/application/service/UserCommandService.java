@@ -11,6 +11,7 @@ import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,21 +57,36 @@ public class UserCommandService implements UserCommandUseCase {
     /**
      * <h3>닉네임 변경</h3>
      * <p>사용자의 닉네임을 변경하는 메서드</p>
+     * <p>Race Condition 방지를 위해 데이터베이스 UNIQUE 제약조건 위반 예외를 처리합니다.</p>
      *
      * @param userId      사용자 ID
      * @param newUserName 새로운 닉네임
+     * @throws CustomException EXISTED_NICKNAME - 닉네임이 중복된 경우
+     * @throws CustomException USER_NOT_FOUND - 사용자를 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     public void updateUserName(Long userId, String newUserName) {
+        // 1차 중복 확인 (성능 최적화를 위한 사전 검사)
         if (userQueryPort.existsByUserName(newUserName)) {
             throw new CustomException(ErrorCode.EXISTED_NICKNAME);
         }
+        
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        
         user.updateUserName(newUserName);
-        userCommandPort.save(user);
+        
+        try {
+            // 데이터베이스 저장 시도
+            userCommandPort.save(user);
+        } catch (DataIntegrityViolationException e) {
+            // Race Condition 발생 시: 다른 사용자가 동시에 같은 닉네임으로 변경한 경우
+            // 데이터베이스 UNIQUE 제약조건 위반으로 인한 예외를 커스텀 예외로 변환
+            log.warn("Nickname race condition detected for userId: {}, newUserName: {}", userId, newUserName, e);
+            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
+        }
     }
 
     /**

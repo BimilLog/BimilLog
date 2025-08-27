@@ -5,6 +5,8 @@ import jaeik.growfarm.domain.comment.entity.CommentClosure;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class CommentClosureCommandAdapter implements CommentClosureCommandPort {
@@ -46,5 +48,21 @@ public class CommentClosureCommandAdapter implements CommentClosureCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void deleteByDescendantId(Long commentId) {commentClosureRepository.deleteByDescendantId(commentId);}
+    public void deleteByDescendantId(Long commentId) {
+        commentClosureRepository.deleteByDescendantId(commentId);
+    }
+
+    /**
+     * <h3>댓글 클로저 배치 저장</h3>
+     * <p>주어진 댓글 클로저 엔티티 목록을 배치로 저장합니다.</p>
+     * <p>성능 최적화를 위해 한 번의 트랜잭션으로 여러 엔티티를 저장합니다.</p>
+     *
+     * @param commentClosures 저장할 댓글 클로저 엔티티 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void saveAll(List<CommentClosure> commentClosures) {
+        commentClosureRepository.saveAll(commentClosures);
+    }
 }

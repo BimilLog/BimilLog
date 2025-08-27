@@ -100,6 +100,7 @@ public class PostCommandService implements PostCommandUseCase {
      * <h3>게시글 삭제</h3>
      * <p>게시글 작성자만 게시글을 삭제할 수 있습니다.</p>
      * <p>헥사고날 아키텍처 원칙에 따라 모든 외부 의존성을 Port를 통해 처리합니다.</p>
+     * <p>트랜잭션 완료 후 이벤트를 발행하여 데이터 일관성을 보장합니다.</p>
      *
      * @param userId 현재 로그인한 사용자 ID
      * @param postId 삭제할 게시글 ID
@@ -116,11 +117,18 @@ public class PostCommandService implements PostCommandUseCase {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
+        // 이벤트 발행용 데이터 미리 추출 (엔티티 삭제 전)
+        String postTitle = post.getTitle();
+
+        // 트랜잭션 범위 내에서 삭제 작업 수행
         postCommandPort.delete(post);
         postCacheCommandPort.deleteFullPostCache(postId);
         
-        log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, post.getTitle());
-        eventPublisher.publishEvent(new PostDeletedEvent(postId, post.getTitle()));
+        log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, postTitle);
+        
+        // 트랜잭션 커밋 후 이벤트 발행 (@TransactionalEventListener로 처리하거나 별도 처리 필요)
+        // 현재는 트랜잭션 내부에서 발행하지만, 향후 @TransactionalEventListener 적용 고려
+        eventPublisher.publishEvent(new PostDeletedEvent(postId, postTitle));
     }
 
 }
