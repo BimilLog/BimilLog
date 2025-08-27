@@ -11,11 +11,9 @@ import org.springframework.stereotype.Component;
 /**
  * <h2>토큰 정리 이벤트 리스너</h2>
  * <p>사용자 로그아웃 시 토큰 삭제를 담당하는 이벤트 핸들러</p>
- * <p>단일 책임 원칙(SRP)에 따라 토큰 정리 로직만을 담당</p>
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Slf4j
 @Component
