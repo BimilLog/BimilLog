@@ -2,7 +2,6 @@ package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.SsePort;
-import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
 import jaeik.growfarm.domain.notification.entity.NotificationEvent;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class NotificationSseService implements NotificationSseUseCase {
 
     private final SsePort ssePort;
-    private final NotificationSender notificationSender;
     private final NotificationUrlGenerator urlGenerator;
 
     /**
@@ -64,7 +62,7 @@ public class NotificationSseService implements NotificationSseUseCase {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = urlGenerator.generatePostUrl(postId);
         NotificationEvent event = NotificationEvent.create(NotificationType.COMMENT, message, url);
-        notificationSender.send(postUserId, event);
+        ssePort.send(postUserId, event);
     }
 
     /**
@@ -78,7 +76,7 @@ public class NotificationSseService implements NotificationSseUseCase {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = urlGenerator.generatePaperUrl(userName);
         NotificationEvent event = NotificationEvent.create(NotificationType.PAPER, message, url);
-        notificationSender.send(farmOwnerId, event);
+        ssePort.send(farmOwnerId, event);
     }
 
     /**
@@ -92,6 +90,6 @@ public class NotificationSseService implements NotificationSseUseCase {
     public void sendPostFeaturedNotification(Long userId, String message, Long postId) {
         String url = urlGenerator.generatePostUrl(postId);
         NotificationEvent event = NotificationEvent.create(NotificationType.POST_FEATURED, message, url);
-        notificationSender.send(userId, event);
+        ssePort.send(userId, event);
     }
 }

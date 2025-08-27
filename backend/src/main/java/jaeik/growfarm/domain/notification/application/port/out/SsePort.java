@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.notification.application.port.out;
 
+import jaeik.growfarm.domain.notification.entity.NotificationEvent;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -31,12 +32,16 @@ public interface SsePort {
     void deleteAllEmitterByUserId(Long userId);
 
     /**
-     * <h3>SSE 연결 삭제</h3>
-     * <p>사용자 로그아웃 시 해당 사용자의 모든 SSE 연결을 정리</p>
+     * <h3>알림 전송</h3>
+     * <p>
+     * 사용자에게 알림을 전송합니다.
+     * </p>
      *
      * @param userId 사용자 ID
-     * @since 2.0.0
+     * @param event  알림 이벤트 (도메인 엔티티)
      * @author Jaeik
+     * @since 2.0.0
      */
-    void deleteAllEmitterByUserId2(Long userId);
+    void send(Long userId, NotificationEvent event);
+
 }

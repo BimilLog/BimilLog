@@ -1,0 +1,185 @@
+package jaeik.growfarm.infrastructure.adapter.notification.out.sse;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * <h2>EmitterRepositoryImpl 테스트</h2>
+ * <p>SSE Emitter Repository 구현체의 동작을 검증하는 단위 테스트</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
+@DisplayName("EmitterRepositoryImpl 테스트")
+class EmitterRepositoryImplTest {
+
+    private EmitterRepositoryImpl emitterRepository;
+    private SseEmitter emitter1;
+    private SseEmitter emitter2;
+
+    @BeforeEach
+    void setUp() {
+        emitterRepository = new EmitterRepositoryImpl();
+        emitter1 = new SseEmitter();
+        emitter2 = new SseEmitter();
+    }
+
+    @Test
+    @DisplayName("Emitter 저장 - 성공")
+    void shouldSaveEmitter_WhenValidInput() {
+        // Given
+        String emitterId = "1_100_1234567890";
+
+        // When
+        SseEmitter savedEmitter = emitterRepository.save(emitterId, emitter1);
+
+        // Then
+        assertThat(savedEmitter).isEqualTo(emitter1);
+    }
+
+    @Test
+    @DisplayName("사용자 ID로 모든 Emitter 조회 - 성공")
+    void shouldFindAllEmitterByUserId_WhenEmittersExist() {
+        // Given
+        Long userId = 1L;
+        String emitterId1 = "1_100_1234567890";
+        String emitterId2 = "1_101_1234567891";
+        
+        emitterRepository.save(emitterId1, emitter1);
+        emitterRepository.save(emitterId2, emitter2);
+
+        // When
+        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
+
+        // Then
+        assertThat(emitters).hasSize(2);
+        assertThat(emitters).containsEntry(emitterId1, emitter1);
+        assertThat(emitters).containsEntry(emitterId2, emitter2);
+    }
+
+    @Test
+    @DisplayName("사용자 ID로 모든 Emitter 조회 - 해당하는 Emitter가 없는 경우")
+    void shouldReturnEmptyMap_WhenNoEmittersForUser() {
+        // Given
+        Long userId = 1L;
+        Long otherUserId = 2L;
+        String emitterId = "2_100_1234567890";
+        
+        emitterRepository.save(emitterId, emitter1);
+
+        // When
+        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
+
+        // Then
+        assertThat(emitters).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Emitter ID로 삭제 - 성공")
+    void shouldDeleteById_WhenEmitterExists() {
+        // Given
+        String emitterId = "1_100_1234567890";
+        emitterRepository.save(emitterId, emitter1);
+
+        // When
+        emitterRepository.deleteById(emitterId);
+
+        // Then
+        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(1L);
+        assertThat(emitters).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Emitter ID로 삭제 - 존재하지 않는 Emitter")
+    void shouldNotThrowException_WhenDeletingNonExistentEmitter() {
+        // Given
+        String nonExistentEmitterId = "999_999_9999999999";
+
+        // When & Then
+        // 예외가 발생하지 않아야 함
+        emitterRepository.deleteById(nonExistentEmitterId);
+    }
+
+    @Test
+    @DisplayName("사용자 ID로 모든 Emitter 삭제 - 성공")
+    void shouldDeleteAllEmitterByUserId_WhenEmittersExist() {
+        // Given
+        Long userId = 1L;
+        Long otherUserId = 2L;
+        String emitterId1 = "1_100_1234567890";
+        String emitterId2 = "1_101_1234567891";
+        String otherUserEmitterId = "2_100_1234567890";
+        
+        emitterRepository.save(emitterId1, emitter1);
+        emitterRepository.save(emitterId2, emitter2);
+        emitterRepository.save(otherUserEmitterId, new SseEmitter());
+
+        // When
+        emitterRepository.deleteAllEmitterByUserId(userId);
+
+        // Then
+        Map<String, SseEmitter> userEmitters = emitterRepository.findAllEmitterByUserId(userId);
+        Map<String, SseEmitter> otherUserEmitters = emitterRepository.findAllEmitterByUserId(otherUserId);
+        
+        assertThat(userEmitters).isEmpty();
+        assertThat(otherUserEmitters).hasSize(1); // 다른 사용자의 Emitter는 삭제되지 않아야 함
+    }
+
+    @Test
+    @DisplayName("사용자 ID로 모든 Emitter 삭제 - 해당하는 Emitter가 없는 경우")
+    void shouldNotThrowException_WhenDeletingEmittersForUserWithNoEmitters() {
+        // Given
+        Long userId = 1L;
+
+        // When & Then
+        // 예외가 발생하지 않아야 함
+        emitterRepository.deleteAllEmitterByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("Emitter ID 패턴 검증 - 다양한 사용자 ID 패턴")
+    void shouldHandleDifferentUserIdPatterns() {
+        // Given
+        String emitterId1 = "123_100_1234567890";
+        String emitterId2 = "456_101_1234567891";
+        String emitterId3 = "123_102_1234567892";
+        
+        emitterRepository.save(emitterId1, emitter1);
+        emitterRepository.save(emitterId2, emitter2);
+        emitterRepository.save(emitterId3, new SseEmitter());
+
+        // When
+        Map<String, SseEmitter> user123Emitters = emitterRepository.findAllEmitterByUserId(123L);
+        Map<String, SseEmitter> user456Emitters = emitterRepository.findAllEmitterByUserId(456L);
+
+        // Then
+        assertThat(user123Emitters).hasSize(2);
+        assertThat(user456Emitters).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("동일한 Emitter ID로 재저장 시 덮어쓰기")
+    void shouldOverwriteEmitter_WhenSameEmitterIdUsed() {
+        // Given
+        String emitterId = "1_100_1234567890";
+        SseEmitter newEmitter = new SseEmitter();
+        
+        emitterRepository.save(emitterId, emitter1);
+
+        // When
+        SseEmitter savedEmitter = emitterRepository.save(emitterId, newEmitter);
+
+        // Then
+        assertThat(savedEmitter).isEqualTo(newEmitter);
+        
+        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(1L);
+        assertThat(emitters).hasSize(1);
+        assertThat(emitters.get(emitterId)).isEqualTo(newEmitter);
+    }
+}

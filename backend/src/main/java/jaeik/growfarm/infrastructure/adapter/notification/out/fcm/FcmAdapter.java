@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.growfarm.domain.notification.application.port.out.FcmPort;
-import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
 import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.infrastructure.adapter.notification.out.fcm.dto.FcmMessageDTO;
 import jaeik.growfarm.domain.notification.entity.FcmMessage;
@@ -37,7 +36,7 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class FcmAdapter implements FcmPort, NotificationSender {
+public class FcmAdapter implements FcmPort {
 
     private final FcmTokenRepository fcmTokenRepository;
 

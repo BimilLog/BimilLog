@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.notification.in.web.sse;
+package jaeik.growfarm.infrastructure.adapter.notification.out.sse;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

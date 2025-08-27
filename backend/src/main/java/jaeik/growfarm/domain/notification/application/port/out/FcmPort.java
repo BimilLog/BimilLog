@@ -2,6 +2,7 @@ package jaeik.growfarm.domain.notification.application.port.out;
 
 import jaeik.growfarm.domain.notification.entity.FcmToken;
 import jaeik.growfarm.domain.notification.entity.FcmMessage;
+import jaeik.growfarm.domain.notification.entity.NotificationEvent;
 
 import java.io.IOException;
 import java.util.List;
@@ -80,4 +81,17 @@ public interface FcmPort {
      * @since 2.0.0
      */
     List<FcmToken> findValidFcmTokensForPostFeaturedNotification(Long userId);
+
+    /**
+     * <h3>알림 전송</h3>
+     * <p>
+     * 사용자에게 알림을 전송합니다.
+     * </p>
+     *
+     * @param userId 사용자 ID
+     * @param event  알림 이벤트 (도메인 엔티티)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void send(Long userId, NotificationEvent event);
 }

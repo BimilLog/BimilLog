@@ -1,8 +1,6 @@
 package jaeik.growfarm.domain.notification.application.service;
 
-import jaeik.growfarm.domain.notification.application.port.out.NotificationSender;
 import jaeik.growfarm.domain.notification.application.port.out.SsePort;
-import jaeik.growfarm.domain.notification.entity.NotificationEvent;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,9 +28,6 @@ class NotificationSseServiceTest {
 
     @Mock
     private SsePort ssePort;
-
-    @Mock
-    private NotificationSender notificationSender;
 
     @Mock
     private NotificationUrlGenerator urlGenerator;
@@ -88,7 +83,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(urlGenerator).generatePostUrl(postId);
-        verify(notificationSender).send(eq(postUserId), argThat(event ->
+        verify(ssePort).send(eq(postUserId), argThat(event ->
                 event.getType() == NotificationType.COMMENT &&
                 event.getMessage().equals(expectedMessage) &&
                 event.getUrl().equals(expectedUrl)
@@ -111,7 +106,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(urlGenerator).generatePaperUrl(userName);
-        verify(notificationSender).send(eq(farmOwnerId), argThat(event ->
+        verify(ssePort).send(eq(farmOwnerId), argThat(event ->
                 event.getType() == NotificationType.PAPER &&
                 event.getMessage().equals(expectedMessage) &&
                 event.getUrl().equals(expectedUrl)
@@ -134,7 +129,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(urlGenerator).generatePostUrl(postId);
-        verify(notificationSender).send(eq(userId), argThat(event ->
+        verify(ssePort).send(eq(userId), argThat(event ->
                 event.getType() == NotificationType.POST_FEATURED &&
                 event.getMessage().equals(message) &&
                 event.getUrl().equals(expectedUrl)
