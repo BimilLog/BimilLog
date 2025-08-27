@@ -8,6 +8,7 @@ import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
  * <h2>운영용 ElasticSearch 설정</h2>
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Jaeik
  * @version  2.0.0
  */
+@Profile("prod")
 @Configuration
 public class ElasticsearchConfig {
 
