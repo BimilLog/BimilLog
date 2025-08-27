@@ -4,9 +4,9 @@ import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.application.port.out.UserCommandPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.Setting;
+import jaeik.growfarm.domain.user.entity.SettingVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -63,7 +63,7 @@ class UserCommandServiceTest {
                 .setting(existingSetting)
                 .build();
         
-        SettingDTO settingDTO = SettingDTO.builder()
+        SettingVO settingVO = SettingVO.builder()
                 .messageNotification(false)
                 .commentNotification(false)
                 .postFeaturedNotification(true)
@@ -72,7 +72,7 @@ class UserCommandServiceTest {
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
-        userCommandService.updateUserSettings(userId, settingDTO);
+        userCommandService.updateUserSettings(userId, settingVO);
 
         // Then
         verify(userQueryPort).findById(userId);
@@ -89,14 +89,16 @@ class UserCommandServiceTest {
     void shouldThrowException_WhenUserNotFoundForSettingUpdate() {
         // Given
         Long userId = 999L;
-        SettingDTO settingDTO = SettingDTO.builder()
+        SettingVO settingVO = SettingVO.builder()
                 .messageNotification(true)
+                .commentNotification(true)
+                .postFeaturedNotification(true)
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, settingDTO))
+        assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, settingVO))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
         
@@ -309,8 +311,8 @@ class UserCommandServiceTest {
     }
 
     @Test
-    @DisplayName("null 설정 DTO로 사용자 설정 수정")
-    void shouldThrowException_WhenNullSettingDTO() {
+    @DisplayName("null 설정 VO로 사용자 설정 수정")
+    void shouldThrowException_WhenNullSettingVO() {
         // Given
         Long userId = 1L;
 
@@ -325,7 +327,7 @@ class UserCommandServiceTest {
 
     @Test
     @DisplayName("부분적 설정 업데이트")
-    void shouldUpdateUserSettings_WhenPartialSettingDTO() {
+    void shouldUpdateUserSettings_WhenPartialSettingVO() {
         // Given
         Long userId = 1L;
         Setting existingSetting = Setting.builder()
@@ -339,16 +341,17 @@ class UserCommandServiceTest {
                 .setting(existingSetting)
                 .build();
         
-        // 부분적 설정만 포함된 DTO (darkModeEnabled만 설정)
-        SettingDTO partialSettingDTO = SettingDTO.builder()
+        // 부분적 설정만 포함된 VO 
+        SettingVO partialSettingVO = SettingVO.builder()
                 .messageNotification(true)
-                // commentNotification, likeNotification은 null
+                .commentNotification(false)
+                .postFeaturedNotification(false)
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
-        userCommandService.updateUserSettings(userId, partialSettingDTO);
+        userCommandService.updateUserSettings(userId, partialSettingVO);
 
         // Then
         verify(userCommandPort).save(user);

@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.user.in.web.dto;
 
 import jaeik.growfarm.domain.user.entity.Setting;
+import jaeik.growfarm.domain.user.entity.SettingVO;
 import lombok.*;
 
 /**
@@ -32,5 +33,17 @@ public class SettingDTO {
         messageNotification = setting.isMessageNotification();
         commentNotification = setting.isCommentNotification();
         postFeaturedNotification = setting.isPostFeaturedNotification();
+    }
+
+    /**
+     * <h3>DTO를 SettingVO로 변환</h3>
+     * <p>DTO의 알림 설정 정보를 도메인 값 객체로 변환합니다.</p>
+     *
+     * @return SettingVO 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public SettingVO toSettingVO() {
+        return SettingVO.of(messageNotification, commentNotification, postFeaturedNotification);
     }
 }

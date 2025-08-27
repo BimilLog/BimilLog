@@ -5,6 +5,7 @@ import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
+import jaeik.growfarm.domain.user.entity.SettingVO;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
@@ -71,7 +72,12 @@ public class UserQueryController {
      */
     @GetMapping("/setting")
     public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        SettingDTO settingDTO = settingQueryUseCase.findBySettingId(userDetails.getSettingId());
+        SettingVO settingVO = settingQueryUseCase.findBySettingId(userDetails.getSettingId());
+        SettingDTO settingDTO = SettingDTO.builder()
+                .messageNotification(settingVO.messageNotification())
+                .commentNotification(settingVO.commentNotification())
+                .postFeaturedNotification(settingVO.postFeaturedNotification())
+                .build();
         return ResponseEntity.ok(settingDTO);
     }
 

@@ -5,8 +5,8 @@ import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.out.UserCommandPort;
 import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.entity.Setting;
+import jaeik.growfarm.domain.user.entity.SettingVO;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -38,19 +38,19 @@ public class UserCommandService implements UserCommandUseCase {
      * <p>사용자의 설정을 수정하는 메서드</p>
      *
      * @param userId    사용자 ID
-     * @param settingDTO 수정할 설정 정보
+     * @param settingVO 수정할 설정 정보
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public void updateUserSettings(Long userId, SettingDTO settingDTO) {
-        if (settingDTO == null) {
+    public void updateUserSettings(Long userId, SettingVO settingVO) {
+        if (settingVO == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Setting setting = user.getSetting();
-        setting.updateSetting(settingDTO);
+        setting.updateSetting(settingVO);
         userCommandPort.save(user);
     }
 

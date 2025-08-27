@@ -1,6 +1,5 @@
 package jaeik.growfarm.domain.user.entity;
 
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,16 +47,28 @@ public class Setting {
 
     /**
      * <h3>설정 업데이트</h3>
-     * <p>주어진 DTO를 사용하여 알림 설정을 업데이트합니다.</p>
+     * <p>주어진 VO를 사용하여 알림 설정을 업데이트합니다.</p>
      *
-     * @param settingDTO 업데이트할 설정 정보 DTO
+     * @param settingVO 업데이트할 설정 정보 값 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    public void updateSetting(SettingDTO settingDTO) {
-        messageNotification = settingDTO.isMessageNotification();
-        commentNotification = settingDTO.isCommentNotification();
-        postFeaturedNotification = settingDTO.isPostFeaturedNotification();
+    public void updateSetting(SettingVO settingVO) {
+        messageNotification = settingVO.messageNotification();
+        commentNotification = settingVO.commentNotification();
+        postFeaturedNotification = settingVO.postFeaturedNotification();
+    }
+
+    /**
+     * <h3>SettingVO로 변환</h3>
+     * <p>현재 설정 엔티티를 SettingVO로 변환합니다.</p>
+     *
+     * @return 설정 정보를 담은 SettingVO 객체
+     * @author Jaeik  
+     * @since 2.0.0
+     */
+    public SettingVO toSettingVO() {
+        return SettingVO.of(messageNotification, commentNotification, postFeaturedNotification);
     }
 
     /**

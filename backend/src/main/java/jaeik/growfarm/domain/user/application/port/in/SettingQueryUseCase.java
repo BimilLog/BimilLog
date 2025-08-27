@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
+import jaeik.growfarm.domain.user.entity.SettingVO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 
 /**
@@ -19,10 +19,10 @@ public interface SettingQueryUseCase {
      * <p>JWT 토큰의 settingId를 활용하여 효율적으로 설정 정보를 조회</p>
      *
      * @param settingId 설정 ID
-     * @return 설정 DTO
+     * @return 설정 VO
      * @throws CustomException 설정을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
-    SettingDTO findBySettingId(Long settingId);
+    SettingVO findBySettingId(Long settingId);
 }

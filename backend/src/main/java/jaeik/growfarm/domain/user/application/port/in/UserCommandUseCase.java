@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
+import jaeik.growfarm.domain.user.entity.SettingVO;
 import jaeik.growfarm.domain.user.entity.User;
 
 /**
@@ -17,11 +17,11 @@ public interface UserCommandUseCase {
      * <p>사용자의 설정을 수정하는 메서드</p>
      *
      * @param userId    사용자 ID
-     * @param settingDTO 수정할 설정 정보
+     * @param settingVO 수정할 설정 정보
      * @since 2.0.0
      * @author Jaeik
      */
-    void updateUserSettings(Long userId, SettingDTO settingDTO);
+    void updateUserSettings(Long userId, SettingVO settingVO);
 
     /**
      * <h3>닉네임 변경</h3>
