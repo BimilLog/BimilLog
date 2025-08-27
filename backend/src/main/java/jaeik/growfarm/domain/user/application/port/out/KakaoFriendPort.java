@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.out;
 
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
+import jaeik.growfarm.domain.user.entity.KakaoFriendsResponseVO;
 
 /**
  * <h2>카카오 친구 목록 조회 포트</h2>
@@ -22,5 +22,5 @@ public interface KakaoFriendPort {
      * @since 2.0.0
      * @author Jaeik
      */
-    KakaoFriendsResponse getFriendList(String accessToken, Integer offset, Integer limit);
+    KakaoFriendsResponseVO getFriendList(String accessToken, Integer offset, Integer limit);
 }

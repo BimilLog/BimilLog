@@ -7,7 +7,7 @@ import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
+import jaeik.growfarm.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -71,14 +71,14 @@ class UserIntegrationServiceTest {
                 .refreshToken("refresh_token")
                 .build();
         
-        KakaoFriendsResponse kakaoResponse = new KakaoFriendsResponse();
+        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(null, 0, null, null, 0);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("valid_access_token", offset, limit)).willReturn(kakaoResponse);
+        given(kakaoFriendPort.getFriendList("valid_access_token", offset, limit)).willReturn(kakaoResponseVO);
 
         // When
-        KakaoFriendsResponse result = userIntegrationService.getKakaoFriendList(userId, tokenId, offset, limit);
+        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, offset, limit);
 
         // Then
         verify(userQueryPort).findById(userId);
@@ -86,7 +86,7 @@ class UserIntegrationServiceTest {
         verify(kakaoFriendPort).getFriendList("valid_access_token", offset, limit);
         
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(kakaoResponse);
+        assertThat(result).isEqualTo(kakaoResponseVO);
     }
 
     @Test
@@ -196,11 +196,11 @@ class UserIntegrationServiceTest {
                 .accessToken("valid_token")
                 .build();
         
-        KakaoFriendsResponse kakaoResponse = new KakaoFriendsResponse();
+        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(null, 0, null, null, 0);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("valid_token", 0, 10)).willReturn(kakaoResponse);
+        given(kakaoFriendPort.getFriendList("valid_token", 0, 10)).willReturn(kakaoResponseVO);
 
         // When
         userIntegrationService.getKakaoFriendList(userId, 1L, null, null);
@@ -225,11 +225,11 @@ class UserIntegrationServiceTest {
                 .accessToken("valid_token")
                 .build();
         
-        KakaoFriendsResponse kakaoResponse = new KakaoFriendsResponse();
+        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(null, 0, null, null, 0);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("valid_token", 0, 100)).willReturn(kakaoResponse);
+        given(kakaoFriendPort.getFriendList("valid_token", 0, 100)).willReturn(kakaoResponseVO);
 
         // When
         userIntegrationService.getKakaoFriendList(userId, 1L, 0, 200); // 200을 요청하지만 100으로 제한

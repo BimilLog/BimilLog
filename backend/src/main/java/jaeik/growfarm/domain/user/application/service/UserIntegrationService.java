@@ -6,8 +6,8 @@ import jaeik.growfarm.domain.user.application.port.out.UserQueryPort;
 import jaeik.growfarm.domain.user.application.port.out.TokenPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.Token;
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
+import jaeik.growfarm.domain.user.entity.KakaoFriendsResponseVO;
+import jaeik.growfarm.domain.user.entity.KakaoFriendVO;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +51,7 @@ public class UserIntegrationService implements UserIntegrationUseCase {
      * @author Jaeik
      */
     @Override
-    public KakaoFriendsResponse getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
+    public KakaoFriendsResponseVO getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
         // 사용자 조회
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -71,28 +71,37 @@ public class UserIntegrationService implements UserIntegrationUseCase {
 
         try {
             // 카카오 친구 목록 조회
-            KakaoFriendsResponse friendsResponse = kakaoFriendPort.getFriendList(
+            KakaoFriendsResponseVO friendsResponse = kakaoFriendPort.getFriendList(
                     token.getAccessToken(),
                     actualOffset,
                     actualLimit
             );
 
             // 각 친구에 대해 비밀로그 가입 여부 확인 (성능 최적화: 배치 조회)
-            List<KakaoFriendDTO> elements = friendsResponse.getElements();
+            List<KakaoFriendVO> elements = friendsResponse.elements();
             if (elements != null && !elements.isEmpty()) {
                 // 1. 모든 친구의 소셜 ID를 수집
                 List<String> socialIds = elements.stream()
-                        .map(friend -> String.valueOf(friend.getId()))
+                        .map(friend -> String.valueOf(friend.id()))
                         .collect(Collectors.toList());
 
                 // 2. 배치로 사용자 이름 조회 (N+1 문제 해결)
                 List<String> userNames = userQueryPort.findUserNamesInOrder(socialIds);
 
-                // 3. 결과를 각 친구에게 매핑
+                // 3. 결과를 각 친구에게 매핑 - VO는 불변이므로 새로운 객체 생성
                 for (int i = 0; i < elements.size(); i++) {
                     String userName = userNames.get(i);
                     if (!userName.isEmpty()) {
-                        elements.get(i).setUserName(userName);
+                        KakaoFriendVO originalFriend = elements.get(i);
+                        KakaoFriendVO updatedFriend = KakaoFriendVO.of(
+                                originalFriend.id(),
+                                originalFriend.uuid(),
+                                originalFriend.profileNickname(),
+                                originalFriend.profileThumbnailImage(),
+                                originalFriend.favorite(),
+                                userName
+                        );
+                        elements.set(i, updatedFriend);
                     }
                 }
             }

@@ -6,6 +6,7 @@ import jaeik.growfarm.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.domain.user.entity.SettingVO;
+import jaeik.growfarm.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
@@ -190,12 +191,13 @@ public class UserQueryController {
     public ResponseEntity<KakaoFriendsResponse> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
                                                                    @RequestParam(defaultValue = "10") Integer limit,
                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
-        KakaoFriendsResponse friendsResponse = userIntegrationUseCase.getKakaoFriendList(
+        KakaoFriendsResponseVO friendsResponseVO = userIntegrationUseCase.getKakaoFriendList(
                 userDetails.getUserId(),
                 userDetails.getTokenId(), // JWT에서 파싱된 현재 기기의 토큰 ID
                 offset,
                 limit
         );
+        KakaoFriendsResponse friendsResponse = KakaoFriendsResponse.fromVO(friendsResponseVO);
         return ResponseEntity.ok(friendsResponse);
     }
 }

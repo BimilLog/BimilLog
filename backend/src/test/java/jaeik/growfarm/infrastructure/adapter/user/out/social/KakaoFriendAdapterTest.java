@@ -2,6 +2,8 @@ package jaeik.growfarm.infrastructure.adapter.user.out.social;
 
 import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
+import jaeik.growfarm.domain.user.entity.KakaoFriendsResponseVO;
+import jaeik.growfarm.domain.user.entity.KakaoFriendVO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,25 +58,25 @@ class KakaoFriendAdapterTest {
             .willReturn(expectedResponse);
 
         // When: 친구 목록 조회 실행
-        KakaoFriendsResponse result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
 
         // Then: 올바른 친구 목록이 반환되고 KakaoSocialAdapter가 호출되었는지 검증
         assertThat(result).isNotNull();
-        assertThat(result.getElements()).hasSize(2);
-        assertThat(result.getTotalCount()).isEqualTo(2);
-        assertThat(result.getFavoriteCount()).isEqualTo(1);
+        assertThat(result.elements()).hasSize(2);
+        assertThat(result.totalCount()).isEqualTo(2);
+        assertThat(result.favoriteCount()).isEqualTo(1);
         
         // 첫 번째 친구 검증
-        KakaoFriendDTO friend1 = result.getElements().get(0);
-        assertThat(friend1.getId()).isEqualTo(1L);
-        assertThat(friend1.getProfileNickname()).isEqualTo("친구1");
-        assertThat(friend1.getFavorite()).isFalse();
+        KakaoFriendVO friend1 = result.elements().get(0);
+        assertThat(friend1.id()).isEqualTo(1L);
+        assertThat(friend1.profileNickname()).isEqualTo("친구1");
+        assertThat(friend1.favorite()).isFalse();
         
         // 두 번째 친구 검증
-        KakaoFriendDTO friend2 = result.getElements().get(1);
-        assertThat(friend2.getId()).isEqualTo(2L);
-        assertThat(friend2.getProfileNickname()).isEqualTo("친구2");
-        assertThat(friend2.getFavorite()).isTrue();
+        KakaoFriendVO friend2 = result.elements().get(1);
+        assertThat(friend2.id()).isEqualTo(2L);
+        assertThat(friend2.profileNickname()).isEqualTo("친구2");
+        assertThat(friend2.favorite()).isTrue();
         
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(offset), eq(limit));
     }
@@ -95,13 +97,13 @@ class KakaoFriendAdapterTest {
             .willReturn(emptyResponse);
 
         // When: 빈 친구 목록 조회 실행
-        KakaoFriendsResponse result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
 
         // Then: 빈 목록이 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
-        assertThat(result.getElements()).isEmpty();
-        assertThat(result.getTotalCount()).isEqualTo(0);
-        assertThat(result.getFavoriteCount()).isEqualTo(0);
+        assertThat(result.elements()).isEmpty();
+        assertThat(result.totalCount()).isEqualTo(0);
+        assertThat(result.favoriteCount()).isEqualTo(0);
         
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(offset), eq(limit));
     }
@@ -126,14 +128,14 @@ class KakaoFriendAdapterTest {
             .willReturn(paginatedResponse);
 
         // When: 페이지네이션으로 친구 목록 조회 실행
-        KakaoFriendsResponse result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
 
         // Then: 페이지네이션 정보가 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
-        assertThat(result.getElements()).hasSize(2);
-        assertThat(result.getBeforeUrl()).isEqualTo("before_url");
-        assertThat(result.getAfterUrl()).isEqualTo("after_url");
-        assertThat(result.getFavoriteCount()).isEqualTo(1);
+        assertThat(result.elements()).hasSize(2);
+        assertThat(result.beforeUrl()).isEqualTo("before_url");
+        assertThat(result.afterUrl()).isEqualTo("after_url");
+        assertThat(result.favoriteCount()).isEqualTo(1);
         
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(offset), eq(limit));
     }
@@ -199,7 +201,7 @@ class KakaoFriendAdapterTest {
             .willReturn(response);
 
         // When: 음수 파라미터로 친구 목록 조회 실행
-        KakaoFriendsResponse result = kakaoFriendAdapter.getFriendList(accessToken, negativeOffset, negativeLimit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, negativeOffset, negativeLimit);
 
         // Then: 어댑터가 파라미터를 그대로 전달하는지 검증
         assertThat(result).isNotNull();
@@ -228,12 +230,12 @@ class KakaoFriendAdapterTest {
             .willReturn(largeResponse);
 
         // When: 대용량 친구 목록 조회 실행
-        KakaoFriendsResponse result = kakaoFriendAdapter.getFriendList(accessToken, offset, largeLimit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, largeLimit);
 
         // Then: 대용량 요청도 올바르게 처리되는지 검증
         assertThat(result).isNotNull();
-        assertThat(result.getTotalCount()).isEqualTo(1000);
-        assertThat(result.getFavoriteCount()).isEqualTo(500);
+        assertThat(result.totalCount()).isEqualTo(1000);
+        assertThat(result.favoriteCount()).isEqualTo(500);
         
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(offset), eq(largeLimit));
     }

@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.user.out.social;
 
 import jaeik.growfarm.domain.user.application.port.out.KakaoFriendPort;
+import jaeik.growfarm.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -30,7 +31,11 @@ public class KakaoFriendAdapter implements KakaoFriendPort {
      * @author Jaeik
      */
     @Override
-    public KakaoFriendsResponse getFriendList(String accessToken, Integer offset, Integer limit) {
-        return kakaoSocialAdapter.getFriendList(accessToken, offset, limit);
+    public KakaoFriendsResponseVO getFriendList(String accessToken, Integer offset, Integer limit) {
+        KakaoFriendsResponse response = kakaoSocialAdapter.getFriendList(accessToken, offset, limit);
+        if (response == null) {
+            return null;
+        }
+        return response.toVO();
     }
 }

@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.user.application.port.in;
 
-import jaeik.growfarm.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
+import jaeik.growfarm.domain.user.entity.KakaoFriendsResponseVO;
 
 /**
  * <h2>사용자 통합 기능 UseCase</h2>
@@ -23,5 +23,5 @@ public interface UserIntegrationUseCase {
      * @since 2.0.0
      * @author Jaeik
      */
-    KakaoFriendsResponse getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit);
+    KakaoFriendsResponseVO getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit);
 }
