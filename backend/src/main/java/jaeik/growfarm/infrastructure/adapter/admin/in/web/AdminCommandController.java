@@ -27,7 +27,8 @@ public class AdminCommandController {
      *
      * @param reportDTO 신고 DTO
      * @return 차단 완료 메시지
-     * @since 2025-04-28
+     * @since 2.0.0
+     * @author Jaeik
      */
     @PostMapping("/reports/ban")
     @PreAuthorize("hasRole('ADMIN')")
@@ -42,6 +43,7 @@ public class AdminCommandController {
      * @param userId 탈퇴시킬 사용자 ID
      * @return 탈퇴 완료 메시지
      * @since 2.0.0
+     * @author Jaeik
      */
     @DeleteMapping("/users/{userId}")
     @PreAuthorize("hasRole('ADMIN')")

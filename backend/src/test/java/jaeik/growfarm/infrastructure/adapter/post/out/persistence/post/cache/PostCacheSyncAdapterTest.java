@@ -102,7 +102,7 @@ class PostCacheSyncAdapterTest {
 //
 //        @Bean
 //        @Primary
-//        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+//        public JPAQueryFactory TestJpaQueryFactory(EntityManager entityManager) {
 //            return new JPAQueryFactory(entityManager);
 //        }
 

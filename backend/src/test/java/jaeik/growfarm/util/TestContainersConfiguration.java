@@ -41,12 +41,11 @@ public class TestContainersConfiguration {
     }
 
     @Bean
-    @Primary
     public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(redis.getHost(), redis.getMappedPort(6379));
     }
 
-    @Bean
+    @Bean(name = "testRedisTemplate")
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
@@ -56,8 +55,9 @@ public class TestContainersConfiguration {
         return template;
     }
 
-    @Bean
-    public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+    @Bean(name = "testJpaQueryFactory")
+    @Primary
+    public JPAQueryFactory TestJpaQueryFactory(EntityManager entityManager) {
         return new JPAQueryFactory(entityManager);
     }
 

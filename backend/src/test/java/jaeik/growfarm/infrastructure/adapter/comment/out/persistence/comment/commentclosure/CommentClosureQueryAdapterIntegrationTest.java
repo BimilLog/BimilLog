@@ -67,7 +67,7 @@ class CommentClosureQueryAdapterIntegrationTest {
 //    @TestConfiguration
 //    static class TestConfig {
 //        @Bean
-//        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+//        public JPAQueryFactory TestJpaQueryFactory(EntityManager entityManager) {
 //            return new JPAQueryFactory(entityManager);
 //        }
 //    }
