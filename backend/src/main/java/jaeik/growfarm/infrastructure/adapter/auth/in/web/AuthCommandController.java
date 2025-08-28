@@ -6,15 +6,13 @@ import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.auth.entity.LoginResult;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.AuthResponse;
 import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.LoginResponse;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * <h2>인증 명령 컨트롤러</h2>
@@ -45,7 +43,7 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/login")
-    public ResponseEntity<?> socialLogin(@RequestParam String provider, @RequestParam String code,
+    public ResponseEntity<AuthResponse> socialLogin(@RequestParam String provider, @RequestParam String code,
                                          @RequestParam(required = false) String fcmToken) {
         LoginResult loginResult = socialLoginUseCase.processSocialLogin(
                 SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
@@ -53,18 +51,15 @@ public class AuthCommandController {
         LoginResponse loginResponse = convertToLoginResponse(loginResult);
 
         return switch (loginResponse) {
-            case LoginResponse.NewUser(var uuid, var tempCookie) -> {
-                Map<String, String> uuidData = new HashMap<>();
-                uuidData.put("uuid", uuid);
-                yield ResponseEntity.ok()
-                        .header("Set-Cookie", tempCookie.toString())
-                        .body(uuidData);
-            }
-            case LoginResponse.ExistingUser(var cookies) -> 
+            case LoginResponse.NewUser(var uuid, var tempCookie) ->
+                    ResponseEntity.ok()
+                            .header("Set-Cookie", tempCookie.toString())
+                            .body(AuthResponse.newUser(uuid));
+            case LoginResponse.ExistingUser(var cookies) ->
                     ResponseEntity.ok()
                             .headers(headers -> cookies.forEach(cookie ->
                                     headers.add("Set-Cookie", cookie.toString())))
-                            .body("OK");
+                            .body(AuthResponse.existingUser());
         };
     }
 
@@ -79,8 +74,11 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/signup")
-    public ResponseEntity<?> signUp(@RequestParam String userName, @CookieValue String uuid) {
-        return ResponseEntity.ok().headers(headers -> signUpUseCase.signUp(userName, uuid).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
+    public ResponseEntity<AuthResponse> signUp(@RequestParam String userName, @CookieValue String uuid) {
+        return ResponseEntity.ok()
+                .headers(headers -> signUpUseCase.signUp(userName, uuid).forEach(cookie -> 
+                        headers.add("Set-Cookie", cookie.toString())))
+                .body(AuthResponse.success("SIGNUP_SUCCESS"));
     }
 
     /**
@@ -93,8 +91,11 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok().headers(headers -> logoutUseCase.logout(userDetails).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
+    public ResponseEntity<AuthResponse> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok()
+                .headers(headers -> logoutUseCase.logout(userDetails).forEach(cookie -> 
+                        headers.add("Set-Cookie", cookie.toString())))
+                .body(AuthResponse.success("LOGOUT_SUCCESS"));
     }
 
     /**
@@ -107,8 +108,11 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @DeleteMapping("/withdraw")
-    public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok().headers(headers -> withdrawUseCase.withdraw(userDetails).forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).body("OK");
+    public ResponseEntity<AuthResponse> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok()
+                .headers(headers -> withdrawUseCase.withdraw(userDetails).forEach(cookie -> 
+                        headers.add("Set-Cookie", cookie.toString())))
+                .body(AuthResponse.success("WITHDRAW_SUCCESS"));
     }
 
     /**

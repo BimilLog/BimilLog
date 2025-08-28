@@ -31,6 +31,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 /**
  * <h2>인증 명령 컨트롤러 통합 테스트</h2>
@@ -109,7 +110,8 @@ class AuthCommandControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
-                .andExpect(content().string("OK"));
+                .andExpect(jsonPath("$.status").value("EXISTING_USER"))
+                .andExpect(jsonPath("$.data.message").value("LOGIN_SUCCESS"));
     }
 
     @Test
@@ -128,7 +130,8 @@ class AuthCommandControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
-                .andExpect(content().string("OK"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.message").value("SIGNUP_SUCCESS"));
     }
 
     @Test
@@ -148,7 +151,8 @@ class AuthCommandControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
-                .andExpect(content().string("OK"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.message").value("LOGOUT_SUCCESS"));
     }
 
     @Test
@@ -167,7 +171,8 @@ class AuthCommandControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
-                .andExpect(content().string("OK"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.message").value("WITHDRAW_SUCCESS"));
     }
 
     @Test

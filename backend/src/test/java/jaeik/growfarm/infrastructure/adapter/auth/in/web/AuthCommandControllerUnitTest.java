@@ -8,6 +8,7 @@ import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.auth.entity.LoginResult;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.UserRole;
+import jaeik.growfarm.infrastructure.adapter.auth.in.web.dto.AuthResponse;
 import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
@@ -85,15 +86,17 @@ class AuthCommandControllerUnitTest {
                 .willReturn(loginResult);
 
         // When
-        ResponseEntity<?> response = authCommandController.socialLogin(provider, code, fcmToken);
+        ResponseEntity<AuthResponse> response = authCommandController.socialLogin(provider, code, fcmToken);
 
         // Then
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getHeaders().get("Set-Cookie")).contains(tempCookie.toString());
         
-        @SuppressWarnings("unchecked")
-        Map<String, String> body = (Map<String, String>) response.getBody();
-        assertThat(body).containsEntry("uuid", uuid);
+        AuthResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("NEW_USER");
+        assertThat(body.uuid()).isEqualTo(uuid);
+        assertThat(body.data()).containsEntry("uuid", uuid);
         
         verify(socialLoginUseCase).processSocialLogin(eq(SocialProvider.KAKAO), eq(code), eq(fcmToken));
     }
@@ -119,13 +122,17 @@ class AuthCommandControllerUnitTest {
                 .willReturn(loginResult);
 
         // When
-        ResponseEntity<?> response = authCommandController.socialLogin(provider, code, null);
+        ResponseEntity<AuthResponse> response = authCommandController.socialLogin(provider, code, null);
 
         // Then
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getHeaders().get("Set-Cookie"))
                 .containsExactlyInAnyOrder(accessCookie.toString(), refreshCookie.toString());
-        assertThat(response.getBody()).isEqualTo("OK");
+        
+        AuthResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("EXISTING_USER");
+        assertThat(body.data()).containsEntry("message", "LOGIN_SUCCESS");
         
         verify(socialLoginUseCase).processSocialLogin(eq(SocialProvider.KAKAO), eq(code), eq((String) null));
     }
@@ -177,13 +184,17 @@ class AuthCommandControllerUnitTest {
                 .willReturn(List.of(accessCookie, refreshCookie));
 
         // When
-        ResponseEntity<?> response = authCommandController.signUp(userName, uuid);
+        ResponseEntity<AuthResponse> response = authCommandController.signUp(userName, uuid);
 
         // Then
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getHeaders().get("Set-Cookie"))
                 .containsExactlyInAnyOrder(accessCookie.toString(), refreshCookie.toString());
-        assertThat(response.getBody()).isEqualTo("OK");
+        
+        AuthResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("SUCCESS");
+        assertThat(body.data()).containsEntry("message", "SIGNUP_SUCCESS");
         
         verify(signUpUseCase).signUp(eq(userName), eq(uuid));
     }
@@ -202,12 +213,16 @@ class AuthCommandControllerUnitTest {
                 .willReturn(List.of(logoutCookie));
 
         // When
-        ResponseEntity<?> response = authCommandController.logout(userDetails);
+        ResponseEntity<AuthResponse> response = authCommandController.logout(userDetails);
 
         // Then
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getHeaders().get("Set-Cookie")).contains(logoutCookie.toString());
-        assertThat(response.getBody()).isEqualTo("OK");
+        
+        AuthResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("SUCCESS");
+        assertThat(body.data()).containsEntry("message", "LOGOUT_SUCCESS");
         
         verify(logoutUseCase).logout(any(CustomUserDetails.class));
     }
@@ -226,12 +241,16 @@ class AuthCommandControllerUnitTest {
                 .willReturn(List.of(withdrawCookie));
 
         // When
-        ResponseEntity<?> response = authCommandController.withdraw(userDetails);
+        ResponseEntity<AuthResponse> response = authCommandController.withdraw(userDetails);
 
         // Then
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getHeaders().get("Set-Cookie")).contains(withdrawCookie.toString());
-        assertThat(response.getBody()).isEqualTo("OK");
+        
+        AuthResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("SUCCESS");
+        assertThat(body.data()).containsEntry("message", "WITHDRAW_SUCCESS");
         
         verify(withdrawUseCase).withdraw(any(CustomUserDetails.class));
     }
@@ -263,12 +282,14 @@ class AuthCommandControllerUnitTest {
                 .willReturn(domainResult);
 
         // When
-        ResponseEntity<?> response = authCommandController.socialLogin("KAKAO", "code", null);
+        ResponseEntity<AuthResponse> response = authCommandController.socialLogin("KAKAO", "code", null);
 
         // Then
-        @SuppressWarnings("unchecked")
-        Map<String, String> body = (Map<String, String>) response.getBody();
-        assertThat(body).containsEntry("uuid", uuid);
+        AuthResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("NEW_USER");
+        assertThat(body.uuid()).isEqualTo(uuid);
+        assertThat(body.data()).containsEntry("uuid", uuid);
     }
 
     @Test
@@ -282,10 +303,13 @@ class AuthCommandControllerUnitTest {
                 .willReturn(domainResult);
 
         // When
-        ResponseEntity<?> response = authCommandController.socialLogin("KAKAO", "code", null);
+        ResponseEntity<AuthResponse> response = authCommandController.socialLogin("KAKAO", "code", null);
 
         // Then
-        assertThat(response.getBody()).isEqualTo("OK");
+        AuthResponse body = response.getBody();
+        assertThat(body).isNotNull();
+        assertThat(body.status()).isEqualTo("EXISTING_USER");
+        assertThat(body.data()).containsEntry("message", "LOGIN_SUCCESS");
         assertThat(response.getHeaders().get("Set-Cookie")).contains(cookie.toString());
     }
 
