@@ -43,23 +43,48 @@ public class SignUpService implements SignUpUseCase {
      */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
-        // 입력 검증: userName null/empty 체크
-        if (userName == null || userName.trim().isEmpty()) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        
-        // 입력 검증: uuid null/empty 체크
-        if (uuid == null || uuid.trim().isEmpty()) {
-            throw new CustomException(ErrorCode.INVALID_TEMP_UUID);
-        }
+        validateSignUpInput(userName, uuid);
 
         Optional<TempUserData> tempUserData = tempDataPort.getTempData(uuid);
 
         if (tempUserData.isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
-        } else {
-            TempUserData userData = tempUserData.get();
-            return saveUserPort.saveNewUser(userName.trim(), uuid, userData.userProfile(), userData.tokenVO(), userData.fcmToken());
         }
+        
+        TempUserData userData = tempUserData.get();
+        return saveUserPort.saveNewUser(userName.trim(), uuid, userData.userProfile(), userData.tokenVO(), userData.fcmToken());
+    }
+
+    /**
+     * <h3>회원가입 입력값 검증</h3>
+     * <p>userName과 uuid의 유효성을 검증합니다.</p>
+     *
+     * @param userName 사용자 이름
+     * @param uuid     임시 UUID
+     * @throws CustomException 입력값이 유효하지 않은 경우
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    private void validateSignUpInput(String userName, String uuid) {
+        if (isNullOrEmpty(userName)) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        if (isNullOrEmpty(uuid)) {
+            throw new CustomException(ErrorCode.INVALID_TEMP_UUID);
+        }
+    }
+
+    /**
+     * <h3>문자열 null/empty 검증</h3>
+     * <p>문자열이 null이거나 공백인지 검증합니다.</p>
+     *
+     * @param value 검증할 문자열
+     * @return null이거나 공백이면 true, 그렇지 않으면 false
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    private boolean isNullOrEmpty(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }
