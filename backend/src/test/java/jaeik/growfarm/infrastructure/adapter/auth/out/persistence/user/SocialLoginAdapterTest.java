@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -72,7 +73,7 @@ class SocialLoginAdapterTest {
     void shouldReturnNewUserLogin_WhenUserNotExists() {
         // Given: 소셜 전략과 사용자 조회 서비스 설정
         String code = "auth-code";
-        given(kakaoStrategy.login(code)).willReturn(testStrategyResult);
+        given(kakaoStrategy.login(code)).willReturn(Mono.just(testStrategyResult));
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(Optional.empty());
 
@@ -103,7 +104,7 @@ class SocialLoginAdapterTest {
                 .setting(setting)
                 .build();
         
-        given(kakaoStrategy.login(code)).willReturn(testStrategyResult);
+        given(kakaoStrategy.login(code)).willReturn(Mono.just(testStrategyResult));
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(Optional.of(existingUser));
 

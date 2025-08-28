@@ -3,6 +3,7 @@ package jaeik.growfarm.infrastructure.adapter.auth.out.social;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import reactor.core.publisher.Mono;
 
 /**
  * <h2>소셜 로그인 전략 인터페이스</h2>
@@ -29,11 +30,11 @@ public interface SocialLoginStrategy {
      * <p>소셜 로그인 코드를 받아 사용자 정보를 조회하고 로그인 결과를 반환합니다.</p>
      *
      * @param code 소셜 로그인 코드
-     * @return 로그인 결과
+     * @return 로그인 결과 (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
-    StrategyLoginResult login(String code);
+    Mono<StrategyLoginResult> login(String code);
 
     /**
      * <h3>소셜 계정 연결 해제</h3>

@@ -207,8 +207,6 @@ class AuthQueryControllerIntegrationTest {
     @DisplayName("존재하지 않는 엔드포인트 - 403 Forbidden")
     void nonExistentEndpoint_Forbidden_IntegrationTest() throws Exception {
         // When & Then
-        // TODO: Spring Security가 404 대신 403 Forbidden 응답 (정상 동작)
-        // 인증되지 않은 사용자가 보호된 경로 접근 시 403 응답이 올바른 보안 정책
         mockMvc.perform(get("/api/auth/nonexistent"))
                 .andDo(print())
                 .andExpect(status().isForbidden());

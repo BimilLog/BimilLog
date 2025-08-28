@@ -34,15 +34,15 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * <p>카카오 소셜 로그인 코드를 받아 사용자 정보를 조회하고 로그인 결과를 반환합니다.</p>
      *
      * @param code 카카오 소셜 로그인 코드
-     * @return 로그인 결과
+     * @return 로그인 결과 (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public StrategyLoginResult login(String code) {
-        TokenVO tokenVO = getToken(code);
-        SocialLoginUserData userData = getUserInfo(tokenVO.accessToken());
-        return new StrategyLoginResult(userData, tokenVO);
+    public Mono<StrategyLoginResult> login(String code) {
+        return getToken(code)
+                .flatMap(tokenVO -> getUserInfo(tokenVO.accessToken())
+                        .map(userData -> new StrategyLoginResult(userData, tokenVO)));
     }
 
     /**
@@ -95,11 +95,11 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * <p>카카오 로그인 코드를 사용하여 액세스 토큰과 리프레시 토큰을 요청합니다.</p>
      *
      * @param code 카카오 로그인 코드
-     * @return TokenValue 액세스 토큰과 리프레시 토큰을 포함하는 값 객체
+     * @return TokenValue 액세스 토큰과 리프레시 토큰을 포함하는 값 객체 (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
-    private TokenVO getToken(String code) {
+    private Mono<TokenVO> getToken(String code) {
         WebClient webClient = webClientBuilder.build();
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
@@ -108,18 +108,16 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
         formData.add("redirect_uri", kakaoKeyVO.getREDIRECT_URI());
         formData.add("code", code);
 
-        Mono<Map<String, Object>> response = webClient.post()
+        return webClient.post()
                 .uri(kakaoKeyVO.getTOKEN_URL())
                 .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
                 .body(BodyInserters.fromFormData(formData))
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
-
-        Map<String, Object> responseBody = response.block();
-        return TokenVO.builder()
-                .accessToken((String) responseBody.get("access_token"))
-                .refreshToken((String) responseBody.get("refresh_token"))
-                .build();
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(responseBody -> TokenVO.builder()
+                        .accessToken((String) responseBody.get("access_token"))
+                        .refreshToken((String) responseBody.get("refresh_token"))
+                        .build());
     }
 
 
@@ -128,33 +126,33 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * <p>카카오 액세스 토큰을 사용하여 사용자 정보를 조회합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
-     * @return SocialLoginUserData 사용자 정보 DTO
+     * @return SocialLoginUserData 사용자 정보 DTO (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
-    private SocialLoginUserData getUserInfo(String accessToken) {
+    private Mono<SocialLoginUserData> getUserInfo(String accessToken) {
         WebClient webClient = webClientBuilder.build();
 
-        Mono<Map<String, Object>> response = webClient.get()
+        return webClient.get()
                 .uri(kakaoKeyVO.getUSER_INFO_URL())
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(responseBody -> {
+                    Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
+                    Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
 
-        Map<String, Object> responseBody = response.block();
-        Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
-        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+                    String socialId = String.valueOf(responseBody.get("id"));
+                    String nickname = (String) profile.get("nickname");
+                    String thumbnailImage = (String) profile.get("thumbnail_image_url");
 
-        String socialId = String.valueOf(responseBody.get("id"));
-        String nickname = (String) profile.get("nickname");
-        String thumbnailImage = (String) profile.get("thumbnail_image_url");
-
-        return SocialLoginUserData.builder()
-                .provider(getProvider())
-                .socialId(socialId)
-                .nickname(nickname)
-                .profileImageUrl(thumbnailImage)
-                .build();
+                    return SocialLoginUserData.builder()
+                            .provider(getProvider())
+                            .socialId(socialId)
+                            .nickname(nickname)
+                            .profileImageUrl(thumbnailImage)
+                            .build();
+                });
     }
 
     /**

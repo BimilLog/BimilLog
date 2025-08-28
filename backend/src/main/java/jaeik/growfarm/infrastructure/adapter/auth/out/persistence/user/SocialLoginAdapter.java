@@ -46,7 +46,7 @@ public class SocialLoginAdapter implements SocialLoginPort {
     @Transactional
     public LoginResult login(SocialProvider provider, String code) {
         SocialLoginStrategy strategy = strategies.get(provider);
-        SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code);
+        SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code).block(); // 동기 변환
 
         SocialLoginUserData rawData = initialResult.userData();
         TokenVO tokenVO = initialResult.token();

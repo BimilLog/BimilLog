@@ -64,9 +64,7 @@ public class SaveUserAdapter implements SaveUserPort {
                 .users(user)
                 .build();
 
-        if (fcmToken != null && !fcmToken.isEmpty()) {
-            notificationFcmUseCase.registerFcmToken(user.getId(), fcmToken);
-        }
+        registerFcmTokenIfPresent(user.getId(), fcmToken);
 
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
                 tokenRepository.save(newToken).getId(),
@@ -93,13 +91,26 @@ public class SaveUserAdapter implements SaveUserPort {
         
         User user = userCommandUseCase.save(User.createUser(userProfile, userName, setting));
 
-        if (fcmToken != null && !fcmToken.isEmpty()) {
-            notificationFcmUseCase.registerFcmToken(user.getId(), fcmToken);
-        }
+        registerFcmTokenIfPresent(user.getId(), fcmToken);
 
         tempDataAdapter.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
                 tokenRepository.save(Token.createToken(tokenVO, user)).getId(),
                 null));
+    }
+
+    /**
+     * <h3>FCM 토큰 등록</h3>
+     * <p>FCM 토큰이 존재할 경우에만 등록합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param fcmToken FCM 토큰 (null 또는 빈 문자열 가능)
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    private void registerFcmTokenIfPresent(Long userId, String fcmToken) {
+        if (fcmToken != null && !fcmToken.isEmpty()) {
+            notificationFcmUseCase.registerFcmToken(userId, fcmToken);
+        }
     }
 }
