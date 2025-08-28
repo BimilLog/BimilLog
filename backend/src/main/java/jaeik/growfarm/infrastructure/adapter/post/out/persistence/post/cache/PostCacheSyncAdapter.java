@@ -171,25 +171,22 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
             return null;
         }
 
-        long likeCount = jpaQueryFactory
+        // 좋아요 수 조회 (중복 쿼리 제거)
+        Long likeCountResult = jpaQueryFactory
                 .select(postLike.count())
                 .from(postLike)
                 .where(postLike.post.id.eq(postId))
-                .fetchOne() != null ? jpaQueryFactory.select(postLike.count())
-                .from(postLike)
-                .where(postLike.post.id.eq(postId))
-                .fetchOne() : 0L;
+                .fetchOne();
+        long likeCount = likeCountResult != null ? likeCountResult : 0L;
 
-        // 댓글 수 조회
+        // 댓글 수 조회 (중복 쿼리 제거)
         QComment comment = QComment.comment;
-        long commentCount = jpaQueryFactory
+        Long commentCountResult = jpaQueryFactory
                 .select(comment.count())
                 .from(comment)
                 .where(comment.post.id.eq(postId))
-                .fetchOne() != null ? jpaQueryFactory.select(comment.count())
-                .from(comment)
-                .where(comment.post.id.eq(postId))
-                .fetchOne() : 0L;
+                .fetchOne();
+        long commentCount = commentCountResult != null ? commentCountResult : 0L;
 
         // PostDetail 직접 생성
         return PostDetail.of(entity, Math.toIntExact(likeCount), Math.toIntExact(commentCount), false);

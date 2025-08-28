@@ -104,6 +104,12 @@ public class TestSocialLoginPortConfig {
             }
 
             @Override
+            public void removeTempData(String uuid) {
+                // 테스트 환경에서는 실제 삭제하지 않음 - 성공으로 처리
+                System.out.println("테스트 환경: 임시 데이터 삭제 성공 (Mock) - UUID: " + uuid);
+            }
+
+            @Override
             public ResponseCookie createTempCookie(String uuid) {
                 return ResponseCookie.from("temp", uuid)
                         .maxAge(Duration.ofMinutes(30))

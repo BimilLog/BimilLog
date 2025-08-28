@@ -10,6 +10,9 @@ public class TemporaryUserDataDTO {
     public TokenVO tokenVO;
     public String fcmToken;
 
+    // Jackson 직렬화를 위한 기본 생성자
+    public TemporaryUserDataDTO() {}
+
     public TemporaryUserDataDTO(SocialLoginUserData socialLoginUserData, TokenVO tokenVO, String fcmToken) {
         this.socialLoginUserData = socialLoginUserData;
         this.tokenVO = tokenVO;

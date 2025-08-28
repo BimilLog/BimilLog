@@ -9,7 +9,7 @@
 - **서비스**: 롤링페이퍼 + 커뮤니티 게시판
 - **타겟**: 모바일 퍼스트 (익명 메시지 플랫폼)
 - **브랜드**: Pink-Purple-Indigo 그라디언트
-- **스택**: Next.js 14 + TypeScript + Tailwind + Spring Boot
+- **스택**: Next.js 15.2.4 + TypeScript + Tailwind + Spring Boot
 
 ### 🎨 디자인 시스템 핵심
 

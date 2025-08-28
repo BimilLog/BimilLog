@@ -10,7 +10,7 @@ import jaeik.growfarm.domain.user.entity.Token;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.SaveUserAdapter;
-import jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth.TempDataAdapter;
+import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
@@ -50,7 +50,7 @@ class SaveDataAdapterTest {
     @Mock private AuthCookieManager authCookieManager;
     @Mock private UserQueryUseCase userQueryUseCase;
     @Mock private UserCommandUseCase userCommandUseCase;
-    @Mock private TempDataAdapter tempDataAdapter;
+    @Mock private TempDataPort tempDataPort;
     @Mock private NotificationFcmUseCase notificationFcmUseCase;
 
     @InjectMocks private SaveUserAdapter saveDataAdapter;
@@ -244,7 +244,7 @@ class SaveDataAdapterTest {
         // UserSignedUpEvent는 발행되지 않음 (이벤트 정책상 제외)
 
         // 임시 데이터 삭제 검증
-        verify(tempDataAdapter).removeTempData(uuid);
+        verify(tempDataPort).removeTempData(uuid);
         
         // 토큰 저장 및 쿠키 결과 검증
         verify(tokenRepository).save(any(Token.class));

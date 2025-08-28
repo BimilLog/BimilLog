@@ -118,34 +118,32 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
     public Page<PostSearchResult> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            // Redis List 구조에서 페이징 처리
-            String listKey = metadata.key() + ":list"; // List 형태로 저장된 키
+            // Redis Value 구조에서 전체 목록 조회 (일반 조회와 동일한 구조 사용)
+            Object cached = redisTemplate.opsForValue().get(metadata.key());
             
-            // 전체 크기 조회
-            Long totalSize = redisTemplate.opsForList().size(listKey);
-            if (totalSize == null || totalSize == 0) {
-                return new PageImpl<>(Collections.emptyList(), pageable, 0);
+            List<PostSearchResult> allPosts;
+            if (cached instanceof List<?> list) {
+                // Redis에서 직접 PostSearchResult로 저장하므로 캐스팅만 필요
+                allPosts = list.stream()
+                        .filter(PostSearchResult.class::isInstance)
+                        .map(PostSearchResult.class::cast)
+                        .toList();
+            } else {
+                allPosts = Collections.emptyList();
             }
             
-            // 페이징 계산
+            // 메모리에서 페이징 처리
             int page = pageable.getPageNumber();
             int size = pageable.getPageSize();
-            long start = (long) page * size;
-            long end = start + size - 1;
+            int start = page * size;
+            int end = Math.min(start + size, allPosts.size());
             
-            // Redis List에서 범위 조회 (LRANGE 명령어)
-            List<Object> cachedObjects = redisTemplate.opsForList().range(listKey, start, end);
-            if (cachedObjects == null) {
-                return new PageImpl<>(Collections.emptyList(), pageable, totalSize);
+            if (start >= allPosts.size()) {
+                return new PageImpl<>(Collections.emptyList(), pageable, allPosts.size());
             }
             
-            // Object를 PostSearchResult로 변환
-            List<PostSearchResult> posts = cachedObjects.stream()
-                    .filter(PostSearchResult.class::isInstance)
-                    .map(PostSearchResult.class::cast)
-                    .toList();
-            
-            return new PageImpl<>(posts, pageable, totalSize);
+            List<PostSearchResult> pagedPosts = allPosts.subList(start, end);
+            return new PageImpl<>(pagedPosts, pageable, allPosts.size());
             
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);

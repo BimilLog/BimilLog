@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
+package jaeik.growfarm.infrastructure.adapter.auth.out.cache;
 
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.entity.TempUserData;
@@ -10,97 +10,102 @@ import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
- * <h2>임시 데이터 어댑터</h2>
- * <p>신규 사용자의 임시 데이터 관리를 위한 어댑터</p>
+ * <h2>Redis 임시 데이터 어댑터</h2>
+ * <p>Redis를 사용하여 신규 사용자의 임시 데이터 관리를 위한 어댑터</p>
  * <p>소셜 로그인 프로세스에서 임시 데이터를 안전하게 저장/조회/삭제</p>
+ * <p>기존 인메모리 방식 대비 멀티 인스턴스 환경 지원 및 메모리 안정성 향상</p>
  *
  * @author Jaeik
  * @version 2.0.0
+ * @since 2.0.0
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TempDataAdapter implements TempDataPort {
+public class RedisTempDataAdapter implements TempDataPort {
 
-    private final Map<String, TemporaryUserDataDTO> tempUserDataStore = new ConcurrentHashMap<>();
+    private final RedisTemplate<String, Object> redisTemplate;
     private final AuthCookieManager authCookieManager;
+
+    // Redis 키 접두사 - 다른 도메인과 충돌 방지
+    private static final String TEMP_KEY_PREFIX = "temp:user:";
+    // TTL - 회원가입 프로세스 완료를 위한 충분한 시간
+    private static final Duration TTL = Duration.ofMinutes(5);
 
     /**
      * <h3>임시 사용자 데이터 저장</h3>
-     * <p>소셜 사용자 프로필 정보를 임시 데이터로 저장합니다.</p>
+     * <p>소셜 사용자 프로필 정보를 Redis에 임시 저장합니다.</p>
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>UUID는 필수 (null, 빈 문자열 불허)</li>
      *   <li>userProfile는 필수 (null 불허)</li> 
-     *   <li>tokenValue는 필수 (null 불허)</li>
+     *   <li>tokenVO는 필수 (null 불허)</li>
      *   <li>fcmToken은 선택적 (null 허용)</li>
      *   <li>동일 UUID 재저장 시 덮어쓰기</li>
-     *   <li>5분 후 자동 삭제 스케줄링</li>
+     *   <li>Redis TTL로 자동 만료 (5분)</li>
      * </ul>
      *
      * @param uuid UUID 키
      * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
      * @param tokenVO 토큰 정보
-     * @throws CustomException UUID, userProfile, tokenValue가 유효하지 않은 경우
+     * @param fcmToken FCM 토큰 (선택적)
+     * @throws CustomException UUID, userProfile, tokenVO가 유효하지 않은 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
-        // TODO: 테스트 실패 수정 - 메인 로직에 Input Validation 추가
-        // NPE 방지를 위한 필수 파라미터 검증
-        
-        // 1. UUID 검증 - ConcurrentHashMap은 null key를 허용하지 않음
+        // 1. UUID 검증
         if (uuid == null || uuid.trim().isEmpty()) {
             log.warn("Invalid temp UUID provided: {}", uuid);
             throw new CustomException(ErrorCode.INVALID_TEMP_UUID);
         }
         
-        // 2. userProfile 검증 - email() 호출 전 null 체크 필수
+        // 2. userProfile 검증
         if (userProfile == null) {
             log.warn("Invalid user profile provided for UUID: {}", uuid);
             throw new CustomException(ErrorCode.INVALID_USER_DATA);
         }
         
-        // 3. tokenValue 검증 - 회원가입 프로세스에서 토큰은 필수
+        // 3. tokenVO 검증
         if (tokenVO == null) {
             log.warn("Invalid token data provided for UUID: {}", uuid);
             throw new CustomException(ErrorCode.INVALID_TOKEN_DATA);
         }
         
-        try {            
-            // 4. 임시 데이터 저장 (인프라 DTO → 도메인 모델 변환 적용)
-            tempUserDataStore.put(uuid, TemporaryUserDataDTO.fromDomainProfile(userProfile, tokenVO, fcmToken));
+        try {
+            String key = TEMP_KEY_PREFIX + uuid;
             
-            // 6. 자동 정리 스케줄링
-            scheduleCleanup(uuid);
+            // 도메인 모델을 인프라 DTO로 변환하여 저장
+            TemporaryUserDataDTO tempData = TemporaryUserDataDTO.fromDomainProfile(userProfile, tokenVO, fcmToken);
             
-            log.debug("Temporary data saved successfully for UUID: {}", uuid);
+            // Redis에 TTL과 함께 저장
+            redisTemplate.opsForValue().set(key, tempData, TTL);
+            
+            log.debug("Temporary data saved successfully to Redis for UUID: {}", uuid);
             
         } catch (Exception e) {
-            log.error("Failed to save temporary data for UUID: {}, error: {}", uuid, e.getMessage(), e);
+            log.error("Failed to save temporary data to Redis for UUID: {}, error: {}", uuid, e.getMessage(), e);
             throw new CustomException(ErrorCode.INVALID_USER_DATA);
         }
     }
 
     /**
      * <h3>임시 사용자 데이터 조회</h3>
-     * <p>UUID를 사용하여 임시 사용자 데이터를 조회합니다.</p>
+     * <p>UUID를 사용하여 Redis에서 임시 사용자 데이터를 조회합니다.</p>
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>null UUID는 빈 결과 반환 (예외 아님)</li>
      *   <li>존재하지 않는 UUID는 빈 결과 반환</li>
-     *   <li>만료된 데이터는 자동 정리됨</li>
+     *   <li>만료된 데이터는 Redis에서 자동 정리됨</li>
      * </ul>
      *
      * @param uuid UUID 키
@@ -110,34 +115,38 @@ public class TempDataAdapter implements TempDataPort {
      */
     @Override
     public Optional<TempUserData> getTempData(String uuid) {
-        // TODO: 테스트 실패 수정 - ConcurrentHashMap null key NPE 방지
-        // null UUID는 비즈니스 로직상 빈 결과 반환이 적절
-        
         if (uuid == null) {
             log.debug("Null UUID provided for temp data lookup, returning empty");
-            return Optional.empty(); // null key는 빈 결과 반환
+            return Optional.empty();
         }
         
         try {
-            TemporaryUserDataDTO data = tempUserDataStore.get(uuid);
+            String key = TEMP_KEY_PREFIX + uuid;
+            Object data = redisTemplate.opsForValue().get(key);
             
             if (data != null) {
-                log.debug("Temporary data found for UUID: {}", uuid);
-                return Optional.of(convertToDomain(data));
+                if (data instanceof TemporaryUserDataDTO dto) {
+                    log.debug("Temporary data found in Redis for UUID: {}", uuid);
+                    return Optional.of(convertToDomain(dto));
+                } else {
+                    log.warn("Retrieved data is not of expected type for UUID: {}, got: {}", uuid, data.getClass().getSimpleName());
+                    return Optional.empty();
+                }
             } else {
-                log.debug("No temporary data found for UUID: {}", uuid);
+                log.debug("No temporary data found in Redis for UUID: {}", uuid);
                 return Optional.empty();
             }
             
         } catch (Exception e) {
-            log.error("Failed to retrieve temporary data for UUID: {}, error: {}", uuid, e.getMessage(), e);
+            log.error("Failed to retrieve temporary data from Redis for UUID: {}, error: {}", uuid, e.getMessage(), e);
+            // Redis 장애 시 빈 결과 반환으로 우아한 degradation
             return Optional.empty();
         }
     }
 
     /**
      * <h3>임시 사용자 데이터 삭제</h3>
-     * <p>UUID를 사용하여 임시 사용자 데이터를 삭제합니다.</p>
+     * <p>UUID를 사용하여 Redis에서 임시 사용자 데이터를 삭제합니다.</p>
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>null UUID는 무시 (정상 동작)</li>
@@ -150,25 +159,23 @@ public class TempDataAdapter implements TempDataPort {
      * @author Jaeik
      */
     public void removeTempData(String uuid) {
-        // TODO: 테스트 실패 수정 - ConcurrentHashMap null key remove NPE 방지
-        // null UUID는 비즈니스 로직상 무시하는 것이 적절
-        
         if (uuid == null) {
             log.debug("Null UUID provided for temp data removal, ignoring");
-            return; // null key는 무시 (정상 동작)
+            return;
         }
         
         try {
-            TemporaryUserDataDTO removed = tempUserDataStore.remove(uuid);
+            String key = TEMP_KEY_PREFIX + uuid;
+            Boolean deleted = redisTemplate.delete(key);
             
-            if (removed != null) {
-                log.debug("Temporary data removed successfully for UUID: {}", uuid);
+            if (Boolean.TRUE.equals(deleted)) {
+                log.debug("Temporary data removed successfully from Redis for UUID: {}", uuid);
             } else {
-                log.debug("No temporary data found to remove for UUID: {}", uuid);
+                log.debug("No temporary data found to remove in Redis for UUID: {}", uuid);
             }
             
         } catch (Exception e) {
-            log.error("Failed to remove temporary data for UUID: {}, error: {}", uuid, e.getMessage(), e);
+            log.error("Failed to remove temporary data from Redis for UUID: {}, error: {}", uuid, e.getMessage(), e);
         }
     }
 
@@ -198,42 +205,9 @@ public class TempDataAdapter implements TempDataPort {
      */
     private TempUserData convertToDomain(TemporaryUserDataDTO dto) {
         return TempUserData.of(
-            dto.toDomainProfile(), // 기존 변환 메서드 활용
+            dto.toDomainProfile(),
             dto.getTokenVO(),
             dto.getFcmToken()
         );
-    }
-
-    /**
-     * <h3>임시 사용자 데이터 정리 스케줄링</h3>
-     * <p>5분 후에 임시 사용자 데이터를 정리하는 작업을 스케줄링합니다.</p>
-     * <p>메모리 누수 방지를 위한 자동 정리 메커니즘</p>
-     *
-     * @param uuid UUID 키
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    private void scheduleCleanup(String uuid) {
-        if (uuid == null) {
-            log.warn("Cannot schedule cleanup for null UUID");
-            return;
-        }
-        
-        try {
-            CompletableFuture.delayedExecutor(5, TimeUnit.MINUTES)
-                    .execute(() -> {
-                        try {
-                            TemporaryUserDataDTO removed = tempUserDataStore.remove(uuid);
-                            if (removed != null) {
-                                log.debug("Scheduled cleanup completed for UUID: {}", uuid);
-                            }
-                        } catch (Exception e) {
-                            log.error("Scheduled cleanup failed for UUID: {}, error: {}", uuid, e.getMessage());
-                        }
-                    });
-            log.debug("Cleanup scheduled for UUID: {} (5 minutes)", uuid);
-        } catch (Exception e) {
-            log.error("Failed to schedule cleanup for UUID: {}, error: {}", uuid, e.getMessage());
-        }
     }
 }

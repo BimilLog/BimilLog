@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 
 import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
+import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.growfarm.domain.user.application.port.in.UserQueryUseCase;
@@ -36,7 +37,7 @@ public class SaveUserAdapter implements SaveUserPort {
     private final AuthCookieManager authCookieManager;
     private final UserQueryUseCase userQueryUseCase;
     private final UserCommandUseCase userCommandUseCase;
-    private final TempDataAdapter tempDataAdapter;
+    private final TempDataPort tempDataPort;
     private final NotificationFcmUseCase notificationFcmUseCase;
 
     /**
@@ -93,7 +94,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         registerFcmTokenIfPresent(user.getId(), fcmToken);
 
-        tempDataAdapter.removeTempData(uuid);
+        tempDataPort.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
                 tokenRepository.save(Token.createToken(tokenVO, user)).getId(),
                 null));

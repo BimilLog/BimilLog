@@ -215,34 +215,34 @@ class PostCacheQueryAdapterTest {
     @Test
     @DisplayName("정상 케이스 - 페이지별 캐시 조회")
     void shouldReturnPagedCachedPosts_WhenCacheExistsWithPagination() {
-        // Given: 캐시 리스트에 데이터 존재
-        String listKey = "cache:posts:realtime:list";
-        given(listOperations.size(listKey)).willReturn(5L);
-        given(listOperations.range(listKey, 0L, 1L)).willReturn(
-            Arrays.asList(testSimplePostDTOs.get(0), testSimplePostDTOs.get(1))
+        // Given: 캐시에 5개 게시글 존재 (Value 구조 사용)
+        List<PostSearchResult> allPosts = Arrays.asList(
+            testSimplePostDTOs.get(0), testSimplePostDTOs.get(1),
+            createAdditionalPost(3L, "추가글3"), createAdditionalPost(4L, "추가글4"), createAdditionalPost(5L, "추가글5")
         );
+        given(valueOperations.get("cache:posts:realtime")).willReturn(allPosts);
         
         Pageable pageable = PageRequest.of(0, 2);
         
         // When: 페이지별 캐시 조회
         Page<PostSearchResult> result = postCacheQueryAdapter.getCachedPostListPaged(PostCacheFlag.REALTIME, pageable);
         
-        // Then: 페이지 데이터 반환
+        // Then: 페이지 데이터 반환 (첫 번째 페이지, 2개 항목)
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(5L);
         assertThat(result.getTotalPages()).isEqualTo(3);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("인기 게시글 1");
+        assertThat(result.getContent().get(1).getTitle()).isEqualTo("인기 게시글 2");
         
-        verify(listOperations).size(listKey);
-        verify(listOperations).range(listKey, 0L, 1L);
+        verify(valueOperations).get("cache:posts:realtime");
     }
 
     @Test
     @DisplayName("경계값 - 빈 페이지 캐시 조회")
     void shouldReturnEmptyPage_WhenCacheListIsEmpty() {
-        // Given: 빈 캐시 리스트
-        String listKey = "cache:posts:legend:list";
-        given(listOperations.size(listKey)).willReturn(0L);
+        // Given: 빈 캐시 (Value 구조에서 null 반환)
+        given(valueOperations.get("cache:posts:legend")).willReturn(null);
         
         Pageable pageable = PageRequest.of(0, 10);
         
@@ -255,8 +255,7 @@ class PostCacheQueryAdapterTest {
         assertThat(result.getTotalElements()).isEqualTo(0L);
         assertThat(result.getTotalPages()).isEqualTo(0);
         
-        verify(listOperations).size(listKey);
-        verify(listOperations, never()).range(any(), anyLong(), anyLong());
+        verify(valueOperations).get("cache:posts:legend");
     }
 
     @Test
@@ -314,12 +313,11 @@ class PostCacheQueryAdapterTest {
     }
 
     @Test
-    @DisplayName("예외 케이스 - Redis List 조회 오류 시 getCachedPostListPaged CustomException 발생")
-    void shouldThrowCustomException_WhenRedisListErrorInGetCachedPaged() {
-        // Given: Redis List 조회 오류 발생
-        String listKey = "cache:posts:weekly:list";
-        given(listOperations.size(listKey))
-            .willThrow(new RuntimeException("Redis list operation failed"));
+    @DisplayName("예외 케이스 - Redis Value 조회 오류 시 getCachedPostListPaged CustomException 발생")
+    void shouldThrowCustomException_WhenRedisValueErrorInGetCachedPaged() {
+        // Given: Redis Value 조회 오류 발생
+        given(valueOperations.get("cache:posts:weekly"))
+            .willThrow(new RuntimeException("Redis value operation failed"));
         
         Pageable pageable = PageRequest.of(0, 10);
         
@@ -438,5 +436,25 @@ class PostCacheQueryAdapterTest {
         
         // 단일 Redis 호출만 발생했는지 확인 (효율성)
         verify(valueOperations, times(1)).get("cache:posts:weekly");
+    }
+
+    /**
+     * <h3>추가 테스트용 PostSearchResult 생성 헬퍼</h3>
+     * <p>페이징 테스트를 위한 추가 게시글 데이터 생성</p>
+     */
+    private PostSearchResult createAdditionalPost(Long id, String title) {
+        return PostSearchResult.builder()
+            .id(id)
+            .title(title)
+            .content("테스트 내용 " + id)
+            .viewCount(50)
+            .likeCount(25)
+            .postCacheFlag(PostCacheFlag.REALTIME)
+            .createdAt(Instant.now())
+            .userId(id)
+            .userName("testUser" + id)
+            .commentCount(5)
+            .isNotice(false)
+            .build();
     }
 }

@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
+import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import org.springframework.http.ResponseCookie;
@@ -32,6 +33,16 @@ public interface TempDataPort {
      * @return 순수 도메인 모델로 변환된 임시 사용자 데이터
      */
     Optional<TempUserData> getTempData(String uuid);
+
+    /**
+     * <h3>임시 사용자 데이터 삭제</h3>
+     * <p>UUID를 사용하여 임시 사용자 데이터를 삭제합니다.</p>
+     *
+     * @param uuid UUID 키
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    void removeTempData(String uuid);
 
     /**
      * <h3>임시 사용자 ID 쿠키 생성</h3>
