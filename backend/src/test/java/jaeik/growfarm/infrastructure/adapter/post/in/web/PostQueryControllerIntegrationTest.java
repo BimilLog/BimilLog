@@ -148,7 +148,7 @@ class PostQueryControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(3))))
                 .andExpect(jsonPath("$.content[0].title", notNullValue()))
-                .andExpect(jsonPath("$.content[0].writer", notNullValue()))
+                .andExpect(jsonPath("$.content[0].userName", notNullValue()))
                 .andExpect(jsonPath("$.content[0].createdAt", notNullValue()))
                 .andExpect(jsonPath("$.pageable.pageNumber", is(0)))
                 .andExpect(jsonPath("$.pageable.pageSize", is(10)));
@@ -243,15 +243,14 @@ class PostQueryControllerIntegrationTest {
     @Test
     @DisplayName("게시글 검색 실패 - 잘못된 검색 타입")
     void searchPost_Fail_InvalidType() throws Exception {
-        // When & Then - 실제로는 잘못된 타입도 처리됨
+        // When & Then - 잘못된 타입에 대해 400 Bad Request 에러 반환
         mockMvc.perform(get("/api/post/search")
                         .param("type", "invalid")
                         .param("query", "검색어")
                         .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())
-                .andExpect(status().isOk()) // 실제 동작에 맞춰 수정
-                .andExpect(jsonPath("$.content", hasSize(0))); // 빈 결과 반환
+                .andExpect(status().isBadRequest()); // 400 Bad Request 기대
     }
 
     @Test
@@ -266,7 +265,7 @@ class PostQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$.title", is("첫 번째 테스트 게시글")))
                 .andExpect(jsonPath("$.content", is("첫 번째 게시글의 내용입니다.")))
                 .andExpect(jsonPath("$.userName", is("테스트사용자")))
-                .andExpect(jsonPath("$.viewCount", is(10)))
+                .andExpect(jsonPath("$.viewCount", is(11))) // 조회시 자동 증가
                 .andExpect(jsonPath("$.likeCount", is(0))) // 실제 값으로 수정
                 .andExpect(jsonPath("$.commentCount", is(0))) // 실제 값으로 수정  
                 .andExpect(jsonPath("$.createdAt", notNullValue()));
@@ -352,14 +351,14 @@ class PostQueryControllerIntegrationTest {
     @Test
     @DisplayName("게시글 검색 - 공백 검색어")
     void searchPost_Fail_EmptyQuery() throws Exception {
-        // When & Then - 실제로는 빈 검색어도 처리됨 (400 에러가 아님)
+        // When & Then - 공백 검색어에 대해 빈 결과 반환
         mockMvc.perform(get("/api/post/search")
                         .param("type", "title")
                         .param("query", "")
                         .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())
-                .andExpect(status().isOk()) // 실제 동작에 맞춰 수정
+                .andExpect(status().isOk()) // 200 OK지만 빈 결과
                 .andExpect(jsonPath("$.content", hasSize(0))); // 빈 결과 반환
     }
 

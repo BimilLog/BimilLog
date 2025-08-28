@@ -14,6 +14,8 @@ import jaeik.growfarm.domain.post.entity.QPost;
 import jaeik.growfarm.domain.post.entity.QPostLike;
 import jaeik.growfarm.domain.user.entity.QUser;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.fulltext.PostFulltextRepository;
+import jaeik.growfarm.infrastructure.exception.CustomException;
+import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -91,7 +93,7 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     public Page<PostSearchResult> findBySearch(String type, String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
-            return findByPage(pageable);
+            return Page.empty(pageable);
         }
 
         String trimmedQuery = query.trim();
@@ -189,9 +191,10 @@ public class PostQueryAdapter implements PostQueryPort {
         BooleanExpression likeCondition = switch (type) {
             case "title" -> post.title.contains(query);
             case "writer" -> createWriterLikeCondition(query);
+            case "content" -> post.content.contains(query);
             case "title_content" -> post.title.contains(query)
                                    .or(post.content.contains(query));
-            default -> post.title.contains(query);
+            default -> throw new CustomException(ErrorCode.INVALID_SEARCH_TYPE);
         };
         
         return likeCondition.and(post.isNotice.isFalse());
