@@ -96,7 +96,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/paper/{userName}").permitAll()
                         .requestMatchers("/api/user/suggestion", "/api/user/username/check").permitAll()
-                        .requestMatchers("/api/ai/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(LogFilter, UsernamePasswordAuthenticationFilter.class)
