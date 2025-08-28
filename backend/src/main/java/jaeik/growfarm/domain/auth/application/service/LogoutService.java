@@ -45,6 +45,7 @@ public class LogoutService implements LogoutUseCase {
         try {
             // 공통화된 소셜 로그아웃 포트 사용
             socialLogoutPort.performSocialLogout(userDetails);
+            // 로그아웃 이벤트 발행 - 토큰 삭제는 TokenCleanupEventListener에서 처리
             eventPublisher.publishEvent(UserLoggedOutEvent.of(userDetails.getUserId(), userDetails.getTokenId()));
             SecurityContextHolder.clearContext();
             return deleteUserPort.getLogoutCookies();
