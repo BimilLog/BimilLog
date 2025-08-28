@@ -150,4 +150,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    /**
+     * <h3>IllegalArgumentException 예외 처리</h3>
+     * <p>잘못된 인자값 (예: 잘못된 소셜 제공자) 전달 시 400 Bad Request 반환</p>
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                e.getClass().getSimpleName(),
+                e.getMessage()
+        );
+        
+        // TODO: 비즈니스 로직 문제 해결 - 잘못된 provider 값에 대한 적절한 에러 처리
+        log.warn("IllegalArgumentException: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
 }
