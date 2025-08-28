@@ -1,6 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
+import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
@@ -108,7 +109,7 @@ public class TempDataAdapter implements TempDataPort {
      * @author Jaeik
      */
     @Override
-    public Optional<TemporaryUserDataDTO> getTempData(String uuid) {
+    public Optional<TempUserData> getTempData(String uuid) {
         // TODO: 테스트 실패 수정 - ConcurrentHashMap null key NPE 방지
         // null UUID는 비즈니스 로직상 빈 결과 반환이 적절
         
@@ -122,11 +123,11 @@ public class TempDataAdapter implements TempDataPort {
             
             if (data != null) {
                 log.debug("Temporary data found for UUID: {}", uuid);
+                return Optional.of(convertToDomain(data));
             } else {
                 log.debug("No temporary data found for UUID: {}", uuid);
+                return Optional.empty();
             }
-            
-            return Optional.ofNullable(data);
             
         } catch (Exception e) {
             log.error("Failed to retrieve temporary data for UUID: {}, error: {}", uuid, e.getMessage(), e);
@@ -183,6 +184,24 @@ public class TempDataAdapter implements TempDataPort {
     @Override
     public ResponseCookie createTempCookie(String uuid) {
         return authCookieManager.createTempCookie(uuid);
+    }
+
+    /**
+     * <h3>인프라 DTO를 도메인 모델로 변환</h3>
+     * <p>TemporaryUserDataDTO를 순수 도메인 모델인 TempUserData로 변환합니다.</p>
+     * <p>헥사고날 아키텍처 준수: 어댑터에서만 변환 처리</p>
+     *
+     * @param dto 인프라 계층의 임시 사용자 데이터 DTO
+     * @return 순수 도메인 모델
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    private TempUserData convertToDomain(TemporaryUserDataDTO dto) {
+        return TempUserData.of(
+            dto.toDomainProfile(), // 기존 변환 메서드 활용
+            dto.getTokenVO(),
+            dto.getFcmToken()
+        );
     }
 
     /**

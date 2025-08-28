@@ -2,10 +2,9 @@ package jaeik.growfarm.util;
 
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
+import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -84,22 +83,20 @@ public class TestSocialLoginPortConfig {
             }
 
             @Override
-            public Optional<TemporaryUserDataDTO> getTempData(String uuid) {
+            public Optional<TempUserData> getTempData(String uuid) {
                 // 특정 UUID에 대해서는 테스트용 임시 데이터 반환
                 if ("integration-test-uuid-12345".equals(uuid)) {
-                    SocialLoginUserData socialLoginUserData = SocialLoginUserData.builder()
-                            .socialId("test-social-id")
-                            .email("test@example.com")
-                            .provider(SocialProvider.KAKAO)
-                            .nickname("Test User")
-                            .profileImageUrl("https://example.com/profile.jpg")
-                            .fcmToken("integration-test-fcm-token")
-                            .build();
+                    SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile(
+                            "test-social-id",
+                            "test@example.com", 
+                            SocialProvider.KAKAO,
+                            "Test User",
+                            "https://example.com/profile.jpg"
+                    );
                     
                     TokenVO tokenVO = new TokenVO("dummy-access-token", "dummy-refresh-token");
                     
-                    TemporaryUserDataDTO tempData = new TemporaryUserDataDTO(
-                            socialLoginUserData, tokenVO, "integration-test-fcm-token");
+                    TempUserData tempData = TempUserData.of(userProfile, tokenVO, "integration-test-fcm-token");
                     
                     return Optional.of(tempData);
                 }

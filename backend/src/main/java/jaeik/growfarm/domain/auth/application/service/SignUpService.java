@@ -3,7 +3,7 @@ package jaeik.growfarm.domain.auth.application.service;
 import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
+import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -43,10 +43,6 @@ public class SignUpService implements SignUpUseCase {
      */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
-        // TODO: 테스트 실패 - 메인 로직 문제 의심
-        // 기존 테스트에서 null/empty userName이 성공하는 비논리적 테스트 발견
-        // 수정 필요: 입력 검증 로직 추가로 데이터 무결성 보장
-        
         // 입력 검증: userName null/empty 체크
         if (userName == null || userName.trim().isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
@@ -57,12 +53,13 @@ public class SignUpService implements SignUpUseCase {
             throw new CustomException(ErrorCode.INVALID_TEMP_UUID);
         }
 
-        Optional<TemporaryUserDataDTO> tempUserData = tempDataPort.getTempData(uuid);
+        Optional<TempUserData> tempUserData = tempDataPort.getTempData(uuid);
 
         if (tempUserData.isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
         } else {
-            return saveUserPort.saveNewUser(userName.trim(), uuid, tempUserData.get().toDomainProfile(), tempUserData.get().tokenVO, tempUserData.get().getFcmToken());
+            TempUserData userData = tempUserData.get();
+            return saveUserPort.saveNewUser(userName.trim(), uuid, userData.userProfile(), userData.tokenVO(), userData.fcmToken());
         }
     }
 }

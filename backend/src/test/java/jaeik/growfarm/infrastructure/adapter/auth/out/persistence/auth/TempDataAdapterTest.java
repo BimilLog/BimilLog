@@ -1,10 +1,9 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.persistence.auth;
 
+import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.growfarm.infrastructure.auth.AuthCookieManager;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +37,7 @@ class TempDataAdapterTest {
 
     @InjectMocks private TempDataAdapter tempDataAdapter;
 
-    private SocialLoginUserData testUserData;
+    // private SocialLoginUserData testUserData; // 더 이상 사용하지 않음
     private SocialLoginPort.SocialUserProfile testUserProfile;
     private TokenVO testTokenVO;
     private String testUuid;
@@ -47,13 +46,7 @@ class TempDataAdapterTest {
     void setUp() {
         // 테스트용 데이터 준비
         testUuid = "test-uuid-12345";
-        testUserData = SocialLoginUserData.builder()
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456789")
-                .nickname("testUser")
-                .profileImageUrl("https://example.com/profile.jpg")
-                .fcmToken("fcm-token-12345")
-                .build();
+        // testUserData 더 이상 사용하지 않음
         testUserProfile = new SocialLoginPort.SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "testUser", "https://example.com/profile.jpg");
         testTokenVO = TokenVO.builder()
                 .accessToken("access-token-12345")
@@ -68,13 +61,13 @@ class TempDataAdapterTest {
         tempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
 
         // Then: 저장된 데이터 조회 검증
-        Optional<TemporaryUserDataDTO> savedData = tempDataAdapter.getTempData(testUuid);
+        Optional<TempUserData> savedData = tempDataAdapter.getTempData(testUuid);
         
         assertThat(savedData).isPresent();
-        assertThat(savedData.get().toDomainProfile()).isEqualTo(testUserProfile);
-        assertThat(savedData.get().getTokenVO()).isEqualTo(testTokenVO);
+        assertThat(savedData.get().userProfile()).isEqualTo(testUserProfile);
+        assertThat(savedData.get().tokenVO()).isEqualTo(testTokenVO);
         // FCM 토큰이 제대로 저장되었는지 검증
-        assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-token");
+        assertThat(savedData.get().fcmToken()).isEqualTo("test-fcm-token");
     }
 
     @Test
@@ -93,7 +86,7 @@ class TempDataAdapterTest {
                 .hasMessageContaining("임시 사용자 UUID가 유효하지 않습니다");
         
         // 추가 검증: null UUID로 조회 시 빈 결과 반환
-        Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(nullUuid);
+        Optional<TempUserData> result = tempDataAdapter.getTempData(nullUuid);
         assertThat(result).isEmpty();
     }
 
@@ -104,15 +97,15 @@ class TempDataAdapterTest {
         tempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
 
         // When: 존재하는 UUID로 조회
-        Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(testUuid);
+        Optional<TempUserData> result = tempDataAdapter.getTempData(testUuid);
 
         // Then: 정확한 데이터 반환
         assertThat(result).isPresent();
-        TemporaryUserDataDTO data = result.get();
-        assertThat(data.getSocialLoginUserData().provider()).isEqualTo(SocialProvider.KAKAO);
-        assertThat(data.getSocialLoginUserData().socialId()).isEqualTo("123456789");
-        assertThat(data.getSocialLoginUserData().nickname()).isEqualTo("testUser");
-        assertThat(data.getTokenVO().accessToken()).isEqualTo("access-token-12345");
+        TempUserData data = result.get();
+        assertThat(data.userProfile().provider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(data.userProfile().socialId()).isEqualTo("123456789");
+        assertThat(data.userProfile().nickname()).isEqualTo("testUser");
+        assertThat(data.tokenVO().accessToken()).isEqualTo("access-token-12345");
     }
 
     @Test
@@ -122,7 +115,7 @@ class TempDataAdapterTest {
         String nonExistentUuid = "non-existent-uuid";
 
         // When: 존재하지 않는 UUID로 조회
-        Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(nonExistentUuid);
+        Optional<TempUserData> result = tempDataAdapter.getTempData(nonExistentUuid);
 
         // Then: 빈 Optional 반환
         assertThat(result).isEmpty();
@@ -135,7 +128,7 @@ class TempDataAdapterTest {
         String nullUuid = null;
 
         // When: null UUID로 조회
-        Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(nullUuid);
+        Optional<TempUserData> result = tempDataAdapter.getTempData(nullUuid);
 
         // Then: 빈 Optional 반환 (ConcurrentHashMap은 null key를 지원하지 않지만 Optional.ofNullable이 처리)
         assertThat(result).isEmpty();
@@ -152,7 +145,7 @@ class TempDataAdapterTest {
         tempDataAdapter.removeTempData(testUuid);
 
         // Then: 데이터가 삭제되어 조회되지 않음
-        Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(testUuid);
+        Optional<TempUserData> result = tempDataAdapter.getTempData(testUuid);
         assertThat(result).isEmpty();
     }
 
@@ -256,11 +249,11 @@ class TempDataAdapterTest {
         tempDataAdapter.saveTempData(testUuid, newUserProfile, newTokenVO, "new-fcm-token");
 
         // Then: 새 데이터로 덮어써짐
-        Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(testUuid);
+        Optional<TempUserData> result = tempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
-        assertThat(result.get().getSocialLoginUserData().socialId()).isEqualTo("987654321");
-        assertThat(result.get().getSocialLoginUserData().nickname()).isEqualTo("newUser");
-        assertThat(result.get().getTokenVO().accessToken()).isEqualTo("new-access-token");
+        assertThat(result.get().userProfile().socialId()).isEqualTo("987654321");
+        assertThat(result.get().userProfile().nickname()).isEqualTo("newUser");
+        assertThat(result.get().tokenVO().accessToken()).isEqualTo("new-access-token");
     }
 
     @Test
@@ -278,13 +271,13 @@ class TempDataAdapterTest {
         tempDataAdapter.saveTempData(uuid2, userProfile2, testTokenVO, "fcm2");
 
         // Then: 각각의 데이터가 독립적으로 저장되고 조회됨
-        Optional<TemporaryUserDataDTO> result1 = tempDataAdapter.getTempData(uuid1);
-        Optional<TemporaryUserDataDTO> result2 = tempDataAdapter.getTempData(uuid2);
+        Optional<TempUserData> result1 = tempDataAdapter.getTempData(uuid1);
+        Optional<TempUserData> result2 = tempDataAdapter.getTempData(uuid2);
 
         assertThat(result1).isPresent();
-        assertThat(result1.get().getSocialLoginUserData().nickname()).isEqualTo("user1");
+        assertThat(result1.get().userProfile().nickname()).isEqualTo("user1");
         assertThat(result2).isPresent();
-        assertThat(result2.get().getSocialLoginUserData().nickname()).isEqualTo("user2");
+        assertThat(result2.get().userProfile().nickname()).isEqualTo("user2");
     }
 
     @Test
@@ -294,7 +287,7 @@ class TempDataAdapterTest {
         tempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
         
         // When: 데이터가 저장됨
-        Optional<TemporaryUserDataDTO> immediateResult = tempDataAdapter.getTempData(testUuid);
+        Optional<TempUserData> immediateResult = tempDataAdapter.getTempData(testUuid);
         
         // Then: 즉시 조회 시에는 데이터 존재
         assertThat(immediateResult).isPresent();
@@ -319,9 +312,9 @@ class TempDataAdapterTest {
         // Then: 모든 데이터가 정상 저장되고 조회됨
         for (int i = 0; i < dataCount; i++) {
             String uuid = "uuid-" + i;
-            Optional<TemporaryUserDataDTO> result = tempDataAdapter.getTempData(uuid);
+            Optional<TempUserData> result = tempDataAdapter.getTempData(uuid);
             assertThat(result).isPresent();
-            assertThat(result.get().getSocialLoginUserData().nickname()).isEqualTo("user-" + i);
+            assertThat(result.get().userProfile().nickname()).isEqualTo("user-" + i);
         }
 
         // 정리: 저장된 데이터 삭제
@@ -330,11 +323,5 @@ class TempDataAdapterTest {
         }
     }
 
-    public SocialLoginUserData getTestUserData() {
-        return testUserData;
-    }
-
-    public void setTestUserData(SocialLoginUserData testUserData) {
-        this.testUserData = testUserData;
-    }
+    // 더 이상 사용하지 않는 getter/setter 메서드들 제거됨
 }

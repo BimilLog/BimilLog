@@ -2,11 +2,10 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
+import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
-import jaeik.growfarm.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +52,7 @@ class SignUpServiceTest {
     private String testUuid;
     private SocialLoginPort.SocialUserProfile testSocialProfile;
     private TokenVO testTokenVO;
-    private TemporaryUserDataDTO testTempData;
+    private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
 
     @BeforeEach
@@ -67,16 +66,7 @@ class SignUpServiceTest {
                 .refreshToken("refresh-token")
                 .build();
         
-        testTempData = new TemporaryUserDataDTO(
-                SocialLoginUserData.builder()
-                        .socialId(testSocialProfile.socialId())
-                        .email(testSocialProfile.email())
-                        .provider(testSocialProfile.provider())
-                        .nickname(testSocialProfile.nickname())
-                        .profileImageUrl(testSocialProfile.profileImageUrl())
-                        .build(),
-                testTokenVO, 
-                "fcm-token");
+        testTempData = TempUserData.of(testSocialProfile, testTokenVO, "fcm-token");
         
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-token").build(),
@@ -140,15 +130,7 @@ class SignUpServiceTest {
     @DisplayName("FCM 토큰이 없는 임시 데이터로 회원 가입")
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
-        TemporaryUserDataDTO tempDataWithoutFcm = new TemporaryUserDataDTO(
-                SocialLoginUserData.builder()
-                        .socialId(testSocialProfile.socialId())
-                        .email(testSocialProfile.email())
-                        .provider(testSocialProfile.provider())
-                        .nickname(testSocialProfile.nickname())
-                        .profileImageUrl(testSocialProfile.profileImageUrl())
-                        .build(),
-                testTokenVO, null);
+        TempUserData tempDataWithoutFcm = TempUserData.of(testSocialProfile, testTokenVO, null);
         
         given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
@@ -187,22 +169,20 @@ class SignUpServiceTest {
             String uniqueFcmToken = uniqueFcmTokens[i];
             
             // 각 사용자별로 고유한 임시 데이터 생성
-            TemporaryUserDataDTO uniqueTempData = new TemporaryUserDataDTO(
-                    SocialLoginUserData.builder()
-                            .socialId("kakao" + (i + 1))
-                            .email("test" + (i + 1) + "@example.com")
-                            .provider(testSocialProfile.provider())
-                            .nickname("testUser" + (i + 1))
-                            .profileImageUrl("profile" + (i + 1) + ".jpg")
-                            .build(),
-                    testTokenVO, 
-                    uniqueFcmToken);
+            SocialLoginPort.SocialUserProfile uniqueProfile = new SocialLoginPort.SocialUserProfile(
+                    "kakao" + (i + 1),
+                    "test" + (i + 1) + "@example.com", 
+                    testSocialProfile.provider(),
+                    "testUser" + (i + 1),
+                    "profile" + (i + 1) + ".jpg"
+            );
+            TempUserData uniqueTempData = TempUserData.of(uniqueProfile, testTokenVO, uniqueFcmToken);
             
             given(tempDataPort.getTempData(uniqueUuid)).willReturn(Optional.of(uniqueTempData));
             given(saveUserPort.saveNewUser(
                     eq(userName), 
                     eq(uniqueUuid), 
-                    eq(uniqueTempData.toDomainProfile()), 
+                    eq(uniqueTempData.userProfile()), 
                     eq(testTokenVO),
                     eq(uniqueFcmToken)
             )).willReturn(testCookies);
@@ -213,7 +193,7 @@ class SignUpServiceTest {
             // Then
             assertThat(result).isEqualTo(testCookies);
             verify(tempDataPort).getTempData(uniqueUuid);
-            verify(saveUserPort).saveNewUser(userName, uniqueUuid, uniqueTempData.toDomainProfile(), testTokenVO, uniqueFcmToken);
+            verify(saveUserPort).saveNewUser(userName, uniqueUuid, uniqueTempData.userProfile(), testTokenVO, uniqueFcmToken);
         }
     }
 

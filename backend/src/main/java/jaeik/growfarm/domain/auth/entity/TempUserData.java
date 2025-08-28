@@ -1,0 +1,44 @@
+package jaeik.growfarm.domain.auth.entity;
+
+import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.growfarm.domain.user.entity.TokenVO;
+
+/**
+ * <h2>임시 사용자 데이터</h2>
+ * <p>회원가입 프로세스에서 사용하는 순수 도메인 모델</p>
+ * <p>소셜 로그인 후 회원가입 완료까지의 임시 데이터를 담고 있습니다.</p>
+ *
+ * @param userProfile 소셜 사용자 프로필 정보
+ * @param tokenVO 소셜 로그인 토큰 정보
+ * @param fcmToken FCM 푸시 알림 토큰 (선택적)
+ * 
+ * @author Jaeik
+ * @version 2.0.0
+ * @since 2.0.0
+ */
+public record TempUserData(
+        SocialLoginPort.SocialUserProfile userProfile,
+        TokenVO tokenVO,
+        String fcmToken
+) {
+    /**
+     * <h3>임시 사용자 데이터 생성</h3>
+     * <p>FCM 토큰 검증 후 임시 데이터 객체를 생성합니다.</p>
+     *
+     * @param userProfile 소셜 사용자 프로필 (필수)
+     * @param tokenVO 토큰 정보 (필수)  
+     * @param fcmToken FCM 토큰 (선택적)
+     * @return 검증된 임시 사용자 데이터
+     * @throws IllegalArgumentException userProfile이나 tokenVO가 null인 경우
+     * @since 2.0.0
+     */
+    public static TempUserData of(SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
+        if (userProfile == null) {
+            throw new IllegalArgumentException("userProfile cannot be null");
+        }
+        if (tokenVO == null) {
+            throw new IllegalArgumentException("tokenVO cannot be null");
+        }
+        return new TempUserData(userProfile, tokenVO, fcmToken);
+    }
+}
