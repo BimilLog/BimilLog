@@ -92,7 +92,6 @@ class PaperCommandControllerIntegrationTest {
     
     /**
      * 테스트용 사용자 엔티티 생성 및 저장
-     * Admin 테스트 패턴을 따라 Setting.createSetting() 사용
      */
     private User createAndSaveUser(String userName, String socialId) {
         Setting setting = Setting.createSetting();
@@ -282,11 +281,10 @@ class PaperCommandControllerIntegrationTest {
         
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         
-        // When & Then - 인증되지 않은 요청시 403 Forbidden 반환하도록 수정
+        // When & Then - 인증되지 않은 요청시 403 Forbidden 반환
         mockMvc.perform(post("/api/paper/delete")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody)
-                        .with(csrf()))
+                        .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }

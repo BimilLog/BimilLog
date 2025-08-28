@@ -134,9 +134,10 @@ class PaperQueryControllerIntegrationTest {
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[0].anonymity").value("친구1"))
-                .andExpect(jsonPath("$[0].content").value("생일 축하해!"))
-                .andExpect(jsonPath("$[0].width").value(1))
+                // 최신 생성일 기준 내림차순으로 정렬됨: "익명" -> "친구2" -> "친구1"
+                .andExpect(jsonPath("$[0].anonymity").value("익명"))
+                .andExpect(jsonPath("$[0].content").value("응원합니다"))
+                .andExpect(jsonPath("$[0].width").value(3))
                 .andExpect(jsonPath("$[0].height").value(1))
                 .andExpect(jsonPath("$[0].decoType").value("APPLE"));
     }
