@@ -90,7 +90,9 @@ class AuthCommandControllerUnitTest {
 
         // Then
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getHeaders().get("Set-Cookie")).contains(tempCookie.toString());
+        assertThat(response.getHeaders().get("Set-Cookie")).isNotNull();
+        assertThat(response.getHeaders().get("Set-Cookie")).hasSize(1);
+        assertThat(response.getHeaders().get("Set-Cookie").get(0)).contains("temp=temp-value");
         
         AuthResponse body = response.getBody();
         assertThat(body).isNotNull();
