@@ -1,7 +1,7 @@
 package jaeik.growfarm.util;
 
+import jaeik.growfarm.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
@@ -74,8 +74,8 @@ public class TestSocialLoginPortConfig {
 
     @Bean
     @Primary
-    public TempDataPort testTempDataPort() {
-        return new TempDataPort() {
+    public RedisUserDataPort testTempDataPort() {
+        return new RedisUserDataPort() {
             @Override
             public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
                 // 테스트 환경에서는 실제 Redis 저장하지 않음 - 성공으로 처리

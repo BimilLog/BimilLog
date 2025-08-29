@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -624,6 +625,153 @@ class PostQueryServiceTest {
         assertThat(result.getContent()).hasSize(1);
         
         verify(postQueryPort).findLikedPostsByUserId(userId, pageable);
+    }
+
+    @Test
+    @DisplayName("실시간/주간 인기글 일괄 조회 - 캐시 모두 있음")
+    void shouldGetRealtimeAndWeeklyPosts_WhenBothCachesExist() {
+        // Given
+        List<PostSearchResult> realtimePosts = List.of(
+            createPostSearchResult(1L, "실시간 인기글 1"),
+            createPostSearchResult(2L, "실시간 인기글 2")
+        );
+        List<PostSearchResult> weeklyPosts = List.of(
+            createPostSearchResult(3L, "주간 인기글 1"),
+            createPostSearchResult(4L, "주간 인기글 2")
+        );
+
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(true);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(realtimePosts);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
+
+        // When
+        Map<String, List<PostSearchResult>> result = postQueryService.getRealtimeAndWeeklyPosts();
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result).containsKeys("realtime", "weekly");
+        assertThat(result.get("realtime")).hasSize(2);
+        assertThat(result.get("weekly")).hasSize(2);
+        assertThat(result.get("realtime").get(0).getTitle()).isEqualTo("실시간 인기글 1");
+        assertThat(result.get("weekly").get(0).getTitle()).isEqualTo("주간 인기글 1");
+        
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
+        verify(postCacheSyncService, never()).updateRealtimePopularPosts();
+        verify(postCacheSyncService, never()).updateWeeklyPopularPosts();
+    }
+
+    @Test
+    @DisplayName("실시간/주간 인기글 일괄 조회 - 실시간 캐시 없음")
+    void shouldGetRealtimeAndWeeklyPosts_WhenRealtimeCacheMissing() {
+        // Given
+        List<PostSearchResult> realtimePosts = List.of(createPostSearchResult(1L, "업데이트된 실시간"));
+        List<PostSearchResult> weeklyPosts = List.of(createPostSearchResult(2L, "기존 주간"));
+
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(false);
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(true);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(realtimePosts);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
+
+        // When
+        Map<String, List<PostSearchResult>> result = postQueryService.getRealtimeAndWeeklyPosts();
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result.get("realtime")).hasSize(1);
+        assertThat(result.get("weekly")).hasSize(1);
+        
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
+        verify(postCacheSyncService).updateRealtimePopularPosts();
+        verify(postCacheSyncService, never()).updateWeeklyPopularPosts();
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
+    }
+
+    @Test
+    @DisplayName("실시간/주간 인기글 일괄 조회 - 주간 캐시 없음")
+    void shouldGetRealtimeAndWeeklyPosts_WhenWeeklyCacheMissing() {
+        // Given
+        List<PostSearchResult> realtimePosts = List.of(createPostSearchResult(1L, "기존 실시간"));
+        List<PostSearchResult> weeklyPosts = List.of(createPostSearchResult(2L, "업데이트된 주간"));
+
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(false);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(realtimePosts);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
+
+        // When
+        Map<String, List<PostSearchResult>> result = postQueryService.getRealtimeAndWeeklyPosts();
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result.get("realtime")).hasSize(1);
+        assertThat(result.get("weekly")).hasSize(1);
+        
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
+        verify(postCacheSyncService, never()).updateRealtimePopularPosts();
+        verify(postCacheSyncService).updateWeeklyPopularPosts();
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
+    }
+
+    @Test
+    @DisplayName("실시간/주간 인기글 일괄 조회 - 두 캐시 모두 없음")
+    void shouldGetRealtimeAndWeeklyPosts_WhenBothCachesMissing() {
+        // Given
+        List<PostSearchResult> realtimePosts = List.of(createPostSearchResult(1L, "새로운 실시간"));
+        List<PostSearchResult> weeklyPosts = List.of(createPostSearchResult(2L, "새로운 주간"));
+
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(false);
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(false);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(realtimePosts);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
+
+        // When
+        Map<String, List<PostSearchResult>> result = postQueryService.getRealtimeAndWeeklyPosts();
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result.get("realtime")).hasSize(1);
+        assertThat(result.get("weekly")).hasSize(1);
+        
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
+        verify(postCacheSyncService).updateRealtimePopularPosts();
+        verify(postCacheSyncService).updateWeeklyPopularPosts();
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
+    }
+
+    @Test
+    @DisplayName("실시간/주간 인기글 일괄 조회 - 빈 결과 처리")
+    void shouldGetRealtimeAndWeeklyPosts_WhenEmptyResults() {
+        // Given
+        List<PostSearchResult> emptyRealtimePosts = Collections.emptyList();
+        List<PostSearchResult> emptyWeeklyPosts = Collections.emptyList();
+
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
+        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(true);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(emptyRealtimePosts);
+        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(emptyWeeklyPosts);
+
+        // When
+        Map<String, List<PostSearchResult>> result = postQueryService.getRealtimeAndWeeklyPosts();
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result.get("realtime")).isEmpty();
+        assertThat(result.get("weekly")).isEmpty();
+        
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.REALTIME);
+        verify(postCacheQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
     }
 
     @Test

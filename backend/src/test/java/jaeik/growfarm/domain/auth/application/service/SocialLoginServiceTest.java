@@ -1,9 +1,9 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
+import jaeik.growfarm.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.auth.entity.LoginResult;
@@ -46,7 +46,7 @@ class SocialLoginServiceTest {
 
     @Mock private SocialLoginPort socialLoginPort;
     @Mock private SaveUserPort saveUserPort;
-    @Mock private TempDataPort tempDataPort;
+    @Mock private RedisUserDataPort redisUserDataPort;
     @Mock private BlacklistPort blacklistPort;
 
     @InjectMocks
@@ -113,7 +113,7 @@ class SocialLoginServiceTest {
 
             given(socialLoginPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(newUserResult);
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
-            given(tempDataPort.createTempCookie(anyString())).willReturn(tempCookie);
+            given(redisUserDataPort.createTempCookie(anyString())).willReturn(tempCookie);
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token");
@@ -124,8 +124,8 @@ class SocialLoginServiceTest {
             assertThat(newUserResponse.tempCookie()).isEqualTo(tempCookie);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
-            verify(tempDataPort).saveTempData(anyString(), eq(testUserProfile), eq(testTokenVO), eq("fcm-token"));
-            verify(tempDataPort).createTempCookie(anyString());
+            verify(redisUserDataPort).saveTempData(anyString(), eq(testUserProfile), eq(testTokenVO), eq("fcm-token"));
+            verify(redisUserDataPort).createTempCookie(anyString());
         }
     }
 

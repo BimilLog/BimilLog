@@ -33,7 +33,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>RedisTempDataAdapter 통합 테스트</h2>
+ * <h2>RedisUserDataAdapter 통합 테스트</h2>
  * <p>Redis TestContainers를 사용한 실제 Redis 환경에서의 테스트</p>
  * <p>PostCacheSyncAdapterTest 패턴을 참고하여 작성</p>
  *
@@ -47,7 +47,7 @@ import static org.mockito.Mockito.verify;
         )
 )
 @Testcontainers
-@Import({RedisTempDataAdapter.class, TestContainersConfiguration.class})
+@Import({RedisUserDataAdapter.class, TestContainersConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create",
@@ -56,7 +56,7 @@ import static org.mockito.Mockito.verify;
 class RedisTempDataAdapterTest {
 
     @Autowired
-    private RedisTempDataAdapter redisTempDataAdapter;
+    private RedisUserDataAdapter redisTempDataAdapter;
     
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -276,7 +276,7 @@ class RedisTempDataAdapterTest {
         redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
 
         // When: 새로운 어댑터 인스턴스 생성 (멀티 인스턴스 환경 시뮬레이션)
-        RedisTempDataAdapter secondAdapter = new RedisTempDataAdapter(redisTemplate, authCookieManager);
+        RedisUserDataAdapter secondAdapter = new RedisUserDataAdapter(redisTemplate, authCookieManager);
         
         // Then: 두 번째 어댑터에서도 동일한 데이터 조회 가능
         Optional<TempUserData> result = secondAdapter.getTempData(testUuid);

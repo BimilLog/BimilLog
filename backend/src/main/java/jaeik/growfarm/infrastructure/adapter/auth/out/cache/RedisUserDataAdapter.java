@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.auth.out.cache;
 
-import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisTempDataAdapter implements TempDataPort {
+public class RedisUserDataAdapter implements RedisUserDataPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final AuthCookieManager authCookieManager;

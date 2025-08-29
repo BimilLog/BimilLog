@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
-import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.TokenVO;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
 class SignUpServiceTest {
 
     @Mock
-    private TempDataPort tempDataPort;
+    private RedisUserDataPort redisUserDataPort;
 
     @Mock
     private SaveUserPort saveUserPort;
@@ -78,7 +78,7 @@ class SignUpServiceTest {
     @DisplayName("유효한 임시 데이터로 회원 가입 성공")
     void shouldSignUp_WhenValidTemporaryData() {
         // Given
-        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
         given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
@@ -94,7 +94,7 @@ class SignUpServiceTest {
         assertThat(result).isEqualTo(testCookies);
         assertThat(result).hasSize(2);
         
-        verify(tempDataPort).getTempData(testUuid);
+        verify(redisUserDataPort).getTempData(testUuid);
         verify(saveUserPort).saveNewUser(
                 testUserName, 
                 testUuid, 
@@ -109,14 +109,14 @@ class SignUpServiceTest {
     void shouldThrowException_WhenTemporaryDataNotFound() {
         // Given
         String nonExistentUuid = "non-existent-uuid";
-        given(tempDataPort.getTempData(nonExistentUuid)).willReturn(Optional.empty());
+        given(redisUserDataPort.getTempData(nonExistentUuid)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> signUpService.signUp(testUserName, nonExistentUuid))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_DATA);
 
-        verify(tempDataPort).getTempData(nonExistentUuid);
+        verify(redisUserDataPort).getTempData(nonExistentUuid);
         verify(saveUserPort, never()).saveNewUser(
                 eq(testUserName), 
                 eq(nonExistentUuid), 
@@ -132,7 +132,7 @@ class SignUpServiceTest {
         // Given
         TempUserData tempDataWithoutFcm = TempUserData.of(testSocialProfile, testTokenVO, null);
         
-        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
+        given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
@@ -147,7 +147,7 @@ class SignUpServiceTest {
         // Then
         assertThat(result).isEqualTo(testCookies);
         
-        verify(tempDataPort).getTempData(testUuid);
+        verify(redisUserDataPort).getTempData(testUuid);
         verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialProfile, testTokenVO, null);
     }
 
@@ -178,7 +178,7 @@ class SignUpServiceTest {
             );
             TempUserData uniqueTempData = TempUserData.of(uniqueProfile, testTokenVO, uniqueFcmToken);
             
-            given(tempDataPort.getTempData(uniqueUuid)).willReturn(Optional.of(uniqueTempData));
+            given(redisUserDataPort.getTempData(uniqueUuid)).willReturn(Optional.of(uniqueTempData));
             given(saveUserPort.saveNewUser(
                     eq(userName), 
                     eq(uniqueUuid), 
@@ -192,7 +192,7 @@ class SignUpServiceTest {
 
             // Then
             assertThat(result).isEqualTo(testCookies);
-            verify(tempDataPort).getTempData(uniqueUuid);
+            verify(redisUserDataPort).getTempData(uniqueUuid);
             verify(saveUserPort).saveNewUser(userName, uniqueUuid, uniqueTempData.userProfile(), testTokenVO, uniqueFcmToken);
         }
     }
@@ -213,7 +213,7 @@ class SignUpServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
-        verify(tempDataPort, never()).getTempData(testUuid);
+        verify(redisUserDataPort, never()).getTempData(testUuid);
         verify(saveUserPort, never()).saveNewUser(
                 eq(emptyUserName), 
                 eq(testUuid), 
@@ -239,7 +239,7 @@ class SignUpServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
-        verify(tempDataPort, never()).getTempData(testUuid);
+        verify(redisUserDataPort, never()).getTempData(testUuid);
         verify(saveUserPort, never()).saveNewUser(
                 eq(nullUserName), 
                 eq(testUuid), 
@@ -254,7 +254,7 @@ class SignUpServiceTest {
     void shouldReturnEmptyCookies_WhenSaveReturnsEmpty() {
         // Given
         List<ResponseCookie> emptyCookies = List.of();
-        given(tempDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
         given(saveUserPort.saveNewUser(
                 eq(testUserName), 
                 eq(testUuid), 
@@ -283,7 +283,7 @@ class SignUpServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_UUID);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
-        verify(tempDataPort, never()).getTempData(nullUuid);
+        verify(redisUserDataPort, never()).getTempData(nullUuid);
         verify(saveUserPort, never()).saveNewUser(
                 eq(testUserName), 
                 eq(nullUuid), 
@@ -305,7 +305,7 @@ class SignUpServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_UUID);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
-        verify(tempDataPort, never()).getTempData(emptyUuid);
+        verify(redisUserDataPort, never()).getTempData(emptyUuid);
         verify(saveUserPort, never()).saveNewUser(
                 eq(testUserName), 
                 eq(emptyUuid), 
@@ -327,7 +327,7 @@ class SignUpServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
-        verify(tempDataPort, never()).getTempData(testUuid);
+        verify(redisUserDataPort, never()).getTempData(testUuid);
         verify(saveUserPort, never()).saveNewUser(
                 eq(whitespaceUserName), 
                 eq(testUuid), 

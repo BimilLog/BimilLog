@@ -4,7 +4,7 @@ package jaeik.growfarm.domain.auth.application.service;
 import jaeik.growfarm.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.BlacklistPort;
 import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
-import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.auth.entity.LoginResult;
@@ -34,7 +34,7 @@ public class SocialLoginService implements SocialLoginUseCase {
 
     private final SocialLoginPort socialLoginPort;
     private final SaveUserPort saveUserPort;
-    private final TempDataPort tempDataPort;
+    private final RedisUserDataPort redisUserDataPort;
     private final BlacklistPort blacklistPort;
 
     /**
@@ -98,8 +98,8 @@ public class SocialLoginService implements SocialLoginUseCase {
      */
     private LoginResult.NewUser handleNewUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
-        tempDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token(), fcmToken);
-        ResponseCookie tempCookie = tempDataPort.createTempCookie(uuid);
+        redisUserDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token(), fcmToken);
+        ResponseCookie tempCookie = redisUserDataPort.createTempCookie(uuid);
         return new LoginResult.NewUser(uuid, tempCookie);
     }
     

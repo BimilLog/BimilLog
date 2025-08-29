@@ -44,7 +44,6 @@ public class PostCacheController {
      */
     @GetMapping("/popular")
     public ResponseEntity<Map<String, List<SimplePostResDTO>>> getPopularBoard() {
-        // 최적화된 UseCase 메서드로 한 번에 조회
         Map<String, List<PostSearchResult>> popularPosts = postQueryUseCase.getRealtimeAndWeeklyPosts();
         
         // DTO 변환

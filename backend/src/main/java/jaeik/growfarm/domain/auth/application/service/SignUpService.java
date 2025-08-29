@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.auth.application.service;
 
 import jaeik.growfarm.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.SaveUserPort;
-import jaeik.growfarm.domain.auth.application.port.out.TempDataPort;
+import jaeik.growfarm.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
@@ -25,7 +25,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SignUpService implements SignUpUseCase {
 
-    private final TempDataPort tempDataPort;
+    private final RedisUserDataPort redisUserDataPort;
     private final SaveUserPort saveUserPort;
 
     /**
@@ -45,7 +45,7 @@ public class SignUpService implements SignUpUseCase {
     public List<ResponseCookie> signUp(String userName, String uuid) {
         validateSignUpInput(userName, uuid);
 
-        Optional<TempUserData> tempUserData = tempDataPort.getTempData(uuid);
+        Optional<TempUserData> tempUserData = redisUserDataPort.getTempData(uuid);
 
         if (tempUserData.isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_TEMP_DATA);

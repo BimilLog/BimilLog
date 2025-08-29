@@ -1,6 +1,5 @@
 package jaeik.growfarm.domain.auth.application.port.out;
 
-import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.entity.TempUserData;
 import jaeik.growfarm.domain.user.entity.TokenVO;
 import org.springframework.http.ResponseCookie;
@@ -14,7 +13,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface TempDataPort {
+public interface RedisUserDataPort {
 
     /**
      * <h3>임시 사용자 데이터 저장</h3>
