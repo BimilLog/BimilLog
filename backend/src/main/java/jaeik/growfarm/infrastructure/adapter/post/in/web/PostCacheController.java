@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <h2>게시글 캐시 컨트롤러</h2>
@@ -30,43 +31,33 @@ public class PostCacheController {
     private final PostResponseMapper postResponseMapper;
 
     /**
-     * <h3>실시간 인기글 조회 API</h3>
+     * <h3>실시간, 주간 인기글 조회 API</h3>
      *
      * <p>
-     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
+     * 실시간, 주간 인기글로 선정된 게시글 목록을 조회한다.
+     * 성능 최적화를 위해 한 번의 UseCase 호출로 두 타입의 데이터를 가져온다.
      * </p>
      *
      * @since 2.0.0
      * @author Jaeik
-     * @return 실시간 인기글 목록
+     * @return 실시간, 주간 인기글 목록
      */
-    @GetMapping("/realtime")
-    public ResponseEntity<List<SimplePostResDTO>> getRealtimeBoard() {
-        List<PostSearchResult> realtimePopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.REALTIME);
-        List<SimplePostResDTO> dtoList = realtimePopularPosts.stream()
+    @GetMapping("/popular")
+    public ResponseEntity<Map<String, List<SimplePostResDTO>>> getPopularBoard() {
+        // 최적화된 UseCase 메서드로 한 번에 조회
+        Map<String, List<PostSearchResult>> popularPosts = postQueryUseCase.getRealtimeAndWeeklyPosts();
+        
+        // DTO 변환
+        Map<String, List<SimplePostResDTO>> result = Map.of(
+            "realtime", popularPosts.get("realtime").stream()
                 .map(postResponseMapper::convertToSimplePostResDTO)
-                .toList();
-        return ResponseEntity.ok(dtoList);
-    }
-
-    /**
-     * <h3>주간 인기글 조회 API</h3>
-     *
-     * <p>
-     * 주간 인기글로 선정된 게시글 목록을 조회한다.
-     * </p>
-     *
-     * @since 2.0.0
-     * @author Jaeik
-     * @return 주간 인기글 목록
-     */
-    @GetMapping("/weekly")
-    public ResponseEntity<List<SimplePostResDTO>> getWeeklyBoard() {
-        List<PostSearchResult> weeklyPopularPosts = postQueryUseCase.getPopularPosts(PostCacheFlag.WEEKLY);
-        List<SimplePostResDTO> dtoList = weeklyPopularPosts.stream()
+                .toList(),
+            "weekly", popularPosts.get("weekly").stream()
                 .map(postResponseMapper::convertToSimplePostResDTO)
-                .toList();
-        return ResponseEntity.ok(dtoList);
+                .toList()
+        );
+        
+        return ResponseEntity.ok(result);
     }
 
     /**

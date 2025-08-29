@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -68,6 +69,18 @@ public interface PostQueryUseCase {
      * @return 인기 게시글 목록
      */
     List<PostSearchResult> getPopularPosts(PostCacheFlag type);
+
+    /**
+     * <h3>실시간/주간 인기 게시글 목록 일괄 조회</h3>
+     * <p>
+     *     실시간과 주간 인기 게시글을 한 번에 조회합니다. 
+     *     성능 최적화를 위해 한 번의 호출로 두 타입의 데이터를 가져옵니다.
+     * </p>
+     * @return 실시간/주간 인기 게시글 맵 (key: "realtime"/"weekly", value: 게시글 목록)
+     * @since 2.0.0
+     * @author jaeik
+     */
+    Map<String, List<PostSearchResult>> getRealtimeAndWeeklyPosts();
 
     /**
      * <h3>레전드 인기 게시글 목록 조회 (페이징)</h3>

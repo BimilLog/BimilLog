@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -239,6 +240,35 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
         return postQueryPort.findLikedPostsByUserId(userId, pageable);
+    }
+
+    /**
+     * <h3>실시간/주간 인기 게시글 목록 일괄 조회</h3>
+     * <p>실시간과 주간 인기 게시글을 한 번에 조회합니다.</p>
+     * <p>성능 최적화를 위해 한 번의 호출로 두 타입의 데이터를 가져옵니다.</p>
+     *
+     * @return 실시간/주간 인기 게시글 맵 (key: "realtime"/"weekly", value: 게시글 목록)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Map<String, List<PostSearchResult>> getRealtimeAndWeeklyPosts() {
+        // 캐시 상태 확인 및 업데이트
+        if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)) {
+            postCacheSyncService.updateRealtimePopularPosts();
+        }
+        if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)) {
+            postCacheSyncService.updateWeeklyPopularPosts();
+        }
+        
+        // 두 타입의 데이터를 한 번에 조회
+        List<PostSearchResult> realtimePosts = postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME);
+        List<PostSearchResult> weeklyPosts = postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
+        
+        return Map.of(
+            "realtime", realtimePosts,
+            "weekly", weeklyPosts
+        );
     }
 
     /**
