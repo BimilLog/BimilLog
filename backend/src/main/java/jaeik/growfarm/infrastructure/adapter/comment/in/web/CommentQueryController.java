@@ -2,9 +2,7 @@ package jaeik.growfarm.infrastructure.adapter.comment.in.web;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.growfarm.domain.comment.entity.CommentInfo;
-import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -72,15 +70,4 @@ public class CommentQueryController {
                 .toList();
         return ResponseEntity.ok(commentDtoList);
     }
-
-    /**
-     * <h3>도메인 객체를 DTO로 변환</h3>
-     * <p>CommentInfo(도메인)를 CommentDTO로 변환합니다.</p>
-     * <p>헥사고날 아키텍처에서 도메인 계층과 인프라스트럭처 계층을 분리하기 위한 변환 로직</p>
-     *
-     * @param commentInfo 도메인 댓글 정보
-     * @return CommentDTO DTO 댓글 정보
-     * @author Jaeik
-     * @since 2.0.0
-     */
 }

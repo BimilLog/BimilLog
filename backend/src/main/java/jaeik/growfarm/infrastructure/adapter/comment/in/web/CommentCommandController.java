@@ -2,7 +2,6 @@ package jaeik.growfarm.infrastructure.adapter.comment.in.web;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.comment.application.port.in.CommentLikeUseCase;
-import jaeik.growfarm.domain.comment.application.port.in.CommentWriteUseCase;
 import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommentCommandController {
 
     private final CommentCommandUseCase commentCommandUseCase;
-    private final CommentWriteUseCase commentWriteUseCase;
     private final CommentLikeUseCase commentLikeUseCase;
 
     /**
@@ -50,7 +48,7 @@ public class CommentCommandController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        commentWriteUseCase.writeComment(userId, commentRequest);
+        commentCommandUseCase.writeComment(userId, commentRequest);
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
@@ -72,7 +70,8 @@ public class CommentCommandController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
         CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
-        commentCommandUseCase.updateComment(commentRequest, userDetails);
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        commentCommandUseCase.updateComment(userId, commentRequest);
         return ResponseEntity.ok("댓글 수정 완료");
     }
 
@@ -94,7 +93,8 @@ public class CommentCommandController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
         CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
-        commentCommandUseCase.deleteComment(commentRequest, userDetails);
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        commentCommandUseCase.deleteComment(userId, commentRequest);
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 

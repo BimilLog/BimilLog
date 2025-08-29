@@ -1,13 +1,9 @@
 package jaeik.growfarm.domain.comment.application.service;
 
-import jaeik.growfarm.domain.comment.application.port.out.CommentClosureCommandPort;
-import jaeik.growfarm.domain.comment.application.port.out.CommentClosureQueryPort;
-import jaeik.growfarm.domain.comment.application.port.out.CommentCommandPort;
-import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.growfarm.domain.comment.application.port.out.*;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.comment.entity.CommentRequest;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +48,10 @@ class CommentCommandServiceTest {
     private CommentClosureCommandPort commentClosureCommandPort;
 
     @Mock
-    private CustomUserDetails userDetails;
+    private LoadPostPort loadPostPort;
+
+    @Mock
+    private LoadUserPort loadUserPort;
 
     @InjectMocks
     private CommentCommandService commentCommandService;
@@ -87,11 +86,11 @@ class CommentCommandServiceTest {
     @DisplayName("인증된 사용자의 댓글 수정 성공")
     void shouldUpdateComment_WhenAuthenticatedUserOwnsComment() {
         // Given
-        given(userDetails.getUserId()).willReturn(100L);
+        Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
 
         // When
-        commentCommandService.updateComment(commentRequest, userDetails);
+        commentCommandService.updateComment(userId, commentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -120,7 +119,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(anonymousComment));
 
         // When
-        commentCommandService.updateComment(anonymousCommentRequest, null);
+        commentCommandService.updateComment(null, anonymousCommentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -134,7 +133,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(commentRequest, userDetails))
+        assertThatThrownBy(() -> commentCommandService.updateComment(100L, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
@@ -163,7 +162,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(passwordComment));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(wrongPasswordRequest, null))
+        assertThatThrownBy(() -> commentCommandService.updateComment(null, wrongPasswordRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_PASSWORD_NOT_MATCH);
 
@@ -175,7 +174,7 @@ class CommentCommandServiceTest {
     @DisplayName("다른 사용자가 댓글 수정 시 ONLY_COMMENT_OWNER_UPDATE 예외 발생")
     void shouldThrowException_WhenNotCommentOwner() {
         // Given
-        given(userDetails.getUserId()).willReturn(100L);
+        Long userId = 100L;
         User anotherUser = User.builder()
                 .id(999L)
                 .userName("anotherUser")
@@ -192,7 +191,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(anotherUserComment));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(commentRequest, userDetails))
+        assertThatThrownBy(() -> commentCommandService.updateComment(userId, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
@@ -204,12 +203,12 @@ class CommentCommandServiceTest {
     @DisplayName("후손이 없는 댓글 삭제 시 완전 삭제")
     void shouldDeleteComment_WhenNoDescendants() {
         // Given
-        given(userDetails.getUserId()).willReturn(100L);
+        Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
         given(commentClosureQueryPort.hasDescendants(200L)).willReturn(false);
 
         // When
-        commentCommandService.deleteComment(commentRequest, userDetails);
+        commentCommandService.deleteComment(userId, commentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -223,12 +222,12 @@ class CommentCommandServiceTest {
     @DisplayName("후손이 있는 댓글 삭제 시 소프트 삭제")
     void shouldSoftDeleteComment_WhenHasDescendants() {
         // Given
-        given(userDetails.getUserId()).willReturn(100L);
+        Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
         given(commentClosureQueryPort.hasDescendants(200L)).willReturn(true);
 
         // When
-        commentCommandService.deleteComment(commentRequest, userDetails);
+        commentCommandService.deleteComment(userId, commentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -242,12 +241,12 @@ class CommentCommandServiceTest {
     @DisplayName("댓글 삭제 과정에서 예외 발생 시 COMMENT_DELETE_FAILED 예외 발생")
     void shouldThrowException_WhenDeleteProcessFails() {
         // Given
-        given(userDetails.getUserId()).willReturn(100L);
+        Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
         doThrow(new RuntimeException("삭제 실패")).when(commentClosureQueryPort).hasDescendants(200L);
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.deleteComment(commentRequest, userDetails))
+        assertThatThrownBy(() -> commentCommandService.deleteComment(userId, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_DELETE_FAILED);
 
@@ -262,7 +261,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(commentRequest, null))
+        assertThatThrownBy(() -> commentCommandService.updateComment(null, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
@@ -274,7 +273,7 @@ class CommentCommandServiceTest {
     @DisplayName("이미 삭제된 댓글에 대한 작업")
     void shouldHandleDeletedComment() {
         // Given
-        given(userDetails.getUserId()).willReturn(100L);
+        Long userId = 100L;
         Comment deletedComment = Comment.builder()
                 .id(200L)
                 .content("삭제된 댓글")
@@ -286,7 +285,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(deletedComment));
 
         // When
-        commentCommandService.updateComment(commentRequest, userDetails);
+        commentCommandService.updateComment(userId, commentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
@@ -314,7 +313,7 @@ class CommentCommandServiceTest {
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(emptyPasswordComment));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(emptyPasswordRequest, null))
+        assertThatThrownBy(() -> commentCommandService.updateComment(null, emptyPasswordRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
