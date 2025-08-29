@@ -107,7 +107,6 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
     /**
      * <h3>기본 인기 게시글 쿼리 생성</h3>
      * <p>인기 게시글 조회를 위한 기본 QueryDSL 쿼리를 생성합니다.</p>
-     * <p>🔧 수정 이력: INNER JOIN 문제 해결 - 좋아요가 없는 게시글도 포함하도록 LEFT JOIN 사용</p>
      *
      * @return 기본 JPAQuery 객체
      * @author Jaeik
