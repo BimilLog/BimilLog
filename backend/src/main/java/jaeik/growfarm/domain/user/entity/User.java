@@ -112,18 +112,6 @@ public class User extends BaseEntity {
     }
 
     /**
-     * <h3>설정 업데이트</h3>
-     * <p>사용자의 설정 엔티티를 업데이트합니다.</p>
-     *
-     * @param setting 업데이트할 설정 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void updateSetting(Setting setting) {
-        this.setting = setting;
-    }
-
-    /**
      * <h3>사용자 생성</h3>
      *
      * <p>

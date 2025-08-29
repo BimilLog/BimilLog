@@ -36,7 +36,6 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-// 아래 주석들은 지우지 않음 Claude가 참고할 수 있게 그대로 둘 예정 (MySQL + Redis 컨테이너 재사용 사례)
 /**
  * <h2>PostCacheSyncAdapter 테스트</h2>
  * <p>PostCacheSyncAdapter가 인기 게시글 조회 및 상세 조회 기능을 정확히 수행하는지 테스트합니다.</p>
@@ -52,18 +51,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
         )
 )
 @Testcontainers
-//@EntityScan(basePackages = {
-//        "jaeik.growfarm.domain.user.entity",
-//        "jaeik.growfarm.domain.post.entity",
-//        "jaeik.growfarm.domain.comment.entity",
-//        "jaeik.growfarm.domain.common.entity"
-//})
-//@EnableJpaRepositories(basePackages = {
-//        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post",
-//        "jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.postlike",
-//        "jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.user",
-//        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment"
-//})
 @Import({PostCacheSyncAdapter.class, TestContainersConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
@@ -72,60 +59,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
         "logging.level.org.springframework.transaction=DEBUG"
 })
 class PostCacheSyncAdapterTest {
-//
-//    @Container
-//    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-//            .withDatabaseName("testdb")
-//            .withUsername("test")
-//            .withPassword("test");
-//
-//    @Container
-//    static GenericContainer<?> redis = new GenericContainer<>("redis:latest")
-//            .withExposedPorts(6379)
-//            .withReuse(true);
-//
-//    @DynamicPropertySource
-//    static void dynamicProperties(DynamicPropertyRegistry registry) {
-//        // MySQL 설정
-//        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-//        registry.add("spring.datasource.username", mysql::getUsername);
-//        registry.add("spring.datasource.password", mysql::getPassword);
-//        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
-//
-//        // Redis 설정
-//        registry.add("spring.data.redis.host", redis::getHost);
-//        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
-//    }
-
-//    @TestConfiguration
-//    static class TestConfig {
-//
-//        @Bean
-//        @Primary
-//        public JPAQueryFactory TestJpaQueryFactory(EntityManager entityManager) {
-//            return new JPAQueryFactory(entityManager);
-//        }
-
-//        @Bean
-//        public RedisConnectionFactory redisConnectionFactory() {
-//            LettuceConnectionFactory factory = new LettuceConnectionFactory(
-//                redis.getHost(), redis.getMappedPort(6379)
-//            );
-//            factory.setValidateConnection(true);
-//            factory.afterPropertiesSet();
-//            return factory;
-//        }
-
-//        @Bean
-//        public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-//            RedisTemplate<String, Object> template = new RedisTemplate<>();
-//            template.setConnectionFactory(connectionFactory);
-//            template.setKeySerializer(new StringRedisSerializer());
-//            template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-//            template.afterPropertiesSet();
-//            return template;
-//        }
-//    }
 
     @Autowired
     private PostCacheSyncAdapter postCacheSyncAdapter;
