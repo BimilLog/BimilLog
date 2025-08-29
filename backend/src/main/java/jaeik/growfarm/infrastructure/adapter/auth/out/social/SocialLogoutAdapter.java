@@ -6,6 +6,7 @@ import jaeik.growfarm.domain.auth.application.port.out.SocialLogoutPort;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  * @since 2.0.0
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SocialLogoutAdapter implements SocialLogoutPort {
@@ -46,8 +48,7 @@ public class SocialLogoutAdapter implements SocialLogoutPort {
             });
         } catch (Exception e) {
             // 소셜 로그아웃 실패는 전체 프로세스를 방해하지 않도록 로그만 기록
-            // 실제 환경에서는 로깅 프레임워크 사용 권장
-            System.err.println("소셜 로그아웃 실패 (사용자 ID: " + userDetails.getUserId() + "): " + e.getMessage());
+            log.warn("소셜 로그아웃 실패 (사용자 ID: {}): {}", userDetails.getUserId(), e.getMessage());
         }
     }
 }

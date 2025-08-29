@@ -1,6 +1,8 @@
 package jaeik.growfarm.integration.event;
 
 import jaeik.growfarm.domain.admin.event.UserBannedEvent;
+import jaeik.growfarm.domain.admin.event.AdminWithdrawRequestedEvent;
+import jaeik.growfarm.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.growfarm.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.growfarm.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
@@ -53,6 +55,9 @@ class AuthEventWorkflowIntegrationTest {
 
     @MockitoBean
     private SocialLoginPort socialLoginPort;
+
+    @MockitoBean
+    private WithdrawUseCase withdrawUseCase;
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리까지 완료")
@@ -136,6 +141,47 @@ class AuthEventWorkflowIntegrationTest {
                     verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId1));
                     verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId2));
                     verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId3));
+                });
+    }
+
+    @Test
+    @DisplayName("관리자 강제 탈퇴 이벤트 워크플로우 - 탈퇴 처리까지 완료")
+    void adminWithdrawRequestEventWorkflow_ShouldCompleteWithdrawProcess() {
+        // Given
+        Long userId = 1L;
+        String reason = "관리자 강제 탈퇴";
+        AdminWithdrawRequestedEvent event = new AdminWithdrawRequestedEvent(userId, reason);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 비동기 처리를 고려하여 Awaitility 사용
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(withdrawUseCase).forceWithdraw(eq(userId));
+                });
+    }
+
+    @Test
+    @DisplayName("복합 관리자 시나리오 - 차단 후 강제 탈퇴")
+    void complexAdminScenario_BanThenForceWithdraw() {
+        // Given
+        Long userId = 1L;
+        String socialId = "testSocialId";
+        SocialProvider provider = SocialProvider.KAKAO;
+        String withdrawReason = "관리자 강제 탈퇴";
+
+        // When - 연속된 관리자 이벤트 발행
+        eventPublisher.publishEvent(new UserBannedEvent(this, userId, socialId, provider));
+        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, withdrawReason));
+
+        // Then - 두 이벤트 모두 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(socialLoginPort).unlink(eq(provider), eq(socialId));
+                    verify(withdrawUseCase).forceWithdraw(eq(userId));
                 });
     }
 

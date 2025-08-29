@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/dto")
+@RequestMapping("/api/admin")
 public class AdminCommandController {
 
     private final AdminCommandUseCase adminCommandUseCase;
@@ -30,7 +30,7 @@ public class AdminCommandController {
      * @since 2.0.0
      * @author Jaeik
      */
-    @PostMapping("/reports/ban")
+    @PostMapping("/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> banUser(@RequestBody ReportDTO reportDTO) {
         adminCommandUseCase.banUser(reportDTO.toReportVO());
@@ -45,7 +45,7 @@ public class AdminCommandController {
      * @since 2.0.0
      * @author Jaeik
      */
-    @DeleteMapping("/users/{userId}")
+    @DeleteMapping("/withdraw/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> forceWithdrawUser(@PathVariable Long userId) {
         adminCommandUseCase.forceWithdrawUser(userId);

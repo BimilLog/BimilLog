@@ -3,11 +3,11 @@ package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.growfarm.domain.admin.application.port.in.ReportedUserResolver;
-import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.admin.entity.ReportVO;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.admin.event.UserBannedEvent;
+import jaeik.growfarm.domain.admin.event.AdminWithdrawRequestedEvent;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,6 @@ public class AdminCommandService implements AdminCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
     private final List<ReportedUserResolver> userResolvers;
-    private final AdminCommandPort adminCommandPort;
 
     /**
      * <h3>사용자 제재</h3>
@@ -60,6 +59,7 @@ public class AdminCommandService implements AdminCommandUseCase {
     /**
      * <h3>사용자 강제 탈퇴</h3>
      * <p>주어진 사용자 ID에 해당하는 사용자를 관리자 권한으로 강제 탈퇴 처리합니다.</p>
+     * <p>이벤트 드리븐 방식으로 Auth 도메인에 탈퇴 요청을 전달합니다.</p>
      *
      * @param userId 사용자 ID
      * @author Jaeik
@@ -67,7 +67,12 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     public void forceWithdrawUser(Long userId) {
-        adminCommandPort.forceWithdraw(userId);
+        if (userId == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        // 이벤트 발행으로 Auth 도메인에 탈퇴 처리 위임
+        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, "관리자 강제 탈퇴"));
     }
 
     /**

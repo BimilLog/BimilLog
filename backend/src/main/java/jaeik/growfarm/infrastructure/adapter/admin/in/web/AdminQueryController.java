@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/dto/query")
+@RequestMapping("/api/admin")
 public class AdminQueryController {
 
     private final AdminQueryUseCase adminQueryUseCase;

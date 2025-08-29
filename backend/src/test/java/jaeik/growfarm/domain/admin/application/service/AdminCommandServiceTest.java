@@ -1,9 +1,9 @@
 package jaeik.growfarm.domain.admin.application.service;
 
 import jaeik.growfarm.domain.admin.application.port.in.ReportedUserResolver;
-import jaeik.growfarm.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.growfarm.domain.admin.entity.ReportType;
 import jaeik.growfarm.domain.admin.event.UserBannedEvent;
+import jaeik.growfarm.domain.admin.event.AdminWithdrawRequestedEvent;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.admin.entity.ReportVO;
@@ -45,9 +45,6 @@ class AdminCommandServiceTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private AdminCommandPort adminCommandPort;
-
-    @Mock
     private ReportedUserResolver reportedUserResolver;
 
     @InjectMocks
@@ -60,8 +57,7 @@ class AdminCommandServiceTest {
     void setUp() {
         adminCommandService = new AdminCommandService(
                 eventPublisher,
-                List.of(reportedUserResolver),
-                adminCommandPort
+                List.of(reportedUserResolver)
         );
 
         validReportVO = ReportVO.builder()
@@ -146,8 +142,8 @@ class AdminCommandServiceTest {
     }
 
     @Test
-    @DisplayName("유효한 사용자 ID로 강제 탈퇴 시 성공")
-    void shouldForceWithdrawUser_WhenValidUserId() {
+    @DisplayName("유효한 사용자 ID로 강제 탈퇴 시 이벤트 발행")
+    void shouldPublishEvent_WhenValidUserId() {
         // Given
         Long userId = 100L;
 
@@ -155,20 +151,27 @@ class AdminCommandServiceTest {
         adminCommandService.forceWithdrawUser(userId);
 
         // Then
-        verify(adminCommandPort).forceWithdraw(userId);
+        ArgumentCaptor<AdminWithdrawRequestedEvent> eventCaptor = 
+                ArgumentCaptor.forClass(AdminWithdrawRequestedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        
+        AdminWithdrawRequestedEvent capturedEvent = eventCaptor.getValue();
+        assertThat(capturedEvent.userId()).isEqualTo(userId);
+        assertThat(capturedEvent.reason()).isEqualTo("관리자 강제 탈퇴");
     }
 
     @Test
-    @DisplayName("null 사용자 ID로 강제 탈퇴 시도 시 처리")
-    void shouldHandleNullUserId_WhenForceWithdraw() {
+    @DisplayName("null 사용자 ID로 강제 탈퇴 시도 시 예외 발생")
+    void shouldThrowException_WhenNullUserId() {
         // Given
         Long userId = null;
 
-        // When
-        adminCommandService.forceWithdrawUser(userId);
-
-        // Then
-        verify(adminCommandPort).forceWithdraw(userId);
+        // When & Then
+        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+        
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -185,8 +188,7 @@ class AdminCommandServiceTest {
 
         adminCommandService = new AdminCommandService(
                 eventPublisher,
-                List.of(postResolver, commentResolver, paperResolver),
-                adminCommandPort
+                List.of(postResolver, commentResolver, paperResolver)
         );
 
         ReportVO postReport = ReportVO.builder()
@@ -232,8 +234,7 @@ class AdminCommandServiceTest {
 
         adminCommandService = new AdminCommandService(
                 eventPublisher,
-                List.of(commentResolver, postResolver),
-                adminCommandPort
+                List.of(commentResolver, postResolver)
         );
 
         // When
