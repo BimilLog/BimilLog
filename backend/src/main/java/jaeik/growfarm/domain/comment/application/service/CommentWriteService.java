@@ -8,7 +8,6 @@ import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.comment.entity.CommentRequest;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -36,14 +35,14 @@ public class CommentWriteService implements CommentWriteUseCase {
 
 
     @Override
-    public void writeComment(CustomUserDetails userDetails, CommentRequest commentRequest) {
+    public void writeComment(Long userId, CommentRequest commentRequest) {
         Post post = loadPostPort.findById(commentRequest.postId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         User user = null;
         String userName = "익명";
-        if (userDetails != null) {
-            user = loadUserPort.findById(userDetails.getUserId())
+        if (userId != null) {
+            user = loadUserPort.findById(userId)
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             userName = user.getUserName();
         }

@@ -132,7 +132,8 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
-        commentWriteService.writeComment(userDetails, commentRequest);
+        Long userId = userDetails.getUserId();
+        commentWriteService.writeComment(userId, commentRequest);
 
         // Then
         verify(loadPostPort).findById(300L);
@@ -204,7 +205,8 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
-        commentWriteService.writeComment(userDetails, replyRequest);
+        Long userId = userDetails.getUserId();
+        commentWriteService.writeComment(userId, replyRequest);
 
         // Then
         verify(commentQueryPort).findById(500L);
@@ -220,10 +222,12 @@ class CommentWriteServiceTest {
     @DisplayName("존재하지 않는 게시글에 댓글 작성 시 POST_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenPostNotFound() {
         // Given
+        given(userDetails.getUserId()).willReturn(100L);
         given(loadPostPort.findById(300L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
+        Long userId = userDetails.getUserId();
+        assertThatThrownBy(() -> commentWriteService.writeComment(userId, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
@@ -242,7 +246,8 @@ class CommentWriteServiceTest {
         given(loadUserPort.findById(100L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
+        Long userId = userDetails.getUserId();
+        assertThatThrownBy(() -> commentWriteService.writeComment(userId, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
@@ -270,7 +275,8 @@ class CommentWriteServiceTest {
         given(commentQueryPort.findById(999L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, requestWithInvalidParent))
+        Long userId = userDetails.getUserId();
+        assertThatThrownBy(() -> commentWriteService.writeComment(userId, requestWithInvalidParent))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PARENT_COMMENT_NOT_FOUND);
 
@@ -297,7 +303,8 @@ class CommentWriteServiceTest {
         given(commentClosureQueryPort.findByDescendantId(500L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, requestWithParent))
+        Long userId = userDetails.getUserId();
+        assertThatThrownBy(() -> commentWriteService.writeComment(userId, requestWithParent))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PARENT_COMMENT_NOT_FOUND);
 
@@ -323,7 +330,8 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
-        commentWriteService.writeComment(userDetails, commentRequest);
+        Long userId = userDetails.getUserId();
+        commentWriteService.writeComment(userId, commentRequest);
 
         // Then
         verify(commentCommandPort).save(any(Comment.class));
@@ -341,7 +349,8 @@ class CommentWriteServiceTest {
         given(commentCommandPort.save(any(Comment.class))).willThrow(new RuntimeException("Database error"));
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
+        Long userId = userDetails.getUserId();
+        assertThatThrownBy(() -> commentWriteService.writeComment(userId, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
@@ -361,7 +370,8 @@ class CommentWriteServiceTest {
         willThrow(new RuntimeException("Closure error")).given(commentClosureCommandPort).saveAll(anyList());
 
         // When & Then
-        assertThatThrownBy(() -> commentWriteService.writeComment(userDetails, commentRequest))
+        Long userId = userDetails.getUserId();
+        assertThatThrownBy(() -> commentWriteService.writeComment(userId, commentRequest))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
@@ -397,7 +407,8 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
-        commentWriteService.writeComment(userDetails, replyRequest);
+        Long userId = userDetails.getUserId();
+        commentWriteService.writeComment(userId, replyRequest);
 
         // Then
         // 배치 최적화로 인해 한 번의 saveAll 호출 (자기 자신 클로저 1개 + 부모 클로저들 3개 = 총 4개)
@@ -429,7 +440,8 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
-        commentWriteService.writeComment(userDetails, longContentRequest);
+        Long userId = userDetails.getUserId();
+        commentWriteService.writeComment(userId, longContentRequest);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
@@ -459,7 +471,8 @@ class CommentWriteServiceTest {
         willDoNothing().given(commentClosureCommandPort).saveAll(anyList());
 
         // When
-        commentWriteService.writeComment(userDetails, specialContentRequest);
+        Long userId = userDetails.getUserId();
+        commentWriteService.writeComment(userId, specialContentRequest);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);

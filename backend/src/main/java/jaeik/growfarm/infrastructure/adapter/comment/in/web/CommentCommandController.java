@@ -49,7 +49,8 @@ public class CommentCommandController {
             @Valid @RequestBody CommentReqDTO commentReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
-        commentWriteUseCase.writeComment(userDetails, commentRequest);
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        commentWriteUseCase.writeComment(userId, commentRequest);
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
