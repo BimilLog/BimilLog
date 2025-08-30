@@ -61,34 +61,26 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     void deleteAllByPostId(@Param("postId") Long postId);
 
     /**
-     * <h3>최적화된 댓글 삭제</h3>
-     * <p>자손 존재 여부에 따라 자동으로 소프트/하드 삭제를 수행합니다.</p>
-     * <p>단일 트랜잭션 내에서 조건부 삭제를 수행하여 성능을 최적화합니다.</p>
+     * <h3>조건부 소프트 삭제</h3>
+     * <p>자손이 있는 댓글에 대해서만 소프트 삭제를 수행합니다.</p>
+     * <p>자손이 없는 댓글은 업데이트하지 않아 반환값이 0이 됩니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @return boolean true면 하드 삭제 수행됨, false면 소프트 삭제 수행됨
+     * @return int 소프트 삭제된 댓글 수 (자손이 있으면 1, 없으면 0)
      * @author Jaeik
      * @since 2.0.0
      */
     @Modifying
     @Query(value = """
         UPDATE comment c 
-        SET c.deleted = CASE 
-                WHEN EXISTS(
-                    SELECT 1 FROM comment_closure cc 
-                    WHERE cc.ancestor_id = :commentId AND cc.depth > 0
-                ) THEN true
-                ELSE c.deleted 
-            END,
-            c.content = CASE 
-                WHEN EXISTS(
-                    SELECT 1 FROM comment_closure cc 
-                    WHERE cc.ancestor_id = :commentId AND cc.depth > 0
-                ) THEN '삭제된 댓글 입니다.'
-                ELSE c.content 
-            END,
+        SET c.deleted = true,
+            c.content = '삭제된 댓글입니다.',
             c.modified_at = NOW()
-        WHERE c.comment_id = :commentId
+        WHERE c.comment_id = :commentId 
+          AND :commentId IN (
+              SELECT cc.ancestor_id FROM comment_closure cc 
+              WHERE cc.depth > 0
+          )
         """, nativeQuery = true)
     int conditionalSoftDelete(@Param("commentId") Long commentId);
 
@@ -131,14 +123,18 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     default boolean deleteCommentOptimized(Long commentId) {
         // 1단계: 조건부 소프트 삭제 시도 (자손이 있는 경우만 실행됨)
         int softDeleteCount = conditionalSoftDelete(commentId);
+        System.out.println("DEBUG: commentId=" + commentId + ", softDeleteCount=" + softDeleteCount);
         
         if (softDeleteCount > 0) {
             // 소프트 삭제가 수행됨 (자손이 있음)
+            System.out.println("DEBUG: Performing soft delete for commentId=" + commentId);
             return false;
         } else {
             // 자손이 없으므로 하드 삭제 수행
-            deleteClosuresByDescendantId(commentId);
-            hardDeleteComment(commentId);
+            System.out.println("DEBUG: Performing hard delete for commentId=" + commentId);
+            int closureDeleteCount = deleteClosuresByDescendantId(commentId);
+            int commentDeleteCount = hardDeleteComment(commentId);
+            System.out.println("DEBUG: closureDeleteCount=" + closureDeleteCount + ", commentDeleteCount=" + commentDeleteCount);
             return true;
         }
     }

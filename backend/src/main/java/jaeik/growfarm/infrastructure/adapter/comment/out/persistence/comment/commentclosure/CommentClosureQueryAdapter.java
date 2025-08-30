@@ -51,9 +51,8 @@ public class CommentClosureQueryAdapter implements CommentClosureQueryPort {
     }
 
     /**
-     * <h3>최적화된 댓글 삭제 여부 확인</h3>
+     * <h3>댓글 삭제 여부 확인</h3>
      * <p>댓글의 자손 존재 여부를 확인하여 삭제 가능 여부를 반환합니다.</p>
-     * <p>hasDescendants와 동일하지만 의미상 더 명확한 메서드명 제공</p>
      *
      * @param commentId 확인할 댓글 ID
      * @return boolean true면 하드 삭제 가능(자손 없음), false면 소프트 삭제 필요(자손 있음)
