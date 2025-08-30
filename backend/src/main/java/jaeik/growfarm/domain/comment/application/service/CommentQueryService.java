@@ -69,38 +69,13 @@ public class CommentQueryService implements CommentQueryUseCase {
     }
 
 
-    /**
-     * <h3>페이지별 사용자 추천 ID 조회</h3>
-     * <p>주어진 게시글 ID와 페이지 정보에 해당하는 댓글 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
-     * <p>성능 최적화: 페이지의 댓글 ID를 먼저 조회한 후, 해당 댓글들에 대해서만 추천 여부를 확인합니다.</p>
-     *
-     * @param postId      게시글 ID
-     * @param pageable    페이지 정보
-     * @param userDetails 사용자 인증 정보
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private List<Long> getUserLikedCommentIdsByPage(Long postId, Pageable pageable, CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            return Collections.emptyList();
-        }
-
-        Page<CommentInfo> commentPage = commentQueryPort.findCommentsWithOldestOrder(postId, pageable, Collections.emptyList());
-        if (!commentPage.hasContent()) {
-            return Collections.emptyList();
-        }
-        
-        List<Long> pageCommentIds = commentPage.getContent().stream().map(CommentInfo::getId).collect(Collectors.toList());
-        return commentQueryPort.findUserLikedCommentIds(pageCommentIds, userDetails.getUserId());
-    }
 
     /**
      * <h3>과거순 댓글 조회</h3>
      * <p>주어진 게시글 ID에 대한 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
      *
      * @param postId      게시글 ID
-     * @param page        페이지 번호
+     * @param pageable    페이지 정보
      * @param userDetails 사용자 인증 정보
      * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
@@ -108,11 +83,20 @@ public class CommentQueryService implements CommentQueryUseCase {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<CommentInfo> getCommentsOldestOrder(Long postId, int page, CustomUserDetails userDetails) {
-        Pageable pageable = Pageable.ofSize(20).withPage(page);
-        List<Long> likedCommentIds = getUserLikedCommentIdsByPage(postId, pageable, userDetails);
-
-        return commentQueryPort.findCommentsWithOldestOrder(postId, pageable, likedCommentIds);
+    public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+        Page<CommentInfo> commentPage = commentQueryPort.findCommentsWithOldestOrder(postId, pageable, Collections.emptyList());
+        
+        // 사용자가 로그인한 경우에만 추천 여부 설정
+        if (userDetails != null && commentPage.hasContent()) {
+            List<Long> pageCommentIds = commentPage.getContent().stream()
+                    .map(CommentInfo::getId)
+                    .collect(Collectors.toList());
+            List<Long> likedCommentIds = commentQueryPort.findUserLikedCommentIds(pageCommentIds, userDetails.getUserId());
+            
+            commentPage.getContent().forEach(info -> info.setUserLike(likedCommentIds.contains(info.getId())));
+        }
+        
+        return commentPage;
     }
 
     /**

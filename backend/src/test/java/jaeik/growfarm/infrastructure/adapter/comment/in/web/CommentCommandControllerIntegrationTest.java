@@ -7,6 +7,7 @@ import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentLikeReqDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
@@ -265,9 +266,9 @@ class CommentCommandControllerIntegrationTest {
                 testUser, testPost, "추천할 댓글입니다.");
         commentRepository.save(existingComment);
         
-        // 추천 API용 DTO 생성 (ID만 필요)
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setId(existingComment.getId());
+        // 추천 API용 DTO 생성 (commentId만 필요)
+        CommentLikeReqDTO requestDto = new CommentLikeReqDTO();
+        requestDto.setCommentId(existingComment.getId());
         
         CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         

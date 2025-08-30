@@ -168,11 +168,10 @@ class CommentQueryServiceTest {
         given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
                 .willReturn(commentPage);
         given(commentQueryPort.findUserLikedCommentIds(pageCommentIds, 100L)).willReturn(likedCommentIds);
-        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(likedCommentIds)))
-                .willReturn(commentPage);
 
         // When
-        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, page, userDetails);
+        Pageable pageable = Pageable.ofSize(20).withPage(page);
+        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -192,7 +191,8 @@ class CommentQueryServiceTest {
                 .willReturn(commentPage);
 
         // When
-        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, page, null);
+        Pageable pageable = Pageable.ofSize(20).withPage(page);
+        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, null);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -214,12 +214,13 @@ class CommentQueryServiceTest {
                 .willReturn(emptyPage);
 
         // When
-        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, page, userDetails);
+        Pageable pageable = Pageable.ofSize(20).withPage(page);
+        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
 
         // Then
         assertThat(result.getContent()).isEmpty();
 
-        verify(commentQueryPort, times(2)).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
+        verify(commentQueryPort, times(1)).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
         verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
     }
 

@@ -6,6 +6,7 @@ import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +44,8 @@ public class CommentQueryController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
-        Page<CommentInfo> commentInfoPage = commentQueryUseCase.getCommentsOldestOrder(postId, page, userDetails);
+        Pageable pageable = Pageable.ofSize(20).withPage(page);
+        Page<CommentInfo> commentInfoPage = commentQueryUseCase.getCommentsOldestOrder(postId, pageable, userDetails);
         Page<CommentDTO> commentDtoPage = commentInfoPage.map(this::convertToCommentDTO);
         return ResponseEntity.ok(commentDtoPage);
     }

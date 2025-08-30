@@ -37,13 +37,13 @@ public interface CommentQueryUseCase {
      * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
      *
      * @param postId      게시글 ID
-     * @param page        페이지 번호
+     * @param pageable    페이지 정보
      * @param userDetails 사용자 인증 정보
      * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<CommentInfo> getCommentsOldestOrder(Long postId, int page, CustomUserDetails userDetails);
+    Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails);
 
     /**
      * <h3>ID로 댓글 조회</h3>

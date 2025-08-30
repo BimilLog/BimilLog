@@ -170,7 +170,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id).and(closure.depth.eq(0)))
                 .where(comment.post.id.eq(postId))
                 .groupBy(comment.id, user.userName, closure.ancestor.id, comment.createdAt)
-                .having(commentLike.countDistinct().goe(5)) // 추천 5개 이상
+                .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
                 .orderBy(commentLike.countDistinct().desc())
                 .limit(5)
                 .fetch();
