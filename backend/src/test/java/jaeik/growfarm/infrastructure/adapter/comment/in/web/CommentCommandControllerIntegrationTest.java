@@ -261,6 +261,109 @@ class CommentCommandControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
+    // === 누락된 댓글 삭제 통합 테스트 케이스들 ===
+
+    @Test
+    @DisplayName("익명 댓글 삭제 통합 테스트 - 패스워드 인증")
+    void deleteAnonymousComment_IntegrationTest() throws Exception {
+        // Given: 패스워드가 있는 익명 댓글 생성
+        Comment anonymousComment = Comment.builder()
+                .post(testPost)
+                .user(null)
+                .content("익명 댓글입니다")
+                .password(1234)
+                .deleted(false)
+                .build();
+        commentRepository.save(anonymousComment);
+        
+        CommentReqDTO requestDto = new CommentReqDTO();
+        requestDto.setId(anonymousComment.getId());
+        requestDto.setPassword(1234);
+        
+        // When & Then
+        mockMvc.perform(post("/api/comment/delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("댓글 삭제 완료"));
+        
+        // 데이터베이스 검증
+        Optional<Comment> deletedComment = commentRepository.findById(anonymousComment.getId());
+        if (deletedComment.isPresent()) {
+            assertThat(deletedComment.get().isDeleted()).isTrue();
+        } else {
+            assertThat(deletedComment).isEmpty();
+        }
+    }
+
+    @Test
+    @DisplayName("익명 댓글 삭제 실패 - 잘못된 패스워드")
+    void deleteAnonymousComment_WrongPassword_IntegrationTest() throws Exception {
+        // Given: 패스워드가 있는 익명 댓글 생성
+        Comment anonymousComment = Comment.builder()
+                .post(testPost)
+                .user(null)
+                .content("익명 댓글입니다")
+                .password(1234)
+                .deleted(false)
+                .build();
+        commentRepository.save(anonymousComment);
+        
+        CommentReqDTO requestDto = new CommentReqDTO();
+        requestDto.setId(anonymousComment.getId());
+        requestDto.setPassword(9999); // 잘못된 패스워드
+        
+        // When & Then
+        mockMvc.perform(post("/api/comment/delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+        
+        // 데이터베이스 검증 - 댓글이 삭제되지 않아야 함
+        Optional<Comment> comment = commentRepository.findById(anonymousComment.getId());
+        assertThat(comment).isPresent();
+        assertThat(comment.get().isDeleted()).isFalse();
+        assertThat(comment.get().getContent()).isEqualTo("익명 댓글입니다");
+    }
+
+    @Test
+    @DisplayName("다른 사용자 댓글 삭제 시도 - 권한 없음")
+    void deleteOtherUserComment_Unauthorized_IntegrationTest() throws Exception {
+        // Given: 다른 사용자의 댓글
+        User anotherUser = createTestUser();
+        userRepository.save(anotherUser);
+        
+        Comment otherUserComment = Comment.builder()
+                .post(testPost)
+                .user(anotherUser)
+                .content("다른 사용자의 댓글")
+                .password(null)
+                .deleted(false)
+                .build();
+        commentRepository.save(otherUserComment);
+        
+        CommentReqDTO requestDto = new CommentReqDTO();
+        requestDto.setId(otherUserComment.getId());
+        
+        CustomUserDetails userDetails = createUserDetails(testUser); // 현재 사용자
+        
+        // When & Then
+        mockMvc.perform(post("/api/comment/delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(user(userDetails))
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+        
+        // 데이터베이스 검증 - 댓글이 삭제되지 않아야 함
+        Optional<Comment> comment = commentRepository.findById(otherUserComment.getId());
+        assertThat(comment).isPresent();
+        assertThat(comment.get().isDeleted()).isFalse();
+    }
     
     /**
      * 테스트용 사용자 생성

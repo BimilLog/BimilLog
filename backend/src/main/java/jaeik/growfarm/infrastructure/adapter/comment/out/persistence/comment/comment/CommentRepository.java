@@ -59,6 +59,89 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Modifying
     @Query("DELETE FROM Comment c WHERE c.post.id = :postId")
     void deleteAllByPostId(@Param("postId") Long postId);
+
+    /**
+     * <h3>최적화된 댓글 삭제</h3>
+     * <p>자손 존재 여부에 따라 자동으로 소프트/하드 삭제를 수행합니다.</p>
+     * <p>단일 트랜잭션 내에서 조건부 삭제를 수행하여 성능을 최적화합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return boolean true면 하드 삭제 수행됨, false면 소프트 삭제 수행됨
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Modifying
+    @Query(value = """
+        UPDATE comment c 
+        SET c.deleted = CASE 
+                WHEN EXISTS(
+                    SELECT 1 FROM comment_closure cc 
+                    WHERE cc.ancestor_id = :commentId AND cc.depth > 0
+                ) THEN true
+                ELSE c.deleted 
+            END,
+            c.content = CASE 
+                WHEN EXISTS(
+                    SELECT 1 FROM comment_closure cc 
+                    WHERE cc.ancestor_id = :commentId AND cc.depth > 0
+                ) THEN '삭제된 댓글 입니다.'
+                ELSE c.content 
+            END,
+            c.modified_at = NOW()
+        WHERE c.comment_id = :commentId
+        """, nativeQuery = true)
+    int conditionalSoftDelete(@Param("commentId") Long commentId);
+
+    /**
+     * <h3>클로저 테이블에서 자손 관계 삭제</h3>
+     * <p>자손이 없는 댓글의 모든 클로저 관계를 삭제합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return int 삭제된 클로저 관계 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Modifying
+    @Query(value = "DELETE FROM comment_closure WHERE descendant_id = :commentId", nativeQuery = true)
+    int deleteClosuresByDescendantId(@Param("commentId") Long commentId);
+
+    /**
+     * <h3>댓글 하드 삭제</h3>
+     * <p>자손이 없는 댓글을 완전히 삭제합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return int 삭제된 댓글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Modifying
+    @Query(value = "DELETE FROM comment WHERE comment_id = :commentId", nativeQuery = true)
+    int hardDeleteComment(@Param("commentId") Long commentId);
+
+    /**
+     * <h3>최적화된 댓글 삭제 통합 메서드</h3>
+     * <p>자손 존재 여부를 확인하고 적절한 삭제 방식을 선택합니다.</p>
+     * <p>자손이 있으면 소프트 삭제, 없으면 하드 삭제를 수행합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return boolean true면 하드 삭제 수행됨, false면 소프트 삭제 수행됨
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    default boolean deleteCommentOptimized(Long commentId) {
+        // 1단계: 조건부 소프트 삭제 시도 (자손이 있는 경우만 실행됨)
+        int softDeleteCount = conditionalSoftDelete(commentId);
+        
+        if (softDeleteCount > 0) {
+            // 소프트 삭제가 수행됨 (자손이 있음)
+            return false;
+        } else {
+            // 자손이 없으므로 하드 삭제 수행
+            deleteClosuresByDescendantId(commentId);
+            hardDeleteComment(commentId);
+            return true;
+        }
+    }
 }
 
 

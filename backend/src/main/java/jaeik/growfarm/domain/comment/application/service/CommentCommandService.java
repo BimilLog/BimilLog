@@ -75,14 +75,12 @@ public class CommentCommandService implements CommentCommandUseCase {
         Comment comment = validateComment(commentRequest, userId);
         Long commentId = comment.getId();
         try {
-            boolean hasDescendants = commentClosureQueryPort.hasDescendants(commentId);
-            if (hasDescendants) {
-                comment.softDelete();
-                commentCommandPort.save(comment);
-            } else {
-                commentClosureCommandPort.deleteByDescendantId(commentId);
-                commentCommandPort.delete(comment);
-            }
+            // 최적화된 삭제: 단일 메서드로 자손 체크 + 조건부 삭제 수행
+            boolean wasHardDeleted = commentCommandPort.deleteCommentOptimized(commentId);
+            
+            // TODO: 삭제 방식에 따른 후속 처리 (필요시)
+            // wasHardDeleted가 true면 완전 삭제, false면 소프트 삭제됨
+            
         } catch (Exception e) {
             throw new CustomException(ErrorCode.COMMENT_DELETE_FAILED, e);
         }

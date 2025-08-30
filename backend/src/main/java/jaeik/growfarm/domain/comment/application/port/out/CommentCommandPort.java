@@ -52,4 +52,16 @@ public interface CommentCommandPort {
      * @since 2.0.0
      */
     void anonymizeUserComments(Long userId);
+
+    /**
+     * <h3>최적화된 댓글 삭제</h3>
+     * <p>자손 존재 여부에 따라 자동으로 소프트/하드 삭제를 수행합니다.</p>
+     * <p>단일 쿼리로 자손 체크와 삭제를 통합하여 성능을 최적화합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return boolean true면 하드 삭제 수행됨, false면 소프트 삭제 수행됨
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    boolean deleteCommentOptimized(Long commentId);
 }

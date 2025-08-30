@@ -200,50 +200,54 @@ class CommentCommandServiceTest {
     }
 
     @Test
-    @DisplayName("후손이 없는 댓글 삭제 시 완전 삭제")
+    @DisplayName("후손이 없는 댓글 삭제 시 완전 삭제 - 최적화된 방식")
     void shouldDeleteComment_WhenNoDescendants() {
         // Given
         Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
-        given(commentClosureQueryPort.hasDescendants(200L)).willReturn(false);
+        given(commentCommandPort.deleteCommentOptimized(200L)).willReturn(true); // 하드 삭제됨
 
         // When
         commentCommandService.deleteComment(userId, commentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
-        verify(commentClosureQueryPort).hasDescendants(200L);
-        verify(commentClosureCommandPort).deleteByDescendantId(200L);
-        verify(commentCommandPort).delete(testComment);
+        verify(commentCommandPort).deleteCommentOptimized(200L);
+        // 최적화된 방식에서는 개별 hasDescendants 호출이나 개별 delete 호출 없음
+        verify(commentClosureQueryPort, never()).hasDescendants(any());
+        verify(commentClosureCommandPort, never()).deleteByDescendantId(any());
+        verify(commentCommandPort, never()).delete(any());
         verify(commentCommandPort, never()).save(any());
     }
 
     @Test
-    @DisplayName("후손이 있는 댓글 삭제 시 소프트 삭제")
+    @DisplayName("후손이 있는 댓글 삭제 시 소프트 삭제 - 최적화된 방식")
     void shouldSoftDeleteComment_WhenHasDescendants() {
         // Given
         Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
-        given(commentClosureQueryPort.hasDescendants(200L)).willReturn(true);
+        given(commentCommandPort.deleteCommentOptimized(200L)).willReturn(false); // 소프트 삭제됨
 
         // When
         commentCommandService.deleteComment(userId, commentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
-        verify(commentClosureQueryPort).hasDescendants(200L);
-        verify(commentCommandPort).save(testComment);
+        verify(commentCommandPort).deleteCommentOptimized(200L);
+        // 최적화된 방식에서는 개별 hasDescendants 호출이나 개별 save 호출 없음
+        verify(commentClosureQueryPort, never()).hasDescendants(any());
+        verify(commentCommandPort, never()).save(any());
         verify(commentClosureCommandPort, never()).deleteByDescendantId(any());
         verify(commentCommandPort, never()).delete(any());
     }
 
     @Test
-    @DisplayName("댓글 삭제 과정에서 예외 발생 시 COMMENT_DELETE_FAILED 예외 발생")
+    @DisplayName("댓글 삭제 과정에서 예외 발생 시 COMMENT_DELETE_FAILED 예외 발생 - 최적화된 방식")
     void shouldThrowException_WhenDeleteProcessFails() {
         // Given
         Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
-        doThrow(new RuntimeException("삭제 실패")).when(commentClosureQueryPort).hasDescendants(200L);
+        doThrow(new RuntimeException("최적화된 삭제 실패")).when(commentCommandPort).deleteCommentOptimized(200L);
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(userId, commentRequest))
@@ -251,7 +255,7 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_DELETE_FAILED);
 
         verify(commentQueryPort).findById(200L);
-        verify(commentClosureQueryPort).hasDescendants(200L);
+        verify(commentCommandPort).deleteCommentOptimized(200L);
     }
 
     @Test
@@ -319,5 +323,168 @@ class CommentCommandServiceTest {
 
         verify(commentQueryPort).findById(200L);
         verify(commentCommandPort, never()).save(any());
+    }
+
+    // === 누락된 댓글 삭제 테스트 케이스들 ===
+
+    @Test
+    @DisplayName("익명 댓글 삭제 - 패스워드 일치로 삭제 성공")
+    void shouldDeleteAnonymousComment_WhenCorrectPasswordProvided() {
+        // Given
+        Comment anonymousComment = Comment.builder()
+                .id(300L)
+                .content("익명 댓글")
+                .user(null)
+                .password(1234)
+                .deleted(false)
+                .build();
+
+        CommentRequest deleteRequest = CommentRequest.builder()
+                .id(300L)
+                .password(1234)
+                .build();
+
+        given(commentQueryPort.findById(300L)).willReturn(Optional.of(anonymousComment));
+        given(commentCommandPort.deleteCommentOptimized(300L)).willReturn(true); // 하드 삭제됨
+
+        // When
+        commentCommandService.deleteComment(null, deleteRequest);
+
+        // Then
+        verify(commentQueryPort).findById(300L);
+        verify(commentCommandPort).deleteCommentOptimized(300L);
+        // 최적화된 방식 사용
+        verify(commentClosureQueryPort, never()).hasDescendants(any());
+        verify(commentClosureCommandPort, never()).deleteByDescendantId(any());
+        verify(commentCommandPort, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("익명 댓글 삭제 - 잘못된 패스워드로 삭제 실패")
+    void shouldThrowException_WhenAnonymousCommentWithWrongPassword() {
+        // Given
+        Comment anonymousComment = Comment.builder()
+                .id(300L)
+                .content("익명 댓글")
+                .user(null)
+                .password(1234)
+                .deleted(false)
+                .build();
+
+        CommentRequest deleteRequest = CommentRequest.builder()
+                .id(300L)
+                .password(9999)
+                .build();
+
+        given(commentQueryPort.findById(300L)).willReturn(Optional.of(anonymousComment));
+
+        // When & Then
+        assertThatThrownBy(() -> commentCommandService.deleteComment(null, deleteRequest))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_PASSWORD_NOT_MATCH);
+
+        verify(commentQueryPort).findById(300L);
+        verify(commentClosureQueryPort, never()).hasDescendants(any());
+        verify(commentCommandPort, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("계층 댓글 삭제 - 자손이 있는 인증 사용자 댓글 소프트 삭제")
+    void shouldSoftDeleteUserComment_WhenHasDescendants() {
+        // Given
+        Long userId = 100L;
+        Comment parentComment = Comment.builder()
+                .id(400L)
+                .content("부모 댓글")
+                .user(testUser)
+                .password(null)
+                .deleted(false)
+                .build();
+
+        CommentRequest deleteRequest = CommentRequest.builder()
+                .id(400L)
+                .build();
+
+        given(commentQueryPort.findById(400L)).willReturn(Optional.of(parentComment));
+        given(commentCommandPort.deleteCommentOptimized(400L)).willReturn(false); // 소프트 삭제됨
+
+        // When
+        commentCommandService.deleteComment(userId, deleteRequest);
+
+        // Then
+        verify(commentQueryPort).findById(400L);
+        verify(commentCommandPort).deleteCommentOptimized(400L);
+        // 최적화된 방식 사용
+        verify(commentClosureQueryPort, never()).hasDescendants(any());
+        verify(commentCommandPort, never()).save(any());
+        verify(commentClosureCommandPort, never()).deleteByDescendantId(any());
+        verify(commentCommandPort, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("계층 댓글 삭제 - 자손이 있는 익명 댓글 소프트 삭제")
+    void shouldSoftDeleteAnonymousComment_WhenHasDescendants() {
+        // Given
+        Comment anonymousParentComment = Comment.builder()
+                .id(500L)
+                .content("익명 부모 댓글")
+                .user(null)
+                .password(5678)
+                .deleted(false)
+                .build();
+
+        CommentRequest deleteRequest = CommentRequest.builder()
+                .id(500L)
+                .password(5678)
+                .build();
+
+        given(commentQueryPort.findById(500L)).willReturn(Optional.of(anonymousParentComment));
+        given(commentCommandPort.deleteCommentOptimized(500L)).willReturn(false); // 소프트 삭제됨
+
+        // When
+        commentCommandService.deleteComment(null, deleteRequest);
+
+        // Then
+        verify(commentQueryPort).findById(500L);
+        verify(commentCommandPort).deleteCommentOptimized(500L);
+        // 최적화된 방식 사용
+        verify(commentClosureQueryPort, never()).hasDescendants(any());
+        verify(commentCommandPort, never()).save(any());
+        verify(commentClosureCommandPort, never()).deleteByDescendantId(any());
+        verify(commentCommandPort, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("다른 사용자가 댓글 삭제 시도 - ONLY_COMMENT_OWNER_UPDATE 예외 발생")
+    void shouldThrowException_WhenNotOwnerTriesToDelete() {
+        // Given
+        Long requestUserId = 100L;
+        User anotherUser = User.builder()
+                .id(999L)
+                .userName("anotherUser")
+                .build();
+
+        Comment anotherUserComment = Comment.builder()
+                .id(600L)
+                .content("다른 사용자 댓글")
+                .user(anotherUser)
+                .password(null)
+                .deleted(false)
+                .build();
+
+        CommentRequest deleteRequest = CommentRequest.builder()
+                .id(600L)
+                .build();
+
+        given(commentQueryPort.findById(600L)).willReturn(Optional.of(anotherUserComment));
+
+        // When & Then
+        assertThatThrownBy(() -> commentCommandService.deleteComment(requestUserId, deleteRequest))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+
+        verify(commentQueryPort).findById(600L);
+        verify(commentClosureQueryPort, never()).hasDescendants(any());
+        verify(commentCommandPort, never()).delete(any());
     }
 }
