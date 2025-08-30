@@ -54,14 +54,49 @@ public interface CommentCommandPort {
     void anonymizeUserComments(Long userId);
 
     /**
+     * <h3>조건부 소프트 삭제</h3>
+     * <p>자손이 있는 댓글에 대해서만 소프트 삭제를 수행합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return int 소프트 삭제된 댓글 수 (자손이 있으면 1, 없으면 0)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    int conditionalSoftDelete(Long commentId);
+
+    /**
+     * <h3>클로저 테이블에서 자손 관계 삭제</h3>
+     * <p>자손이 없는 댓글의 모든 클로저 관계를 삭제합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return int 삭제된 클로저 관계 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    int deleteClosuresByDescendantId(Long commentId);
+
+    /**
+     * <h3>댓글 하드 삭제</h3>
+     * <p>자손이 없는 댓글을 완전히 삭제합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return int 삭제된 댓글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    int hardDeleteComment(Long commentId);
+
+    /**
      * <h3>최적화된 댓글 삭제</h3>
      * <p>자손 존재 여부에 따라 자동으로 소프트/하드 삭제를 수행합니다.</p>
      * <p>단일 쿼리로 자손 체크와 삭제를 통합하여 성능을 최적화합니다.</p>
+     * <p>@deprecated 비즈니스 로직이 Service 계층으로 이동됨. 개별 메서드 사용 권장</p>
      *
      * @param commentId 삭제할 댓글 ID
      * @return boolean true면 하드 삭제 수행됨, false면 소프트 삭제 수행됨
      * @author Jaeik
      * @since 2.0.0
      */
+    @Deprecated
     boolean deleteCommentOptimized(Long commentId);
 }
