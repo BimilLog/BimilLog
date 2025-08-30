@@ -55,6 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureWebMvc
 @Testcontainers
 @Import({TestContainersConfiguration.class, TestSocialLoginPortConfig.class})
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("댓글 Command 컨트롤러 통합 테스트")
 class CommentCommandControllerIntegrationTest {
 
@@ -100,19 +101,35 @@ class CommentCommandControllerIntegrationTest {
     void tearDown() {
         // 테스트 데이터 정리 - 외래키 제약조건 순서 고려
         try {
-            // 1. 클로저 테이블 정리 (외래키 제약조건)
+            // 1. 먼저 모든 comment_closure 레코드 삭제
             commentRepository.findAll().forEach(comment -> {
                 try {
-                    commentRepository.deleteClosuresByDescendantId(comment.getId());
+                    // 최적화된 삭제 메서드 사용 - 클로저와 댓글을 함께 처리
+                    commentRepository.deleteCommentOptimized(comment.getId());
                 } catch (Exception e) {
-                    // 이미 삭제된 경우 무시
+                    // 실패 시 개별 삭제 시도
+                    try {
+                        commentRepository.deleteClosuresByDescendantId(comment.getId());
+                        commentRepository.hardDeleteComment(comment.getId());
+                    } catch (Exception ignored) {}
                 }
             });
-            // 2. 댓글 삭제
-            commentRepository.deleteAll();
-            // 3. 게시글 삭제  
+            
+            // 2. 남은 댓글이 있다면 강제 삭제
+            try {
+                commentRepository.deleteAll();
+            } catch (Exception e) {
+                // Native query로 강제 삭제 시도  
+                commentRepository.findAll().forEach(comment -> {
+                    try {
+                        commentRepository.hardDeleteComment(comment.getId());
+                    } catch (Exception ignored) {}
+                });
+            }
+            
+            // 3. 게시글 삭제 (댓글이 먼저 삭제되었으므로 안전)
             postRepository.deleteAll();
-            // 4. 사용자 삭제
+            // 4. 사용자 삭제 (모든 외래키 제약조건 해제됨)
             userRepository.deleteAll();
         } catch (Exception e) {
             // 정리 실패 시 로그만 남기고 계속 진행
