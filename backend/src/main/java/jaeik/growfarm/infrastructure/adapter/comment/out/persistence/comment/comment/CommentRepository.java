@@ -123,18 +123,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     default boolean deleteCommentOptimized(Long commentId) {
         // 1단계: 조건부 소프트 삭제 시도 (자손이 있는 경우만 실행됨)
         int softDeleteCount = conditionalSoftDelete(commentId);
-        System.out.println("DEBUG: commentId=" + commentId + ", softDeleteCount=" + softDeleteCount);
-        
+
         if (softDeleteCount > 0) {
-            // 소프트 삭제가 수행됨 (자손이 있음)
-            System.out.println("DEBUG: Performing soft delete for commentId=" + commentId);
             return false;
         } else {
-            // 자손이 없으므로 하드 삭제 수행
-            System.out.println("DEBUG: Performing hard delete for commentId=" + commentId);
             int closureDeleteCount = deleteClosuresByDescendantId(commentId);
             int commentDeleteCount = hardDeleteComment(commentId);
-            System.out.println("DEBUG: closureDeleteCount=" + closureDeleteCount + ", commentDeleteCount=" + commentDeleteCount);
             return true;
         }
     }
