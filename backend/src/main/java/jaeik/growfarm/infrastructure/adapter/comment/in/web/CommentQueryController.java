@@ -25,7 +25,6 @@ import java.util.List;
 public class CommentQueryController {
 
     private final CommentQueryUseCase commentQueryUseCase;
-    private final CommentResponseMapper commentResponseMapper;
 
     /**
      * <h3>댓글 조회 API</h3>
@@ -45,7 +44,7 @@ public class CommentQueryController {
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
         Page<CommentInfo> commentInfoPage = commentQueryUseCase.getCommentsOldestOrder(postId, page, userDetails);
-        Page<CommentDTO> commentDtoPage = commentInfoPage.map(commentResponseMapper::convertToCommentDTO);
+        Page<CommentDTO> commentDtoPage = commentInfoPage.map(this::convertToCommentDTO);
         return ResponseEntity.ok(commentDtoPage);
     }
 
@@ -66,8 +65,33 @@ public class CommentQueryController {
             @PathVariable Long postId) {
         List<CommentInfo> commentInfoList = commentQueryUseCase.getPopularComments(postId, userDetails);
         List<CommentDTO> commentDtoList = commentInfoList.stream()
-                .map(commentResponseMapper::convertToCommentDTO)
+                .map(this::convertToCommentDTO)
                 .toList();
         return ResponseEntity.ok(commentDtoList);
+    }
+
+    /**
+     * <h3>CommentInfo를 CommentDTO로 변환</h3>
+     *
+     * @param commentInfo 변환할 도메인 객체
+     * @return CommentDTO 응답 DTO
+     * @author jaeik
+     * @since 2.0.0
+     */
+    public CommentDTO convertToCommentDTO(CommentInfo commentInfo) {
+        CommentDTO commentDTO = new CommentDTO(
+                commentInfo.getId(),
+                commentInfo.getPostId(),
+                commentInfo.getUserId(),
+                commentInfo.getUserName(),
+                commentInfo.getContent(),
+                commentInfo.isDeleted(),
+                commentInfo.getCreatedAt(),
+                commentInfo.getParentId(),
+                commentInfo.getLikeCount()
+        );
+        commentDTO.setPopular(commentInfo.isPopular());
+        commentDTO.setUserLike(commentInfo.isUserLike());
+        return commentDTO;
     }
 }

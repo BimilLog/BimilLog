@@ -1,7 +1,9 @@
 package jaeik.growfarm.infrastructure.adapter.comment.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.comment.entity.Comment;
+import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.Setting;
@@ -25,7 +27,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -53,7 +55,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureWebMvc
 @Testcontainers
 @Import({TestContainersConfiguration.class, TestSocialLoginPortConfig.class})
-@Transactional
 @DisplayName("댓글 Command 컨트롤러 통합 테스트")
 class CommentCommandControllerIntegrationTest {
 
@@ -71,6 +72,9 @@ class CommentCommandControllerIntegrationTest {
     
     @Autowired
     private CommentRepository commentRepository;
+    
+    @Autowired
+    private CommentCommandUseCase commentCommandUseCase;
     
     private MockMvc mockMvc;
     private User testUser;
@@ -90,6 +94,30 @@ class CommentCommandControllerIntegrationTest {
         // 테스트용 게시글 생성
         testPost = createTestPost(testUser);
         postRepository.save(testPost);
+    }
+    
+    @AfterEach
+    void tearDown() {
+        // 테스트 데이터 정리 - 외래키 제약조건 순서 고려
+        try {
+            // 1. 클로저 테이블 정리 (외래키 제약조건)
+            commentRepository.findAll().forEach(comment -> {
+                try {
+                    commentRepository.deleteClosuresByDescendantId(comment.getId());
+                } catch (Exception e) {
+                    // 이미 삭제된 경우 무시
+                }
+            });
+            // 2. 댓글 삭제
+            commentRepository.deleteAll();
+            // 3. 게시글 삭제  
+            postRepository.deleteAll();
+            // 4. 사용자 삭제
+            userRepository.deleteAll();
+        } catch (Exception e) {
+            // 정리 실패 시 로그만 남기고 계속 진행
+            System.err.println("tearDown failed: " + e.getMessage());
+        }
     }
     
     @Test
@@ -189,9 +217,19 @@ class CommentCommandControllerIntegrationTest {
     @Test
     @DisplayName("댓글 삭제 통합 테스트")
     void deleteComment_IntegrationTest() throws Exception {
-        // Given
-        Comment existingComment = createTestComment(testUser, testPost);
-        commentRepository.save(existingComment);
+        // Given - 비즈니스 로직으로 댓글 생성 (클로저 포함)
+        CommentRequest commentRequest = CommentRequest.builder()
+                .postId(testPost.getId())
+                .content("테스트 댓글입니다.")
+                .build();
+        commentCommandUseCase.writeComment(testUser.getId(), commentRequest);
+        
+        // 생성된 댓글 조회
+        Comment existingComment = commentRepository.findAll()
+                .stream()
+                .filter(c -> "테스트 댓글입니다.".equals(c.getContent()))
+                .findFirst()
+                .orElseThrow();
         
         CommentReqDTO requestDto = new CommentReqDTO();
         requestDto.setId(existingComment.getId());
@@ -208,15 +246,9 @@ class CommentCommandControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("댓글 삭제 완료"));
         
-        // 데이터베이스 검증 - 댓글 삭제 확인 (hard delete 또는 soft delete)
+        // 데이터베이스 검증 - 자손이 없는 댓글은 하드 삭제됨
         Optional<Comment> deletedComment = commentRepository.findById(existingComment.getId());
-        if (deletedComment.isPresent()) {
-            // Soft delete 경우
-            assertThat(deletedComment.get().isDeleted()).isTrue();
-        } else {
-            // Hard delete 경우 - 댓글이 완전히 삭제됨
-            assertThat(deletedComment).isEmpty();
-        }
+        assertThat(deletedComment).isEmpty(); // 하드 삭제로 완전히 제거됨
     }
     
     @Test
@@ -267,15 +299,20 @@ class CommentCommandControllerIntegrationTest {
     @Test
     @DisplayName("익명 댓글 삭제 통합 테스트 - 패스워드 인증")
     void deleteAnonymousComment_IntegrationTest() throws Exception {
-        // Given: 패스워드가 있는 익명 댓글 생성
-        Comment anonymousComment = Comment.builder()
-                .post(testPost)
-                .user(null)
+        // Given: 비즈니스 로직으로 익명 댓글 생성 (클로저 포함)
+        CommentRequest commentRequest = CommentRequest.builder()
+                .postId(testPost.getId())
                 .content("익명 댓글입니다")
                 .password(1234)
-                .deleted(false)
                 .build();
-        commentRepository.save(anonymousComment);
+        commentCommandUseCase.writeComment(null, commentRequest);
+        
+        // 생성된 익명 댓글 조회
+        Comment anonymousComment = commentRepository.findAll()
+                .stream()
+                .filter(c -> "익명 댓글입니다".equals(c.getContent()))
+                .findFirst()
+                .orElseThrow();
         
         CommentReqDTO requestDto = new CommentReqDTO();
         requestDto.setId(anonymousComment.getId());
@@ -284,32 +321,34 @@ class CommentCommandControllerIntegrationTest {
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("댓글 삭제 완료"));
         
-        // 데이터베이스 검증
+        // 데이터베이스 검증 - 자손이 없는 익명 댓글도 하드 삭제됨
         Optional<Comment> deletedComment = commentRepository.findById(anonymousComment.getId());
-        if (deletedComment.isPresent()) {
-            assertThat(deletedComment.get().isDeleted()).isTrue();
-        } else {
-            assertThat(deletedComment).isEmpty();
-        }
+        assertThat(deletedComment).isEmpty(); // 하드 삭제로 완전히 제거됨
     }
 
     @Test
     @DisplayName("익명 댓글 삭제 실패 - 잘못된 패스워드")
     void deleteAnonymousComment_WrongPassword_IntegrationTest() throws Exception {
-        // Given: 패스워드가 있는 익명 댓글 생성
-        Comment anonymousComment = Comment.builder()
-                .post(testPost)
-                .user(null)
+        // Given: 비즈니스 로직으로 익명 댓글 생성
+        CommentRequest commentRequest = CommentRequest.builder()
+                .postId(testPost.getId())
                 .content("익명 댓글입니다")
                 .password(1234)
-                .deleted(false)
                 .build();
-        commentRepository.save(anonymousComment);
+        commentCommandUseCase.writeComment(null, commentRequest);
+        
+        // 생성된 익명 댓글 조회
+        Comment anonymousComment = commentRepository.findAll()
+                .stream()
+                .filter(c -> "익명 댓글입니다".equals(c.getContent()))
+                .findFirst()
+                .orElseThrow();
         
         CommentReqDTO requestDto = new CommentReqDTO();
         requestDto.setId(anonymousComment.getId());
@@ -318,7 +357,8 @@ class CommentCommandControllerIntegrationTest {
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
         
@@ -333,7 +373,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("다른 사용자 댓글 삭제 시도 - 권한 없음")
     void deleteOtherUserComment_Unauthorized_IntegrationTest() throws Exception {
         // Given: 다른 사용자의 댓글
-        User anotherUser = createTestUser();
+        User anotherUser = createAnotherTestUser();
         userRepository.save(anotherUser);
         
         Comment otherUserComment = Comment.builder()
@@ -380,6 +420,27 @@ class CommentCommandControllerIntegrationTest {
                 .socialNickname("테스트사용자")
                 .thumbnailImage("test-profile.jpg")
                 .userName("testuser")
+                .provider(SocialProvider.KAKAO)
+                .role(UserRole.USER)
+                .setting(setting)
+                .build();
+    }
+    
+    /**
+     * 다른 테스트용 사용자 생성
+     */
+    private User createAnotherTestUser() {
+        Setting setting = Setting.builder()
+                .messageNotification(true)
+                .commentNotification(true)
+                .postFeaturedNotification(true)
+                .build();
+        
+        return User.builder()
+                .socialId("67890")
+                .socialNickname("다른사용자")
+                .thumbnailImage("another-profile.jpg")
+                .userName("anotheruser")
                 .provider(SocialProvider.KAKAO)
                 .role(UserRole.USER)
                 .setting(setting)
