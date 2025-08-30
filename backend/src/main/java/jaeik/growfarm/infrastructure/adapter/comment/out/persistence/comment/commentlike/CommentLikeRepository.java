@@ -4,6 +4,7 @@ import jaeik.growfarm.domain.comment.entity.CommentLike;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -45,6 +46,21 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
      */
     @Query("SELECT CASE WHEN COUNT(cl) > 0 THEN true ELSE false END FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.user.id = :userId")
     boolean existsByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("userId") Long userId);
+
+    /**
+     * <h3>댓글 ID와 사용자 ID로 추천 삭제 (성능 최적화)</h3>
+     * <p>주어진 댓글 ID와 사용자 ID에 해당하는 추천을 직접 삭제합니다.</p>
+     * <p>성능 최적화: 엔티티 조회 없이 ID만으로 직접 삭제</p>
+     *
+     * @param commentId 댓글 ID
+     * @param userId    사용자 ID
+     * @return int 삭제된 행의 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Modifying
+    @Query("DELETE FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.user.id = :userId")
+    int deleteByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("userId") Long userId);
 
 }
 

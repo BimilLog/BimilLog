@@ -37,4 +37,18 @@ public interface CommentLikeCommandPort {
      */
     @Transactional
     void deleteLike(Comment comment, User user);
+
+    /**
+     * <h3>댓글 추천 삭제 (ID 기반 최적화)</h3>
+     * <p>주어진 댓글 ID와 사용자 ID로 추천 관계를 삭제합니다.</p>
+     * <p>성능 최적화: 엔티티 조회 없이 ID만으로 직접 삭제</p>
+     *
+     * @param commentId 추천을 삭제할 댓글 ID
+     * @param userId    추천을 삭제할 사용자 ID
+     * @return int 삭제된 행의 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional
+    int deleteLikeByIds(Long commentId, Long userId);
 }

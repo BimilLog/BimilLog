@@ -7,8 +7,6 @@ import jaeik.growfarm.domain.comment.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentLike;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.comment.entity.CommentRequest;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,49 +52,40 @@ class CommentLikeServiceTest {
     @Mock
     private CommentQueryPort commentQueryPort;
 
-    @Mock
-    private CustomUserDetails userDetails;
-
     @InjectMocks
     private CommentLikeService commentLikeService;
 
     private User testUser;
     private Comment testComment;
-    private CommentRequest commentRequest;
+    private static final Long TEST_USER_ID = 100L;
+    private static final Long TEST_COMMENT_ID = 200L;
 
     @BeforeEach
     void setUp() {
         testUser = User.builder()
-                .id(100L)
+                .id(TEST_USER_ID)
                 .userName("testUser")
                 .socialId("kakao123")
                 .build();
 
         testComment = Comment.builder()
-                .id(200L)
+                .id(TEST_COMMENT_ID)
                 .content("테스트 댓글")
                 .user(testUser)
                 .deleted(false)
                 .build();
-
-        commentRequest = CommentRequest.builder()
-                .id(200L)
-                .content("테스트 댓글")
-                .build();
-
-        given(userDetails.getUserId()).willReturn(100L);
     }
 
     @Test
     @DisplayName("댓글 좋아요 추가 성공")
     void shouldAddLike_WhenUserHasNotLikedComment() {
         // Given
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(200L, 100L)).willReturn(false);
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
+        given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
-        commentLikeService.likeComment(commentRequest, userDetails);
+        commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
@@ -113,15 +102,15 @@ class CommentLikeServiceTest {
     @DisplayName("댓글 좋아요 취소 성공")
     void shouldRemoveLike_WhenUserHasAlreadyLikedComment() {
         // Given
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(200L, 100L)).willReturn(true);
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
+        given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
 
         // When
-        commentLikeService.likeComment(commentRequest, userDetails);
+        commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
 
         // Then
-        verify(commentLikeCommandPort).deleteLike(testComment, testUser);
+        verify(commentLikeCommandPort).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID);
         verify(commentLikeCommandPort, never()).save(any());
     }
 
@@ -129,14 +118,14 @@ class CommentLikeServiceTest {
     @DisplayName("존재하지 않는 댓글에 좋아요 시 COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenCommentNotFound() {
         // Given
-        given(commentQueryPort.findById(200L)).willReturn(Optional.empty());
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentLikeService.likeComment(commentRequest, userDetails))
+        assertThatThrownBy(() -> commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
-        verify(commentQueryPort).findById(200L);
+        verify(commentQueryPort).findById(TEST_COMMENT_ID);
         verify(loadUserPort, never()).findById(any());
         verify(commentLikeQueryPort, never()).isLikedByUser(any(), any());
         verify(commentLikeCommandPort, never()).save(any());
@@ -147,46 +136,34 @@ class CommentLikeServiceTest {
     @DisplayName("존재하지 않는 사용자가 좋아요 시 USER_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenUserNotFound() {
         // Given
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.empty());
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
+        given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentLikeService.likeComment(commentRequest, userDetails))
+        assertThatThrownBy(() -> commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
-        verify(commentQueryPort).findById(200L);
-        verify(loadUserPort).findById(100L);
+        verify(commentQueryPort).findById(TEST_COMMENT_ID);
+        verify(loadUserPort).findById(TEST_USER_ID);
         verify(commentLikeQueryPort, never()).isLikedByUser(any(), any());
         verify(commentLikeCommandPort, never()).save(any());
         verify(commentLikeCommandPort, never()).deleteLike(any(), any());
     }
 
     @Test
-    @DisplayName("삭제된 댓글에 좋아요 시도")
-    void shouldHandleDeletedComment() {
-        // Given
-        Comment deletedComment = Comment.builder()
-                .id(200L)
-                .content("삭제된 댓글")
-                .user(testUser)
-                .deleted(true)
-                .build();
+    @DisplayName("익명 사용자(null userId)가 좋아요 시 USER_NOT_FOUND 예외 발생")
+    void shouldThrowException_WhenUserIdIsNull() {
+        // When & Then
+        assertThatThrownBy(() -> commentLikeService.likeComment(null, TEST_COMMENT_ID))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(deletedComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(200L, 100L)).willReturn(false);
-
-        // When
-        commentLikeService.likeComment(commentRequest, userDetails);
-
-        // Then
-        ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeCommandPort).save(likeCaptor.capture());
-        
-        CommentLike capturedLike = likeCaptor.getValue();
-        assertThat(capturedLike.getComment()).isEqualTo(deletedComment);
-        assertThat(capturedLike.getUser()).isEqualTo(testUser);
+        verify(commentQueryPort, never()).findById(any());
+        verify(loadUserPort, never()).findById(any());
+        verify(commentLikeQueryPort, never()).isLikedByUser(any(), any());
+        verify(commentLikeCommandPort, never()).save(any());
+        verify(commentLikeCommandPort, never()).deleteLike(any(), any());
     }
 
     @Test
@@ -200,12 +177,12 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(ownComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(200L, 100L)).willReturn(false);
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(ownComment));
+        given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
-        commentLikeService.likeComment(commentRequest, userDetails);
+        commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
@@ -220,26 +197,26 @@ class CommentLikeServiceTest {
     @DisplayName("여러 번 연속으로 좋아요 토글")
     void shouldToggleLikeMultipleTimes() {
         // Given
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
+        given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
 
         // 첫 번째: 좋아요 추가
-        given(commentLikeQueryPort.isLikedByUser(200L, 100L)).willReturn(false);
-        commentLikeService.likeComment(commentRequest, userDetails);
+        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
+        commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
         verify(commentLikeCommandPort).save(any());
 
         // 두 번째: 좋아요 취소
-        given(commentLikeQueryPort.isLikedByUser(200L, 100L)).willReturn(true);
-        commentLikeService.likeComment(commentRequest, userDetails);
-        verify(commentLikeCommandPort).deleteLike(testComment, testUser);
+        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
+        commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
+        verify(commentLikeCommandPort).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID);
 
         // 세 번째: 다시 좋아요 추가
-        given(commentLikeQueryPort.isLikedByUser(200L, 100L)).willReturn(false);
-        commentLikeService.likeComment(commentRequest, userDetails);
+        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
+        commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
         
         // Then
         verify(commentLikeCommandPort, times(2)).save(any()); // 총 2번 호출
-        verify(commentLikeCommandPort, times(1)).deleteLike(testComment, testUser); // 1번 호출
+        verify(commentLikeCommandPort, times(1)).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID); // 1번 호출
     }
 
     @Test
@@ -259,17 +236,12 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest anotherCommentRequest = CommentRequest.builder()
-                .id(201L)
-                .content("다른 사용자 댓글")
-                .build();
-
         given(commentQueryPort.findById(201L)).willReturn(Optional.of(anotherComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(201L, 100L)).willReturn(false);
+        given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentLikeQueryPort.isLikedByUser(201L, TEST_USER_ID)).willReturn(false);
 
         // When
-        commentLikeService.likeComment(anotherCommentRequest, userDetails);
+        commentLikeService.likeComment(TEST_USER_ID, 201L);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
@@ -292,17 +264,12 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest anonymousCommentRequest = CommentRequest.builder()
-                .id(202L)
-                .content("익명 댓글")
-                .build();
-
         given(commentQueryPort.findById(202L)).willReturn(Optional.of(anonymousComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(202L, 100L)).willReturn(false);
+        given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentLikeQueryPort.isLikedByUser(202L, TEST_USER_ID)).willReturn(false);
 
         // When
-        commentLikeService.likeComment(anonymousCommentRequest, userDetails);
+        commentLikeService.likeComment(TEST_USER_ID, 202L);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
@@ -317,19 +284,19 @@ class CommentLikeServiceTest {
     @DisplayName("좋아요 상태 확인 실패 시 예외 처리")
     void shouldHandleException_WhenCheckingLikeStatusFails() {
         // Given
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(200L, 100L))
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
+        given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID))
                 .willThrow(new RuntimeException("좋아요 상태 확인 실패"));
 
         // When & Then
-        assertThatThrownBy(() -> commentLikeService.likeComment(commentRequest, userDetails))
+        assertThatThrownBy(() -> commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("좋아요 상태 확인 실패");
 
-        verify(commentQueryPort).findById(200L);
-        verify(loadUserPort).findById(100L);
-        verify(commentLikeQueryPort).isLikedByUser(200L, 100L);
+        verify(commentQueryPort).findById(TEST_COMMENT_ID);
+        verify(loadUserPort).findById(TEST_USER_ID);
+        verify(commentLikeQueryPort).isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID);
         verify(commentLikeCommandPort, never()).save(any());
         verify(commentLikeCommandPort, never()).deleteLike(any(), any());
     }

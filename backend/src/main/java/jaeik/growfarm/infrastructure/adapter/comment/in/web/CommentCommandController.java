@@ -4,6 +4,7 @@ import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.comment.application.port.in.CommentLikeUseCase;
 import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentLikeReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -108,7 +109,7 @@ public class CommentCommandController {
      * 추천/추천 취소는 로그인 한 유저만 가능하다.
      * </p>
      *
-     * @param commentReqDto  댓글 요청 DTO (ID만 사용)
+     * @param commentLikeReqDto  댓글 좋아요 요청 DTO (댓글 ID만 포함)
      * @param userDetails 현재 로그인한 사용자 정보
      * @return 추천 처리 메시지
      * @author Jaeik
@@ -116,10 +117,10 @@ public class CommentCommandController {
      */
     @PostMapping("/like")
     public ResponseEntity<String> likeComment(
-            @RequestBody @Valid CommentReqDTO commentReqDto,
+            @RequestBody @Valid CommentLikeReqDTO commentLikeReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
-        commentLikeUseCase.likeComment(commentRequest, userDetails);
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        commentLikeUseCase.likeComment(userId, commentLikeReqDto.getCommentId());
         return ResponseEntity.ok("추천 처리 완료");
     }
 
