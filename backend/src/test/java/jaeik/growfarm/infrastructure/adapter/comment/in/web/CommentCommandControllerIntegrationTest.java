@@ -415,11 +415,14 @@ class CommentCommandControllerIntegrationTest {
                 .postFeaturedNotification(true)
                 .build();
         
+        // 고유한 socialId 생성 (시간 기반)
+        String uniqueSocialId = "test_" + System.currentTimeMillis();
+        
         return User.builder()
-                .socialId("12345")
+                .socialId(uniqueSocialId)
                 .socialNickname("테스트사용자")
                 .thumbnailImage("test-profile.jpg")
-                .userName("testuser")
+                .userName("testuser_" + System.currentTimeMillis())
                 .provider(SocialProvider.KAKAO)
                 .role(UserRole.USER)
                 .setting(setting)
@@ -436,11 +439,14 @@ class CommentCommandControllerIntegrationTest {
                 .postFeaturedNotification(true)
                 .build();
         
+        // 고유한 socialId 생성 (시간 기반 + suffix)
+        String uniqueSocialId = "another_" + System.currentTimeMillis();
+        
         return User.builder()
-                .socialId("67890")
+                .socialId(uniqueSocialId)
                 .socialNickname("다른사용자")
                 .thumbnailImage("another-profile.jpg")
-                .userName("anotheruser")
+                .userName("anotheruser_" + System.currentTimeMillis())
                 .provider(SocialProvider.KAKAO)
                 .role(UserRole.USER)
                 .setting(setting)
