@@ -4,16 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.growfarm.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentRequest;
-import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.post.entity.Post;
-import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
+import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.growfarm.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.util.TestContainersConfiguration;
 import jaeik.growfarm.util.TestSocialLoginPortConfig;
@@ -27,11 +24,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.junit.jupiter.api.AfterEach;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +50,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureWebMvc
 @Testcontainers
 @Import({TestContainersConfiguration.class, TestSocialLoginPortConfig.class})
-@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("댓글 Command 컨트롤러 통합 테스트")
 class CommentCommandControllerIntegrationTest {
 
@@ -77,6 +71,9 @@ class CommentCommandControllerIntegrationTest {
     @Autowired
     private CommentCommandUseCase commentCommandUseCase;
     
+    @Autowired
+    private CommentClosureRepository commentClosureRepository;
+    
     private MockMvc mockMvc;
     private User testUser;
     private Post testPost;
@@ -88,51 +85,26 @@ class CommentCommandControllerIntegrationTest {
                 .apply(springSecurity())
                 .build();
         
-        // 테스트용 사용자 생성
-        testUser = createTestUser();
+        // TestDataBuilder를 사용한 테스트 데이터 생성
+        testUser = CommentTestDataBuilder.createTestUser();
         userRepository.save(testUser);
         
-        // 테스트용 게시글 생성
-        testPost = createTestPost(testUser);
+        testPost = CommentTestDataBuilder.createTestPost(testUser);
         postRepository.save(testPost);
     }
     
-    @AfterEach
+    @org.junit.jupiter.api.AfterEach
     void tearDown() {
-        // 테스트 데이터 정리 - 외래키 제약조건 순서 고려
+        // 수동 데이터 정리 (트랜잭션 충돌 방지)
         try {
-            // 1. 먼저 모든 comment_closure 레코드 삭제
             commentRepository.findAll().forEach(comment -> {
                 try {
-                    // 최적화된 삭제 메서드 사용 - 클로저와 댓글을 함께 처리
                     commentRepository.deleteCommentOptimized(comment.getId());
-                } catch (Exception e) {
-                    // 실패 시 개별 삭제 시도
-                    try {
-                        commentRepository.deleteClosuresByDescendantId(comment.getId());
-                        commentRepository.hardDeleteComment(comment.getId());
-                    } catch (Exception ignored) {}
-                }
+                } catch (Exception ignored) {}
             });
-            
-            // 2. 남은 댓글이 있다면 강제 삭제
-            try {
-                commentRepository.deleteAll();
-            } catch (Exception e) {
-                // Native query로 강제 삭제 시도  
-                commentRepository.findAll().forEach(comment -> {
-                    try {
-                        commentRepository.hardDeleteComment(comment.getId());
-                    } catch (Exception ignored) {}
-                });
-            }
-            
-            // 3. 게시글 삭제 (댓글이 먼저 삭제되었으므로 안전)
             postRepository.deleteAll();
-            // 4. 사용자 삭제 (모든 외래키 제약조건 해제됨)
             userRepository.deleteAll();
         } catch (Exception e) {
-            // 정리 실패 시 로그만 남기고 계속 진행
             System.err.println("tearDown failed: " + e.getMessage());
         }
     }
@@ -141,11 +113,10 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("댓글 작성 통합 테스트 - 로그인 사용자")
     void writeComment_LoggedInUser_IntegrationTest() throws Exception {
         // Given
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setPostId(testPost.getId());
-        requestDto.setContent("통합 테스트용 댓글입니다.");
+        CommentReqDTO requestDto = CommentTestDataBuilder.createCommentReqDTO(
+                testPost.getId(), "통합 테스트용 댓글입니다.");
         
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/write")
@@ -171,16 +142,22 @@ class CommentCommandControllerIntegrationTest {
     @Test
     @DisplayName("대댓글 작성 통합 테스트")
     void writeReplyComment_IntegrationTest() throws Exception {
-        // Given - 부모 댓글 생성
-        Comment parentComment = createTestComment(testUser, testPost);
-        commentRepository.save(parentComment);
+        // Given - 부모 댓글 생성 (비즈니스 로직 사용하여 클로저 테이블 보장)
+        CommentRequest parentRequest = CommentTestDataBuilder.createCommentRequest(
+                testPost.getId(), "부모 댓글입니다.");
+        commentCommandUseCase.writeComment(testUser.getId(), parentRequest);
         
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setPostId(testPost.getId());
-        requestDto.setParentId(parentComment.getId());
-        requestDto.setContent("대댓글 테스트입니다.");
+        // 생성된 부모 댓글 조회
+        Comment parentComment = commentRepository.findAll()
+                .stream()
+                .filter(c -> "부모 댓글입니다.".equals(c.getContent()))
+                .findFirst()
+                .orElseThrow();
         
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CommentReqDTO requestDto = CommentTestDataBuilder.createReplyCommentReqDTO(
+                testPost.getId(), parentComment.getId(), "대댓글 테스트입니다.");
+        
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/write")
@@ -199,22 +176,37 @@ class CommentCommandControllerIntegrationTest {
                 .findFirst();
         
         assertThat(savedReply).isPresent();
-        // 대댓글의 부모 댓글 관계는 별도 테이블에서 관리됨
-        // TODO: 댓글 계층 구조 확인 로직 추가 필요
+        
+        // 댓글 계층 구조 검증 - 클로저 테이블 확인
+        Comment replyComment = savedReply.get();
+        var closures = commentClosureRepository.findByDescendantId(replyComment.getId());
+        assertThat(closures).isPresent();
+        assertThat(closures.get()).hasSize(2); // 자기 자신 + 부모와의 관계
+        
+        // depth 검증: 자기 자신은 depth 0, 부모와의 관계는 depth 1
+        boolean hasDepthZero = closures.get().stream()
+                .anyMatch(closure -> closure.getDepth() == 0 && 
+                         closure.getAncestor().getId().equals(replyComment.getId()));
+        boolean hasDepthOne = closures.get().stream()
+                .anyMatch(closure -> closure.getDepth() == 1 && 
+                         closure.getAncestor().getId().equals(parentComment.getId()));
+        
+        assertThat(hasDepthZero).isTrue(); // 자기 자신과의 관계 (depth 0)
+        assertThat(hasDepthOne).isTrue();  // 부모와의 관계 (depth 1)
     }
     
     @Test
     @DisplayName("댓글 수정 통합 테스트")
     void updateComment_IntegrationTest() throws Exception {
         // Given
-        Comment existingComment = createTestComment(testUser, testPost);
+        Comment existingComment = CommentTestDataBuilder.createTestComment(
+                testUser, testPost, "원본 댓글 내용입니다.");
         commentRepository.save(existingComment);
         
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setId(existingComment.getId());
-        requestDto.setContent("수정된 댓글 내용입니다.");
+        CommentReqDTO requestDto = CommentTestDataBuilder.createUpdateCommentReqDTO(
+                existingComment.getId(), "수정된 댓글 내용입니다.");
         
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/update")
@@ -235,10 +227,8 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("댓글 삭제 통합 테스트")
     void deleteComment_IntegrationTest() throws Exception {
         // Given - 비즈니스 로직으로 댓글 생성 (클로저 포함)
-        CommentRequest commentRequest = CommentRequest.builder()
-                .postId(testPost.getId())
-                .content("테스트 댓글입니다.")
-                .build();
+        CommentRequest commentRequest = CommentTestDataBuilder.createCommentRequest(
+                testPost.getId(), "테스트 댓글입니다.");
         commentCommandUseCase.writeComment(testUser.getId(), commentRequest);
         
         // 생성된 댓글 조회
@@ -248,10 +238,9 @@ class CommentCommandControllerIntegrationTest {
                 .findFirst()
                 .orElseThrow();
         
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setId(existingComment.getId());
+        CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(existingComment.getId());
         
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
@@ -272,13 +261,15 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("댓글 추천 통합 테스트")
     void likeComment_IntegrationTest() throws Exception {
         // Given
-        Comment existingComment = createTestComment(testUser, testPost);
+        Comment existingComment = CommentTestDataBuilder.createTestComment(
+                testUser, testPost, "추천할 댓글입니다.");
         commentRepository.save(existingComment);
         
+        // 추천 API용 DTO 생성 (ID만 필요)
         CommentReqDTO requestDto = new CommentReqDTO();
         requestDto.setId(existingComment.getId());
         
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/like")
@@ -295,11 +286,10 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("댓글 작성 실패 - 잘못된 요청 데이터")
     void writeComment_InvalidRequest_IntegrationTest() throws Exception {
         // Given - 내용이 너무 긴 요청
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setPostId(testPost.getId());
-        requestDto.setContent("A".repeat(1001)); // 1000자 초과
+        CommentReqDTO requestDto = CommentTestDataBuilder.createCommentReqDTO(
+                testPost.getId(), "A".repeat(1001)); // 1000자 초과
         
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/write")
@@ -317,11 +307,8 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("익명 댓글 삭제 통합 테스트 - 패스워드 인증")
     void deleteAnonymousComment_IntegrationTest() throws Exception {
         // Given: 비즈니스 로직으로 익명 댓글 생성 (클로저 포함)
-        CommentRequest commentRequest = CommentRequest.builder()
-                .postId(testPost.getId())
-                .content("익명 댓글입니다")
-                .password(1234)
-                .build();
+        CommentRequest commentRequest = CommentTestDataBuilder.createAnonymousCommentRequest(
+                testPost.getId(), "익명 댓글입니다", 1234);
         commentCommandUseCase.writeComment(null, commentRequest);
         
         // 생성된 익명 댓글 조회
@@ -331,9 +318,8 @@ class CommentCommandControllerIntegrationTest {
                 .findFirst()
                 .orElseThrow();
         
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setId(anonymousComment.getId());
-        requestDto.setPassword(1234);
+        CommentReqDTO requestDto = CommentTestDataBuilder.createAnonymousDeleteCommentReqDTO(
+                anonymousComment.getId(), 1234);
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
@@ -353,11 +339,8 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("익명 댓글 삭제 실패 - 잘못된 패스워드")
     void deleteAnonymousComment_WrongPassword_IntegrationTest() throws Exception {
         // Given: 비즈니스 로직으로 익명 댓글 생성
-        CommentRequest commentRequest = CommentRequest.builder()
-                .postId(testPost.getId())
-                .content("익명 댓글입니다")
-                .password(1234)
-                .build();
+        CommentRequest commentRequest = CommentTestDataBuilder.createAnonymousCommentRequest(
+                testPost.getId(), "익명 댓글입니다", 1234);
         commentCommandUseCase.writeComment(null, commentRequest);
         
         // 생성된 익명 댓글 조회
@@ -367,9 +350,8 @@ class CommentCommandControllerIntegrationTest {
                 .findFirst()
                 .orElseThrow();
         
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setId(anonymousComment.getId());
-        requestDto.setPassword(9999); // 잘못된 패스워드
+        CommentReqDTO requestDto = CommentTestDataBuilder.createAnonymousDeleteCommentReqDTO(
+                anonymousComment.getId(), 9999); // 잘못된 패스워드
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
@@ -377,7 +359,7 @@ class CommentCommandControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(requestDto))
                 .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
         
         // 데이터베이스 검증 - 댓글이 삭제되지 않아야 함
         Optional<Comment> comment = commentRepository.findById(anonymousComment.getId());
@@ -390,22 +372,16 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("다른 사용자 댓글 삭제 시도 - 권한 없음")
     void deleteOtherUserComment_Unauthorized_IntegrationTest() throws Exception {
         // Given: 다른 사용자의 댓글
-        User anotherUser = createAnotherTestUser();
+        User anotherUser = CommentTestDataBuilder.createTestUser("another");
         userRepository.save(anotherUser);
         
-        Comment otherUserComment = Comment.builder()
-                .post(testPost)
-                .user(anotherUser)
-                .content("다른 사용자의 댓글")
-                .password(null)
-                .deleted(false)
-                .build();
+        Comment otherUserComment = CommentTestDataBuilder.createTestComment(
+                anotherUser, testPost, "다른 사용자의 댓글");
         commentRepository.save(otherUserComment);
         
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setId(otherUserComment.getId());
+        CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(otherUserComment.getId());
         
-        CustomUserDetails userDetails = createUserDetails(testUser); // 현재 사용자
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser); // 현재 사용자
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
@@ -414,99 +390,11 @@ class CommentCommandControllerIntegrationTest {
                 .with(user(userDetails))
                 .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
         
         // 데이터베이스 검증 - 댓글이 삭제되지 않아야 함
         Optional<Comment> comment = commentRepository.findById(otherUserComment.getId());
         assertThat(comment).isPresent();
         assertThat(comment.get().isDeleted()).isFalse();
-    }
-    
-    /**
-     * 테스트용 사용자 생성
-     */
-    private User createTestUser() {
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-        
-        // 고유한 socialId 생성 (시간 기반)
-        String uniqueSocialId = "test_" + System.currentTimeMillis();
-        
-        return User.builder()
-                .socialId(uniqueSocialId)
-                .socialNickname("테스트사용자")
-                .thumbnailImage("test-profile.jpg")
-                .userName("testuser_" + System.currentTimeMillis())
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
-    }
-    
-    /**
-     * 다른 테스트용 사용자 생성
-     */
-    private User createAnotherTestUser() {
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-        
-        // 고유한 socialId 생성 (시간 기반 + suffix)
-        String uniqueSocialId = "another_" + System.currentTimeMillis();
-        
-        return User.builder()
-                .socialId(uniqueSocialId)
-                .socialNickname("다른사용자")
-                .thumbnailImage("another-profile.jpg")
-                .userName("anotheruser_" + System.currentTimeMillis())
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
-    }
-    
-    /**
-     * 테스트용 게시글 생성
-     */
-    private Post createTestPost(User user) {
-        return Post.builder()
-                .title("테스트 게시글")
-                .content("테스트 게시글 내용입니다.")
-                .user(user)
-                .build();
-    }
-    
-    /**
-     * 테스트용 댓글 생성
-     */
-    private Comment createTestComment(User user, Post post) {
-        return Comment.builder()
-                .content("테스트 댓글입니다.")
-                .user(user)
-                .post(post)
-                .deleted(false)
-                .build();
-    }
-    
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createUserDetails(User user) {
-        UserDTO userDTO = UserDTO.builder()
-                .userId(user.getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .build();
-        
-        return new CustomUserDetails(userDTO);
     }
 }
