@@ -200,76 +200,8 @@ class CommentQueryAdapterIntegrationTest {
         assertThat(foundComment).isEmpty();
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 사용자가 추천한 댓글 ID 목록 조회")
-    void shouldFindUserLikedCommentIds_WhenUserHasLikedComments() {
-        // Given: 여러 댓글과 사용자의 추천 생성
-        Comment comment1 = Comment.createComment(testPost, testUser1, "댓글 1", null);
-        Comment comment2 = Comment.createComment(testPost, testUser1, "댓글 2", null);
-        Comment comment3 = Comment.createComment(testPost, testUser1, "댓글 3", null);
-        
-        comment1 = commentRepository.save(comment1);
-        comment2 = commentRepository.save(comment2);
-        comment3 = commentRepository.save(comment3);
 
-        // testUser2가 comment1과 comment3에 추천
-        CommentLike like1 = CommentLike.builder()
-                .comment(comment1)
-                .user(testUser2)
-                .build();
-        CommentLike like3 = CommentLike.builder()
-                .comment(comment3)
-                .user(testUser2)
-                .build();
-        
-        commentLikeRepository.save(like1);
-        commentLikeRepository.save(like3);
 
-        List<Long> commentIds = Arrays.asList(comment1.getId(), comment2.getId(), comment3.getId());
-
-        // When: 사용자가 추천한 댓글 ID 조회
-        List<Long> likedCommentIds = commentQueryAdapter
-                .findUserLikedCommentIds(commentIds, testUser2.getId());
-
-        // Then: 추천한 댓글 ID들이 올바르게 조회되는지 검증
-        assertThat(likedCommentIds).hasSize(2);
-        assertThat(likedCommentIds).contains(comment1.getId(), comment3.getId());
-        assertThat(likedCommentIds).doesNotContain(comment2.getId());
-    }
-
-    @Test
-    @DisplayName("경계값 - 추천하지 않은 사용자의 추천 댓글 조회")
-    void shouldReturnEmptyList_WhenUserHasNotLikedAnyComments() {
-        // Given: 댓글들과 추천하지 않은 사용자
-        Comment comment1 = Comment.createComment(testPost, testUser1, "댓글 1", null);
-        Comment comment2 = Comment.createComment(testPost, testUser1, "댓글 2", null);
-        
-        comment1 = commentRepository.save(comment1);
-        comment2 = commentRepository.save(comment2);
-
-        List<Long> commentIds = Arrays.asList(comment1.getId(), comment2.getId());
-
-        // When: 추천하지 않은 사용자의 추천 댓글 조회
-        List<Long> likedCommentIds = commentQueryAdapter
-                .findUserLikedCommentIds(commentIds, testUser2.getId());
-
-        // Then: 빈 목록 반환
-        assertThat(likedCommentIds).isEmpty();
-    }
-
-    @Test
-    @DisplayName("경계값 - 빈 댓글 ID 목록으로 추천 댓글 조회")
-    void shouldReturnEmptyList_WhenEmptyCommentIdsProvided() {
-        // Given: 빈 댓글 ID 목록
-        List<Long> emptyCommentIds = List.of();
-
-        // When: 빈 댓글 ID 목록으로 추천 댓글 조회
-        List<Long> likedCommentIds = commentQueryAdapter
-                .findUserLikedCommentIds(emptyCommentIds, testUser1.getId());
-
-        // Then: 빈 목록 반환
-        assertThat(likedCommentIds).isEmpty();
-    }
 
     @Test
     @DisplayName("정상 케이스 - 사용자 작성 댓글 목록 조회")
@@ -354,18 +286,70 @@ class CommentQueryAdapterIntegrationTest {
             commentLikeRepository.save(like);
         }
 
-        List<Long> likedCommentIds = Collections.singletonList(comment1.getId());
+        // testUser2가 comment1에 추천 - 사용자 추천 여부 테스트용
+        CommentLike userLike = CommentLike.builder()
+                .comment(comment1)
+                .user(testUser2)
+                .build();
+        commentLikeRepository.save(userLike);
 
-        // When: 인기 댓글 조회
+        // When: 인기 댓글 조회 (testUser2 관점에서)
         List<CommentInfo> popularComments = commentQueryAdapter
-                .findPopularComments(testPost.getId(), likedCommentIds);
+                .findPopularComments(testPost.getId(), testUser2.getId());
 
         // Then: 인기 댓글들이 조회되는지 검증
         assertThat(popularComments).isNotNull();
         assertThat(popularComments).hasSize(1);
-        assertThat(popularComments.getFirst().getContent()).isEqualTo("인기댓글1");
-        assertThat(popularComments.getFirst().isPopular()).isTrue();
-        assertThat(popularComments.getFirst().getLikeCount()).isEqualTo(6);
+        
+        CommentInfo popularComment = popularComments.getFirst();
+        assertThat(popularComment.getContent()).isEqualTo("인기댓글1");
+        assertThat(popularComment.isPopular()).isTrue();
+        assertThat(popularComment.getLikeCount()).isEqualTo(7); // 6 + testUser2의 추천
+        assertThat(popularComment.isUserLike()).isTrue(); // 단일 쿼리로 사용자 추천 여부 검증
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 인기 댓글 조회 시 사용자 추천 여부 검증 (추천하지 않은 경우)")
+    void shouldFindPopularComments_WithUserLikeFalse_WhenUserDidNotLike() {
+        // Given: 인기 댓글과 추천하지 않은 사용자
+        Comment comment1 = Comment.createComment(testPost, testUser1, "인기댓글1", null);
+        comment1 = commentRepository.save(comment1);
+
+        // 3개 이상의 추천 생성 (다른 사용자들이 추천)
+        for (int i = 0; i < 4; i++) {
+            Setting setting = Setting.createSetting();
+            entityManager.persistAndFlush(setting);
+            
+            User likeUser = User.builder()
+                    .socialId("kakao" + (2000 + i))
+                    .provider(SocialProvider.KAKAO)
+                    .userName("likeUser" + i)
+                    .socialNickname("추천유저" + i)
+                    .role(UserRole.USER)
+                    .setting(setting)
+                    .build();
+            entityManager.persistAndFlush(likeUser);
+            
+            CommentLike like = CommentLike.builder()
+                    .comment(comment1)
+                    .user(likeUser)
+                    .build();
+            commentLikeRepository.save(like);
+        }
+
+        // When: 인기 댓글 조회 (testUser2는 추천하지 않음)
+        List<CommentInfo> popularComments = commentQueryAdapter
+                .findPopularComments(testPost.getId(), testUser2.getId());
+
+        // Then: 사용자 추천 여부가 false로 설정되는지 검증
+        assertThat(popularComments).isNotNull();
+        assertThat(popularComments).hasSize(1);
+        
+        CommentInfo popularComment = popularComments.getFirst();
+        assertThat(popularComment.getContent()).isEqualTo("인기댓글1");
+        assertThat(popularComment.isPopular()).isTrue();
+        assertThat(popularComment.getLikeCount()).isEqualTo(4);
+        assertThat(popularComment.isUserLike()).isFalse(); // 사용자가 추천하지 않은 경우
     }
 
     @Test
@@ -383,19 +367,34 @@ class CommentQueryAdapterIntegrationTest {
         try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         commentRepository.save(comment3);
 
+        // testUser2가 comment2에만 추천 - 사용자 추천 여부 테스트용
+        CommentLike userLike = CommentLike.builder()
+                .comment(comment2)
+                .user(testUser2)
+                .build();
+        commentLikeRepository.save(userLike);
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Long> likedCommentIds = List.of();
 
-        // When: 과거순 댓글 조회
+        // When: 과거순 댓글 조회 (testUser2 관점에서)
         Page<CommentInfo> oldestComments = commentQueryAdapter
-                .findCommentsWithOldestOrder(testPost.getId(), pageable, likedCommentIds);
+                .findCommentsWithOldestOrder(testPost.getId(), pageable, testUser2.getId());
 
-        // Then: 과거순으로 댓글들이 조회되는지 검증
+        // Then: 과거순으로 댓글들이 조회되고 사용자 추천 여부가 올바르게 설정되는지 검증
         assertThat(oldestComments).isNotNull();
         assertThat(oldestComments.getContent()).hasSize(3);
+        
+        List<CommentInfo> comments = oldestComments.getContent();
         // 과거순 정렬 검증 (첫번째 댓글이 가장 먼저)
-        assertThat(oldestComments.getContent().getFirst().getContent()).isEqualTo("첫번째 댓글");
+        assertThat(comments.getFirst().getContent()).isEqualTo("첫번째 댓글");
+        assertThat(comments.getFirst().isUserLike()).isFalse(); // testUser2가 추천하지 않음
+        
+        assertThat(comments.get(1).getContent()).isEqualTo("두번째 댓글");
+        assertThat(comments.get(1).isUserLike()).isTrue(); // testUser2가 추천함
+        assertThat(comments.get(1).getLikeCount()).isEqualTo(1);
+        
+        assertThat(comments.get(2).getContent()).isEqualTo("세번째 댓글");
+        assertThat(comments.get(2).isUserLike()).isFalse(); // testUser2가 추천하지 않음
     }
 
     @Test
@@ -422,14 +421,8 @@ class CommentQueryAdapterIntegrationTest {
         assertThat(foundComment1).isPresent();
         assertThat(foundComment1.get().getContent()).isEqualTo("복합쿼리 댓글1");
 
-        // 2. 사용자 추천 댓글 조회
-        List<Long> commentIds = Arrays.asList(comment1.getId(), comment2.getId());
-        List<Long> likedIds = commentQueryAdapter
-                .findUserLikedCommentIds(commentIds, testUser1.getId());
-        assertThat(likedIds).hasSize(1);
-        assertThat(likedIds).contains(comment2.getId());
 
-        // 3. 존재하지 않는 댓글 조회
+        // 2. 존재하지 않는 댓글 조회
         Optional<Comment> nonExistentComment = commentQueryAdapter.findById(999L);
         assertThat(nonExistentComment).isEmpty();
     }

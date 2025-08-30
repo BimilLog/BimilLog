@@ -13,11 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * <h2>댓글 서비스</h2>
@@ -41,7 +39,7 @@ public class CommentQueryService implements CommentQueryUseCase {
 
     /**
      * <h3>인기 댓글 조회</h3>
-     * <p>주어진 게시글 ID에 대한 인기 댓글 목록을 조회합니다.</p>
+     * <p>주어진 게시글 ID에 대한 인기 댓글 목록을 조회합니다. 사용자 추천 여부를 한 번의 쿼리로 조회합니다.</p>
      *
      * @param postId      게시글 ID
      * @param userDetails 사용자 인증 정보
@@ -52,27 +50,15 @@ public class CommentQueryService implements CommentQueryUseCase {
     @Override
     @Transactional(readOnly = true)
     public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
-        // 첫 번째 조회로 인기 댓글을 가져온 후, 사용자가 로그인한 경우에만 추천 여부를 확인
-        List<CommentInfo> popularComments = commentQueryPort.findPopularComments(postId, Collections.emptyList());
-        
-        // 사용자가 로그인한 경우 추천 여부 설정
-        if (userDetails != null && !popularComments.isEmpty()) {
-            List<Long> popularCommentIds = popularComments.stream()
-                    .map(CommentInfo::getId)
-                    .collect(Collectors.toList());
-            List<Long> likedCommentIds = commentQueryPort.findUserLikedCommentIds(popularCommentIds, userDetails.getUserId());
-            
-            popularComments.forEach(info -> info.setUserLike(likedCommentIds.contains(info.getId())));
-        }
-
-        return popularComments;
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        return commentQueryPort.findPopularComments(postId, userId);
     }
 
 
 
     /**
      * <h3>과거순 댓글 조회</h3>
-     * <p>주어진 게시글 ID에 대한 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
+     * <p>주어진 게시글 ID에 대한 댓글을 과거순으로 페이지네이션하여 조회합니다. 사용자 추천 여부를 한 번의 쿼리로 조회합니다.</p>
      *
      * @param postId      게시글 ID
      * @param pageable    페이지 정보
@@ -84,19 +70,8 @@ public class CommentQueryService implements CommentQueryUseCase {
     @Override
     @Transactional(readOnly = true)
     public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
-        Page<CommentInfo> commentPage = commentQueryPort.findCommentsWithOldestOrder(postId, pageable, Collections.emptyList());
-        
-        // 사용자가 로그인한 경우에만 추천 여부 설정
-        if (userDetails != null && commentPage.hasContent()) {
-            List<Long> pageCommentIds = commentPage.getContent().stream()
-                    .map(CommentInfo::getId)
-                    .collect(Collectors.toList());
-            List<Long> likedCommentIds = commentQueryPort.findUserLikedCommentIds(pageCommentIds, userDetails.getUserId());
-            
-            commentPage.getContent().forEach(info -> info.setUserLike(likedCommentIds.contains(info.getId())));
-        }
-        
-        return commentPage;
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        return commentQueryPort.findCommentsWithOldestOrder(postId, pageable, userId);
     }
 
     /**

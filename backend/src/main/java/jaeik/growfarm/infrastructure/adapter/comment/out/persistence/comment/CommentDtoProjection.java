@@ -133,4 +133,34 @@ public class CommentDtoProjection {
                 commentLike.countDistinct().coalesce(0L).intValue()
         );
     }
+
+    /**
+     * <h3>CommentInfo 도메인 객체 프로젝션 (사용자별 추천 여부 포함)</h3>
+     * <p>CommentInfo로 변환하는 프로젝션 - 서브쿼리로 사용자별 추천 여부를 한번에 계산</p>
+     *
+     * @param userId 사용자 ID (null인 경우 userLike는 false)
+     * @return ConstructorExpression<CommentInfo> 댓글 도메인 객체 프로젝션
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static ConstructorExpression<CommentInfo> getCommentInfoProjectionWithUserLike(Long userId) {
+        return Projections.constructor(CommentInfo.class,
+                comment.id,
+                comment.post.id,
+                comment.user.id,
+                user.userName,
+                comment.content,
+                comment.deleted,
+                comment.createdAt,
+                closure.ancestor.id,
+                commentLike.countDistinct().coalesce(0L).intValue(),
+                userId != null ? 
+                    JPAExpressions.selectOne()
+                        .from(QCommentLike.commentLike)
+                        .where(QCommentLike.commentLike.comment.id.eq(comment.id)
+                            .and(QCommentLike.commentLike.user.id.eq(userId)))
+                        .exists()
+                    : Expressions.constant(false)
+        );
+    }
 }

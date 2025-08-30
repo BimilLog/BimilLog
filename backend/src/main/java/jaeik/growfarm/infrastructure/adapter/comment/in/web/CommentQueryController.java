@@ -61,7 +61,7 @@ public class CommentQueryController {
      * @author Jaeik
      * @since 2.0.0
      */
-    @GetMapping("/{postId}/cache")
+    @GetMapping("/{postId}/popular")
     public ResponseEntity<List<CommentDTO>> getPopularComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId) {

@@ -92,13 +92,10 @@ class CommentQueryServiceTest {
         // Given
         Long postId = 300L;
         List<CommentInfo> popularComments = Collections.singletonList(commentInfo);
-        List<Long> popularCommentIds = List.of(200L);
-        List<Long> likedCommentIds = List.of(200L);
 
         given(userDetails.getUserId()).willReturn(100L);
-        // 최적화된 방식: 한 번만 호출되고 내부에서 사용자 추천 상태 설정
-        given(commentQueryPort.findPopularComments(postId, Collections.emptyList())).willReturn(popularComments);
-        given(commentQueryPort.findUserLikedCommentIds(popularCommentIds, 100L)).willReturn(likedCommentIds);
+        // 단일 쿼리로 인기 댓글과 사용자 추천 여부를 동시에 조회
+        given(commentQueryPort.findPopularComments(postId, 100L)).willReturn(popularComments);
 
         // When
         List<CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
@@ -108,9 +105,8 @@ class CommentQueryServiceTest {
         assertThat(result.getFirst().getId()).isEqualTo(200L);
         assertThat(result.getFirst().getContent()).isEqualTo("테스트 댓글");
 
-        // 최적화로 인해 findPopularComments는 한 번만 호출됨
-        verify(commentQueryPort).findPopularComments(postId, Collections.emptyList());
-        verify(commentQueryPort).findUserLikedCommentIds(popularCommentIds, 100L);
+        // 단일 쿼리로 최적화되어 한 번만 호출됨
+        verify(commentQueryPort).findPopularComments(postId, 100L);
     }
 
     @Test
@@ -120,7 +116,7 @@ class CommentQueryServiceTest {
         Long postId = 300L;
         List<CommentInfo> popularComments = Collections.singletonList(commentInfo);
 
-        given(commentQueryPort.findPopularComments(postId, Collections.emptyList())).willReturn(popularComments);
+        given(commentQueryPort.findPopularComments(postId, null)).willReturn(popularComments);
 
         // When
         List<CommentInfo> result = commentQueryService.getPopularComments(postId, null);
@@ -129,8 +125,7 @@ class CommentQueryServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().getId()).isEqualTo(200L);
 
-        verify(commentQueryPort).findPopularComments(postId, Collections.emptyList());
-        verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
+        verify(commentQueryPort).findPopularComments(postId, null);
     }
 
     @Test
@@ -140,7 +135,8 @@ class CommentQueryServiceTest {
         Long postId = 300L;
         List<CommentInfo> emptyComments = Collections.emptyList();
 
-        given(commentQueryPort.findPopularComments(postId, Collections.emptyList())).willReturn(emptyComments);
+        given(userDetails.getUserId()).willReturn(100L);
+        given(commentQueryPort.findPopularComments(postId, 100L)).willReturn(emptyComments);
 
         // When
         List<CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
@@ -148,9 +144,8 @@ class CommentQueryServiceTest {
         // Then
         assertThat(result).isEmpty();
 
-        // 최적화로 인해 댓글이 없으면 한 번만 호출됨
-        verify(commentQueryPort, times(1)).findPopularComments(postId, Collections.emptyList());
-        verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
+        // 단일 쿼리로 최적화되어 한 번만 호출됨
+        verify(commentQueryPort, times(1)).findPopularComments(postId, 100L);
     }
 
     @Test
@@ -161,13 +156,10 @@ class CommentQueryServiceTest {
         int page = 0;
         List<CommentInfo> comments = Collections.singletonList(commentInfo);
         Page<CommentInfo> commentPage = new PageImpl<>(comments);
-        List<Long> pageCommentIds = List.of(200L);
-        List<Long> likedCommentIds = List.of(200L);
 
         given(userDetails.getUserId()).willReturn(100L);
-        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(100L)))
                 .willReturn(commentPage);
-        given(commentQueryPort.findUserLikedCommentIds(pageCommentIds, 100L)).willReturn(likedCommentIds);
 
         // When
         Pageable pageable = Pageable.ofSize(20).withPage(page);
@@ -187,7 +179,7 @@ class CommentQueryServiceTest {
         List<CommentInfo> comments = Collections.singletonList(commentInfo);
         Page<CommentInfo> commentPage = new PageImpl<>(comments);
 
-        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), isNull()))
                 .willReturn(commentPage);
 
         // When
@@ -198,8 +190,7 @@ class CommentQueryServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getId()).isEqualTo(200L);
 
-        verify(commentQueryPort).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
-        verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
+        verify(commentQueryPort).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), isNull());
     }
 
     @Test
@@ -210,7 +201,8 @@ class CommentQueryServiceTest {
         int page = 0;
         Page<CommentInfo> emptyPage = new PageImpl<>(Collections.emptyList());
 
-        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList())))
+        given(userDetails.getUserId()).willReturn(100L);
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(100L)))
                 .willReturn(emptyPage);
 
         // When
@@ -220,8 +212,7 @@ class CommentQueryServiceTest {
         // Then
         assertThat(result.getContent()).isEmpty();
 
-        verify(commentQueryPort, times(1)).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(Collections.emptyList()));
-        verify(commentQueryPort, never()).findUserLikedCommentIds(anyList(), anyLong());
+        verify(commentQueryPort, times(1)).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(100L));
     }
 
     @Test

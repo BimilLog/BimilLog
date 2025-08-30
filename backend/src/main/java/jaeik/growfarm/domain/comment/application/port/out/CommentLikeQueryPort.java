@@ -10,7 +10,6 @@ package jaeik.growfarm.domain.comment.application.port.out;
  */
 public interface CommentLikeQueryPort {
 
-
     /**
      * <h3>사용자가 댓글에 추천을 눌렀는지 여부 확인</h3>
      * <p>주어진 댓글과 사용자가 이미 추천 관계인지 확인합니다.</p>

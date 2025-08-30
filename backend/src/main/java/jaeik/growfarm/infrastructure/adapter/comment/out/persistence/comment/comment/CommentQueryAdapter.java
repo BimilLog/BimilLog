@@ -1,18 +1,10 @@
 package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment;
 
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
-import jaeik.growfarm.domain.comment.entity.Comment;
-import jaeik.growfarm.domain.comment.entity.QComment;
-import jaeik.growfarm.domain.comment.entity.QCommentClosure;
-import jaeik.growfarm.domain.comment.entity.QCommentLike;
+import jaeik.growfarm.domain.comment.entity.*;
 import jaeik.growfarm.domain.user.entity.QUser;
-import jaeik.growfarm.domain.comment.entity.CommentInfo;
-import jaeik.growfarm.domain.comment.entity.SimpleCommentInfo;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentDTO;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,9 +17,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.*;
-import static jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getCommentDtoProjection;
-import static jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getSimpleCommentDtoProjection;
+import static jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getCommentInfoProjectionWithUserLike;
+import static jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getSimpleCommentInfoProjection;
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>
@@ -61,20 +52,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
         return commentRepository.findById(commentId);
     }
 
-    /**
-     * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>
-     * <p>주어진 댓글 ID 목록 중 사용자가 추천를 누른 댓글의 ID 목록을 조회합니다.</p>
-     *
-     * @param commentIds 댓글 ID 목록
-     * @param userId     사용자 ID
-     * @return List<Long> 사용자가 추천를 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public List<Long> findUserLikedCommentIds(List<Long> commentIds, Long userId) {
-        return commentRepository.findUserLikedCommentIds(commentIds, userId);
-    }
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
@@ -137,8 +114,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // userLike는 서브쿼리로 이미 계산되어 후처리 불필요
-
         Long total = jpaQueryFactory
                 .select(comment.countDistinct())
                 .from(comment)
@@ -151,19 +126,19 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>인기 댓글 조회</h3>
-     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다. 사용자가 추천를 누른 댓글 정보도 포함합니다.</p>
+     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다. 사용자 추천 여부를 한 번의 쿼리로 조회합니다.</p>
      *
-     * @param postId          게시글 ID
-     * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID (추천 여부 확인용, null 가능)
      * @return List<CommentInfo> 인기 댓글 정보 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<CommentInfo> findPopularComments(Long postId, List<Long> likedCommentIds) {
+    public List<CommentInfo> findPopularComments(Long postId, Long userId) {
 
         List<CommentInfo> popularComments = jpaQueryFactory
-                .select(getCommentInfoProjection())
+                .select(getCommentInfoProjectionWithUserLike(userId))
                 .from(comment)
                 .leftJoin(comment.user, user)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
@@ -175,10 +150,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
                 .limit(5)
                 .fetch();
 
-        popularComments.forEach(info -> {
-            info.setUserLike(likedCommentIds.contains(info.getId()));
-            info.setPopular(true);
-        });
+        popularComments.forEach(info -> info.setPopular(true));
         return popularComments;
     }
 
@@ -229,19 +201,19 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>과거순 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다. 사용자가 추천를 누른 댓글 정보도 포함합니다.</p>
+     * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다. 사용자 추천 여부를 한 번의 쿼리로 조회합니다.</p>
      *
-     * @param postId          게시글 ID
-     * @param pageable        페이지 정보
-     * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
+     * @param postId   게시글 ID
+     * @param pageable 페이지 정보
+     * @param userId   사용자 ID (추천 여부 확인용, null 가능)
      * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds) {
+    public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long userId) {
         List<CommentInfo> content = jpaQueryFactory
-                .select(getCommentInfoProjection())
+                .select(getCommentInfoProjectionWithUserLike(userId))
                 .from(comment)
                 .leftJoin(comment.user, user)
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id))
@@ -252,7 +224,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
-        content.forEach(info -> info.setUserLike(likedCommentIds.contains(info.getId())));
 
         Long total = countRootCommentsByPostId(postId);
         return new PageImpl<>(content, pageable, total != null ? total : 0L);

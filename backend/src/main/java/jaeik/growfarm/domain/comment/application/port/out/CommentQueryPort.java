@@ -24,13 +24,13 @@ public interface CommentQueryPort {
      * <h3>인기 댓글 목록 조회</h3>
      * <p>주어진 게시글 ID에 대한 인기 댓글 목록을 조회합니다.</p>
      *
-     * @param postId          게시글 ID
-     * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID (추천 여부 확인용, null 가능)
      * @return List<CommentInfo> 인기 댓글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<CommentInfo> findPopularComments(Long postId, List<Long> likedCommentIds);
+    List<CommentInfo> findPopularComments(Long postId, Long userId);
 
     /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회 (배치)</h3>
@@ -58,14 +58,14 @@ public interface CommentQueryPort {
      * <h3>과거순 댓글 목록 조회</h3>
      * <p>주어진 게시글 ID에 대한 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
      *
-     * @param postId          게시글 ID
-     * @param pageable        페이지 정보
-     * @param likedCommentIds 사용자가 추천한 댓글 ID 목록
+     * @param postId   게시글 ID
+     * @param pageable 페이지 정보
+     * @param userId   사용자 ID (추천 여부 확인용, null 가능)
      * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, List<Long> likedCommentIds);
+    Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long userId);
 
     /**
      * <h3>ID로 댓글 조회</h3>
@@ -77,19 +77,6 @@ public interface CommentQueryPort {
      * @since 2.0.0
      */
     Optional<Comment> findById(Long id);
-
-
-    /**
-     * <h3>사용자가 추천한 댓글 ID 목록 조회</h3>
-     * <p>주어진 댓글 ID 목록 중 사용자가 추천을 누른 댓글의 ID 목록을 조회합니다.</p>
-     *
-     * @param commentIds 댓글 ID 목록
-     * @param userId     사용자 ID
-     * @return List<Long> 사용자가 추천을 누른 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<Long> findUserLikedCommentIds(List<Long> commentIds, Long userId);
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>

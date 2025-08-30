@@ -108,4 +108,23 @@ public class CommentInfo {
         this.likeCount = likes != null ? likes : 0;
         this.userLike = false;
     }
+
+    /**
+     * <h3>QueryDSL Projection용 생성자 (사용자 추천 여부 포함)</h3>
+     * <p>QueryDSL Projections.constructor를 위한 생성자 - 사용자 추천 여부 포함</p>
+     */
+    public CommentInfo(Long id, Long postId, Long userId, String userName, String content, 
+                      boolean deleted, Instant createdAt, Long parentId, Integer likes, boolean userLike) {
+        this.id = id;
+        this.postId = postId;
+        this.userId = userId;
+        this.userName = userName != null ? userName : "익명";
+        this.content = content;
+        this.deleted = deleted;
+        this.createdAt = createdAt;
+        this.parentId = parentId;
+        this.popular = false;
+        this.likeCount = likes != null ? likes : 0;
+        this.userLike = userLike;
+    }
 }
