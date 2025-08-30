@@ -155,11 +155,10 @@ class CommentQueryControllerIntegrationTest {
         CustomUserDetails userDetails = createUserDetails(testUser);
         
         // When & Then
-        mockMvc.perform(get("/api/comment/{postId}/cache", testPost.getId())
+        mockMvc.perform(get("/api/comment/{postId}/popular", testPost.getId())
                 .with(user(userDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isArray());
         // 추천 로직은 별도 CommentLike 엔티티로 관리되므로 실제 추천이 없으면 0개 반환이 정상
     }
@@ -171,11 +170,10 @@ class CommentQueryControllerIntegrationTest {
         CustomUserDetails userDetails = createUserDetails(testUser);
         
         // When & Then
-        mockMvc.perform(get("/api/comment/{postId}/cache", testPost.getId())
+        mockMvc.perform(get("/api/comment/{postId}/popular", testPost.getId())
                 .with(user(userDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(0));
     }
