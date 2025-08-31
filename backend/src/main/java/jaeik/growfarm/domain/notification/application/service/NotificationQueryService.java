@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,13 +29,19 @@ public class NotificationQueryService implements NotificationQueryUseCase {
      * <p>현재 로그인한 사용자의 알림 목록을 조회합니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @return 알림 DTO 목록
+     * @return 알림 DTO 목록 (null 안전성 보장 - 빈 리스트 반환)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
     public List<NotificationInfo> getNotificationList(CustomUserDetails userDetails) {
-        return notificationQueryPort.getNotificationList(userDetails);
+        if (userDetails == null || userDetails.getUserId() == null) {
+            return Collections.emptyList();
+        }
+        
+        List<NotificationInfo> notifications = notificationQueryPort.getNotificationList(userDetails.getUserId());
+        
+        return notifications != null ? notifications : Collections.emptyList();
     }
 }

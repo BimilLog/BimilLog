@@ -4,6 +4,7 @@ import jaeik.growfarm.domain.notification.application.port.out.NotificationQuery
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.notification.entity.NotificationInfo;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +46,7 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 성공")
     void shouldGetNotificationList_WhenValidUser() {
         // Given
+        given(userDetails.getUserId()).willReturn(1L);
         List<NotificationInfo> expectedNotifications = Arrays.asList(
                 NotificationInfo.builder()
                         .id(1L)
@@ -64,7 +66,7 @@ class NotificationQueryServiceTest {
                         .build()
         );
 
-        given(notificationQueryPort.getNotificationList(userDetails))
+        given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(expectedNotifications);
 
         // When
@@ -83,7 +85,7 @@ class NotificationQueryServiceTest {
         assertThat(result.get(1).notificationType()).isEqualTo(NotificationType.POST_FEATURED);
         assertThat(result.get(1).isRead()).isTrue();
 
-        verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
+        verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
     }
 
@@ -91,8 +93,9 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 빈 목록")
     void shouldGetNotificationList_WhenNoNotifications() {
         // Given
+        given(userDetails.getUserId()).willReturn(1L);
         List<NotificationInfo> emptyList = Collections.emptyList();
-        given(notificationQueryPort.getNotificationList(userDetails))
+        given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(emptyList);
 
         // When
@@ -102,7 +105,7 @@ class NotificationQueryServiceTest {
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
-        verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
+        verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
     }
 
@@ -110,6 +113,7 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 단일 알림")
     void shouldGetNotificationList_WhenSingleNotification() {
         // Given
+        given(userDetails.getUserId()).willReturn(1L);
         List<NotificationInfo> singleNotification = Arrays.asList(
                 NotificationInfo.builder()
                         .id(1L)
@@ -121,7 +125,7 @@ class NotificationQueryServiceTest {
                         .build()
         );
 
-        given(notificationQueryPort.getNotificationList(userDetails))
+        given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(singleNotification);
 
         // When
@@ -135,7 +139,7 @@ class NotificationQueryServiceTest {
         assertThat(result.get(0).notificationType()).isEqualTo(NotificationType.PAPER);
         assertThat(result.get(0).isRead()).isFalse();
 
-        verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
+        verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
     }
 
@@ -143,6 +147,7 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 읽은 알림과 안읽은 알림 혼재")
     void shouldGetNotificationList_WhenMixedReadStatus() {
         // Given
+        given(userDetails.getUserId()).willReturn(1L);
         List<NotificationInfo> mixedNotifications = Arrays.asList(
                 NotificationInfo.builder()
                         .id(1L)
@@ -170,7 +175,7 @@ class NotificationQueryServiceTest {
                         .build()
         );
 
-        given(notificationQueryPort.getNotificationList(userDetails))
+        given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(mixedNotifications);
 
         // When
@@ -188,7 +193,7 @@ class NotificationQueryServiceTest {
         long readCount = result.stream().filter(NotificationInfo::isRead).count();
         assertThat(readCount).isEqualTo(1);
 
-        verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
+        verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
     }
 
@@ -197,9 +202,6 @@ class NotificationQueryServiceTest {
     void shouldGetNotificationList_WhenNullUser() {
         // Given
         CustomUserDetails nullUserDetails = null;
-        List<NotificationInfo> emptyList = Collections.emptyList();
-        given(notificationQueryPort.getNotificationList(nullUserDetails))
-                .willReturn(emptyList);
 
         // When
         List<NotificationInfo> result = notificationQueryService.getNotificationList(nullUserDetails);
@@ -208,14 +210,33 @@ class NotificationQueryServiceTest {
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
-        verify(notificationQueryPort, times(1)).getNotificationList(nullUserDetails);
-        verifyNoMoreInteractions(notificationQueryPort);
+        // null 사용자의 경우 포트 호출 없이 빈 리스트 반환
+        verifyNoInteractions(notificationQueryPort);
+    }
+
+    @Test
+    @DisplayName("알림 목록 조회 - userId가 null인 사용자")
+    void shouldGetNotificationList_WhenUserIdIsNull() {
+        // Given
+        CustomUserDetails userDetailsWithNullId = mock(CustomUserDetails.class);
+        given(userDetailsWithNullId.getUserId()).willReturn(null);
+
+        // When
+        List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetailsWithNullId);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+
+        // userId가 null인 경우 포트 호출 없이 빈 리스트 반환
+        verifyNoInteractions(notificationQueryPort);
     }
 
     @Test
     @DisplayName("알림 목록 조회 - 대량 알림")
     void shouldGetNotificationList_WhenLargeAmountOfNotifications() {
         // Given
+        given(userDetails.getUserId()).willReturn(1L);
         List<NotificationInfo> largeNotificationList = Arrays.asList(
                 createNotificationInfo(1L, NotificationType.COMMENT),
                 createNotificationInfo(2L, NotificationType.POST_FEATURED),
@@ -229,7 +250,7 @@ class NotificationQueryServiceTest {
                 createNotificationInfo(10L, NotificationType.POST_FEATURED)
         );
 
-        given(notificationQueryPort.getNotificationList(userDetails))
+        given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(largeNotificationList);
 
         // When
@@ -241,7 +262,7 @@ class NotificationQueryServiceTest {
         assertThat(result.get(0).id()).isEqualTo(1L);
         assertThat(result.get(9).id()).isEqualTo(10L);
 
-        verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
+        verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
     }
 
@@ -249,6 +270,7 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 모든 알림 타입 포함")
     void shouldGetNotificationList_WhenAllNotificationTypes() {
         // Given
+        given(userDetails.getUserId()).willReturn(1L);
         List<NotificationInfo> allTypesNotifications = Arrays.asList(
                 createNotificationInfo(1L, NotificationType.COMMENT),
                 createNotificationInfo(2L, NotificationType.POST_FEATURED),
@@ -257,7 +279,7 @@ class NotificationQueryServiceTest {
                 createNotificationInfo(5L, NotificationType.PAPER)
         );
 
-        given(notificationQueryPort.getNotificationList(userDetails))
+        given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(allTypesNotifications);
 
         // When
@@ -274,7 +296,7 @@ class NotificationQueryServiceTest {
         assertThat(result.get(3).notificationType()).isEqualTo(NotificationType.POST_FEATURED);
         assertThat(result.get(4).notificationType()).isEqualTo(NotificationType.PAPER);
 
-        verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
+        verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
     }
 
@@ -282,16 +304,18 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 반환된 리스트가 null인 경우")
     void shouldHandleNullList_WhenPortReturnsNull() {
         // Given
-        given(notificationQueryPort.getNotificationList(userDetails))
+        given(userDetails.getUserId()).willReturn(1L);
+        given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(null);
 
         // When
         List<NotificationInfo> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
-        assertThat(result).isNull(); // 서비스에서 null을 그대로 전달
+        assertThat(result).isNotNull(); // 서비스에서 빈 리스트 반환으로 null 안전성 보장
+        assertThat(result).isEmpty();
 
-        verify(notificationQueryPort, times(1)).getNotificationList(userDetails);
+        verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
     }
 

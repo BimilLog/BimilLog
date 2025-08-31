@@ -8,7 +8,6 @@ import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.domain.notification.entity.NotificationInfo;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.util.TestContainersConfiguration;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +61,7 @@ class NotificationQueryAdapterTest {
 
     private User testUser;
     private User otherUser;
-    private CustomUserDetails testUserDetails;
+    private Long testUserId;
 
     @BeforeEach
     void setUp() {
@@ -99,9 +98,8 @@ class NotificationQueryAdapterTest {
 
         otherUser = testEntityManager.persistAndFlush(otherUser);
 
-        // CustomUserDetails를 Mock으로 처리
-        testUserDetails = org.mockito.Mockito.mock(CustomUserDetails.class);
-        org.mockito.Mockito.when(testUserDetails.getUserId()).thenReturn(testUser.getId());
+        // 테스트용 사용자 ID 저장
+        testUserId = testUser.getId();
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -128,7 +126,7 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 알림 목록 조회
-        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserId);
 
         // Then: 조회 결과 검증
         assertThat(result).isNotNull();
@@ -166,7 +164,7 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 알림이 없는 사용자의 알림 목록 조회
-        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserId);
 
         // Then: 빈 목록 반환
         assertThat(result).isNotNull();
@@ -188,7 +186,7 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 알림 목록 조회
-        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserId);
 
         // Then: 모든 유형의 알림이 조회되는지 확인
         assertThat(result).hasSize(5);
@@ -231,7 +229,7 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 알림 목록 조회
-        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserId);
 
         // Then: 최신순으로 정렬되어 반환되는지 확인
         assertThat(result).hasSize(3);
@@ -261,7 +259,7 @@ class NotificationQueryAdapterTest {
         testEntityManager.clear();
 
         // When: 현재 사용자의 알림 목록 조회
-        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserId);
 
         // Then: 현재 사용자의 알림만 조회되어야 함
         assertThat(result).hasSize(2);
@@ -293,7 +291,7 @@ class NotificationQueryAdapterTest {
 
         // When: 대용량 데이터 조회
         long startTime = System.currentTimeMillis();
-        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserDetails);
+        List<NotificationInfo> result = notificationQueryAdapter.getNotificationList(testUserId);
         long endTime = System.currentTimeMillis();
 
         // Then: 모든 데이터가 정상적으로 조회되는지 확인

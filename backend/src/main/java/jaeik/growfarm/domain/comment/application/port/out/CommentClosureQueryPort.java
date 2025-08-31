@@ -37,15 +37,4 @@ public interface CommentClosureQueryPort {
      */
     boolean hasDescendants(Long commentId);
 
-    /**
-     * <h3>최적화된 댓글 삭제 여부 확인</h3>
-     * <p>댓글의 자손 존재 여부를 확인하여 삭제 가능 여부를 반환합니다.</p>
-     * <p>자손이 있으면 소프트 삭제, 없으면 하드 삭제가 가능함을 나타냅니다.</p>
-     *
-     * @param commentId 확인할 댓글 ID
-     * @return boolean true면 하드 삭제 가능(자손 없음), false면 소프트 삭제 필요(자손 있음)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    boolean canHardDelete(Long commentId);
 }

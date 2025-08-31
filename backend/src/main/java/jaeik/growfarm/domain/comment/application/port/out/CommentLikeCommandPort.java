@@ -50,5 +50,5 @@ public interface CommentLikeCommandPort {
      * @since 2.0.0
      */
     @Transactional
-    int deleteLikeByIds(Long commentId, Long userId);
+    void deleteLikeByIds(Long commentId, Long userId);
 }

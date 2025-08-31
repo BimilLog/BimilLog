@@ -34,7 +34,6 @@ public class CommentLikeService implements CommentLikeUseCase {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // 존재성 검증: ID만 조회하여 가볍게 검증
         boolean commentExists = commentQueryPort.findById(commentId).isPresent();
         if (!commentExists) {
             throw new CustomException(ErrorCode.COMMENT_NOT_FOUND);
@@ -46,10 +45,8 @@ public class CommentLikeService implements CommentLikeUseCase {
         }
 
         if (commentLikeQueryPort.isLikedByUser(commentId, userId)) {
-            // 성능 최적화: ID 기반 삭제
             commentLikeCommandPort.deleteLikeByIds(commentId, userId);
         } else {
-            // 필요할 때만 엔티티 조회
             Comment comment = commentQueryPort.findById(commentId).get();
             User user = loadUserPort.findById(userId).get();
             

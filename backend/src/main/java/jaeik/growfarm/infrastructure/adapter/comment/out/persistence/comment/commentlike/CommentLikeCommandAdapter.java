@@ -64,7 +64,7 @@ public class CommentLikeCommandAdapter implements CommentLikeCommandPort {
      */
     @Transactional
     @Override
-    public int deleteLikeByIds(Long commentId, Long userId) {
-        return commentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
+    public void deleteLikeByIds(Long commentId, Long userId) {
+        commentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
     }
 }

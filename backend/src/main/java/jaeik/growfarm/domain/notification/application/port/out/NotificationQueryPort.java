@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.notification.application.port.out;
 
 import jaeik.growfarm.domain.notification.entity.NotificationInfo;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 import java.util.List;
 
@@ -17,8 +16,8 @@ public interface NotificationQueryPort {
     /**
      * <h3>알림 리스트 조회</h3>
      *
-     * @param userDetails 현재 로그인한 유저 정보
+     * @param userId 사용자 ID
      * @return 알림 리스트
      */
-    List<NotificationInfo> getNotificationList(CustomUserDetails userDetails);
+    List<NotificationInfo> getNotificationList(Long userId);
 }

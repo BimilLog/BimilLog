@@ -34,9 +34,8 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     void deleteByCommentAndUser(Comment comment, User user);
 
     /**
-     * <h3>댓글 ID와 사용자 ID로 추천 존재 여부 확인 (EXISTS 최적화)</h3>
+     * <h3>댓글 ID와 사용자 ID로 추천 존재 여부 확인</h3>
      * <p>주어진 댓글 ID와 사용자 ID에 해당하는 추천이 존재하는지 EXISTS 쿼리로 확인합니다.</p>
-     * <p>성능 최적화: findByCommentIdAndUserId().isPresent() 대신 EXISTS 쿼리 사용</p>
      *
      * @param commentId 댓글 ID
      * @param userId    사용자 ID
@@ -48,19 +47,17 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     boolean existsByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("userId") Long userId);
 
     /**
-     * <h3>댓글 ID와 사용자 ID로 추천 삭제 (성능 최적화)</h3>
+     * <h3>댓글 ID와 사용자 ID로 추천 삭제</h3>
      * <p>주어진 댓글 ID와 사용자 ID에 해당하는 추천을 직접 삭제합니다.</p>
-     * <p>성능 최적화: 엔티티 조회 없이 ID만으로 직접 삭제</p>
      *
      * @param commentId 댓글 ID
      * @param userId    사용자 ID
-     * @return int 삭제된 행의 수
      * @author Jaeik
      * @since 2.0.0
      */
     @Modifying
     @Query("DELETE FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.user.id = :userId")
-    int deleteByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("userId") Long userId);
+    void deleteByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("userId") Long userId);
 
 }
 
