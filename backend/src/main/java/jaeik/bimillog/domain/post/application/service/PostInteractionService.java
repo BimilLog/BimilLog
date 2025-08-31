@@ -177,7 +177,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     /**
      * <h3>사용자가 게시글을 본 적 있는지 확인</h3>
      * <p>쿠키를 통해 사용자가 해당 게시글을 본 적 있는지 확인합니다.</p>
-     * <p>쉼표로 구분된 문자열에서 게시글 ID를 검색합니다.</p>
+     * <p>쉼표로 구분된 문자열에서 게시글 ID를 정확히 매칭하여 검색합니다.</p>
      *
      * @param cookies 현재 요청의 쿠키 배열
      * @param postId  확인할 게시글 ID
@@ -197,7 +197,12 @@ public class PostInteractionService implements PostInteractionUseCase {
                     .anyMatch(cookie -> {
                         try {
                             String cookieValue = cookie.getValue();
-                            return cookieValue.contains(postIdStr);
+                            if (cookieValue == null || cookieValue.trim().isEmpty()) {
+                                return false;
+                            }
+                            // 정확한 매칭을 위해 배열로 파싱하여 검색
+                            List<String> viewedPostIds = Arrays.asList(cookieValue.split(","));
+                            return viewedPostIds.contains(postIdStr);
                         } catch (Exception e) {
                             log.warn("Failed to parse view cookie", e);
                             return false;
@@ -206,6 +211,110 @@ public class PostInteractionService implements PostInteractionUseCase {
         } catch (Exception e) {
             log.error("Error checking viewed posts for postId: {}", postId, e);
             return false;
+        }
+    }
+
+    /**
+     * <h3>게시글 조회수 증가 (이벤트 기반 중복 방지)</h3>
+     * <p>게시글의 조회수를 1 증가시킵니다.</p>
+     * <p>사용자 식별자와 조회 이력을 이용하여 동일한 사용자의 중복 조회를 방지합니다.</p>
+     * <p>헥사고날 아키텍처를 준수하여 HTTP 의존성 없이 처리합니다.</p>
+     *
+     * @param postId         조회수를 증가시킬 게시글 ID
+     * @param userIdentifier 사용자 식별자 (IP, 세션 ID 등)
+     * @param viewHistory    사용자의 조회 이력 맵
+     * @return 업데이트된 조회 이력 (쿠키 설정용)
+     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public Map<String, String> incrementViewCountWithHistory(Long postId, String userIdentifier, Map<String, String> viewHistory) {
+        // 1. 게시글 조회 (한 번만 조회하여 성능 개선)
+        Post post = postQueryPort.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        // 2. 조회 이력 확인
+        String existingViews = viewHistory.getOrDefault("viewed_posts", "");
+        
+        // 3. 중복 조회 검사
+        if (!hasViewedPostFromHistory(existingViews, postId)) {
+            postCommandPort.incrementView(post);
+            // 4. 조회 이력 업데이트
+            String updatedViews = updateViewHistory(existingViews, postId);
+            Map<String, String> updatedHistory = new HashMap<>(viewHistory);
+            updatedHistory.put("viewed_posts", updatedViews);
+            
+            log.debug("Post view count incremented with history protection: postId={}, newViewCount={}", postId, post.getViews());
+            return updatedHistory;
+        } else {
+            log.debug("Post view count not incremented (already viewed): postId={}", postId);
+            return viewHistory; // 기존 이력 그대로 반환
+        }
+    }
+
+    /**
+     * <h3>조회 이력에서 게시글 조회 여부 확인</h3>
+     * <p>쉼표로 구분된 문자열에서 게시글 ID를 정확히 매칭하여 검색합니다.</p>
+     *
+     * @param viewedPosts 쉼표로 구분된 조회한 게시글 ID 목록
+     * @param postId      확인할 게시글 ID
+     * @return 조회한 적이 있으면 true, 없으면 false
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    private boolean hasViewedPostFromHistory(String viewedPosts, Long postId) {
+        if (viewedPosts == null || viewedPosts.trim().isEmpty()) {
+            return false;
+        }
+        
+        try {
+            String postIdStr = postId.toString();
+            List<String> viewedPostIds = Arrays.asList(viewedPosts.split(","));
+            return viewedPostIds.contains(postIdStr);
+        } catch (Exception e) {
+            log.warn("Failed to parse view history: {}", viewedPosts, e);
+            return false;
+        }
+    }
+
+    /**
+     * <h3>조회 이력 업데이트</h3>
+     * <p>새로운 게시글 ID를 조회 이력에 추가하고 최대 100개까지 유지합니다.</p>
+     *
+     * @param existingViews 기존 조회 이력
+     * @param postId        추가할 게시글 ID
+     * @return 업데이트된 조회 이력
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    private String updateViewHistory(String existingViews, Long postId) {
+        try {
+            Set<String> viewedPostIds = new LinkedHashSet<>(); // 순서 유지를 위해 LinkedHashSet 사용
+            
+            // 기존 이력 로드
+            if (existingViews != null && !existingViews.trim().isEmpty()) {
+                viewedPostIds.addAll(Arrays.asList(existingViews.split(",")));
+            }
+            
+            // 새로운 게시글 ID 추가
+            String postIdStr = postId.toString();
+            if (!viewedPostIds.contains(postIdStr)) {
+                viewedPostIds.add(postIdStr);
+                
+                // 최대 100개까지만 유지 (오래된 것 제거)
+                if (viewedPostIds.size() > 100) {
+                    List<String> viewedList = new ArrayList<>(viewedPostIds);
+                    viewedPostIds = new LinkedHashSet<>(viewedList.subList(viewedList.size() - 100, viewedList.size()));
+                }
+            }
+            
+            // 쉼표로 구분된 문자열로 변환
+            return String.join(",", viewedPostIds);
+        } catch (Exception e) {
+            log.error("Failed to update view history for postId: {}", postId, e);
+            // 오류 발생 시 기존 이력에 새 ID만 추가
+            return existingViews.isEmpty() ? postId.toString() : existingViews + "," + postId;
         }
     }
 }

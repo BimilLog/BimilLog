@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.application.port.in;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 /**
  * <h2>게시글 상호작용 유스케이스</h2>
@@ -48,4 +49,19 @@ public interface PostInteractionUseCase {
      * @author Jaeik
      */
     void incrementViewCountWithCookie(Long postId, HttpServletRequest request, HttpServletResponse response);
+
+    /**
+     * <h3>게시글 조회수 증가 (이벤트 기반 중복 방지)</h3>
+     * <p>게시글의 조회수를 1 증가시킵니다.</p>
+     * <p>사용자 식별자와 조회 이력을 이용하여 동일한 사용자의 중복 조회를 방지합니다.</p>
+     * <p>헥사고날 아키텍처를 준수하여 HTTP 의존성 없이 처리합니다.</p>
+     *
+     * @param postId         조회수를 증가시킬 게시글 ID
+     * @param userIdentifier 사용자 식별자 (IP, 세션 ID 등)
+     * @param viewHistory    사용자의 조회 이력 맵
+     * @return 업데이트된 조회 이력 (쿠키 설정용)
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    Map<String, String> incrementViewCountWithHistory(Long postId, String userIdentifier, Map<String, String> viewHistory);
 }

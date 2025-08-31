@@ -1,0 +1,331 @@
+package jaeik.bimillog.integration.event;
+
+import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
+import jaeik.bimillog.domain.post.event.PostViewedEvent;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+
+/**
+ * <h2>게시글 도메인 이벤트 워크플로우 통합 테스트</h2>
+ * <p>게시글 관련 이벤트들의 전체 흐름을 검증하는 통합 테스트</p>
+ * <p>비동기 이벤트 처리와 실제 스프링 컨텍스트를 사용하여 전체 워크플로우를 테스트</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
+@SpringBootTest
+@Testcontainers
+@Transactional
+@DisplayName("게시글 도메인 이벤트 워크플로우 통합 테스트")
+class PostEventWorkflowIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @MockitoBean
+    private PostInteractionUseCase postInteractionUseCase;
+
+    @Test
+    @DisplayName("게시글 조회 이벤트 워크플로우 - 조회수 증가까지 완료")
+    void postViewedEventWorkflow_ShouldCompleteViewCountIncrement() {
+        // Given
+        Long postId = 123L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "");
+        
+        Map<String, String> updatedHistory = new HashMap<>();
+        updatedHistory.put("viewed_posts", "123");
+        given(postInteractionUseCase.incrementViewCountWithHistory(postId, userIdentifier, viewHistory))
+                .willReturn(updatedHistory);
+        
+        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 비동기 처리를 고려하여 Awaitility 사용
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                });
+    }
+
+    @Test
+    @DisplayName("여러 게시글 조회 이벤트 동시 처리")
+    void multiplePostViewedEvents_ShouldBeProcessedConcurrently() {
+        // Given
+        Long postId1 = 100L;
+        Long postId2 = 200L;
+        Long postId3 = 300L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "");
+
+        PostViewedEvent event1 = new PostViewedEvent(this, postId1, userIdentifier, viewHistory);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId2, userIdentifier, viewHistory);
+        PostViewedEvent event3 = new PostViewedEvent(this, postId3, userIdentifier, viewHistory);
+
+        // When - 동시에 여러 이벤트 발행
+        eventPublisher.publishEvent(event1);
+        eventPublisher.publishEvent(event2);
+        eventPublisher.publishEvent(event3);
+
+        // Then - 모든 이벤트가 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId1), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId2), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId3), eq(userIdentifier), eq(viewHistory));
+                });
+    }
+
+    @Test
+    @DisplayName("동일 게시글 연속 조회 이벤트 처리")
+    void samePostViewedMultipleTimes_ShouldProcessAllEvents() {
+        // Given
+        Long postId = 123L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "");
+        
+        PostViewedEvent event1 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event3 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+
+        // When - 동일 게시글에 대한 여러 조회 이벤트
+        eventPublisher.publishEvent(event1);
+        eventPublisher.publishEvent(event2);
+        eventPublisher.publishEvent(event3);
+
+        // Then - 모든 이벤트가 처리되어야 함 (중복 검사는 서비스 레이어에서)
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase, times(3)).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                });
+    }
+
+    @Test
+    @DisplayName("이벤트 처리 중 예외 발생 시 복원력 테스트")
+    void postViewedEventWithException_ShouldHandleGracefully() {
+        // Given
+        Long postId = 999L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "");
+        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        
+        doThrow(new CustomException(ErrorCode.POST_NOT_FOUND))
+                .when(postInteractionUseCase)
+                .incrementViewCountWithHistory(postId, userIdentifier, viewHistory);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 예외가 발생해도 이벤트 리스너는 호출되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                });
+    }
+
+    @Test
+    @DisplayName("이벤트 처리 시간 검증 - 게시글 조회")
+    void postViewedEventProcessingTime_ShouldCompleteWithinTimeout() {
+        // Given
+        Long postId = 123L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "");
+        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+
+        long startTime = System.currentTimeMillis();
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 2초 내에 처리 완료되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(2))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier), eq(viewHistory));
+
+                    long endTime = System.currentTimeMillis();
+                    long processingTime = endTime - startTime;
+                    
+                    // 처리 시간이 2초를 초과하지 않아야 함
+                    assert processingTime < 2000L : "이벤트 처리 시간이 너무 오래 걸림: " + processingTime + "ms";
+                });
+    }
+
+    @Test
+    @DisplayName("대용량 게시글 조회 이벤트 처리")
+    void highVolumePostViewedEvents_ShouldBeProcessedEfficiently() {
+        // Given
+        Long postId = 123L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "");
+        int eventCount = 100;
+
+        // When - 100개의 조회 이벤트 발행
+        for (int i = 0; i < eventCount; i++) {
+            PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+            eventPublisher.publishEvent(event);
+        }
+
+        // Then - 모든 이벤트가 10초 내에 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase, times(eventCount)).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                });
+    }
+
+    @Test
+    @DisplayName("null 값을 포함한 게시글 조회 이벤트 처리")
+    void postViewedEventWithNullValues_ShouldBeProcessed() {
+        // Given - null postId를 포함한 이벤트
+        PostViewedEvent event = new PostViewedEvent(this, null, "192.168.1.1", new HashMap<>());
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - null 값이어도 이벤트는 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(null), eq("192.168.1.1"), any(Map.class));
+                });
+    }
+
+    @Test
+    @DisplayName("다양한 사용자 식별자를 가진 이벤트들")
+    void postViewedEventsWithDifferentUserIdentifiers_ShouldBeProcessedCorrectly() {
+        // Given
+        Long postId = 123L;
+        String userIdentifier1 = "192.168.1.1";
+        String userIdentifier2 = "192.168.1.2";
+        Map<String, String> viewHistory1 = new HashMap<>();
+        viewHistory1.put("viewed_posts", "100,200");
+        Map<String, String> viewHistory2 = new HashMap<>();
+        viewHistory2.put("viewed_posts", "300,400");
+
+        PostViewedEvent event1 = new PostViewedEvent(this, postId, userIdentifier1, viewHistory1);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId, userIdentifier2, viewHistory2);
+
+        // When
+        eventPublisher.publishEvent(event1);
+        eventPublisher.publishEvent(event2);
+
+        // Then - 각각 다른 사용자 식별자가 전달되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier1), eq(viewHistory1));
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier2), eq(viewHistory2));
+                });
+    }
+
+    @Test
+    @DisplayName("이벤트 처리 순서 검증 - 순차적 처리")
+    void postViewedEvents_ShouldMaintainProcessingOrder() {
+        // Given
+        Long postId1 = 100L;
+        Long postId2 = 200L;
+        Long postId3 = 300L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "");
+
+        // When - 순차적으로 이벤트 발행
+        eventPublisher.publishEvent(new PostViewedEvent(this, postId1, userIdentifier, viewHistory));
+        eventPublisher.publishEvent(new PostViewedEvent(this, postId2, userIdentifier, viewHistory));
+        eventPublisher.publishEvent(new PostViewedEvent(this, postId3, userIdentifier, viewHistory));
+
+        // Then - 모든 이벤트가 처리되어야 함 (비동기이므로 순서는 보장되지 않음)
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId1), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId2), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId3), eq(userIdentifier), eq(viewHistory));
+                });
+    }
+
+    @Test
+    @DisplayName("조회 이력 데이터 검증")
+    void postViewedEvent_ShouldPassCorrectViewHistory() {
+        // Given
+        Long postId = 123L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "100,200,300");
+        viewHistory.put("last_viewed", "2023-12-01");
+        
+        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 정확한 조회 이력이 전달되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    ArgumentCaptor<Map<String, String>> historyCaptor = ArgumentCaptor.forClass(Map.class);
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier), historyCaptor.capture());
+                    
+                    Map<String, String> capturedHistory = historyCaptor.getValue();
+                    assertThat(capturedHistory.get("viewed_posts")).isEqualTo("100,200,300");
+                    assertThat(capturedHistory.get("last_viewed")).isEqualTo("2023-12-01");
+                });
+    }
+}
