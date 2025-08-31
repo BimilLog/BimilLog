@@ -1,7 +1,7 @@
 # Spring Boot 메인 설정 파일
 spring:
   application:
-    name: growfarm  # 애플리케이션 이름
+    name: bimillog  # 애플리케이션 이름
   profiles:
     include: local  # secret 프로파일 포함 (환경별 설정 분리)
   datasource:

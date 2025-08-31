@@ -64,13 +64,13 @@
     <!-- 🟢 개발환경 로거 설정 -->
     <springProfile name="!prod &amp; !production">
         <!-- 애플리케이션 로거 (DEBUG) -->
-        <logger name="jaeik.growfarm" level="INFO" additivity="false">
+        <logger name="jaeik.bimillog" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </logger>
 
         <!-- HTTP 요청 로거 (DEBUG) -->
-        <logger name="jaeik.growfarm.global.filter.LogFilter" level="DEBUG" additivity="false">
+        <logger name="jaeik.bimillog.global.filter.LogFilter" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </logger>
@@ -95,14 +95,14 @@
     <!-- 🔴 운영환경 로거 설정 (INFO 레벨) -->
     <springProfile name="prod | production">
         <!-- 애플리케이션 로거 (INFO) -->
-        <logger name="jaeik.growfarm" level="INFO" additivity="false">
+        <logger name="jaeik.bimillog" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
             <appender-ref ref="ASYNC_CLOUDWATCH"/>
         </logger>
 
         <!-- HTTP 요청 로거 (INFO) -->
-        <logger name="jaeik.growfarm.global.filter.LogFilter" level="INFO" additivity="false">
+        <logger name="jaeik.bimillog.global.filter.LogFilter" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
             <appender-ref ref="ASYNC_CLOUDWATCH"/>

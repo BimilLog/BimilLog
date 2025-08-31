@@ -1,0 +1,43 @@
+package jaeik.bimillog.infrastructure.adapter.paper.out.persistence.paper;
+
+import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
+import jaeik.bimillog.domain.paper.entity.Message;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+/**
+ * <h2>롤링페이퍼 명령 어댑터</h2>
+ * <p>
+ * Secondary Adapter: 롤링페이퍼 데이터 저장/삭제를 위한 JPA 구현
+ * MessageRepository의 기능을 위임하여 사용
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
+@Component
+@RequiredArgsConstructor
+public class PaperCommandAdapter implements PaperCommandPort {
+
+    private final MessageRepository messageRepository;
+
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>MessageRepository.save()를 위임하여 메시지를 저장합니다.</p>
+     */
+    @Override
+    public Message save(Message message) {
+        return messageRepository.save(message);
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>MessageRepository.deleteById()를 위임하여 메시지를 삭제합니다.</p>
+     */
+    @Override
+    public void deleteById(Long messageId) {
+        messageRepository.deleteById(messageId);
+    }
+}
