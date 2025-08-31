@@ -6,18 +6,15 @@ import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostReqVO;
-import jaeik.growfarm.domain.post.event.PostDeletedEvent;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -47,9 +44,6 @@ class PostCommandServiceTest {
 
     @Mock
     private LoadUserInfoPort loadUserInfoPort;
-
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private PostCacheCommandPort postCacheCommandPort;
@@ -184,8 +178,7 @@ class PostCommandServiceTest {
         verify(post, times(1)).isAuthor(userId);
         verify(postCommandPort, times(1)).delete(post);
         verify(postCacheCommandPort, times(1)).deleteFullPostCache(postId);
-        verify(eventPublisher, times(1)).publishEvent(any(PostDeletedEvent.class));
-        verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort, eventPublisher);
+        verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
     }
 
     @Test
@@ -205,7 +198,6 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).delete(any());
         verify(postCacheCommandPort, never()).deleteFullPostCache(any());
-        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -227,7 +219,6 @@ class PostCommandServiceTest {
         verify(post, times(1)).isAuthor(userId);
         verify(postCommandPort, never()).delete(any());
         verify(postCacheCommandPort, never()).deleteFullPostCache(any());
-        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -275,30 +266,6 @@ class PostCommandServiceTest {
         verify(postCacheCommandPort, never()).deleteFullPostCache(any()); // 예외로 인해 호출되지 않음
     }
 
-    @Test
-    @DisplayName("게시글 삭제 - 이벤트 발행 검증")
-    void shouldPublishCorrectEvent_WhenDeletePost() {
-        // Given
-        Long userId = 1L;
-        Long postId = 123L;
-        String postTitle = "테스트 제목";
-
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
-        given(post.isAuthor(userId)).willReturn(true);
-        given(post.getTitle()).willReturn(postTitle);
-
-        ArgumentCaptor<PostDeletedEvent> eventCaptor = ArgumentCaptor.forClass(PostDeletedEvent.class);
-
-        // When
-        postCommandService.deletePost(userId, postId);
-
-        // Then
-        verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
-        
-        PostDeletedEvent capturedEvent = eventCaptor.getValue();
-        assertThat(capturedEvent.postId()).isEqualTo(postId);
-        assertThat(capturedEvent.postTitle()).isEqualTo(postTitle);
-    }
 
     // PostReqVO 검증 테스트는 PostReqVOTest.java로 분리됨
     // 서비스 테스트는 서비스 로직에만 집중하여 단일 책임 원칙 준수
@@ -588,36 +555,9 @@ class PostCommandServiceTest {
         // 권한 검증에 실패했으므로 삭제가 호출되지 않음
         verify(postCommandPort, never()).delete(any());
         verify(postCacheCommandPort, never()).deleteFullPostCache(any());
-        verify(eventPublisher, never()).publishEvent(any());
         verify(post, never()).getTitle(); // 권한 실패시 제목을 가져오지 않음
     }
 
-    @Test
-    @DisplayName("게시글 삭제 - 이벤트 발행 실패시 트랜잭션 처리")
-    void shouldHandleEventPublishFailure() {
-        // 비즈니스 로직 개선: 이벤트 발행 실패시 현재는 예외가 전파되어 트랜잭션이 롤백됨
-        // 향후 @TransactionalEventListener 적용시 트랜잭션 커밋 후 이벤트 발행으로 개선 필요
-        // Given
-        Long userId = 1L;
-        Long postId = 123L;
-        String postTitle = "삭제될 게시글";
-
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
-        given(post.isAuthor(userId)).willReturn(true);
-        given(post.getTitle()).willReturn(postTitle);
-        doThrow(new RuntimeException("Event publish failed")).when(eventPublisher).publishEvent(any(PostDeletedEvent.class));
-
-        // When & Then
-        assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Event publish failed");
-
-        // 현재 구현에서는 이벤트 발행 실패시 전체 트랜잭션이 롤백됨
-        // @Transactional 어노테이션에 의해 예외 발생시 롤백 처리
-        verify(postCommandPort, times(1)).delete(post);
-        verify(postCacheCommandPort, times(1)).deleteFullPostCache(postId);
-        verify(eventPublisher, times(1)).publishEvent(any(PostDeletedEvent.class));
-    }
 
     @Test
     @DisplayName("여러 게시글 연속 작성")
