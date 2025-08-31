@@ -2,7 +2,7 @@ package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.growfarm.domain.notification.application.port.out.NotificationCommandPort;
-import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
+import jaeik.growfarm.domain.notification.entity.NotificationUpdateVO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      * @since 2.0.0
      */
     @Override
-    public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateCommand updateCommand) {
+    public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateVO updateCommand) {
         // Null 체크
         if (userDetails == null || userDetails.getUserId() == null) {
             throw new IllegalArgumentException("사용자 정보가 없습니다.");
@@ -72,7 +72,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
         }
         
         // 검증된 명령으로 새로운 커맨드 생성
-        NotificationUpdateCommand validatedCommand = NotificationUpdateCommand.of(
+        NotificationUpdateVO validatedCommand = NotificationUpdateVO.of(
                 validatedReadIds,
                 validatedDeleteIds
         );

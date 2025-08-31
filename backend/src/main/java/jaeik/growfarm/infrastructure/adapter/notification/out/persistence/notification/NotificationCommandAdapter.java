@@ -6,7 +6,7 @@ import jaeik.growfarm.domain.notification.entity.Notification;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.notification.entity.QNotification;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
+import jaeik.growfarm.domain.notification.entity.NotificationUpdateVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -39,7 +39,7 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void batchUpdate(Long userId, NotificationUpdateCommand updateCommand) {
+    public void batchUpdate(Long userId, NotificationUpdateVO updateCommand) {
         List<Long> deleteIds = updateCommand.deletedIds();
         List<Long> readIds = updateCommand.readIds();
 

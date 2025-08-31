@@ -1,7 +1,7 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.web;
 
 import jaeik.growfarm.domain.notification.application.port.in.NotificationCommandUseCase;
-import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
+import jaeik.growfarm.domain.notification.entity.NotificationUpdateVO;
 import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.UpdateNotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -37,7 +37,7 @@ public class NotificationCommandController {
     @PostMapping("/update")
     public ResponseEntity<Void> markAsRead(@AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UpdateNotificationDTO updateNotificationDTO) {
-        NotificationUpdateCommand updateCommand = toCommand(updateNotificationDTO);
+        NotificationUpdateVO updateCommand = toCommand(updateNotificationDTO);
         notificationCommandUseCase.batchUpdate(userDetails, updateCommand);
         return ResponseEntity.ok().build();
     }
@@ -47,9 +47,9 @@ public class NotificationCommandController {
      * <p>UpdateNotificationDTO를 NotificationUpdateCommand로 변환합니다.</p>
      *
      * @param updateDto 알림 업데이트 DTO
-     * @return NotificationUpdateCommand
+     * @return NotificationUpdateVO
      */
-    private NotificationUpdateCommand toCommand(UpdateNotificationDTO updateDto) {
-        return NotificationUpdateCommand.of(updateDto.getReadIds(), updateDto.getDeletedIds());
+    private NotificationUpdateVO toCommand(UpdateNotificationDTO updateDto) {
+        return NotificationUpdateVO.of(updateDto.getReadIds(), updateDto.getDeletedIds());
     }
 }

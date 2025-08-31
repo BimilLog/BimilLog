@@ -1,7 +1,7 @@
 package jaeik.growfarm.domain.notification.application.service;
 
 import jaeik.growfarm.domain.notification.application.port.out.NotificationCommandPort;
-import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
+import jaeik.growfarm.domain.notification.entity.NotificationUpdateVO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,13 +43,13 @@ class NotificationCommandServiceTest {
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(1L, 2L, 3L);
         List<Long> deletedIds = Arrays.asList(4L, 5L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, deletedIds);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateCommand.class));
+        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
         verifyNoMoreInteractions(notificationCommandPort);
     }
 
@@ -59,13 +59,13 @@ class NotificationCommandServiceTest {
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(1L, 2L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, null);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, null);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateCommand.class));
+        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
         verifyNoMoreInteractions(notificationCommandPort);
     }
 
@@ -75,13 +75,13 @@ class NotificationCommandServiceTest {
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> deletedIds = Arrays.asList(3L, 4L, 5L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(null, deletedIds);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(null, deletedIds);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateCommand.class));
+        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
         verifyNoMoreInteractions(notificationCommandPort);
     }
 
@@ -90,13 +90,13 @@ class NotificationCommandServiceTest {
     void shouldBatchUpdate_WhenEmptyLists() {
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(List.of(), List.of());
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(List.of(), List.of());
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateCommand.class));
+        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
         verifyNoMoreInteractions(notificationCommandPort);
     }
 
@@ -105,7 +105,7 @@ class NotificationCommandServiceTest {
     void shouldBatchUpdate_WhenNullDto() {
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
-        NotificationUpdateCommand updateCommand = null;
+        NotificationUpdateVO updateCommand = null;
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
@@ -120,7 +120,7 @@ class NotificationCommandServiceTest {
     void shouldThrowException_WhenNullUser() {
         // Given
         CustomUserDetails nullUserDetails = null;
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(Arrays.asList(1L, 2L), List.of(3L));
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Arrays.asList(1L, 2L), List.of(3L));
 
         // When & Then
         assertThatThrownBy(() -> notificationCommandService.batchUpdate(nullUserDetails, updateCommand))
@@ -137,13 +137,13 @@ class NotificationCommandServiceTest {
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> largeReadIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
         List<Long> largeDeletedIds = Arrays.asList(11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 19L, 20L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(largeReadIds, largeDeletedIds);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(largeReadIds, largeDeletedIds);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateCommand.class));
+        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
         verifyNoMoreInteractions(notificationCommandPort);
     }
 
@@ -154,7 +154,7 @@ class NotificationCommandServiceTest {
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(-1L, -2L, 3L);
         List<Long> deletedIds = Arrays.asList(-3L, -4L, 5L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, deletedIds);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
@@ -175,7 +175,7 @@ class NotificationCommandServiceTest {
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(0L, 1L);
         List<Long> deletedIds = Arrays.asList(0L, 2L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, deletedIds);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
@@ -196,13 +196,13 @@ class NotificationCommandServiceTest {
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(Long.MAX_VALUE, Long.MAX_VALUE - 1);
         List<Long> deletedIds = Arrays.asList(Long.MAX_VALUE - 2, Long.MAX_VALUE - 3);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, deletedIds);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateCommand.class));
+        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
         verifyNoMoreInteractions(notificationCommandPort);
     }
 
@@ -213,7 +213,7 @@ class NotificationCommandServiceTest {
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(1L, 1L, 2L, 2L, 3L);
         List<Long> deletedIds = Arrays.asList(4L, 4L, 5L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, deletedIds);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
@@ -236,7 +236,7 @@ class NotificationCommandServiceTest {
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(1L, 2L, 3L);
         List<Long> deletedIds = Arrays.asList(2L, 3L, 4L); // 2L, 3L이 중복
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(readIds, deletedIds);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
@@ -256,13 +256,13 @@ class NotificationCommandServiceTest {
     void shouldBatchUpdate_WhenBothListsAreNull() {
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
-        NotificationUpdateCommand updateCommand = NotificationUpdateCommand.of(null, null);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(null, null);
 
         // When
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateCommand.class));
+        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
         verifyNoMoreInteractions(notificationCommandPort);
     }
 }

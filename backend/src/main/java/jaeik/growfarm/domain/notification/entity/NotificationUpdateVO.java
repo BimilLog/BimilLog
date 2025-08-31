@@ -15,13 +15,13 @@ import java.util.List;
  * @author Jaeik
  * @since 2.0.0
  */
-public record NotificationUpdateCommand(
+public record NotificationUpdateVO(
         List<Long> readIds,
         List<Long> deletedIds
 ) {
 
     @Builder
-    public NotificationUpdateCommand {
+    public NotificationUpdateVO {
     }
 
     /**
@@ -30,10 +30,10 @@ public record NotificationUpdateCommand(
      *
      * @param readIds 읽음 처리할 알림 ID 목록
      * @param deletedIds 삭제할 알림 ID 목록
-     * @return NotificationUpdateCommand 값 객체
+     * @return NotificationUpdateVO 값 객체
      */
-    public static NotificationUpdateCommand of(List<Long> readIds, List<Long> deletedIds) {
-        return NotificationUpdateCommand.builder()
+    public static NotificationUpdateVO of(List<Long> readIds, List<Long> deletedIds) {
+        return NotificationUpdateVO.builder()
                 .readIds(readIds)
                 .deletedIds(deletedIds)
                 .build();
