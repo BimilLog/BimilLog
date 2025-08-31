@@ -105,6 +105,26 @@ class PaperQueryServiceTest {
     }
 
     @Test
+    @DisplayName("내 롤링페이퍼 조회 - null userId 처리")
+    void shouldGetMyPaper_WhenUserIdIsNull() {
+        // Given
+        Long userId = null;
+        List<Message> emptyList = Collections.emptyList();
+
+        given(paperQueryPort.findMessagesByUserId(null)).willReturn(emptyList);
+
+        // When
+        List<MessageDetail> result = paperQueryService.getMyPaper(userId);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+
+        verify(paperQueryPort, times(1)).findMessagesByUserId(null);
+        verifyNoMoreInteractions(paperQueryPort);
+    }
+
+    @Test
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공")
     void shouldVisitPaper_WhenValidUserName() {
         // Given

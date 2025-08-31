@@ -40,9 +40,6 @@ public class PaperQueryService implements PaperQueryUseCase {
      */
     @Override
     public List<MessageDetail> getMyPaper(Long userId) {
-        if (userId == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
         List<Message> messages = paperQueryPort.findMessagesByUserId(userId);
         return messages.stream()
                 .map(MessageDetail::from)

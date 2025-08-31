@@ -68,7 +68,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
 
         return jpaQueryFactory
                 .selectFrom(message)
-                .leftJoin(message.user).fetchJoin()
                 .where(message.user.id.eq(userId))
                 .orderBy(message.createdAt.desc())
                 .fetch();
@@ -91,11 +90,9 @@ public class PaperQueryAdapter implements PaperQueryPort {
         }
         
         QMessage message = QMessage.message;
-        QUser user = QUser.user;
 
         return jpaQueryFactory
                 .selectFrom(message)
-                .leftJoin(message.user).fetchJoin()
                 .where(message.user.userName.eq(userName))
                 .fetch();
     }
