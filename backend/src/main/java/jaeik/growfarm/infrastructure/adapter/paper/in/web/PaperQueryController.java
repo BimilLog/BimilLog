@@ -52,7 +52,6 @@ public class PaperQueryController {
 
     /**
      * <h3>다른 롤링페이퍼 방문 API</h3>
-     * <p>기존 PaperQueryController.visitPaper()와 동일한 기능</p>
      *
      * @param userName 닉네임
      * @return ResponseEntity<List < VisitMessageDTO>> 방문한 롤링페이퍼의 메시지 목록
