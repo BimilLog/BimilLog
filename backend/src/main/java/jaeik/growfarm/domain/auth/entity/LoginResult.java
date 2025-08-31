@@ -39,16 +39,6 @@ public sealed interface LoginResult
 
     /**
      * <h3>로그인 타입 확인</h3>
-     * <p>현재 결과가 신규 사용자인지 확인</p>
-     *
-     * @return 신규 사용자인 경우 true
-     */
-    default boolean isNewUser() {
-        return this instanceof NewUser;
-    }
-
-    /**
-     * <h3>로그인 타입 확인</h3>
      * <p>현재 결과가 기존 사용자인지 확인</p>
      *
      * @return 기존 사용자인 경우 true

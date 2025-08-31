@@ -52,10 +52,6 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public Long writePost(Long userId, PostReqVO postReqVO) {
-        if (postReqVO == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        
         User user = loadUserInfoPort.getReferenceById(userId);
         Post newPost = Post.createPost(user, postReqVO);
         Post savedPost = postCommandPort.save(newPost);
@@ -84,16 +80,11 @@ public class PostCommandService implements PostCommandUseCase {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        if (postReqVO == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-
         post.updatePost(postReqVO);
         postCommandPort.save(post);
         postCacheCommandPort.deleteFullPostCache(postId);
         
-        log.info("Post updated: postId={}, userId={}, title={}", postId, userId, 
-                 postReqVO != null ? postReqVO.title() : "null");
+        log.info("Post updated: postId={}, userId={}, title={}", postId, userId, postReqVO.title());
     }
 
     /**

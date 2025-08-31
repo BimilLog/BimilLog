@@ -110,10 +110,15 @@ public class PostCommandController {
      * @since 2.0.0
      */
     private PostReqVO convertToPostReqVO(PostReqDTO dto) {
+        Integer passwordInt = null;
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            passwordInt = Integer.parseInt(dto.getPassword());
+        }
+        
         return PostReqVO.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
-                .password(dto.getPassword())
+                .password(passwordInt)
                 .build();
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+// 로컬 테스트를 위해 쿠키의 HTTPS해제
 /**
  * <h2>인증 쿠키 관리자</h2>
  *
@@ -42,7 +43,7 @@ public class AuthCookieManager {
                 .maxAge(600) // 10분
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
     }
 
@@ -75,7 +76,7 @@ public class AuthCookieManager {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
@@ -83,7 +84,7 @@ public class AuthCookieManager {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);
@@ -105,7 +106,7 @@ public class AuthCookieManager {
                 .maxAge(MAX_AGE)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
     }
 
@@ -125,7 +126,7 @@ public class AuthCookieManager {
                 .maxAge(MAX_AGE * 720L)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
     }
 }

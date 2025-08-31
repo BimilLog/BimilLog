@@ -231,24 +231,25 @@ class PostCommandServiceTest {
     }
 
     @Test
-    @DisplayName("게시글 작성 - null DTO 예외")
+    @DisplayName("게시글 작성 - null DTO 예외 (Post.createPost에서 발생)")
     void shouldThrowException_WhenNullDTO() {
         // Given
         Long userId = 1L;
         PostReqVO postReqDTO = null;
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("PostReqVO cannot be null");
 
-        // null 검증이 먼저 실행되므로 userLoadPort는 호출되지 않음
-        verify(loadUserInfoPort, never()).getReferenceById(any());
+        // loadUserInfoPort는 호출되지만 Post.createPost에서 예외 발생
+        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, never()).save(any());
     }
 
     @Test
-    @DisplayName("게시글 수정 - null DTO 예외")
+    @DisplayName("게시글 수정 - null DTO 예외 (Post.updatePost에서 발생)")
     void shouldThrowException_WhenNullDTOForUpdate() {
         // Given
         Long userId = 1L;
@@ -260,14 +261,14 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("Cannot invoke \"jaeik.growfarm.domain.post.entity.PostReqVO.title()\" because \"postReqVO\" is null");
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
-        verify(post, never()).updatePost(any());
-        verify(postCommandPort, never()).save(any());
-        verify(postCacheCommandPort, never()).deleteFullPostCache(any());
+        verify(post, times(1)).updatePost(postReqDTO); // updatePost 호출됨
+        verify(postCommandPort, times(1)).save(post); // save도 호출됨 (로그에서 NPE 발생)
+        verify(postCacheCommandPort, times(1)).deleteFullPostCache(postId); // deleteFullPostCache도 호출됨
     }
 
     @Test

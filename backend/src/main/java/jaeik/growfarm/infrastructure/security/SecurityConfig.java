@@ -24,7 +24,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
 
 import java.util.Arrays;
 import java.util.List;
@@ -118,6 +117,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // 로컬 테스트를 위해 HTTPS 해제
     /**
      * <h3>CSRF 토큰 쿠키 저장소 설정</h3>
      * <p>
@@ -133,7 +133,7 @@ public class SecurityConfig {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repository.setCookieName("XSRF-TOKEN");
         repository.setCookiePath("/");
-        repository.setCookieCustomizer(cookie -> cookie.secure(true).sameSite("LAX"));
+        repository.setCookieCustomizer(cookie -> cookie.secure(false).sameSite("LAX"));
         return repository;
     }
 
@@ -164,20 +164,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    /**
-     * <h3>쿠키 SameSite 설정</h3>
-     * <p>
-     * 모든 쿠키(CSRF 토큰 포함)에 SameSite=Lax 속성을 적용합니다.
-     *
-     * @return CookieSameSiteSupplier 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Bean
-    public CookieSameSiteSupplier cookieSameSiteSupplier() {
-        return CookieSameSiteSupplier.ofLax();
     }
 }
 

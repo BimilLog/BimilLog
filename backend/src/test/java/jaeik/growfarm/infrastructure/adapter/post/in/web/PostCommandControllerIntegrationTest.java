@@ -114,7 +114,7 @@ class PostCommandControllerIntegrationTest {
         PostReqDTO postReqDTO = PostReqDTO.builder()
                 .title("통합 테스트 게시글")
                 .content("게시글 작성 통합 테스트 내용입니다.")
-                .password(1234)
+                .password("1234")
                 .build();
 
         // When & Then
@@ -143,7 +143,7 @@ class PostCommandControllerIntegrationTest {
         // Given
         PostReqDTO postReqDTO = PostReqDTO.builder()
                 .content("제목이 없는 게시글 내용")
-                .password(1234)
+                .password("1234")
                 .build();
 
         // When & Then
@@ -163,7 +163,7 @@ class PostCommandControllerIntegrationTest {
         PostReqDTO postReqDTO = PostReqDTO.builder()
                 .title("인증 없는 게시글")
                 .content("인증되지 않은 사용자의 게시글 작성 시도")
-                .password(1234)
+                .password("1234")
                 .build();
 
         // When & Then - 인증되지 않은 사용자는 500 에러 (NullPointerException)가 발생
@@ -193,7 +193,7 @@ class PostCommandControllerIntegrationTest {
         PostReqDTO updateReqDTO = PostReqDTO.builder()
                 .title("수정된 제목")
                 .content("수정된 내용입니다.")
-                .password(5678)
+                .password("5678")
                 .build();
 
         // When & Then
@@ -363,7 +363,7 @@ class PostCommandControllerIntegrationTest {
         PostReqDTO postReqDTO = PostReqDTO.builder()
                 .title(title)
                 .content(content)
-                .password(1234)
+                .password("1234")
                 .build();
 
         // When & Then
