@@ -1,7 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
 import jaeik.growfarm.GrowfarmApplication;
 import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentLike;
@@ -11,34 +9,28 @@ import jaeik.growfarm.domain.user.entity.Setting;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.user.entity.UserRole;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
+import jaeik.growfarm.util.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * <h2>commentLikeAdapter 통합 테스트</h2>
- * <p>실제 MySQL 데이터베이스를 사용한 commentLikeAdapter의 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 댓글 추천 조회 동작 검증</p>
- * <p>핵심 비즈니스 로직: 사용자가 특정 댓글에 추천을 눌렀는지 여부 확인</p>
- * 
+ * <h2>CommentLikeAdapter 통합 테스트</h2>
+ * <p>실제 MySQL 데이터베이스를 사용한 CommentLikeAdapter의 통합 테스트</p>
+ * <p>TestContainers를 사용하여 실제 MySQL 환경에서 댓글 추천 CRUD 및 조회 동작 검증</p>
+ *
  * @author Jaeik
  * @version 2.0.0
  */
@@ -49,42 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @Testcontainers
-@EntityScan(basePackages = {
-        "jaeik.growfarm.domain.comment.entity",
-        "jaeik.growfarm.domain.user.entity",
-        "jaeik.growfarm.domain.post.entity",
-        "jaeik.growfarm.domain.common.entity"
-})
-@EnableJpaRepositories(basePackages = {
-        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment",
-        "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike"
-})
-@Import(CommentLikeAdapter.class)
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
-})
+@Import({CommentLikeAdapter.class, TestContainersConfiguration.class})
 class CommentLikeAdapterIntegrationTest {
-
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
-        }
-    }
 
     @Autowired
     private TestEntityManager entityManager;
@@ -424,5 +382,279 @@ class CommentLikeAdapterIntegrationTest {
         
         assertThat(otherUserCheck).isFalse();
         assertThat(otherCommentCheck).isFalse();
+    }
+
+    // ============================================================================
+    // 명령(Command) 테스트: save, deleteLike 기능
+    // ============================================================================
+
+    @Test
+    @DisplayName("정상 케이스 - 새로운 댓글 추천 저장")
+    void shouldSaveNewCommentLike_WhenValidCommentLikeProvided() {
+        // Given: 새로운 댓글 추천 엔티티
+        CommentLike newCommentLike = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+
+        // When: 댓글 추천 저장
+        CommentLike savedCommentLike = commentLikeAdapter.save(newCommentLike);
+
+        // Then: 댓글 추천이 올바르게 저장되었는지 검증
+        assertThat(savedCommentLike).isNotNull();
+        assertThat(savedCommentLike.getId()).isNotNull();
+        assertThat(savedCommentLike.getComment()).isEqualTo(testComment1);
+        assertThat(savedCommentLike.getUser()).isEqualTo(testUser2);
+        
+        // DB에 실제로 저장되었는지 확인
+        Optional<CommentLike> foundCommentLike = commentLikeRepository.findById(savedCommentLike.getId());
+        assertThat(foundCommentLike).isPresent();
+        assertThat(foundCommentLike.get().getComment().getId()).isEqualTo(testComment1.getId());
+        assertThat(foundCommentLike.get().getUser().getId()).isEqualTo(testUser2.getId());
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 댓글 추천 삭제")
+    void shouldDeleteCommentLike_WhenValidCommentAndUserProvided() {
+        // Given: 기존 댓글 추천 생성 및 저장
+        CommentLike existingCommentLike = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+        existingCommentLike = commentLikeRepository.save(existingCommentLike);
+        
+        // 삭제 전 댓글 추천 존재 확인
+        boolean existsBefore = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        assertThat(existsBefore).isTrue();
+
+        // When: 댓글 추천 삭제
+        commentLikeAdapter.deleteLike(testComment1, testUser2);
+
+        // Then: 댓글 추천이 삭제되었는지 검증
+        boolean existsAfter = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        assertThat(existsAfter).isFalse();
+        
+        // ID로도 확인
+        Optional<CommentLike> foundCommentLike = commentLikeRepository.findById(existingCommentLike.getId());
+        assertThat(foundCommentLike).isEmpty();
+    }
+
+    @Test
+    @DisplayName("데이터베이스 제약조건 - 유니크 키 위반 시 예외")
+    void shouldThrowException_WhenDatabaseUniqueConstraintViolated() {
+        // 실제 비즈니스 로직(CommentLikeService)에서는 토글 방식으로 중복 체크 후 처리하므로
+        // 이 상황은 발생하지 않아야 함. 하지만 데이터베이스 레벨 제약조건 테스트로는 유효함
+        // 의심 지점: 비즈니스 로직에서 중복 체크 로직이 우회되는 경우가 있는지 검토 필요
+        
+        // Given: 이미 존재하는 댓글 추천을 데이터베이스에 직접 저장
+        CommentLike existingCommentLike = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+        commentLikeRepository.save(existingCommentLike);
+
+        // 동일한 댓글-사용자 조합의 추천 (데이터베이스 제약조건 위반 상황)
+        CommentLike duplicateCommentLike = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+
+        // When & Then: 데이터베이스 유니크 제약조건 위반으로 예외 발생
+        // 주의: 실제 비즈니스 로직에서는 이런 직접 저장이 발생하지 않음 (토글 로직 존재)
+        assertThrows(
+                org.springframework.dao.DataIntegrityViolationException.class,
+                () -> commentLikeAdapter.save(duplicateCommentLike)
+        );
+    }
+
+    @Test
+    @DisplayName("경계값 - 존재하지 않는 댓글 추천 삭제")
+    void shouldDoNothing_WhenDeletingNonExistentCommentLike() {
+        // Given: 추천하지 않은 댓글과 사용자
+        // testUser2가 testComment1을 추천하지 않은 상태
+
+        // When: 존재하지 않는 댓글 추천 삭제
+        commentLikeAdapter.deleteLike(testComment1, testUser2);
+
+        // Then: 예외가 발생하지 않고 정상적으로 완료되어야 함
+        boolean exists = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 여러 사용자의 동일 댓글 추천")
+    void shouldSaveMultipleCommentLikes_WhenDifferentUsersLikeSameComment() {
+        // Given: 동일한 댓글에 대한 여러 사용자의 추천
+        CommentLike like1 = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser1)
+                .build();
+        
+        CommentLike like2 = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+
+        // When: 여러 사용자의 댓글 추천 저장
+        CommentLike savedLike1 = commentLikeAdapter.save(like1);
+        CommentLike savedLike2 = commentLikeAdapter.save(like2);
+
+        // Then: 모든 댓글 추천이 올바르게 저장되었는지 검증
+        assertThat(savedLike1).isNotNull();
+        assertThat(savedLike1.getId()).isNotNull();
+        assertThat(savedLike2).isNotNull();
+        assertThat(savedLike2.getId()).isNotNull();
+        
+        // DB에서 확인
+        boolean user1Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser1.getId());
+        boolean user2Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        
+        assertThat(user1Liked).isTrue();
+        assertThat(user2Liked).isTrue();
+        
+        // 전체 추천 수 확인
+        long totalLikes = commentLikeRepository.count();
+        assertThat(totalLikes).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 한 사용자의 여러 댓글 추천")
+    void shouldSaveMultipleCommentLikes_WhenOneUserLikesDifferentComments() {
+        // Given: 추가 댓글 생성 (testComment2는 이미 setUp에서 생성됨)
+        // 한 사용자가 여러 댓글에 추천
+        CommentLike like1 = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+        
+        CommentLike like2 = CommentLike.builder()
+                .comment(testComment2)
+                .user(testUser2)
+                .build();
+
+        // When: 여러 댓글 추천 저장
+        CommentLike savedLike1 = commentLikeAdapter.save(like1);
+        CommentLike savedLike2 = commentLikeAdapter.save(like2);
+
+        // Then: 모든 댓글 추천이 올바르게 저장되었는지 검증
+        assertThat(savedLike1).isNotNull();
+        assertThat(savedLike2).isNotNull();
+        
+        // DB에서 확인
+        boolean firstCommentLiked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean secondCommentLiked = commentLikeAdapter.isLikedByUser(testComment2.getId(), testUser2.getId());
+        
+        assertThat(firstCommentLiked).isTrue();
+        assertThat(secondCommentLiked).isTrue();
+    }
+
+    // ============================================================================
+    // 통합 워크플로우 테스트: 조회 + 명령 연계 테스트
+    // ============================================================================
+
+    @Test
+    @DisplayName("통합 워크플로우 - 댓글 추천 저장 후 삭제")
+    void shouldSaveAndDeleteCommentLike_WhenOperationsPerformedSequentially() {
+        // Given: 빈 상태에서 시작
+        boolean initialState = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        assertThat(initialState).isFalse();
+
+        // When: 댓글 추천 저장
+        CommentLike commentLike = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+        CommentLike savedCommentLike = commentLikeAdapter.save(commentLike);
+
+        // Then: 저장 확인
+        assertThat(savedCommentLike).isNotNull();
+        boolean afterSave = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        assertThat(afterSave).isTrue();
+
+        // When: 댓글 추천 삭제
+        commentLikeAdapter.deleteLike(testComment1, testUser2);
+
+        // Then: 삭제 확인
+        boolean afterDelete = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        assertThat(afterDelete).isFalse();
+    }
+
+    @Test
+    @DisplayName("통합 워크플로우 - 복잡한 댓글 추천 시나리오")
+    void shouldHandleComplexCommentLikeScenario_WhenMultipleOperationsPerformed() {
+        // Given: 복잡한 시나리오 설정
+        Comment comment3 = Comment.createComment(testPost, testUser1, "세 번째 댓글", null);
+        comment3 = commentRepository.save(comment3);
+
+        // When: 복잡한 추천 동작 수행
+        
+        // 1. testUser2가 첫 번째 댓글 추천
+        CommentLike like1 = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+        CommentLike savedLike1 = commentLikeAdapter.save(like1);
+
+        // 2. testUser2가 세 번째 댓글도 추천
+        CommentLike like2 = CommentLike.builder()
+                .comment(comment3)
+                .user(testUser2)
+                .build();
+        CommentLike savedLike2 = commentLikeAdapter.save(like2);
+
+        // 3. testUser1이 자신의 댓글이 아닌 세 번째 댓글 추천
+        CommentLike like3 = CommentLike.builder()
+                .comment(comment3)
+                .user(testUser1)
+                .build();
+        CommentLike savedLike3 = commentLikeAdapter.save(like3);
+
+        // Then: 모든 추천이 올바르게 저장되었는지 검증
+        assertThat(savedLike1).isNotNull();
+        assertThat(savedLike2).isNotNull();
+        assertThat(savedLike3).isNotNull();
+
+        // 각 댓글의 추천 수 확인
+        long totalLikes = commentLikeRepository.count();
+        assertThat(totalLikes).isEqualTo(3);  // testUser2 2개 + testUser1 1개
+
+        // When: 일부 추천 삭제
+        commentLikeAdapter.deleteLike(comment3, testUser2);
+
+        // Then: 삭제 후 상태 확인
+        long totalLikesAfterDelete = commentLikeRepository.count();
+        assertThat(totalLikesAfterDelete).isEqualTo(2);  // testUser2의 comment3 추천이 삭제됨
+        
+        boolean user2LikesComment3 = commentLikeAdapter.isLikedByUser(comment3.getId(), testUser2.getId());
+        boolean user1LikesComment3 = commentLikeAdapter.isLikedByUser(comment3.getId(), testUser1.getId());
+        
+        assertThat(user2LikesComment3).isFalse();
+        assertThat(user1LikesComment3).isTrue();
+    }
+
+    @Test
+    @DisplayName("통합 워크플로우 - ID 기반 삭제 최적화 테스트")
+    void shouldDeleteByIds_WhenOptimizedDeletionRequired() {
+        // Given: 댓글 추천 생성
+        CommentLike commentLike = CommentLike.builder()
+                .comment(testComment1)
+                .user(testUser2)
+                .build();
+        commentLikeRepository.save(commentLike);
+        
+        // 생성 확인
+        boolean existsBefore = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        assertThat(existsBefore).isTrue();
+
+        // When: ID 기반으로 최적화된 삭제 수행
+        commentLikeAdapter.deleteLikeByIds(testComment1.getId(), testUser2.getId());
+
+        // Then: 삭제 확인
+        boolean existsAfter = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        assertThat(existsAfter).isFalse();
+        
+        // 전체 추천 수도 확인
+        long totalLikes = commentLikeRepository.count();
+        assertThat(totalLikes).isEqualTo(0);
     }
 }

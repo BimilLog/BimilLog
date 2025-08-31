@@ -6,8 +6,8 @@ import jaeik.growfarm.domain.comment.entity.Comment;
 import jaeik.growfarm.domain.comment.entity.CommentRequest;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentLikeReqDTO;
+import jaeik.growfarm.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
 import jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
@@ -15,6 +15,7 @@ import jaeik.growfarm.infrastructure.adapter.user.out.persistence.user.user.User
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.util.TestContainersConfiguration;
 import jaeik.growfarm.util.TestSocialLoginPortConfig;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +37,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * <h2>댓글 Command 컨트롤러 통합 테스트</h2>
@@ -94,7 +96,7 @@ class CommentCommandControllerIntegrationTest {
         postRepository.save(testPost);
     }
     
-    @org.junit.jupiter.api.AfterEach
+    @AfterEach
     void tearDown() {
         // 수동 데이터 정리 (트랜잭션 충돌 방지)
         try {

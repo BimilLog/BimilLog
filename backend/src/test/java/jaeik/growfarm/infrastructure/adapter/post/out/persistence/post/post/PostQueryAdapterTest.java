@@ -35,7 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 /**
- * <h2>PostQueryAdapter 테스트</h2>
+ * <h2>PostQueryAdapter 통합 테스트</h2>
  * <p>게시글 조회 어댑터의 모든 기능을 테스트합니다.</p>
  *
  * @author Jaeik
