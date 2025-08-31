@@ -125,38 +125,6 @@ class NotificationUrlAdapterTest {
     }
 
     @Test
-    @DisplayName("페이퍼 URL 생성 (호환성) - 성공")
-    void shouldGeneratePaperUrl_WhenValidUserName() {
-        // Given
-        String userName = "testuser";
-        String expectedUrl = BASE_URL + "/rolling-paper/testuser";
-
-        // When
-        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
-
-        // Then
-        assertThat(result).isEqualTo(expectedUrl);
-        // generateRollingPaperUrl과 generateRollingPaperUrl이 같은 결과를 반환하는지 확인
-        assertThat(result).isEqualTo(notificationUrlAdapter.generateRollingPaperUrl(userName));
-    }
-
-    @Test
-    @DisplayName("페이퍼 URL 생성 (호환성) - 한글 사용자명")
-    void shouldGeneratePaperUrl_WhenKoreanUserName() {
-        // Given
-        String userName = "한글사용자";
-        String expectedUrl = BASE_URL + "/rolling-paper/한글사용자";
-
-        // When
-        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
-
-        // Then
-        assertThat(result).isEqualTo(expectedUrl);
-        // generateRollingPaperUrl과 generateRollingPaperUrl이 같은 결과를 반환하는지 확인
-        assertThat(result).isEqualTo(notificationUrlAdapter.generateRollingPaperUrl(userName));
-    }
-
-    @Test
     @DisplayName("BaseUrl이 다른 경우 - 개발환경")
     void shouldGenerateUrls_WhenDifferentBaseUrl() {
         // Given
