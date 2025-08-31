@@ -3,10 +3,14 @@ package jaeik.growfarm.infrastructure.adapter.post.in.web;
 import jaeik.growfarm.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.growfarm.domain.post.entity.PostReqVO;
+import jaeik.growfarm.domain.post.event.PostViewedEvent;
 import jaeik.growfarm.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +32,7 @@ public class PostCommandController {
 
     private final PostCommandUseCase postCommandUseCase;
     private final PostInteractionUseCase postInteractionUseCase;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>게시글 작성 API</h3>
@@ -100,6 +105,26 @@ public class PostCommandController {
     public ResponseEntity<Void> likePost(@PathVariable Long postId,
                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
         postInteractionUseCase.likePost(userDetails.getUserId(), postId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * <h3>게시글 조회수 증가 API</h3>
+     * <p>게시글 조회 시 조회수를 증가시킵니다.</p>
+     * <p>쿠키 기반으로 중복 조회를 방지합니다.</p>
+     *
+     * @param postId   조회수를 증가시킬 게시글 ID
+     * @param request  HTTP 요청 (쿠키 확인용)
+     * @param response HTTP 응답 (쿠키 설정용)
+     * @return 성공 응답 (200 OK)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @PostMapping("/{postId}/view")
+    public ResponseEntity<Void> incrementViewCount(@PathVariable Long postId,
+                                                   HttpServletRequest request,
+                                                   HttpServletResponse response) {
+        eventPublisher.publishEvent(new PostViewedEvent(this, postId, request, response));
         return ResponseEntity.ok().build();
     }
 

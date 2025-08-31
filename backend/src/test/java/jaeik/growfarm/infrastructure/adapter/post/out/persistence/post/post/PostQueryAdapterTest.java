@@ -1,6 +1,6 @@
 package jaeik.growfarm.infrastructure.adapter.post.out.persistence.post.post;
 
-import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.post.application.port.out.PostCommentQueryPort;
 import jaeik.growfarm.domain.common.entity.SocialProvider;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -58,7 +58,7 @@ class PostQueryAdapterTest {
     private TestEntityManager entityManager;
 
     @MockitoBean
-    private CommentQueryUseCase commentQueryUseCase;
+    private PostCommentQueryPort postCommentQueryPort;
 
     @MockitoBean
     private PostLikeQueryPort postLikeQueryPort;
@@ -100,7 +100,7 @@ class PostQueryAdapterTest {
         likeCounts.put(testPost3.getId(), 1);
         likeCounts.put(noticePost.getId(), 8);
         
-        given(commentQueryUseCase.findCommentCountsByPostIds(any(List.class)))
+        given(postCommentQueryPort.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(commentCounts);
         given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
                 .willReturn(likeCounts);
@@ -420,7 +420,7 @@ class PostQueryAdapterTest {
             allCommentCounts.put((long) i, i % 3); // 0, 1, 2 순환
             allLikeCounts.put((long) i, i % 5); // 0, 1, 2, 3, 4 순환
         }
-        given(commentQueryUseCase.findCommentCountsByPostIds(any(List.class)))
+        given(postCommentQueryPort.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(allCommentCounts);
         given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
                 .willReturn(allLikeCounts);
@@ -501,7 +501,7 @@ class PostQueryAdapterTest {
         likeCounts.put(testPost2.getId(), 6);
         likeCounts.put(testPost3.getId(), 2);
         
-        given(commentQueryUseCase.findCommentCountsByPostIds(any(List.class)))
+        given(postCommentQueryPort.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(commentCounts);
         given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
                 .willReturn(likeCounts);

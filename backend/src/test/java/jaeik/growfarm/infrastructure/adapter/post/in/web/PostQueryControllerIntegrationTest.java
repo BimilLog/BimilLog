@@ -265,7 +265,7 @@ class PostQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$.title", is("첫 번째 테스트 게시글")))
                 .andExpect(jsonPath("$.content", is("첫 번째 게시글의 내용입니다.")))
                 .andExpect(jsonPath("$.userName", is("테스트사용자")))
-                .andExpect(jsonPath("$.viewCount", is(11))) // 조회시 자동 증가
+                .andExpect(jsonPath("$.viewCount", is(10))) // 조회수 증가 없음
                 .andExpect(jsonPath("$.likeCount", is(0))) // 실제 값으로 수정
                 .andExpect(jsonPath("$.commentCount", is(0))) // 실제 값으로 수정  
                 .andExpect(jsonPath("$.createdAt", notNullValue()));
@@ -285,16 +285,15 @@ class PostQueryControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 성공 - 조회수 증가 안함")
-    void getPost_Success_NoViewCountIncrement() throws Exception {
-        // When & Then
+    @DisplayName("게시글 상세 조회 성공 - CQRS 패턴 준수")
+    void getPost_Success_CQRSCompliant() throws Exception {
+        // When & Then - count 파라미터 제거됨
         mockMvc.perform(get("/api/post/{postId}", testPost3.getId())
-                        .param("count", "false")
                         .with(user(testUser)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(testPost3.getId().intValue())))
-                .andExpect(jsonPath("$.viewCount", is(5))); // 기존 조회수 유지
+                .andExpect(jsonPath("$.viewCount", is(5))); // 조회수 증가 없음 (Query만 수행)
     }
 
     @Test
@@ -315,7 +314,7 @@ class PostQueryControllerIntegrationTest {
         // When & Then
         mockMvc.perform(get("/api/post/{postId}", "invalid-id"))
                 .andDo(print())
-                .andExpect(status().isInternalServerError()); // 실제로는 500 에러
+                .andExpect(status().isInternalServerError()); // 현재 구현에서는 500 반환
     }
 
     @Test

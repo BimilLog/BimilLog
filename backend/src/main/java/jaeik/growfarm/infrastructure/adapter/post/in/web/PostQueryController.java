@@ -1,6 +1,5 @@
 package jaeik.growfarm.infrastructure.adapter.post.in.web;
 
-import jaeik.growfarm.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.growfarm.domain.post.entity.PostDetail;
 import jaeik.growfarm.domain.post.entity.PostSearchResult;
@@ -14,16 +13,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/post")
 public class PostQueryController {
 
     private final PostQueryUseCase postQueryUseCase;
-    private final PostInteractionUseCase postInteractionUseCase;
     private final PostResponseMapper postResponseMapper;
 
     /**
@@ -44,29 +39,18 @@ public class PostQueryController {
 
     /**
      * <h3>게시글 상세 조회 API</h3>
-     * <p>게시글 ID를 통해 게시글 상세 정보를 조회하고 조회수를 증가시킵니다.</p>
-     * <p>쿠키 기반으로 중복 조회를 방지하여 조회수를 증가시킵니다.</p>
-     * <p>count 파라미터를 통해 조회수 증가 여부를 제어할 수 있습니다.</p>
+     * <p>게시글 ID를 통해 게시글 상세 정보를 조회합니다.</p>
+     * <p>CQRS 패턴을 준수하여 순수한 조회 작업만 수행합니다.</p>
      *
      * @param postId      조회할 게시글 ID
-     * @param count       조회수 증가 여부 (기본값: true)
      * @param userDetails 현재 로그인한 사용자 정보 (Optional, 추천 여부 확인용)
-     * @param request     HTTP 요청 (쿠키 확인용)
-     * @param response    HTTP 응답 (쿠키 설정용)
      * @return 게시글 상세 정보 DTO (200 OK)
      * @author Jaeik
      * @since 2.0.0
      */
     @GetMapping("/{postId}")
     public ResponseEntity<FullPostResDTO> getPost(@PathVariable Long postId,
-                                                  @RequestParam(name = "count", defaultValue = "true") boolean count,
-                                                  @AuthenticationPrincipal CustomUserDetails userDetails,
-                                                  HttpServletRequest request,
-                                                  HttpServletResponse response) {
-        if (count) {
-            postInteractionUseCase.incrementViewCountWithCookie(postId, request, response);
-        }
-
+                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
         PostDetail postDetail = postQueryUseCase.getPost(postId, userId);
         FullPostResDTO fullPostResDTO = postResponseMapper.convertToFullPostResDTO(postDetail);

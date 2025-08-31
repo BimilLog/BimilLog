@@ -1,12 +1,13 @@
 package jaeik.growfarm.domain.post.application.service;
 
 
-import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.post.application.port.out.PostCommentQueryPort;
 import jaeik.growfarm.domain.post.application.port.in.PostQueryUseCase;
-import jaeik.growfarm.domain.post.application.port.out.*;
+import jaeik.growfarm.domain.post.application.port.out.PostCacheQueryPort;
+import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
+import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
-import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.post.entity.PostDetail;
 import jaeik.growfarm.domain.post.entity.PostSearchResult;
 import jaeik.growfarm.infrastructure.exception.CustomException;
@@ -19,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * <h2>PostQueryService</h2>
@@ -38,10 +38,9 @@ public class PostQueryService implements PostQueryUseCase {
 
     private final PostQueryPort postQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
-    private final LoadUserInfoPort loadUserInfoPort;
     private final PostCacheSyncService postCacheSyncService;
     private final PostCacheQueryPort postCacheQueryPort;
-    private final CommentQueryUseCase commentQueryUseCase;
+    private final PostCommentQueryPort postCommentQueryPort;
 
     /**
      * <h3>게시판 조회</h3>
@@ -68,7 +67,6 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     private boolean isPopularPost(Long postId) {
-        // PostCacheQueryPort의 최적화된 메서드 사용
         return postCacheQueryPort.isPopularPost(postId);
     }
 
@@ -100,12 +98,29 @@ public class PostQueryService implements PostQueryUseCase {
         }
 
         // 2. 캐시에 없거나 일반 게시글인 경우 DB에서 조회
+        return getPostFromDatabase(postId, userId);
+    }
+
+    /**
+     * <h3>데이터베이스에서 게시글 조회</h3>
+     * <p>게시글 정보와 관련 데이터를 한 번에 조회하여 PostDetail을 생성합니다.</p>
+     * <p>중복 조회 로직을 통합하여 성능을 최적화합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param userId 현재 로그인한 사용자 ID (Optional)
+     * @return 게시글 상세 정보 DTO
+     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private PostDetail getPostFromDatabase(Long postId, Long userId) {
         Post post = postQueryPort.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         long likeCount = postLikeQueryPort.countByPost(post);
-        boolean isLiked = (userId != null) ? checkUserLikedPost(post, userId) : false;
-        int commentCount = commentQueryUseCase.countByPostId(postId);
+        boolean isLiked = userId != null && postLikeQueryPort.existsByPostIdAndUserId(postId, userId);
+        int commentCount = postCommentQueryPort.countByPostId(postId);
+        
         return PostDetail.of(post, Math.toIntExact(likeCount), commentCount, isLiked);
     }
 
@@ -125,28 +140,6 @@ public class PostQueryService implements PostQueryUseCase {
         return postQueryPort.findBySearch(type, query, pageable);
     }
 
-    /**
-     * <h3>실시간, 주간 인기 게시글 목록 조회</h3>
-     * <p>캐시된 인기 게시글 목록(실시간, 주간)을 조회합니다. 캐시가 없는 경우 업데이트 후 조회합니다.</p>
-     *
-     * @param type 조회할 인기 게시글 유형
-     * @return 인기 게시글 목록
-     * @throws CustomException 유효하지 않은 캐시 유형인 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public List<PostSearchResult> getPopularPosts(PostCacheFlag type) {
-        if (!postCacheQueryPort.hasPopularPostsCache(type)) {
-            switch (type) {
-                case REALTIME -> postCacheSyncService.updateRealtimePopularPosts();
-                case WEEKLY -> postCacheSyncService.updateWeeklyPopularPosts();
-                case LEGEND -> postCacheSyncService.updateLegendaryPosts();
-                default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-            }
-        }
-        return postCacheQueryPort.getCachedPostList(type);
-    }
 
     /**
      * <h3>레전드 인기 게시글 목록 조회 (페이징)</h3>
@@ -231,11 +224,12 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>실시간/주간 인기 게시글 목록 일괄 조회</h3>
-     * <p>실시간과 주간 인기 게시글을 한 번에 조회합니다.</p>
-     * <p>성능 최적화를 위해 한 번의 호출로 두 타입의 데이터를 가져옵니다.</p>
+     * <h3>실시간/주간 인기 게시글 일괄 조회</h3>
+     * <p>Redis 캐시에서 실시간과 주간 인기 게시글을 한 번에 조회합니다.</p>
+     * <p>각 타입별로 캐시가 없는 경우 개별적으로 PostCacheSyncService를 통해 DB에서 생성합니다.</p>
+     * <p>Frontend에서 홈페이지 로딩 시 두 타입을 동시에 필요로 하는 API용 편의 메서드입니다.</p>
      *
-     * @return 실시간/주간 인기 게시글 맵 (key: "realtime"/"weekly", value: 게시글 목록)
+     * @return Redis에서 조회된 실시간/주간 인기 게시글 맵 (key: "realtime"/"weekly", value: 게시글 목록)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -259,18 +253,4 @@ public class PostQueryService implements PostQueryUseCase {
         );
     }
 
-    /**
-     * <h3>사용자 게시글 좋아요 여부 확인</h3>
-     * <p>중복 로직을 제거하기 위한 private 메서드</p>
-     *
-     * @param post 게시글 엔티티
-     * @param userId 사용자 ID
-     * @return boolean 좋아요 여부
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private boolean checkUserLikedPost(Post post, Long userId) {
-        User user = loadUserInfoPort.getReferenceById(userId);
-        return postLikeQueryPort.existsByUserAndPost(user, post);
-    }
 }

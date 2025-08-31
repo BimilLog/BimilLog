@@ -38,6 +38,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final LoadUserInfoPort loadUserInfoPort;
+    private final ObjectMapper objectMapper;
 
     /**
      * <h3>게시글 추천</h3>
@@ -119,7 +120,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     /**
      * <h3>조회 쿠키 업데이트</h3>
      * <p>사용자가 조회한 게시글 ID를 쿠키에 저장합니다.</p>
-     * <p>JSON 배열을 Base64로 인코딩하여 저장하며, 최대 100개까지 유지합니다.</p>
+     * <p>쉼표로 구분된 문자열 형태로 저장하며, 최대 100개까지 유지합니다.</p>
      *
      * @param response HTTP 응답 (쿠키 설정용)
      * @param cookies  현재 요청의 쿠키 배열
@@ -129,9 +130,9 @@ public class PostInteractionService implements PostInteractionUseCase {
      */
     private void updateViewCookie(HttpServletResponse response, Cookie[] cookies, Long postId) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            List<Long> viewedPostIds = new ArrayList<>();
+            Set<String> viewedPostIds = new HashSet<>();
 
+            // 기존 쿠키에서 조회 이력 로드
             if (cookies != null) {
                 Optional<Cookie> existingCookie = Arrays.stream(cookies)
                         .filter(cookie -> "post_views".equals(cookie.getName()))
@@ -139,31 +140,31 @@ public class PostInteractionService implements PostInteractionUseCase {
 
                 if (existingCookie.isPresent()) {
                     try {
-                        String jsonValue = new String(Base64.getDecoder().decode(existingCookie.get().getValue()));
-                        viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<List<Long>>() {
-                        });
+                        String cookieValue = existingCookie.get().getValue();
+                        if (!cookieValue.isEmpty()) {
+                            viewedPostIds.addAll(Arrays.asList(cookieValue.split(",")));
+                        }
                     } catch (Exception e) {
-                        // 기존 쿠키 값이 유효하지 않은 경우 빈 리스트로 시작
-                        viewedPostIds = new ArrayList<>();
-                        log.warn("Invalid cookie value, starting with empty list", e);
+                        log.warn("Invalid cookie value, starting with empty set", e);
                     }
                 }
             }
 
-            // 이미 본 게시글이면 추가하지 않음
-            if (!viewedPostIds.contains(postId)) {
-                viewedPostIds.add(postId);
+            // 새로운 게시글 ID 추가
+            String postIdStr = postId.toString();
+            if (!viewedPostIds.contains(postIdStr)) {
+                viewedPostIds.add(postIdStr);
 
-                // 최대 100개까지만 유지
+                // 최대 100개까지만 유지 (오래된 것 제거)
                 if (viewedPostIds.size() > 100) {
-                    viewedPostIds = viewedPostIds.subList(viewedPostIds.size() - 100, viewedPostIds.size());
+                    List<String> sortedIds = new ArrayList<>(viewedPostIds);
+                    viewedPostIds = new HashSet<>(sortedIds.subList(sortedIds.size() - 100, sortedIds.size()));
                 }
 
-                // JSON으로 직렬화 - Base64로 인코딩
-                String jsonValue = objectMapper.writeValueAsString(viewedPostIds);
-                String encodedValue = Base64.getEncoder().encodeToString(jsonValue.getBytes());
+                // 쉼표로 구분된 문자열로 저장
+                String cookieValue = String.join(",", viewedPostIds);
 
-                Cookie viewCookie = new Cookie("post_views", encodedValue);
+                Cookie viewCookie = new Cookie("post_views", cookieValue);
                 viewCookie.setMaxAge(24 * 60 * 60); // 24시간
                 viewCookie.setPath("/");
                 viewCookie.setHttpOnly(true);
@@ -177,6 +178,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     /**
      * <h3>사용자가 게시글을 본 적 있는지 확인</h3>
      * <p>쿠키를 통해 사용자가 해당 게시글을 본 적 있는지 확인합니다.</p>
+     * <p>쉼표로 구분된 문자열에서 게시글 ID를 검색합니다.</p>
      *
      * @param cookies 현재 요청의 쿠키 배열
      * @param postId  확인할 게시글 ID
@@ -190,15 +192,13 @@ public class PostInteractionService implements PostInteractionUseCase {
         }
         
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
+            String postIdStr = postId.toString();
             return Arrays.stream(cookies)
                     .filter(cookie -> "post_views".equals(cookie.getName()))
                     .anyMatch(cookie -> {
                         try {
-                            String jsonValue = new String(Base64.getDecoder().decode(cookie.getValue()));
-                            List<Long> viewedPostIds = objectMapper.readValue(jsonValue, new TypeReference<>() {
-                            });
-                            return viewedPostIds.contains(postId);
+                            String cookieValue = cookie.getValue();
+                            return cookieValue.contains(postIdStr);
                         } catch (Exception e) {
                             log.warn("Failed to parse view cookie", e);
                             return false;

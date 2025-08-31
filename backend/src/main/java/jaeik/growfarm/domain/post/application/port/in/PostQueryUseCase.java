@@ -60,15 +60,6 @@ public interface PostQueryUseCase {
      */
     Page<PostSearchResult> searchPost(String type, String query, Pageable pageable);
 
-    /**
-     * <h3>인기 게시글 목록 조회</h3>
-     * <p>
-     *     캐시된 인기 게시글 목록(실시간, 주간, 레전드)을 조회합니다.
-     * </p>
-     * @param type 조회할 인기 게시글 유형
-     * @return 인기 게시글 목록
-     */
-    List<PostSearchResult> getPopularPosts(PostCacheFlag type);
 
     /**
      * <h3>실시간/주간 인기 게시글 목록 일괄 조회</h3>

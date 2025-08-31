@@ -1,6 +1,6 @@
 package jaeik.growfarm.domain.post.application.service;
 
-import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.post.application.port.out.PostCommentQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.*;
 import jaeik.growfarm.domain.post.entity.Post;
 import jaeik.growfarm.domain.post.entity.PostCacheFlag;
@@ -49,8 +49,6 @@ class PostQueryServiceTest {
     @Mock
     private PostLikeQueryPort postLikeQueryPort;
 
-    @Mock
-    private LoadUserInfoPort loadUserInfoPort;
 
     @Mock
     private PostCacheSyncService postCacheSyncService;
@@ -59,7 +57,7 @@ class PostQueryServiceTest {
     private PostCacheQueryPort postCacheQueryPort;
 
     @Mock
-    private CommentQueryUseCase commentQueryUseCase;
+    private PostCommentQueryPort postCommentQueryPort;
 
     @Mock
     private User user;
@@ -126,10 +124,9 @@ class PostQueryServiceTest {
         given(user.getUserName()).willReturn("testUser");
         
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
-        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postLikeQueryPort.countByPost(post)).willReturn(5L);
-        given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
-        given(commentQueryUseCase.countByPostId(postId)).willReturn(3);
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
+        given(postCommentQueryPort.countByPostId(postId)).willReturn(3);
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -137,9 +134,8 @@ class PostQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         verify(postQueryPort).findById(postId);
-        verify(loadUserInfoPort).getReferenceById(userId);
         verify(postLikeQueryPort).countByPost(post);
-        verify(postLikeQueryPort).existsByUserAndPost(user, post);
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
     }
 
     @Test
@@ -168,7 +164,6 @@ class PostQueryServiceTest {
         verify(postCacheQueryPort).getCachedPost(postId);
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(postQueryPort, never()).findById(any()); // 캐시 히트 시 DB 조회 안함
-        verify(loadUserInfoPort, never()).getReferenceById(any()); // User 엔티티 로드 안함
         verify(postLikeQueryPort, never()).countByPost(any()); // 캐시에서 가져올 때는 호출 안함
     }
 
@@ -190,10 +185,9 @@ class PostQueryServiceTest {
         
         // DB에서 조회
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
-        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postLikeQueryPort.countByPost(post)).willReturn(3L);
-        given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
-        given(commentQueryUseCase.countByPostId(postId)).willReturn(7);
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
+        given(postCommentQueryPort.countByPostId(postId)).willReturn(7);
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -203,7 +197,7 @@ class PostQueryServiceTest {
         verify(postCacheQueryPort).getCachedPost(postId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).countByPost(post);
-        verify(postLikeQueryPort).existsByUserAndPost(user, post);
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
     }
 
     @Test
@@ -223,7 +217,7 @@ class PostQueryServiceTest {
         
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(postLikeQueryPort.countByPost(post)).willReturn(10L);
-        given(commentQueryUseCase.countByPostId(postId)).willReturn(5);
+        given(postCommentQueryPort.countByPostId(postId)).willReturn(5);
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -232,8 +226,7 @@ class PostQueryServiceTest {
         assertThat(result).isNotNull();
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).countByPost(post);
-        verify(loadUserInfoPort, never()).getReferenceById(any());
-        verify(postLikeQueryPort, never()).existsByUserAndPost(any(), any());
+        verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
     }
 
     @Test
@@ -299,69 +292,8 @@ class PostQueryServiceTest {
         verify(postQueryPort).findBySearch(type, query, pageable);
     }
 
-    @Test
-    @DisplayName("인기 게시글 조회 - 캐시 있음 (실시간)")
-    void shouldGetPopularPosts_WhenCacheExists() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.REALTIME;
-        PostSearchResult popularPost = createPostSearchResult(1L, "실시간 인기글");
-        List<PostSearchResult> cachedPosts = List.of(popularPost);
 
-        given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
-        given(postCacheQueryPort.getCachedPostList(type)).willReturn(cachedPosts);
 
-        // When
-        List<PostSearchResult> result = postQueryService.getPopularPosts(type);
-
-        // Then
-        assertThat(result).isEqualTo(cachedPosts);
-        assertThat(result).hasSize(1);
-        
-        verify(postCacheQueryPort).hasPopularPostsCache(type);
-        verify(postCacheQueryPort).getCachedPostList(type);
-        verify(postCacheSyncService, never()).updateRealtimePopularPosts();
-    }
-
-    @Test
-    @DisplayName("인기 게시글 조회 - 캐시 없음, 업데이트 후 조회 (주간)")
-    void shouldGetPopularPosts_WhenNoCacheUpdateThenGet() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.WEEKLY;
-        PostSearchResult popularPost = createPostSearchResult(1L, "주간 인기글");
-        List<PostSearchResult> updatedPosts = List.of(popularPost);
-
-        given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(false);
-        given(postCacheQueryPort.getCachedPostList(type)).willReturn(updatedPosts);
-
-        // When
-        List<PostSearchResult> result = postQueryService.getPopularPosts(type);
-
-        // Then
-        assertThat(result).isEqualTo(updatedPosts);
-        
-        verify(postCacheQueryPort).hasPopularPostsCache(type);
-        verify(postCacheSyncService).updateWeeklyPopularPosts();
-        verify(postCacheQueryPort).getCachedPostList(type);
-    }
-
-    @Test
-    @DisplayName("인기 게시글 조회 - 전설의 게시글")
-    void shouldGetPopularPosts_LegendaryPosts() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.LEGEND;
-        
-        given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(false);
-        given(postCacheQueryPort.getCachedPostList(type)).willReturn(Collections.emptyList());
-
-        // When
-        List<PostSearchResult> result = postQueryService.getPopularPosts(type);
-
-        // Then
-        assertThat(result).isEmpty();
-        
-        verify(postCacheSyncService).updateLegendaryPosts();
-        verify(postCacheQueryPort).getCachedPostList(type);
-    }
 
     @Test
     @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 있음")
@@ -504,22 +436,6 @@ class PostQueryServiceTest {
         verifyNoInteractions(postCacheSyncService);
     }
 
-    @Test
-    @DisplayName("인기 게시글 조회 - 잘못된 캐시 타입")
-    void shouldThrowException_WhenInvalidCacheType() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.NOTICE; // getPopularPosts에서 지원하지 않는 타입
-
-        given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(false);
-
-        // When & Then
-        assertThatThrownBy(() -> postQueryService.getPopularPosts(type))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
-
-        verify(postCacheQueryPort).hasPopularPostsCache(type);
-        verifyNoInteractions(postCacheSyncService);
-    }
 
     @Test
     @DisplayName("공지사항 조회 - 성공")
@@ -779,20 +695,21 @@ class PostQueryServiceTest {
         
         given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(realtimePosts);
         given(postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
-        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.LEGEND)).willReturn(legendPosts);
+        given(postCacheQueryPort.getCachedPostListPaged(PostCacheFlag.LEGEND, PageRequest.of(0, 10))).willReturn(new PageImpl<>(legendPosts));
 
         // When
-        List<PostSearchResult> realtimeResult = postQueryService.getPopularPosts(PostCacheFlag.REALTIME);
-        List<PostSearchResult> weeklyResult = postQueryService.getPopularPosts(PostCacheFlag.WEEKLY);
-        List<PostSearchResult> legendResult = postQueryService.getPopularPosts(PostCacheFlag.LEGEND);
+        Map<String, List<PostSearchResult>> realtimeAndWeekly = postQueryService.getRealtimeAndWeeklyPosts();
+        Page<PostSearchResult> legendResult = postQueryService.getPopularPostLegend(PostCacheFlag.LEGEND, PageRequest.of(0, 10));
 
         // Then
-        assertThat(realtimeResult).hasSize(1);
-        assertThat(weeklyResult).hasSize(1);
-        assertThat(legendResult).hasSize(1);
+        assertThat(realtimeAndWeekly).hasSize(2);
+        assertThat(realtimeAndWeekly.get("realtime")).hasSize(1);
+        assertThat(realtimeAndWeekly.get("weekly")).hasSize(1);
+        assertThat(legendResult.getContent()).hasSize(1);
         
         verify(postCacheQueryPort, times(3)).hasPopularPostsCache(any());
-        verify(postCacheQueryPort, times(3)).getCachedPostList(any());
+        verify(postCacheQueryPort, times(2)).getCachedPostList(any());
+        verify(postCacheQueryPort, times(1)).getCachedPostListPaged(any(), any());
         verifyNoInteractions(postCacheSyncService);
     }
 

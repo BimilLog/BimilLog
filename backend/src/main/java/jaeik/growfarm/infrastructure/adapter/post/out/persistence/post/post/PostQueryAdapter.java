@@ -5,7 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.growfarm.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.growfarm.domain.post.application.port.out.PostCommentQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.growfarm.domain.post.application.port.out.PostQueryPort;
 import jaeik.growfarm.domain.post.entity.Post;
@@ -43,7 +43,7 @@ public class PostQueryAdapter implements PostQueryPort {
     private final JPAQueryFactory jpaQueryFactory;
     private final PostJpaRepository postJpaRepository;
     private final PostFulltextRepository postFullTextRepository;
-    private final CommentQueryUseCase commentQueryUseCase;
+    private final PostCommentQueryPort postCommentQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
 
     private static final QPost post = QPost.post;
@@ -146,7 +146,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .toList();
 
         // 3. 배치로 댓글 수와 추천 수 조회 (N+1 문제 해결)
-        Map<Long, Integer> commentCounts = commentQueryUseCase.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> commentCounts = postCommentQueryPort.findCommentCountsByPostIds(postIds);
         Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
 
         // 4. 댓글 수와 추천 수 설정 - mutable 객체이므로 직접 수정
@@ -290,7 +290,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .toList();
 
         // 3. 배치로 댓글 수와 추천 수 조회 (N+1 문제 해결)
-        Map<Long, Integer> commentCounts = commentQueryUseCase.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> commentCounts = postCommentQueryPort.findCommentCountsByPostIds(postIds);
         Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
 
         // 4. 댓글 수와 추천 수 설정 - mutable 객체이므로 직접 수정
