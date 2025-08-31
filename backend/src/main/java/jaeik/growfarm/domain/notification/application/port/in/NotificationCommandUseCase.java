@@ -17,7 +17,6 @@ public interface NotificationCommandUseCase {
      * <p>현재 로그인한 유저의 알림을 읽음 처리하거나 삭제합니다.</p>
      *
      * @param userDetails           현재 로그인한 유저 정보
-     * @param updateNotificationDTO 알림 업데이트 정보
      */
     void batchUpdate(CustomUserDetails userDetails, NotificationUpdateCommand updateCommand);
 }

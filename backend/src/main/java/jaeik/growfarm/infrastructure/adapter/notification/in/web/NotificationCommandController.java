@@ -4,6 +4,7 @@ import jaeik.growfarm.domain.notification.application.port.in.NotificationComman
 import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
 import jaeik.growfarm.infrastructure.adapter.notification.in.web.dto.UpdateNotificationDTO;
 import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class NotificationCommandController {
      */
     @PostMapping("/update")
     public ResponseEntity<Void> markAsRead(@AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody UpdateNotificationDTO updateNotificationDTO) {
+            @Valid @RequestBody UpdateNotificationDTO updateNotificationDTO) {
         NotificationUpdateCommand updateCommand = toCommand(updateNotificationDTO);
         notificationCommandUseCase.batchUpdate(userDetails, updateCommand);
         return ResponseEntity.ok().build();

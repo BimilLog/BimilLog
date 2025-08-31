@@ -7,7 +7,6 @@ import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.notification.entity.QNotification;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -32,15 +31,15 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
     /**
      * <h3>알림 일괄 업데이트</h3>
      * <p>주어진 알림 ID 목록에 따라 알림을 삭제하거나 읽음 상태로 변경합니다.</p>
+     * <p>동일한 ID가 삭제와 읽음 목록에 모두 있을 경우, 삭제가 우선 처리됩니다.</p>
      *
-     * @param userDetails           현재 로그인한 사용자 정보
+     * @param userId           현재 로그인한 사용자 ID
      * @param updateCommand 업데이트할 알림 정보 명령 (삭제할 ID 목록, 읽음 처리할 ID 목록 포함)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateCommand updateCommand) {
-        Long userId = userDetails.getUserId();
+    public void batchUpdate(Long userId, NotificationUpdateCommand updateCommand) {
         List<Long> deleteIds = updateCommand.deletedIds();
         List<Long> readIds = updateCommand.readIds();
 

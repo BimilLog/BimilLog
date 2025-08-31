@@ -3,7 +3,6 @@ package jaeik.growfarm.domain.notification.application.port.out;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.domain.notification.entity.NotificationUpdateCommand;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 
 /**
  * <h2>알림 저장 Port</h2>
@@ -29,8 +28,8 @@ public interface NotificationCommandPort {
     /**
      * <h3>알림 일괄 업데이트</h3>
      *
-     * @param userDetails           현재 로그인한 유저 정보
-     * @param updateNotificationDTO 알림 업데이트 정보
+     * @param userId           현재 로그인한 유저 ID
+     * @param updateCommand 알림 업데이트 정보
      */
-    void batchUpdate(CustomUserDetails userDetails, NotificationUpdateCommand updateCommand);
+    void batchUpdate(Long userId, NotificationUpdateCommand updateCommand);
 }
