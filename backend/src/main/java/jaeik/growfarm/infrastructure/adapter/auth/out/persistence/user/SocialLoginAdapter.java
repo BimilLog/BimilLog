@@ -93,7 +93,7 @@ public class SocialLoginAdapter implements SocialLoginPort {
     @Override
     public void unlink(SocialProvider provider, String socialId) {
         SocialLoginStrategy strategy = strategies.get(provider);
-        strategy.unlink(socialId);
+        strategy.unlink(socialId).subscribe();
     }
 
     /**

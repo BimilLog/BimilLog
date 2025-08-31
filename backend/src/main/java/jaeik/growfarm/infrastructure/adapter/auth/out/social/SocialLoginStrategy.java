@@ -41,10 +41,11 @@ public interface SocialLoginStrategy {
      * <p>주어진 소셜 ID에 해당하는 계정의 연결을 해제합니다.</p>
      *
      * @param socialId 소셜 ID
+     * @return 연결 해제 결과 (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
-    void unlink(String socialId);
+    Mono<Void> unlink(String socialId);
 
     /**
      * <h3>소셜 로그아웃</h3>

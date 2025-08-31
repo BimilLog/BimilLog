@@ -94,7 +94,7 @@ class KakaoLoginStrategyTest {
         given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
         // When & Then: null 입력 시 적절한 처리 (실제 WebClient 호출로 인한 오류)
-        assertThatThrownBy(() -> kakaoLoginStrategy.login(nullCode))
+        assertThatThrownBy(() -> kakaoLoginStrategy.login(nullCode).block())
             .isInstanceOf(Exception.class);
     }
 
@@ -117,8 +117,8 @@ class KakaoLoginStrategyTest {
         String nullSocialId = null;
         given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
-        // When & Then: null 입력 시 적절한 처리
-        assertThatThrownBy(() -> kakaoLoginStrategy.unlink(nullSocialId))
+        // When & Then: null 입력 시 적절한 처리 (Mono 실행으로 인한 오류)
+        assertThatThrownBy(() -> kakaoLoginStrategy.unlink(nullSocialId).block())
             .isInstanceOf(Exception.class);
     }
 
@@ -130,7 +130,7 @@ class KakaoLoginStrategyTest {
         given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
         // When & Then: 빈 문자열 입력 시 적절한 처리 (실제 API 호출로 오류 발생)
-        assertThatThrownBy(() -> kakaoLoginStrategy.login(emptyCode))
+        assertThatThrownBy(() -> kakaoLoginStrategy.login(emptyCode).block())
             .isInstanceOf(Exception.class);
     }
 

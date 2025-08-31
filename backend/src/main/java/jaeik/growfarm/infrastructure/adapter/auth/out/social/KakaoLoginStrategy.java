@@ -54,20 +54,19 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * @author Jaeik
      */
     @Override
-    public void unlink(String socialId) {
+    public Mono<Void> unlink(String socialId) {
         WebClient webClient = webClientBuilder.build();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("target_id_type", "user_id");
         formData.add("target_id", socialId);
 
-        webClient.post()
+        return webClient.post()
                 .uri(kakaoKeyVO.getUNLINK_URL())
                 .header("Authorization", "KakaoAK " + kakaoKeyVO.getADMIN_KEY())
                 .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
                 .body(BodyInserters.fromFormData(formData))
                 .retrieve()
-                .bodyToMono(Void.class)
-                .block();
+                .bodyToMono(Void.class);
     }
 
     /**
