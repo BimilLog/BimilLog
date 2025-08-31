@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler;
+package jaeik.growfarm.infrastructure.adapter.notification.in.listener;
 
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.notification.application.port.out.SsePort;
@@ -23,13 +23,13 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SSE 연결 정리 이벤트 핸들러 테스트")
-class SseEmitterCleanupEventHandlerTest {
+class SseEmitterCleanupEventListenerTest {
 
     @Mock
     private SsePort ssePort;
 
     @InjectMocks
-    private SseEmitterCleanupEventHandler sseEmitterCleanupEventHandler;
+    private SseEmitterCleanupEventListener sseEmitterCleanupEventListener;
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 처리 - 특정 기기 SSE 연결 정리")
@@ -40,7 +40,7 @@ class SseEmitterCleanupEventHandlerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -55,7 +55,7 @@ class SseEmitterCleanupEventHandlerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -70,7 +70,7 @@ class SseEmitterCleanupEventHandlerTest {
         UserLoggedOutEvent event = new UserLoggedOutEvent(userId, tokenId, java.time.LocalDateTime.now());
 
         // When
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -88,7 +88,7 @@ class SseEmitterCleanupEventHandlerTest {
         doThrow(cleanupException).when(ssePort).deleteEmitterByUserIdAndTokenId(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -109,7 +109,7 @@ class SseEmitterCleanupEventHandlerTest {
         assert event.tokenId().equals(tokenId);
 
         // When
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -124,7 +124,7 @@ class SseEmitterCleanupEventHandlerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -139,7 +139,7 @@ class SseEmitterCleanupEventHandlerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -154,7 +154,7 @@ class SseEmitterCleanupEventHandlerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -172,13 +172,13 @@ class SseEmitterCleanupEventHandlerTest {
         UserLoggedOutEvent eventB = UserLoggedOutEvent.of(userId, tokenId2);
 
         // When - A 기기만 로그아웃
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(eventA);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(eventA);
 
         // Then - A 기기의 토큰만 정리되어야 함
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId1));
         
         // When - B 기기도 로그아웃
-        sseEmitterCleanupEventHandler.handleUserLoggedOutEvent(eventB);
+        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(eventB);
         
         // Then - B 기기의 토큰도 정리되어야 함
         verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId2));

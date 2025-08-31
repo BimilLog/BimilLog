@@ -3,7 +3,8 @@ package jaeik.growfarm.infrastructure.adapter.notification.in.listener;
 import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
 import jaeik.growfarm.domain.post.event.PostFeaturedEvent;
 import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
-import jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler.NotificationEventHandler;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,241 +12,138 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
 /**
- * <h2>알림 이벤트 리스너 (디스패처) 테스트</h2>
+ * <h2>알림 이벤트 리스너 테스트</h2>
  * <p>NotificationEventListener의 단위 테스트</p>
- * <p>각 이벤트 타입별 디스패칭 로직과 핸들러 호출 검증</p>
+ * <p>각 이벤트 타입별 알림 처리 로직 검증</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("알림 이벤트 리스너 디스패처 테스트")
+@DisplayName("알림 이벤트 리스너 테스트")
 class NotificationEventListenerTest {
 
     @Mock
-    private NotificationEventHandler<CommentCreatedEvent> mockCommentHandler;
+    private NotificationSseUseCase notificationSseUseCase;
 
     @Mock
-    private NotificationEventHandler<PostFeaturedEvent> mockPostHandler;
-
-    @Mock
-    private NotificationEventHandler<RollingPaperEvent> mockPaperHandler;
+    private NotificationFcmUseCase notificationFcmUseCase;
 
     @InjectMocks
     private NotificationEventListener notificationEventListener;
 
     @Test
-    @DisplayName("댓글 생성 이벤트 처리 - 적절한 핸들러가 처리")
-    void handleCommentCreatedEvent_ShouldUseCorrectHandler() {
+    @DisplayName("댓글 생성 이벤트 처리 - SSE와 FCM 알림 전송")
+    void handleCommentCreatedEvent_ShouldSendNotifications() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(this, 1L, "테스트사용자", 100L);
-        
-        when(mockCommentHandler.supports(event)).thenReturn(true);
-        
-        setHandlers(Arrays.asList(mockCommentHandler, mockPostHandler, mockPaperHandler));
+        Long postUserId = 1L;
+        String commenterName = "테스트사용자";
+        Long postId = 100L;
+        CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
 
         // When
         notificationEventListener.handleCommentCreatedEvent(event);
 
         // Then
-        verify(mockCommentHandler).supports(event);
-        verify(mockCommentHandler).handle(event);
-        // 첫 번째 핸들러가 처리했으므로 나머지는 호출되지 않음
-        verify(mockPostHandler, never()).supports(event);
-        verify(mockPaperHandler, never()).supports(event);
+        verify(notificationSseUseCase).sendCommentNotification(eq(postUserId), eq(commenterName), eq(postId));
+        verify(notificationFcmUseCase).sendCommentNotification(eq(postUserId), eq(commenterName));
     }
 
     @Test
-    @DisplayName("인기글 선정 이벤트 처리 - 적절한 핸들러가 처리")
-    void handlePostFeaturedEvent_ShouldUseCorrectHandler() {
+    @DisplayName("인기글 선정 이벤트 처리 - SSE와 FCM 알림 전송")
+    void handlePostFeaturedEvent_ShouldSendNotifications() {
         // Given
-        PostFeaturedEvent event = new PostFeaturedEvent(this, 1L, "SSE 메시지", 100L, "FCM 제목", "FCM 내용");
-        
-        when(mockCommentHandler.supports(event)).thenReturn(false);
-        when(mockPostHandler.supports(event)).thenReturn(true);
-        
-        setHandlers(Arrays.asList(mockCommentHandler, mockPostHandler, mockPaperHandler));
+        Long userId = 1L;
+        String sseMessage = "SSE 메시지";
+        Long postId = 100L;
+        String fcmTitle = "FCM 제목";
+        String fcmBody = "FCM 내용";
+        PostFeaturedEvent event = new PostFeaturedEvent(this, userId, sseMessage, postId, fcmTitle, fcmBody);
 
         // When
         notificationEventListener.handlePostFeaturedEvent(event);
 
         // Then
-        verify(mockCommentHandler).supports(event);
-        verify(mockCommentHandler, never()).handle(any());
-        verify(mockPostHandler).supports(event);
-        verify(mockPostHandler).handle(event);
-        // 두 번째 핸들러가 처리했으므로 세 번째는 호출되지 않음
-        verify(mockPaperHandler, never()).supports(event);
+        verify(notificationSseUseCase).sendPostFeaturedNotification(eq(userId), eq(sseMessage), eq(postId));
+        verify(notificationFcmUseCase).sendPostFeaturedNotification(eq(userId), eq(fcmTitle), eq(fcmBody));
     }
 
     @Test
-    @DisplayName("롤링페이퍼 이벤트 처리 - 적절한 핸들러가 처리")
-    void handleRollingPaperEvent_ShouldUseCorrectHandler() {
+    @DisplayName("롤링페이퍼 이벤트 처리 - SSE와 FCM 알림 전송")
+    void handleRollingPaperEvent_ShouldSendNotifications() {
         // Given
-        RollingPaperEvent event = new RollingPaperEvent(this, 1L, "테스트사용자");
-        
-        when(mockCommentHandler.supports(event)).thenReturn(false);
-        when(mockPostHandler.supports(event)).thenReturn(false);
-        when(mockPaperHandler.supports(event)).thenReturn(true);
-        
-        setHandlers(Arrays.asList(mockCommentHandler, mockPostHandler, mockPaperHandler));
+        Long paperOwnerId = 1L;
+        String userName = "테스트사용자";
+        RollingPaperEvent event = new RollingPaperEvent(this, paperOwnerId, userName);
 
         // When
         notificationEventListener.handleRollingPaperEvent(event);
 
         // Then
-        verify(mockCommentHandler).supports(event);
-        verify(mockCommentHandler, never()).handle(any());
-        verify(mockPostHandler).supports(event);
-        verify(mockPostHandler, never()).handle(any());
-        verify(mockPaperHandler).supports(event);
-        verify(mockPaperHandler).handle(event);
+        verify(notificationSseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(userName));
+        verify(notificationFcmUseCase).sendPaperPlantNotification(eq(paperOwnerId));
     }
 
     @Test
-    @DisplayName("댓글 생성 이벤트 처리 - 지원하는 핸들러가 없는 경우")
-    void handleCommentCreatedEvent_NoHandlerSupports_ShouldNotHandleAnything() {
+    @DisplayName("댓글 생성 이벤트 처리 - null 값들 처리")
+    void handleCommentCreatedEvent_WithNullValues() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(this, 1L, "테스트사용자", 100L);
-        
-        // 모든 핸들러가 지원하지 않음
-        when(mockCommentHandler.supports(event)).thenReturn(false);
-        when(mockPostHandler.supports(event)).thenReturn(false);
-        when(mockPaperHandler.supports(event)).thenReturn(false);
-        
-        setHandlers(Arrays.asList(mockCommentHandler, mockPostHandler, mockPaperHandler));
+        CommentCreatedEvent event = new CommentCreatedEvent(this, null, null, null);
 
         // When
         notificationEventListener.handleCommentCreatedEvent(event);
 
         // Then
-        verify(mockCommentHandler).supports(event);
-        verify(mockCommentHandler, never()).handle(any());
-        verify(mockPostHandler).supports(event);
-        verify(mockPostHandler, never()).handle(any());
-        verify(mockPaperHandler).supports(event);
-        verify(mockPaperHandler, never()).handle(any());
+        verify(notificationSseUseCase).sendCommentNotification(eq(null), eq(null), eq(null));
+        verify(notificationFcmUseCase).sendCommentNotification(eq(null), eq(null));
     }
 
     @Test
-    @DisplayName("댓글 생성 이벤트 처리 - 빈 핸들러 리스트")
-    void handleCommentCreatedEvent_EmptyHandlerList_ShouldDoNothing() {
+    @DisplayName("인기글 선정 이벤트 처리 - null 값들 처리")
+    void handlePostFeaturedEvent_WithNullValues() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(this, 1L, "테스트사용자", 100L);
-        setHandlers(Collections.emptyList());
+        PostFeaturedEvent event = new PostFeaturedEvent(this, null, null, null, null, null);
 
         // When
-        notificationEventListener.handleCommentCreatedEvent(event);
+        notificationEventListener.handlePostFeaturedEvent(event);
 
         // Then
-        // 아무것도 호출되지 않아야 함
-        verifyNoInteractions(mockCommentHandler, mockPostHandler, mockPaperHandler);
+        verify(notificationSseUseCase).sendPostFeaturedNotification(eq(null), eq(null), eq(null));
+        verify(notificationFcmUseCase).sendPostFeaturedNotification(eq(null), eq(null), eq(null));
     }
 
     @Test
-    @DisplayName("댓글 생성 이벤트 처리 - 핸들러에서 예외 발생")
-    void handleCommentCreatedEvent_HandlerThrowsException_ShouldPropagateException() {
+    @DisplayName("롤링페이퍼 이벤트 처리 - null 값들 처리")
+    void handleRollingPaperEvent_WithNullValues() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(this, 1L, "테스트사용자", 100L);
-        
-        when(mockCommentHandler.supports(event)).thenReturn(true);
-        doThrow(new RuntimeException("핸들러 처리 실패")).when(mockCommentHandler).handle(event);
-        
-        setHandlers(Arrays.asList(mockCommentHandler, mockPostHandler, mockPaperHandler));
-
-        // When & Then
-        try {
-            notificationEventListener.handleCommentCreatedEvent(event);
-        } catch (RuntimeException e) {
-            // 예외가 전파되어야 함
-            verify(mockCommentHandler).supports(event);
-            verify(mockCommentHandler).handle(event);
-            verify(mockPostHandler, never()).supports(event);
-            verify(mockPaperHandler, never()).supports(event);
-        }
-    }
-
-    @Test
-    @DisplayName("인기글 선정 이벤트 처리 - supports 메서드에서 예외 발생")
-    void handlePostFeaturedEvent_SupportsMethodThrowsException_ShouldPropagateException() {
-        // Given
-        PostFeaturedEvent event = new PostFeaturedEvent(this, 1L, "SSE 메시지", 100L, "FCM 제목", "FCM 내용");
-        
-        when(mockCommentHandler.supports(event)).thenThrow(new RuntimeException("supports 메서드 실패"));
-        
-        setHandlers(Arrays.asList(mockCommentHandler, mockPostHandler, mockPaperHandler));
-
-        // When & Then
-        try {
-            notificationEventListener.handlePostFeaturedEvent(event);
-        } catch (RuntimeException e) {
-            // 예외가 전파되어야 함
-            verify(mockCommentHandler).supports(event);
-            verify(mockCommentHandler, never()).handle(any());
-            verify(mockPostHandler, never()).supports(any());
-            verify(mockPaperHandler, never()).supports(any());
-        }
-    }
-
-    @Test
-    @DisplayName("롤링페이퍼 이벤트 처리 - 다양한 이벤트 데이터")
-    void handleRollingPaperEvent_WithVariousEventData_ShouldProcess() {
-        // Given
-        RollingPaperEvent event = new RollingPaperEvent(this, 999L, "특별한사용자");
-        
-        when(mockPaperHandler.supports(event)).thenReturn(true);
-        
-        setHandlers(Arrays.asList(mockCommentHandler, mockPostHandler, mockPaperHandler));
+        RollingPaperEvent event = new RollingPaperEvent(this, null, null);
 
         // When
         notificationEventListener.handleRollingPaperEvent(event);
 
         // Then
-        verify(mockCommentHandler).supports(event);
-        verify(mockPostHandler).supports(event);
-        verify(mockPaperHandler).supports(event);
-        verify(mockPaperHandler).handle(event);
+        verify(notificationSseUseCase).sendPaperPlantNotification(eq(null), eq(null));
+        verify(notificationFcmUseCase).sendPaperPlantNotification(eq(null));
     }
 
     @Test
-    @DisplayName("다중 핸들러가 모두 지원하는 경우 - 첫 번째 핸들러만 처리")
-    void handleCommentCreatedEvent_MultipleHandlersSupport_ShouldUseFirstHandlerOnly() {
+    @DisplayName("댓글 생성 이벤트 처리 - 다양한 데이터 값들")
+    void handleCommentCreatedEvent_WithVariousData() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(this, 1L, "테스트사용자", 100L);
-        
-        // 첫 번째 핸들러만 지원한다고 설정 (실제 동작과 일치)
-        when(mockCommentHandler.supports(event)).thenReturn(true);
-        
-        setHandlers(Arrays.asList(mockCommentHandler, mockPostHandler, mockPaperHandler));
+        Long postUserId = 999L;
+        String commenterName = "특별한사용자";
+        Long postId = 12345L;
+        CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
 
         // When
         notificationEventListener.handleCommentCreatedEvent(event);
 
         // Then
-        verify(mockCommentHandler).supports(event);
-        verify(mockCommentHandler).handle(event);
-        // 첫 번째 핸들러가 처리했으므로 나머지는 확인하지 않음
-        verify(mockPostHandler, never()).supports(event);
-        verify(mockPaperHandler, never()).supports(event);
-    }
-
-    /**
-     * 리플렉션을 사용하여 NotificationEventListener의 핸들러 리스트를 설정
-     */
-    private void setHandlers(java.util.List<NotificationEventHandler> handlers) {
-        try {
-            java.lang.reflect.Field field = NotificationEventListener.class.getDeclaredField("notificationEventHandlers");
-            field.setAccessible(true);
-            field.set(notificationEventListener, handlers);
-        } catch (Exception e) {
-            throw new RuntimeException("핸들러 리스트 설정 실패", e);
-        }
+        verify(notificationSseUseCase).sendCommentNotification(eq(postUserId), eq(commenterName), eq(postId));
+        verify(notificationFcmUseCase).sendCommentNotification(eq(postUserId), eq(commenterName));
     }
 }

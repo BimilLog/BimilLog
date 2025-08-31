@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler;
+package jaeik.growfarm.infrastructure.adapter.notification.in.listener;
 
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.notification.application.port.out.SsePort;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SseEmitterCleanupEventHandler {
+public class SseEmitterCleanupEventListener {
 
     private final SsePort ssePort;
 

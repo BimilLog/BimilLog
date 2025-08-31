@@ -3,26 +3,18 @@ package jaeik.growfarm.infrastructure.adapter.notification.in.listener;
 import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
 import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
 import jaeik.growfarm.domain.post.event.PostFeaturedEvent;
-import jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler.NotificationEventHandler;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.growfarm.domain.notification.application.port.in.NotificationFcmUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * <h2>알림 이벤트 리스너 (디스패처)</h2>
- * <p>
- *     모든 {@link ApplicationEvent}를 수신하여, 해당 이벤트를 처리할 수 있는
- *     적절한 {@link NotificationEventHandler}에게 처리를 위임하는 디스패처 역할을 합니다.
- * </p>
- * <p>
- *     새로운 알림 유형이 추가되더라도 이 클래스는 수정할 필요가 없습니다.
- *     {@link NotificationEventHandler}를 구현한 핸들러만 추가하면 됩니다.
- * </p>
+ * <h2>알림 이벤트 리스너</h2>
+ * <p>도메인 이벤트를 수신하여 SSE와 FCM 알림을 전송하는 리스너입니다.</p>
+ * <p>각 이벤트 타입별로 적절한 알림을 처리합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -32,7 +24,8 @@ import java.util.List;
 @Slf4j
 public class NotificationEventListener {
 
-    private final List<NotificationEventHandler> notificationEventHandlers;
+    private final NotificationSseUseCase notificationSseUseCase;
+    private final NotificationFcmUseCase notificationFcmUseCase;
 
     /**
      * <h3>댓글 생성 알림 이벤트 처리</h3>
@@ -43,14 +36,17 @@ public class NotificationEventListener {
      */
     @EventListener(CommentCreatedEvent.class)
     @Async("sseNotificationExecutor")
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
-        for (NotificationEventHandler handler : notificationEventHandlers) {
-            if (handler.supports(event)) {
-                handler.handle(event);
-                return;
-            }
-        }
+        // SSE 알림 전송
+        notificationSseUseCase.sendCommentNotification(
+                event.getPostUserId(),
+                event.getCommenterName(),
+                event.getPostId());
+        
+        // FCM 알림 전송
+        notificationFcmUseCase.sendCommentNotification(
+                event.getPostUserId(),
+                event.getCommenterName());
     }
 
     /**
@@ -62,14 +58,15 @@ public class NotificationEventListener {
      */
     @EventListener(RollingPaperEvent.class)
     @Async("sseNotificationExecutor")
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void handleRollingPaperEvent(RollingPaperEvent event) {
-        for (NotificationEventHandler handler : notificationEventHandlers) {
-            if (handler.supports(event)) {
-                handler.handle(event);
-                return;
-            }
-        }
+        // SSE 알림 전송
+        notificationSseUseCase.sendPaperPlantNotification(
+                event.getPaperOwnerId(),
+                event.getUserName());
+        
+        // FCM 알림 전송
+        notificationFcmUseCase.sendPaperPlantNotification(
+                event.getPaperOwnerId());
     }
 
     /**
@@ -81,13 +78,17 @@ public class NotificationEventListener {
      */
     @EventListener(PostFeaturedEvent.class)
     @Async("sseNotificationExecutor")
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
-        for (NotificationEventHandler handler : notificationEventHandlers) {
-            if (handler.supports(event)) {
-                handler.handle(event);
-                return;
-            }
-        }
+        // SSE 알림 전송
+        notificationSseUseCase.sendPostFeaturedNotification(
+                event.getUserId(),
+                event.getSseMessage(),
+                event.getPostId());
+        
+        // FCM 알림 전송
+        notificationFcmUseCase.sendPostFeaturedNotification(
+                event.getUserId(),
+                event.getFcmTitle(),
+                event.getFcmBody());
     }
 }

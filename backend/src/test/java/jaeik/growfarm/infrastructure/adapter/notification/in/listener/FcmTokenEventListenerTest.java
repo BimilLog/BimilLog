@@ -1,4 +1,4 @@
-package jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler;
+package jaeik.growfarm.infrastructure.adapter.notification.in.listener;
 
 import jaeik.growfarm.domain.auth.event.UserLoggedOutEvent;
 import jaeik.growfarm.domain.auth.event.UserWithdrawnEvent;

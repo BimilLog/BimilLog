@@ -161,7 +161,8 @@ class NotificationEventWorkflowIntegrationTest {
     void userLoggedOutEventWorkflow_ShouldCompleteCleanupAndTokenDeletion() {
         // Given
         Long userId = 1L;
-        UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, 100L);
+        Long tokenId = 100L;
+        UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
         eventPublisher.publishEvent(event);
@@ -170,7 +171,7 @@ class NotificationEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(ssePort).deleteAllEmitterByUserId(eq(userId));
+                    verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                     verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
                 });
     }
@@ -200,10 +201,11 @@ class NotificationEventWorkflowIntegrationTest {
         Long userId = 1L;
         String commenterName = "댓글작성자";
         Long postId = 100L;
+        Long tokenId = 100L;
 
         // When - 연속된 이벤트 발행
         eventPublisher.publishEvent(new CommentCreatedEvent(this, userId, commenterName, postId));
-        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, 100L));
+        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId));
 
         // Then - 두 이벤트 모두 처리되어야 함
         Awaitility.await()
@@ -216,7 +218,7 @@ class NotificationEventWorkflowIntegrationTest {
                             eq(userId), eq(commenterName));
                     
                     // 사용자 로그아웃 후 정리
-                    verify(ssePort).deleteAllEmitterByUserId(eq(userId));
+                    verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                     verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
                 });
     }
@@ -300,9 +302,10 @@ class NotificationEventWorkflowIntegrationTest {
     void userLogoutThenWithdrawalScenario() {
         // Given
         Long userId = 1L;
+        Long tokenId = 100L;
 
         // When - 로그아웃 후 탈퇴 이벤트 발행
-        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, 100L));
+        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId));
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
 
         // Then - 두 이벤트 모두 처리되어야 함
@@ -310,7 +313,7 @@ class NotificationEventWorkflowIntegrationTest {
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
                     // 로그아웃 처리 (SSE 정리 + FCM 토큰 삭제)
-                    verify(ssePort).deleteAllEmitterByUserId(eq(userId));
+                    verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                     
                     // FCM 토큰 삭제가 두 번 호출됨 (로그아웃과 탈퇴에서 각각)
                     verify(notificationFcmUseCase, org.mockito.Mockito.times(2)).deleteFcmTokens(eq(userId));
