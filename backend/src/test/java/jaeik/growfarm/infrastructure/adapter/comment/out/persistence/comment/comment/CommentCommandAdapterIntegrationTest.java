@@ -34,6 +34,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.test.annotation.Commit;
+
 /**
  * <h2>CommentCommandAdapter 통합 테스트</h2>
  * <p>실제 MySQL 데이터베이스를 사용한 CommentCommandAdapter의 통합 테스트</p>
@@ -213,6 +215,7 @@ class CommentCommandAdapterIntegrationTest {
 
     @Test
     @DisplayName("정상 케이스 - 댓글 삭제")
+    @Commit  // 트랜잭션 롤백 방지로 @Modifying 쿼리 결과 확인
     void shouldDeleteComment_WhenValidCommentProvided() {
         // Given: 기존 댓글 생성 및 저장
         Comment existingComment = Comment.createComment(
@@ -230,6 +233,10 @@ class CommentCommandAdapterIntegrationTest {
         // When: 댓글 하드 삭제 (자손이 없는 경우)
         int deleteCount = commentCommandAdapter.hardDeleteComment(commentId);
 
+        // EntityManager 초기화로 변경사항 반영
+        entityManager.flush();
+        entityManager.clear();
+
         // Then: 댓글이 삭제되었는지 검증
         assertThat(deleteCount).isEqualTo(1);
         Optional<Comment> deletedComment = commentRepository.findById(commentId);
@@ -238,6 +245,7 @@ class CommentCommandAdapterIntegrationTest {
 
     @Test
     @DisplayName("정상 케이스 - 게시글 ID로 모든 댓글 삭제")
+    @Commit  // 트랜잭션 롤백 방지로 @Modifying 쿼리 결과 확인
     void shouldDeleteAllCommentsByPostId_WhenValidPostIdProvided() {
         // Given: 동일한 게시글에 여러 댓글 생성
         Comment comment1 = Comment.createComment(testPost, testUser, "댓글 1", null);
@@ -255,6 +263,10 @@ class CommentCommandAdapterIntegrationTest {
         // When: 게시글 ID로 모든 댓글 삭제
         commentCommandAdapter.deleteAllByPostId(testPost.getId());
 
+        // EntityManager 초기화로 변경사항 반영
+        entityManager.flush();
+        entityManager.clear();
+
         // Then: 모든 댓글이 삭제되었는지 검증
         List<Comment> commentsAfter = commentRepository.findAll();
         assertThat(commentsAfter).isEmpty();
@@ -262,6 +274,7 @@ class CommentCommandAdapterIntegrationTest {
 
     @Test
     @DisplayName("정상 케이스 - 사용자 댓글 익명화")
+    @Commit  // 트랜잭션 롤백 방지로 @Modifying 쿼리 결과 확인
     void shouldAnonymizeUserComments_WhenValidUserIdProvided() {
         // Given: 특정 사용자의 여러 댓글 생성
         Comment comment1 = Comment.createComment(testPost, testUser, "사용자 댓글 1", null);
@@ -273,7 +286,8 @@ class CommentCommandAdapterIntegrationTest {
         // When: 사용자 댓글 익명화
         commentCommandAdapter.anonymizeUserComments(testUser.getId());
         
-        // 변경 사항을 DB에서 다시 조회
+        // EntityManager 초기화로 변경사항 반영
+        entityManager.flush();
         entityManager.clear();
 
         // Then: 댓글들이 익명화되었는지 검증
