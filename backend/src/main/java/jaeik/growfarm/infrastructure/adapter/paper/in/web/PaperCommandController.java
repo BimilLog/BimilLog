@@ -58,7 +58,8 @@ public class PaperCommandController {
     @PostMapping("/delete")
     public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                 @RequestBody @Valid MessageDTO messageDTO) {
-        paperCommandUseCase.deleteMessageInMyPaper(userDetails, messageDTO.toCommand());
+        Long userId = userDetails.getUserId();
+        paperCommandUseCase.deleteMessageInMyPaper(userId, messageDTO.toCommand());
         return ResponseEntity.ok("메시지가 삭제되었습니다.");
     }
 }

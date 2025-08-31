@@ -8,7 +8,6 @@ import jaeik.growfarm.domain.paper.entity.MessageDetail;
 import jaeik.growfarm.domain.paper.entity.VisitMessageDetail;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,8 +39,11 @@ public class PaperQueryService implements PaperQueryUseCase {
      * <p>기존 PaperReadServiceImpl.myPaper() 메서드의 로직을 완전히 보존</p>
      */
     @Override
-    public List<MessageDetail> getMyPaper(CustomUserDetails userDetails) {
-        List<Message> messages = paperQueryPort.findMessagesByUserId(userDetails.getUserId());
+    public List<MessageDetail> getMyPaper(Long userId) {
+        if (userId == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        List<Message> messages = paperQueryPort.findMessagesByUserId(userId);
         return messages.stream()
                 .map(MessageDetail::from)
                 .toList();

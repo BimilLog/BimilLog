@@ -7,7 +7,6 @@ import jaeik.growfarm.domain.paper.entity.MessageDetail;
 import jaeik.growfarm.domain.paper.entity.VisitMessageDetail;
 import jaeik.growfarm.domain.paper.entity.DecoType;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -45,8 +44,6 @@ class PaperQueryServiceTest {
     @Mock
     private LoadUserPort loadUserPort;
 
-    @Mock
-    private CustomUserDetails userDetails;
 
     @Mock
     private User user;
@@ -68,11 +65,10 @@ class PaperQueryServiceTest {
                 createMessage(3L, userId, "세 번째 메시지")
         );
 
-        given(userDetails.getUserId()).willReturn(userId);
         given(paperQueryPort.findMessagesByUserId(userId)).willReturn(messages);
 
         // When
-        List<MessageDetail> result = paperQueryService.getMyPaper(userDetails);
+        List<MessageDetail> result = paperQueryService.getMyPaper(userId);
 
         // Then
         assertThat(result).isNotNull();
@@ -84,7 +80,6 @@ class PaperQueryServiceTest {
         assertThat(result.get(2).id()).isEqualTo(3L);
         assertThat(result.get(2).content()).isEqualTo("세 번째 메시지");
 
-        verify(userDetails, times(1)).getUserId();
         verify(paperQueryPort, times(1)).findMessagesByUserId(userId);
         verifyNoMoreInteractions(paperQueryPort);
     }
@@ -96,17 +91,15 @@ class PaperQueryServiceTest {
         Long userId = 1L;
         List<Message> emptyList = Collections.emptyList();
 
-        given(userDetails.getUserId()).willReturn(userId);
         given(paperQueryPort.findMessagesByUserId(userId)).willReturn(emptyList);
 
         // When
-        List<MessageDetail> result = paperQueryService.getMyPaper(userDetails);
+        List<MessageDetail> result = paperQueryService.getMyPaper(userId);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
-        verify(userDetails, times(1)).getUserId();
         verify(paperQueryPort, times(1)).findMessagesByUserId(userId);
         verifyNoMoreInteractions(paperQueryPort);
     }

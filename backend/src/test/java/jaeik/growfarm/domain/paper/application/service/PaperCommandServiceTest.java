@@ -8,7 +8,6 @@ import jaeik.growfarm.domain.paper.entity.MessageCommand;
 import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
 import jaeik.growfarm.domain.user.entity.User;
 import jaeik.growfarm.infrastructure.adapter.paper.in.web.dto.MessageDTO;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -49,8 +48,6 @@ class PaperCommandServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private CustomUserDetails userDetails;
 
     @Mock
     private User user;
@@ -70,13 +67,12 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(messageId);
 
-        given(userDetails.getUserId()).willReturn(userId);
         given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(message));
         given(message.isOwner(userId)).willReturn(true);
         given(message.getId()).willReturn(messageId);
 
         // When
-        paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand());
+        paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand());
 
         // Then
         verify(paperQueryPort, times(1)).findMessageById(messageId);
@@ -96,7 +92,7 @@ class PaperCommandServiceTest {
         given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(999L, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
 
@@ -113,12 +109,11 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(messageId);
 
-        given(userDetails.getUserId()).willReturn(userId);
         given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(message));
         given(message.isOwner(userId)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
@@ -256,7 +251,7 @@ class PaperCommandServiceTest {
         MessageCommand messageCommand = null;
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageCommand))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(1L, messageCommand))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
     }
@@ -271,7 +266,7 @@ class PaperCommandServiceTest {
         given(paperQueryPort.findMessageById(null)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(1L, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
 
@@ -355,8 +350,6 @@ class PaperCommandServiceTest {
         Long userId = 1L;
         Long[] messageIds = {100L, 200L, 300L};
         
-        given(userDetails.getUserId()).willReturn(userId);
-        
         for (Long messageId : messageIds) {
             MessageDTO messageDTO = new MessageDTO();
             messageDTO.setId(messageId);
@@ -367,7 +360,7 @@ class PaperCommandServiceTest {
             given(mockMessage.getId()).willReturn(messageId);
             
             // When
-            paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand());
+            paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand());
             
             // Then
             verify(paperCommandPort, times(1)).deleteById(messageId);
@@ -404,12 +397,11 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(messageId);
 
-        given(userDetails.getUserId()).willReturn(userId);
         given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(message));
         given(message.isOwner(userId)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userDetails, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_DELETE_FORBIDDEN);
 

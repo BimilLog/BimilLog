@@ -8,7 +8,6 @@ import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.paper.entity.MessageCommand;
 import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
 import jaeik.growfarm.domain.user.entity.User;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 import jaeik.growfarm.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +47,7 @@ public class PaperCommandService implements PaperCommandUseCase {
      * @since 2.0.0
      */
     @Override
-    public void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageCommand messageCommand) {
+    public void deleteMessageInMyPaper(Long userId, MessageCommand messageCommand) {
         if (messageCommand == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
@@ -56,7 +55,7 @@ public class PaperCommandService implements PaperCommandUseCase {
         Message message = paperQueryPort.findMessageById(messageCommand.id())
                 .orElseThrow(() -> new CustomException(ErrorCode.MESSAGE_NOT_FOUND));
 
-        if (!message.isOwner(userDetails.getUserId())) {
+        if (!message.isOwner(userId)) {
             throw new CustomException(ErrorCode.MESSAGE_DELETE_FORBIDDEN);
         }
         paperCommandPort.deleteById(message.getId());

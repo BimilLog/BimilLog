@@ -3,7 +3,6 @@ package jaeik.growfarm.domain.paper.application.port.in;
 import jaeik.growfarm.domain.paper.entity.Message;
 import jaeik.growfarm.domain.paper.entity.MessageDetail;
 import jaeik.growfarm.domain.paper.entity.VisitMessageDetail;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 
 import java.util.List;
@@ -27,12 +26,12 @@ public interface PaperQueryUseCase {
      * 기존 PaperReadService.myPaper() 메서드와 동일한 기능
      * </p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보
+     * @param userId 현재 로그인한 사용자 ID
      * @return 내 롤링페이퍼의 메시지 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<MessageDetail> getMyPaper(CustomUserDetails userDetails);
+    List<MessageDetail> getMyPaper(Long userId);
 
     /**
      * <h3>다른 사용자 롤링페이퍼 방문 조회</h3>

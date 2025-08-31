@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.paper.application.port.in;
 
 import jaeik.growfarm.domain.paper.entity.MessageCommand;
-import jaeik.growfarm.infrastructure.auth.CustomUserDetails;
 import jaeik.growfarm.infrastructure.exception.CustomException;
 
 /**
@@ -24,13 +23,13 @@ public interface PaperCommandUseCase {
      * - 메시지 삭제 수행
      * </p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보
+     * @param userId 현재 로그인한 사용자 ID
      * @param messageCommand 삭제할 메시지 정보
      * @throws CustomException 삭제 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteMessageInMyPaper(CustomUserDetails userDetails, MessageCommand messageCommand);
+    void deleteMessageInMyPaper(Long userId, MessageCommand messageCommand);
 
     /**
      * <h3>메시지 작성</h3>
