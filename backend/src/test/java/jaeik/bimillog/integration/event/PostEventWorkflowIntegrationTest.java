@@ -1,6 +1,9 @@
 package jaeik.bimillog.integration.event;
 
+import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
+import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
+import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -53,6 +56,9 @@ class PostEventWorkflowIntegrationTest {
 
     @MockitoBean
     private PostInteractionUseCase postInteractionUseCase;
+
+    @MockitoBean
+    private PostCacheUseCase postCacheUseCase;
 
     @Test
     @DisplayName("게시글 조회 이벤트 워크플로우 - 조회수 증가까지 완료")
@@ -326,6 +332,181 @@ class PostEventWorkflowIntegrationTest {
                     Map<String, String> capturedHistory = historyCaptor.getValue();
                     assertThat(capturedHistory.get("viewed_posts")).isEqualTo("100,200,300");
                     assertThat(capturedHistory.get("last_viewed")).isEqualTo("2023-12-01");
+                });
+    }
+
+    @Test
+    @DisplayName("게시글 공지 설정 이벤트 워크플로우 - 공지 캐시 삭제까지 완료")
+    void postSetAsNoticeEventWorkflow_ShouldCompleteNoticeCacheDeletion() {
+        // Given
+        Long postId = 123L;
+        PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(postId);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 비동기 처리를 고려하여 Awaitility 사용
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postCacheUseCase).deleteNoticeCache();
+                });
+    }
+
+    @Test
+    @DisplayName("게시글 공지 해제 이벤트 워크플로우 - 공지 캐시 삭제까지 완료")
+    void postUnsetAsNoticeEventWorkflow_ShouldCompleteNoticeCacheDeletion() {
+        // Given
+        Long postId = 123L;
+        PostUnsetAsNoticeEvent event = new PostUnsetAsNoticeEvent(postId);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 비동기 처리를 고려하여 Awaitility 사용
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postCacheUseCase).deleteNoticeCache();
+                });
+    }
+
+    @Test
+    @DisplayName("게시글 공지 설정/해제 연속 이벤트 처리")
+    void postNoticeSetAndUnsetEvents_ShouldBeProcessedSequentially() {
+        // Given
+        Long postId = 123L;
+        PostSetAsNoticeEvent setEvent = new PostSetAsNoticeEvent(postId);
+        PostUnsetAsNoticeEvent unsetEvent = new PostUnsetAsNoticeEvent(postId);
+
+        // When - 공지 설정 후 해제
+        eventPublisher.publishEvent(setEvent);
+        eventPublisher.publishEvent(unsetEvent);
+
+        // Then - 두 번의 캐시 삭제가 모두 호출되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(postCacheUseCase, times(2)).deleteNoticeCache();
+                });
+    }
+
+    @Test
+    @DisplayName("여러 게시글 동시 공지 설정 이벤트 처리")
+    void multiplePostNoticeSetEvents_ShouldBeProcessedConcurrently() {
+        // Given
+        Long postId1 = 100L;
+        Long postId2 = 200L;
+        Long postId3 = 300L;
+        
+        PostSetAsNoticeEvent event1 = new PostSetAsNoticeEvent(postId1);
+        PostSetAsNoticeEvent event2 = new PostSetAsNoticeEvent(postId2);
+        PostSetAsNoticeEvent event3 = new PostSetAsNoticeEvent(postId3);
+
+        // When - 동시에 여러 공지 설정 이벤트 발행
+        eventPublisher.publishEvent(event1);
+        eventPublisher.publishEvent(event2);
+        eventPublisher.publishEvent(event3);
+
+        // Then - 3번의 캐시 삭제가 모두 호출되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(postCacheUseCase, times(3)).deleteNoticeCache();
+                });
+    }
+
+    @Test
+    @DisplayName("공지 캐시 삭제 실패 시 복원력 테스트")
+    void postNoticeEventWithCacheException_ShouldHandleGracefully() {
+        // Given
+        Long postId = 999L;
+        PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(postId);
+        
+        doThrow(new RuntimeException("Cache deletion failed"))
+                .when(postCacheUseCase)
+                .deleteNoticeCache();
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 예외가 발생해도 이벤트 리스너는 호출되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postCacheUseCase).deleteNoticeCache();
+                });
+    }
+
+    @Test
+    @DisplayName("공지 이벤트 처리 시간 검증")
+    void postNoticeEventProcessingTime_ShouldCompleteWithinTimeout() {
+        // Given
+        Long postId = 123L;
+        PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(postId);
+        long startTime = System.currentTimeMillis();
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 1초 내에 처리 완료되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(1))
+                .untilAsserted(() -> {
+                    verify(postCacheUseCase).deleteNoticeCache();
+
+                    long endTime = System.currentTimeMillis();
+                    long processingTime = endTime - startTime;
+                    
+                    // 처리 시간이 1초를 초과하지 않아야 함
+                    assert processingTime < 1000L : "공지 이벤트 처리 시간이 너무 오래 걸림: " + processingTime + "ms";
+                });
+    }
+
+    @Test
+    @DisplayName("대용량 공지 설정 이벤트 처리")
+    void highVolumePostNoticeEvents_ShouldBeProcessedEfficiently() {
+        // Given
+        Long postId = 123L;
+        int eventCount = 50;
+
+        // When - 50개의 공지 설정 이벤트 발행
+        for (int i = 0; i < eventCount; i++) {
+            PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(postId);
+            eventPublisher.publishEvent(event);
+        }
+
+        // Then - 모든 이벤트가 5초 내에 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postCacheUseCase, times(eventCount)).deleteNoticeCache();
+                });
+    }
+
+    @Test
+    @DisplayName("공지 설정과 게시글 조회 이벤트 동시 처리")
+    void postNoticeAndViewEvents_ShouldBeProcessedIndependently() {
+        // Given
+        Long postId = 123L;
+        String userIdentifier = "192.168.1.1";
+        Map<String, String> viewHistory = new HashMap<>();
+        viewHistory.put("viewed_posts", "");
+        
+        PostSetAsNoticeEvent noticeEvent = new PostSetAsNoticeEvent(postId);
+        PostViewedEvent viewedEvent = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+
+        // When - 공지 설정과 조회 이벤트 동시 발행
+        eventPublisher.publishEvent(noticeEvent);
+        eventPublisher.publishEvent(viewedEvent);
+
+        // Then - 두 이벤트가 모두 독립적으로 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(postCacheUseCase).deleteNoticeCache();
+                    verify(postInteractionUseCase).incrementViewCountWithHistory(
+                            eq(postId), eq(userIdentifier), eq(viewHistory));
                 });
     }
 }

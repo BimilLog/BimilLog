@@ -6,8 +6,6 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
-import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +40,8 @@ class PostCacheSyncServiceTest {
 
     @Mock
     private PostCacheSyncPort postCacheSyncPort;
+
+
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -233,31 +233,6 @@ class PostCacheSyncServiceTest {
         verify(postCacheCommandPort).deletePopularPostsCache(PostCacheFlag.NOTICE);
     }
 
-    @Test
-    @DisplayName("게시글 공지 설정 이벤트 처리 - 성공")
-    void shouldHandlePostSetAsNoticeEvent_Successfully() {
-        // Given
-        PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(123L);
-
-        // When
-        postCacheSyncService.handlePostSetAsNotice(event);
-
-        // Then
-        verify(postCacheCommandPort).deletePopularPostsCache(PostCacheFlag.NOTICE);
-    }
-
-    @Test
-    @DisplayName("게시글 공지 해제 이벤트 처리 - 성공")
-    void shouldHandlePostUnsetAsNoticeEvent_Successfully() {
-        // Given
-        PostUnsetAsNoticeEvent event = new PostUnsetAsNoticeEvent(123L);
-
-        // When
-        postCacheSyncService.handlePostUnsetAsNotice(event);
-
-        // Then
-        verify(postCacheCommandPort).deletePopularPostsCache(PostCacheFlag.NOTICE);
-    }
 
     @Test
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")

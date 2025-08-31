@@ -1,18 +1,15 @@
 package jaeik.bimillog.domain.post.application.service;
 
+import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
-import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +28,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostCacheSyncService {
+public class PostCacheSyncService implements PostCacheUseCase {
 
     private final PostCacheCommandPort postCacheCommandPort;
     private final PostCacheSyncPort postCacheSyncPort;
@@ -154,37 +151,8 @@ public class PostCacheSyncService {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public void deleteNoticeCache() {
         postCacheCommandPort.deletePopularPostsCache(PostCacheFlag.NOTICE);
-    }
-
-    /**
-     * <h3>게시글 공지 설정 이벤트 처리</h3>
-     * <p>게시글이 공지로 설정되었을 때 공지 캐시를 삭제합니다.</p>
-     *
-     * @param event 게시글 공지 설정 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async
-    @EventListener
-    public void handlePostSetAsNotice(PostSetAsNoticeEvent event) {
-        log.info("Post (ID: {}) set as notice event received. Deleting notice cache.", event.postId());
-        deleteNoticeCache();
-    }
-
-    /**
-     * <h3>게시글 공지 해제 이벤트 처리</h3>
-     * <p>게시글의 공지 설정이 해제되었을 때 공지 캐시를 삭제합니다.</p>
-     *
-     * @param event 게시글 공지 해제 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async
-    @EventListener
-    public void handlePostUnsetAsNotice(PostUnsetAsNoticeEvent event) {
-        log.info("Post (ID: {}) unset as notice event received. Deleting notice cache.", event.postId());
-        deleteNoticeCache();
     }
 }

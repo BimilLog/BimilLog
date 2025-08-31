@@ -46,7 +46,7 @@ public class PostAdminService implements PostAdminUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
         post.setAsNotice();
-        log.info("Post set as notice: postId={}, title={}", postId, post.getTitle());
+        log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         
         eventPublisher.publishEvent(new PostSetAsNoticeEvent(postId));
     }
@@ -67,7 +67,7 @@ public class PostAdminService implements PostAdminUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
         post.unsetAsNotice();
-        log.info("Post unset as notice: postId={}, title={}", postId, post.getTitle());
+        log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         
         eventPublisher.publishEvent(new PostUnsetAsNoticeEvent(postId));
     }
