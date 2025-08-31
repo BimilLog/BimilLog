@@ -1,8 +1,7 @@
 package jaeik.growfarm.domain.comment.application.service;
 
 import jaeik.growfarm.domain.comment.application.port.in.CommentLikeUseCase;
-import jaeik.growfarm.domain.comment.application.port.out.CommentLikeCommandPort;
-import jaeik.growfarm.domain.comment.application.port.out.CommentLikeQueryPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentLikePort;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
@@ -22,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommentLikeService implements CommentLikeUseCase {
 
     private final LoadUserPort loadUserPort;
-    private final CommentLikeCommandPort commentLikeCommandPort;
-    private final CommentLikeQueryPort commentLikeQueryPort;
+    private final CommentLikePort commentLikePort;
+    private final CommentLikePort CommentLikePort;
     private final CommentQueryPort commentQueryPort;
 
 
@@ -44,8 +43,8 @@ public class CommentLikeService implements CommentLikeUseCase {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
-        if (commentLikeQueryPort.isLikedByUser(commentId, userId)) {
-            commentLikeCommandPort.deleteLikeByIds(commentId, userId);
+        if (CommentLikePort.isLikedByUser(commentId, userId)) {
+            commentLikePort.deleteLikeByIds(commentId, userId);
         } else {
             Comment comment = commentQueryPort.findById(commentId).get();
             User user = loadUserPort.findById(userId).get();
@@ -54,7 +53,7 @@ public class CommentLikeService implements CommentLikeUseCase {
                     .comment(comment)
                     .user(user)
                     .build();
-            commentLikeCommandPort.save(commentLike);
+            commentLikePort.save(commentLike);
         }
     }
 }

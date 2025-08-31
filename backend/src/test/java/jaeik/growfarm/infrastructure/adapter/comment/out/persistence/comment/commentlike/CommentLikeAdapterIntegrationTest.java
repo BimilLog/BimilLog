@@ -34,8 +34,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>CommentLikeQueryAdapter 통합 테스트</h2>
- * <p>실제 MySQL 데이터베이스를 사용한 CommentLikeQueryAdapter의 통합 테스트</p>
+ * <h2>commentLikeAdapter 통합 테스트</h2>
+ * <p>실제 MySQL 데이터베이스를 사용한 commentLikeAdapter의 통합 테스트</p>
  * <p>TestContainers를 사용하여 실제 MySQL 환경에서 댓글 추천 조회 동작 검증</p>
  * <p>핵심 비즈니스 로직: 사용자가 특정 댓글에 추천을 눌렀는지 여부 확인</p>
  * 
@@ -59,11 +59,11 @@ import static org.assertj.core.api.Assertions.assertThat;
         "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment",
         "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike"
 })
-@Import(CommentLikeQueryAdapter.class)
+@Import(CommentLikeAdapter.class)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
-class CommentLikeQueryAdapterIntegrationTest {
+class CommentLikeAdapterIntegrationTest {
 
     @Container
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
@@ -96,7 +96,7 @@ class CommentLikeQueryAdapterIntegrationTest {
     private CommentLikeRepository commentLikeRepository;
 
     @Autowired
-    private CommentLikeQueryAdapter commentLikeQueryAdapter;
+    private CommentLikeAdapter commentLikeAdapter;
 
     private User testUser1;
     private User testUser2;
@@ -180,7 +180,7 @@ class CommentLikeQueryAdapterIntegrationTest {
         commentLikeRepository.save(commentLike);
 
         // When: 댓글 추천 여부 확인
-        boolean isLiked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean isLiked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
 
         // Then: 추천을 눌렀으므로 true 반환
         assertThat(isLiked).isTrue();
@@ -193,7 +193,7 @@ class CommentLikeQueryAdapterIntegrationTest {
         // (별도의 설정 없이 빈 상태)
 
         // When: 댓글 추천 여부 확인
-        boolean isLiked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean isLiked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
 
         // Then: 추천을 누르지 않았으므로 false 반환
         assertThat(isLiked).isFalse();
@@ -206,7 +206,7 @@ class CommentLikeQueryAdapterIntegrationTest {
         Long nonExistentCommentId = 99999L;
 
         // When: 존재하지 않는 댓글에 대한 추천 여부 확인
-        boolean isLiked = commentLikeQueryAdapter.isLikedByUser(nonExistentCommentId, testUser1.getId());
+        boolean isLiked = commentLikeAdapter.isLikedByUser(nonExistentCommentId, testUser1.getId());
 
         // Then: 존재하지 않는 댓글이므로 false 반환
         assertThat(isLiked).isFalse();
@@ -219,7 +219,7 @@ class CommentLikeQueryAdapterIntegrationTest {
         Long nonExistentUserId = 99999L;
 
         // When: 존재하지 않는 사용자에 대한 추천 여부 확인
-        boolean isLiked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), nonExistentUserId);
+        boolean isLiked = commentLikeAdapter.isLikedByUser(testComment1.getId(), nonExistentUserId);
 
         // Then: 존재하지 않는 사용자이므로 false 반환
         assertThat(isLiked).isFalse();
@@ -244,9 +244,9 @@ class CommentLikeQueryAdapterIntegrationTest {
         // testUser3은 추천하지 않음
 
         // When: 각 사용자별 추천 여부 확인
-        boolean user1Liked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser1.getId());
-        boolean user2Liked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
-        boolean user3Liked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser3.getId());
+        boolean user1Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser1.getId());
+        boolean user2Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean user3Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser3.getId());
 
         // Then: 추천한 사용자는 true, 추천하지 않은 사용자는 false
         assertThat(user1Liked).isTrue();
@@ -271,12 +271,12 @@ class CommentLikeQueryAdapterIntegrationTest {
         commentLikeRepository.save(like2);
 
         // When: 각 댓글별 추천 여부 확인
-        boolean comment1Liked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
-        boolean comment2Liked = commentLikeQueryAdapter.isLikedByUser(testComment2.getId(), testUser2.getId());
+        boolean comment1Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean comment2Liked = commentLikeAdapter.isLikedByUser(testComment2.getId(), testUser2.getId());
         
         // 다른 사용자의 경우
-        boolean otherUserComment1Liked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser3.getId());
-        boolean otherUserComment2Liked = commentLikeQueryAdapter.isLikedByUser(testComment2.getId(), testUser3.getId());
+        boolean otherUserComment1Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser3.getId());
+        boolean otherUserComment2Liked = commentLikeAdapter.isLikedByUser(testComment2.getId(), testUser3.getId());
 
         // Then: 추천한 댓글은 true, 추천하지 않은 조합은 false
         assertThat(comment1Liked).isTrue();
@@ -310,7 +310,7 @@ class CommentLikeQueryAdapterIntegrationTest {
 
         // When: 타겟 추천 여부 확인 (EXISTS 쿼리 사용)
         long startTime = System.nanoTime();
-        boolean isLiked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean isLiked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
         long endTime = System.nanoTime();
 
         // Then: 빠른 시간 내에 정확한 결과 반환
@@ -331,7 +331,7 @@ class CommentLikeQueryAdapterIntegrationTest {
         // 비즈니스 로직에서 NULL 체크가 선행되므로 여기서는 기본 동작 확인
         
         // 정상적인 경우만 테스트 (NULL은 비즈니스 레이어에서 사전 차단)
-        boolean normalCase = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser1.getId());
+        boolean normalCase = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser1.getId());
         assertThat(normalCase).isFalse();
     }
 
@@ -339,7 +339,7 @@ class CommentLikeQueryAdapterIntegrationTest {
     @DisplayName("트랜잭션 - 추천 상태 변경 시 실시간 반영 확인")
     void shouldReflectChangesImmediately_WhenCommentLikeStateChanges() {
         // Given: 초기 상태 - 추천하지 않은 상태
-        boolean initialState = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean initialState = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
         assertThat(initialState).isFalse();
 
         // When: 추천 추가
@@ -350,14 +350,14 @@ class CommentLikeQueryAdapterIntegrationTest {
         commentLikeRepository.save(commentLike);
 
         // Then: 추가 후 즉시 반영 확인
-        boolean afterAdd = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean afterAdd = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
         assertThat(afterAdd).isTrue();
 
         // When: 추천 삭제
         commentLikeRepository.deleteByCommentAndUser(testComment1, testUser2);
 
         // Then: 삭제 후 즉시 반영 확인
-        boolean afterDelete = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean afterDelete = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
         assertThat(afterDelete).isFalse();
     }
 
@@ -382,8 +382,8 @@ class CommentLikeQueryAdapterIntegrationTest {
         commentLikeRepository.save(targetLike);
 
         // When: 타겟 댓글들의 추천 여부 확인
-        boolean comment1Liked = commentLikeQueryAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
-        boolean comment2Liked = commentLikeQueryAdapter.isLikedByUser(testComment2.getId(), testUser2.getId());
+        boolean comment1Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
+        boolean comment2Liked = commentLikeAdapter.isLikedByUser(testComment2.getId(), testUser2.getId());
 
         // Then: 대용량 데이터 환경에서도 정확한 결과 반환
         assertThat(comment1Liked).isTrue();   // 추천한 댓글
@@ -402,7 +402,7 @@ class CommentLikeQueryAdapterIntegrationTest {
         Long userId = testUser2.getId();
         
         // 초기 상태 확인
-        boolean initialCheck = commentLikeQueryAdapter.isLikedByUser(commentId, userId);
+        boolean initialCheck = commentLikeAdapter.isLikedByUser(commentId, userId);
         assertThat(initialCheck).isFalse();
 
         // When: 추천 생성
@@ -414,13 +414,13 @@ class CommentLikeQueryAdapterIntegrationTest {
 
         // Then: 여러 번 체크해도 일관된 결과
         for (int i = 0; i < 5; i++) {
-            boolean check = commentLikeQueryAdapter.isLikedByUser(commentId, userId);
+            boolean check = commentLikeAdapter.isLikedByUser(commentId, userId);
             assertThat(check).isTrue();
         }
         
         // 다른 조합들은 영향받지 않음
-        boolean otherUserCheck = commentLikeQueryAdapter.isLikedByUser(commentId, testUser3.getId());
-        boolean otherCommentCheck = commentLikeQueryAdapter.isLikedByUser(testComment2.getId(), userId);
+        boolean otherUserCheck = commentLikeAdapter.isLikedByUser(commentId, testUser3.getId());
+        boolean otherCommentCheck = commentLikeAdapter.isLikedByUser(testComment2.getId(), userId);
         
         assertThat(otherUserCheck).isFalse();
         assertThat(otherCommentCheck).isFalse();

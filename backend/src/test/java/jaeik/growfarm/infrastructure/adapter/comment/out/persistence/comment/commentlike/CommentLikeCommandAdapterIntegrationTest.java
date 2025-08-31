@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * <h2>CommentLikeCommandAdapter 통합 테스트</h2>
+ * <h2>CommentLikeAdapter 통합 테스트</h2>
  * <p>실제 MySQL 데이터베이스를 사용한 CommentLikeCommandAdapter의 통합 테스트</p>
  * <p>TestContainers를 사용하여 실제 MySQL 환경에서 댓글 추천 CRUD 동작 검증</p>
  * 
@@ -67,7 +67,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.commentlike",
         "jaeik.growfarm.infrastructure.adapter.comment.out.persistence.comment.comment"
 })
-@Import({CommentLikeCommandAdapter.class, CommentLikeQueryAdapter.class})
+@Import({CommentLikeAdapter.class})
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create",
         "message.secret=test-secret-key-for-integration-test-only"
@@ -113,10 +113,10 @@ class CommentLikeCommandAdapterIntegrationTest {
     private CommentLikeRepository commentLikeRepository;
 
     @Autowired
-    private CommentLikeCommandAdapter commentLikeCommandAdapter;
+    private CommentLikeAdapter commentLikeCommandAdapter;
 
     @Autowired
-    private CommentLikeQueryAdapter commentLikeQueryAdapter;
+    private CommentLikeAdapter commentLikeAdapter;
 
     private User testUser1;
     private User testUser2;
@@ -207,14 +207,14 @@ class CommentLikeCommandAdapterIntegrationTest {
         existingCommentLike = commentLikeRepository.save(existingCommentLike);
         
         // 삭제 전 댓글 추천 존재 확인
-        boolean existsBefore = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean existsBefore = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(existsBefore).isTrue();
 
         // When: 댓글 추천 삭제
         commentLikeCommandAdapter.deleteLike(testComment, testUser2);
 
         // Then: 댓글 추천이 삭제되었는지 검증
-        boolean existsAfter = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean existsAfter = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(existsAfter).isFalse();
         
         // ID로도 확인
@@ -260,7 +260,7 @@ class CommentLikeCommandAdapterIntegrationTest {
         commentLikeCommandAdapter.deleteLike(testComment, testUser2);
 
         // Then: 예외가 발생하지 않고 정상적으로 완료되어야 함
-        boolean exists = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean exists = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(exists).isFalse();
     }
 
@@ -289,8 +289,8 @@ class CommentLikeCommandAdapterIntegrationTest {
         assertThat(savedLike2.getId()).isNotNull();
         
         // DB에서 확인
-        boolean user1Liked = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser1.getId());
-        boolean user2Liked = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean user1Liked = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser1.getId());
+        boolean user2Liked = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         
         assertThat(user1Liked).isTrue();
         assertThat(user2Liked).isTrue();
@@ -327,8 +327,8 @@ class CommentLikeCommandAdapterIntegrationTest {
         assertThat(savedLike2).isNotNull();
         
         // DB에서 확인
-        boolean firstCommentLiked = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
-        boolean secondCommentLiked = commentLikeQueryAdapter.isLikedByUser(additionalComment.getId(), testUser2.getId());
+        boolean firstCommentLiked = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean secondCommentLiked = commentLikeAdapter.isLikedByUser(additionalComment.getId(), testUser2.getId());
         
         assertThat(firstCommentLiked).isTrue();
         assertThat(secondCommentLiked).isTrue();
@@ -338,7 +338,7 @@ class CommentLikeCommandAdapterIntegrationTest {
     @DisplayName("트랜잭션 - 댓글 추천 저장 후 삭제")
     void shouldSaveAndDeleteCommentLike_WhenOperationsPerformedSequentially() {
         // Given: 빈 상태에서 시작
-        boolean initialState = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean initialState = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(initialState).isFalse();
 
         // When: 댓글 추천 저장
@@ -350,14 +350,14 @@ class CommentLikeCommandAdapterIntegrationTest {
 
         // Then: 저장 확인
         assertThat(savedCommentLike).isNotNull();
-        boolean afterSave = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean afterSave = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(afterSave).isTrue();
 
         // When: 댓글 추천 삭제
         commentLikeCommandAdapter.deleteLike(testComment, testUser2);
 
         // Then: 삭제 확인
-        boolean afterDelete = commentLikeQueryAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
+        boolean afterDelete = commentLikeAdapter.isLikedByUser(testComment.getId(), testUser2.getId());
         assertThat(afterDelete).isFalse();
     }
 
@@ -407,8 +407,8 @@ class CommentLikeCommandAdapterIntegrationTest {
         long totalLikesAfterDelete = commentLikeRepository.count();
         assertThat(totalLikesAfterDelete).isEqualTo(2);  // testUser2의 comment2 추천이 삭제됨
         
-        boolean user2LikesComment2 = commentLikeQueryAdapter.isLikedByUser(comment2.getId(), testUser2.getId());
-        boolean user1LikesComment2 = commentLikeQueryAdapter.isLikedByUser(comment2.getId(), testUser1.getId());
+        boolean user2LikesComment2 = commentLikeAdapter.isLikedByUser(comment2.getId(), testUser2.getId());
+        boolean user1LikesComment2 = commentLikeAdapter.isLikedByUser(comment2.getId(), testUser1.getId());
         
         assertThat(user2LikesComment2).isFalse();
         assertThat(user1LikesComment2).isTrue();

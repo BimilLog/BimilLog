@@ -1,7 +1,6 @@
 package jaeik.growfarm.domain.comment.application.service;
 
-import jaeik.growfarm.domain.comment.application.port.out.CommentLikeCommandPort;
-import jaeik.growfarm.domain.comment.application.port.out.CommentLikeQueryPort;
+import jaeik.growfarm.domain.comment.application.port.out.CommentLikePort;
 import jaeik.growfarm.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.growfarm.domain.comment.application.port.out.LoadUserPort;
 import jaeik.growfarm.domain.comment.entity.Comment;
@@ -24,9 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * <h2>CommentLikeService 단위 테스트</h2>
@@ -44,10 +41,7 @@ class CommentLikeServiceTest {
     private LoadUserPort loadUserPort;
 
     @Mock
-    private CommentLikeCommandPort commentLikeCommandPort;
-
-    @Mock
-    private CommentLikeQueryPort commentLikeQueryPort;
+    private CommentLikePort commentLikePort;
 
     @Mock
     private CommentQueryPort commentQueryPort;
@@ -82,20 +76,20 @@ class CommentLikeServiceTest {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
         given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
         commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeCommandPort).save(likeCaptor.capture());
+        verify(commentLikePort).save(likeCaptor.capture());
         
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(testComment);
         assertThat(capturedLike.getUser()).isEqualTo(testUser);
         
-        verify(commentLikeCommandPort, never()).deleteLike(any(), any());
+        verify(commentLikePort, never()).deleteLike(any(), any());
     }
 
     @Test
@@ -104,14 +98,14 @@ class CommentLikeServiceTest {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
         given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
 
         // When
         commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
 
         // Then
-        verify(commentLikeCommandPort).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID);
-        verify(commentLikeCommandPort, never()).save(any());
+        verify(commentLikePort).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID);
+        verify(commentLikePort, never()).save(any());
     }
 
     @Test
@@ -127,9 +121,9 @@ class CommentLikeServiceTest {
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
         verify(loadUserPort, never()).findById(any());
-        verify(commentLikeQueryPort, never()).isLikedByUser(any(), any());
-        verify(commentLikeCommandPort, never()).save(any());
-        verify(commentLikeCommandPort, never()).deleteLike(any(), any());
+        verify(commentLikePort, never()).isLikedByUser(any(), any());
+        verify(commentLikePort, never()).save(any());
+        verify(commentLikePort, never()).deleteLike(any(), any());
     }
 
     @Test
@@ -146,9 +140,9 @@ class CommentLikeServiceTest {
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
         verify(loadUserPort).findById(TEST_USER_ID);
-        verify(commentLikeQueryPort, never()).isLikedByUser(any(), any());
-        verify(commentLikeCommandPort, never()).save(any());
-        verify(commentLikeCommandPort, never()).deleteLike(any(), any());
+        verify(commentLikePort, never()).isLikedByUser(any(), any());
+        verify(commentLikePort, never()).save(any());
+        verify(commentLikePort, never()).deleteLike(any(), any());
     }
 
     @Test
@@ -161,9 +155,9 @@ class CommentLikeServiceTest {
 
         verify(commentQueryPort, never()).findById(any());
         verify(loadUserPort, never()).findById(any());
-        verify(commentLikeQueryPort, never()).isLikedByUser(any(), any());
-        verify(commentLikeCommandPort, never()).save(any());
-        verify(commentLikeCommandPort, never()).deleteLike(any(), any());
+        verify(commentLikePort, never()).isLikedByUser(any(), any());
+        verify(commentLikePort, never()).save(any());
+        verify(commentLikePort, never()).deleteLike(any(), any());
     }
 
     @Test
@@ -179,14 +173,14 @@ class CommentLikeServiceTest {
 
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(ownComment));
         given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
         commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeCommandPort).save(likeCaptor.capture());
+        verify(commentLikePort).save(likeCaptor.capture());
         
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(ownComment);
@@ -201,22 +195,22 @@ class CommentLikeServiceTest {
         given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
 
         // 첫 번째: 좋아요 추가
-        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
         commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
-        verify(commentLikeCommandPort).save(any());
+        verify(commentLikePort).save(any());
 
         // 두 번째: 좋아요 취소
-        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
         commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
-        verify(commentLikeCommandPort).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID);
+        verify(commentLikePort).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID);
 
         // 세 번째: 다시 좋아요 추가
-        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
         commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID);
         
         // Then
-        verify(commentLikeCommandPort, times(2)).save(any()); // 총 2번 호출
-        verify(commentLikeCommandPort, times(1)).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID); // 1번 호출
+        verify(commentLikePort, times(2)).save(any()); // 총 2번 호출
+        verify(commentLikePort, times(1)).deleteLikeByIds(TEST_COMMENT_ID, TEST_USER_ID); // 1번 호출
     }
 
     @Test
@@ -238,14 +232,14 @@ class CommentLikeServiceTest {
 
         given(commentQueryPort.findById(201L)).willReturn(Optional.of(anotherComment));
         given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(201L, TEST_USER_ID)).willReturn(false);
+        given(commentLikePort.isLikedByUser(201L, TEST_USER_ID)).willReturn(false);
 
         // When
         commentLikeService.likeComment(TEST_USER_ID, 201L);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeCommandPort).save(likeCaptor.capture());
+        verify(commentLikePort).save(likeCaptor.capture());
         
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(anotherComment);
@@ -266,14 +260,14 @@ class CommentLikeServiceTest {
 
         given(commentQueryPort.findById(202L)).willReturn(Optional.of(anonymousComment));
         given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(202L, TEST_USER_ID)).willReturn(false);
+        given(commentLikePort.isLikedByUser(202L, TEST_USER_ID)).willReturn(false);
 
         // When
         commentLikeService.likeComment(TEST_USER_ID, 202L);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeCommandPort).save(likeCaptor.capture());
+        verify(commentLikePort).save(likeCaptor.capture());
         
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(anonymousComment);
@@ -286,7 +280,7 @@ class CommentLikeServiceTest {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
         given(loadUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
-        given(commentLikeQueryPort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID))
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID))
                 .willThrow(new RuntimeException("좋아요 상태 확인 실패"));
 
         // When & Then
@@ -296,8 +290,8 @@ class CommentLikeServiceTest {
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
         verify(loadUserPort).findById(TEST_USER_ID);
-        verify(commentLikeQueryPort).isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID);
-        verify(commentLikeCommandPort, never()).save(any());
-        verify(commentLikeCommandPort, never()).deleteLike(any(), any());
+        verify(commentLikePort).isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID);
+        verify(commentLikePort, never()).save(any());
+        verify(commentLikePort, never()).deleteLike(any(), any());
     }
 }
