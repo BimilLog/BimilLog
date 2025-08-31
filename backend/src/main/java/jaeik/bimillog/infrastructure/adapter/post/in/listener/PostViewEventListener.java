@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.post.event;
+package jaeik.bimillog.infrastructure.adapter.post.in.listener;
 
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;

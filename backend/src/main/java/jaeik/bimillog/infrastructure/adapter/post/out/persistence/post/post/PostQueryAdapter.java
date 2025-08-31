@@ -15,6 +15,7 @@ import jaeik.bimillog.domain.post.entity.PostDetailProjection;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.entity.QPost;
 import jaeik.bimillog.domain.post.entity.QPostLike;
+import jaeik.bimillog.domain.post.entity.QPostDetailProjectionRecord;
 import jaeik.bimillog.domain.user.entity.QUser;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.fulltext.PostFulltextRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -358,26 +359,25 @@ public class PostQueryAdapter implements PostQueryPort {
         QPostLike userPostLike = new QPostLike("userPostLike");
         
         PostDetailProjection result = jpaQueryFactory
-                .select(Projections.fields(PostDetailProjection.class,
+                .select(new QPostDetailProjectionRecord(
                         post.id,
                         post.title,
                         post.content,
-                        post.views.coalesce(0).as("viewCount"),
+                        post.views.coalesce(0),
                         post.createdAt,
-                        user.id.as("userId"),
+                        user.id,
                         user.userName,
                         post.isNotice,
                         post.postCacheFlag,
                         // 좋아요 개수 (COUNT)
-                        postLike.countDistinct().as("likeCount"),
+                        postLike.countDistinct(),
                         // 댓글 개수 (COUNT)
-                        comment.countDistinct().as("commentCount"),
+                        comment.countDistinct().castToNum(Integer.class),
                         // 사용자 좋아요 여부 (CASE WHEN)
                         new CaseBuilder()
                                 .when(userPostLike.id.isNotNull())
                                 .then(true)
                                 .otherwise(false)
-                                .as("isLiked")
                 ))
                 .from(post)
                 .leftJoin(post.user, user)
