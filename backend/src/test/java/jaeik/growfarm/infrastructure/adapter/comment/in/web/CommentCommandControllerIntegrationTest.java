@@ -100,7 +100,13 @@ class CommentCommandControllerIntegrationTest {
         try {
             commentRepository.findAll().forEach(comment -> {
                 try {
-                    commentRepository.deleteCommentOptimized(comment.getId());
+                    Long commentId = comment.getId();
+                    // 자손이 있는 경우 소프트 삭제, 없는 경우 하드 삭제
+                    int softDeleteCount = commentRepository.conditionalSoftDelete(commentId);
+                    if (softDeleteCount == 0) {
+                        commentRepository.deleteClosuresByDescendantId(commentId);
+                        commentRepository.hardDeleteComment(commentId);
+                    }
                 } catch (Exception ignored) {}
             });
             postRepository.deleteAll();

@@ -34,19 +34,6 @@ public class CommentCommandAdapter implements CommentCommandPort {
     }
 
     /**
-     * <h3>댓글 삭제</h3>
-     * <p>주어진 댓글 엔티티를 삭제합니다.</p>
-     *
-     * @param comment 삭제할 댓글 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void delete(Comment comment) {
-        commentRepository.delete(comment);
-    }
-
-    /**
      * <h3>게시글 ID로 모든 댓글 삭제</h3>
      * <p>주어진 게시글 ID에 해당하는 모든 댓글을 삭제합니다.</p>
      *
@@ -114,19 +101,4 @@ public class CommentCommandAdapter implements CommentCommandPort {
         return commentRepository.hardDeleteComment(commentId);
     }
 
-    /**
-     * <h3>최적화된 댓글 삭제</h3>
-     * <p>자손 존재 여부에 따라 자동으로 소프트/하드 삭제를 수행합니다.</p>
-     * <p>단일 쿼리로 자손 체크와 삭제를 통합하여 성능을 최적화합니다.</p>
-     *
-     * @param commentId 삭제할 댓글 ID
-     * @return boolean true면 하드 삭제 수행됨, false면 소프트 삭제 수행됨
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Deprecated
-    public boolean deleteCommentOptimized(Long commentId) {
-        return commentRepository.deleteCommentOptimized(commentId);
-    }
 }

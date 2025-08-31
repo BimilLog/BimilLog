@@ -227,10 +227,11 @@ class CommentCommandAdapterIntegrationTest {
         // 삭제 전 댓글 존재 확인
         assertThat(commentRepository.findById(commentId)).isPresent();
 
-        // When: 댓글 삭제
-        commentCommandAdapter.delete(existingComment);
+        // When: 댓글 하드 삭제 (자손이 없는 경우)
+        int deleteCount = commentCommandAdapter.hardDeleteComment(commentId);
 
         // Then: 댓글이 삭제되었는지 검증
+        assertThat(deleteCount).isEqualTo(1);
         Optional<Comment> deletedComment = commentRepository.findById(commentId);
         assertThat(deletedComment).isEmpty();
     }

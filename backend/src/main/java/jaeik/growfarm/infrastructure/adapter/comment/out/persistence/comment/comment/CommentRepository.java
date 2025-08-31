@@ -109,29 +109,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Modifying
     @Query(value = "DELETE FROM comment WHERE comment_id = :commentId", nativeQuery = true)
     int hardDeleteComment(@Param("commentId") Long commentId);
-
-    /**
-     * <h3>최적화된 댓글 삭제 통합 메서드</h3>
-     * <p>자손 존재 여부를 확인하고 적절한 삭제 방식을 선택합니다.</p>
-     * <p>자손이 있으면 소프트 삭제, 없으면 하드 삭제를 수행합니다.</p>
-     *
-     * @param commentId 삭제할 댓글 ID
-     * @return boolean true면 하드 삭제 수행됨, false면 소프트 삭제 수행됨
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    default boolean deleteCommentOptimized(Long commentId) {
-        // 1단계: 조건부 소프트 삭제 시도 (자손이 있는 경우만 실행됨)
-        int softDeleteCount = conditionalSoftDelete(commentId);
-
-        if (softDeleteCount > 0) {
-            return false;
-        } else {
-            int closureDeleteCount = deleteClosuresByDescendantId(commentId);
-            int commentDeleteCount = hardDeleteComment(commentId);
-            return true;
-        }
-    }
 }
 
 

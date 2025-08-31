@@ -24,16 +24,6 @@ public interface CommentCommandPort {
     Comment save(Comment comment);
 
     /**
-     * <h3>댓글 삭제</h3>
-     * <p>주어진 댓글 엔티티를 삭제합니다.</p>
-     *
-     * @param comment 삭제할 댓글 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void delete(Comment comment);
-
-    /**
      * <h3>게시글 ID로 모든 댓글 삭제</h3>
      * <p>주어진 게시글 ID에 해당하는 모든 댓글을 삭제합니다.</p>
      *
@@ -86,17 +76,4 @@ public interface CommentCommandPort {
      */
     int hardDeleteComment(Long commentId);
 
-    /**
-     * <h3>최적화된 댓글 삭제</h3>
-     * <p>자손 존재 여부에 따라 자동으로 소프트/하드 삭제를 수행합니다.</p>
-     * <p>단일 쿼리로 자손 체크와 삭제를 통합하여 성능을 최적화합니다.</p>
-     * <p>@deprecated 비즈니스 로직이 Service 계층으로 이동됨. 개별 메서드 사용 권장</p>
-     *
-     * @param commentId 삭제할 댓글 ID
-     * @return boolean true면 하드 삭제 수행됨, false면 소프트 삭제 수행됨
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Deprecated
-    boolean deleteCommentOptimized(Long commentId);
 }

@@ -368,7 +368,7 @@ class CommentCommandServiceTest {
 
         verify(commentQueryPort).findById(300L);
         verify(commentClosureQueryPort, never()).hasDescendants(any());
-        verify(commentCommandPort, never()).delete(any());
+        verify(commentCommandPort, never()).hardDeleteComment(any());
     }
 
     @Test
@@ -466,6 +466,6 @@ class CommentCommandServiceTest {
 
         verify(commentQueryPort).findById(600L);
         verify(commentClosureQueryPort, never()).hasDescendants(any());
-        verify(commentCommandPort, never()).delete(any());
+        verify(commentCommandPort, never()).hardDeleteComment(any());
     }
 }
