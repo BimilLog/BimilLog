@@ -258,17 +258,21 @@ class PostCommandServiceTest {
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(true);
+        
+        // Mock이 실제 예외를 발생시키도록 설정
+        doThrow(new IllegalArgumentException("PostReqVO cannot be null"))
+            .when(post).updatePost(postReqDTO);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("Cannot invoke \"jaeik.growfarm.domain.post.entity.PostReqVO.title()\" because \"postReqVO\" is null");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("PostReqVO cannot be null");
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
-        verify(post, times(1)).updatePost(postReqDTO); // updatePost 호출됨
-        verify(postCommandPort, times(1)).save(post); // save도 호출됨 (로그에서 NPE 발생)
-        verify(postCacheCommandPort, times(1)).deleteFullPostCache(postId); // deleteFullPostCache도 호출됨
+        verify(post, times(1)).updatePost(postReqDTO); // updatePost에서 예외 발생
+        verify(postCommandPort, never()).save(any()); // 예외로 인해 호출되지 않음
+        verify(postCacheCommandPort, never()).deleteFullPostCache(any()); // 예외로 인해 호출되지 않음
     }
 
     @Test
