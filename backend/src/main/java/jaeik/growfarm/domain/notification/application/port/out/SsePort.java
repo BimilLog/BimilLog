@@ -32,6 +32,18 @@ public interface SsePort {
     void deleteAllEmitterByUserId(Long userId);
 
     /**
+     * <h3>특정 기기 SSE 연결 정리</h3>
+     * <p>사용자의 특정 기기(토큰)에 해당하는 SSE Emitter 연결을 정리합니다.</p>
+     * <p>다중 기기 로그인 환경에서 특정 기기만 로그아웃 처리할 때 사용합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param tokenId 토큰 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId);
+
+    /**
      * <h3>알림 전송</h3>
      * <p>
      * 사용자에게 알림을 전송합니다.

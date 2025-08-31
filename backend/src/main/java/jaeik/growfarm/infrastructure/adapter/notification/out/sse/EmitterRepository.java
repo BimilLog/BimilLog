@@ -57,4 +57,16 @@ public interface EmitterRepository {
      */
     void deleteAllEmitterByUserId(Long userId);
 
+    /**
+     * <h3>사용자 ID와 토큰 ID로 특정 Emitter 삭제</h3>
+     * <p>주어진 사용자 ID와 토큰 ID에 해당하는 특정 기기의 Emitter를 저장소에서 삭제합니다.</p>
+     * <p>다중 기기 로그인 환경에서 특정 기기만 로그아웃 처리할 때 사용합니다.</p>
+     *
+     * @param userId 삭제할 Emitter를 소유한 사용자의 ID
+     * @param tokenId 삭제할 Emitter의 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId);
+
 }

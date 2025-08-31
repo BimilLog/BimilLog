@@ -421,13 +421,13 @@ class NotificationEventWorkflowIntegrationTest {
         eventPublisher.publishEvent(UserLoggedOutEvent.of(userId2, 101L));
         eventPublisher.publishEvent(UserLoggedOutEvent.of(userId3, 102L));
 
-        // Then - 모든 사용자의 SSE 연결이 정리되어야 함
+        // Then - 각 사용자의 특정 토큰에 해당하는 SSE 연결만 정리되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(ssePort).deleteAllEmitterByUserId(eq(userId1));
-                    verify(ssePort).deleteAllEmitterByUserId(eq(userId2));
-                    verify(ssePort).deleteAllEmitterByUserId(eq(userId3));
+                    verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId1), eq(100L));
+                    verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId2), eq(101L));
+                    verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId3), eq(102L));
                 });
     }
 

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Slf4j
 @Component
@@ -45,7 +44,6 @@ public class AdminWithdrawEventListener {
         } catch (Exception e) {
             log.error("관리자 강제 탈퇴 처리 실패 - userId: {}, error: {}", 
                     event.userId(), e.getMessage(), e);
-            // 실패 시 재처리 로직이나 보상 트랜잭션 고려
             throw e;
         }
     }

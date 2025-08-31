@@ -91,4 +91,22 @@ public class EmitterRepositoryImpl implements EmitterRepository {
         String userIdPrefix = userId + "_";
         emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(userIdPrefix));
     }
+
+    /**
+     * <h3>사용자의 특정 토큰 Emitter 삭제</h3>
+     *
+     * <p>사용자 ID와 토큰 ID에 해당하는 특정 기기의 Emitter를 삭제합니다.</p>
+     * <p>다중 기기 로그인 환경에서 특정 기기만 로그아웃 처리할 때 사용합니다.</p>
+     * <p>EmitterId 형식: "userId_tokenId_timestamp"</p>
+     *
+     * @param userId 유저 ID
+     * @param tokenId 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId) {
+        String userTokenPrefix = userId + "_" + tokenId + "_";
+        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(userTokenPrefix));
+    }
 }

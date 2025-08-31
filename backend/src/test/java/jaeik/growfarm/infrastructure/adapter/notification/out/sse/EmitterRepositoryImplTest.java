@@ -245,4 +245,103 @@ class EmitterRepositoryImplTest {
         assertThat(user11Emitters).hasSize(1); // userId=11은 유지됨
         assertThat(user123Emitters).hasSize(1); // userId=123은 유지됨
     }
+
+    @Test
+    @DisplayName("특정 사용자 ID와 토큰 ID로 Emitter 삭제 - 성공")
+    void shouldDeleteEmitterByUserIdAndTokenId_WhenEmitterExists() {
+        // Given
+        Long userId = 1L;
+        Long tokenId = 100L;
+        String targetEmitterId = "1_100_1234567890";
+        String otherEmitterId = "1_101_1234567891";
+        
+        emitterRepository.save(targetEmitterId, emitter1);
+        emitterRepository.save(otherEmitterId, emitter2);
+
+        // When
+        emitterRepository.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+
+        // Then
+        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
+        assertThat(emitters).hasSize(1);
+        assertThat(emitters).containsKey(otherEmitterId); // 다른 토큰의 Emitter는 유지
+        assertThat(emitters).doesNotContainKey(targetEmitterId); // 특정 토큰의 Emitter는 삭제
+    }
+
+    @Test
+    @DisplayName("특정 사용자 ID와 토큰 ID로 Emitter 삭제 - 다중 기기 시나리오")
+    void shouldDeleteEmitterByUserIdAndTokenId_MultiDeviceScenario() {
+        // Given
+        Long userId = 1L;
+        Long tokenIdA = 100L; // A 기기
+        Long tokenIdB = 101L; // B 기기
+        Long tokenIdC = 102L; // C 기기
+        
+        String emitterIdA1 = "1_100_1234567890"; // A 기기 - 연결1
+        String emitterIdA2 = "1_100_1234567891"; // A 기기 - 연결2
+        String emitterIdB = "1_101_1234567892";  // B 기기
+        String emitterIdC = "1_102_1234567893";  // C 기기
+        
+        emitterRepository.save(emitterIdA1, new SseEmitter());
+        emitterRepository.save(emitterIdA2, new SseEmitter());
+        emitterRepository.save(emitterIdB, new SseEmitter());
+        emitterRepository.save(emitterIdC, new SseEmitter());
+
+        // When - A 기기(tokenId=100)만 로그아웃
+        emitterRepository.deleteEmitterByUserIdAndTokenId(userId, tokenIdA);
+
+        // Then
+        Map<String, SseEmitter> remainingEmitters = emitterRepository.findAllEmitterByUserId(userId);
+        
+        assertThat(remainingEmitters).hasSize(2); // B, C 기기만 남음
+        assertThat(remainingEmitters).containsKey(emitterIdB); // B 기기 유지
+        assertThat(remainingEmitters).containsKey(emitterIdC); // C 기기 유지
+        assertThat(remainingEmitters).doesNotContainKey(emitterIdA1); // A 기기 연결1 삭제
+        assertThat(remainingEmitters).doesNotContainKey(emitterIdA2); // A 기기 연결2 삭제
+    }
+
+    @Test
+    @DisplayName("특정 사용자 ID와 토큰 ID로 Emitter 삭제 - 해당하는 Emitter가 없는 경우")
+    void shouldNotThrowException_WhenDeletingNonExistentEmitterByUserIdAndTokenId() {
+        // Given
+        Long userId = 1L;
+        Long tokenId = 999L; // 존재하지 않는 토큰 ID
+        
+        String existingEmitterId = "1_100_1234567890";
+        emitterRepository.save(existingEmitterId, emitter1);
+
+        // When & Then
+        // 예외가 발생하지 않아야 함
+        emitterRepository.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+        
+        // 기존 Emitter는 유지되어야 함
+        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
+        assertThat(emitters).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("특정 사용자 ID와 토큰 ID로 Emitter 삭제 - 다른 사용자에게 영향 없음")
+    void shouldNotAffectOtherUsers_WhenDeletingEmitterByUserIdAndTokenId() {
+        // Given
+        Long userId1 = 1L;
+        Long userId2 = 2L;
+        Long tokenId = 100L;
+        
+        String user1EmitterId = "1_100_1234567890";
+        String user2EmitterId = "2_100_1234567890"; // 동일한 토큰 ID, 다른 사용자
+        
+        emitterRepository.save(user1EmitterId, emitter1);
+        emitterRepository.save(user2EmitterId, emitter2);
+
+        // When - user1의 특정 토큰만 삭제
+        emitterRepository.deleteEmitterByUserIdAndTokenId(userId1, tokenId);
+
+        // Then
+        Map<String, SseEmitter> user1Emitters = emitterRepository.findAllEmitterByUserId(userId1);
+        Map<String, SseEmitter> user2Emitters = emitterRepository.findAllEmitterByUserId(userId2);
+        
+        assertThat(user1Emitters).isEmpty(); // user1의 Emitter는 삭제됨
+        assertThat(user2Emitters).hasSize(1); // user2의 Emitter는 유지됨
+        assertThat(user2Emitters).containsKey(user2EmitterId);
+    }
 }

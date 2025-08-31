@@ -52,6 +52,20 @@ public class NotificationSseService implements NotificationSseUseCase {
     }
 
     /**
+     * <h3>특정 기기 SSE 연결 정리</h3>
+     * <p>사용자의 특정 기기(토큰)에 해당하는 SSE Emitter 연결을 정리합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param tokenId 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId) {
+        ssePort.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+    }
+
+    /**
      * <h3>댓글 알림 SSE 전송</h3>
      *
      * @param postUserId    게시글 작성자 ID
