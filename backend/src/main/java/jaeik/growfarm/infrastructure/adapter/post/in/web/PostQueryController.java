@@ -43,26 +43,6 @@ public class PostQueryController {
     }
 
     /**
-     * <h3>게시글 검색 API</h3>
-     * <p>검색 유형(type)과 검색어(query)를 통해 게시글을 검색하고 최신순으로 페이지네이션합니다.</p>
-     *
-     * @param type     검색 유형 (예: title, content, writer)
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return 검색된 게시글 목록 페이지 (200 OK)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @GetMapping("/search")
-    public ResponseEntity<Page<SimplePostResDTO>> searchPost(@RequestParam String type,
-                                                             @RequestParam String query,
-                                                             Pageable pageable) {
-        Page<PostSearchResult> postList = postQueryUseCase.searchPost(type, query, pageable);
-        Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
-    }
-
-    /**
      * <h3>게시글 상세 조회 API</h3>
      * <p>게시글 ID를 통해 게시글 상세 정보를 조회하고 조회수를 증가시킵니다.</p>
      * <p>쿠키 기반으로 중복 조회를 방지하여 조회수를 증가시킵니다.</p>
@@ -83,15 +63,36 @@ public class PostQueryController {
                                                   @AuthenticationPrincipal CustomUserDetails userDetails,
                                                   HttpServletRequest request,
                                                   HttpServletResponse response) {
-        // count 파라미터가 true일 때만 쿠키 기반 중복 방지 조회수 증가 (Command)
         if (count) {
             postInteractionUseCase.incrementViewCountWithCookie(postId, request, response);
         }
-        
+
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        PostDetail postDetail = postQueryUseCase.getPost(postId, userId); // 게시글 조회 (Query)
+        PostDetail postDetail = postQueryUseCase.getPost(postId, userId);
         FullPostResDTO fullPostResDTO = postResponseMapper.convertToFullPostResDTO(postDetail);
         return ResponseEntity.ok(fullPostResDTO);
     }
+
+    /**
+     * <h3>게시글 검색 API</h3>
+     * <p>검색 유형(type)과 검색어(query)를 통해 게시글을 검색하고 최신순으로 페이지네이션합니다.</p>
+     *
+     * @param type     검색 유형 (예: title, content, writer)
+     * @param query    검색어
+     * @param pageable 페이지 정보
+     * @return 검색된 게시글 목록 페이지 (200 OK)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<SimplePostResDTO>> searchPost(@RequestParam String type,
+                                                             @RequestParam String query,
+                                                             Pageable pageable) {
+        Page<PostSearchResult> postList = postQueryUseCase.searchPost(type, query, pageable);
+        Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        return ResponseEntity.ok(dtoList);
+    }
+
+
 
 }

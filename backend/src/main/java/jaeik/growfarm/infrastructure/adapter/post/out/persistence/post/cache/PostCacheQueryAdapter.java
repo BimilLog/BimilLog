@@ -149,4 +149,34 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
         }
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean isPopularPost(Long postId) {
+        try {
+            // 모든 인기글 타입에 대해 확인
+            for (PostCacheFlag flag : PostCacheFlag.getPopularPostTypes()) {
+                // 해당 타입의 캐시가 있는지 확인
+                if (hasPopularPostsCache(flag)) {
+                    // 캐시된 인기글 목록 조회
+                    Object cached = redisTemplate.opsForValue().get(getCacheMetadata(flag).key());
+                    if (cached instanceof List<?> list) {
+                        // 해당 ID의 게시글이 목록에 있는지 확인
+                        boolean exists = list.stream()
+                                .filter(PostSearchResult.class::isInstance)
+                                .map(PostSearchResult.class::cast)
+                                .anyMatch(post -> post.getId().equals(postId));
+                        
+                        if (exists) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            // 캐시 조회 실패 시 false 반환 (일반 게시글로 처리)
+            return false;
+        }
+    }
 }

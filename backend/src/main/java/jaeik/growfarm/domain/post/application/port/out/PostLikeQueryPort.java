@@ -49,4 +49,18 @@ public interface PostLikeQueryPort {
      * @author jaeik
      */
     Map<Long, Integer> findLikeCountsByPostIds(List<Long> postIds);
+
+    /**
+     * <h3>게시글 ID와 사용자 ID로 추천 존재 여부 확인</h3>
+     * <p>
+     *     Post 엔티티를 로드하지 않고 ID만으로 추천 여부를 확인합니다.
+     *     캐시된 게시글의 추천 여부 확인 시 성능 향상을 위해 사용됩니다.
+     * </p>
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID
+     * @return 추천이 존재하면 true, 아니면 false
+     * @since 2.0.0
+     * @author jaeik
+     */
+    boolean existsByPostIdAndUserId(Long postId, Long userId);
 }

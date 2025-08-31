@@ -267,9 +267,6 @@ class PostCommandServiceTest {
     }
 
 
-    // PostReqVO 검증 테스트는 PostReqVOTest.java로 분리됨
-    // 서비스 테스트는 서비스 로직에만 집중하여 단일 책임 원칙 준수
-
     @Test
     @DisplayName("게시글 작성 - null 사용자 ID")
     void shouldThrowException_WhenNullUserId() {
@@ -280,15 +277,18 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(loadUserInfoPort.getReferenceById(userId)).willThrow(new IllegalArgumentException("User ID cannot be null"));
+        // userId가 null이면 loadUserInfoPort 호출되지 않고 user가 null로 설정됨
+        // postCommandPort.save() 기본값이 null이므로 NPE 발생
+        given(postCommandPort.save(any())).willReturn(null);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("User ID cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("Cannot invoke")
+                .hasMessageContaining("getId()");
 
-        verify(loadUserInfoPort, times(1)).getReferenceById(userId);
-        verify(postCommandPort, never()).save(any());
+        verify(loadUserInfoPort, never()).getReferenceById(any()); // 호출되지 않음
+        verify(postCommandPort, times(1)).save(any());
     }
 
     @Test

@@ -383,7 +383,7 @@ class PostInteractionServiceTest {
         postInteractionService.incrementViewCountWithCookie(postId, request, response);
 
         // Then
-        verify(postQueryPort, times(2)).findById(postId); // 존재 확인 + 조회수 증가용
+        verify(postQueryPort).findById(postId); // 한 번만 조회
         verify(postCommandPort).incrementView(post); // 조회수 증가
         
         // 쿠키 생성 확인
@@ -412,7 +412,7 @@ class PostInteractionServiceTest {
         postInteractionService.incrementViewCountWithCookie(postId, request, response);
 
         // Then
-        verify(postQueryPort).findById(postId); // 존재 확인만
+        verify(postQueryPort).findById(postId); // 한 번만 조회
         verify(postCommandPort, never()).incrementView(any()); // 조회수 증가 안함
         verify(response, never()).addCookie(any()); // 쿠키 업데이트 안함
     }
@@ -432,7 +432,7 @@ class PostInteractionServiceTest {
         postInteractionService.incrementViewCountWithCookie(postId, request, response);
 
         // Then
-        verify(postQueryPort, times(2)).findById(postId); // 존재 확인 + 조회수 증가용
+        verify(postQueryPort).findById(postId); // 한 번만 조회
         verify(postCommandPort).incrementView(post); // 조회수 증가
 
         // 쿠키 업데이트 확인
@@ -475,7 +475,7 @@ class PostInteractionServiceTest {
         postInteractionService.incrementViewCountWithCookie(postId, request, response);
 
         // Then - 잘못된 쿠키는 무시하고 새로 처리
-        verify(postQueryPort, times(2)).findById(postId);
+        verify(postQueryPort).findById(postId); // 한 번만 조회
         verify(postCommandPort).incrementView(post); // 조회수 증가
 
         // 새 쿠키 생성 확인
@@ -506,7 +506,7 @@ class PostInteractionServiceTest {
         postInteractionService.incrementViewCountWithCookie(postId, request, response);
 
         // Then
-        verify(postQueryPort, times(2)).findById(postId);
+        verify(postQueryPort).findById(postId); // 한 번만 조회
         verify(postCommandPort).incrementView(post); // 새 게시글이므로 조회수 증가
 
         // 쿠키 업데이트 확인

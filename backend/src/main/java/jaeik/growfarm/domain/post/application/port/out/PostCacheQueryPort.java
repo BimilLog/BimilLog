@@ -61,4 +61,16 @@ public interface PostCacheQueryPort {
      * @since 2.0.0
      */
     Page<PostSearchResult> getCachedPostListPaged(PostCacheFlag type, Pageable pageable);
+
+    /**
+     * <h3>게시글이 인기글인지 확인</h3>
+     * <p>주어진 게시글 ID가 현재 캐시된 인기글(실시간, 주간, 전설, 공지)에 포함되어 있는지 빠르게 확인합니다.</p>
+     * <p>Redis Set 구조를 활용하여 O(1) 시간 복잡도로 확인합니다.</p>
+     *
+     * @param postId 확인할 게시글 ID
+     * @return 인기글이면 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    boolean isPopularPost(Long postId);
 }

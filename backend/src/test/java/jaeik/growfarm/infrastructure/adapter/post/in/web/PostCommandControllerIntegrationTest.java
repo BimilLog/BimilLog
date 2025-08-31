@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +35,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * <h2>게시글 Command 컨트롤러 통합 테스트</h2>
@@ -157,22 +157,22 @@ class PostCommandControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("게시글 작성 실패 - 인증되지 않은 사용자")
-    void writePost_Fail_Unauthenticated() throws Exception {
+    @DisplayName("게시글 작성 성공 - 비로그인 사용자 (익명 작성)")
+    void writePost_Success_Anonymous() throws Exception {
         // Given
         PostReqDTO postReqDTO = PostReqDTO.builder()
-                .title("인증 없는 게시글")
-                .content("인증되지 않은 사용자의 게시글 작성 시도")
+                .title("익명 게시글")
+                .content("비로그인 사용자의 익명 게시글 작성")
                 .password("1234")
                 .build();
 
-        // When & Then - 인증되지 않은 사용자는 500 에러 (NullPointerException)가 발생
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postReqDTO))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isInternalServerError()); // 실제 동작에 맞춰 수정
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"));
     }
 
     @Test
@@ -350,7 +350,7 @@ class PostCommandControllerIntegrationTest {
         mockMvc.perform(post("/api/post/{postId}/like", savedPost.getId())
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isInternalServerError()); // 실제 동작에 맞춰 수정
+                .andExpect(status().isForbidden());
     }
 
     @Test

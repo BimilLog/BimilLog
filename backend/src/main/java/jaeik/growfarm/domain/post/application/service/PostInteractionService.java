@@ -99,19 +99,18 @@ public class PostInteractionService implements PostInteractionUseCase {
      */
     @Override
     public void incrementViewCountWithCookie(Long postId, HttpServletRequest request, HttpServletResponse response) {
-        // 1. 게시글 존재 확인
-        if (!postQueryPort.findById(postId).isPresent()) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+        // 1. 게시글 조회 (한 번만 조회하여 성능 개선)
+        Post post = postQueryPort.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // 2. 쿠키 확인
         Cookie[] cookies = request.getCookies();
 
         // 3. 쿠키가 없거나 해당 게시글을 아직 조회하지 않은 경우에만 조회수 증가
         if (!hasViewedPost(cookies, postId)) {
-            incrementViewCount(postId); // 기존 메서드 재사용
+            postCommandPort.incrementView(post); // Post 엔티티를 직접 사용하여 중복 조회 방지
             updateViewCookie(response, cookies, postId);
-            log.debug("Post view count incremented with cookie protection: postId={}", postId);
+            log.debug("Post view count incremented with cookie protection: postId={}, newViewCount={}", postId, post.getViews());
         } else {
             log.debug("Post view count not incremented (already viewed): postId={}", postId);
         }

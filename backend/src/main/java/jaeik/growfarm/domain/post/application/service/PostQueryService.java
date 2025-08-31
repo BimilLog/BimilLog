@@ -60,6 +60,7 @@ public class PostQueryService implements PostQueryUseCase {
     /**
      * <h3>인기글 여부 확인</h3>
      * <p>주어진 게시글 ID가 현재 캐시된 인기글(실시간, 주간, 전설, 공지)에 포함되어 있는지 확인합니다.</p>
+     * <p>PostCacheQueryPort의 최적화된 메서드를 사용하여 O(1) 시간 복잡도로 확인합니다.</p>
      *
      * @param postId 게시글 ID
      * @return 인기글 여부 (true: 인기글, false: 일반글)
@@ -67,19 +68,8 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     private boolean isPopularPost(Long postId) {
-        // 모든 인기글 타입에 대해 확인
-        for (PostCacheFlag flag : PostCacheFlag.getPopularPostTypes()) {
-            // 해당 타입의 캐시가 있는지 확인
-            if (postCacheQueryPort.hasPopularPostsCache(flag)) {
-                // 캐시된 인기글 목록 조회
-                List<PostSearchResult> cachedPosts = postCacheQueryPort.getCachedPostList(flag);
-                // 해당 ID의 게시글이 목록에 있는지 확인
-                if (cachedPosts.stream().anyMatch(post -> post.getId().equals(postId))) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        // PostCacheQueryPort의 최적화된 메서드 사용
+        return postCacheQueryPort.isPopularPost(postId);
     }
 
     /**
@@ -100,11 +90,9 @@ public class PostQueryService implements PostQueryUseCase {
         if (isPopularPost(postId)) {
             PostDetail cachedPost = postCacheQueryPort.getCachedPost(postId);
             if (cachedPost != null) {
-                // 사용자의 좋아요 정보만 추가 확인 필요
+                // 사용자의 좋아요 정보만 추가 확인 필요 (Post 엔티티 로드 없이 ID로만 확인)
                 if (userId != null) {
-                    Post post = postQueryPort.findById(postId)
-                            .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-                    boolean isLiked = checkUserLikedPost(post, userId);
+                    boolean isLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, userId);
                     return cachedPost.withIsLiked(isLiked);
                 }
                 return cachedPost;

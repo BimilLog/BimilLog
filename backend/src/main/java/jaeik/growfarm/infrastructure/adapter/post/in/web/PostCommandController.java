@@ -32,8 +32,9 @@ public class PostCommandController {
     /**
      * <h3>게시글 작성 API</h3>
      * <p>새로운 게시글을 작성하고 저장합니다.</p>
+     * <p>로그인 사용자는 자동으로 작성자 정보가 설정되고, 비로그인 사용자는 비밀번호를 통해 익명으로 작성할 수 있습니다.</p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보
+     * @param userDetails 현재 로그인한 사용자 정보 (Optional - 비로그인 사용자 허용)
      * @param postReqDTO  게시글 작성 요청 DTO
      * @return 생성된 게시글의 URI를 포함한 응답 (201 Created)
      * @author Jaeik
@@ -43,7 +44,8 @@ public class PostCommandController {
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostReqDTO postReqDTO) {
         PostReqVO postReqVO = convertToPostReqVO(postReqDTO);
-        Long postId = postCommandUseCase.writePost(userDetails.getUserId(), postReqVO);
+        Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+        Long postId = postCommandUseCase.writePost(userId, postReqVO);
         return ResponseEntity.created(URI.create("/api/posts/" + postId)).build();
     }
 

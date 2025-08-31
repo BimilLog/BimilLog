@@ -117,9 +117,8 @@ class PostQueryServiceTest {
         Long postId = 1L;
         Long userId = 2L;
         
-        // 모든 캐시에 해당 게시글이 없음
-        given(postCacheQueryPort.hasPopularPostsCache(any())).willReturn(true);
-        given(postCacheQueryPort.getCachedPostList(any())).willReturn(Collections.emptyList());
+        // 인기글이 아닌 경우
+        given(postCacheQueryPort.isPopularPost(postId)).willReturn(false);
         
         // Mock Post에서 User 반환하도록 설정
         given(post.getUser()).willReturn(user);
@@ -150,18 +149,14 @@ class PostQueryServiceTest {
         Long postId = 1L;
         Long userId = 2L;
         
-        PostSearchResult cachedSimplePost = createPostSearchResult(postId, "캐시된 인기글");
         PostDetail cachedFullPost = createPostDetail(postId, "캐시된 인기글", "캐시된 내용");
         
-        // 실시간 인기글 캐시에 존재
-        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
-        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(List.of(cachedSimplePost));
+        // 인기글인 경우
+        given(postCacheQueryPort.isPopularPost(postId)).willReturn(true);
         given(postCacheQueryPort.getCachedPost(postId)).willReturn(cachedFullPost);
         
-        // 좋아요 정보만 추가 확인
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
-        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
-        given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
+        // 좋아요 정보만 추가 확인 (Post 엔티티 로드 없이 ID로만 확인)
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -171,9 +166,9 @@ class PostQueryServiceTest {
         assertThat(result.isLiked()).isFalse();
         
         verify(postCacheQueryPort).getCachedPost(postId);
-        verify(postQueryPort).findById(postId); // 캐시에서 가져와도 사용자 좋아요 확인을 위해 post 필요
-        verify(loadUserInfoPort).getReferenceById(userId);
-        verify(postLikeQueryPort).existsByUserAndPost(user, post);
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
+        verify(postQueryPort, never()).findById(any()); // 캐시 히트 시 DB 조회 안함
+        verify(loadUserInfoPort, never()).getReferenceById(any()); // User 엔티티 로드 안함
         verify(postLikeQueryPort, never()).countByPost(any()); // 캐시에서 가져올 때는 호출 안함
     }
 
@@ -184,11 +179,8 @@ class PostQueryServiceTest {
         Long postId = 1L;
         Long userId = 2L;
         
-        PostSearchResult cachedSimplePost = createPostSearchResult(postId, "인기글");
-        
-        // 캐시에는 있지만 상세 정보가 없음
-        given(postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
-        given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(List.of(cachedSimplePost));
+        // 인기글이지만 캐시에 상세 정보가 없음
+        given(postCacheQueryPort.isPopularPost(postId)).willReturn(true);
         given(postCacheQueryPort.getCachedPost(postId)).willReturn(null);
         
         // Mock Post에서 User 반환하도록 설정
@@ -222,8 +214,7 @@ class PostQueryServiceTest {
         Long userId = null;
         
         // 인기글이 아님
-        given(postCacheQueryPort.hasPopularPostsCache(any())).willReturn(true);
-        given(postCacheQueryPort.getCachedPostList(any())).willReturn(Collections.emptyList());
+        given(postCacheQueryPort.isPopularPost(postId)).willReturn(false);
         
         // Mock Post에서 User 반환하도록 설정
         given(post.getUser()).willReturn(user);
@@ -253,8 +244,7 @@ class PostQueryServiceTest {
         Long userId = 1L;
         
         // 인기글이 아님
-        given(postCacheQueryPort.hasPopularPostsCache(any())).willReturn(true);
-        given(postCacheQueryPort.getCachedPostList(any())).willReturn(Collections.emptyList());
+        given(postCacheQueryPort.isPopularPost(postId)).willReturn(false);
         
         given(postQueryPort.findById(postId)).willReturn(Optional.empty());
 

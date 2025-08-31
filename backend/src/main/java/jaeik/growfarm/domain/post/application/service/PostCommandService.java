@@ -39,9 +39,10 @@ public class PostCommandService implements PostCommandUseCase {
 
     /**
      * <h3>게시글 작성</h3>
-     * <p>사용자가 작성한 게시글을 저장하고, 해당 게시글의 ID를 반환합니다.</p>
+     * <p>로그인 사용자 또는 비로그인 사용자(익명)가 작성한 게시글을 저장하고, 해당 게시글의 ID를 반환합니다.</p>
+     * <p>비로그인 사용자의 경우 userId가 null이며, 비밀번호를 통해 익명 게시글로 저장됩니다.</p>
      *
-     * @param userId      게시글 작성자의 사용자 ID
+     * @param userId      게시글 작성자의 사용자 ID (null 허용 - 익명 작성자)
      * @param postReqVO  게시글 요청 값 객체
      * @return 저장된 게시글의 ID
      * @since 2.0.0
@@ -49,7 +50,7 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public Long writePost(Long userId, PostReqVO postReqVO) {
-        User user = loadUserInfoPort.getReferenceById(userId);
+        User user = (userId != null) ? loadUserInfoPort.getReferenceById(userId) : null;
         Post newPost = Post.createPost(user, postReqVO);
         Post savedPost = postCommandPort.save(newPost);
         return savedPost.getId();
