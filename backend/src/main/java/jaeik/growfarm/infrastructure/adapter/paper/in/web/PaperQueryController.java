@@ -19,9 +19,7 @@ import java.util.List;
 /**
  * <h2>롤링 페이퍼 조회 컨트롤러</h2>
  * <p>
- * Primary Adapter: 롤링 페이퍼 조회 관련 웹 API를 관리합니다.
- * UseCase 기반 구현으로 CQRS 패턴 적용
- * 기존 PaperQueryController와 동일한 API 스펙 보장
+ * 롤링 페이퍼 조회 관련 웹 API를 관리합니다.
  * </p>
  *
  * @author Jaeik
@@ -36,7 +34,6 @@ public class PaperQueryController {
 
     /**
      * <h3>내 롤링페이퍼 조회 API</h3>
-     * <p>기존 PaperQueryController.myPaper()와 동일한 기능</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @return ResponseEntity<List < MessageDTO>> 내 롤링 페이퍼 메시지 리스트

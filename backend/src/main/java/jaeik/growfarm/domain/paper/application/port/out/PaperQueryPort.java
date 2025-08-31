@@ -55,4 +55,16 @@ public interface PaperQueryPort {
      * @since 2.0.0
      */
     List<Message> findMessagesByUserName(String userName);
+
+    /**
+     * <h3>메시지 소유자 ID 조회</h3>
+     * <p>메시지 ID로 해당 메시지가 속한 롤링페이퍼 소유자의 ID를 조회합니다.</p>
+     * <p>성능 최적화를 위해 전체 엔티티가 아닌 userId만 조회합니다.</p>
+     *
+     * @param messageId 조회할 메시지의 ID
+     * @return 롤링페이퍼 소유자의 사용자 ID (Optional)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Optional<Long> findOwnerIdByMessageId(Long messageId);
 }

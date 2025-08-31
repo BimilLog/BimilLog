@@ -67,16 +67,13 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(messageId);
 
-        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(message));
-        given(message.isOwner(userId)).willReturn(true);
-        given(message.getId()).willReturn(messageId);
+        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(userId));
 
         // When
         paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand());
 
         // Then
-        verify(paperQueryPort, times(1)).findMessageById(messageId);
-        verify(message, times(1)).isOwner(userId);
+        verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
         verify(paperCommandPort, times(1)).deleteById(messageId);
         verifyNoMoreInteractions(paperQueryPort, paperCommandPort);
     }
@@ -89,14 +86,14 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(messageId);
 
-        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.empty());
+        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(999L, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
 
-        verify(paperQueryPort, times(1)).findMessageById(messageId);
+        verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
         verify(paperCommandPort, never()).deleteById(any());
     }
 
@@ -105,20 +102,19 @@ class PaperCommandServiceTest {
     void shouldThrowException_WhenNotOwner() {
         // Given
         Long userId = 1L;
+        Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(messageId);
 
-        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(message));
-        given(message.isOwner(userId)).willReturn(false);
+        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
-        verify(paperQueryPort, times(1)).findMessageById(messageId);
-        verify(message, times(1)).isOwner(userId);
+        verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
         verify(paperCommandPort, never()).deleteById(any());
     }
 
@@ -256,22 +252,6 @@ class PaperCommandServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
     }
 
-    @Test
-    @DisplayName("내 롤링페이퍼 메시지 삭제 - DTO에 ID가 없는 경우")
-    void shouldThrowException_WhenMessageDTOHasNoId() {
-        // Given
-        MessageDTO messageDTO = new MessageDTO();
-        // ID를 설정하지 않음 (null)
-
-        given(paperQueryPort.findMessageById(null)).willReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(1L, messageDTO.toCommand()))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
-
-        verify(paperQueryPort, times(1)).findMessageById(null);
-    }
 
     @Test
     @DisplayName("메시지 작성 - 길이 제한 내 긴 메시지")
@@ -353,11 +333,8 @@ class PaperCommandServiceTest {
         for (Long messageId : messageIds) {
             MessageDTO messageDTO = new MessageDTO();
             messageDTO.setId(messageId);
-            Message mockMessage = mock(Message.class);
             
-            given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(mockMessage));
-            given(mockMessage.isOwner(userId)).willReturn(true);
-            given(mockMessage.getId()).willReturn(messageId);
+            given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(userId));
             
             // When
             paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand());
@@ -393,22 +370,20 @@ class PaperCommandServiceTest {
     void shouldVerifyOwnershipBeforeDeletion() {
         // Given
         Long userId = 1L;
+        Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setId(messageId);
 
-        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(message));
-        given(message.isOwner(userId)).willReturn(false);
+        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
-        // isOwner가 호출되었는지 확인 (소유권 검증이 먼저 실행됨)
-        verify(message, times(1)).isOwner(userId);
         // 소유권 검증에 실패했으므로 삭제가 호출되지 않음
+        verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
         verify(paperCommandPort, never()).deleteById(any());
-        verify(message, never()).getId(); // 소유권 실패시 ID를 가져오지 않음
     }
 }

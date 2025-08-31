@@ -52,13 +52,13 @@ public class PaperCommandService implements PaperCommandUseCase {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         
-        Message message = paperQueryPort.findMessageById(messageCommand.id())
+        Long ownerId = paperQueryPort.findOwnerIdByMessageId(messageCommand.id())
                 .orElseThrow(() -> new CustomException(ErrorCode.MESSAGE_NOT_FOUND));
 
-        if (!message.isOwner(userId)) {
+        if (!ownerId.equals(userId)) {
             throw new CustomException(ErrorCode.MESSAGE_DELETE_FORBIDDEN);
         }
-        paperCommandPort.deleteById(message.getId());
+        paperCommandPort.deleteById(messageCommand.id());
     }
 
     /**

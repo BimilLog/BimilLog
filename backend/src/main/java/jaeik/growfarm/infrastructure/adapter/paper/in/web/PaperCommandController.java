@@ -12,9 +12,6 @@ import org.springframework.web.bind.annotation.*;
 /**
  * <h2>롤링 페이퍼 변경 컨트롤러</h2>
  * <p>
- * Primary Adapter: 롤링 페이퍼 변경 관련 웹 API를 관리합니다.
- * UseCase 기반 구현으로 CQRS 패턴 적용
- * 기존 PaperCommandController와 동일한 API 스펙 보장
  * </p>
  *
  * @author Jaeik
@@ -29,7 +26,6 @@ public class PaperCommandController {
 
     /**
      * <h3>메시지 작성 API</h3>
-     * <p>기존 PaperCommandController.writeMessage()와 동일한 기능</p>
      *
      * @param userName   롤링페이퍼 주인의 닉네임
      * @param messageDTO 작성할 메시지 정보
@@ -47,7 +43,6 @@ public class PaperCommandController {
 
     /**
      * <h3>메시지 삭제 API</h3>
-     * <p>기존 PaperCommandController.deleteMessage()와 동일한 기능</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param messageDTO  삭제할 메시지 정보

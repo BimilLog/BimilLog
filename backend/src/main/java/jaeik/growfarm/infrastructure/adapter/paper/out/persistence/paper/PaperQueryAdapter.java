@@ -99,4 +99,27 @@ public class PaperQueryAdapter implements PaperQueryPort {
                 .where(message.user.userName.eq(userName))
                 .fetch();
     }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>QueryDSL을 사용하여 메시지 ID로 롤링페이퍼 소유자 ID만 효율적으로 조회합니다.</p>
+     * <p>전체 엔티티를 로드하지 않고 userId만 조회하여 성능을 최적화합니다.</p>
+     */
+    @Override
+    public Optional<Long> findOwnerIdByMessageId(Long messageId) {
+        if (messageId == null) {
+            return Optional.empty();
+        }
+        
+        QMessage message = QMessage.message;
+        
+        Long ownerId = jpaQueryFactory
+                .select(message.user.id)
+                .from(message)
+                .where(message.id.eq(messageId))
+                .fetchOne();
+                
+        return Optional.ofNullable(ownerId);
+    }
 }
