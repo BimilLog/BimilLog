@@ -1,18 +1,20 @@
 
-package jaeik.growfarm.domain.notification.application.service;
+package jaeik.growfarm.infrastructure.adapter.notification.out.url;
 
+import jaeik.growfarm.domain.notification.application.port.out.NotificationUrlPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * <h2>알림 URL 생성기</h2>
- * <p>다양한 알림 유형에 대한 URL을 생성하는 컴포넌트</p>
+ * <h2>알림 URL 생성 어댑터</h2>
+ * <p>다양한 알림 유형에 대한 URL을 생성하는 인프라 어댑터</p>
+ * <p>헥사고날 아키텍처 원칙에 따라 infrastructure 계층으로 이동</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Component
-public class NotificationUrlGenerator {
+public class NotificationUrlAdapter implements NotificationUrlPort {
 
     private final String baseUrl;
 
@@ -24,7 +26,7 @@ public class NotificationUrlGenerator {
      * @author Jaeik
      * @since 2.0.0
      */
-    public NotificationUrlGenerator(@Value("${url}") String baseUrl) {
+    public NotificationUrlAdapter(@Value("${url}") String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
@@ -37,6 +39,7 @@ public class NotificationUrlGenerator {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public String generatePostUrl(Long postId) {
         return baseUrl + "/board/post/" + postId;
     }
@@ -50,20 +53,8 @@ public class NotificationUrlGenerator {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public String generateRollingPaperUrl(String userName) {
         return baseUrl + "/rolling-paper/" + userName;
-    }
-
-    /**
-     * <h3>페이퍼 URL 생성 (호환성)</h3>
-     * <p>롤링페이퍼 URL을 생성합니다. (generateRollingPaperUrl의 별칭)</p>
-     *
-     * @param userName 롤링페이퍼 주인의 사용자 이름
-     * @return 롤링페이퍼 URL
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public String generatePaperUrl(String userName) {
-        return generateRollingPaperUrl(userName);
     }
 }

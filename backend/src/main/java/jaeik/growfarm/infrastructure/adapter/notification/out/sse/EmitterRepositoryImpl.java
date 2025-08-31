@@ -45,6 +45,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
      *
      * <p>사용자 ID에 해당하는 모든 Emitter를 조회합니다.</p>
      * <p>해당 사용자에 연결된 모든 기기로 알림을 보내는 용도입니다.</p>
+     * <p>EmitterId 형식: "userId_tokenId_timestamp"</p>
      *
      * @param userId 유저 ID
      * @return 사용자 ID에 해당하는 모든 Emitter Map
@@ -53,8 +54,9 @@ public class EmitterRepositoryImpl implements EmitterRepository {
      */
     @Override
     public Map<String, SseEmitter> findAllEmitterByUserId(Long userId) {
+        String userIdPrefix = userId + "_";
         return emitters.entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith(userId.toString()))
+                .filter(entry -> entry.getKey().startsWith(userIdPrefix))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -78,6 +80,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
      *
      * <p>사용자 ID에 해당하는 모든 Emitter를 삭제합니다.</p>
      * <p>로그아웃, 회원탈퇴에서 사용합니다.</p>
+     * <p>EmitterId 형식: "userId_tokenId_timestamp"</p>
      *
      * @param userId 유저 ID
      * @author Jaeik
@@ -85,10 +88,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
      */
     @Override
     public void deleteAllEmitterByUserId(Long userId) {
-        List<String> emitterIds = emitters.keySet().stream()
-                .filter(key -> key.startsWith(userId.toString()))
-                .toList();
-
-        emitterIds.forEach(emitters::remove);
+        String userIdPrefix = userId + "_";
+        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(userIdPrefix));
     }
 }

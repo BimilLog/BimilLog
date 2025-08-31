@@ -1,5 +1,8 @@
 package jaeik.growfarm.infrastructure.adapter.notification.in.listener;
 
+import jaeik.growfarm.domain.comment.event.CommentCreatedEvent;
+import jaeik.growfarm.domain.paper.event.RollingPaperEvent;
+import jaeik.growfarm.domain.post.event.PostFeaturedEvent;
 import jaeik.growfarm.infrastructure.adapter.notification.in.listener.handler.NotificationEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,10 +41,10 @@ public class NotificationEventListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @EventListener(jaeik.growfarm.domain.comment.event.CommentCreatedEvent.class)
+    @EventListener(CommentCreatedEvent.class)
     @Async("sseNotificationExecutor")
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void handleCommentCreatedEvent(jaeik.growfarm.domain.comment.event.CommentCreatedEvent event) {
+    public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         for (NotificationEventHandler handler : notificationEventHandlers) {
             if (handler.supports(event)) {
                 handler.handle(event);
@@ -57,10 +60,10 @@ public class NotificationEventListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @EventListener(jaeik.growfarm.domain.paper.event.RollingPaperEvent.class)
+    @EventListener(RollingPaperEvent.class)
     @Async("sseNotificationExecutor")
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void handleRollingPaperEvent(jaeik.growfarm.domain.paper.event.RollingPaperEvent event) {
+    public void handleRollingPaperEvent(RollingPaperEvent event) {
         for (NotificationEventHandler handler : notificationEventHandlers) {
             if (handler.supports(event)) {
                 handler.handle(event);
@@ -76,10 +79,10 @@ public class NotificationEventListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @EventListener(jaeik.growfarm.domain.post.event.PostFeaturedEvent.class)
+    @EventListener(PostFeaturedEvent.class)
     @Async("sseNotificationExecutor")
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void handlePostFeaturedEvent(jaeik.growfarm.domain.post.event.PostFeaturedEvent event) {
+    public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         for (NotificationEventHandler handler : notificationEventHandlers) {
             if (handler.supports(event)) {
                 handler.handle(event);

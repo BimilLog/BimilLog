@@ -1,5 +1,6 @@
 package jaeik.growfarm.domain.notification.application.service;
 
+import jaeik.growfarm.domain.notification.application.port.out.NotificationUrlPort;
 import jaeik.growfarm.domain.notification.application.port.out.SsePort;
 import jaeik.growfarm.domain.notification.entity.NotificationType;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +31,7 @@ class NotificationSseServiceTest {
     private SsePort ssePort;
 
     @Mock
-    private NotificationUrlGenerator urlGenerator;
+    private NotificationUrlPort notificationUrlPort;
 
     @InjectMocks
     private NotificationSseService notificationSseService;
@@ -76,13 +77,13 @@ class NotificationSseServiceTest {
         String expectedMessage = commenterName + "님이 댓글을 남겼습니다!";
         String expectedUrl = "/board/post/100";
         
-        given(urlGenerator.generatePostUrl(postId)).willReturn(expectedUrl);
+        given(notificationUrlPort.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendCommentNotification(postUserId, commenterName, postId);
 
         // Then
-        verify(urlGenerator).generatePostUrl(postId);
+        verify(notificationUrlPort).generatePostUrl(postId);
         verify(ssePort).send(eq(postUserId), argThat(event ->
                 event.getType() == NotificationType.COMMENT &&
                 event.getMessage().equals(expectedMessage) &&
@@ -99,13 +100,13 @@ class NotificationSseServiceTest {
         String expectedMessage = "롤링페이퍼에 메시지가 작성되었어요!";
         String expectedUrl = "/rolling-paper/testuser";
         
-        given(urlGenerator.generatePaperUrl(userName)).willReturn(expectedUrl);
+        given(notificationUrlPort.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendPaperPlantNotification(farmOwnerId, userName);
 
         // Then
-        verify(urlGenerator).generatePaperUrl(userName);
+        verify(notificationUrlPort).generateRollingPaperUrl(userName);
         verify(ssePort).send(eq(farmOwnerId), argThat(event ->
                 event.getType() == NotificationType.PAPER &&
                 event.getMessage().equals(expectedMessage) &&
@@ -122,13 +123,13 @@ class NotificationSseServiceTest {
         Long postId = 100L;
         String expectedUrl = "/board/post/100";
         
-        given(urlGenerator.generatePostUrl(postId)).willReturn(expectedUrl);
+        given(notificationUrlPort.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendPostFeaturedNotification(userId, message, postId);
 
         // Then
-        verify(urlGenerator).generatePostUrl(postId);
+        verify(notificationUrlPort).generatePostUrl(postId);
         verify(ssePort).send(eq(userId), argThat(event ->
                 event.getType() == NotificationType.POST_FEATURED &&
                 event.getMessage().equals(message) &&

@@ -1,4 +1,4 @@
-package jaeik.growfarm.domain.notification.application.service;
+package jaeik.growfarm.infrastructure.adapter.notification.out.url;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,23 +7,23 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>NotificationUrlGenerator 테스트</h2>
- * <p>알림 URL 생성기의 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <h2>NotificationUrlAdapter 테스트</h2>
+ * <p>알림 URL 생성 어댑터의 기능을 검증하는 단위 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  *
  */
-@DisplayName("NotificationUrlGenerator 테스트")
-class NotificationUrlGeneratorTest {
+@DisplayName("NotificationUrlAdapter 테스트")
+class NotificationUrlAdapterTest {
 
-    private NotificationUrlGenerator notificationUrlGenerator;
+    private NotificationUrlAdapter notificationUrlAdapter;
 
     private static final String BASE_URL = "https://bimillog.com";
 
     @BeforeEach
     void setUp() {
-        notificationUrlGenerator = new NotificationUrlGenerator(BASE_URL);
+        notificationUrlAdapter = new NotificationUrlAdapter(BASE_URL);
     }
 
     @Test
@@ -34,7 +34,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/board/post/123";
 
         // When
-        String result = notificationUrlGenerator.generatePostUrl(postId);
+        String result = notificationUrlAdapter.generatePostUrl(postId);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -48,7 +48,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/board/post/999999999";
 
         // When
-        String result = notificationUrlGenerator.generatePostUrl(postId);
+        String result = notificationUrlAdapter.generatePostUrl(postId);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -62,7 +62,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/board/post/0";
 
         // When
-        String result = notificationUrlGenerator.generatePostUrl(postId);
+        String result = notificationUrlAdapter.generatePostUrl(postId);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -76,7 +76,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/testuser";
 
         // When
-        String result = notificationUrlGenerator.generateRollingPaperUrl(userName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -90,7 +90,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/테스트사용자";
 
         // When
-        String result = notificationUrlGenerator.generateRollingPaperUrl(userName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -104,7 +104,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/test-user_123";
 
         // When
-        String result = notificationUrlGenerator.generateRollingPaperUrl(userName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -118,7 +118,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/";
 
         // When
-        String result = notificationUrlGenerator.generateRollingPaperUrl(userName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -132,12 +132,12 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/testuser";
 
         // When
-        String result = notificationUrlGenerator.generatePaperUrl(userName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
-        // generatePaperUrl과 generateRollingPaperUrl이 같은 결과를 반환하는지 확인
-        assertThat(result).isEqualTo(notificationUrlGenerator.generateRollingPaperUrl(userName));
+        // generateRollingPaperUrl과 generateRollingPaperUrl이 같은 결과를 반환하는지 확인
+        assertThat(result).isEqualTo(notificationUrlAdapter.generateRollingPaperUrl(userName));
     }
 
     @Test
@@ -148,12 +148,12 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/한글사용자";
 
         // When
-        String result = notificationUrlGenerator.generatePaperUrl(userName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
-        // generatePaperUrl과 generateRollingPaperUrl이 같은 결과를 반환하는지 확인
-        assertThat(result).isEqualTo(notificationUrlGenerator.generateRollingPaperUrl(userName));
+        // generateRollingPaperUrl과 generateRollingPaperUrl이 같은 결과를 반환하는지 확인
+        assertThat(result).isEqualTo(notificationUrlAdapter.generateRollingPaperUrl(userName));
     }
 
     @Test
@@ -161,13 +161,13 @@ class NotificationUrlGeneratorTest {
     void shouldGenerateUrls_WhenDifferentBaseUrl() {
         // Given
         String devBaseUrl = "http://localhost:3000";
-        NotificationUrlGenerator devUrlGenerator = new NotificationUrlGenerator(devBaseUrl);
+        NotificationUrlAdapter devUrlGenerator = new NotificationUrlAdapter(devBaseUrl);
         Long postId = 456L;
         String userName = "devuser";
 
         // When
         String postUrl = devUrlGenerator.generatePostUrl(postId);
-        String paperUrl = devUrlGenerator.generatePaperUrl(userName);
+        String paperUrl = devUrlGenerator.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(postUrl).isEqualTo("http://localhost:3000/board/post/456");
@@ -179,13 +179,13 @@ class NotificationUrlGeneratorTest {
     void shouldGenerateUrls_WhenBaseUrlEndsWithSlash() {
         // Given
         String baseUrlWithSlash = "https://bimillog.com/";
-        NotificationUrlGenerator urlGeneratorWithSlash = new NotificationUrlGenerator(baseUrlWithSlash);
+        NotificationUrlAdapter urlGeneratorWithSlash = new NotificationUrlAdapter(baseUrlWithSlash);
         Long postId = 789L;
         String userName = "slashuser";
 
         // When
         String postUrl = urlGeneratorWithSlash.generatePostUrl(postId);
-        String paperUrl = urlGeneratorWithSlash.generatePaperUrl(userName);
+        String paperUrl = urlGeneratorWithSlash.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(postUrl).isEqualTo("https://bimillog.com//board/post/789");
@@ -200,7 +200,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/board/post/null";
 
         // When
-        String result = notificationUrlGenerator.generatePostUrl(postId);
+        String result = notificationUrlAdapter.generatePostUrl(postId);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -214,7 +214,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/null";
 
         // When
-        String result = notificationUrlGenerator.generatePaperUrl(userName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -228,7 +228,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/board/post/-123";
 
         // When
-        String result = notificationUrlGenerator.generatePostUrl(postId);
+        String result = notificationUrlAdapter.generatePostUrl(postId);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -242,7 +242,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/user with spaces";
 
         // When
-        String result = notificationUrlGenerator.generateRollingPaperUrl(userName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -256,7 +256,7 @@ class NotificationUrlGeneratorTest {
         String expectedUrl = BASE_URL + "/rolling-paper/" + veryLongUserName;
 
         // When
-        String result = notificationUrlGenerator.generateRollingPaperUrl(veryLongUserName);
+        String result = notificationUrlAdapter.generateRollingPaperUrl(veryLongUserName);
 
         // Then
         assertThat(result).isEqualTo(expectedUrl);
@@ -279,8 +279,8 @@ class NotificationUrlGeneratorTest {
         long startTime = System.currentTimeMillis();
         
         for (int i = 0; i < callCount; i++) {
-            String postUrl = notificationUrlGenerator.generatePostUrl(postIds[i]);
-            String paperUrl = notificationUrlGenerator.generatePaperUrl(userNames[i]);
+            String postUrl = notificationUrlAdapter.generatePostUrl(postIds[i]);
+            String paperUrl = notificationUrlAdapter.generateRollingPaperUrl(userNames[i]);
             
             assertThat(postUrl).isNotNull().isNotEmpty();
             assertThat(paperUrl).isNotNull().isNotEmpty();
@@ -298,13 +298,13 @@ class NotificationUrlGeneratorTest {
     void shouldHandleNullBaseUrl() {
         // Given
         String nullBaseUrl = null;
-        NotificationUrlGenerator nullBaseUrlGenerator = new NotificationUrlGenerator(nullBaseUrl);
+        NotificationUrlAdapter nullBaseUrlGenerator = new NotificationUrlAdapter(nullBaseUrl);
         Long postId = 123L;
         String userName = "testuser";
 
         // When
         String postUrl = nullBaseUrlGenerator.generatePostUrl(postId);
-        String paperUrl = nullBaseUrlGenerator.generatePaperUrl(userName);
+        String paperUrl = nullBaseUrlGenerator.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(postUrl).isEqualTo("null/board/post/123");
@@ -316,13 +316,13 @@ class NotificationUrlGeneratorTest {
     void shouldHandleEmptyBaseUrl() {
         // Given
         String emptyBaseUrl = "";
-        NotificationUrlGenerator emptyBaseUrlGenerator = new NotificationUrlGenerator(emptyBaseUrl);
+        NotificationUrlAdapter emptyBaseUrlGenerator = new NotificationUrlAdapter(emptyBaseUrl);
         Long postId = 456L;
         String userName = "emptyuser";
 
         // When
         String postUrl = emptyBaseUrlGenerator.generatePostUrl(postId);
-        String paperUrl = emptyBaseUrlGenerator.generatePaperUrl(userName);
+        String paperUrl = emptyBaseUrlGenerator.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(postUrl).isEqualTo("/board/post/456");
@@ -337,10 +337,10 @@ class NotificationUrlGeneratorTest {
         String userName = "consistentuser";
 
         // When
-        String postUrl1 = notificationUrlGenerator.generatePostUrl(postId);
-        String postUrl2 = notificationUrlGenerator.generatePostUrl(postId);
-        String paperUrl1 = notificationUrlGenerator.generatePaperUrl(userName);
-        String paperUrl2 = notificationUrlGenerator.generatePaperUrl(userName);
+        String postUrl1 = notificationUrlAdapter.generatePostUrl(postId);
+        String postUrl2 = notificationUrlAdapter.generatePostUrl(postId);
+        String paperUrl1 = notificationUrlAdapter.generateRollingPaperUrl(userName);
+        String paperUrl2 = notificationUrlAdapter.generateRollingPaperUrl(userName);
 
         // Then
         assertThat(postUrl1).isEqualTo(postUrl2);

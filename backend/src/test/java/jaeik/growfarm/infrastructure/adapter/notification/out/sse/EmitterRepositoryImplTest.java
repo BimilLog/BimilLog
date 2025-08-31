@@ -182,4 +182,67 @@ class EmitterRepositoryImplTest {
         assertThat(emitters).hasSize(1);
         assertThat(emitters.get(emitterId)).isEqualTo(newEmitter);
     }
+
+    @Test
+    @DisplayName("경계값 테스트 - 유사한 사용자 ID로 잘못 매칭되지 않는지 검증")
+    void shouldNotMatchSimilarUserIds() {
+        // Given
+        String emitterId1 = "1_100_1234567890";    // userId = 1
+        String emitterId10 = "10_100_1234567890";  // userId = 10
+        String emitterId11 = "11_100_1234567890";  // userId = 11
+        String emitterId123 = "123_100_1234567890"; // userId = 123
+        
+        emitterRepository.save(emitterId1, new SseEmitter());
+        emitterRepository.save(emitterId10, new SseEmitter());
+        emitterRepository.save(emitterId11, new SseEmitter());
+        emitterRepository.save(emitterId123, new SseEmitter());
+
+        // When & Then
+        Map<String, SseEmitter> user1Emitters = emitterRepository.findAllEmitterByUserId(1L);
+        Map<String, SseEmitter> user10Emitters = emitterRepository.findAllEmitterByUserId(10L);
+        Map<String, SseEmitter> user11Emitters = emitterRepository.findAllEmitterByUserId(11L);
+        Map<String, SseEmitter> user123Emitters = emitterRepository.findAllEmitterByUserId(123L);
+
+        // 각 사용자는 자신의 Emitter만 조회되어야 함
+        assertThat(user1Emitters).hasSize(1);
+        assertThat(user1Emitters).containsKey(emitterId1);
+
+        assertThat(user10Emitters).hasSize(1);
+        assertThat(user10Emitters).containsKey(emitterId10);
+
+        assertThat(user11Emitters).hasSize(1);
+        assertThat(user11Emitters).containsKey(emitterId11);
+
+        assertThat(user123Emitters).hasSize(1);
+        assertThat(user123Emitters).containsKey(emitterId123);
+    }
+
+    @Test
+    @DisplayName("경계값 테스트 - 사용자 ID 삭제 시 유사한 ID 영향받지 않음")
+    void shouldNotDeleteSimilarUserIds_WhenDeletingByUserId() {
+        // Given
+        String emitterId1 = "1_100_1234567890";    // userId = 1
+        String emitterId10 = "10_100_1234567890";  // userId = 10
+        String emitterId11 = "11_100_1234567890";  // userId = 11
+        String emitterId123 = "123_100_1234567890"; // userId = 123
+        
+        emitterRepository.save(emitterId1, new SseEmitter());
+        emitterRepository.save(emitterId10, new SseEmitter());
+        emitterRepository.save(emitterId11, new SseEmitter());
+        emitterRepository.save(emitterId123, new SseEmitter());
+
+        // When - userId=1의 Emitter만 삭제
+        emitterRepository.deleteAllEmitterByUserId(1L);
+
+        // Then - userId=1만 삭제되고 나머지는 유지되어야 함
+        Map<String, SseEmitter> user1Emitters = emitterRepository.findAllEmitterByUserId(1L);
+        Map<String, SseEmitter> user10Emitters = emitterRepository.findAllEmitterByUserId(10L);
+        Map<String, SseEmitter> user11Emitters = emitterRepository.findAllEmitterByUserId(11L);
+        Map<String, SseEmitter> user123Emitters = emitterRepository.findAllEmitterByUserId(123L);
+
+        assertThat(user1Emitters).isEmpty(); // userId=1은 삭제됨
+        assertThat(user10Emitters).hasSize(1); // userId=10은 유지됨
+        assertThat(user11Emitters).hasSize(1); // userId=11은 유지됨
+        assertThat(user123Emitters).hasSize(1); // userId=123은 유지됨
+    }
 }
