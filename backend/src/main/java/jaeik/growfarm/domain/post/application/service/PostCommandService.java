@@ -87,7 +87,6 @@ public class PostCommandService implements PostCommandUseCase {
     /**
      * <h3>게시글 삭제</h3>
      * <p>게시글 작성자만 게시글을 삭제할 수 있습니다.</p>
-     * <p>헥사고날 아키텍처 원칙에 따라 모든 외부 의존성을 Port를 통해 처리합니다.</p>
      * <p>DB CASCADE 설정으로 댓글과 추천이 자동으로 삭제됩니다.</p>
      *
      * @param userId 현재 로그인한 사용자 ID
