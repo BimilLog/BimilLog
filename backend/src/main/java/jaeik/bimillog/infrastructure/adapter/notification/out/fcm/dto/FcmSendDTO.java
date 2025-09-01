@@ -9,7 +9,7 @@ import lombok.*;
  * </p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @Getter
 @Setter
@@ -27,6 +27,8 @@ public class FcmSendDTO {
      * @param token FCM 토큰
      * @param title 알림 제목
      * @param body  알림 내용
+     * @author Jaeik
+     * @since 2.0.0
      */
     public FcmSendDTO(String token, String title, String body) {
         this.token = token;

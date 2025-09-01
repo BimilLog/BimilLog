@@ -8,13 +8,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * <h3>SseEmitter Repository 구현 클래스</h3>
+ * <h2>SSE Emitter 저장소 구현체</h2>
  *
- * <p>SseEmitter 관련 메모리 작업을 정의합니다.</p>
- * <p>사용자 ID와 토큰 ID와 생성 시간을 조합하여 고유한 Emitter ID를 생성하고, 이를 통해 SseEmitter 객체를 저장 및 조회합니다.</p>
+ * <p>
+ * SSE Emitter 관련 메모리 기반 저장소 구현체입니다.
+ * 사용자 ID와 토큰 ID, 생성 시간을 조합하여 고유한 Emitter ID를 생성하고,
+ * 이를 통해 SseEmitter 객체를 저장 및 조회합니다.
+ * </p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Repository
 public class EmitterRepositoryImpl implements EmitterRepository {

@@ -51,7 +51,7 @@ public class SseAdapter implements SsePort {
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
         sendNotification(emitter, emitterId, NotificationType.INITIATE,
-                "EventStream Created. [emitterId=%s]".formatted(emitterId), "");
+                "이벤트 스트림이 생성되었습니다. [emitterId=%s]".formatted(emitterId), "");
 
         return emitter;
     }

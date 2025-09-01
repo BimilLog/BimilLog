@@ -36,7 +36,7 @@ public class FcmTokenEventListener {
     @EventListener
     @Transactional
     public void handleUserLoggedOutEvent(UserLoggedOutEvent event) {
-        log.info("사용자 로그아웃 이벤트 처리: userId={}", event.userId());
+        log.info("사용자 로그아웃 이벤트 처리 시작: 사용자 ID={}", event.userId());
         notificationFcmUseCase.deleteFcmTokens(event.userId());
     }
 
@@ -52,7 +52,7 @@ public class FcmTokenEventListener {
     @EventListener
     @Transactional
     public void handleUserWithdrawnEvent(UserWithdrawnEvent event) {
-        log.info("사용자 탈퇴 이벤트 처리: userId={}", event.userId());
+        log.info("사용자 탈퇴 이벤트 처리 시작: 사용자 ID={}", event.userId());
         notificationFcmUseCase.deleteFcmTokens(event.userId());
     }
 }

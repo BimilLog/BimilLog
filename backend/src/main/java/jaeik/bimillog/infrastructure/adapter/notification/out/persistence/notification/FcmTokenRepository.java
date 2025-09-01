@@ -9,10 +9,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * <h2>FCM 토큰 Repository</h2>
- * <p>FCM 토큰 관련 데이터베이스 작업을 수행하는 Repository</p>
- * @since 2.0.0
+ * <h2>FCM 토큰 저장소</h2>
+ * <p>FCM 토큰 관련 데이터베이스 작업을 수행하는 JPA 저장소</p>
+ * 
  * @author Jaeik
+ * @version 2.0.0
  */
 @Repository
 public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {

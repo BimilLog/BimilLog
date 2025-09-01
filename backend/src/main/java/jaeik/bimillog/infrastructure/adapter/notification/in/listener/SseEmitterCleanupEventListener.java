@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * <p>사용자 로그아웃 시 SSE 연결 정리를 담당하는 이벤트 핸들러</p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Slf4j
 @Component

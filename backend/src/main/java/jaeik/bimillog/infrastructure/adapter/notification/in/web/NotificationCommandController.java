@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * <h2>알림 명령 컨트롤러</h2>
- * <p>알림의 상태를 변경하는 API를 담당합니다. (읽음/삭제 처리)</p>
+ * <p>
+ * 알림 상태 변경 관련 REST API를 처리하는 인바운드 어댑터입니다.
+ * 알림의 읽음 처리 및 삭제 요청을 도메인으로 전달합니다.
+ * </p>
  * 
  * @author Jaeik
  * @version 2.0.0
@@ -33,6 +36,8 @@ public class NotificationCommandController {
      * @param userDetails           현재 로그인한 유저 정보
      * @param updateNotificationDTO 알림 업데이트 정보
      * @return ResponseEntity<Void> HTTP 응답
+     * @author Jaeik
+     * @since 2.0.0
      */
     @PostMapping("/update")
     public ResponseEntity<Void> markAsRead(@AuthenticationPrincipal CustomUserDetails userDetails,
@@ -48,6 +53,8 @@ public class NotificationCommandController {
      *
      * @param updateDto 알림 업데이트 DTO
      * @return NotificationUpdateVO
+     * @author Jaeik
+     * @since 2.0.0
      */
     private NotificationUpdateVO toCommand(UpdateNotificationDTO updateDto) {
         return NotificationUpdateVO.of(updateDto.getReadIds(), updateDto.getDeletedIds());

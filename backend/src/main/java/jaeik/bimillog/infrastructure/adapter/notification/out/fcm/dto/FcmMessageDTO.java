@@ -4,7 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-// FCM 서버에 메시지 요청용 DTO
+/**
+ * <h2>FCM 메시지 요청 DTO</h2>
+ * <p>
+ * Firebase Cloud Messaging 서버에 메시지 전송을 요청하기 위한 데이터 전송 객체입니다.
+ * Firebase API 규격에 맞는 JSON 구조를 정의합니다.
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Getter
 @Builder
 public class FcmMessageDTO {

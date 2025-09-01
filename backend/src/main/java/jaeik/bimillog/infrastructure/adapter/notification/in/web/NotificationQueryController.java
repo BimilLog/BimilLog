@@ -16,7 +16,10 @@ import java.util.List;
 
 /**
  * <h2>알림 조회 컨트롤러</h2>
- * <p>알림 조회 관련 API를 담당합니다.</p>
+ * <p>
+ * 알림 조회 관련 REST API를 처리하는 인바운드 어댑터입니다.
+ * 헥사고날 아키텍처에서 HTTP 웹 요청을 도메인으로 전달하는 역할을 담당합니다.
+ * </p>
  * 
  * @author Jaeik
  * @version 2.0.0
@@ -35,6 +38,8 @@ public class NotificationQueryController {
      * 
      * @param userDetails 현재 로그인한 유저 정보
      * @return ResponseEntity<List<NotificationDTO>> 알림 리스트
+     * @author Jaeik
+     * @since 2.0.0
      */
     @GetMapping("/list")
     public ResponseEntity<List<NotificationDTO>> getNotifications(
@@ -52,6 +57,8 @@ public class NotificationQueryController {
      *
      * @param notificationInfo 도메인 알림 정보
      * @return NotificationDTO
+     * @author Jaeik
+     * @since 2.0.0
      */
     private NotificationDTO toDto(NotificationInfo notificationInfo) {
         return NotificationDTO.builder()
