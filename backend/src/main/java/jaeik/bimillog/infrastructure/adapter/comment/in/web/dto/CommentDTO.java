@@ -18,8 +18,9 @@ import java.time.Instant;
  * <p>댓글의 논리적 삭제를 표현할 수 있다.</p>
  * <p>댓글의 인기플래그를 표현 할 수 있다.</p>
  * <p>글 상세 보기에 사용됨</p>
- * @since 2.0.0
+ * 
  * @author Jaeik
+ * @version 2.0.0
  */
 @Getter
 @Setter
@@ -64,6 +65,8 @@ public class CommentDTO {
      * @param deleted   삭제 여부
      * @param createdAt 생성일시
      * @param parentId  부모 댓글 ID (대댓글의 경우)
+     * @author Jaeik
+     * @since 2.0.0
      */
     public CommentDTO(Long id, Long postId, Long userId, String userName, String content, boolean deleted, Instant createdAt, Long parentId) {
         this.id = id;
@@ -86,8 +89,8 @@ public class CommentDTO {
      * </p>
      *
      * @param comment 변환할 댓글 엔티티
-     * @since 1.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     public CommentDTO(Comment comment) {
         this.id = comment.getId();

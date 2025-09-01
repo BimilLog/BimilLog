@@ -22,7 +22,7 @@ import java.time.Instant;
  * </p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Getter
 @Setter
@@ -47,6 +47,8 @@ public class SimpleCommentInfo {
      * @param likeCount 추천수
      * @param isUserLike 사용자 추천 여부
      * @return SimpleCommentInfo 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static SimpleCommentInfo of(Comment comment, Integer likeCount, boolean isUserLike) {
         return SimpleCommentInfo.builder()
@@ -67,6 +69,8 @@ public class SimpleCommentInfo {
      * @param comment 댓글 엔티티
      * @param likeCount 추천수
      * @return SimpleCommentInfo 값 객체 (userLike = false)
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static SimpleCommentInfo of(Comment comment, Integer likeCount) {
         return of(comment, likeCount, false);
@@ -78,6 +82,8 @@ public class SimpleCommentInfo {
      *
      * @param comment 댓글 엔티티
      * @return SimpleCommentInfo 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static SimpleCommentInfo of(Comment comment) {
         return of(comment, 0, false);
@@ -86,6 +92,16 @@ public class SimpleCommentInfo {
     /**
      * <h3>QueryDSL Projection용 생성자</h3>
      * <p>QueryDSL Projections.constructor를 위한 생성자</p>
+     *
+     * @param id 댓글 ID
+     * @param postId 게시글 ID
+     * @param userName 사용자명
+     * @param content 댓글 내용
+     * @param createdAt 생성시각
+     * @param likeCount 추천수
+     * @param userLike 사용자 추천 여부
+     * @author Jaeik
+     * @since 2.0.0
      */
     public SimpleCommentInfo(Long id, Long postId, String userName, String content, 
                             Instant createdAt, Integer likeCount, boolean userLike) {

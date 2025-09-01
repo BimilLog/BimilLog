@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.notification.application.port.in;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
- * <h2>알림 구독 유스케이스</h2>
- * <p>SSE 실시간 알림 구독 관련 비즈니스 로직을 정의하는 Primary Port</p>
+ * <h2>알림 구독 사용 사례</h2>
+ * <p>SSE 실시간 알림 구독 관련 비즈니스 로직을 정의하는 인바운드 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -18,6 +18,8 @@ public interface NotificationSseUseCase {
      * @param userId  사용자 ID
      * @param tokenId 토큰 ID
      * @return SSE Emitter
+     * @author Jaeik
+     * @since 2.0.0
      */
     SseEmitter subscribe(Long userId, Long tokenId);
 
@@ -51,6 +53,8 @@ public interface NotificationSseUseCase {
      * @param postUserId    게시글 작성자 ID
      * @param commenterName 댓글 작성자 이름
      * @param postId        게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     void sendCommentNotification(Long postUserId, String commenterName, Long postId);
 
@@ -60,6 +64,8 @@ public interface NotificationSseUseCase {
      *
      * @param farmOwnerId 롤링페이퍼 주인 ID
      * @param userName    사용자 이름
+     * @author Jaeik
+     * @since 2.0.0
      */
     void sendPaperPlantNotification(Long farmOwnerId, String userName);
 
@@ -70,6 +76,8 @@ public interface NotificationSseUseCase {
      * @param userId  사용자 ID
      * @param message 알림 메시지
      * @param postId  게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     void sendPostFeaturedNotification(Long userId, String message, Long postId);
 }

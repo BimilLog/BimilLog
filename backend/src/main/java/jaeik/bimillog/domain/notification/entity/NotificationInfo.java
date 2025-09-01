@@ -28,6 +28,10 @@ public record NotificationInfo(
         Instant createdAt
 ) {
 
+    /**
+     * <h3>빌더를 통한 생성자</h3>
+     * <p>Record의 컴팩트 생성자입니다. 빌더 패턴을 지원합니다.</p>
+     */
     @Builder
     public NotificationInfo {
     }

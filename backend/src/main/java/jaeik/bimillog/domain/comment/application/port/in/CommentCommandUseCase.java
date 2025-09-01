@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.comment.application.port.in;
 import jaeik.bimillog.domain.comment.entity.CommentRequest;
 
 /**
- * <h2>댓글 명령 유스케이스</h2>
+ * <h2>댓글 명령 요구사항</h2>
  * <p>댓글 생성, 수정, 삭제, 추천 등 댓글 관련 명령 요청을 처리하는 인터페이스</p>
  *
  * @author Jaeik

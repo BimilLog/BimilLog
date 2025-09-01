@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <h2>댓글 클로저 조회 포트</h2>
- * <p>댓글 클로저 엔티티 조회를 위한 Out-Port</p>
- * <p>CQRS 패턴에 따른 조회 전용 포트</p>
+ * <h2>댓글 클로저 조회 어댑터</h2>
+ * <p>댓글 클로저 엔티티 조회를 위한 아웃바운드 어댑터</p>
+ * <p>CQRS 패턴에 따른 조회 전용 어댑터</p>
  *
  * @author Jaeik
  * @version 2.0.0

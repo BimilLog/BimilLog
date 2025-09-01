@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.notification.application.port.in;
 
 /**
- * <h2>FCM 토큰 관리 유스케이스</h2>
- * <p>Firebase Cloud Messaging(FCM) 토큰 등록 및 삭제 관련 비즈니스 로직을 정의하는 Primary Port</p>
+ * <h2>FCM 토큰 관리 사용 사례</h2>
+ * <p>Firebase Cloud Messaging(FCM) 토큰 등록 및 삭제 관련 비즈니스 로직을 정의하는 인바운드 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0

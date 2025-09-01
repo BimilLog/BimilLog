@@ -11,7 +11,7 @@ import java.util.Optional;
 /**
  * <h2>사용자 어댑터</h2>
  * <p>Comment 도메인에서 User 도메인의 In-Port를 통해 접근하는 어댑터</p>
- * <p>헥사고날 아키텍처를 준수하여 UseCase를 통한 도메인간 통신</p>
+ * <p>헥사고날 아키텍처를 준수하여 요구사항을 통한 도메인간 통신</p>
  *
  * @author Jaeik
  * @version 2.0.0

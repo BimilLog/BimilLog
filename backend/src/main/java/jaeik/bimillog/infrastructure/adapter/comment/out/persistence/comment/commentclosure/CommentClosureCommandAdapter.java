@@ -7,6 +7,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * <h2>댓글 클로저 명령 어댑터</h2>
+ * <p>댓글 클로저 엔티티의 생성, 수정, 삭제 작업을 처리하는 아웃바운드 어댑터 구현체</p>
+ * <p>CQRS 패턴에 따른 명령 전용 어댑터</p>
+ * <p>계층형 댓글 구조를 관리하기 위한 Closure Table 패턴 구현</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Repository
 @RequiredArgsConstructor
 public class CommentClosureCommandAdapter implements CommentClosureCommandPort {

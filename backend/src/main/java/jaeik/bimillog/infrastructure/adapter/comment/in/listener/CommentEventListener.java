@@ -36,7 +36,7 @@ public class CommentEventListener {
     @Transactional
     @EventListener
     public void handleUserWithdrawnEvent(UserWithdrawnEvent event) {
-        log.info("User (ID: {}) withdrawn event received. Anonymizing comments.", event.userId());
+        log.info("사용자 탈퇴 이벤트 수신 (사용자 ID: {}). 댓글 익명화를 진행합니다.", event.userId());
         commentCommandPort.anonymizeUserComments(event.userId());
     }
 

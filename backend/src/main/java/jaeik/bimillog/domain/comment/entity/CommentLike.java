@@ -15,7 +15,7 @@ import org.hibernate.annotations.OnDeleteAction;
  * <p>사용자와 댓글 간의 관계를 나타냄</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version 2.0.0
  */
 @Entity
 @Getter

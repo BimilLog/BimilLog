@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 /**
  * <h2>댓글 커맨드 어댑터</h2>
- * <p>댓글 엔티티의 저장 및 삭제 작업을 처리하는 Out-Port 구현체</p>
+ * <p>댓글 엔티티의 저장 및 삭제 작업을 처리하는 아웃바운드 어댑터 구현체</p>
  * <p>CQRS 패턴에 따른 커맨드 전용 어댑터</p>
  *
  * @author Jaeik

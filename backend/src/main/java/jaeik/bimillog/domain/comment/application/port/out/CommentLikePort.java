@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <h2>댓글 추천 포트</h2>
- * <p>댓글 추천 엔티티 담당 아웃 포트</p>
+ * <h2>댓글 추천 어댑터</h2>
+ * <p>댓글 추천 엔티티 담당 아웃바운드 어댑터</p>
  *
  * @author Jaeik
  * @version 2.0.0

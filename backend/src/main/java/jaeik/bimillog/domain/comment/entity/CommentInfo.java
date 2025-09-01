@@ -19,7 +19,7 @@ import java.time.Instant;
  * </p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Getter
 @Setter
@@ -49,6 +49,8 @@ public class CommentInfo {
      * @param likeCount 추천수
      * @param isUserLike 사용자 추천 여부
      * @return CommentInfo 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static CommentInfo of(Comment comment, Long parentId, Integer likeCount, boolean isUserLike) {
         return CommentInfo.builder()
@@ -74,6 +76,8 @@ public class CommentInfo {
      * @param parentId 부모 댓글 ID
      * @param likeCount 추천수
      * @return CommentInfo 값 객체 (userLike = false)
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static CommentInfo of(Comment comment, Long parentId, Integer likeCount) {
         return of(comment, parentId, likeCount, false);
@@ -85,6 +89,8 @@ public class CommentInfo {
      *
      * @param comment 댓글 엔티티
      * @return CommentInfo 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static CommentInfo of(Comment comment) {
         return of(comment, null, 0, false);
@@ -93,6 +99,18 @@ public class CommentInfo {
     /**
      * <h3>QueryDSL Projection용 생성자</h3>
      * <p>QueryDSL Projections.constructor를 위한 생성자</p>
+     *
+     * @param id 댓글 ID
+     * @param postId 게시글 ID  
+     * @param userId 사용자 ID
+     * @param userName 사용자명
+     * @param content 댓글 내용
+     * @param deleted 삭제 여부
+     * @param createdAt 생성시각
+     * @param parentId 부모 댓글 ID
+     * @param likes 추천수
+     * @author Jaeik
+     * @since 2.0.0
      */
     public CommentInfo(Long id, Long postId, Long userId, String userName, String content, 
                       boolean deleted, Instant createdAt, Long parentId, Integer likes) {
@@ -112,6 +130,19 @@ public class CommentInfo {
     /**
      * <h3>QueryDSL Projection용 생성자 (사용자 추천 여부 포함)</h3>
      * <p>QueryDSL Projections.constructor를 위한 생성자 - 사용자 추천 여부 포함</p>
+     *
+     * @param id 댓글 ID
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID
+     * @param userName 사용자명
+     * @param content 댓글 내용
+     * @param deleted 삭제 여부
+     * @param createdAt 생성시각
+     * @param parentId 부모 댓글 ID
+     * @param likes 추천수
+     * @param userLike 사용자 추천 여부
+     * @author Jaeik
+     * @since 2.0.0
      */
     public CommentInfo(Long id, Long postId, Long userId, String userName, String content, 
                       boolean deleted, Instant createdAt, Long parentId, Integer likes, boolean userLike) {

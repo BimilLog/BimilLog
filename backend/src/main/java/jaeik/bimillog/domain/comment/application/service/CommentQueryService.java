@@ -20,7 +20,7 @@ import java.util.Optional;
 /**
  * <h2>댓글 서비스</h2>
  * <p>
- * 댓글 관련 Query 유스케이스를 구현하는 서비스 클래스
+ * 댓글 관련 조회 요구사항을 구현하는 서비스 클래스
  * </p>
  * <p>
  * 댓글 조회, 인기 댓글 조회 등 다양한 댓글 조회 기능을 제공
@@ -92,7 +92,7 @@ public class CommentQueryService implements CommentQueryUseCase {
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>CommentQueryPort의 기존 구현체를 활용합니다.</p>
+     * <p>CommentQuery어댑터의 기존 구현체를 활용합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -109,7 +109,7 @@ public class CommentQueryService implements CommentQueryUseCase {
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>CommentQueryPort의 기존 구현체를 활용합니다.</p>
+     * <p>CommentQuery어댑터의 기존 구현체를 활용합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -126,7 +126,7 @@ public class CommentQueryService implements CommentQueryUseCase {
     /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
      * <p>여러 게시글의 댓글 수를 배치로 조회하여 N+1 문제를 해결합니다.</p>
-     * <p>CommentQueryPort의 기존 구현체를 활용합니다.</p>
+     * <p>CommentQuery어댑터의 기존 구현체를 활용합니다.</p>
      *
      * @param postIds 게시글 ID 목록
      * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵

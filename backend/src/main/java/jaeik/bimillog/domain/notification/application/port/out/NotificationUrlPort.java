@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.application.port.out;
 
 /**
  * <h2>알림 URL 생성 포트</h2>
- * <p>알림과 관련된 URL 생성 기능을 정의하는 Secondary Port</p>
+ * <p>알림과 관련된 URL 생성 기능을 정의하는 아웃바운드 포트</p>
  * <p>헥사고날 아키텍처 원칙에 따라 도메인에서 인프라 관심사를 분리</p>
  *
  * @author Jaeik

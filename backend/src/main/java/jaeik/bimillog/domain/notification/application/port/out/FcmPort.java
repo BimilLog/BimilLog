@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * <h2>FCM 토큰 삭제 Port</h2>
- * <p>FCM 토큰을 삭제하는 아웃바운드 포트</p>
+ * <h2>FCM 포트</h2>
+ * <p>Firebase Cloud Messaging(FCM) 토큰 관리 및 메시지 전송을 처리하는 아웃바운드 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0

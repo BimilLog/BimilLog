@@ -20,6 +20,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * <h2>댓글 명령 서비스</h2>
+ * <p>
+ * 댓글 생성, 수정, 삭제 등 명령 관련 기능을 구현하는 서비스 클래스
+ * </p>
+ * <p>
+ * 헥사고날 아키텍처에서 댓글 명령 처리를 담당하는 비즈니스 로직 구현
+ * </p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -34,6 +46,17 @@ public class CommentCommandService implements CommentCommandUseCase {
     private final CommentClosureQueryPort commentClosureQueryPort;
     private final CommentClosureCommandPort commentClosureCommandPort;
 
+    /**
+     * <h3>댓글 작성</h3>
+     * <p>새로운 댓글을 작성합니다.</p>
+     * <p>부모 댓글이 있는 경우 대댓글로 처리하고, 댓글 생성 이벤트를 발행합니다.</p>
+     *
+     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param commentRequest 댓글 요청 (비밀번호 포함)
+     * @throws CustomException 게시글이나 사용자가 존재하지 않는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void writeComment(Long userId, CommentRequest commentRequest) {
         Post post = loadPostPort.findById(commentRequest.postId())
@@ -63,6 +86,17 @@ public class CommentCommandService implements CommentCommandUseCase {
         }
     }
 
+    /**
+     * <h3>댓글 수정</h3>
+     * <p>기존 댓글의 내용을 수정합니다.</p>
+     * <p>댓글의 권한을 확인한 후 내용을 업데이트합니다.</p>
+     *
+     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param commentRequest 수정할 댓글 요청 (비밀번호 포함)
+     * @throws CustomException 댓글이 존재하지 않거나 권한이 없는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void updateComment(Long userId, CommentRequest commentRequest) {
         Comment comment = validateComment(commentRequest, userId);
@@ -70,6 +104,17 @@ public class CommentCommandService implements CommentCommandUseCase {
         commentCommandPort.save(comment);
     }
 
+    /**
+     * <h3>댓글 삭제</h3>
+     * <p>댓글을 삭제합니다. 자손 댓글이 있는 경우 소프트 삭제, 없는 경우 하드 삭제를 수행합니다.</p>
+     * <p>하드 삭제 시 클로저 테이블의 관련 엔트리도 함께 삭제됩니다.</p>
+     *
+     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param commentRequest 삭제할 댓글 요청 (비밀번호 포함)
+     * @throws CustomException 댓글이 존재하지 않거나 권한이 없는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void deleteComment(Long userId, CommentRequest commentRequest) {
         Comment comment = validateComment(commentRequest, userId);

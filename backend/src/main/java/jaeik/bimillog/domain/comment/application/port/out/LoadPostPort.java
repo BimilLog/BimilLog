@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import java.util.Optional;
 
 /**
- * <h2>게시글 조회 포트</h2>
- * <p>Comment 도메인에서 Post 도메인의 데이터에 접근하기 위한 Out-Port</p>
+ * <h2>게시글 조회 어댑터</h2>
+ * <p>Comment 도메인에서 Post 도메인의 데이터에 접근하기 위한 아웃바운드 어댑터</p>
  *
  * @author Jaeik
  * @version 2.0.0

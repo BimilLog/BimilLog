@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * <h2>댓글 조회 유스케이스</h2>
+ * <h2>댓글 조회 요구사항</h2>
  * <p>댓글 조회 관련 요청을 처리하는 인터페이스</p>
  *
  * @author Jaeik

@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.notification.entity.NotificationEvent;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
- * <h2>SSE  포트</h2>
- * <p>SSE 연결 관리 관련 인프라 액세스를 정의하는 Secondary Port</p>
+ * <h2>SSE 포트</h2>
+ * <p>SSE 연결 관리 관련 인프라 액세스를 정의하는 아웃바운드 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -14,10 +14,13 @@ public interface SsePort {
 
     /**
      * <h3>SSE 구독</h3>
+     * <p>특정 사용자와 토큰에 대한 SSE 연결을 생성합니다.</p>
      *
      * @param userId  사용자 ID
      * @param tokenId 토큰 ID
      * @return SSE Emitter
+     * @author Jaeik
+     * @since 2.0.0
      */
     SseEmitter subscribe(Long userId, Long tokenId);
 

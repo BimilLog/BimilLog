@@ -19,7 +19,7 @@ import lombok.Builder;
  * @param content 댓글 내용
  * @param password 댓글 비밀번호 (비회원 댓글의 경우)
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 public record CommentRequest(
         Long id,
@@ -42,6 +42,8 @@ public record CommentRequest(
      * @param content 댓글 내용
      * @param password 댓글 비밀번호 (비회원의 경우)
      * @return CommentRequest 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static CommentRequest createComment(Long postId, String content, Integer password) {
         return CommentRequest.builder()
@@ -60,6 +62,8 @@ public record CommentRequest(
      * @param content 댓글 내용
      * @param password 댓글 비밀번호 (비회원의 경우)
      * @return CommentRequest 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static CommentRequest createReply(Long postId, Long parentId, String content, Integer password) {
         return CommentRequest.builder()
@@ -78,6 +82,8 @@ public record CommentRequest(
      * @param content 수정할 댓글 내용
      * @param password 댓글 비밀번호 (비회원의 경우)
      * @return CommentRequest 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static CommentRequest updateComment(Long id, String content, Integer password) {
         return CommentRequest.builder()
@@ -94,6 +100,8 @@ public record CommentRequest(
      * @param id 댓글 ID
      * @param password 댓글 비밀번호 (비회원의 경우)
      * @return CommentRequest 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static CommentRequest deleteComment(Long id, Integer password) {
         return CommentRequest.builder()
@@ -107,6 +115,8 @@ public record CommentRequest(
      * <p>비밀번호가 없는 경우 회원 댓글로 판단합니다.</p>
      *
      * @return 회원 댓글인 경우 true
+     * @author Jaeik
+     * @since 2.0.0
      */
     public boolean isMemberComment() {
         return password == null;
@@ -117,6 +127,8 @@ public record CommentRequest(
      * <p>비밀번호가 있는 경우 비회원 댓글로 판단합니다.</p>
      *
      * @return 비회원 댓글인 경우 true
+     * @author Jaeik
+     * @since 2.0.0
      */
     public boolean isAnonymousComment() {
         return password != null;
@@ -127,6 +139,8 @@ public record CommentRequest(
      * <p>부모 댓글 ID가 있는 경우 대댓글로 판단합니다.</p>
      *
      * @return 대댓글인 경우 true
+     * @author Jaeik
+     * @since 2.0.0
      */
     public boolean isReply() {
         return parentId != null;

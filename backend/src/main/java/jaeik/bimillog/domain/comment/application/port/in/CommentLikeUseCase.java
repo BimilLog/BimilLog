@@ -1,5 +1,12 @@
 package jaeik.bimillog.domain.comment.application.port.in;
 
+/**
+ * <h2>댓글 추천 요구사항</h2>
+ * <p>댓글 추천 관련 요청을 처리하는 인터페이스</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 public interface CommentLikeUseCase {
 
     /**

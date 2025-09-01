@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * <h2>FCM 토큰 관리 서비스</h2>
- * <p>FCM 토큰 등록 및 삭제 관련 비즈니스 로직을 처리하는 Use Case 구현</p>
+ * <p>FCM 토큰 등록 및 삭제 관련 비즈니스 로직을 처리하는 사용 사례 구현</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -40,10 +40,10 @@ public class NotificationFcmService implements NotificationFcmUseCase {
      */
     @Override
     public void registerFcmToken(Long userId, String fcmToken) {
-        log.info("FCM 토큰 등록 처리: userId={}", userId);
+        log.info("FCM 토큰 등록 처리 시작: 사용자 ID={}", userId);
 
         if (fcmToken == null || fcmToken.isEmpty()) {
-            log.warn("FCM 토큰이 비어있습니다. userId={}", userId);
+            log.warn("FCM 토큰이 비어있습니다. 사용자 ID={}", userId);
             return;
         }
 
@@ -63,7 +63,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
      */
     @Override
     public void deleteFcmTokens(Long userId) {
-        log.info("FCM 토큰 삭제 처리: userId={}", userId);
+        log.info("FCM 토큰 삭제 처리 시작: 사용자 ID={}", userId);
         fcmPort.deleteByUserId(userId);
     }
 
@@ -78,7 +78,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
         try {
             List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForCommentNotification(postUserId);
             if (fcmTokens.isEmpty()) {
-                log.info("댓글 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", postUserId);
+                log.info("댓글 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. 사용자 ID={}", postUserId);
                 return;
             }
 
@@ -93,9 +93,9 @@ public class NotificationFcmService implements NotificationFcmUseCase {
                 );
                 fcmPort.sendMessageTo(fcmMessage);
             }
-            log.info("댓글 알림 FCM 전송 완료: userId={}, tokenCount={}", postUserId, fcmTokens.size());
+            log.info("댓글 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", postUserId, fcmTokens.size());
         } catch (Exception e) {
-            log.error("FCM 댓글 알림 전송 실패: userId={}, commenterName={}", postUserId, commenterName, e);
+            log.error("FCM 댓글 알림 전송 실패: 사용자 ID={}, 댓글작성자={}", postUserId, commenterName, e);
         }
     }
 
@@ -109,7 +109,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
         try {
             List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForMessageNotification(farmOwnerId);
             if (fcmTokens.isEmpty()) {
-                log.info("메시지 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", farmOwnerId);
+                log.info("메시지 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. 사용자 ID={}", farmOwnerId);
                 return;
             }
 
@@ -124,9 +124,9 @@ public class NotificationFcmService implements NotificationFcmUseCase {
                 );
                 fcmPort.sendMessageTo(fcmMessage);
             }
-            log.info("롤링페이퍼 메시지 알림 FCM 전송 완료: userId={}, tokenCount={}", farmOwnerId, fcmTokens.size());
+            log.info("롤링페이퍼 메시지 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", farmOwnerId, fcmTokens.size());
         } catch (Exception e) {
-            log.error("FCM 롤링페이퍼 알림 전송 실패: farmOwnerId={}", farmOwnerId, e);
+            log.error("FCM 롤링페이퍼 알림 전송 실패: 롤링페이퍼 주인 ID={}", farmOwnerId, e);
         }
     }
 
@@ -142,7 +142,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
         try {
             List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForPostFeaturedNotification(userId);
             if (fcmTokens.isEmpty()) {
-                log.info("인기글 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. userId={}", userId);
+                log.info("인기글 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. 사용자 ID={}", userId);
                 return;
             }
             
@@ -154,9 +154,9 @@ public class NotificationFcmService implements NotificationFcmUseCase {
                 );
                 fcmPort.sendMessageTo(fcmMessage);
             }
-            log.info("인기글 등극 알림 FCM 전송 완료: userId={}, tokenCount={}", userId, fcmTokens.size());
+            log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", userId, fcmTokens.size());
         } catch (Exception e) {
-            log.error("FCM 인기글 등극 알림 전송 실패: userId={}, title={}", userId, title, e);
+            log.error("FCM 인기글 등극 알림 전송 실패: 사용자 ID={}, 제목={}", userId, title, e);
         }
     }
 }

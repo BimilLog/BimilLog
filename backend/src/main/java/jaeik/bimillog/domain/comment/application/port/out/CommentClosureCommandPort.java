@@ -5,9 +5,9 @@ import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import java.util.List;
 
 /**
- * <h2>댓글 클로저 명령 포트</h2>
- * <p>댓글 클로저 엔티티 생성/수정/삭제를 위한 Out-Port</p>
- * <p>CQRS 패턴에 따른 명령 전용 포트</p>
+ * <h2>댓글 클로저 명령 어댑터</h2>
+ * <p>댓글 클로저 엔티티 생성/수정/삭제를 위한 아웃바운드 어댑터</p>
+ * <p>CQRS 패턴에 따른 명령 전용 어댑터</p>
  *
  * @author Jaeik
  * @version 2.0.0

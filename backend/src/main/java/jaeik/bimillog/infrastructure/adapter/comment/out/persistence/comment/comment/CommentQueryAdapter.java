@@ -22,6 +22,9 @@ import static jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comm
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>
+ * <p>댓글 엔티티의 조회 작업을 처리하는 아웃바운드 어댑터 구현체</p>
+ * <p>CQRS 패턴에 따른 쿼리 전용 어댑터</p>
+ * <p>QueryDSL을 사용하여 복잡한 조회 쿼리를 처리합니다</p>
  *
  * @author Jaeik
  * @version 2.0.0

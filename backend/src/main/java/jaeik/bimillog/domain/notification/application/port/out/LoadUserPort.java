@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import java.util.Optional;
 
 /**
- * <h2>사용자 조회 Port</h2>
+ * <h2>사용자 조회 포트</h2>
  * <p>Notification 도메인에서 User 도메인의 데이터를 조회하기 위한 아웃바운드 포트</p>
  *
  * @author Jaeik

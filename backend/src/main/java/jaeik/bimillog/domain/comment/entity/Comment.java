@@ -21,7 +21,7 @@ import org.hibernate.annotations.OnDeleteAction;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version 2.0.0
  */
 @Getter
 @Entity
@@ -70,7 +70,7 @@ public class Comment extends BaseEntity {
      * @param password 댓글 비밀번호 (선택적)
      * @return 생성된 댓글 엔티티
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public static Comment createComment(Post post, User user, String content, Integer password) {
         return Comment.builder()
@@ -91,7 +91,7 @@ public class Comment extends BaseEntity {
      *
      * @param content 수정할 댓글 내용
      * @author Jaeik
-     * @since 1.0.0
+     * @since 2.0.0
      */
     public void updateComment(String content) {
         this.content = content;
@@ -99,10 +99,15 @@ public class Comment extends BaseEntity {
 
     /**
      * <h3>댓글 논리 삭제</h3>
-     *
      * <p>
      * 자손 댓글이 있는 경우 논리적 삭제를 수행한다.
      * </p>
+     * <p>
+     * 사용자 정보를 null로 처리하고, 내용을 "삭제된 댓글 입니다."로 변경한다.
+     * </p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
      */
     public void softDelete() {
         this.user = null;

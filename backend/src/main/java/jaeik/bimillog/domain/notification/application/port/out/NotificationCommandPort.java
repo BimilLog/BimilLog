@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 
 /**
- * <h2>알림 저장 Port</h2>
- * <p>새로운 알림을 저장하는 아웃바운드 포트</p>
+ * <h2>알림 명령 포트</h2>
+ * <p>알림 생성 및 상태 변경을 처리하는 아웃바운드 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -27,9 +27,12 @@ public interface NotificationCommandPort {
 
     /**
      * <h3>알림 일괄 업데이트</h3>
+     * <p>특정 사용자의 알림을 읽음 처리하거나 삭제 처리합니다.</p>
      *
-     * @param userId           현재 로그인한 유저 ID
+     * @param userId        현재 로그인한 유저 ID
      * @param updateCommand 알림 업데이트 정보
+     * @author Jaeik
+     * @since 2.0.0
      */
     void batchUpdate(Long userId, NotificationUpdateVO updateCommand);
 }
