@@ -311,7 +311,7 @@ class PostQueryServiceTest {
         Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(legendPost1, legendPost2), pageable, 2);
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
-        given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(expectedPage);
+        given(postCacheQueryPort.getCachedPostListPaged(pageable)).willReturn(expectedPage);
 
         // When
         Page<PostSearchResult> result = postQueryService.getPopularPostLegend(type, pageable);
@@ -323,7 +323,7 @@ class PostQueryServiceTest {
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("레전드 게시글 2");
         
         verify(postCacheQueryPort).hasPopularPostsCache(type);
-        verify(postCacheQueryPort).getCachedPostListPaged(type, pageable);
+        verify(postCacheQueryPort).getCachedPostListPaged(pageable);
         verify(postCacheSyncService, never()).updateLegendaryPosts();
     }
 
@@ -338,7 +338,7 @@ class PostQueryServiceTest {
         Page<PostSearchResult> updatedPage = new PageImpl<>(List.of(legendPost), pageable, 1);
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(false);
-        given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(updatedPage);
+        given(postCacheQueryPort.getCachedPostListPaged(pageable)).willReturn(updatedPage);
 
         // When
         Page<PostSearchResult> result = postQueryService.getPopularPostLegend(type, pageable);
@@ -350,7 +350,7 @@ class PostQueryServiceTest {
         
         verify(postCacheQueryPort).hasPopularPostsCache(type);
         verify(postCacheSyncService).updateLegendaryPosts();
-        verify(postCacheQueryPort).getCachedPostListPaged(type, pageable);
+        verify(postCacheQueryPort).getCachedPostListPaged(pageable);
     }
 
     @Test
@@ -363,7 +363,7 @@ class PostQueryServiceTest {
         Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
-        given(postCacheQueryPort.getCachedPostListPaged(type, pageable)).willReturn(emptyPage);
+        given(postCacheQueryPort.getCachedPostListPaged(pageable)).willReturn(emptyPage);
 
         // When
         Page<PostSearchResult> result = postQueryService.getPopularPostLegend(type, pageable);
@@ -373,7 +373,7 @@ class PostQueryServiceTest {
         assertThat(result.getTotalElements()).isZero();
         
         verify(postCacheQueryPort).hasPopularPostsCache(type);
-        verify(postCacheQueryPort).getCachedPostListPaged(type, pageable);
+        verify(postCacheQueryPort).getCachedPostListPaged(pageable);
         verify(postCacheSyncService, never()).updateLegendaryPosts();
     }
 
@@ -392,7 +392,7 @@ class PostQueryServiceTest {
         Page<PostSearchResult> expectedPage = new PageImpl<>(legendPosts, smallPage, 15); // 전체 15개 중 6~8번
 
         given(postCacheQueryPort.hasPopularPostsCache(type)).willReturn(true);
-        given(postCacheQueryPort.getCachedPostListPaged(type, smallPage)).willReturn(expectedPage);
+        given(postCacheQueryPort.getCachedPostListPaged(smallPage)).willReturn(expectedPage);
 
         // When
         Page<PostSearchResult> result = postQueryService.getPopularPostLegend(type, smallPage);
@@ -404,7 +404,7 @@ class PostQueryServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(15); // 전체 요소 수
         assertThat(result.getTotalPages()).isEqualTo(3); // 전체 페이지 수
         
-        verify(postCacheQueryPort).getCachedPostListPaged(type, smallPage);
+        verify(postCacheQueryPort).getCachedPostListPaged(smallPage);
     }
 
     @Test
@@ -699,7 +699,7 @@ class PostQueryServiceTest {
         
         given(postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(realtimePosts);
         given(postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
-        given(postCacheQueryPort.getCachedPostListPaged(PostCacheFlag.LEGEND, PageRequest.of(0, 10))).willReturn(new PageImpl<>(legendPosts));
+        given(postCacheQueryPort.getCachedPostListPaged(PageRequest.of(0, 10))).willReturn(new PageImpl<>(legendPosts));
 
         // When
         Map<String, List<PostSearchResult>> realtimeAndWeekly = postQueryService.getRealtimeAndWeeklyPosts();
@@ -713,7 +713,7 @@ class PostQueryServiceTest {
         
         verify(postCacheQueryPort, times(3)).hasPopularPostsCache(any());
         verify(postCacheQueryPort, times(2)).getCachedPostList(any());
-        verify(postCacheQueryPort, times(1)).getCachedPostListPaged(any(), any());
+        verify(postCacheQueryPort, times(1)).getCachedPostListPaged(any());
         verifyNoInteractions(postCacheSyncService);
     }
 

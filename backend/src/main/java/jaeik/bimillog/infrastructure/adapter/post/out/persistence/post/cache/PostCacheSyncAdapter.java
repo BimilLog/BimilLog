@@ -85,7 +85,6 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
     /**
      * <h3>기간별 인기 게시글 조회</h3>
      * <p>주어진 기간(일) 내에 추천 수가 많은 게시글을 조회합니다. 결과는 5개로 제한됩니다.</p>
-     * <p>🔧 수정 이력: 인기 게시글 기준 명확화 - 최소 1개 이상의 좋아요가 있는 게시글만 포함</p>
      *
      * @param days 기간(일)
      * @return 인기 게시글 목록
@@ -98,7 +97,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
 
         return createBasePopularPostsQuery()
                 .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS)))
-                .having(postLike.countDistinct().goe(1)) // 🔧 최소 1개 이상의 좋아요 필요
+                .having(postLike.countDistinct().goe(1))
                 .orderBy(postLike.countDistinct().desc())
                 .limit(5)
                 .fetch();
@@ -134,7 +133,7 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
                 .from(post)
                 .leftJoin(post.user, user)
                 .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id)) // 🔧 INNER JOIN → LEFT JOIN 변경
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
                 .groupBy(post.id, user.id);
     }
 
@@ -151,7 +150,6 @@ public class PostCacheSyncAdapter implements PostCacheSyncPort {
      */
     @Override
     public PostDetail findPostDetail(Long postId) {
-        // 🔧 null 안전성 검사 추가
         if (postId == null) {
             return null;
         }

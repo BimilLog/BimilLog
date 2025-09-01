@@ -13,12 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <h2>Redis 캐시 조회 어댑터</h2>
@@ -121,9 +116,18 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         return null;
     }
 
+    /**
+     * <h3>레전드 게시글 목록 페이지네이션 조회</h3>
+     * <p>레전드 게시글 목록을 페이지네이션으로 조회합니다. Redis List 구조를 활용합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return 캐시된 레전드 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
-    public Page<PostSearchResult> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
-        CacheMetadata metadata = getCacheMetadata(type);
+    public Page<PostSearchResult> getCachedPostListPaged(Pageable pageable) {
+        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
         try {
             // 1. 전체 크기 조회
             Long totalElements = redisTemplate.opsForZSet().count(metadata.key(), Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
@@ -158,6 +162,16 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         }
     }
 
+    /**
+     * <h3>특정 게시글이 인기글인지 확인</h3>
+     * <p>주어진 게시글 ID가 현재 캐시되어 있는지 빠르게 확인합니다.</p>
+     * <p>Redis Set 구조를 활용하여 O(1) 시간 복잡도로 확인합니다.</p>
+     *
+     * @param postId 확인할 게시글 ID
+     * @return 인기글이면 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     @SuppressWarnings("unchecked")
     public boolean isPopularPost(Long postId) {
@@ -180,22 +194,5 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         }
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public boolean existsInNoticeCache(Long postId) {
-        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.NOTICE);
-        try {
-            // Sorted Set에서 해당 ID가 있는지 확인
-            Double score = redisTemplate.opsForZSet().score(metadata.key(), postId.toString());
-            return score != null;
-        } catch (Exception e) {
-            // 캐시 읽기 실패 시 false 반환
-            return false;
-        }
-    }
 
-    @Override
-    public List<PostSearchResult> findAllNotices() {
-        return getCachedPostList(PostCacheFlag.NOTICE);
-    }
 }

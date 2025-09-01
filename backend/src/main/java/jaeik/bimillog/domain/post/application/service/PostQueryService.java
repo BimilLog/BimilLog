@@ -159,7 +159,7 @@ public class PostQueryService implements PostQueryUseCase {
         if (!postCacheQueryPort.hasPopularPostsCache(type)) {
             postCacheSyncService.updateLegendaryPosts();
         }
-        return postCacheQueryPort.getCachedPostListPaged(type, pageable);
+        return postCacheQueryPort.getCachedPostListPaged(pageable);
     }
 
     /**

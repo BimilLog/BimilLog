@@ -80,7 +80,7 @@ public class PostCommandService implements PostCommandUseCase {
 
         post.updatePost(postReqVO);
         postCommandPort.save(post);
-        postCacheCommandPort.deleteFullPostCache(postId);
+        postCacheCommandPort.deleteCache(null, postId);
         
         log.info("Post updated: postId={}, userId={}, title={}", postId, userId, postReqVO.title());
     }
@@ -109,7 +109,7 @@ public class PostCommandService implements PostCommandUseCase {
 
         // DB CASCADE로 댓글과 추천이 자동 삭제됨
         postCommandPort.delete(post);
-        postCacheCommandPort.deleteFullPostCache(postId);
+        postCacheCommandPort.deleteCache(null, postId);
         
         log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, postTitle);
     }

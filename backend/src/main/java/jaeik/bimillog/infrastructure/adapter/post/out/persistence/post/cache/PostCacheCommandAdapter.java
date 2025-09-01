@@ -16,6 +16,8 @@ import java.time.Duration;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <h2>Redis 캐시 명령 어댑터</h2>
@@ -165,50 +167,61 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
     }
 
     /**
-     * <h3>인기 게시글 캐시 삭제</h3>
-     * <p>주어진 게시글 캐시 유형에 해당하는 인기 게시글 캐시를 Redis에서 삭제합니다.</p>
+     * <h3>캐시 삭제</h3>
+     * <p>캐시를 삭제합니다. type이 null이면 특정 게시글의 모든 캐시를 삭제하고,</p>
+     * <p>type이 지정되면 해당 타입의 목록 캐시와 관련 상세 캐시를 삭제합니다.</p>
      *
-     * @param type 게시글 캐시 유형
-     * @throws CustomException Redis 삭제 오류 발생 시
+     * @param type   캐시할 게시글 유형 (null이면 특정 게시글 삭제 모드)
+     * @param postId 게시글 ID (type이 null일 때만 사용)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deletePopularPostsCache(PostCacheFlag type) {
-        CacheMetadata metadata = getCacheMetadata(type);
+    public void deleteCache(PostCacheFlag type, Long postId) {
         try {
-            redisTemplate.delete(metadata.key());
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_DELETE_ERROR, e);
-        }
-    }
-
-    /**
-     * <h3>특정 게시글 캐시 삭제 (목록 + 상세)</h3>
-     * <p>지정된 게시글 ID의 캐시를 삭제합니다.</p>
-     * <p>상세 캐시뿐만 아니라 모든 목록 캐시에서도 해당 게시글을 제거합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @throws CustomException Redis 삭제 오류 발생 시
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteFullPostCache(Long postId) {
-        try {
-            // 1. 상세 캐시 삭제
-            String detailKey = FULL_POST_CACHE_PREFIX + postId;
-            redisTemplate.delete(detailKey);
-            
-            // 2. 모든 목록 캐시에서 해당 게시글 제거
-            String postIdStr = postId.toString();
-            for (PostCacheFlag type : PostCacheFlag.getPopularPostTypes()) {
-                CacheMetadata metadata = getCacheMetadata(type);
-                redisTemplate.opsForZSet().remove(metadata.key(), postIdStr);
+            if (type == null) {
+                // 특정 게시글의 모든 캐시 삭제
+                deleteSpecificPostCache(postId);
+            } else {
+                // 특정 타입의 캐시와 관련 상세 캐시 삭제
+                deleteTypeCacheWithDetails(type);
             }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_DELETE_ERROR, e);
         }
     }
+    
+    private void deleteSpecificPostCache(Long postId) {
+        // 1. 상세 캐시 삭제
+        String detailKey = FULL_POST_CACHE_PREFIX + postId;
+        redisTemplate.delete(detailKey);
+        
+        // 2. 모든 목록 캐시에서 해당 게시글 제거
+        String postIdStr = postId.toString();
+        for (PostCacheFlag type : PostCacheFlag.getPopularPostTypes()) {
+            CacheMetadata metadata = getCacheMetadata(type);
+            redisTemplate.opsForZSet().remove(metadata.key(), postIdStr);
+        }
+    }
+    
+    private void deleteTypeCacheWithDetails(PostCacheFlag type) {
+        CacheMetadata metadata = getCacheMetadata(type);
+        
+        // 1. 목록 캐시에서 게시글 ID들을 먼저 조회
+        Set<Object> postIds = redisTemplate.opsForZSet().range(metadata.key(), 0, -1);
+        
+        // 2. 목록 캐시 삭제
+        redisTemplate.delete(metadata.key());
+        
+        // 3. 해당 타입에 속했던 게시글들의 상세 캐시도 삭제
+        if (postIds != null && !postIds.isEmpty()) {
+            List<String> detailKeys = postIds.stream()
+                    .map(Object::toString)
+                    .map(postId -> FULL_POST_CACHE_PREFIX + postId)
+                    .collect(Collectors.toList());
+            redisTemplate.delete(detailKeys);
+        }
+    }
+
 
 }

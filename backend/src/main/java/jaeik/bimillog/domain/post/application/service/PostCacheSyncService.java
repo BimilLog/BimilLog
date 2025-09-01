@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -126,7 +127,7 @@ public class PostCacheSyncService implements PostCacheUseCase {
             // 상세 정보 조회 후 목록 + 상세 캐시를 한번에 처리
             List<PostDetail> fullPosts = posts.stream()
                     .map(post -> postCacheSyncPort.findPostDetail(post.getId()))
-                    .filter(fullPost -> fullPost != null)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             
             postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.LEGEND, fullPosts);
@@ -156,14 +157,14 @@ public class PostCacheSyncService implements PostCacheUseCase {
      */
     @Override
     public void deleteNoticeCache() {
-        postCacheCommandPort.deletePopularPostsCache(PostCacheFlag.NOTICE);
+        postCacheCommandPort.deleteCache(PostCacheFlag.NOTICE, null);
     }
 
     @Override
     public void addSingleNoticeToCache(Long postId) {
         // 캐시가 없으면 전체 공지 캐시를 재생성
         if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            List<PostSearchResult> allNotices = postCacheQueryPort.findAllNotices();
+            List<PostSearchResult> allNotices = postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
             if (!allNotices.isEmpty()) {
                 // PostSearchResult -> PostDetail 변환 후 통합 캐시 메서드 사용
                 List<PostDetail> allNoticeDetails = allNotices.stream()
@@ -179,12 +180,12 @@ public class PostCacheSyncService implements PostCacheUseCase {
         }
 
         // 이미 캐시에 있는지 확인
-        if (postCacheQueryPort.existsInNoticeCache(postId)) {
+        if (postCacheQueryPort.isPopularPost(postId)) {
             return;
         }
 
         // 전체 공지 목록을 조회해서 목록+상세 캐시 재생성
-        List<PostSearchResult> allNotices = postCacheQueryPort.findAllNotices();
+        List<PostSearchResult> allNotices = postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
         if (!allNotices.isEmpty()) {
             List<PostDetail> allNoticeDetails = allNotices.stream()
                     .map(notice -> postCacheSyncPort.findPostDetail(notice.getId()))
@@ -201,7 +202,7 @@ public class PostCacheSyncService implements PostCacheUseCase {
     public void removeSingleNoticeFromCache(Long postId) {
         // 캐시가 있는 경우에만 전체 공지 목록 재생성
         if (postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            List<PostSearchResult> allNotices = postCacheQueryPort.findAllNotices();
+            List<PostSearchResult> allNotices = postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
             if (!allNotices.isEmpty()) {
                 List<PostDetail> allNoticeDetails = allNotices.stream()
                         .map(notice -> postCacheSyncPort.findPostDetail(notice.getId()))
@@ -212,11 +213,11 @@ public class PostCacheSyncService implements PostCacheUseCase {
                     postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, allNoticeDetails);
                 } else {
                     // 공지가 없으면 캐시 삭제
-                    postCacheCommandPort.deletePopularPostsCache(PostCacheFlag.NOTICE);
+                    postCacheCommandPort.deleteCache(PostCacheFlag.NOTICE, null);
                 }
             } else {
                 // 공지가 없으면 캐시 삭제
-                postCacheCommandPort.deletePopularPostsCache(PostCacheFlag.NOTICE);
+                postCacheCommandPort.deleteCache(PostCacheFlag.NOTICE, null);
             }
         }
     }

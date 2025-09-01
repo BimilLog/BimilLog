@@ -224,7 +224,7 @@ class PostCacheQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 2);
         
         // When: 페이지별 캐시 조회
-        Page<PostSearchResult> result = postCacheQueryAdapter.getCachedPostListPaged(PostCacheFlag.REALTIME, pageable);
+        Page<PostSearchResult> result = postCacheQueryAdapter.getCachedPostListPaged(pageable);
         
         // Then: 페이지 데이터 반환 (첫 번째 페이지, 2개 항목)
         assertThat(result).isNotNull();
@@ -246,7 +246,7 @@ class PostCacheQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
         
         // When: 페이지별 캐시 조회
-        Page<PostSearchResult> result = postCacheQueryAdapter.getCachedPostListPaged(PostCacheFlag.LEGEND, pageable);
+        Page<PostSearchResult> result = postCacheQueryAdapter.getCachedPostListPaged(pageable);
         
         // Then: 빈 페이지 반환
         assertThat(result).isNotNull();
@@ -322,7 +322,7 @@ class PostCacheQueryAdapterTest {
         
         // When & Then: CustomException 발생
         assertThatThrownBy(() -> {
-            postCacheQueryAdapter.getCachedPostListPaged(PostCacheFlag.WEEKLY, pageable);
+            postCacheQueryAdapter.getCachedPostListPaged(pageable);
         })
         .isInstanceOf(CustomException.class)
         .satisfies(ex -> {

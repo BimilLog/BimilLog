@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import java.util.List;
 
 /**
- * <h2>게시글 캐시 동기화 Port</h2>
+ * <h2>글 캐시 동기화 포트</h2>
  * <p>스케쥴러가 캐시 데이터를 생성하기 위해 데이터베이스에서 게시글을 조회하는 인터페이스입니다.</p>
  * <p>캐시 저장을 위한 데이터 소스 역할을 담당합니다.</p>
  *
