@@ -111,8 +111,11 @@ public class PostViewCookieUtil {
             viewList.addAll(Arrays.asList(currentViews.split(",")));
         }
         
-        // 새로운 ID 추가
-        viewList.add(postId.toString());
+        // 중복 제거 후 새로운 ID 추가 (이미 있으면 추가하지 않음)
+        String postIdStr = postId.toString();
+        if (!viewList.contains(postIdStr)) {
+            viewList.add(postIdStr);
+        }
         
         // 최대 개수 제한 적용 (오래된 것부터 제거)
         if (viewList.size() > MAX_VIEWS) {

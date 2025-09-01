@@ -99,7 +99,7 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     public Page<PostSearchResult> findBySearch(String type, String query, Pageable pageable) {
         if (query == null || query.trim().isEmpty()) {
-            return findByPage(pageable);
+            return new PageImpl<>(List.of(), pageable, 0L);
         }
 
         String trimmedQuery = query.trim();
