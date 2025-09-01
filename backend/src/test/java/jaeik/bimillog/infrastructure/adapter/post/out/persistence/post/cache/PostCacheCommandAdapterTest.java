@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.ZSetOperations;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -53,6 +54,9 @@ class PostCacheCommandAdapterTest {
 
     @Mock
     private ValueOperations<String, Object> valueOperations;
+    
+    @Mock
+    private ZSetOperations<String, Object> zSetOperations;
 
     private PostCacheCommandAdapter postCacheCommandAdapter;
 
@@ -63,6 +67,7 @@ class PostCacheCommandAdapterTest {
     void setUp() {
         // RedisTemplate Mock 설정
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
         
         // PostCacheCommandAdapter 인스턴스 생성 - @RequiredArgsConstructor 사용
         postCacheCommandAdapter = new PostCacheCommandAdapter(redisTemplate, jpaQueryFactory);
@@ -130,8 +135,9 @@ class PostCacheCommandAdapterTest {
         postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
         // Then: Redis에 목록과 상세 캐시 모두 저장됨
-        // 목록 캐시 검증 (REALTIME은 30분 TTL)
-        verify(valueOperations).set(eq("cache:posts:realtime"), any(), eq(Duration.ofMinutes(30)));
+        // 목록 캐시 검증 (Sorted Set으로 저장)
+        verify(zSetOperations).add(eq("cache:posts:realtime"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:realtime"), eq(Duration.ofMinutes(30)));
         // 상세 캐시 검증 (1일 TTL)
         verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
@@ -147,8 +153,9 @@ class PostCacheCommandAdapterTest {
         postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
         // Then: Redis에 목록과 상세 캐시 모두 저장됨
-        // 목록 캐시 검증 (WEEKLY는 1일 TTL)
-        verify(valueOperations).set(eq("cache:posts:weekly"), any(), eq(Duration.ofDays(1)));
+        // 목록 캐시 검증 (Sorted Set으로 저장)
+        verify(zSetOperations).add(eq("cache:posts:weekly"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:weekly"), eq(Duration.ofDays(1)));
         // 상세 캐시 검증 (1일 TTL)
         verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
@@ -164,8 +171,9 @@ class PostCacheCommandAdapterTest {
         postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
         // Then: Redis에 목록과 상세 캐시 모두 저장됨
-        // 목록 캐시 검증 (LEGEND는 1일 TTL)
-        verify(valueOperations).set(eq("cache:posts:legend"), any(), eq(Duration.ofDays(1)));
+        // 목록 캐시 검증 (Sorted Set으로 저장)
+        verify(zSetOperations).add(eq("cache:posts:legend"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:legend"), eq(Duration.ofDays(1)));
         // 상세 캐시 검증 (1일 TTL)
         verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
@@ -181,8 +189,9 @@ class PostCacheCommandAdapterTest {
         postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
         // Then: Redis에 목록과 상세 캐시 모두 저장됨
-        // 목록 캐시 검증 (NOTICE는 7일 TTL)
-        verify(valueOperations).set(eq("cache:posts:notice"), any(), eq(Duration.ofDays(7)));
+        // 목록 캐시 검증 (Sorted Set으로 저장, NOTICE는 7일 TTL)
+        verify(zSetOperations).add(eq("cache:posts:notice"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:notice"), eq(Duration.ofDays(7)));
         // 상세 캐시 검증 (1일 TTL)
         verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
@@ -360,17 +369,22 @@ class PostCacheCommandAdapterTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 전체 게시글 캐시 삭제")
+    @DisplayName("정상 케이스 - 전체 게시글 캐시 삭제 (목록 + 상세)")
     void shouldDeleteFullPostCache_WhenValidPostIdProvided() {
         // Given: 삭제할 게시글 ID
         Long postId = 123L;
         
-        // When: 전체 게시글 캐시 삭제 (Redis 작업만 수행)
+        // When: 전체 게시글 캐시 삭제 (목록 + 상세)
         postCacheCommandAdapter.deleteFullPostCache(postId);
 
-        // Then: Redis에서 해당 키 삭제됨 (JPA 작업 없음)
-        String expectedKey = "cache:post:" + postId;
-        verify(redisTemplate).delete(expectedKey);
+        // Then: 상세 캐시와 모든 목록 캐시에서 삭제됨
+        // 상세 캐시 삭제 검증
+        verify(redisTemplate).delete(eq("cache:post:123"));
+        // 모든 목록 캐시에서 삭제 검증
+        verify(zSetOperations).remove(eq("cache:posts:realtime"), eq("123"));
+        verify(zSetOperations).remove(eq("cache:posts:weekly"), eq("123"));
+        verify(zSetOperations).remove(eq("cache:posts:legend"), eq("123"));
+        verify(zSetOperations).remove(eq("cache:posts:notice"), eq("123"));
     }
 
     @Test
@@ -588,4 +602,5 @@ class PostCacheCommandAdapterTest {
         .isInstanceOf(CustomException.class)
         .hasMessageContaining("Redis write error");
     }
+
 }

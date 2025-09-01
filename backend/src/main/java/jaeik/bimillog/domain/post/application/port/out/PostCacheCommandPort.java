@@ -59,14 +59,15 @@ public interface PostCacheCommandPort {
      */
     void resetPopularFlag(PostCacheFlag postCacheFlag);
 
-
     /**
-     * <h3>전체 게시글 캐시 삭제</h3>
-     * <p>지정된 게시글 ID의 전체 게시글 캐시를 삭제합니다.</p>
+     * <h3>특정 게시글 캐시 삭제 (목록 + 상세)</h3>
+     * <p>지정된 게시글 ID의 캐시를 삭제합니다.</p>
+     * <p>상세 캐시뿐만 아니라 모든 목록 캐시에서도 해당 게시글을 제거합니다.</p>
      *
      * @param postId 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     void deleteFullPostCache(Long postId);
+
 }

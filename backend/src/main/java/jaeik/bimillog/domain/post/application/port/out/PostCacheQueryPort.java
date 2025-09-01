@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>인기 게시글 조회 및 관리 포트</h2>
@@ -86,17 +85,6 @@ public interface PostCacheQueryPort {
      * @since 2.0.0
      */
     boolean existsInNoticeCache(Long postId);
-
-    /**
-     * <h3>특정 공지사항 조회</h3>
-     * <p>특정 ID의 공지사항을 조회합니다.</p>
-     *
-     * @param postId 조회할 게시글 ID
-     * @return 공지사항 정보 (공지사항이 아니거나 없으면 empty)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Optional<PostSearchResult> findNoticeById(Long postId);
 
     /**
      * <h3>전체 공지사항 목록 조회</h3>

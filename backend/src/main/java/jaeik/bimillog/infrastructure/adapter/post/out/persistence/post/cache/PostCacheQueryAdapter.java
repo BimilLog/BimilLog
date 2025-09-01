@@ -18,6 +18,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * <h2>Redis 캐시 조회 어댑터</h2>
@@ -86,18 +87,23 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
     public List<PostSearchResult> getCachedPostList(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            Object cached = redisTemplate.opsForValue().get(metadata.key());
-            if (cached instanceof List<?> list) {
-                // Redis에서 직접 PostSearchResult로 저장하므로 캐스팅만 필요
-                return list.stream()
-                        .filter(PostSearchResult.class::isInstance)
-                        .map(PostSearchResult.class::cast)
-                        .toList();
+            // 1. Sorted Set에서 ID 목록 조회 (score 높은 순)
+            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(metadata.key(), 0, -1);
+            if (postIds == null || postIds.isEmpty()) {
+                return Collections.emptyList();
             }
+
+            // 2. 상세 캐시에서 PostDetail 조회 후 PostSearchResult로 변환
+            return postIds.stream()
+                    .map(Object::toString)
+                    .map(Long::valueOf)
+                    .map(this::getCachedPostIfExists)
+                    .filter(java.util.Objects::nonNull)
+                    .map(PostDetail::toSearchResult)
+                    .toList();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
         }
-        return Collections.emptyList();
     }
 
     @Override
@@ -119,32 +125,33 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
     public Page<PostSearchResult> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            // Redis Value 구조에서 전체 목록 조회 (일반 조회와 동일한 구조 사용)
-            Object cached = redisTemplate.opsForValue().get(metadata.key());
-            
-            List<PostSearchResult> allPosts;
-            if (cached instanceof List<?> list) {
-                // Redis에서 직접 PostSearchResult로 저장하므로 캐스팅만 필요
-                allPosts = list.stream()
-                        .filter(PostSearchResult.class::isInstance)
-                        .map(PostSearchResult.class::cast)
-                        .toList();
-            } else {
-                allPosts = Collections.emptyList();
+            // 1. 전체 크기 조회
+            Long totalElements = redisTemplate.opsForZSet().count(metadata.key(), Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+            if (totalElements == null || totalElements == 0) {
+                return new PageImpl<>(Collections.emptyList(), pageable, 0);
             }
             
-            // 메모리에서 페이징 처리
+            // 2. Sorted Set에서 페이징된 ID 목록 조회 (score 높은 순)
             int page = pageable.getPageNumber();
             int size = pageable.getPageSize();
-            int start = page * size;
-            int end = Math.min(start + size, allPosts.size());
+            long start = (long) page * size;
+            long end = start + size - 1;
             
-            if (start >= allPosts.size()) {
-                return new PageImpl<>(Collections.emptyList(), pageable, allPosts.size());
+            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(metadata.key(), start, end);
+            if (postIds == null || postIds.isEmpty()) {
+                return new PageImpl<>(Collections.emptyList(), pageable, totalElements);
             }
             
-            List<PostSearchResult> pagedPosts = allPosts.subList(start, end);
-            return new PageImpl<>(pagedPosts, pageable, allPosts.size());
+            // 3. 상세 캐시에서 PostDetail 조회 후 PostSearchResult로 변환
+            List<PostSearchResult> pagedPosts = postIds.stream()
+                    .map(Object::toString)
+                    .map(Long::valueOf)
+                    .map(this::getCachedPostIfExists)
+                    .filter(java.util.Objects::nonNull)
+                    .map(PostDetail::toSearchResult)
+                    .toList();
+            
+            return new PageImpl<>(pagedPosts, pageable, totalElements);
             
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
@@ -159,18 +166,10 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
             for (PostCacheFlag flag : PostCacheFlag.getPopularPostTypes()) {
                 // 해당 타입의 캐시가 있는지 확인
                 if (hasPopularPostsCache(flag)) {
-                    // 캐시된 인기글 목록 조회
-                    Object cached = redisTemplate.opsForValue().get(getCacheMetadata(flag).key());
-                    if (cached instanceof List<?> list) {
-                        // 해당 ID의 게시글이 목록에 있는지 확인
-                        boolean exists = list.stream()
-                                .filter(PostSearchResult.class::isInstance)
-                                .map(PostSearchResult.class::cast)
-                                .anyMatch(post -> post.getId().equals(postId));
-                        
-                        if (exists) {
-                            return true;
-                        }
+                    // Sorted Set에서 해당 ID가 있는지 확인
+                    Double score = redisTemplate.opsForZSet().score(getCacheMetadata(flag).key(), postId.toString());
+                    if (score != null) {
+                        return true;
                     }
                 }
             }
@@ -186,38 +185,13 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
     public boolean existsInNoticeCache(Long postId) {
         CacheMetadata metadata = getCacheMetadata(PostCacheFlag.NOTICE);
         try {
-            Object cached = redisTemplate.opsForValue().get(metadata.key());
-            if (cached instanceof List<?> list) {
-                return list.stream()
-                        .filter(PostSearchResult.class::isInstance)
-                        .map(PostSearchResult.class::cast)
-                        .anyMatch(notice -> notice.getId().equals(postId));
-            }
+            // Sorted Set에서 해당 ID가 있는지 확인
+            Double score = redisTemplate.opsForZSet().score(metadata.key(), postId.toString());
+            return score != null;
         } catch (Exception e) {
             // 캐시 읽기 실패 시 false 반환
             return false;
         }
-        return false;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Optional<PostSearchResult> findNoticeById(Long postId) {
-        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.NOTICE);
-        try {
-            Object cached = redisTemplate.opsForValue().get(metadata.key());
-            if (cached instanceof List<?> list) {
-                return list.stream()
-                        .filter(PostSearchResult.class::isInstance)
-                        .map(PostSearchResult.class::cast)
-                        .filter(notice -> notice.getId().equals(postId))
-                        .findFirst();
-            }
-        } catch (Exception e) {
-            // 캐시 읽기 실패 시 empty 반환
-            return Optional.empty();
-        }
-        return Optional.empty();
     }
 
     @Override
