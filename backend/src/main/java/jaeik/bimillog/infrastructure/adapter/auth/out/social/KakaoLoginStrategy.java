@@ -110,6 +110,7 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "authorization_code");
         formData.add("client_id", kakaoKeyVO.getCLIENT_ID());
+        formData.add("client_secret", kakaoKeyVO.getCLIENT_SECRET());
         formData.add("redirect_uri", kakaoKeyVO.getREDIRECT_URI());
         formData.add("code", code);
 

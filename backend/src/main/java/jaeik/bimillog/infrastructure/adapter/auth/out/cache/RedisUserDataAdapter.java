@@ -4,7 +4,9 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
+import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -128,9 +130,20 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                 if (data instanceof TemporaryUserDataDTO dto) {
                     log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견됨", uuid);
                     return Optional.of(convertToDomain(dto));
+                } else if (data instanceof java.util.Map<?, ?> map) {
+                    // LinkedHashMap -> TemporaryUserDataDTO 변환 (Redis 직렬화 이슈 해결)
+                    log.debug("UUID {}에 대해 LinkedHashMap 타입 데이터를 DTO로 변환 시도, 데이터: {}", uuid, map);
+                    try {
+                        TemporaryUserDataDTO dto = convertMapToDTO(map);
+                        log.debug("UUID {}에 대한 LinkedHashMap -> DTO 변환 성공", uuid);
+                        return Optional.of(convertToDomain(dto));
+                    } catch (Exception e) {
+                        log.error("UUID {}에 대한 LinkedHashMap -> DTO 변환 실패: {}", uuid, e.getMessage(), e);
+                        throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
+                    }
                 } else {
                     log.warn("UUID {}에 대해 조회된 데이터가 예상 타입이 아님, 실제: {}", uuid, data.getClass().getSimpleName());
-                    return Optional.empty();
+                    throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
                 }
             } else {
                 log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견되지 않음", uuid);
@@ -209,5 +222,59 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             dto.getTokenVO(),
             dto.getFcmToken()
         );
+    }
+    
+    /**
+     * <h3>LinkedHashMap을 TemporaryUserDataDTO로 변환</h3>
+     * <p>Redis 직렬화 문제로 인해 LinkedHashMap으로 변환된 데이터를 원래 DTO로 복원</p>
+     *
+     * @param map Redis에서 조회된 LinkedHashMap 데이터
+     * @return TemporaryUserDataDTO 변환된 DTO
+     * @throws CustomException 변환 실패 시
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @SuppressWarnings("unchecked")
+    private TemporaryUserDataDTO convertMapToDTO(java.util.Map<?, ?> map) {
+        try {
+            // socialLoginUserData 변환
+            Object socialDataObj = map.get("socialLoginUserData");
+            if (!(socialDataObj instanceof java.util.Map)) {
+                throw new IllegalArgumentException("socialLoginUserData가 Map 타입이 아닙니다");
+            }
+            java.util.Map<String, Object> socialDataMap = (java.util.Map<String, Object>) socialDataObj;
+            
+            // tokenVO 변환
+            Object tokenObj = map.get("tokenVO");
+            if (!(tokenObj instanceof java.util.Map)) {
+                throw new IllegalArgumentException("tokenVO가 Map 타입이 아닙니다");
+            }
+            java.util.Map<String, Object> tokenMap = (java.util.Map<String, Object>) tokenObj;
+            
+            // TokenVO 생성
+            TokenVO tokenVO = TokenVO.of(
+                (String) tokenMap.get("accessToken"),
+                (String) tokenMap.get("refreshToken")
+            );
+            
+            // SocialLoginUserData 생성  
+            SocialLoginUserData socialData = new SocialLoginUserData(
+                (String) socialDataMap.get("socialId"),
+                (String) socialDataMap.get("email"),
+                SocialProvider.valueOf((String) socialDataMap.get("provider")),
+                (String) socialDataMap.get("nickname"),
+                (String) socialDataMap.get("profileImageUrl"),
+                (String) socialDataMap.get("fcmToken")
+            );
+            
+            // FCM 토큰
+            String fcmToken = (String) map.get("fcmToken");
+            
+            return new TemporaryUserDataDTO(socialData, tokenVO, fcmToken);
+            
+        } catch (Exception e) {
+            log.error("LinkedHashMap -> TemporaryUserDataDTO 변환 실패: {}", e.getMessage(), e);
+            throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
+        }
     }
 }

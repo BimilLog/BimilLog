@@ -68,6 +68,7 @@ public class GlobalExceptionHandler {
      * <h3>일반 예외 처리</h3>
      * <p>
      * 애플리케이션에서 발생하는 일반 예외를 처리하여 적절한 응답을 반환
+     * 보안을 위해 내부 구현 세부사항은 로그에만 기록하고 사용자에게는 일반적인 메시지를 제공
      * </p>
      *
      * @param e 발생한 일반 예외
@@ -78,6 +79,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception e) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        String userMessage = "서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
 
         if (e instanceof ResponseStatusException ex) {
             status = (HttpStatus) ex.getStatusCode();
@@ -85,13 +87,87 @@ public class GlobalExceptionHandler {
             status = e.getClass().getAnnotation(ResponseStatus.class).value();
         }
 
+        // 특정 예외 타입에 따른 사용자 친화적 메시지 제공
+        if (isDataAccessException(e)) {
+            userMessage = "데이터 처리 중 오류가 발생했습니다. 입력하신 정보를 확인해주세요.";
+        } else if (isValidationException(e)) {
+            userMessage = "입력하신 정보에 문제가 있습니다. 다시 확인해주세요.";
+        } else if (isNetworkException(e)) {
+            userMessage = "네트워크 연결에 문제가 발생했습니다. 인터넷 연결을 확인해주세요.";
+        }
+
         ErrorResponse response = new ErrorResponse(
                 status.value(),
-                e.getClass().getSimpleName(),
-                e.getMessage());
+                "SystemError",
+                userMessage);
 
-        log.error("Exception: {}", e.getMessage(), e);
+        // 실제 에러 정보는 로그에만 기록 (보안상 사용자에게 노출하지 않음)
+        log.error("Exception occurred: 타입={}, 메시지={}, 스택트레이스 상위 3개={}", 
+                e.getClass().getSimpleName(), 
+                e.getMessage(),
+                getTopStackTrace(e),
+                e);
+        
         return ResponseEntity.status(status).body(response);
+    }
+
+    /**
+     * <h3>데이터베이스/JPA 관련 예외인지 확인</h3>
+     */
+    private boolean isDataAccessException(Exception e) {
+        String exceptionName = e.getClass().getName();
+        return exceptionName.contains("DataAccessException") ||
+               exceptionName.contains("SQLException") ||
+               exceptionName.contains("JpaException") ||
+               exceptionName.contains("PersistenceException") ||
+               exceptionName.contains("TransactionException") ||
+               exceptionName.contains("ConstraintViolationException") ||
+               e.getMessage() != null && (
+                   e.getMessage().contains("Field") && e.getMessage().contains("doesn't have a default value") ||
+                   e.getMessage().contains("Duplicate entry") ||
+                   e.getMessage().contains("cannot be null") ||
+                   e.getMessage().contains("foreign key constraint")
+               );
+    }
+
+    /**
+     * <h3>유효성 검증 관련 예외인지 확인</h3>
+     */
+    private boolean isValidationException(Exception e) {
+        String exceptionName = e.getClass().getName();
+        return exceptionName.contains("ValidationException") ||
+               exceptionName.contains("BindException") ||
+               exceptionName.contains("ConstraintViolation");
+    }
+
+    /**
+     * <h3>네트워크 관련 예외인지 확인</h3>
+     */
+    private boolean isNetworkException(Exception e) {
+        String exceptionName = e.getClass().getName();
+        return exceptionName.contains("ConnectException") ||
+               exceptionName.contains("SocketException") ||
+               exceptionName.contains("TimeoutException") ||
+               exceptionName.contains("UnknownHostException");
+    }
+
+    /**
+     * <h3>스택 트레이스 상위 3개 항목만 추출</h3>
+     * <p>로그 가독성을 위해 스택 트레이스를 제한적으로 기록</p>
+     */
+    private String getTopStackTrace(Exception e) {
+        StackTraceElement[] elements = e.getStackTrace();
+        if (elements == null || elements.length == 0) {
+            return "스택트레이스 없음";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        int limit = Math.min(3, elements.length);
+        for (int i = 0; i < limit; i++) {
+            if (i > 0) sb.append(" -> ");
+            sb.append(elements[i].toString());
+        }
+        return sb.toString();
     }
 
     /**

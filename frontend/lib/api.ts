@@ -393,7 +393,7 @@ export const authApi = {
 // 사용자 관련 API
 export const userApi = {
   // 닉네임 중복 확인
-  checkUserName: (userName: string) => apiClient.get<boolean>(`/user/username/check?userName=${encodeURIComponent(userName)}`),
+  checkUserName: (userName: string) => apiClient.get<boolean>(`/api/user/username/check?userName=${encodeURIComponent(userName)}`),
 
   // 닉네임 변경
   updateUserName: (userId: number, userName: string) => apiClient.post("/user/username", { userId, userName }),
@@ -601,11 +601,16 @@ export class SSEManager {
     }
 
     try {
-      // JWT 토큰을 URL 파라미터로 전달
+      // JWT 토큰을 URL 파라미터로 전달 - 토큰이 없으면 SSE 연결하지 않음
       const token = getCookie("accessToken")
-      const sseUrl = token 
-        ? `${notificationApi.subscribeToNotifications()}?token=${encodeURIComponent(token)}`
-        : notificationApi.subscribeToNotifications()
+      if (!token) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log("SSE 연결 건너뛰기: 인증 토큰 없음");
+        }
+        return;
+      }
+      
+      const sseUrl = `${notificationApi.subscribeToNotifications()}?token=${encodeURIComponent(token)}`
 
       if (process.env.NODE_ENV === 'development') {
         console.log("SSE 연결 시도:", sseUrl.replace(token || '', '[TOKEN]'));

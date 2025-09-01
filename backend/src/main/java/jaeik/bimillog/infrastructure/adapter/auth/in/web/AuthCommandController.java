@@ -69,7 +69,7 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> signUp(@RequestParam String userName, @CookieValue String uuid) {
+    public ResponseEntity<AuthResponse> signUp(@RequestParam String userName, @CookieValue("temp_user_id") String uuid) {
         return ResponseEntity.ok()
                 .headers(headers -> signUpUseCase.signUp(userName, uuid).forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
