@@ -234,6 +234,70 @@ class UserQueryControllerIntegrationTest {
                 .andExpect(status().isInternalServerError());
     }
 
+    @Test
+    @DisplayName("카카오 친구 목록 조회 - 정상 케이스 (Mock 환경)")
+    void getKakaoFriendList_Success() throws Exception {
+        // Given - 테스트용 사용자 생성 및 저장
+        User user = createTestUser();
+        User savedUser = userRepository.save(user);
+        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
+
+        // When & Then
+        mockMvc.perform(get("/api/user/friendlist")
+                        .param("offset", "0")
+                        .param("limit", "10")
+                        .with(user(userDetails)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                // Note: 실제 카카오 API 호출은 Mock으로 처리되므로 응답 구조 검증은 제한적
+    }
+
+    @Test
+    @DisplayName("카카오 친구 목록 조회 - 인증되지 않은 사용자 - 403 Forbidden")
+    void getKakaoFriendList_Unauthenticated_Forbidden() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/user/friendlist")
+                        .param("offset", "0")
+                        .param("limit", "10"))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("카카오 친구 목록 조회 - 기본 파라미터 사용")
+    void getKakaoFriendList_WithDefaultParameters() throws Exception {
+        // Given
+        User user = createTestUser();
+        User savedUser = userRepository.save(user);
+        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
+
+        // When & Then - offset과 limit을 지정하지 않으면 기본값 사용
+        mockMvc.perform(get("/api/user/friendlist")
+                        .with(user(userDetails)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("카카오 친구 목록 조회 - 비동기 응답 처리")
+    void getKakaoFriendList_AsyncResponse() throws Exception {
+        // Given
+        User user = createTestUser();
+        User savedUser = userRepository.save(user);
+        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
+
+        // When & Then - Mono 응답이 정상적으로 처리되는지 확인
+        mockMvc.perform(get("/api/user/friendlist")
+                        .param("offset", "0")
+                        .param("limit", "3")
+                        .with(user(userDetails)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
     /**
      * 테스트용 User 엔티티 생성
      */

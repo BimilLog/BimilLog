@@ -1,18 +1,17 @@
 package jaeik.bimillog.infrastructure.adapter.user.in.web;
 
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.application.port.in.SettingQueryUseCase;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserIntegrationUseCase;
-import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.SettingVO;
-import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.SettingDTO;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.bimillog.infrastructure.adapter.comment.in.web.dto.SimpleCommentDTO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.PostResponseMapper;
+import jaeik.bimillog.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,7 +20,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -171,7 +169,7 @@ public class UserQueryController {
      * @since 2.0.0
      * @author Jaeik
      */
-    @PostMapping("/friendlist")
+    @GetMapping("/friendlist")
     public Mono<ResponseEntity<KakaoFriendsResponse>> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
                                                                    @RequestParam(defaultValue = "10") Integer limit,
                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {

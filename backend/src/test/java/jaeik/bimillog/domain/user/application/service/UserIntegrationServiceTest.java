@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.user.entity.KakaoFriendVO;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +18,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import reactor.core.publisher.Mono;
 
@@ -24,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyList;
 
 /**
  * <h2>UserIntegrationService 테스트</h2>
@@ -50,13 +55,13 @@ class UserIntegrationServiceTest {
     private UserIntegrationService userIntegrationService;
 
     @Test
-    @DisplayName("카카오 친구 목록 조회 - 정상 케이스")
+    @DisplayName("카카오 친구 목록 조회 - 정상 케이스 (실제 API 응답 구조)")
     void shouldGetKakaoFriendList_WhenValidRequest() {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
         Integer offset = 0;
-        Integer limit = 10;
+        Integer limit = 3;
         
         User user = User.builder()
                 .id(userId)
@@ -72,23 +77,48 @@ class UserIntegrationServiceTest {
                 .refreshToken("refresh_token")
                 .build();
         
-        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(null, 0, null, null, 0);
+        // 실제 카카오 API 응답과 동일한 구조의 테스트 데이터
+        List<KakaoFriendVO> friends = Arrays.asList(
+                KakaoFriendVO.of(1L, "abcdefg0001", "이수민", "https://xxx.kakao.co.kr/.../aaa.jpg", true, null),
+                KakaoFriendVO.of(2L, "abcdefg0002", "홍길동", "https://xxx.kakao.co.kr/.../bbb.jpg", false, null),
+                KakaoFriendVO.of(3L, "abcdefg0003", "김철수", "https://xxx.kakao.co.kr/.../ccc.jpg", false, null)
+        );
+        
+        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(
+                friends, 
+                11, 
+                null, 
+                "https://kapi.kakao.com/v1/api/talk/friends?offset=3&limit=3&order=asc", 
+                1
+        );
+        
+        // 비밀로그 사용자 이름 조회 결과 (친구 중 홍길동만 가입)
+        List<String> userNames = Arrays.asList("", "bimillogUser", "");
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_access_token", offset, limit)).willReturn(Mono.just(kakaoResponseVO));
+        given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
 
         // When
         KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, offset, limit).block();
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(kakaoResponseVO);
-
+        assertThat(result.totalCount()).isEqualTo(11);
+        assertThat(result.favoriteCount()).isEqualTo(1);
+        assertThat(result.elements()).hasSize(3);
+        assertThat(result.afterUrl()).isEqualTo("https://kapi.kakao.com/v1/api/talk/friends?offset=3&limit=3&order=asc");
+        
+        // 비밀로그 사용자 이름 매핑 확인
+        assertThat(result.elements().get(0).userName()).isNull(); // 이수민 - 비가입
+        assertThat(result.elements().get(1).userName()).isEqualTo("bimillogUser"); // 홍길동 - 가입
+        assertThat(result.elements().get(2).userName()).isNull(); // 김철수 - 비가입
         
         verify(userQueryPort).findById(userId);
         verify(tokenPort).findById(tokenId);
         verify(kakaoFriendPort).getFriendList("valid_access_token", offset, limit);
+        verify(userQueryPort).findUserNamesInOrder(Arrays.asList("1", "2", "3"));
     }
 
     @Test
@@ -198,14 +228,17 @@ class UserIntegrationServiceTest {
                 .accessToken("valid_token")
                 .build();
         
-        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(null, 0, null, null, 0);
+        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(
+                Collections.emptyList(), 0, null, null, 0
+        );
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 10)).willReturn(Mono.just(kakaoResponseVO));
+        given(userQueryPort.findUserNamesInOrder(anyList())).willReturn(Collections.emptyList());
 
         // When
-        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, 1L, null, null).block();
+        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, null, null).block();
 
         // Then
         assertThat(result).isEqualTo(kakaoResponseVO);
@@ -229,14 +262,17 @@ class UserIntegrationServiceTest {
                 .accessToken("valid_token")
                 .build();
         
-        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(null, 0, null, null, 0);
+        KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(
+                Collections.emptyList(), 0, null, null, 0
+        );
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("valid_token", 0, 100)).willReturn(Mono.just(kakaoResponseVO));
+        given(userQueryPort.findUserNamesInOrder(anyList())).willReturn(Collections.emptyList());
 
         // When
-        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, 1L, 0, 200).block(); // 200을 요청하지만 100으로 제한
+        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 200).block(); // 200을 요청하지만 100으로 제한
 
         // Then
         assertThat(result).isEqualTo(kakaoResponseVO);
@@ -266,7 +302,7 @@ class UserIntegrationServiceTest {
                 .willReturn(Mono.error(new CustomException(ErrorCode.KAKAO_API_ERROR)));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 1L, 0, 10).block())
+        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage());
     }
@@ -293,8 +329,92 @@ class UserIntegrationServiceTest {
                 .willReturn(Mono.error(new RuntimeException("일반적인 API 에러")));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 1L, 0, 10).block())
+        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.KAKAO_API_ERROR.getMessage());
+    }
+
+    @Test
+    @DisplayName("카카오 친구 목록 조회 - 친구 목록이 비어있는 경우")
+    void shouldHandleEmptyFriendList_WhenNoFriends() {
+        // Given
+        Long userId = 1L;
+        Long tokenId = 1L;
+        
+        User user = User.builder()
+                .id(userId)
+                .userName("testUser")
+                .build();
+        
+        Token token = Token.builder()
+                .id(tokenId)
+                .accessToken("valid_token")
+                .build();
+        
+        KakaoFriendsResponseVO emptyResponseVO = KakaoFriendsResponseVO.of(
+                Collections.emptyList(), 0, null, null, 0
+        );
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(kakaoFriendPort.getFriendList("valid_token", 0, 10)).willReturn(Mono.just(emptyResponseVO));
+        given(userQueryPort.findUserNamesInOrder(Collections.emptyList())).willReturn(Collections.emptyList());
+
+        // When
+        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block();
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.elements()).isEmpty();
+        assertThat(result.totalCount()).isEqualTo(0);
+        assertThat(result.favoriteCount()).isEqualTo(0);
+        
+        verify(userQueryPort).findUserNamesInOrder(Collections.emptyList());
+    }
+
+    @Test
+    @DisplayName("카카오 친구 목록 조회 - 모든 친구가 비밀로그에 가입한 경우")
+    void shouldMapAllUserNames_WhenAllFriendsAreRegistered() {
+        // Given
+        Long userId = 1L;
+        Long tokenId = 1L;
+        
+        User user = User.builder()
+                .id(userId)
+                .userName("testUser")
+                .build();
+        
+        Token token = Token.builder()
+                .id(tokenId)
+                .accessToken("valid_token")
+                .build();
+        
+        List<KakaoFriendVO> friends = Arrays.asList(
+                KakaoFriendVO.of(1L, "uuid001", "친구1", "https://img1.jpg", false, null),
+                KakaoFriendVO.of(2L, "uuid002", "친구2", "https://img2.jpg", true, null)
+        );
+        
+        KakaoFriendsResponseVO responseVO = KakaoFriendsResponseVO.of(
+                friends, 2, null, null, 1
+        );
+        
+        // 모든 친구가 비밀로그에 가입
+        List<String> userNames = Arrays.asList("user1", "user2");
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(kakaoFriendPort.getFriendList("valid_token", 0, 10)).willReturn(Mono.just(responseVO));
+        given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);
+
+        // When
+        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block();
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.elements()).hasSize(2);
+        assertThat(result.elements().get(0).userName()).isEqualTo("user1");
+        assertThat(result.elements().get(1).userName()).isEqualTo("user2");
+        
+        verify(userQueryPort).findUserNamesInOrder(Arrays.asList("1", "2"));
     }
 }
