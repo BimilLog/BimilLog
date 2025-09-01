@@ -23,11 +23,15 @@ import java.util.Map;
  * @version 2.0.0
  */
 @Component
-@RequiredArgsConstructor
 public class KakaoLoginStrategy implements SocialLoginStrategy {
 
     private final KakaoKeyVO kakaoKeyVO;
-    private final WebClient.Builder webClientBuilder;
+    private final WebClient webClient;
+
+    public KakaoLoginStrategy(KakaoKeyVO kakaoKeyVO, WebClient.Builder webClientBuilder) {
+        this.kakaoKeyVO = kakaoKeyVO;
+        this.webClient = webClientBuilder.build();
+    }
 
     /**
      * <h3>카카오 로그인 처리</h3>
@@ -55,7 +59,6 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      */
     @Override
     public Mono<Void> unlink(String socialId) {
-        WebClient webClient = webClientBuilder.build();
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("target_id_type", "user_id");
         formData.add("target_id", socialId);
@@ -66,6 +69,9 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
                 .body(BodyInserters.fromFormData(formData))
                 .retrieve()
+                .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
+                        response -> response.bodyToMono(String.class)
+                                .map(errorBody -> new RuntimeException("Kakao unlink failed: " + errorBody)))
                 .bodyToMono(Void.class);
     }
 
@@ -79,14 +85,16 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      */
     @Override
     public void logout(String accessToken) {
-        WebClient webClient = webClientBuilder.build();
         webClient.post()
                 .uri(kakaoKeyVO.getLOGOUT_URL())
                 .header("Authorization", "Bearer " + accessToken)
                 .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
                 .retrieve()
+                .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
+                        response -> response.bodyToMono(String.class)
+                                .map(errorBody -> new RuntimeException("Kakao logout failed: " + errorBody)))
                 .bodyToMono(Void.class)
-                .block();
+                .subscribe();
     }
 
     /**
@@ -99,8 +107,6 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * @author Jaeik
      */
     private Mono<TokenVO> getToken(String code) {
-        WebClient webClient = webClientBuilder.build();
-
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "authorization_code");
         formData.add("client_id", kakaoKeyVO.getCLIENT_ID());
@@ -112,6 +118,9 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                 .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
                 .body(BodyInserters.fromFormData(formData))
                 .retrieve()
+                .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
+                        response -> response.bodyToMono(String.class)
+                                .map(errorBody -> new RuntimeException("Kakao token request failed: " + errorBody)))
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(responseBody -> TokenVO.builder()
                         .accessToken((String) responseBody.get("access_token"))
@@ -131,12 +140,13 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * @author Jaeik
      */
     private Mono<SocialLoginUserData> getUserInfo(String accessToken) {
-        WebClient webClient = webClientBuilder.build();
-
         return webClient.get()
                 .uri(kakaoKeyVO.getUSER_INFO_URL())
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
+                .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
+                        response -> response.bodyToMono(String.class)
+                                .map(errorBody -> new RuntimeException("Kakao user info request failed: " + errorBody)))
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .map(responseBody -> {
                     Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");

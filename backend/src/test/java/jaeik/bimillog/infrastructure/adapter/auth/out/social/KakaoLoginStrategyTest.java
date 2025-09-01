@@ -28,8 +28,15 @@ class KakaoLoginStrategyTest {
 
     @Mock private KakaoKeyVO kakaoKeyVO;
     @Mock private WebClient.Builder webClientBuilder;
+    @Mock private WebClient webClient;
 
-    @InjectMocks private KakaoLoginStrategy kakaoLoginStrategy;
+    private KakaoLoginStrategy kakaoLoginStrategy;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        given(webClientBuilder.build()).willReturn(webClient);
+        kakaoLoginStrategy = new KakaoLoginStrategy(kakaoKeyVO, webClientBuilder);
+    }
 
     @Test
     @DisplayName("소셜 제공자 확인 - 카카오 Provider 반환")
@@ -75,23 +82,16 @@ class KakaoLoginStrategyTest {
     @Test
     @DisplayName("WebClient Builder 검증 - Builder가 올바르게 주입되고 WebClient 생성")
     void shouldCreateWebClient_WhenWebClientBuilderProvided() {
-        // Given: 이 테스트에 필요한 WebClient.Builder Mock 설정
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
-        
-        // When: WebClient 생성 확인
-        WebClient webClient = webClientBuilder.build();
-
-        // Then: WebClient가 정상 생성됨
-        assertThat(webClient).isNotNull();
+        // When & Then: 생성자에서 WebClient Builder가 정확히 한 번 호출되었는지 확인
+        // (setUp에서 이미 생성됨)
         verify(webClientBuilder).build();
     }
 
     @Test
     @DisplayName("Null 파라미터 검증 - login 메서드 null 입력")
     void shouldHandleNullCode_WhenLoginCalledWithNull() {
-        // Given: null 코드 및 WebClient.Builder Mock 설정
+        // Given: null 코드
         String nullCode = null;
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
         // When & Then: null 입력 시 적절한 처리 (실제 WebClient 호출로 인한 오류)
         assertThatThrownBy(() -> kakaoLoginStrategy.login(nullCode).block())
@@ -101,9 +101,8 @@ class KakaoLoginStrategyTest {
     @Test
     @DisplayName("Null 파라미터 검증 - logout 메서드 null 입력") 
     void shouldHandleNullAccessToken_WhenLogoutCalledWithNull() {
-        // Given: null 액세스 토큰 및 WebClient.Builder Mock 설정
+        // Given: null 액세스 토큰
         String nullAccessToken = null;
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
         // When & Then: null 입력 시 적절한 처리
         assertThatThrownBy(() -> kakaoLoginStrategy.logout(nullAccessToken))
@@ -113,9 +112,8 @@ class KakaoLoginStrategyTest {
     @Test
     @DisplayName("Null 파라미터 검증 - unlink 메서드 null 입력")
     void shouldHandleNullSocialId_WhenUnlinkCalledWithNull() {
-        // Given: null 소셜 ID 및 WebClient.Builder Mock 설정
+        // Given: null 소셜 ID
         String nullSocialId = null;
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
         // When & Then: null 입력 시 적절한 처리 (Mono 실행으로 인한 오류)
         assertThatThrownBy(() -> kakaoLoginStrategy.unlink(nullSocialId).block())
@@ -125,9 +123,8 @@ class KakaoLoginStrategyTest {
     @Test
     @DisplayName("빈 문자열 파라미터 검증 - login 메서드 빈 문자열 입력")
     void shouldHandleEmptyCode_WhenLoginCalledWithEmptyString() {
-        // Given: 빈 문자열 코드 및 WebClient.Builder Mock 설정
+        // Given: 빈 문자열 코드
         String emptyCode = "";
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
         // When & Then: 빈 문자열 입력 시 적절한 처리 (실제 API 호출로 오류 발생)
         assertThatThrownBy(() -> kakaoLoginStrategy.login(emptyCode).block())
@@ -135,29 +132,18 @@ class KakaoLoginStrategyTest {
     }
 
     @Test
-    @DisplayName("WebClient Builder 호출 확인 - login 실행 시 WebClient 생성")
-    void shouldCallWebClientBuilder_WhenLoginMethodExecuted() {
-        // Given: 유효하지 않은 코드 및 WebClient.Builder Mock 설정
-        String invalidCode = "invalid_test_code";
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
-
-        // When: login 메서드 실행 (실패할 것으로 예상하지만 WebClient는 생성되어야 함)
-        try {
-            kakaoLoginStrategy.login(invalidCode);
-        } catch (Exception e) {
-            // 예상된 예외 (실제 카카오 API 호출 실패)
-        }
-
-        // Then: WebClient Builder가 호출되었는지 확인
-        verify(webClientBuilder, atLeastOnce()).build();
+    @DisplayName("WebClient Builder 호출 확인 - 생성자에서 WebClient 생성")
+    void shouldCallWebClientBuilder_WhenObjectCreated() {
+        // When: KakaoLoginStrategy 객체 생성 (setUp에서 이미 생성됨)
+        // Then: WebClient Builder가 생성자에서 정확히 한 번 호출되었는지 확인
+        verify(webClientBuilder).build();
     }
 
     @Test
-    @DisplayName("WebClient Builder 호출 확인 - logout 실행 시 WebClient 생성")
-    void shouldCallWebClientBuilder_WhenLogoutMethodExecuted() {
-        // Given: 유효하지 않은 액세스 토큰 및 WebClient.Builder Mock 설정
+    @DisplayName("WebClient 재사용 확인 - logout 실행 시 기존 WebClient 사용")
+    void shouldReuseWebClient_WhenLogoutMethodExecuted() {
+        // Given: 유효하지 않은 액세스 토큰
         String invalidAccessToken = "invalid_access_token";
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
         // When: logout 메서드 실행
         try {
@@ -166,16 +152,15 @@ class KakaoLoginStrategyTest {
             // 예상된 예외
         }
 
-        // Then: WebClient Builder가 호출되었는지 확인
-        verify(webClientBuilder, atLeastOnce()).build();
+        // Then: WebClient Builder는 생성자에서만 호출되고, 추가 호출은 없음
+        verify(webClientBuilder).build(); // 정확히 한 번만
     }
 
     @Test
-    @DisplayName("WebClient Builder 호출 확인 - unlink 실행 시 WebClient 생성")
-    void shouldCallWebClientBuilder_WhenUnlinkMethodExecuted() {
-        // Given: 유효하지 않은 소셜 ID 및 WebClient.Builder Mock 설정
+    @DisplayName("WebClient 재사용 확인 - unlink 실행 시 기존 WebClient 사용")
+    void shouldReuseWebClient_WhenUnlinkMethodExecuted() {
+        // Given: 유효하지 않은 소셜 ID
         String invalidSocialId = "invalid_social_id";
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
 
         // When: unlink 메서드 실행
         try {
@@ -184,8 +169,8 @@ class KakaoLoginStrategyTest {
             // 예상된 예외
         }
 
-        // Then: WebClient Builder가 호출되었는지 확인
-        verify(webClientBuilder, atLeastOnce()).build();
+        // Then: WebClient Builder는 생성자에서만 호출되고, 추가 호출은 없음
+        verify(webClientBuilder).build(); // 정확히 한 번만
     }
 
     @Test
@@ -210,13 +195,7 @@ class KakaoLoginStrategyTest {
     @Test
     @DisplayName("의존성 주입 검증 - WebClient.Builder가 올바르게 주입되었는지 확인")
     void shouldHaveWebClientBuilderInjected_WhenObjectCreated() {
-        // Given: 이 테스트에 필요한 WebClient.Builder Mock 설정
-        given(webClientBuilder.build()).willReturn(WebClient.builder().build());
-        
-        // When: WebClient.Builder 사용
-        webClientBuilder.build();
-
-        // Then: Mock이 올바르게 주입되어 호출되었는지 확인
+        // When & Then: 생성자에서 WebClient.Builder가 정확히 한 번 호출되었는지 확인
         verify(webClientBuilder).build();
     }
 
