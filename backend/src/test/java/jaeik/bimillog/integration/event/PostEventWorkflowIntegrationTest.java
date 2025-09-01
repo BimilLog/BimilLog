@@ -1,6 +1,5 @@
 package jaeik.bimillog.integration.event;
 
-import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
 import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;

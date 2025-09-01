@@ -4,7 +4,10 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
+import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.PostCacheSyncPort;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
 import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
 import org.junit.jupiter.api.AfterEach;
@@ -17,6 +20,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +43,10 @@ import static org.awaitility.Awaitility.await;
 class PostNoticeEventListenerTest {
 
     @Mock
-    private PostCacheUseCase postCacheUseCase;
+    private PostCacheCommandPort postCacheCommandPort;
+
+    @Mock
+    private PostCacheSyncPort postCacheSyncPort;
 
     @InjectMocks
     private PostNoticeEventListener postNoticeEventListener;
@@ -65,13 +73,17 @@ class PostNoticeEventListenerTest {
         // Given
         Long postId = 123L;
         PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(postId);
+        PostDetail postDetail = createPostDetail(postId, "공지사항 제목", "공지사항 내용");
+        
+        given(postCacheSyncPort.findPostDetail(postId)).willReturn(postDetail);
 
         // When
         assertDoesNotThrow(() -> postNoticeEventListener.handlePostSetAsNotice(event));
 
         // Then
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).addSingleNoticeToCache(postId);
+            verify(postCacheSyncPort).findPostDetail(postId);
+            verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail));
         });
         
         // 로그 검증
@@ -97,7 +109,7 @@ class PostNoticeEventListenerTest {
 
         // Then
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).removeSingleNoticeFromCache(postId);
+            verify(postCacheCommandPort).deleteCache(null, postId);
         });
         
         // 로그 검증
@@ -117,13 +129,17 @@ class PostNoticeEventListenerTest {
         // Given
         Long postId = 789L;
         PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(postId);
-        doThrow(new RuntimeException("Cache add failed")).when(postCacheUseCase).addSingleNoticeToCache(postId);
+        PostDetail postDetail = createPostDetail(postId, "실패 테스트", "실패 테스트 내용");
+        
+        given(postCacheSyncPort.findPostDetail(postId)).willReturn(postDetail);
+        doThrow(new RuntimeException("Cache add failed")).when(postCacheCommandPort).cachePostsWithDetails(any(), any());
 
         // When & Then
         assertDoesNotThrow(() -> postNoticeEventListener.handlePostSetAsNotice(event));
         
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).addSingleNoticeToCache(postId);
+            verify(postCacheSyncPort).findPostDetail(postId);
+            verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail));
         });
     }
 
@@ -133,13 +149,13 @@ class PostNoticeEventListenerTest {
         // Given
         Long postId = 999L;
         PostUnsetAsNoticeEvent event = new PostUnsetAsNoticeEvent(postId);
-        doThrow(new RuntimeException("Cache remove failed")).when(postCacheUseCase).removeSingleNoticeFromCache(postId);
+        doThrow(new RuntimeException("Cache remove failed")).when(postCacheCommandPort).deleteCache(null, postId);
 
         // When & Then
         assertDoesNotThrow(() -> postNoticeEventListener.handlePostUnsetAsNotice(event));
         
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).removeSingleNoticeFromCache(postId);
+            verify(postCacheCommandPort).deleteCache(null, postId);
         });
     }
 
@@ -149,6 +165,9 @@ class PostNoticeEventListenerTest {
         // Given
         PostSetAsNoticeEvent event1 = new PostSetAsNoticeEvent(111L);
         PostUnsetAsNoticeEvent event2 = new PostUnsetAsNoticeEvent(222L);
+        PostDetail postDetail1 = createPostDetail(111L, "비동기 테스트1", "비동기 테스트 내용1");
+        
+        given(postCacheSyncPort.findPostDetail(111L)).willReturn(postDetail1);
 
         // When
         CompletableFuture<Void> future1 = CompletableFuture.runAsync(() -> 
@@ -162,8 +181,27 @@ class PostNoticeEventListenerTest {
         });
 
         await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).addSingleNoticeToCache(111L);
-            verify(postCacheUseCase).removeSingleNoticeFromCache(222L);
+            verify(postCacheSyncPort).findPostDetail(111L);
+            verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail1));
+            verify(postCacheCommandPort).deleteCache(null, 222L);
         });
+    }
+
+    // 테스트 헬퍼 메서드
+    private PostDetail createPostDetail(Long id, String title, String content) {
+        return PostDetail.builder()
+                .id(id)
+                .title(title)
+                .content(content)
+                .viewCount(0)
+                .likeCount(0)
+                .postCacheFlag(null)
+                .createdAt(Instant.now())
+                .userId(1L)
+                .userName("테스트 사용자")
+                .commentCount(0)
+                .isNotice(false)
+                .isLiked(false)
+                .build();
     }
 }

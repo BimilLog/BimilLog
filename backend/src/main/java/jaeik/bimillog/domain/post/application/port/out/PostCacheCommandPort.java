@@ -14,9 +14,8 @@ import java.util.List;
  */
 public interface PostCacheCommandPort {
 
-
     /**
-     * <h3>게시글 전체 캐시 (목록 + 상세)</h3>
+     * <h3>게시글 캐시</h3>
      * <p>게시글 목록과 각 게시글의 상세 정보를 함께 캐시합니다.</p>
      * <p>PostDetail에서 PostSearchResult를 추출하여 목록 캐시를 생성하고,</p>
      * <p>각 PostDetail을 개별 상세 캐시로 저장합니다.</p>

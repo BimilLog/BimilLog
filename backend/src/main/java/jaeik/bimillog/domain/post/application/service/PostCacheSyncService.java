@@ -1,10 +1,7 @@
 package jaeik.bimillog.domain.post.application.service;
 
-import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheSyncPort;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
@@ -31,12 +28,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostCacheSyncService implements PostCacheUseCase {
+public class PostCacheSyncService {
 
     private final PostCacheCommandPort postCacheCommandPort;
-    private final PostCacheQueryPort postCacheQueryPort;
     private final PostCacheSyncPort postCacheSyncPort;
-    private final PostQueryPort postQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -148,77 +143,4 @@ public class PostCacheSyncService implements PostCacheUseCase {
         }
     }
 
-    /**
-     * <h3>공지 캐시 삭제</h3>
-     * <p>공지사항 관련 캐시를 삭제합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteNoticeCache() {
-        postCacheCommandPort.deleteCache(PostCacheFlag.NOTICE, null);
-    }
-
-    @Override
-    public void addSingleNoticeToCache(Long postId) {
-        // 캐시가 없으면 전체 공지 캐시를 재생성
-        if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            List<PostSearchResult> allNotices = postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
-            if (!allNotices.isEmpty()) {
-                // PostSearchResult -> PostDetail 변환 후 통합 캐시 메서드 사용
-                List<PostDetail> allNoticeDetails = allNotices.stream()
-                        .map(notice -> postCacheSyncPort.findPostDetail(notice.getId()))
-                        .filter(detail -> detail != null)
-                        .collect(Collectors.toList());
-                
-                if (!allNoticeDetails.isEmpty()) {
-                    postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, allNoticeDetails);
-                }
-            }
-            return;
-        }
-
-        // 이미 캐시에 있는지 확인
-        if (postCacheQueryPort.isPopularPost(postId)) {
-            return;
-        }
-
-        // 전체 공지 목록을 조회해서 목록+상세 캐시 재생성
-        List<PostSearchResult> allNotices = postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
-        if (!allNotices.isEmpty()) {
-            List<PostDetail> allNoticeDetails = allNotices.stream()
-                    .map(notice -> postCacheSyncPort.findPostDetail(notice.getId()))
-                    .filter(detail -> detail != null)
-                    .collect(Collectors.toList());
-            
-            if (!allNoticeDetails.isEmpty()) {
-                postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, allNoticeDetails);
-            }
-        }
-    }
-
-    @Override
-    public void removeSingleNoticeFromCache(Long postId) {
-        // 캐시가 있는 경우에만 전체 공지 목록 재생성
-        if (postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
-            List<PostSearchResult> allNotices = postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
-            if (!allNotices.isEmpty()) {
-                List<PostDetail> allNoticeDetails = allNotices.stream()
-                        .map(notice -> postCacheSyncPort.findPostDetail(notice.getId()))
-                        .filter(detail -> detail != null)
-                        .collect(Collectors.toList());
-                
-                if (!allNoticeDetails.isEmpty()) {
-                    postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, allNoticeDetails);
-                } else {
-                    // 공지가 없으면 캐시 삭제
-                    postCacheCommandPort.deleteCache(PostCacheFlag.NOTICE, null);
-                }
-            } else {
-                // 공지가 없으면 캐시 삭제
-                postCacheCommandPort.deleteCache(PostCacheFlag.NOTICE, null);
-            }
-        }
-    }
 }
