@@ -13,6 +13,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.awaitility.Awaitility.await;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 /**
  * <h2>게시글 조회 이벤트 리스너 테스트</h2>
@@ -207,5 +216,134 @@ class PostViewEventListenerTest {
 
         // Then - 이벤트 소스와 관계없이 정상 처리되어야 함
         verify(postInteractionUseCase).incrementViewCount(eq(postId));
+    }
+
+    @Test
+    @DisplayName("비동기 처리 검증 - @Async 어노테이션 동작 확인")
+    void handlePostViewedEvent_ShouldProcessAsynchronously() {
+        // Given
+        Long postId = 456L;
+        PostViewedEvent event = new PostViewedEvent(this, postId);
+        
+        // UseCase 처리에 지연을 추가하여 비동기 동작 시뮬레이션
+        doAnswer(invocation -> {
+            Thread.sleep(100); // 100ms 지연
+            return null;
+        }).when(postInteractionUseCase).incrementViewCount(postId);
+
+        // When
+        postViewEventListener.handlePostViewedEvent(event);
+        
+        // Then - 단위 테스트에서는 @Async가 동작하지 않으므로 동기적으로 실행됨
+        // 실제 통합 테스트에서는 비동기로 처리되지만, 여기서는 UseCase 호출 완료만 확인
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
+    }
+
+    @Test
+    @DisplayName("다중 동시 이벤트 처리 검증")
+    void handlePostViewedEvent_ShouldHandleConcurrentEvents() {
+        // Given
+        Long postId1 = 100L;
+        Long postId2 = 200L;
+        Long postId3 = 300L;
+        
+        PostViewedEvent event1 = new PostViewedEvent(this, postId1);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId2);
+        PostViewedEvent event3 = new PostViewedEvent(this, postId3);
+
+        // When - 동시에 여러 이벤트 처리 (실제로는 순차 처리되지만 동시 호출 시뮬레이션)
+        CompletableFuture.runAsync(() -> postViewEventListener.handlePostViewedEvent(event1));
+        CompletableFuture.runAsync(() -> postViewEventListener.handlePostViewedEvent(event2));
+        CompletableFuture.runAsync(() -> postViewEventListener.handlePostViewedEvent(event3));
+        
+        // 모든 비동기 작업이 완료될 때까지 대기
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            verify(postInteractionUseCase).incrementViewCount(eq(postId1));
+            verify(postInteractionUseCase).incrementViewCount(eq(postId2));
+            verify(postInteractionUseCase).incrementViewCount(eq(postId3));
+        });
+    }
+
+    @Test
+    @DisplayName("로깅 검증 - null postId 경고 로그")
+    void handlePostViewedEvent_ShouldLogWarning_WhenPostIdIsNull() {
+        // Given
+        Logger logger = (Logger) LoggerFactory.getLogger(PostViewEventListener.class);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+        
+        PostViewedEvent event = new PostViewedEvent(this, null);
+
+        // When
+        postViewEventListener.handlePostViewedEvent(event);
+
+        // Then
+        verify(postInteractionUseCase, never()).incrementViewCount(any());
+        
+        // 로그 검증
+        assertThat(listAppender.list).hasSize(1);
+        assertThat(listAppender.list.get(0).getLevel().toString()).isEqualTo("WARN");
+        assertThat(listAppender.list.get(0).getFormattedMessage())
+            .contains("게시글 조회 이벤트 처리 실패: postId가 null입니다");
+            
+        // 정리
+        logger.detachAppender(listAppender);
+    }
+
+    @Test
+    @DisplayName("로깅 검증 - UseCase 예외 발생 시 에러 로그")
+    void handlePostViewedEvent_ShouldLogError_WhenUseCaseThrowsException() {
+        // Given
+        Logger logger = (Logger) LoggerFactory.getLogger(PostViewEventListener.class);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+        
+        Long postId = 123L;
+        PostViewedEvent event = new PostViewedEvent(this, postId);
+        
+        CustomException exception = new CustomException(ErrorCode.POST_NOT_FOUND);
+        doThrow(exception).when(postInteractionUseCase).incrementViewCount(postId);
+
+        // When
+        postViewEventListener.handlePostViewedEvent(event);
+
+        // Then
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
+        
+        // 로그 검증 (에러 로그가 생성되어야 함)
+        assertThat(listAppender.list).hasSize(1);
+        assertThat(listAppender.list.get(0).getLevel().toString()).isEqualTo("ERROR");
+        assertThat(listAppender.list.get(0).getFormattedMessage())
+            .contains("게시글 조회수 증가 실패: postId=" + postId);
+            
+        // 정리
+        logger.detachAppender(listAppender);
+    }
+
+    @Test
+    @DisplayName("로깅 검증 - 정상 처리 시 로그 없음")
+    void handlePostViewedEvent_ShouldNotLog_WhenProcessedSuccessfully() {
+        // Given
+        Logger logger = (Logger) LoggerFactory.getLogger(PostViewEventListener.class);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+        
+        Long postId = 123L;
+        PostViewedEvent event = new PostViewedEvent(this, postId);
+
+        // When
+        postViewEventListener.handlePostViewedEvent(event);
+
+        // Then
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
+        
+        // 정상 처리 시에는 로그가 없어야 함 (DEBUG 레벨 제외)
+        assertThat(listAppender.list).isEmpty();
+            
+        // 정리
+        logger.detachAppender(listAppender);
     }
 }

@@ -206,8 +206,9 @@ class PostCacheCommandAdapterTest {
         postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.REALTIME, singlePost);
 
         // Then: 목록과 상세 캐시 모두 저장됨
-        // 목록 캐시 검증
-        verify(valueOperations).set(eq("cache:posts:realtime"), any(), eq(Duration.ofMinutes(30)));
+        // 목록 캐시 검증 (ZSet으로 저장)
+        verify(zSetOperations).add(eq("cache:posts:realtime"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:realtime"), eq(Duration.ofMinutes(30)));
         // 상세 캐시 검증
         verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
@@ -437,20 +438,24 @@ class PostCacheCommandAdapterTest {
         
         // REALTIME - 30분 TTL (목록), 1일 TTL (상세)
         postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.REALTIME, postDetails);
-        verify(valueOperations).set(eq("cache:posts:realtime"), any(), eq(Duration.ofMinutes(30)));
+        verify(zSetOperations).add(eq("cache:posts:realtime"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:realtime"), eq(Duration.ofMinutes(30)));
         verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), any(), eq(Duration.ofDays(1)));
 
         // WEEKLY - 1일 TTL (목록), 1일 TTL (상세)
         postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.WEEKLY, postDetails);
-        verify(valueOperations).set(eq("cache:posts:weekly"), any(), eq(Duration.ofDays(1)));
+        verify(zSetOperations).add(eq("cache:posts:weekly"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:weekly"), eq(Duration.ofDays(1)));
 
         // LEGEND - 1일 TTL (목록), 1일 TTL (상세)
         postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.LEGEND, postDetails);
-        verify(valueOperations).set(eq("cache:posts:legend"), any(), eq(Duration.ofDays(1)));
+        verify(zSetOperations).add(eq("cache:posts:legend"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:legend"), eq(Duration.ofDays(1)));
 
         // NOTICE - 7일 TTL (목록), 1일 TTL (상세)
         postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.NOTICE, postDetails);
-        verify(valueOperations).set(eq("cache:posts:notice"), any(), eq(Duration.ofDays(7)));
+        verify(zSetOperations).add(eq("cache:posts:notice"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:notice"), eq(Duration.ofDays(7)));
     }
 
     @Test
@@ -481,8 +486,9 @@ class PostCacheCommandAdapterTest {
         verify(updateClause).execute();
         
         // 통합 캐시 검증 (목록과 상세 캐시가 모두 저장됨)
-        // 목록 캐시 검증
-        verify(valueOperations).set(eq("cache:posts:realtime"), any(), eq(Duration.ofMinutes(30)));
+        // 목록 캐시 검증 (ZSet으로 저장)
+        verify(zSetOperations).add(eq("cache:posts:realtime"), eq("1"), anyDouble());
+        verify(redisTemplate).expire(eq("cache:posts:realtime"), eq(Duration.ofMinutes(30)));
         // 상세 캐시 검증
         verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
@@ -560,16 +566,10 @@ class PostCacheCommandAdapterTest {
         postCacheCommandAdapter.cachePostsWithDetails(cacheType, fullPosts);
 
         // Then: 목록 캐시와 상세 캐시가 모두 저장됨
-        // 1. 목록 캐시 검증 (PostSearchResult 형태로 변환되어 저장)
-        verify(valueOperations).set(
-                eq("cache:posts:realtime"), 
-                argThat(list -> {
-                    if (!(list instanceof List<?> postList)) return false;
-                    return postList.size() == 2 && 
-                           postList.stream().allMatch(item -> item instanceof PostSearchResult);
-                }), 
-                eq(Duration.ofMinutes(30))
-        );
+        // 1. 목록 캐시 검증 (ZSet으로 저장 - 각 게시글 ID와 score)
+        verify(zSetOperations).add(eq("cache:posts:realtime"), eq("1"), eq(10.0)); // postDetail1의 likeCount
+        verify(zSetOperations).add(eq("cache:posts:realtime"), eq("2"), eq(20.0)); // postDetail2의 likeCount
+        verify(redisTemplate).expire(eq("cache:posts:realtime"), eq(Duration.ofMinutes(30)));
 
         // 2. 상세 캐시 검증 (각 PostDetail이 개별 키로 저장)
         verify(valueOperations).set(eq("cache:post:1"), eq(postDetail1), eq(Duration.ofDays(1)));
@@ -594,9 +594,8 @@ class PostCacheCommandAdapterTest {
     @Test 
     @DisplayName("예외 케이스 - 통합 캐시 메서드 Redis 오류")
     void shouldThrowCustomException_WhenCachePostsWithDetailsRedisError() {
-        // Given: Redis 오류 발생 설정
-        doThrow(new RuntimeException("Redis connection failed"))
-                .when(valueOperations).set(anyString(), any(), any(Duration.class));
+        // Given: Redis ZSet 오류 발생 설정 (redisTemplate.opsForZSet() 호출에서 오류)
+        given(redisTemplate.opsForZSet()).willThrow(new RuntimeException("Redis connection failed"));
 
         List<PostDetail> fullPosts = List.of(
                 PostDetail.builder()
@@ -620,7 +619,10 @@ class PostCacheCommandAdapterTest {
             postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.REALTIME, fullPosts);
         })
         .isInstanceOf(CustomException.class)
-        .hasMessageContaining("Redis write error");
+        .satisfies(ex -> {
+            CustomException customEx = (CustomException) ex;
+            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_WRITE_ERROR.getStatus());
+        });
     }
 
 }

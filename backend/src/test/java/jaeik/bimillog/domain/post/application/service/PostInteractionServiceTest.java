@@ -26,6 +26,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * <h2>PostInteractionService 테스트</h2>
  * <p>게시글 상호작용 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
@@ -141,30 +147,185 @@ class PostInteractionServiceTest {
         // Given
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        // When
+        postInteractionService.incrementViewCount(postId);
+
+        // Then
+        verify(postCommandPort).incrementViewByPostId(postId);
+    }
+
+    @Test
+    @DisplayName("조회수 증가 - 존재하지 않는 게시글이어도 DB에서 처리됨")
+    void shouldIncrementViewCount_EvenForNonExistentPost() {
+        // Given
+        Long postId = 999L;
 
         // When
         postInteractionService.incrementViewCount(postId);
 
         // Then
-        verify(postQueryPort).findById(postId);
-        verify(postCommandPort).incrementViewByPostId(post.getId());
+        verify(postCommandPort).incrementViewByPostId(postId);
     }
 
     @Test
-    @DisplayName("조회수 증가 - 존재하지 않는 게시글인 경우 예외 발생")
-    void shouldThrowException_WhenIncrementViewCountForNonExistentPost() {
+    @DisplayName("동시성 테스트 - 여러 사용자가 동시에 같은 게시글 추천")
+    void shouldHandleConcurrentLikeOperations_OnSamePost() throws InterruptedException {
         // Given
-        Long postId = 999L;
+        Long postId = 123L;
+        int threadCount = 10;
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(threadCount);
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        AtomicInteger successCount = new AtomicInteger(0);
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        // 각 스레드마다 다른 사용자 ID
+        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
 
-        // When & Then
-        assertThatThrownBy(() -> postInteractionService.incrementViewCount(postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+        try {
+            // When - 여러 스레드가 동시에 추천 작업 수행
+            for (int i = 0; i < threadCount; i++) {
+                final Long userId = (long) (i + 1);
+                final User threadUser = mock(User.class);
+                
+                given(loadUserInfoPort.getReferenceById(userId)).willReturn(threadUser);
+                given(postLikeQueryPort.existsByUserAndPost(threadUser, post)).willReturn(false);
+                
+                executor.submit(() -> {
+                    try {
+                        startLatch.await(); // 모든 스레드가 준비될 때까지 대기
+                        postInteractionService.likePost(userId, postId);
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        // 예외 발생해도 계속 진행
+                    } finally {
+                        endLatch.countDown();
+                    }
+                });
+            }
 
-        verify(postQueryPort).findById(postId);
-        verify(postCommandPort, never()).incrementViewByPostId(anyLong());
+            startLatch.countDown(); // 모든 스레드 시작
+            endLatch.await(); // 모든 스레드 완료 대기
+
+            // Then - 모든 작업이 성공적으로 완료되어야 함
+            assertThat(successCount.get()).isEqualTo(threadCount);
+            verify(postQueryPort, times(threadCount)).findById(postId);
+            verify(postLikeCommandPort, times(threadCount)).save(any(PostLike.class));
+            
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    @DisplayName("동시성 테스트 - 같은 사용자가 동시에 여러 게시글에 추천")
+    void shouldHandleConcurrentLikeOperations_OnDifferentPosts() throws InterruptedException {
+        // Given
+        Long userId = 1L;
+        int postCount = 5;
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(postCount);
+        ExecutorService executor = Executors.newFixedThreadPool(postCount);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
+
+        try {
+            // When - 여러 스레드가 동시에 다른 게시글에 추천 작업 수행
+            for (int i = 0; i < postCount; i++) {
+                final Long postId = (long) (i + 100);
+                final Post threadPost = mock(Post.class);
+                
+                given(postQueryPort.findById(postId)).willReturn(Optional.of(threadPost));
+                given(postLikeQueryPort.existsByUserAndPost(user, threadPost)).willReturn(false);
+                
+                executor.submit(() -> {
+                    try {
+                        startLatch.await(); // 모든 스레드가 준비될 때까지 대기
+                        postInteractionService.likePost(userId, postId);
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        // 예외 발생해도 계속 진행
+                    } finally {
+                        endLatch.countDown();
+                    }
+                });
+            }
+
+            startLatch.countDown(); // 모든 스레드 시작
+            endLatch.await(); // 모든 스레드 완료 대기
+
+            // Then - 모든 작업이 성공적으로 완료되어야 함
+            assertThat(successCount.get()).isEqualTo(postCount);
+            verify(loadUserInfoPort, times(postCount)).getReferenceById(userId);
+            verify(postLikeCommandPort, times(postCount)).save(any(PostLike.class));
+            
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    @DisplayName("동시성 테스트 - 조회수 증가 동시 처리")
+    void shouldHandleConcurrentViewCountIncrements() throws InterruptedException {
+        // Given
+        Long postId = 456L;
+        int threadCount = 20;
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(threadCount);
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        try {
+            // When - 여러 스레드가 동시에 조회수 증가 작업 수행
+            for (int i = 0; i < threadCount; i++) {
+                executor.submit(() -> {
+                    try {
+                        startLatch.await(); // 모든 스레드가 준비될 때까지 대기
+                        postInteractionService.incrementViewCount(postId);
+                        successCount.incrementAndGet();
+                    } catch (Exception e) {
+                        // 예외 발생해도 계속 진행
+                    } finally {
+                        endLatch.countDown();
+                    }
+                });
+            }
+
+            startLatch.countDown(); // 모든 스레드 시작
+            endLatch.await(); // 모든 스레드 완료 대기
+
+            // Then - 모든 조회수 증가 작업이 성공적으로 완료되어야 함
+            assertThat(successCount.get()).isEqualTo(threadCount);
+            verify(postCommandPort, times(threadCount)).incrementViewByPostId(postId);
+            
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    @DisplayName("비동기 작업 테스트 - CompletableFuture를 이용한 병렬 처리")
+    void shouldHandleAsynchronousOperations() {
+        // Given
+        Long postId1 = 100L;
+        Long postId2 = 200L;
+        Long postId3 = 300L;
+        
+        // When - CompletableFuture로 비동기 조회수 증가
+        CompletableFuture<Void> future1 = CompletableFuture.runAsync(() -> 
+            postInteractionService.incrementViewCount(postId1));
+        CompletableFuture<Void> future2 = CompletableFuture.runAsync(() -> 
+            postInteractionService.incrementViewCount(postId2));
+        CompletableFuture<Void> future3 = CompletableFuture.runAsync(() -> 
+            postInteractionService.incrementViewCount(postId3));
+        
+        // 모든 비동기 작업 완료 대기
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(future1, future2, future3);
+        allFutures.join(); // 모든 작업 완료까지 대기
+        
+        // Then - 모든 조회수 증가가 실행되어야 함
+        verify(postCommandPort).incrementViewByPostId(postId1);
+        verify(postCommandPort).incrementViewByPostId(postId2);
+        verify(postCommandPort).incrementViewByPostId(postId3);
     }
 }

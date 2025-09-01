@@ -48,6 +48,9 @@ class PostCacheQueryAdapterTest {
     
     @Mock
     private ListOperations<String, Object> listOperations;
+    
+    @Mock
+    private org.springframework.data.redis.core.ZSetOperations<String, Object> zSetOperations;
 
     private PostCacheQueryAdapter postCacheQueryAdapter;
 
@@ -59,6 +62,7 @@ class PostCacheQueryAdapterTest {
         // RedisTemplate Mock 설정 - lenient()로 불필요한 스터빙 허용
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         lenient().when(redisTemplate.opsForList()).thenReturn(listOperations);
+        lenient().when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
         
         // PostCacheQueryAdapter 인스턴스 생성
         postCacheQueryAdapter = new PostCacheQueryAdapter(redisTemplate);
@@ -146,25 +150,32 @@ class PostCacheQueryAdapterTest {
     @Test
     @DisplayName("정상 케이스 - LEGEND 캐시 게시글 목록 조회")
     void shouldReturnCachedPosts_WhenLegendCacheExists() {
-        // Given: LEGEND 캐시에 게시글 DTO 목록 존재
-        given(valueOperations.get("cache:posts:legend")).willReturn(testSimplePostDTOs);
+        // Given: LEGEND 캐시에 Sorted Set으로 ID 저장, 개별 캐시에 상세 정보 저장
+        given(zSetOperations.reverseRange("cache:posts:legend", 0, -1))
+            .willReturn(java.util.Set.of("1", "2"));
+        given(valueOperations.get("cache:post:1")).willReturn(testFullPostDTO);
+        given(valueOperations.get("cache:post:2")).willReturn(createTestPostDetail(2L, "인기 게시글 2"));
         
         // When: 캐시된 게시글 목록 조회
         List<PostSearchResult> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.LEGEND);
         
-        // Then: 캐시된 게시글 목록이 변환되어 반환됨
+        // Then: 캐시된 게시글 목록이 변환되어 반환됨 (Set의 순서는 보장되지 않을 수 있음)
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).getTitle()).isEqualTo("인기 게시글 1");
-        assertThat(result.get(1).getTitle()).isEqualTo("인기 게시글 2");
-        verify(valueOperations).get("cache:posts:legend");
+        assertThat(result.stream().map(PostSearchResult::getTitle).toList())
+            .containsExactlyInAnyOrder("상세 게시글", "인기 게시글 2");
+        
+        verify(zSetOperations).reverseRange("cache:posts:legend", 0, -1);
+        verify(valueOperations).get("cache:post:1");
+        verify(valueOperations).get("cache:post:2");
     }
 
     @Test
     @DisplayName("정상 케이스 - NOTICE 캐시 미존재 시 빈 목록 반환")
     void shouldReturnEmptyList_WhenNoticeCacheNotExists() {
-        // Given: NOTICE 캐시가 존재하지 않음
-        given(valueOperations.get("cache:posts:notice")).willReturn(null);
+        // Given: NOTICE 캐시가 존재하지 않음 (Sorted Set이 비어있음)
+        given(zSetOperations.reverseRange("cache:posts:notice", 0, -1))
+            .willReturn(java.util.Collections.emptySet());
         
         // When: 캐시된 게시글 목록 조회
         List<PostSearchResult> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE);
@@ -172,7 +183,7 @@ class PostCacheQueryAdapterTest {
         // Then: 빈 목록 반환
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
-        verify(valueOperations).get("cache:posts:notice");
+        verify(zSetOperations).reverseRange("cache:posts:notice", 0, -1);
     }
 
     @Test
@@ -214,12 +225,17 @@ class PostCacheQueryAdapterTest {
     @Test
     @DisplayName("정상 케이스 - 페이지별 캐시 조회")
     void shouldReturnPagedCachedPosts_WhenCacheExistsWithPagination() {
-        // Given: 캐시에 5개 게시글 존재 (Value 구조 사용)
-        List<PostSearchResult> allPosts = Arrays.asList(
-            testSimplePostDTOs.get(0), testSimplePostDTOs.get(1),
-            createAdditionalPost(3L, "추가글3"), createAdditionalPost(4L, "추가글4"), createAdditionalPost(5L, "추가글5")
-        );
-        given(valueOperations.get("cache:posts:realtime")).willReturn(allPosts);
+        // Given: LEGEND 캐시에 5개 게시글 존재 (ZSet + 개별 캐시 구조)
+        // ZSet에는 총 5개 항목이 있고, 첫 번째 페이지(0~1)에는 ID "1", "2"가 있음
+        given(zSetOperations.count("cache:posts:legend", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY))
+            .willReturn(5L);
+        java.util.Set<Object> orderedSet = new java.util.LinkedHashSet<>();
+        orderedSet.add("1");
+        orderedSet.add("2");
+        given(zSetOperations.reverseRange("cache:posts:legend", 0, 1))
+            .willReturn(orderedSet);
+        given(valueOperations.get("cache:post:1")).willReturn(testFullPostDTO);
+        given(valueOperations.get("cache:post:2")).willReturn(createTestPostDetail(2L, "인기 게시글 2"));
         
         Pageable pageable = PageRequest.of(0, 2);
         
@@ -231,17 +247,21 @@ class PostCacheQueryAdapterTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(5L);
         assertThat(result.getTotalPages()).isEqualTo(3);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("인기 게시글 1");
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("상세 게시글");
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("인기 게시글 2");
         
-        verify(valueOperations).get("cache:posts:realtime");
+        verify(zSetOperations).count("cache:posts:legend", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+        verify(zSetOperations).reverseRange("cache:posts:legend", 0, 1);
+        verify(valueOperations).get("cache:post:1");
+        verify(valueOperations).get("cache:post:2");
     }
 
     @Test
     @DisplayName("경계값 - 빈 페이지 캐시 조회")
     void shouldReturnEmptyPage_WhenCacheListIsEmpty() {
-        // Given: 빈 캐시 (Value 구조에서 null 반환)
-        given(valueOperations.get("cache:posts:legend")).willReturn(null);
+        // Given: 빈 캐시 (ZSet count가 0 반환)
+        given(zSetOperations.count("cache:posts:legend", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY))
+            .willReturn(0L);
         
         Pageable pageable = PageRequest.of(0, 10);
         
@@ -254,7 +274,7 @@ class PostCacheQueryAdapterTest {
         assertThat(result.getTotalElements()).isEqualTo(0L);
         assertThat(result.getTotalPages()).isEqualTo(0);
         
-        verify(valueOperations).get("cache:posts:legend");
+        verify(zSetOperations).count("cache:posts:legend", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
     }
 
     @Test
@@ -278,8 +298,8 @@ class PostCacheQueryAdapterTest {
     @Test
     @DisplayName("예외 케이스 - Redis 읽기 오류 시 getCachedPostList CustomException 발생")
     void shouldThrowCustomException_WhenRedisReadErrorInGetCachedList() {
-        // Given: Redis 읽기 오류 발생
-        given(valueOperations.get(anyString()))
+        // Given: Redis ZSet 읽기 오류 발생
+        given(zSetOperations.reverseRange("cache:posts:weekly", 0, -1))
             .willThrow(new RuntimeException("Redis read failed"));
         
         // When & Then: CustomException 발생
@@ -312,11 +332,11 @@ class PostCacheQueryAdapterTest {
     }
 
     @Test
-    @DisplayName("예외 케이스 - Redis Value 조회 오류 시 getCachedPostListPaged CustomException 발생")
-    void shouldThrowCustomException_WhenRedisValueErrorInGetCachedPaged() {
-        // Given: Redis Value 조회 오류 발생
-        given(valueOperations.get("cache:posts:weekly"))
-            .willThrow(new RuntimeException("Redis value operation failed"));
+    @DisplayName("예외 케이스 - Redis ZSet 조회 오류 시 getCachedPostListPaged CustomException 발생")
+    void shouldThrowCustomException_WhenRedisZSetErrorInGetCachedPaged() {
+        // Given: Redis ZSet count 조회 오류 발생
+        given(zSetOperations.count("cache:posts:legend", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY))
+            .willThrow(new RuntimeException("Redis ZSet operation failed"));
         
         Pageable pageable = PageRequest.of(0, 10);
         
@@ -332,17 +352,25 @@ class PostCacheQueryAdapterTest {
     }
 
     @Test
-    @DisplayName("경계값 - 잘못된 타입의 캐시 데이터가 있을 때 빈 목록 반환")
-    void shouldReturnEmptyList_WhenCacheContainsWrongDataType() {
-        // Given: 잘못된 타입의 데이터가 캐시에 있음
-        given(valueOperations.get("cache:posts:realtime")).willReturn("wrong type data");
+    @DisplayName("경계값 - 잘못된 타입의 개별 게시글 캐시 데이터가 있을 때 필터링")
+    void shouldFilterOutInvalidData_WhenIndividualCacheContainsWrongDataType() {
+        // Given: ZSet에는 정상적인 ID가 있지만, 개별 캐시에 잘못된 타입 데이터 포함
+        given(zSetOperations.reverseRange("cache:posts:realtime", 0, -1))
+            .willReturn(java.util.Set.of("1", "2"));
+        given(valueOperations.get("cache:post:1")).willReturn(testFullPostDTO); // 정상 데이터
+        given(valueOperations.get("cache:post:2")).willReturn("wrong type data"); // 잘못된 타입
         
         // When: 캐시된 게시글 목록 조회
         List<PostSearchResult> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
         
-        // Then: 빈 목록 반환 (타입 안전성)
+        // Then: 유효한 데이터만 반환 (잘못된 타입은 필터링)
         assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTitle()).isEqualTo("상세 게시글");
+        
+        verify(zSetOperations).reverseRange("cache:posts:realtime", 0, -1);
+        verify(valueOperations).get("cache:post:1");
+        verify(valueOperations).get("cache:post:2");
     }
 
     @Test
@@ -393,8 +421,10 @@ class PostCacheQueryAdapterTest {
     void shouldCompleteEntireCacheQueryWorkflow() {
         // Given: 다양한 캐시 데이터 존재
         given(redisTemplate.hasKey("cache:posts:realtime")).willReturn(true);
-        given(valueOperations.get("cache:posts:realtime")).willReturn(testSimplePostDTOs);
+        given(zSetOperations.reverseRange("cache:posts:realtime", 0, -1))
+            .willReturn(java.util.Set.of("1", "2"));
         given(valueOperations.get("cache:post:1")).willReturn(testFullPostDTO);
+        given(valueOperations.get("cache:post:2")).willReturn(createTestPostDetail(2L, "인기 게시글 2"));
         
         // When: 전체 워크플로우 실행
         // 1. 캐시 존재 여부 확인
@@ -412,19 +442,30 @@ class PostCacheQueryAdapterTest {
         assertThat(postDetail).isNotNull();
         assertThat(postDetail.title()).isEqualTo("상세 게시글");
         
-        // 적절한 Redis 호출 검증
+        // 적절한 Redis 호출 검증 (개별 호출도 중복 고려)
         verify(redisTemplate).hasKey("cache:posts:realtime");
-        verify(valueOperations).get("cache:posts:realtime");
-        verify(valueOperations).get("cache:post:1");
+        verify(zSetOperations).reverseRange("cache:posts:realtime", 0, -1);
+        verify(valueOperations, times(2)).get("cache:post:1"); // getCachedPostList + getCachedPostIfExists
+        verify(valueOperations).get("cache:post:2");
     }
 
     @Test
     @DisplayName("성능 테스트 - 대량 캐시 조회")
     void shouldHandleLargeCacheData_WhenRetrievingPosts() {
         
-        // Given: 대량 캐시 데이터 (100개 게시글)
-        List<PostSearchResult> largePosts = Collections.nCopies(100, testSimplePostDTOs.get(0));
-        given(valueOperations.get("cache:posts:weekly")).willReturn(largePosts);
+        // Given: 대량 캐시 데이터 (100개 게시글 ID)
+        java.util.Set<Object> largePostIds = new java.util.LinkedHashSet<>();
+        for (int i = 1; i <= 100; i++) {
+            largePostIds.add(String.valueOf(i));
+        }
+        given(zSetOperations.reverseRange("cache:posts:weekly", 0, -1))
+            .willReturn(largePostIds);
+        
+        // 모든 개별 캐시에 대해 PostDetail 반환
+        for (int i = 1; i <= 100; i++) {
+            given(valueOperations.get("cache:post:" + i))
+                .willReturn(createTestPostDetail((long) i, "게시글 " + i));
+        }
         
         // When: 대량 캐시 데이터 조회
         List<PostSearchResult> result = postCacheQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
@@ -433,8 +474,9 @@ class PostCacheQueryAdapterTest {
         assertThat(result).isNotNull();
         assertThat(result).hasSize(100);
         
-        // 단일 Redis 호출만 발생했는지 확인 (효율성)
-        verify(valueOperations, times(1)).get("cache:posts:weekly");
+        // 효율적인 Redis 호출 검증 (1회 ZSet 조회 + 100회 개별 조회)
+        verify(zSetOperations, times(1)).reverseRange("cache:posts:weekly", 0, -1);
+        verify(valueOperations, times(100)).get(startsWith("cache:post:"));
     }
 
     /**
@@ -454,6 +496,27 @@ class PostCacheQueryAdapterTest {
             .userName("testUser" + id)
             .commentCount(5)
             .isNotice(false)
+            .build();
+    }
+    
+    /**
+     * <h3>테스트용 PostDetail 생성 헬퍼</h3>
+     * <p>테스트를 위한 PostDetail 객체 생성</p>
+     */
+    private PostDetail createTestPostDetail(Long id, String title) {
+        return PostDetail.builder()
+            .id(id)
+            .title(title)
+            .content("테스트 내용 " + id)
+            .viewCount(100)
+            .likeCount(50)
+            .postCacheFlag(PostCacheFlag.LEGEND)
+            .createdAt(Instant.now())
+            .userId(id)
+            .userName("testUser" + id)
+            .commentCount(10)
+            .isNotice(false)
+            .isLiked(false)
             .build();
     }
 }
