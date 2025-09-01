@@ -10,10 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * <h2>User Command Adapter</h2>
- * <p>사용자 정보 생성/수정/삭제를 위한 Persistence Adapter</p>
+ * <h2>사용자 명령 어댑터</h2>
+ * <p>사용자 정보 생성/수정/삭제를 위한 영속성 어댑터</p>
  * <p>CQRS 패턴에 따라 명령 전용 어댑터로 분리</p>
- * <p>SaveBlacklistPort 기능도 포함</p>
+ * <p>블랙리스트 저장 기능도 포함</p>
  *
  * @author Jaeik
  * @version 2.0.0

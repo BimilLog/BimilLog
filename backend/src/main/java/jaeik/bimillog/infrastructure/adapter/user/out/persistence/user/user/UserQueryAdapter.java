@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <h2>User Query Adapter</h2>
- * <p>사용자 정보 조회를 위한 Persistence Adapter</p>
+ * <h2>사용자 조회 어댑터</h2>
+ * <p>사용자 정보 조회를 위한 영속성 어댑터</p>
  * <p>CQRS 패턴에 따라 조회 전용 어댑터로 분리</p>
  *
  * @author Jaeik

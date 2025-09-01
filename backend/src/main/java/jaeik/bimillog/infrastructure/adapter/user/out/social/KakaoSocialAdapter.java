@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Component
 public class KakaoSocialAdapter implements SocialAdapter {

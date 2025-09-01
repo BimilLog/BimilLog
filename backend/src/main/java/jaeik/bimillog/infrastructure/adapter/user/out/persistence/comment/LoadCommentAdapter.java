@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * <h2>댓글 조회 어댑터</h2>
- * <p>User 도메인에서 Comment 도메인으로의 아웃바운드 어댑터입니다.</p>
+ * <p>사용자 도메인에서 댓글 도메인으로의 출력 어댑터입니다.</p>
  * <p>헥사고날 아키텍처 원칙에 따라 도메인 간 의존성을 올바르게 관리합니다.</p>
  *
  * @author Jaeik

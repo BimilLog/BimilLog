@@ -5,6 +5,14 @@ import jaeik.bimillog.domain.user.entity.User;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * <h2>사용자 커스텀 Repository</h2>
+ * <p>사용자 관련 커스텀 쿼리를 위한 Repository 인터페이스</p>
+ * <p>복잡한 조회 로직이나 성능 최적화가 필요한 쿼리를 정의합니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 public interface UserCustomRepository {
 
     /**
