@@ -36,7 +36,7 @@ public class PostViewedEvent extends ApplicationEvent {
      * @param source 이벤트를 발생시킨 객체
      * @param postId 조회된 게시글 ID
      * @author Jaeik
-     * @version 2.0.0
+     * @since 2.0.0
      */
     public PostViewedEvent(Object source, Long postId) {
         super(source);

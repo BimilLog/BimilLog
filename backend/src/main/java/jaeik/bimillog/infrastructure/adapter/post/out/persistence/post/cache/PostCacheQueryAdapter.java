@@ -67,6 +67,15 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         return metadata;
     }
 
+    /**
+     * <h3>인기 게시글 캐시 존재 여부 확인</h3>
+     * <p>주어진 캐시 유형의 인기 게시글 캐시가 존재하는지 확인합니다.</p>
+     *
+     * @param type 확인할 캐시 유형
+     * @return 캐시가 존재하면 true, 없으면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public boolean hasPopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
@@ -77,6 +86,15 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         }
     }
 
+    /**
+     * <h3>캐시된 게시글 목록 조회</h3>
+     * <p>Redis Sorted Set에서 게시글 ID 목록을 조회하고 상세 캐시에서 정보를 가져와 변환합니다.</p>
+     *
+     * @param type 조회할 캐시 유형
+     * @return 캐시된 게시글 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     @SuppressWarnings("unchecked")
     public List<PostSearchResult> getCachedPostList(PostCacheFlag type) {
@@ -101,6 +119,15 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         }
     }
 
+    /**
+     * <h3>게시글 상세 캐시 조회</h3>
+     * <p>Redis에서 게시글 상세 정보를 조회합니다. 캐시가 없으면 null을 반환합니다.</p>
+     *
+     * @param postId 조회할 게시글 ID
+     * @return 캐시된 게시글 상세 정보 (없으면 null)
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public PostDetail getCachedPostIfExists(Long postId) {
         String key = FULL_POST_CACHE_PREFIX + postId;

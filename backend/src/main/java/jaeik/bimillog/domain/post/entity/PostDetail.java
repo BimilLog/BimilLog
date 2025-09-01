@@ -24,7 +24,7 @@ import java.time.Instant;
  * @param isNotice 공지여부
  * @param isLiked 사용자 추천 여부
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 public record PostDetail(
         Long id,
@@ -56,6 +56,8 @@ public record PostDetail(
      * @param commentCount 댓글수
      * @param isLiked 사용자 추천 여부
      * @return PostDetail 값 객체
+     * @since 2.0.0
+     * @author Jaeik
      */
     public static PostDetail of(Post post, Integer likeCount, Integer commentCount, boolean isLiked) {
         return PostDetail.builder()
@@ -82,6 +84,8 @@ public record PostDetail(
      * @param likeCount 추천수
      * @param commentCount 댓글수
      * @return PostDetail 값 객체 (isLiked = false)
+     * @since 2.0.0
+     * @author Jaeik
      */
     public static PostDetail of(Post post, Integer likeCount, Integer commentCount) {
         return of(post, likeCount, commentCount, false);
@@ -93,8 +97,8 @@ public record PostDetail(
      *
      * @param isLiked 사용자 추천 여부
      * @return PostDetail 새로운 PostDetail 객체
-     * @author Jaeik
      * @since 2.0.0
+     * @author Jaeik
      */
     public PostDetail withIsLiked(boolean isLiked) {
         return PostDetail.builder()
@@ -119,8 +123,8 @@ public record PostDetail(
      * <p>isLiked 정보는 목록에서 사용되지 않으므로 제외됩니다.</p>
      *
      * @return PostSearchResult 목록용 검색 결과
-     * @author Jaeik
      * @since 2.0.0
+     * @author Jaeik
      */
     public PostSearchResult toSearchResult() {
         return PostSearchResult.builder()

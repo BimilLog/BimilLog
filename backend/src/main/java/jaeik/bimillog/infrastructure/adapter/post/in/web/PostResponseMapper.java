@@ -7,12 +7,13 @@ import jaeik.bimillog.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
 import org.springframework.stereotype.Component;
 
 /**
- * <h3>Post 응답 매퍼</h3>
- * <p>도메인 객체를 응답 DTO로 변환하는 매퍼 클래스</p>
- * <p>Controller의 변환 로직을 분리하여 단일 책임 원칙을 준수</p>
+ * <h2>게시글 응답 매퍼</h2>
+ * <p>도메인 객체를 응답 DTO로 변환하는 매퍼 클래스입니다.</p>
+ * <p>Controller의 변환 로직을 분리하여 단일 책임 원칙을 준수합니다.</p>
+ * <p>도메인과 인프라 레이어 간의 변환을 담당합니다.</p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Component
 public class PostResponseMapper {

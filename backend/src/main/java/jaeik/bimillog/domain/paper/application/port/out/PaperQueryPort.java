@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * <h2>롤링페이퍼 조회 포트</h2>
  * <p>
- * Secondary Port: 롤링페이퍼 데이터 조회를 위한 포트
+ * 아웃바운드 포트: 롤링페이퍼 데이터 조회를 위한 포트
  * 기존 PaperReadRepository의 모든 기능을 포함
  * </p>
  *

@@ -42,6 +42,8 @@ public record MessageDetail(
      *
      * @param message 메시지 엔티티
      * @return MessageDetail 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static MessageDetail from(Message message) {
         return MessageDetail.builder()

@@ -14,6 +14,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * <h2>게시글 공지사항 이벤트 리스너</h2>
+ * <p>게시글 공지사항 설정/해제 이벤트를 비동기적으로 처리하여 캐시를 관리합니다.</p>
+ * <p>이벤트 기반 아키텍처를 통해 도메인 간 결합도를 낮춥니다.</p>
+ * <p>헥사고널 아키텍처 Primary Adapter</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -35,7 +44,7 @@ public class PostNoticeEventListener {
     @EventListener
     public void handlePostSetAsNotice(PostSetAsNoticeEvent event) {
         try {
-            log.info("Post (ID: {}) set as notice event received. Adding notice to cache.", event.postId());
+            log.info("게시글 공지사항 설정 이벤트 수신: postId={}, 캠시에 공지사항 추가 중", event.postId());
             
             // 새로운 공지사항의 상세 정보를 DB에서 조회
             PostDetail postDetail = postCacheSyncPort.findPostDetail(event.postId());
@@ -44,7 +53,7 @@ public class PostNoticeEventListener {
                 postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail));
             }
         } catch (Exception e) {
-            log.error("Failed to add notice to cache for post (ID: {}): {}", event.postId(), e.getMessage(), e);
+            log.error("게시글 공지사항 캠시 추가 실패: postId={}, error={}", event.postId(), e.getMessage(), e);
         }
     }
 
@@ -61,11 +70,11 @@ public class PostNoticeEventListener {
     @EventListener
     public void handlePostUnsetAsNotice(PostUnsetAsNoticeEvent event) {
         try {
-            log.info("Post (ID: {}) unset as notice event received. Removing notice from cache.", event.postId());
+            log.info("게시글 공지사항 해제 이벤트 수신: postId={}, 캠시에서 공지사항 제거 중", event.postId());
             // 공지 캐시에서만 삭제 (성능 최적화)
             postCacheCommandPort.deleteCache(null, event.postId(), PostCacheFlag.NOTICE);
         } catch (Exception e) {
-            log.error("Failed to remove notice from cache for post (ID: {}): {}", event.postId(), e.getMessage(), e);
+            log.error("게시글 공지사항 캠시 제거 실패: postId={}, error={}", event.postId(), e.getMessage(), e);
         }
     }
 }

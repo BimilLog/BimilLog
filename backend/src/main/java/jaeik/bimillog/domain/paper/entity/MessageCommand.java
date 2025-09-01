@@ -51,6 +51,8 @@ public record MessageCommand(
      * @param width 메시지 너비
      * @param height 메시지 높이
      * @return MessageCommand 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static MessageCommand ofCreate(Long userId, DecoType decoType, String anonymity, 
                                          String content, int width, int height) {
@@ -71,6 +73,8 @@ public record MessageCommand(
      * @param id 메시지 ID
      * @param userId 사용자 ID
      * @return MessageCommand 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static MessageCommand ofDelete(Long id, Long userId) {
         return MessageCommand.builder()

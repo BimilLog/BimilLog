@@ -38,6 +38,8 @@ public record VisitMessageDetail(
      *
      * @param message 메시지 엔티티
      * @return VisitMessageDetail 값 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static VisitMessageDetail from(Message message) {
         return VisitMessageDetail.builder()

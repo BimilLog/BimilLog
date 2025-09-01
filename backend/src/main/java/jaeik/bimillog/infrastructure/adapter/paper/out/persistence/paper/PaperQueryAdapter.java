@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * <h2>롤링페이퍼 JPA 어댑터</h2>
  * <p>
- * Secondary Adapter: 롤링페이퍼 데이터 조회를 위한 JPA/QueryDSL 구현
+ * 아웃바운드 어댑터: 롤링페이퍼 데이터 조회를 위한 JPA/QueryDSL 구현
  * 기존 PaperReadRepositoryImpl의 모든 로직을 완전히 보존하여 이전
  * </p>
  *

@@ -27,9 +27,9 @@ public class RollingPaperEvent extends ApplicationEvent {
     private final String userName;
 
     /**
-     * <h3>MessageEvent 생성자</h3>
+     * <h3>RollingPaperEvent 생성자</h3>
      * <p>
-     * 메시지 작성 이벤트를 생성한다.
+     * 롤링페이퍼 메시지 작성 이벤트를 생성합니다.
      * </p>
      *
      * @param source 이벤트를 발생시킨 객체

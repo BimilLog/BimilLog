@@ -19,7 +19,7 @@ import java.time.Instant;
  * </p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Getter
 @Setter
@@ -49,6 +49,8 @@ public class PostSearchResult implements Serializable {
      * @param likeCount 추천수
      * @param commentCount 댓글수
      * @return PostSearchResult 값 객체
+     * @since 2.0.0
+     * @author Jaeik
      */
     public static PostSearchResult of(Post post, Integer likeCount, Integer commentCount) {
         return PostSearchResult.builder()
@@ -73,6 +75,8 @@ public class PostSearchResult implements Serializable {
      * @param post 게시글 엔티티
      * @param likeCount 추천수
      * @return PostSearchResult 값 객체
+     * @since 2.0.0
+     * @author Jaeik
      */
     public static PostSearchResult of(Post post, Integer likeCount) {
         return of(post, likeCount, 0);
@@ -81,6 +85,9 @@ public class PostSearchResult implements Serializable {
     /**
      * <h3>생성자 - QueryDSL Projection용</h3>
      * <p>QueryDSL Projections.constructor를 위한 생성자</p>
+     *
+     * @since 2.0.0
+     * @author Jaeik
      */
     public PostSearchResult(Long id, String title, String content, Integer viewCount, 
                            Integer likeCount, PostCacheFlag postCacheFlag, Instant createdAt,

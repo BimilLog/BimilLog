@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * <h2>롤링 페이퍼 변경 컨트롤러</h2>
  * <p>
+ * 롤링페이퍼 메시지 작성 및 삭제 관련 웹 API를 관리합니다.
  * </p>
  *
  * @author Jaeik

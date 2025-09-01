@@ -18,6 +18,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * <h2>게시글 조회 컨트롤러</h2>
+ * <p>게시글 조회 관련 REST API를 제공하는 웹 어댑터입니다.</p>
+ * <p>CQRS 패턴을 준수하여 조회(Query) 작업만 담당합니다.</p>
+ * <p>헥사고널 아키텍처 Primary Adapter</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/post")

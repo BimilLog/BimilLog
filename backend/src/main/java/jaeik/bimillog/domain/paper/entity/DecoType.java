@@ -7,7 +7,7 @@ package jaeik.bimillog.domain.paper.entity;
  * </p>
  *
  * @author Jaeik
- * @since 1.0.10
+ * @version 2.0.0
  */
 public enum DecoType {
     // 과일

@@ -11,11 +11,11 @@ import java.util.Optional;
 /**
  * <h2>사용자 조회 어댑터</h2>
  * <p>
- * Secondary Adapter: Paper 도메인에서 User 도메인의 UseCase를 통해 접근하는 어댑터
+ * 아웃바운드 어댑터: Paper 도메인에서 User 도메인의 UseCase를 통해 접근하는 어댑터
  * 도메인 간 통신에서 헥사고날 아키텍처 원칙을 준수하여 UseCase 인터페이스만 사용
  * </p>
  *
- * @author jaeik
+ * @author Jaeik
  * @version 2.0.0
  */
 @Component

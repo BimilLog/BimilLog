@@ -6,7 +6,7 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 /**
  * <h2>롤링페이퍼 명령 유스케이스</h2>
  * <p>
- * Primary Port: 롤링페이퍼 생성/수정/삭제 관련 유스케이스를 정의
+ * 인바운드 포트: 롤링페이퍼 생성/수정/삭제 관련 유스케이스를 정의
  * 기존 PaperWriteService, PaperDeleteService의 모든 기능을 포함
  * </p>
  *

@@ -6,6 +6,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * <h2>게시글 관리자 컨트롤러</h2>
+ * <p>게시글 관리자 기능 관련 REST API를 제공하는 웹 어댑터입니다.</p>
+ * <p>공지사항 설정/해제 등 관리자 권한이 필요한 기능들을 담당합니다.</p>
+ * <p>헥사고널 아키텍처 Primary Adapter</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/post")

@@ -36,13 +36,13 @@ public class PaperCommandService implements PaperCommandUseCase {
 
 
     /**
-     * <h3>메시지 삭제</h3>
-     * 
-     * <ul>
-     *   <li>메시지 소유권 검증 (userId 일치 확인)</li>
-     *   <li>동일한 예외 처리 (MESSAGE_DELETE_FORBIDDEN)</li>
-     *   <li>메시지 ID로 삭제 수행</li>
-     * </ul>
+     * <h3>내 롤링페이퍼 메시지 삭제</h3>
+     * <p>사용자가 자신의 롤링페이퍼에서 메시지를 삭제합니다.</p>
+     * <p>메시지 소유권을 검증한 후 삭제를 수행합니다.</p>
+     *
+     * @param userId 현재 로그인한 사용자 ID
+     * @param messageCommand 삭제할 메시지 정보
+     * @throws CustomException 삭제 권한이 없거나 메시지가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -62,16 +62,13 @@ public class PaperCommandService implements PaperCommandUseCase {
     }
 
     /**
-     * <h3>메시지 작성</h3>
+     * <h3>롤링페이퍼 메시지 작성</h3>
+     * <p>지정된 사용자의 롤링페이퍼에 새로운 메시지를 작성합니다.</p>
+     * <p>메시지 작성 완료 후 알림 이벤트를 발행합니다.</p>
      *
-     * <ul>
-     *   <li>사용자 존재 여부 검증 (null 체크)</li>
-     *   <li>동일한 예외 처리 (USERNAME_NOT_FOUND)</li>
-     *   <li>Message.createMessage() 팩토리 메서드 사용</li>
-     *   <li>메시지 저장 후 MessageEvent 이벤트 발행</li>
-     *   <li>동일한 이벤트 데이터 (userId, userName)</li>
-     * </ul>
-     *
+     * @param userName 롤링페이퍼 소유자의 사용자명
+     * @param messageCommand 작성할 메시지 정보
+     * @throws CustomException 사용자가 존재하지 않거나 입력값이 유효하지 않은 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -82,7 +79,7 @@ public class PaperCommandService implements PaperCommandUseCase {
         }
         
         User user = loadUserPort.findByUserName(userName)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.USERNAME_NOT_FOUND));
 
         Message message = Message.createMessage(user, messageCommand);
         paperCommandPort.save(message);

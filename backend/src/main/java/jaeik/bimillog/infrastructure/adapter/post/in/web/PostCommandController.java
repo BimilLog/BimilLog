@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 /**
- * <h2>게시글 컨트롤러</h2>
- * <p>게시글 관련 API 요청을 처리하는 컨트롤러입니다.</p>
+ * <h2>게시글 명령 컨트롤러</h2>
+ * <p>게시글 명령(Command) 관련 REST API를 제공하는 웹 어댑터입니다.</p>
+ * <p>CQRS 패턴을 준수하여 명령(Command) 작업만 담당합니다.</p>
  * <p>게시글의 생성, 수정, 삭제 및 추천 기능을 제공합니다.</p>
+ * <p>헥사고널 아키텍처 Primary Adapter</p>
  *
  * @author Jaeik
  * @version 2.0.0

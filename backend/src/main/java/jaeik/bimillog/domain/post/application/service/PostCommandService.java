@@ -83,7 +83,7 @@ public class PostCommandService implements PostCommandUseCase {
         postCommandPort.save(post);
         postCacheCommandPort.deleteCache(null, postId, new PostCacheFlag[0]);
         
-        log.info("Post updated: postId={}, userId={}, title={}", postId, userId, postReqVO.title());
+        log.info("게시글 수정 완료: postId={}, userId={}, title={}", postId, userId, postReqVO.title());
     }
 
     /**
@@ -112,7 +112,7 @@ public class PostCommandService implements PostCommandUseCase {
         postCommandPort.delete(post);
         postCacheCommandPort.deleteCache(null, postId, new PostCacheFlag[0]);
         
-        log.info("Post deleted: postId={}, userId={}, title={}", postId, userId, postTitle);
+        log.info("게시글 삭제 완료: postId={}, userId={}, title={}", postId, userId, postTitle);
     }
 
 }

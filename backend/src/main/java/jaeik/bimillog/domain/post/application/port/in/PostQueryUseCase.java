@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * <h2>PostQueryUseCase</h2>
  * <p>
- *     게시글 조회와 관련된 비즈니스 로직을 처리하는 UseCase 인터페이스입니다.
+ *     게시글 조회와 관련된 비즈니스 로직을 처리하는 유스케이스 인터페이스입니다.
  * </p>
  * @author jaeik
  * @version 2.0.0

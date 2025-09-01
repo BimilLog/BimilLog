@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>게시글 관리자 서비스</h2>
- * <p>PostNoticeUseCase의 구현체로, 게시글 공지사항 설정/해제 관련 비즈니스 로직을 처리합니다.</p>
+ * <p>PostAdminUseCase의 구현체로, 게시글 공지사항 설정/해제 관련 비즈니스 로직을 처리합니다.</p>
  * <p>관리자 권한이 필요한 기능들을 담당합니다.</p>
  *
  * @author Jaeik

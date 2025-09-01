@@ -16,7 +16,7 @@ import org.hibernate.annotations.OnDeleteAction;
  * <p>롤링페이퍼의 메시지를 담당하는 엔티티</p>
  *
  * @author Jaeik
- * @since 1.0.0
+ * @version 2.0.0
  */
 @Entity
 @Getter

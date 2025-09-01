@@ -13,7 +13,7 @@ import lombok.Builder;
  * @param content 게시글 내용
  * @param password 게시글 비밀번호 (선택적)
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 public record PostReqVO(
         String title,
@@ -38,6 +38,8 @@ public record PostReqVO(
      * @param title 게시글 제목
      * @param content 게시글 내용
      * @return PostReqVO 값 객체
+     * @since 2.0.0
+     * @author Jaeik
      */
     public static PostReqVO of(String title, String content) {
         return PostReqVO.builder()
@@ -54,6 +56,8 @@ public record PostReqVO(
      * @param content 게시글 내용
      * @param password 게시글 비밀번호
      * @return PostReqVO 값 객체
+     * @since 2.0.0
+     * @author Jaeik
      */
     public static PostReqVO of(String title, String content, Integer password) {
         return PostReqVO.builder()
