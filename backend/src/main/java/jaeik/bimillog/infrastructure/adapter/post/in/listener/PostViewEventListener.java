@@ -29,7 +29,7 @@ public class PostViewEventListener {
      * <h3>게시글 조회 이벤트 처리</h3>
      * <p>
      * 게시글 조회 시 발생하는 이벤트를 비동기적으로 처리하여 조회수를 증가시킵니다.
-     * 헥사고날 아키텍처를 준수하여 HTTP 의존성 없이 처리합니다.
+     * 중복 조회 검증은 Controller에서 이미 처리되었습니다.
      * </p>
      *
      * @param event 게시글 조회 이벤트
@@ -40,11 +40,7 @@ public class PostViewEventListener {
     @Async
     public void handlePostViewedEvent(PostViewedEvent event) {
         try {
-            postInteractionUseCase.incrementViewCountWithHistory(
-                    event.getPostId(), 
-                    event.getUserIdentifier(), 
-                    event.getViewHistory()
-            );
+            postInteractionUseCase.incrementViewCount(event.getPostId());
             log.debug("Post view count incremented asynchronously for postId: {}", event.getPostId());
         } catch (Exception e) {
             log.error("Failed to increment view count for postId: {}", event.getPostId(), e);

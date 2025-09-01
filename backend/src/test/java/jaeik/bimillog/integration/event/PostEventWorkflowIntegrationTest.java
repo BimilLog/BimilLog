@@ -13,7 +13,6 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -25,8 +24,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -71,16 +68,7 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEventWorkflow_ShouldCompleteViewCountIncrement() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
-        
-        Map<String, String> updatedHistory = new HashMap<>();
-        updatedHistory.put("viewed_posts", "123");
-        given(postInteractionUseCase.incrementViewCountWithHistory(postId, userIdentifier, viewHistory))
-                .willReturn(updatedHistory);
-        
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, postId);
 
         // When
         eventPublisher.publishEvent(event);
@@ -89,8 +77,7 @@ class PostEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId));
                 });
     }
 
@@ -101,13 +88,10 @@ class PostEventWorkflowIntegrationTest {
         Long postId1 = 100L;
         Long postId2 = 200L;
         Long postId3 = 300L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
 
-        PostViewedEvent event1 = new PostViewedEvent(this, postId1, userIdentifier, viewHistory);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId2, userIdentifier, viewHistory);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId3, userIdentifier, viewHistory);
+        PostViewedEvent event1 = new PostViewedEvent(this, postId1);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId2);
+        PostViewedEvent event3 = new PostViewedEvent(this, postId3);
 
         // When - 동시에 여러 이벤트 발행
         eventPublisher.publishEvent(event1);
@@ -118,12 +102,9 @@ class PostEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId1), eq(userIdentifier), eq(viewHistory));
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId2), eq(userIdentifier), eq(viewHistory));
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId3), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId1));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId2));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId3));
                 });
     }
 
@@ -132,25 +113,21 @@ class PostEventWorkflowIntegrationTest {
     void samePostViewedMultipleTimes_ShouldProcessAllEvents() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
         
-        PostViewedEvent event1 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event1 = new PostViewedEvent(this, postId);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId);
+        PostViewedEvent event3 = new PostViewedEvent(this, postId);
 
         // When - 동일 게시글에 대한 여러 조회 이벤트
         eventPublisher.publishEvent(event1);
         eventPublisher.publishEvent(event2);
         eventPublisher.publishEvent(event3);
 
-        // Then - 모든 이벤트가 처리되어야 함 (중복 검사는 서비스 레이어에서)
+        // Then - 모든 이벤트가 처리되어야 함 (중복 검사는 Controller 레이어에서)
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase, times(3)).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase, times(3)).incrementViewCount(eq(postId));
                 });
     }
 
@@ -159,14 +136,11 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEventWithException_ShouldHandleGracefully() {
         // Given
         Long postId = 999L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, postId);
         
         doThrow(new CustomException(ErrorCode.POST_NOT_FOUND))
                 .when(postInteractionUseCase)
-                .incrementViewCountWithHistory(postId, userIdentifier, viewHistory);
+                .incrementViewCount(postId);
 
         // When
         eventPublisher.publishEvent(event);
@@ -175,8 +149,7 @@ class PostEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId));
                 });
     }
 
@@ -185,10 +158,7 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEventProcessingTime_ShouldCompleteWithinTimeout() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, postId);
 
         long startTime = System.currentTimeMillis();
 
@@ -199,8 +169,7 @@ class PostEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(2))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId));
 
                     long endTime = System.currentTimeMillis();
                     long processingTime = endTime - startTime;
@@ -215,14 +184,11 @@ class PostEventWorkflowIntegrationTest {
     void highVolumePostViewedEvents_ShouldBeProcessedEfficiently() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
         int eventCount = 100;
 
         // When - 100개의 조회 이벤트 발행
         for (int i = 0; i < eventCount; i++) {
-            PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+            PostViewedEvent event = new PostViewedEvent(this, postId);
             eventPublisher.publishEvent(event);
         }
 
@@ -230,8 +196,7 @@ class PostEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase, times(eventCount)).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase, times(eventCount)).incrementViewCount(eq(postId));
                 });
     }
 
@@ -239,7 +204,7 @@ class PostEventWorkflowIntegrationTest {
     @DisplayName("null 값을 포함한 게시글 조회 이벤트 처리")
     void postViewedEventWithNullValues_ShouldBeProcessed() {
         // Given - null postId를 포함한 이벤트
-        PostViewedEvent event = new PostViewedEvent(this, null, "192.168.1.1", new HashMap<>());
+        PostViewedEvent event = new PostViewedEvent(this, null);
 
         // When
         eventPublisher.publishEvent(event);
@@ -248,8 +213,7 @@ class PostEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(null), eq("192.168.1.1"), any(Map.class));
+                    verify(postInteractionUseCase).incrementViewCount(eq(null));
                 });
     }
 
@@ -258,28 +222,19 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEventsWithDifferentUserIdentifiers_ShouldBeProcessedCorrectly() {
         // Given
         Long postId = 123L;
-        String userIdentifier1 = "192.168.1.1";
-        String userIdentifier2 = "192.168.1.2";
-        Map<String, String> viewHistory1 = new HashMap<>();
-        viewHistory1.put("viewed_posts", "100,200");
-        Map<String, String> viewHistory2 = new HashMap<>();
-        viewHistory2.put("viewed_posts", "300,400");
 
-        PostViewedEvent event1 = new PostViewedEvent(this, postId, userIdentifier1, viewHistory1);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId, userIdentifier2, viewHistory2);
+        PostViewedEvent event1 = new PostViewedEvent(this, postId);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId);
 
         // When
         eventPublisher.publishEvent(event1);
         eventPublisher.publishEvent(event2);
 
-        // Then - 각각 다른 사용자 식별자가 전달되어야 함
+        // Then - 각각 호출되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier1), eq(viewHistory1));
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier2), eq(viewHistory2));
+                    verify(postInteractionUseCase, times(2)).incrementViewCount(eq(postId));
                 });
     }
 
@@ -290,25 +245,19 @@ class PostEventWorkflowIntegrationTest {
         Long postId1 = 100L;
         Long postId2 = 200L;
         Long postId3 = 300L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
 
         // When - 순차적으로 이벤트 발행
-        eventPublisher.publishEvent(new PostViewedEvent(this, postId1, userIdentifier, viewHistory));
-        eventPublisher.publishEvent(new PostViewedEvent(this, postId2, userIdentifier, viewHistory));
-        eventPublisher.publishEvent(new PostViewedEvent(this, postId3, userIdentifier, viewHistory));
+        eventPublisher.publishEvent(new PostViewedEvent(this, postId1));
+        eventPublisher.publishEvent(new PostViewedEvent(this, postId2));
+        eventPublisher.publishEvent(new PostViewedEvent(this, postId3));
 
         // Then - 모든 이벤트가 처리되어야 함 (비동기이므로 순서는 보장되지 않음)
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId1), eq(userIdentifier), eq(viewHistory));
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId2), eq(userIdentifier), eq(viewHistory));
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId3), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId1));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId2));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId3));
                 });
     }
 
@@ -317,27 +266,16 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEvent_ShouldPassCorrectViewHistory() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "100,200,300");
-        viewHistory.put("last_viewed", "2023-12-01");
-        
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, postId);
 
         // When
         eventPublisher.publishEvent(event);
 
-        // Then - 정확한 조회 이력이 전달되어야 함
+        // Then - 정확한 postId가 전달되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    ArgumentCaptor<Map<String, String>> historyCaptor = ArgumentCaptor.forClass(Map.class);
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier), historyCaptor.capture());
-                    
-                    Map<String, String> capturedHistory = historyCaptor.getValue();
-                    assertThat(capturedHistory.get("viewed_posts")).isEqualTo("100,200,300");
-                    assertThat(capturedHistory.get("last_viewed")).isEqualTo("2023-12-01");
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId));
                 });
     }
 
@@ -516,12 +454,9 @@ class PostEventWorkflowIntegrationTest {
     void postNoticeAndViewEvents_ShouldBeProcessedIndependently() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
         
         PostSetAsNoticeEvent noticeEvent = new PostSetAsNoticeEvent(postId);
-        PostViewedEvent viewedEvent = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent viewedEvent = new PostViewedEvent(this, postId);
 
         // When - 공지 설정과 조회 이벤트 동시 발행
         eventPublisher.publishEvent(noticeEvent);
@@ -532,8 +467,7 @@ class PostEventWorkflowIntegrationTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(postCacheSyncPort).findPostDetail(postId);
-                    verify(postInteractionUseCase).incrementViewCountWithHistory(
-                            eq(postId), eq(userIdentifier), eq(viewHistory));
+                    verify(postInteractionUseCase).incrementViewCount(eq(postId));
                 });
     }
 }

@@ -11,11 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
@@ -41,17 +37,13 @@ class PostViewEventListenerTest {
     void handlePostViewedEvent_ShouldIncrementViewCount() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, postId);
 
         // When
         postViewEventListener.handlePostViewedEvent(event);
 
         // Then
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier), eq(viewHistory));
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
     }
 
     @Test
@@ -59,53 +51,30 @@ class PostViewEventListenerTest {
     void handlePostViewedEvent_WhenPostNotFound_ShouldHandleException() {
         // Given
         Long postId = 999L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, postId);
         
         doThrow(new CustomException(ErrorCode.POST_NOT_FOUND))
                 .when(postInteractionUseCase)
-                .incrementViewCountWithHistory(postId, userIdentifier, viewHistory);
+                .incrementViewCount(postId);
 
         // When
         postViewEventListener.handlePostViewedEvent(event);
 
         // Then - 예외가 발생해도 메서드는 정상 완료되어야 함 (로그만 남기고 예외를 삼킴)
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier), eq(viewHistory));
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
     }
 
     @Test
     @DisplayName("게시글 조회 이벤트 처리 - null postId")
     void handlePostViewedEvent_WithNullPostId() {
         // Given
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
-        PostViewedEvent event = new PostViewedEvent(this, null, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, null);
 
         // When
         postViewEventListener.handlePostViewedEvent(event);
 
         // Then - null postId도 전달되어야 함
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(null), eq(userIdentifier), eq(viewHistory));
-    }
-
-    @Test
-    @DisplayName("게시글 조회 이벤트 처리 - null 데이터")
-    void handlePostViewedEvent_WithNullData() {
-        // Given
-        Long postId = 123L;
-        PostViewedEvent event = new PostViewedEvent(this, postId, null, null);
-
-        // When
-        postViewEventListener.handlePostViewedEvent(event);
-
-        // Then - null 데이터도 전달되어야 함
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(null), eq(null));
+        verify(postInteractionUseCase).incrementViewCount(eq(null));
     }
 
     @Test
@@ -115,13 +84,10 @@ class PostViewEventListenerTest {
         Long postId1 = 1L;
         Long postId2 = 999999L;
         Long postId3 = 0L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
         
-        PostViewedEvent event1 = new PostViewedEvent(this, postId1, userIdentifier, viewHistory);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId2, userIdentifier, viewHistory);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId3, userIdentifier, viewHistory);
+        PostViewedEvent event1 = new PostViewedEvent(this, postId1);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId2);
+        PostViewedEvent event3 = new PostViewedEvent(this, postId3);
 
         // When
         postViewEventListener.handlePostViewedEvent(event1);
@@ -129,12 +95,9 @@ class PostViewEventListenerTest {
         postViewEventListener.handlePostViewedEvent(event3);
 
         // Then
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId1), eq(userIdentifier), eq(viewHistory));
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId2), eq(userIdentifier), eq(viewHistory));
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId3), eq(userIdentifier), eq(viewHistory));
+        verify(postInteractionUseCase).incrementViewCount(eq(postId1));
+        verify(postInteractionUseCase).incrementViewCount(eq(postId2));
+        verify(postInteractionUseCase).incrementViewCount(eq(postId3));
     }
 
     @Test
@@ -142,22 +105,18 @@ class PostViewEventListenerTest {
     void handlePostViewedEvent_SamePostMultipleTimes() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
         
-        PostViewedEvent event1 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event1 = new PostViewedEvent(this, postId);
+        PostViewedEvent event2 = new PostViewedEvent(this, postId);
+        PostViewedEvent event3 = new PostViewedEvent(this, postId);
 
         // When
         postViewEventListener.handlePostViewedEvent(event1);
         postViewEventListener.handlePostViewedEvent(event2);
         postViewEventListener.handlePostViewedEvent(event3);
 
-        // Then - 매번 호출되어야 함 (중복 검사는 서비스 레이어에서)
-        verify(postInteractionUseCase, times(3)).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier), eq(viewHistory));
+        // Then - 매번 호출되어야 함 (중복 검사는 Controller 레이어에서)
+        verify(postInteractionUseCase, times(3)).incrementViewCount(eq(postId));
     }
 
     @Test
@@ -165,22 +124,18 @@ class PostViewEventListenerTest {
     void handlePostViewedEvent_WhenUseCaseThrowsRuntimeException() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, postId);
         
         RuntimeException runtimeException = new RuntimeException("데이터베이스 연결 오류");
         doThrow(runtimeException)
                 .when(postInteractionUseCase)
-                .incrementViewCountWithHistory(postId, userIdentifier, viewHistory);
+                .incrementViewCount(postId);
 
         // When
         postViewEventListener.handlePostViewedEvent(event);
 
         // Then - 예외가 발생해도 메서드는 정상 완료되어야 함
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier), eq(viewHistory));
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
     }
 
     @Test
@@ -188,71 +143,18 @@ class PostViewEventListenerTest {
     void handlePostViewedEvent_WhenUseCaseThrowsIllegalArgumentException() {
         // Given
         Long postId = -1L; // 잘못된 postId
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, postId);
         
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("잘못된 게시글 ID");
         doThrow(illegalArgumentException)
                 .when(postInteractionUseCase)
-                .incrementViewCountWithHistory(postId, userIdentifier, viewHistory);
+                .incrementViewCount(postId);
 
         // When
         postViewEventListener.handlePostViewedEvent(event);
 
         // Then - 예외가 발생해도 메서드는 정상 완료되어야 함
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier), eq(viewHistory));
-    }
-
-    @Test
-    @DisplayName("게시글 조회 이벤트 처리 - 서로 다른 사용자 식별자들")
-    void handlePostViewedEvent_WithDifferentUserIdentifiers() {
-        // Given
-        Long postId = 123L;
-        String userIdentifier1 = "192.168.1.1";
-        String userIdentifier2 = "192.168.1.2";
-        Map<String, String> viewHistory1 = new HashMap<>();
-        viewHistory1.put("viewed_posts", "100,101");
-        Map<String, String> viewHistory2 = new HashMap<>();
-        viewHistory2.put("viewed_posts", "200,201");
-        
-        PostViewedEvent event1 = new PostViewedEvent(this, postId, userIdentifier1, viewHistory1);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId, userIdentifier2, viewHistory2);
-
-        // When
-        postViewEventListener.handlePostViewedEvent(event1);
-        postViewEventListener.handlePostViewedEvent(event2);
-
-        // Then - 각각 다른 데이터가 전달되어야 함
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier1), eq(viewHistory1));
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier2), eq(viewHistory2));
-    }
-
-    @Test
-    @DisplayName("이벤트 데이터 검증 - PostViewedEvent 속성들")
-    void handlePostViewedEvent_EventDataValidation() {
-        // Given
-        Long postId = 456L;
-        String userIdentifier = "10.0.0.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "123,456");
-        PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
-        
-        // 이벤트 데이터 검증
-        assert event.getPostId().equals(postId);
-        assert event.getUserIdentifier().equals(userIdentifier);
-        assert event.getViewHistory().equals(viewHistory);
-
-        // When
-        postViewEventListener.handlePostViewedEvent(event);
-
-        // Then
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier), eq(viewHistory));
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
     }
 
     @Test
@@ -260,20 +162,16 @@ class PostViewEventListenerTest {
     void handlePostViewedEvent_HighVolumeProcessing() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
         int eventCount = 1000;
 
         // When - 1000개의 이벤트 처리
         for (int i = 0; i < eventCount; i++) {
-            PostViewedEvent event = new PostViewedEvent(this, postId, userIdentifier, viewHistory);
+            PostViewedEvent event = new PostViewedEvent(this, postId);
             postViewEventListener.handlePostViewedEvent(event);
         }
 
         // Then
-        verify(postInteractionUseCase, times(eventCount)).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier), eq(viewHistory));
+        verify(postInteractionUseCase, times(eventCount)).incrementViewCount(eq(postId));
     }
 
     @Test
@@ -281,23 +179,15 @@ class PostViewEventListenerTest {
     void handlePostViewedEvent_ShouldPassCorrectParameters() {
         // Given
         Long expectedPostId = 789L;
-        String expectedUserIdentifier = "172.16.0.1";
-        Map<String, String> expectedViewHistory = new HashMap<>();
-        expectedViewHistory.put("viewed_posts", "100,200,300");
-        PostViewedEvent event = new PostViewedEvent(this, expectedPostId, expectedUserIdentifier, expectedViewHistory);
+        PostViewedEvent event = new PostViewedEvent(this, expectedPostId);
 
         // When
         postViewEventListener.handlePostViewedEvent(event);
 
         // Then - 정확한 파라미터가 전달되어야 함
-        verify(postInteractionUseCase, times(1)).incrementViewCountWithHistory(
-                eq(expectedPostId), 
-                same(expectedUserIdentifier),  // 동일한 객체 참조
-                same(expectedViewHistory)  // 동일한 객체 참조
-        );
+        verify(postInteractionUseCase, times(1)).incrementViewCount(eq(expectedPostId));
         
         // 다른 메서드는 호출되지 않아야 함
-        verify(postInteractionUseCase, never()).incrementViewCount(any());
         verify(postInteractionUseCase, never()).likePost(any(), any());
     }
 
@@ -306,11 +196,8 @@ class PostViewEventListenerTest {
     void handlePostViewedEvent_EventSourceValidation() {
         // Given
         Long postId = 123L;
-        String userIdentifier = "192.168.1.1";
-        Map<String, String> viewHistory = new HashMap<>();
-        viewHistory.put("viewed_posts", "");
         Object eventSource = new Object();
-        PostViewedEvent event = new PostViewedEvent(eventSource, postId, userIdentifier, viewHistory);
+        PostViewedEvent event = new PostViewedEvent(eventSource, postId);
         
         // 이벤트 소스 검증
         assert event.getSource().equals(eventSource);
@@ -319,7 +206,6 @@ class PostViewEventListenerTest {
         postViewEventListener.handlePostViewedEvent(event);
 
         // Then - 이벤트 소스와 관계없이 정상 처리되어야 함
-        verify(postInteractionUseCase).incrementViewCountWithHistory(
-                eq(postId), eq(userIdentifier), eq(viewHistory));
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
     }
 }
