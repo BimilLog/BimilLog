@@ -120,6 +120,7 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     }
 
 
+
     /**
      * <h3>카카오 사용자 정보 조회</h3>
      * <p>카카오 액세스 토큰을 사용하여 사용자 정보를 조회합니다.</p>
