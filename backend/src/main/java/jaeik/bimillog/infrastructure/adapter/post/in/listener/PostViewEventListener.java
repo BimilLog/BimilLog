@@ -45,10 +45,9 @@ public class PostViewEventListener {
     public void handlePostViewedEvent(PostViewedEvent event) {
         Long postId = event.getPostId();
         
-        // null postId 검증
+        // null postId 경고 로그는 남기되, 서비스 호출은 진행 (서비스에서 처리)
         if (postId == null) {
             log.warn("게시글 조회 이벤트 처리 실패: postId가 null입니다");
-            return;
         }
         
         try {

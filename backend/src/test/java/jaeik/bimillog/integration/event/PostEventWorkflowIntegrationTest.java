@@ -325,6 +325,23 @@ class PostEventWorkflowIntegrationTest {
         PostSetAsNoticeEvent setEvent = new PostSetAsNoticeEvent(postId);
         PostUnsetAsNoticeEvent unsetEvent = new PostUnsetAsNoticeEvent(postId);
 
+        // Mock setup for findPostDetail to return valid PostDetail
+        given(postCacheSyncPort.findPostDetail(postId))
+                .willReturn(PostDetail.builder()
+                        .id(postId)
+                        .title("Test Title")
+                        .content("Test Content")
+                        .viewCount(0)
+                        .likeCount(0)
+                        .postCacheFlag(null)
+                        .createdAt(null)
+                        .userId(null)
+                        .userName(null)
+                        .commentCount(0)
+                        .isNotice(true)
+                        .isLiked(false)
+                        .build());
+
         // When - 공지 설정 후 해제
         eventPublisher.publishEvent(setEvent);
         eventPublisher.publishEvent(unsetEvent);
@@ -350,6 +367,23 @@ class PostEventWorkflowIntegrationTest {
         PostSetAsNoticeEvent event1 = new PostSetAsNoticeEvent(postId1);
         PostSetAsNoticeEvent event2 = new PostSetAsNoticeEvent(postId2);
         PostSetAsNoticeEvent event3 = new PostSetAsNoticeEvent(postId3);
+
+        // Mock setup for findPostDetail to return valid PostDetail for all post IDs
+        given(postCacheSyncPort.findPostDetail(any(Long.class)))
+                .willReturn(PostDetail.builder()
+                        .id(100L)
+                        .title("Test Title")
+                        .content("Test Content")
+                        .viewCount(0)
+                        .likeCount(0)
+                        .postCacheFlag(null)
+                        .createdAt(null)
+                        .userId(null)
+                        .userName(null)
+                        .commentCount(0)
+                        .isNotice(true)
+                        .isLiked(false)
+                        .build());
 
         // When - 동시에 여러 공지 설정 이벤트 발행
         eventPublisher.publishEvent(event1);
