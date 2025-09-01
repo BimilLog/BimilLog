@@ -54,11 +54,26 @@ public class PostInteractionService implements PostInteractionUseCase {
 
         if (postLikeQueryPort.existsByUserAndPost(user, post)) {
             postLikeCommandPort.deleteByUserAndPost(user, post);
-            log.debug("Post like removed: userId={}, postId={}", userId, postId);
+            log.debug("게시글 추천 취소됨: userId={}, postId={}", userId, postId);
         } else {
             PostLike postLike = PostLike.builder().user(user).post(post).build();
             postLikeCommandPort.save(postLike);
-            log.debug("Post like added: userId={}, postId={}", userId, postId);
+            log.debug("게시글 추천됨: userId={}, postId={}", userId, postId);
         }
+    }
+
+    /**
+     * <h3>조회수 증가</h3>
+     * <p>게시글의 조회수를 1 증가시킵니다.</p>
+     * <p>Controller에서 이미 게시글 존재를 검증했으므로 직접 UPDATE 쿼리만 실행하여 성능을 최적화합니다.</p>
+     *
+     * @param postId 조회수를 증가시킬 게시글 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public void incrementViewCount(Long postId) {
+        postCommandPort.incrementViewByPostId(postId);
+        log.debug("게시글 조회수 증가됨: postId={}", postId);
     }
 }

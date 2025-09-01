@@ -65,16 +65,16 @@ class PostViewEventListenerTest {
     }
 
     @Test
-    @DisplayName("게시글 조회 이벤트 처리 - null postId")
-    void handlePostViewedEvent_WithNullPostId() {
+    @DisplayName("게시글 조회 이벤트 처리 - null postId (early return)")
+    void handlePostViewedEvent_WithNullPostId_ShouldReturnEarly() {
         // Given
         PostViewedEvent event = new PostViewedEvent(this, null);
 
         // When
         postViewEventListener.handlePostViewedEvent(event);
 
-        // Then - null postId도 전달되어야 함
-        verify(postInteractionUseCase).incrementViewCount(eq(null));
+        // Then - null postId인 경우 UseCase 호출하지 않고 early return
+        verify(postInteractionUseCase, never()).incrementViewCount(any());
     }
 
     @Test

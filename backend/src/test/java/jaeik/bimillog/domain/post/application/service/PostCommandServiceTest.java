@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -105,7 +106,7 @@ class PostCommandServiceTest {
         verify(post, times(1)).isAuthor(userId);
         verify(post, times(1)).updatePost(postReqDTO);
         verify(postCommandPort, times(1)).save(post);
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId, new PostCacheFlag[0]);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
     }
 
@@ -177,7 +178,7 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(postCommandPort, times(1)).delete(post);
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId, new PostCacheFlag[0]);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
     }
 
@@ -602,7 +603,7 @@ class PostCommandServiceTest {
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(true);
-        doThrow(new RuntimeException("Cache delete failed")).when(postCacheCommandPort).deleteCache(null, postId);
+        doThrow(new RuntimeException("Cache delete failed")).when(postCacheCommandPort).deleteCache(null, postId, new PostCacheFlag[0]);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
@@ -612,6 +613,6 @@ class PostCommandServiceTest {
         // 게시글 수정은 완료되지만 캐시 삭제에서 실패
         verify(post, times(1)).updatePost(postReqDTO);
         verify(postCommandPort, times(1)).save(post);
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId, new PostCacheFlag[0]);
     }
 }

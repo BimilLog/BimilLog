@@ -42,19 +42,6 @@ public interface PostCacheCommandPort {
     void deleteCache(PostCacheFlag type, Long postId, PostCacheFlag... targetTypes);
 
     /**
-     * <h3>캐시 삭제 (기존 호환성)</h3>
-     * <p>하위 호환성을 위한 메서드입니다. 모든 캐시에서 게시글을 삭제합니다.</p>
-     *
-     * @param type   캐시할 게시글 유형 (null이면 특정 게시글 삭제 모드)
-     * @param postId 게시글 ID (type이 null일 때만 사용)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    default void deleteCache(PostCacheFlag type, Long postId) {
-        deleteCache(type, postId, new PostCacheFlag[0]);
-    }
-
-    /**
      * <h3>인기 플래그 적용</h3>
      * <p>주어진 게시글 ID 목록에 특정 캐시 플래그를 적용합니다.</p>
      *

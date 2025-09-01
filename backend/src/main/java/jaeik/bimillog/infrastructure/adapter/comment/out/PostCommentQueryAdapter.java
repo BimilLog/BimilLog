@@ -24,12 +24,12 @@ public class PostCommentQueryAdapter implements PostCommentQueryPort {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * <p>Comment 도메인의 UseCase를 통해 단일 게시글의 댓글 수를 조회합니다.</p>
      */
     @Override
-    public Integer countByPostId(Long postId) {
-        return commentQueryUseCase.countByPostId(postId);
+    public void countByPostId(Long postId) {
+        commentQueryUseCase.countByPostId(postId);
     }
 
     /**

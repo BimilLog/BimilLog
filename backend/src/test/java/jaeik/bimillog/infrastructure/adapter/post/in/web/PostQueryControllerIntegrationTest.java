@@ -265,7 +265,7 @@ class PostQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$.title", is("첫 번째 테스트 게시글")))
                 .andExpect(jsonPath("$.content", is("첫 번째 게시글의 내용입니다.")))
                 .andExpect(jsonPath("$.userName", is("테스트사용자")))
-                .andExpect(jsonPath("$.viewCount", is(10))) // 조회수 증가 없음
+                .andExpect(jsonPath("$.viewCount", is(10))) // 응답 시점에서는 아직 조회수 증가 전
                 .andExpect(jsonPath("$.likeCount", is(0))) // 실제 값으로 수정
                 .andExpect(jsonPath("$.commentCount", is(0))) // 실제 값으로 수정  
                 .andExpect(jsonPath("$.createdAt", notNullValue()));
@@ -293,7 +293,7 @@ class PostQueryControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(testPost3.getId().intValue())))
-                .andExpect(jsonPath("$.viewCount", is(5))); // 조회수 증가 없음 (Query만 수행)
+                .andExpect(jsonPath("$.viewCount", is(5))); // 응답 시점에서는 아직 조회수 증가 전 (비동기 처리)
     }
 
     @Test

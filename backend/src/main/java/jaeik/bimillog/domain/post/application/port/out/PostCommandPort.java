@@ -34,12 +34,12 @@ public interface PostCommandPort {
     void delete(Post post);
 
     /**
-     * <h3>조회수 증가</h3>
+     * <h3>조회수 직접 증가 (최적화)</h3>
      * <p>
-     *     게시글의 조회수를 1 증가시키고 데이터베이스에 저장합니다.
-     *     Command 작업이므로 PostCommandPort에 위치합니다.
+     *     게시글 ID를 통해 직접 조회수를 1 증가시킵니다.
+     *     불필요한 SELECT 없이 바로 UPDATE 쿼리만 실행하여 성능을 최적화합니다.
      * </p>
-     * @param post 조회수를 증가시킬 게시글 엔티티
+     * @param postId 조회수를 증가시킬 게시글 ID
      */
-    void incrementView(Post post);
+    void incrementViewByPostId(Long postId);
 }

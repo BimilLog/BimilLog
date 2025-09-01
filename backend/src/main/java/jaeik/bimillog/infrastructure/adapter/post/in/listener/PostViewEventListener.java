@@ -1,11 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.post.in.listener;
 
-import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -27,14 +23,17 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PostViewEventListener {
 
-    private final PostQueryPort postQueryPort;
-    private final PostCommandPort postCommandPort;
+    private final PostInteractionUseCase postInteractionUseCase;
 
     /**
      * <h3>게시글 조회 이벤트 처리</h3>
      * <p>
      * 게시글 조회 시 발생하는 이벤트를 비동기적으로 처리하여 조회수를 증가시킵니다.
      * 중복 조회 검증은 Controller에서 이미 처리되었습니다.
+     * </p>
+     * <p>
+     * null postId나 잘못된 postId로 인한 예외는 정상적인 상황이 아니므로,
+     * 이런 경우에는 로그를 남기고 조회수 증가를 건너뜁니다.
      * </p>
      *
      * @param event 게시글 조회 이벤트
@@ -44,15 +43,18 @@ public class PostViewEventListener {
     @EventListener
     @Async
     public void handlePostViewedEvent(PostViewedEvent event) {
+        Long postId = event.getPostId();
+        
+        // null postId 검증
+        if (postId == null) {
+            log.warn("게시글 조회 이벤트 처리 실패: postId가 null입니다");
+            return;
+        }
+        
         try {
-            Post post = postQueryPort.findById(event.getPostId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-
-            postCommandPort.incrementView(post);
-            log.debug("Post view count incremented: postId={}, newViewCount={}", event.getPostId(), post.getViews());
-            log.debug("Post view count incremented asynchronously for postId: {}", event.getPostId());
+            postInteractionUseCase.incrementViewCount(postId);
         } catch (Exception e) {
-            log.error("Failed to increment view count for postId: {}", event.getPostId(), e);
+            log.error("게시글 조회수 증가 실패: postId={}", postId, e);
         }
     }
 

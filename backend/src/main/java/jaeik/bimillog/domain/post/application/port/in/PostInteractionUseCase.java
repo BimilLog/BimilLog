@@ -22,4 +22,15 @@ public interface PostInteractionUseCase {
      */
     void likePost(Long userId, Long postId);
 
+    /**
+     * <h3>조회수 증가</h3>
+     * <p>게시글의 조회수를 1 증가시킵니다.</p>
+     * <p>게시글 조회 이벤트 처리 시 호출되는 메서드입니다.</p>
+     *
+     * @param postId 조회수를 증가시킬 게시글 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    void incrementViewCount(Long postId);
+
 }

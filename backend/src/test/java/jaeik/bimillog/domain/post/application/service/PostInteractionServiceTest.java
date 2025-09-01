@@ -21,6 +21,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -147,7 +148,7 @@ class PostInteractionServiceTest {
 
         // Then
         verify(postQueryPort).findById(postId);
-        verify(postCommandPort).incrementView(post);
+        verify(postCommandPort).incrementViewByPostId(post.getId());
     }
 
     @Test
@@ -164,6 +165,6 @@ class PostInteractionServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort).findById(postId);
-        verify(postCommandPort, never()).incrementView(any());
+        verify(postCommandPort, never()).incrementViewByPostId(anyLong());
     }
 }

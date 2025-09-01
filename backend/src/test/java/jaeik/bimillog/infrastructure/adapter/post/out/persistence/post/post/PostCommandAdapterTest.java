@@ -255,7 +255,7 @@ class PostCommandAdapterTest {
         Post fetchedPost = entityManager.find(Post.class, savedPost.getId());
         assertThat(fetchedPost.getViews()).isEqualTo(0);
         
-        postCommandAdapter.incrementView(fetchedPost);
+        postCommandAdapter.incrementViewByPostId(fetchedPost.getId());
         entityManager.flush();
         entityManager.clear();
 
@@ -293,9 +293,9 @@ class PostCommandAdapterTest {
         entityManager.flush();
 
         // When: 조회수 3번 증가
-        postCommandAdapter.incrementView(savedPost);
-        postCommandAdapter.incrementView(savedPost);
-        postCommandAdapter.incrementView(savedPost);
+        postCommandAdapter.incrementViewByPostId(savedPost.getId());
+        postCommandAdapter.incrementViewByPostId(savedPost.getId());
+        postCommandAdapter.incrementViewByPostId(savedPost.getId());
         entityManager.flush();
         entityManager.clear();
 

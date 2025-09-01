@@ -375,7 +375,7 @@ class PostCacheCommandAdapterTest {
         Long postId = 123L;
         
         // When: 전체 게시글 캐시 삭제 (목록 + 상세)
-        postCacheCommandAdapter.deleteCache(null, postId);
+        postCacheCommandAdapter.deleteCache(null, postId, new PostCacheFlag[0]);
 
         // Then: 상세 캐시와 모든 목록 캐시에서 삭제됨
         // 상세 캐시 삭제 검증
@@ -398,7 +398,7 @@ class PostCacheCommandAdapterTest {
 
         // When & Then: CustomException 발생
         assertThatThrownBy(() -> {
-            postCacheCommandAdapter.deleteCache(null, postId);
+            postCacheCommandAdapter.deleteCache(null, postId, new PostCacheFlag[0]);
         })
         .isInstanceOf(CustomException.class)
         .satisfies(ex -> {

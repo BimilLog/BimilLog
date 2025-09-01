@@ -46,16 +46,17 @@ public class PostCommandAdapter implements PostCommandPort {
     }
 
     /**
-     * <h3>조회수 증가</h3>
-     * <p>주어진 게시글의 조회수를 1 증가시키고 저장합니다.</p>
+     * <h3>조회수 직접 증가 (최적화)</h3>
+     * <p>게시글 ID를 통해 직접 조회수를 1 증가시킵니다.</p>
+     * <p>불필요한 SELECT 쿼리 없이 바로 UPDATE 쿼리만 실행하여 성능을 최적화합니다.</p>
+     * <p>Controller에서 이미 게시글 존재 여부를 검증했으므로 추가 존재 검사는 하지 않습니다.</p>
      *
-     * @param post 조회수를 증가시킬 게시글 엔티티
+     * @param postId 조회수를 증가시킬 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void incrementView(Post post) {
-        post.incrementView();
-        postJpaRepository.save(post);
+    public void incrementViewByPostId(Long postId) {
+        postJpaRepository.incrementViewsByPostId(postId);
     }
 }

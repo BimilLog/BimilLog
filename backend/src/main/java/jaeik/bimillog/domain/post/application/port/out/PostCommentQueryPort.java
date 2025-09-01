@@ -18,11 +18,10 @@ public interface PostCommentQueryPort {
      * <p>단일 게시글의 댓글 수를 조회합니다.</p>
      *
      * @param postId 게시글 ID
-     * @return Integer 댓글 수
      * @author Jaeik
      * @since 2.0.0
      */
-    Integer countByPostId(Long postId);
+    void countByPostId(Long postId);
 
     /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
