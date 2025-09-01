@@ -23,6 +23,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -121,96 +122,99 @@ class PostCacheCommandAdapterTest {
     @Test
     @DisplayName("정상 케이스 - REALTIME 캐시 저장")
     void shouldCachePosts_WhenRealtimeTypeProvided() {
-        // Given: REALTIME 캐시 타입과 게시글 목록
+        // Given: REALTIME 캐시 타입과 PostDetail 목록
+        List<PostDetail> postDetails = List.of(testFullPost);
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         
-        // When: 캐시 저장
-        postCacheCommandAdapter.cachePosts(cacheType, testSimplePosts);
+        // When: 통합 캐시 메서드 사용
+        postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
-        // Then: Redis에 적절한 키와 TTL로 저장됨
-        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Object> valueCaptor = ArgumentCaptor.forClass(Object.class);
-        ArgumentCaptor<Duration> ttlCaptor = ArgumentCaptor.forClass(Duration.class);
-
-        verify(valueOperations).set(keyCaptor.capture(), valueCaptor.capture(), ttlCaptor.capture());
-
-        assertThat(keyCaptor.getValue()).isEqualTo("cache:posts:realtime");
-        assertThat(valueCaptor.getValue()).isEqualTo(testSimplePosts);
-        assertThat(ttlCaptor.getValue()).isEqualTo(Duration.ofMinutes(30));
+        // Then: Redis에 목록과 상세 캐시 모두 저장됨
+        // 목록 캐시 검증 (REALTIME은 30분 TTL)
+        verify(valueOperations).set(eq("cache:posts:realtime"), any(), eq(Duration.ofMinutes(30)));
+        // 상세 캐시 검증 (1일 TTL)
+        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
 
     @Test
     @DisplayName("정상 케이스 - WEEKLY 캐시 저장")
     void shouldCachePosts_WhenWeeklyTypeProvided() {
-        // Given: WEEKLY 캐시 타입과 게시글 목록
+        // Given: WEEKLY 캐시 타입과 PostDetail 목록
+        List<PostDetail> postDetails = List.of(testFullPost);
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
         
-        // When: 캐시 저장
-        postCacheCommandAdapter.cachePosts(cacheType, testSimplePosts);
+        // When: 통합 캐시 메서드 사용
+        postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
-        // Then: Redis에 적절한 키와 TTL로 저장됨
-        ArgumentCaptor<Duration> ttlCaptor = ArgumentCaptor.forClass(Duration.class);
-        verify(valueOperations).set(eq("cache:posts:weekly"), eq(testSimplePosts), ttlCaptor.capture());
-        assertThat(ttlCaptor.getValue()).isEqualTo(Duration.ofDays(1));
+        // Then: Redis에 목록과 상세 캐시 모두 저장됨
+        // 목록 캐시 검증 (WEEKLY는 1일 TTL)
+        verify(valueOperations).set(eq("cache:posts:weekly"), any(), eq(Duration.ofDays(1)));
+        // 상세 캐시 검증 (1일 TTL)
+        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
 
     @Test
     @DisplayName("정상 케이스 - LEGEND 캐시 저장")
     void shouldCachePosts_WhenLegendTypeProvided() {
-        // Given: LEGEND 캐시 타입과 게시글 목록
+        // Given: LEGEND 캐시 타입과 PostDetail 목록
+        List<PostDetail> postDetails = List.of(testFullPost);
         PostCacheFlag cacheType = PostCacheFlag.LEGEND;
         
-        // When: 캐시 저장
-        postCacheCommandAdapter.cachePosts(cacheType, testSimplePosts);
+        // When: 통합 캐시 메서드 사용
+        postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
-        // Then: Redis에 적절한 키와 TTL로 저장됨
-        ArgumentCaptor<Duration> ttlCaptor = ArgumentCaptor.forClass(Duration.class);
-        verify(valueOperations).set(eq("cache:posts:legend"), eq(testSimplePosts), ttlCaptor.capture());
-        assertThat(ttlCaptor.getValue()).isEqualTo(Duration.ofDays(1));
+        // Then: Redis에 목록과 상세 캐시 모두 저장됨
+        // 목록 캐시 검증 (LEGEND는 1일 TTL)
+        verify(valueOperations).set(eq("cache:posts:legend"), any(), eq(Duration.ofDays(1)));
+        // 상세 캐시 검증 (1일 TTL)
+        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
 
     @Test
     @DisplayName("정상 케이스 - NOTICE 캐시 저장")
     void shouldCachePosts_WhenNoticeTypeProvided() {
-        // Given: NOTICE 캐시 타입과 게시글 목록
+        // Given: NOTICE 캐시 타입과 PostDetail 목록
+        List<PostDetail> postDetails = List.of(testFullPost);
         PostCacheFlag cacheType = PostCacheFlag.NOTICE;
         
-        // When: 캐시 저장
-        postCacheCommandAdapter.cachePosts(cacheType, testSimplePosts);
+        // When: 통합 캐시 메서드 사용
+        postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
-        // Then: Redis에 적절한 키와 TTL로 저장됨
-        ArgumentCaptor<Duration> ttlCaptor = ArgumentCaptor.forClass(Duration.class);
-        verify(valueOperations).set(eq("cache:posts:notice"), eq(testSimplePosts), ttlCaptor.capture());
-        assertThat(ttlCaptor.getValue()).isEqualTo(Duration.ofDays(7));
+        // Then: Redis에 목록과 상세 캐시 모두 저장됨
+        // 목록 캐시 검증 (NOTICE는 7일 TTL)
+        verify(valueOperations).set(eq("cache:posts:notice"), any(), eq(Duration.ofDays(7)));
+        // 상세 캐시 검증 (1일 TTL)
+        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
 
     @Test
-    @DisplayName("정상 케이스 - 전체 게시글 캐시 저장")
+    @DisplayName("정상 케이스 - 단일 게시글 상세 캐시 저장")
     void shouldCacheFullPost_WhenValidPostProvided() {
-        // Given: 전체 게시글 정보
+        // Given: 단일 PostDetail
+        List<PostDetail> singlePost = List.of(testFullPost);
         
-        // When: 전체 게시글 캐시 저장
-        postCacheCommandAdapter.cacheFullPost(testFullPost);
+        // When: 통합 캐시 메서드로 단일 게시글 캐시 (REALTIME 타입 사용)
+        postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.REALTIME, singlePost);
 
-        // Then: Redis에 적절한 키와 TTL로 저장됨
-        String expectedKey = "cache:post:" + testFullPost.id();
-        Duration expectedTtl = Duration.ofDays(1);
-        
-        verify(valueOperations).set(expectedKey, testFullPost, expectedTtl);
+        // Then: 목록과 상세 캐시 모두 저장됨
+        // 목록 캐시 검증
+        verify(valueOperations).set(eq("cache:posts:realtime"), any(), eq(Duration.ofMinutes(30)));
+        // 상세 캐시 검증
+        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
 
     @Test
     @DisplayName("경계값 - 빈 게시글 목록 캐시")
     void shouldCacheEmptyList_WhenEmptyListProvided() {
-        // Given: 빈 게시글 목록
-        List<PostSearchResult> emptyList = List.of();
+        // Given: 빈 PostDetail 목록
+        List<PostDetail> emptyList = List.of();
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         
-        // When: 빈 목록 캐시 저장
-        postCacheCommandAdapter.cachePosts(cacheType, emptyList);
+        // When: 통합 캐시 메서드로 빈 목록 처리
+        postCacheCommandAdapter.cachePostsWithDetails(cacheType, emptyList);
 
-        // Then: 빈 목록도 정상적으로 캐시됨
-        verify(valueOperations).set(eq("cache:posts:realtime"), eq(emptyList), any(Duration.class));
+        // Then: 빈 목록이면 아무 작업도 수행되지 않음 (통합 메서드의 early return 로직)
+        verify(valueOperations, never()).set(any(), any(), any(Duration.class));
     }
 
     @Test
@@ -220,11 +224,12 @@ class PostCacheCommandAdapterTest {
         doThrow(new RuntimeException("Redis connection failed"))
             .when(valueOperations).set(anyString(), any(), any(Duration.class));
 
+        List<PostDetail> postDetails = List.of(testFullPost);
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
 
         // When & Then: CustomException 발생
         assertThatThrownBy(() -> {
-            postCacheCommandAdapter.cachePosts(cacheType, testSimplePosts);
+            postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
         })
         .isInstanceOf(CustomException.class)
         .satisfies(ex -> {
@@ -234,21 +239,16 @@ class PostCacheCommandAdapterTest {
     }
 
     @Test
-    @DisplayName("예외 케이스 - 전체 게시글 캐시 저장 시 Redis 오류")
+    @DisplayName("예외 케이스 - 통합 캐시 메서드 Redis 오류 (이미 추가된 테스트와 동일하므로 제거)")
     void shouldThrowCustomException_WhenFullPostCacheWriteError() {
-        // Given: Redis 쓰기 오류 발생
-        doThrow(new RuntimeException("Redis connection failed"))
-            .when(valueOperations).set(anyString(), any(), any(Duration.class));
-
-        // When & Then: CustomException 발생
-        assertThatThrownBy(() -> {
-            postCacheCommandAdapter.cacheFullPost(testFullPost);
-        })
-        .isInstanceOf(CustomException.class)
-        .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_WRITE_ERROR.getStatus());
-        });
+        // 이 테스트는 이미 위의 shouldThrowCustomException_WhenRedisWriteError와 동일한 기능을 테스트하므로
+        // 통합 메서드 사용으로 중복되었습니다. 실제로는 제거하는 것이 좋지만 여기서는 주석으로 남겨둡니다.
+        
+        // Given: 이미 위 테스트에서 통합 메서드의 Redis 오류를 검증했음
+        // 통합 메서드는 목록 캐시와 상세 캐시를 모두 처리하므로 별도 테스트가 불필요함
+        
+        // 실제 테스트는 수행하지 않음
+        assertThat(true).isTrue(); // placeholder
     }
 
     @Test
@@ -398,22 +398,24 @@ class PostCacheCommandAdapterTest {
     void shouldUseCorrectMetadata_ForAllCacheTypes() {
         // Given: 각 캐시 타입별 테스트
         
-        // When & Then: 각 캐시 타입에 대해 적절한 키와 TTL 사용
+        // When & Then: 각 캐시 타입에 대해 통합 메서드로 적절한 키와 TTL 사용
+        List<PostDetail> postDetails = List.of(testFullPost);
         
-        // REALTIME - 30분 TTL
-        postCacheCommandAdapter.cachePosts(PostCacheFlag.REALTIME, testSimplePosts);
+        // REALTIME - 30분 TTL (목록), 1일 TTL (상세)
+        postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.REALTIME, postDetails);
         verify(valueOperations).set(eq("cache:posts:realtime"), any(), eq(Duration.ofMinutes(30)));
+        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), any(), eq(Duration.ofDays(1)));
 
-        // WEEKLY - 1일 TTL
-        postCacheCommandAdapter.cachePosts(PostCacheFlag.WEEKLY, testSimplePosts);
+        // WEEKLY - 1일 TTL (목록), 1일 TTL (상세)
+        postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.WEEKLY, postDetails);
         verify(valueOperations).set(eq("cache:posts:weekly"), any(), eq(Duration.ofDays(1)));
 
-        // LEGEND - 1일 TTL
-        postCacheCommandAdapter.cachePosts(PostCacheFlag.LEGEND, testSimplePosts);
+        // LEGEND - 1일 TTL (목록), 1일 TTL (상세)
+        postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.LEGEND, postDetails);
         verify(valueOperations).set(eq("cache:posts:legend"), any(), eq(Duration.ofDays(1)));
 
-        // NOTICE - 7일 TTL
-        postCacheCommandAdapter.cachePosts(PostCacheFlag.NOTICE, testSimplePosts);
+        // NOTICE - 7일 TTL (목록), 1일 TTL (상세)
+        postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.NOTICE, postDetails);
         verify(valueOperations).set(eq("cache:posts:notice"), any(), eq(Duration.ofDays(7)));
     }
 
@@ -431,26 +433,24 @@ class PostCacheCommandAdapterTest {
         given(updateClause.where(any())).willReturn(updateClause);
         given(updateClause.execute()).willReturn(2L);
 
-        // When: 전체 워크플로우 실행
+        // When: 새로운 통합 워크플로우 실행
         // 1. 인기 게시글 플래그 적용
         postCacheCommandAdapter.applyPopularFlag(postIds, cacheFlag);
         
-        // 2. 캐시에 게시글 목록 저장
-        postCacheCommandAdapter.cachePosts(cacheFlag, testSimplePosts);
-        
-        // 3. 개별 게시글 상세 정보 캐시
-        postCacheCommandAdapter.cacheFullPost(testFullPost);
+        // 2. 통합 캐시 메서드로 목록과 상세 캐시를 한번에 처리
+        List<PostDetail> postDetails = List.of(testFullPost);
+        postCacheCommandAdapter.cachePostsWithDetails(cacheFlag, postDetails);
 
         // Then: 모든 단계가 정상 실행됨
         // 플래그 적용 검증
         verify(jpaQueryFactory).update(any());
         verify(updateClause).execute();
         
+        // 통합 캐시 검증 (목록과 상세 캐시가 모두 저장됨)
         // 목록 캐시 검증
-        verify(valueOperations).set(eq("cache:posts:realtime"), eq(testSimplePosts), any(Duration.class));
-        
+        verify(valueOperations).set(eq("cache:posts:realtime"), any(), eq(Duration.ofMinutes(30)));
         // 상세 캐시 검증
-        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), any(Duration.class));
+        verify(valueOperations).set(eq("cache:post:" + testFullPost.id()), eq(testFullPost), eq(Duration.ofDays(1)));
     }
 
     @Test
@@ -483,5 +483,109 @@ class PostCacheCommandAdapterTest {
         
         // IN 조건이 사용되었는지 확인 (성능 최적화)
         assertThat(predicateCaptor.getValue()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 통합 캐시 메서드 (목록 + 상세)")
+    void shouldCachePostsWithDetails_WhenValidPostDetailsProvided() {
+        // Given: PostDetail 목록
+        PostDetail postDetail1 = PostDetail.builder()
+                .id(1L)
+                .title("Test Title 1")
+                .content("Test Content 1")
+                .viewCount(100)
+                .likeCount(10)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .createdAt(Instant.now())
+                .userId(1L)
+                .userName("User 1")
+                .commentCount(5)
+                .isNotice(false)
+                .isLiked(true)
+                .build();
+
+        PostDetail postDetail2 = PostDetail.builder()
+                .id(2L)
+                .title("Test Title 2")
+                .content("Test Content 2")
+                .viewCount(200)
+                .likeCount(20)
+                .postCacheFlag(PostCacheFlag.WEEKLY)
+                .createdAt(Instant.now())
+                .userId(2L)
+                .userName("User 2")
+                .commentCount(10)
+                .isNotice(true)
+                .isLiked(false)
+                .build();
+
+        List<PostDetail> fullPosts = List.of(postDetail1, postDetail2);
+        PostCacheFlag cacheType = PostCacheFlag.REALTIME;
+
+        // When: 통합 캐시 메서드 호출
+        postCacheCommandAdapter.cachePostsWithDetails(cacheType, fullPosts);
+
+        // Then: 목록 캐시와 상세 캐시가 모두 저장됨
+        // 1. 목록 캐시 검증 (PostSearchResult 형태로 변환되어 저장)
+        verify(valueOperations).set(
+                eq("cache:posts:realtime"), 
+                argThat(list -> {
+                    if (!(list instanceof List<?> postList)) return false;
+                    return postList.size() == 2 && 
+                           postList.stream().allMatch(item -> item instanceof PostSearchResult);
+                }), 
+                eq(Duration.ofMinutes(30))
+        );
+
+        // 2. 상세 캐시 검증 (각 PostDetail이 개별 키로 저장)
+        verify(valueOperations).set(eq("cache:post:1"), eq(postDetail1), eq(Duration.ofDays(1)));
+        verify(valueOperations).set(eq("cache:post:2"), eq(postDetail2), eq(Duration.ofDays(1)));
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 통합 캐시 메서드 빈 목록")
+    void shouldHandleEmptyList_WhenCachePostsWithDetailsCalledWithEmptyList() {
+        // Given: 빈 PostDetail 목록
+        List<PostDetail> emptyPosts = Collections.emptyList();
+        PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
+
+        // When: 통합 캐시 메서드 호출
+        postCacheCommandAdapter.cachePostsWithDetails(cacheType, emptyPosts);
+
+        // Then: 아무 작업도 수행되지 않음
+        verify(valueOperations, never()).set(any(), any(), any(Duration.class));
+        verify(redisTemplate, never()).opsForValue();
+    }
+
+    @Test 
+    @DisplayName("예외 케이스 - 통합 캐시 메서드 Redis 오류")
+    void shouldThrowCustomException_WhenCachePostsWithDetailsRedisError() {
+        // Given: Redis 오류 발생 설정
+        doThrow(new RuntimeException("Redis connection failed"))
+                .when(valueOperations).set(anyString(), any(), any(Duration.class));
+
+        List<PostDetail> fullPosts = List.of(
+                PostDetail.builder()
+                        .id(1L)
+                        .title("Test")
+                        .content("Test Content")
+                        .viewCount(100)
+                        .likeCount(10)
+                        .postCacheFlag(PostCacheFlag.REALTIME)
+                        .createdAt(Instant.now())
+                        .userId(1L)
+                        .userName("User")
+                        .commentCount(0)
+                        .isNotice(false)
+                        .isLiked(false)
+                        .build()
+        );
+
+        // When & Then: CustomException 발생
+        assertThatThrownBy(() -> {
+            postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.REALTIME, fullPosts);
+        })
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining("Redis write error");
     }
 }

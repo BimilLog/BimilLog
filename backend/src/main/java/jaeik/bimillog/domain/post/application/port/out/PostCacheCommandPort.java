@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
 
 import java.util.List;
 
@@ -15,26 +14,19 @@ import java.util.List;
  */
 public interface PostCacheCommandPort {
 
-    /**
-     * <h3>게시글 목록 캐시</h3>
-     * <p>게시글 목록을 캐시합니다.</p>
-     *
-     * @param type       캐시할 게시글 유형 (예: REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @param cachePosts 캐시할 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void cachePosts(PostCacheFlag type, List<PostSearchResult> cachePosts);
 
     /**
-     * <h3>게시글 상세 캐시</h3>
-     * <p>게시글 상세 정보를 캐시합니다.</p>
+     * <h3>게시글 전체 캐시 (목록 + 상세)</h3>
+     * <p>게시글 목록과 각 게시글의 상세 정보를 함께 캐시합니다.</p>
+     * <p>PostDetail에서 PostSearchResult를 추출하여 목록 캐시를 생성하고,</p>
+     * <p>각 PostDetail을 개별 상세 캐시로 저장합니다.</p>
      *
-     * @param post 캐시할 게시글 상세 정보
+     * @param type      캐시할 게시글 유형 (예: REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @param fullPosts 캐시할 게시글 상세 정보 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    void cacheFullPost(PostDetail post);
+    void cachePostsWithDetails(PostCacheFlag type, List<PostDetail> fullPosts);
 
     /**
      * <h3>인기 게시글 캐시 삭제</h3>

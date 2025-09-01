@@ -67,47 +67,6 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
     }
 
     /**
-     * <h3>SimplePostResDTO 캐시 저장</h3>
-     * <p>주어진 게시글 캐시 데이터를 Redis에 저장합니다.</p>
-     *
-     * @param type 게시글 캐시 유형
-     * @param cachePosts 캐시할 게시글 목록
-     * @throws CustomException Redis 쓰기 오류 발생 시
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void cachePosts(PostCacheFlag type, List<PostSearchResult> cachePosts) {
-        CacheMetadata metadata = getCacheMetadata(type);
-        try {
-            // 도메인 객체를 직접 저장 (Redis가 PostSearchResult 직렬화 지원)
-            redisTemplate.opsForValue().set(metadata.key(), cachePosts, metadata.ttl());
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
-        }
-    }
-
-    /**
-     * <h3>PostDetail 캐시 저장</h3>
-     * <p>주어진 게시글 상세 정보를 Redis에 저장합니다.</p>
-     *
-     * @param post 게시글 상세 정보
-     * @throws CustomException Redis 쓰기 오류 발생 시
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void cacheFullPost(PostDetail post) {
-        String key = FULL_POST_CACHE_PREFIX + post.id();
-        try {
-            // 도메인 객체를 직접 저장 (Redis가 PostDetail 직렬화 지원)
-            redisTemplate.opsForValue().set(key, post, FULL_POST_CACHE_TTL);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
-        }
-    }
-
-    /**
      * <h3>인기 게시글 캐시 플래그 적용</h3>
      * <p>주어진 게시글 ID 목록에 대해 인기 게시글 캐시 플래그를 적용합니다.</p>
      *
@@ -182,6 +141,44 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
             redisTemplate.delete(key);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.REDIS_DELETE_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>게시글 전체 캐시 (목록 + 상세)</h3>
+     * <p>게시글 목록과 각 게시글의 상세 정보를 함께 캐시합니다.</p>
+     * <p>PostDetail에서 PostSearchResult를 추출하여 목록 캐시를 생성하고,</p>
+     * <p>각 PostDetail을 개별 상세 캐시로 저장합니다.</p>
+     *
+     * @param type 캐시할 게시글 유형
+     * @param fullPosts 캐시할 게시글 상세 정보 목록
+     * @throws CustomException Redis 쓰기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void cachePostsWithDetails(PostCacheFlag type, List<PostDetail> fullPosts) {
+        if (fullPosts == null || fullPosts.isEmpty()) {
+            return;
+        }
+        
+        CacheMetadata metadata = getCacheMetadata(type);
+        
+        try {
+            // 1. 목록 캐시: PostDetail -> PostSearchResult 변환 후 저장
+            List<PostSearchResult> searchResults = fullPosts.stream()
+                    .map(PostDetail::toSearchResult)
+                    .toList();
+            redisTemplate.opsForValue().set(metadata.key(), searchResults, metadata.ttl());
+            
+            // 2. 상세 캐시: 각 PostDetail 개별 저장
+            for (PostDetail post : fullPosts) {
+                String key = FULL_POST_CACHE_PREFIX + post.id();
+                redisTemplate.opsForValue().set(key, post, FULL_POST_CACHE_TTL);
+            }
+            
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
         }
     }
 

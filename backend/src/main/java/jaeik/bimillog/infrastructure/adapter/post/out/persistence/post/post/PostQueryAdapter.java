@@ -394,4 +394,5 @@ public class PostQueryAdapter implements PostQueryPort {
 
         return Optional.ofNullable(result);
     }
+
 }

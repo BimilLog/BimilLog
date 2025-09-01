@@ -112,4 +112,29 @@ public record PostDetail(
                 .isLiked(isLiked)
                 .build();
     }
+
+    /**
+     * <h3>목록용 검색 결과로 변환</h3>
+     * <p>PostDetail에서 PostSearchResult로 변환합니다.</p>
+     * <p>isLiked 정보는 목록에서 사용되지 않으므로 제외됩니다.</p>
+     *
+     * @return PostSearchResult 목록용 검색 결과
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public PostSearchResult toSearchResult() {
+        return PostSearchResult.builder()
+                .id(this.id)
+                .title(this.title)
+                .content(this.content)
+                .viewCount(this.viewCount)
+                .likeCount(this.likeCount)
+                .postCacheFlag(this.postCacheFlag)
+                .createdAt(this.createdAt)
+                .userId(this.userId)
+                .userName(this.userName)
+                .commentCount(this.commentCount)
+                .isNotice(this.isNotice)
+                .build();
+    }
 }

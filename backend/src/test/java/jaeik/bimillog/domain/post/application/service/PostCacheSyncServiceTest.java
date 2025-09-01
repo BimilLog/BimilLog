@@ -69,10 +69,8 @@ class PostCacheSyncServiceTest {
 
         // Then
         verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.REALTIME);
-        verify(postCacheCommandPort).cachePosts(PostCacheFlag.REALTIME, posts);
         verify(postCacheCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.REALTIME);
-        verify(postCacheCommandPort).cacheFullPost(fullPost1);
-        verify(postCacheCommandPort).cacheFullPost(fullPost2);
+        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.REALTIME, List.of(fullPost1, fullPost2));
         
         verifyNoInteractions(eventPublisher); // 실시간은 이벤트 발행 안함
     }
@@ -91,9 +89,8 @@ class PostCacheSyncServiceTest {
         verify(postCacheSyncPort).findRealtimePopularPosts();
         
         // 게시글이 없으면 캐시 관련 작업 수행 안함
-        verify(postCacheCommandPort, never()).cachePosts(any(), any());
         verify(postCacheCommandPort, never()).applyPopularFlag(any(), any());
-        verify(postCacheCommandPort, never()).cacheFullPost(any());
+        verify(postCacheCommandPort, never()).cachePostsWithDetails(any(), any());
         verifyNoInteractions(eventPublisher);
     }
 
@@ -117,10 +114,8 @@ class PostCacheSyncServiceTest {
 
         // Then
         verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).cachePosts(PostCacheFlag.WEEKLY, posts);
         verify(postCacheCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).cacheFullPost(fullPost1);
-        verify(postCacheCommandPort).cacheFullPost(fullPost2);
+        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.WEEKLY, List.of(fullPost1, fullPost2));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -154,8 +149,8 @@ class PostCacheSyncServiceTest {
 
         // Then
         verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).cachePosts(PostCacheFlag.WEEKLY, posts);
         verify(postCacheCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.WEEKLY);
+        verify(postCacheCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -183,9 +178,8 @@ class PostCacheSyncServiceTest {
 
         // Then
         verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
-        verify(postCacheCommandPort).cachePosts(PostCacheFlag.LEGEND, posts);
         verify(postCacheCommandPort).applyPopularFlag(List.of(1L), PostCacheFlag.LEGEND);
-        verify(postCacheCommandPort).cacheFullPost(fullPost);
+        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, List.of(fullPost));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -213,11 +207,10 @@ class PostCacheSyncServiceTest {
 
         // Then
         verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
-        verify(postCacheCommandPort).cachePosts(PostCacheFlag.LEGEND, posts);
         verify(postCacheCommandPort).applyPopularFlag(List.of(1L), PostCacheFlag.LEGEND);
         
-        // 상세 정보가 null이면 캐시하지 않음
-        verify(postCacheCommandPort, never()).cacheFullPost(any());
+        // 상세 정보가 null이면 빈 리스트로 캐시 메서드 호출됨
+        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, Collections.emptyList());
         
         // 이벤트는 여전히 발행됨
         verify(eventPublisher).publishEvent(any(PostFeaturedEvent.class));
@@ -270,8 +263,8 @@ class PostCacheSyncServiceTest {
 
         // Then
         verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).cachePosts(PostCacheFlag.WEEKLY, largePosts);
         verify(postCacheCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+        verify(postCacheCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
         
         // 1000개 게시글 중 userId가 있는 것들만 이벤트 발행 (500개)
         verify(eventPublisher, times(500)).publishEvent(any(PostFeaturedEvent.class));

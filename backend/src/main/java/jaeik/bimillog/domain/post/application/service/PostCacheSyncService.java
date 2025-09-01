@@ -2,7 +2,9 @@ package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheSyncPort;
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
@@ -31,7 +33,9 @@ import java.util.stream.Collectors;
 public class PostCacheSyncService implements PostCacheUseCase {
 
     private final PostCacheCommandPort postCacheCommandPort;
+    private final PostCacheQueryPort postCacheQueryPort;
     private final PostCacheSyncPort postCacheSyncPort;
+    private final PostQueryPort postQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -48,17 +52,16 @@ public class PostCacheSyncService implements PostCacheUseCase {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.REALTIME);
         List<PostSearchResult> posts = postCacheSyncPort.findRealtimePopularPosts();
         if (!posts.isEmpty()) {
-            postCacheCommandPort.cachePosts(PostCacheFlag.REALTIME, posts);
             List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.REALTIME);
             
-            // 인기글의 상세 정보도 함께 캐싱
-            for (PostSearchResult post : posts) {
-                PostDetail fullPost = postCacheSyncPort.findPostDetail(post.getId());
-                if (fullPost != null) {
-                    postCacheCommandPort.cacheFullPost(fullPost);
-                }
-            }
+            // 상세 정보 조회 후 목록 + 상세 캐시를 한번에 처리
+            List<PostDetail> fullPosts = posts.stream()
+                    .map(post -> postCacheSyncPort.findPostDetail(post.getId()))
+                    .filter(fullPost -> fullPost != null)
+                    .collect(Collectors.toList());
+            
+            postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.REALTIME, fullPosts);
         }
     }
 
@@ -76,18 +79,18 @@ public class PostCacheSyncService implements PostCacheUseCase {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.WEEKLY);
         List<PostSearchResult> posts = postCacheSyncPort.findWeeklyPopularPosts();
         if (!posts.isEmpty()) {
-            postCacheCommandPort.cachePosts(PostCacheFlag.WEEKLY, posts);
             List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
             
-            // 인기글의 상세 정보도 함께 캐싱
-            for (PostSearchResult post : posts) {
-                PostDetail fullPost = postCacheSyncPort.findPostDetail(post.getId());
-                if (fullPost != null) {
-                    postCacheCommandPort.cacheFullPost(fullPost);
-                }
-            }
+            // 상세 정보 조회 후 목록 + 상세 캐시를 한번에 처리
+            List<PostDetail> fullPosts = posts.stream()
+                    .map(post -> postCacheSyncPort.findPostDetail(post.getId()))
+                    .filter(fullPost -> fullPost != null)
+                    .collect(Collectors.toList());
             
+            postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.WEEKLY, fullPosts);
+            
+            // 사용자에게 알림 이벤트 발행
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
@@ -117,18 +120,18 @@ public class PostCacheSyncService implements PostCacheUseCase {
         postCacheCommandPort.resetPopularFlag(PostCacheFlag.LEGEND);
         List<PostSearchResult> posts = postCacheSyncPort.findLegendaryPosts();
         if (!posts.isEmpty()) {
-            postCacheCommandPort.cachePosts(PostCacheFlag.LEGEND, posts);
             List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
             postCacheCommandPort.applyPopularFlag(postIds, PostCacheFlag.LEGEND);
             
-            // 인기글의 상세 정보도 함께 캐싱
-            for (PostSearchResult post : posts) {
-                PostDetail fullPost = postCacheSyncPort.findPostDetail(post.getId());
-                if (fullPost != null) {
-                    postCacheCommandPort.cacheFullPost(fullPost);
-                }
-            }
+            // 상세 정보 조회 후 목록 + 상세 캐시를 한번에 처리
+            List<PostDetail> fullPosts = posts.stream()
+                    .map(post -> postCacheSyncPort.findPostDetail(post.getId()))
+                    .filter(fullPost -> fullPost != null)
+                    .collect(Collectors.toList());
             
+            postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.LEGEND, fullPosts);
+            
+            // 사용자에게 알림 이벤트 발행
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
@@ -154,5 +157,67 @@ public class PostCacheSyncService implements PostCacheUseCase {
     @Override
     public void deleteNoticeCache() {
         postCacheCommandPort.deletePopularPostsCache(PostCacheFlag.NOTICE);
+    }
+
+    @Override
+    public void addSingleNoticeToCache(Long postId) {
+        // 캐시가 없으면 전체 공지 캐시를 재생성
+        if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
+            List<PostSearchResult> allNotices = postCacheQueryPort.findAllNotices();
+            if (!allNotices.isEmpty()) {
+                // PostSearchResult -> PostDetail 변환 후 통합 캐시 메서드 사용
+                List<PostDetail> allNoticeDetails = allNotices.stream()
+                        .map(notice -> postCacheSyncPort.findPostDetail(notice.getId()))
+                        .filter(detail -> detail != null)
+                        .collect(Collectors.toList());
+                
+                if (!allNoticeDetails.isEmpty()) {
+                    postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, allNoticeDetails);
+                }
+            }
+            return;
+        }
+
+        // 이미 캐시에 있는지 확인
+        if (postCacheQueryPort.existsInNoticeCache(postId)) {
+            return;
+        }
+
+        // 전체 공지 목록을 조회해서 목록+상세 캐시 재생성
+        List<PostSearchResult> allNotices = postCacheQueryPort.findAllNotices();
+        if (!allNotices.isEmpty()) {
+            List<PostDetail> allNoticeDetails = allNotices.stream()
+                    .map(notice -> postCacheSyncPort.findPostDetail(notice.getId()))
+                    .filter(detail -> detail != null)
+                    .collect(Collectors.toList());
+            
+            if (!allNoticeDetails.isEmpty()) {
+                postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, allNoticeDetails);
+            }
+        }
+    }
+
+    @Override
+    public void removeSingleNoticeFromCache(Long postId) {
+        // 캐시가 있는 경우에만 전체 공지 목록 재생성
+        if (postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.NOTICE)) {
+            List<PostSearchResult> allNotices = postCacheQueryPort.findAllNotices();
+            if (!allNotices.isEmpty()) {
+                List<PostDetail> allNoticeDetails = allNotices.stream()
+                        .map(notice -> postCacheSyncPort.findPostDetail(notice.getId()))
+                        .filter(detail -> detail != null)
+                        .collect(Collectors.toList());
+                
+                if (!allNoticeDetails.isEmpty()) {
+                    postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, allNoticeDetails);
+                } else {
+                    // 공지가 없으면 캐시 삭제
+                    postCacheCommandPort.deletePopularPostsCache(PostCacheFlag.NOTICE);
+                }
+            } else {
+                // 공지가 없으면 캐시 삭제
+                postCacheCommandPort.deletePopularPostsCache(PostCacheFlag.NOTICE);
+            }
+        }
     }
 }

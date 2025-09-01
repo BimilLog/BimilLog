@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * <h2>Redis 캐시 조회 어댑터</h2>
@@ -178,5 +179,49 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
             // 캐시 조회 실패 시 false 반환 (일반 게시글로 처리)
             return false;
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean existsInNoticeCache(Long postId) {
+        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.NOTICE);
+        try {
+            Object cached = redisTemplate.opsForValue().get(metadata.key());
+            if (cached instanceof List<?> list) {
+                return list.stream()
+                        .filter(PostSearchResult.class::isInstance)
+                        .map(PostSearchResult.class::cast)
+                        .anyMatch(notice -> notice.getId().equals(postId));
+            }
+        } catch (Exception e) {
+            // 캐시 읽기 실패 시 false 반환
+            return false;
+        }
+        return false;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Optional<PostSearchResult> findNoticeById(Long postId) {
+        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.NOTICE);
+        try {
+            Object cached = redisTemplate.opsForValue().get(metadata.key());
+            if (cached instanceof List<?> list) {
+                return list.stream()
+                        .filter(PostSearchResult.class::isInstance)
+                        .map(PostSearchResult.class::cast)
+                        .filter(notice -> notice.getId().equals(postId))
+                        .findFirst();
+            }
+        } catch (Exception e) {
+            // 캐시 읽기 실패 시 empty 반환
+            return Optional.empty();
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public List<PostSearchResult> findAllNotices() {
+        return getCachedPostList(PostCacheFlag.NOTICE);
     }
 }

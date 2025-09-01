@@ -71,7 +71,7 @@ class PostNoticeEventListenerTest {
 
         // Then
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).deleteNoticeCache();
+            verify(postCacheUseCase).addSingleNoticeToCache(postId);
         });
         
         // 로그 검증
@@ -81,7 +81,7 @@ class PostNoticeEventListenerTest {
                     assertThat(logEvent.getLevel()).isEqualTo(Level.INFO);
                     assertThat(logEvent.getFormattedMessage())
                             .contains("Post (ID: " + postId + ") set as notice event received")
-                            .contains("Deleting notice cache");
+                            .contains("Adding notice to cache");
                 });
     }
 
@@ -97,7 +97,7 @@ class PostNoticeEventListenerTest {
 
         // Then
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).deleteNoticeCache();
+            verify(postCacheUseCase).removeSingleNoticeFromCache(postId);
         });
         
         // 로그 검증
@@ -107,39 +107,39 @@ class PostNoticeEventListenerTest {
                     assertThat(logEvent.getLevel()).isEqualTo(Level.INFO);
                     assertThat(logEvent.getFormattedMessage())
                             .contains("Post (ID: " + postId + ") unset as notice event received")
-                            .contains("Deleting notice cache");
+                            .contains("Removing notice from cache");
                 });
     }
 
     @Test
-    @DisplayName("게시글 공지 설정 이벤트 처리 - 캐시 삭제 실패 시 예외 전파하지 않음")
-    void shouldNotPropagateException_WhenCacheDeleteFails() {
+    @DisplayName("게시글 공지 설정 이벤트 처리 - 캐시 추가 실패 시 예외 전파하지 않음")
+    void shouldNotPropagateException_WhenCacheAddFails() {
         // Given
         Long postId = 789L;
         PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(postId);
-        doThrow(new RuntimeException("Cache delete failed")).when(postCacheUseCase).deleteNoticeCache();
+        doThrow(new RuntimeException("Cache add failed")).when(postCacheUseCase).addSingleNoticeToCache(postId);
 
         // When & Then
         assertDoesNotThrow(() -> postNoticeEventListener.handlePostSetAsNotice(event));
         
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).deleteNoticeCache();
+            verify(postCacheUseCase).addSingleNoticeToCache(postId);
         });
     }
 
     @Test
-    @DisplayName("게시글 공지 해제 이벤트 처리 - 캐시 삭제 실패 시 예외 전파하지 않음")
-    void shouldNotPropagateException_WhenCacheDeleteFailsOnUnset() {
+    @DisplayName("게시글 공지 해제 이벤트 처리 - 캐시 제거 실패 시 예외 전파하지 않음")
+    void shouldNotPropagateException_WhenCacheRemoveFailsOnUnset() {
         // Given
         Long postId = 999L;
         PostUnsetAsNoticeEvent event = new PostUnsetAsNoticeEvent(postId);
-        doThrow(new RuntimeException("Cache delete failed")).when(postCacheUseCase).deleteNoticeCache();
+        doThrow(new RuntimeException("Cache remove failed")).when(postCacheUseCase).removeSingleNoticeFromCache(postId);
 
         // When & Then
         assertDoesNotThrow(() -> postNoticeEventListener.handlePostUnsetAsNotice(event));
         
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase).deleteNoticeCache();
+            verify(postCacheUseCase).removeSingleNoticeFromCache(postId);
         });
     }
 
@@ -162,7 +162,8 @@ class PostNoticeEventListenerTest {
         });
 
         await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheUseCase, times(2)).deleteNoticeCache();
+            verify(postCacheUseCase).addSingleNoticeToCache(111L);
+            verify(postCacheUseCase).removeSingleNoticeFromCache(222L);
         });
     }
 }
