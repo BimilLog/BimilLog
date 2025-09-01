@@ -60,7 +60,7 @@ public class UserActivityService implements UserActivityUseCase {
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>해당 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>헥사고날 아키텍처 원칙에 따라 LoadCommentPort(out포트) -> LoadCommentAdapter(out어댑터) -> CommentQueryUseCase(Comment의 in포트) 순서로 접근합니다.</p>
+     * <p>헥사고날 아키텍처 원칙에 따라 댓글조회포트(출력포트) -> 댓글조회어댑터(출력어댑터) -> 댓글조회유스케이스(댓글의 입력포트) 순서로 접근합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -76,7 +76,7 @@ public class UserActivityService implements UserActivityUseCase {
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>해당 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>헥사고날 아키텍처 원칙에 따라 LoadCommentPort(out포트) -> LoadCommentAdapter(out어댑터) -> CommentQueryUseCase(Comment의 in포트) 순서로 접근합니다.</p>
+     * <p>헥사고날 아키텍처 원칙에 따라 댓글조회포트(출력포트) -> 댓글조회어댑터(출력어댑터) -> 댓글조회유스케이스(댓글의 입력포트) 순서로 접근합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보

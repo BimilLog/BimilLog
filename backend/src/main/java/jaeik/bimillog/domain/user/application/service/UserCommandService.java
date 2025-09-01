@@ -17,12 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>사용자 명령 서비스</h2>
- * <p>사용자 관련 명령 유스케이스를 구현하는 Application Service</p>
+ * <p>사용자 관련 명령 유스케이스를 구현하는 애플리케이션 서비스</p>
  * <p>헥사고날 아키텍처에서 비즈니스 로직을 담당하며, 사용자 설정 업데이트 및 이벤트 처리 기능을 제공</p>
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Service
 @Transactional
@@ -84,7 +83,7 @@ public class UserCommandService implements UserCommandUseCase {
         } catch (DataIntegrityViolationException e) {
             // Race Condition 발생 시: 다른 사용자가 동시에 같은 닉네임으로 변경한 경우
             // 데이터베이스 UNIQUE 제약조건 위반으로 인한 예외를 커스텀 예외로 변환
-            log.warn("Nickname race condition detected for userId: {}, newUserName: {}", userId, newUserName, e);
+            log.warn("닉네임 경쟁 상태 감지됨 - 사용자 ID: {}, 새 닉네임: {}", userId, newUserName, e);
             throw new CustomException(ErrorCode.EXISTED_NICKNAME);
         }
     }

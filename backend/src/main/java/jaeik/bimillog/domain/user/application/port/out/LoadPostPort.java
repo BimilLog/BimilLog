@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 /**
  * <h2>게시글 조회 포트</h2>
- * <p>User 도메인에서 Post 도메인의 데이터에 접근하기 위한 Out-Port</p>
+ * <p>사용자 도메인에서 게시글 도메인의 데이터에 접근하기 위한 출력 포트</p>
  *
  * @author jaeik
  * @version 2.0.0

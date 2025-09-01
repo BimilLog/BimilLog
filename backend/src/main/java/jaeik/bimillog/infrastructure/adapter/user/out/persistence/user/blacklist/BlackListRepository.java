@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 
 /**
- * <h2>BlackList Repository Interface</h2>
+ * <h2>블랙리스트 Repository 인터페이스</h2>
  * <p>
  * 블랙리스트 관련 데이터베이스 작업을 처리하는 레포지토리 인터페이스
  * </p>
@@ -28,6 +28,8 @@ public interface BlackListRepository extends JpaRepository<BlackList, Long> {
      * @param provider 소셜 제공자
      * @param socialId 소셜 ID
      * @return 블랙리스트에 존재하면 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
      */
     boolean existsByProviderAndSocialId(SocialProvider provider, String socialId);
 

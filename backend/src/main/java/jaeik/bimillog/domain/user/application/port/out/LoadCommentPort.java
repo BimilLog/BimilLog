@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 /**
  * <h2>댓글 조회 포트</h2>
- * <p>User 도메인에서 Comment 도메인의 정보를 조회하기 위한 아웃바운드 포트입니다.</p>
+ * <p>사용자 도메인에서 댓글 도메인의 정보를 조회하기 위한 출력 포트입니다.</p>
  * <p>헥사고날 아키텍처 원칙에 따라 도메인 간 의존성을 관리합니다.</p>
  *
  * @author Jaeik  

@@ -5,10 +5,10 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 
 /**
- * <h2>User Command Port</h2>
- * <p>사용자 정보 생성/수정/삭제를 위한 Out-Port</p>
+ * <h2>사용자 명령 포트</h2>
+ * <p>사용자 정보 생성/수정/삭제를 위한 출력 포트</p>
  * <p>CQRS 패턴에 따라 명령 전용 포트로 분리</p>
- * <p>SaveBlacklistPort 기능도 포함</p>
+ * <p>블랙리스트 저장 기능도 포함</p>
  *
  * @author Jaeik
  * @version 2.0.0

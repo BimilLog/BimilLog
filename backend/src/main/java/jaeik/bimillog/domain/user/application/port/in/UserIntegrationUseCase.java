@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import reactor.core.publisher.Mono;
 
 /**
- * <h2>사용자 통합 기능 UseCase</h2>
+ * <h2>사용자 통합 기능 유스케이스</h2>
  * <p>사용자와 관련된 외부 API 통합 기능을 정의하는 인터페이스</p>
  *
  * @author Jaeik

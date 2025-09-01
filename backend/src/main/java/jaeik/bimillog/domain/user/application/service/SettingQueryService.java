@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>설정 조회 서비스</h2>
- * <p>설정 조회 유스케이스를 구현하는 Application Service</p>
+ * <p>설정 조회 유스케이스를 구현하는 애플리케이션 서비스</p>
  * <p>헥사고날 아키텍처에서 비즈니스 로직을 담당하며, 설정 조회 기능을 제공</p>
  *
  * @author Jaeik

@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <h2>User Query Port</h2>
- * <p>사용자 정보 조회를 위한 Out-Port</p>
+ * <h2>사용자 조회 포트</h2>
+ * <p>사용자 정보 조회를 위한 출력 포트</p>
  * <p>CQRS 패턴에 따라 조회 전용 포트로 분리</p>
  *
  * @author Jaeik

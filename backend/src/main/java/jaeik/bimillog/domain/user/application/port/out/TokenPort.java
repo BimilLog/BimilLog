@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.user.entity.Token;
 import java.util.Optional;
 
 /**
- * <h2>Token Persistence Port</h2>
- * <p>토큰 정보 영속성 처리를 위한 Out-Port</p>
+ * <h2>토큰 영속성 포트</h2>
+ * <p>토큰 정보 영속성 처리를 위한 출력 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0
