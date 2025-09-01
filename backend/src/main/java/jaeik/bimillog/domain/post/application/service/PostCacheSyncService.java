@@ -54,7 +54,7 @@ public class PostCacheSyncService {
             // 상세 정보 조회 후 목록 + 상세 캐시를 한번에 처리
             List<PostDetail> fullPosts = posts.stream()
                     .map(post -> postCacheSyncPort.findPostDetail(post.getId()))
-                    .filter(fullPost -> fullPost != null)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             
             postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.REALTIME, fullPosts);
@@ -81,7 +81,7 @@ public class PostCacheSyncService {
             // 상세 정보 조회 후 목록 + 상세 캐시를 한번에 처리
             List<PostDetail> fullPosts = posts.stream()
                     .map(post -> postCacheSyncPort.findPostDetail(post.getId()))
-                    .filter(fullPost -> fullPost != null)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             
             postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.WEEKLY, fullPosts);
@@ -95,7 +95,7 @@ public class PostCacheSyncService {
                             "주간 인기 게시글로 선정되었어요!",
                             post.getId(),
                             "주간 인기 게시글 선정",
-                            "회원님의 게시글 \'" + post.getTitle() + "\'이 주간 인기 게시글로 선정되었습니다."
+                            "회원님의 게시글 " + post.getTitle() + " 이 주간 인기 게시글로 선정되었습니다."
                     ));
                 }
             });
@@ -136,7 +136,7 @@ public class PostCacheSyncService {
                             "명예의 전당에 등극했어요!",
                             post.getId(),
                             "명예의 전당 등극",
-                            "회원님의 게시글 \'" + post.getTitle() + "\'이 명예의 전당에 등극했습니다."
+                            "회원님의 게시글 " + post.getTitle() + " 이 명예의 전당에 등극했습니다."
                     ));
                 }
             });
