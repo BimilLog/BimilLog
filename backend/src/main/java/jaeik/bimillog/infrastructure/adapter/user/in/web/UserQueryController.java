@@ -72,16 +72,11 @@ public class UserQueryController {
     @GetMapping("/setting")
     public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
         SettingVO settingVO = settingQueryUseCase.findBySettingId(userDetails.getSettingId());
-        SettingDTO settingDTO = SettingDTO.builder()
-                .messageNotification(settingVO.messageNotification())
-                .commentNotification(settingVO.commentNotification())
-                .postFeaturedNotification(settingVO.postFeaturedNotification())
-                .build();
-        return ResponseEntity.ok(settingDTO);
+        return ResponseEntity.ok(SettingDTO.fromSettingVO(settingVO));
     }
 
     /**
-     * <h3>사용자 작성 게시글 목록 조회 API</h3>
+     * <h3>사용자가 작성한 게시글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param page        페이지 번호
@@ -102,7 +97,7 @@ public class UserQueryController {
     }
 
     /**
-     * <h3>사용자 추천한 게시글 목록 조회 API</h3>
+     * <h3>사용자가 추천한 게시글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param page        페이지 번호
@@ -123,7 +118,7 @@ public class UserQueryController {
     }
 
     /**
-     * <h3>사용자 작성 댓글 목록 조회 API</h3>
+     * <h3>사용자가 작성한 댓글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param page        페이지 번호
@@ -144,7 +139,7 @@ public class UserQueryController {
     }
 
     /**
-     * <h3>사용자 추천한 댓글 목록 조회 API</h3>
+     * <h3>사용자가 추천한 댓글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param page        페이지 번호
