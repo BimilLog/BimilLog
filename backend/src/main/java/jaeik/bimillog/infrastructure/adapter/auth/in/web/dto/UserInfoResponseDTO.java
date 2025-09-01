@@ -9,7 +9,7 @@ import lombok.Builder;
  * <p>GET /api/auth/me API의 응답으로 사용되는 DTO입니다.</p>
  * <p>클라이언트에게 노출되어도 안전한 사용자 정보만을 포함합니다.</p>
  *
- * @author jaeik
+ * @author Jaeik
  * @version 2.0.0
  */
 @Builder
@@ -23,7 +23,7 @@ public record UserInfoResponseDTO(Long userId, Long settingId, String socialNick
      * @param userDTO 원본 ClientDTO 객체
      * @return 변환된 UserInfoResponseDTO 객체
      * @since 2.0.0
-     * @author jaeik
+     * @author Jaeik
      */
     public static UserInfoResponseDTO from(UserDTO userDTO) {
         return UserInfoResponseDTO.builder()

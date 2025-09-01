@@ -19,7 +19,11 @@ import java.util.Optional;
 /**
  * <h2>관리자 조회 어댑터</h2>
  * <p>
- * 신고(`Report`) 관련 데이터를 영속화하고 조회
+ * 헥사고날 아키텍처의 Secondary Adapter (Driven Adapter)
+ * 관리자 도메인의 AdminQueryPort를 구현하여 신고(`Report`) 관련 데이터를 영속화하고 조회하는 역할
+ * </p>
+ * <p>
+ * QueryDSL을 사용하여 동적 쿼리와 페이지네이션을 지원합니다.
  * </p>
  *
  * @author Jaeik
@@ -35,10 +39,11 @@ public class AdminQueryAdapter implements AdminQueryPort {
     /**
      * <h3>신고 목록 페이지네이션 조회</h3>
      * <p>주어진 신고 유형에 따라 신고 목록을 페이지네이션하여 조회합니다.</p>
+     * <p>QueryDSL을 사용하여 동적 쿼리를 생성하고, 최신 신고 순으로 정렬합니다.</p>
      *
      * @param reportType 신고 유형 (null 가능, 전체 조회 시)
-     * @param pageable   페이지 정보
-     * @return Page<ReportSummary> 신고 목록 페이지
+     * @param pageable   페이지 정보 (정렬, 페이지 크기, 오프셋 포함)
+     * @return Page<ReportSummary> 변환된 신고 요약 정보 페이지
      * @author Jaeik
      * @since 2.0.0
      */

@@ -11,6 +11,14 @@ import lombok.Setter;
 
 import java.time.Instant;
 
+/**
+ * <h2>신고 DTO</h2>
+ * <p>웹 계층에서 신고 정보를 전송하기 위한 데이터 전송 객체</p>
+ * <p>도메인 엔티티와 웹 요청/응답 사이의 변환을 담당합니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Getter
 @Setter
 @Builder
@@ -25,6 +33,15 @@ public class ReportDTO {
     private String content;
     private Instant createdAt;
 
+    /**
+     * <h3>Report 엔티티로부터 ReportDTO 생성</h3>
+     * <p>도메인 엔티티를 DTO로 변환합니다.</p>
+     *
+     * @param report 신고 엔티티
+     * @return ReportDTO 변환된 DTO 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public static ReportDTO from(Report report) {
         return ReportDTO.builder()
                 .id(report.getId())

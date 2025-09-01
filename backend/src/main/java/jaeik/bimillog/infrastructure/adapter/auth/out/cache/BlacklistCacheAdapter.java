@@ -43,7 +43,7 @@ public class BlacklistCacheAdapter implements BlacklistCachePort {
             return redisTemplate.hasKey(key);
 
         } catch (Exception e) {
-            log.error("Failed to check token blacklist in Redis: tokenHash={}, error={}", 
+            log.error("Redis에서 토큰 블랙리스트 확인 실패: tokenHash={}, error={}", 
                     tokenHash.substring(0, 8) + "...", e.getMessage(), e);
             // Redis 장애 시 안전하게 블랙리스트로 간주
             return true;
@@ -62,7 +62,7 @@ public class BlacklistCacheAdapter implements BlacklistCachePort {
     public void blacklistTokenHashes(java.util.List<String> tokenHashes, String reason, Duration ttl) {
         try {
             if (tokenHashes == null || tokenHashes.isEmpty()) {
-                log.warn("No token hashes provided for blacklisting");
+                log.warn("블랙리스트에 등록할 토큰 해시가 제공되지 않음");
                 return;
             }
 
@@ -74,11 +74,11 @@ public class BlacklistCacheAdapter implements BlacklistCachePort {
                 redisTemplate.opsForValue().set(key, info, ttl);
             }
             
-            log.info("{} token hashes added to blacklist in Redis: reason={}, ttl={}s", 
+            log.info("Redis에 {} 개의 토큰 해시가 블랙리스트에 추가됨: reason={}, ttl={}s", 
                     tokenHashes.size(), reason, ttl.getSeconds());
 
         } catch (Exception e) {
-            log.error("Failed to blacklist token hashes in Redis: count={}, error={}", 
+            log.error("Redis에서 토큰 해시 블랙리스트 등록 실패: count={}, error={}", 
                     tokenHashes != null ? tokenHashes.size() : 0, e.getMessage(), e);
             throw new RuntimeException("Redis token blacklist operation failed", e);
         }

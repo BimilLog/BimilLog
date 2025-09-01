@@ -4,6 +4,14 @@ import org.springframework.http.ResponseCookie;
 
 import java.util.List;
 
+/**
+ * <h2>사용자 삭제 포트</h2>
+ * <p>사용자 로그아웃 및 탈퇴 처리를 위한 아웃바운드 포트</p>
+ * <p>헥사고날 아키텍처에서 인프라스트럭처 계층의 사용자 삭제 기능을 추상화</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 public interface DeleteUserPort {
 
     /**

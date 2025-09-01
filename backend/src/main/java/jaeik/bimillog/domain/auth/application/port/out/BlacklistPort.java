@@ -18,6 +18,8 @@ public interface BlacklistPort {
      * @param provider 제공자 정보
      * @param socialId 소셜 ID
      * @return 블랙리스트 여부
+     * @since 2.0.0
+     * @author Jaeik
      */
     boolean existsByProviderAndSocialId(SocialProvider provider, String socialId);
 }

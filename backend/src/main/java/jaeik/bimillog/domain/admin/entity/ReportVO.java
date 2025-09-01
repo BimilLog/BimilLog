@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.admin.entity;
 import lombok.Builder;
 
 /**
- * <h3>신고 값 객체</h3>
+ * <h2>신고 값 객체</h2>
  * <p>
  * 신고 생성 시 필요한 정보를 담는 도메인 순수 값 객체
  * </p>
@@ -12,7 +12,7 @@ import lombok.Builder;
  * @param targetId   신고 대상 ID
  * @param content    신고 내용
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 public record ReportVO(
         ReportType reportType,
@@ -32,6 +32,8 @@ public record ReportVO(
      * @param targetId   신고 대상 ID
      * @param content    신고 내용
      * @return ReportVO 객체
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static ReportVO of(ReportType reportType, Long targetId, String content) {
         return new ReportVO(reportType, targetId, content);

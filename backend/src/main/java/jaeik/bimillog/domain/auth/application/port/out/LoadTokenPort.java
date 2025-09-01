@@ -19,6 +19,8 @@ public interface LoadTokenPort {
      *
      * @param tokenId 토큰 ID
      * @return 토큰 정보 (없으면 Optional.empty())
+     * @since 2.0.0
+     * @author Jaeik
      */
     Optional<Token> findById(Long tokenId);
 

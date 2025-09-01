@@ -5,7 +5,7 @@ import java.time.Duration;
 /**
  * <h2>토큰 블랙리스트 캐시 포트</h2>
  * <p>Redis를 사용한 토큰 블랙리스트 캐시 처리를 추상화하는 포트</p>
- * <p>헥사고날 아키텍처의 driven port로 사용</p>
+ * <p>헥사고날 아키텍처의 드리븐 포트로 사용</p>
  *
  * @author Jaeik
  * @version 2.0.0

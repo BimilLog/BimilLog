@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
  * <p>카카오 API와 관련된 키 정보를 관리하는 클래스</p>
  *
  * @author Jaeik
+ * @version 2.0.0
  * @since 2.0.0
  */
 @Component

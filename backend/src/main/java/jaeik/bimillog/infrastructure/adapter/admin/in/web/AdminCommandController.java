@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.*;
 
 
 /**
- * <h2>관리자 관련 Command 컨트롤러</h2>
- * <p>사용자 차단 등 관리자 권한의 상태 변경 요청을 처리합니다.</p>
+ * <h2>관리자 명령 컨트롤러</h2>
+ * <p>
+ * 헥사고날 아키텍처의 Primary Adapter (Driving Adapter)
+ * 사용자 차단, 강제 탈퇴 등 관리자 권한의 상태 변경 요청을 처리하는 웹 컨트롤러
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -23,12 +26,13 @@ public class AdminCommandController {
     private final AdminCommandUseCase adminCommandUseCase;
 
     /**
-     * <h3>유저 차단 및 블랙 리스트 등록 API</h3>
+     * <h3>사용자 차단 API</h3>
+     * <p>신고 정보를 바탕으로 사용자를 제재하고 차단 처리합니다.</p>
      *
-     * @param reportDTO 신고 DTO
-     * @return 차단 완료 메시지
-     * @since 2.0.0
+     * @param reportDTO 신고 정보 DTO
+     * @return ResponseEntity<String> 차단 완료 메시지
      * @author Jaeik
+     * @since 2.0.0
      */
     @PostMapping("/ban")
     @PreAuthorize("hasRole('ADMIN')")
@@ -38,12 +42,13 @@ public class AdminCommandController {
     }
 
     /**
-     * <h3>관리자 권한으로 사용자 강제 탈퇴 API</h3>
+     * <h3>사용자 강제 탈퇴 API</h3>
+     * <p>관리자 권한으로 특정 사용자를 시스템에서 강제로 탈퇴 처리합니다.</p>
      *
-     * @param userId 탈퇴시킬 사용자 ID
-     * @return 탈퇴 완료 메시지
-     * @since 2.0.0
+     * @param userId 강제 탈퇴시킬 사용자 ID
+     * @return ResponseEntity<String> 탈퇴 완료 메시지
      * @author Jaeik
+     * @since 2.0.0
      */
     @DeleteMapping("/withdraw/{userId}")
     @PreAuthorize("hasRole('ADMIN')")

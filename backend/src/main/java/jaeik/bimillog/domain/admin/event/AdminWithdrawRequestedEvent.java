@@ -17,7 +17,7 @@ public record AdminWithdrawRequestedEvent(
 ) {
     public AdminWithdrawRequestedEvent {
         if (userId == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
+            throw new IllegalArgumentException("사용자 ID는 null일 수 없습니다.");
         }
         if (reason == null || reason.isBlank()) {
             reason = "관리자 강제 탈퇴";

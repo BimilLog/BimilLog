@@ -48,13 +48,13 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
             boolean isBlacklisted = blacklistCachePort.isBlacklisted(tokenHash);
             
             if (isBlacklisted) {
-                log.debug("Token found in blacklist: hash={}", tokenHash.substring(0, 8) + "...");
+                log.debug("토큰이 블랙리스트에서 발견됨: hash={}", tokenHash.substring(0, 8) + "...");
             }
             
             return isBlacklisted;
 
         } catch (Exception e) {
-            log.error("Failed to check token blacklist status: error={}", e.getMessage(), e);
+            log.error("토큰 블랙리스트 상태 확인 실패: error={}", e.getMessage(), e);
             // 에러 발생 시 안전하게 블랙리스트로 간주
             return true;
         }
@@ -75,7 +75,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
             List<Token> userTokens = loadTokenPort.findAllByUserId(userId);
             
             if (userTokens.isEmpty()) {
-                log.info("No active tokens found for user {}", userId);
+                log.info("사용자 {}의 활성 토큰을 찾을 수 없음", userId);
                 return;
             }
             
@@ -85,7 +85,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
                         try {
                             return authPort.generateTokenHash(token.getAccessToken());
                         } catch (Exception e) {
-                            log.warn("Failed to generate hash for token {}: {}", token.getId(), e.getMessage());
+                            log.warn("토큰 {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;
                         }
                     })
@@ -99,14 +99,14 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
                 // 개별 토큰 해시들을 모두 블랙리스트에 등록
                 blacklistCachePort.blacklistTokenHashes(tokenHashes, reason, defaultTtl);
                 
-                log.info("All {} tokens for user {} added to blacklist: reason={}", 
-                        tokenHashes.size(), userId, reason);
+                log.info("사용자 {}의 모든 토큰 {}개가 블랙리스트에 추가됨: reason={}", 
+                        userId, tokenHashes.size(), reason);
             } else {
-                log.warn("No valid token hashes generated for user {}", userId);
+                log.warn("사용자 {}에 대한 유효한 토큰 해시가 생성되지 않음", userId);
             }
 
         } catch (Exception e) {
-            log.error("Failed to blacklist all tokens for user {}: reason={}, error={}", 
+            log.error("사용자 {}의 모든 토큰 블랙리스트 등록 실패: reason={}, error={}", 
                     userId, reason, e.getMessage(), e);
         }
     }

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.application.port.in;
 /**
  * <h2>토큰 블랙리스트 유스케이스</h2>
  * <p>JWT 토큰 블랙리스트 관리를 위한 인터페이스</p>
- * <p>헥사고날 아키텍처의 driving port로 사용</p>
+ * <p>헥사고날 아키텍처의 드라이빙 포트로 사용</p>
  *
  * @author Jaeik
  * @version 2.0.0

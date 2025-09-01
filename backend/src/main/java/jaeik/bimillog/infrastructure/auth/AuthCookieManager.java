@@ -13,7 +13,7 @@ import java.util.List;
  *
  * <p>JWT 토큰을 사용하여 인증 관련 쿠키를 생성하고 관리합니다.</p>
  *
- * @author jaeik
+ * @author Jaeik
  * @version 2.0.0
  */
 @Component

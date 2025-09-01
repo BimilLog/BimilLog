@@ -22,7 +22,7 @@ import java.util.Date;
  *
  * <p>JWT 토큰의 생성, 검증, 정보 추출 등 순수한 JWT 관련 로직을 담당합니다.</p>
  *
- * @author jaeik
+ * @author Jaeik
  * @version 2.0.0
  */
 @Component

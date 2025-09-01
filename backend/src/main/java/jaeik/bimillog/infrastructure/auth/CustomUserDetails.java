@@ -20,8 +20,9 @@ import java.util.List;
  * ClientDTO 객체를 사용하여 사용자 정보를 저장하고, 권한을 설정하는 기능을 제공
  * </p>
  * 
- * @since 2.0.0
  * @author Jaeik
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @Getter
 public class CustomUserDetails implements UserDetails {

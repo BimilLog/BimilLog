@@ -65,19 +65,19 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
         // 1. UUID 검증
         if (uuid == null || uuid.trim().isEmpty()) {
-            log.warn("Invalid temp UUID provided: {}", uuid);
+            log.warn("유효하지 않은 임시 UUID 제공됨: {}", uuid);
             throw new CustomException(ErrorCode.INVALID_TEMP_UUID);
         }
         
         // 2. userProfile 검증
         if (userProfile == null) {
-            log.warn("Invalid user profile provided for UUID: {}", uuid);
+            log.warn("UUID {}에 대해 유효하지 않은 사용자 프로필 제공됨", uuid);
             throw new CustomException(ErrorCode.INVALID_USER_DATA);
         }
         
         // 3. tokenVO 검증
         if (tokenVO == null) {
-            log.warn("Invalid token data provided for UUID: {}", uuid);
+            log.warn("UUID {}에 대해 유효하지 않은 토큰 데이터 제공됨", uuid);
             throw new CustomException(ErrorCode.INVALID_TOKEN_DATA);
         }
         
@@ -90,10 +90,10 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             // Redis에 TTL과 함께 저장
             redisTemplate.opsForValue().set(key, tempData, TTL);
             
-            log.debug("Temporary data saved successfully to Redis for UUID: {}", uuid);
+            log.debug("UUID {}에 대한 임시 데이터가 Redis에 성공적으로 저장됨", uuid);
             
         } catch (Exception e) {
-            log.error("Failed to save temporary data to Redis for UUID: {}, error: {}", uuid, e.getMessage(), e);
+            log.error("UUID {}에 대한 임시 데이터 Redis 저장 실패: {}", uuid, e.getMessage(), e);
             throw new CustomException(ErrorCode.INVALID_USER_DATA);
         }
     }
@@ -116,7 +116,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     @Override
     public Optional<TempUserData> getTempData(String uuid) {
         if (uuid == null) {
-            log.debug("Null UUID provided for temp data lookup, returning empty");
+            log.debug("임시 데이터 조회에 null UUID 제공됨, 빈 결과 반환");
             return Optional.empty();
         }
         
@@ -126,19 +126,19 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             
             if (data != null) {
                 if (data instanceof TemporaryUserDataDTO dto) {
-                    log.debug("Temporary data found in Redis for UUID: {}", uuid);
+                    log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견됨", uuid);
                     return Optional.of(convertToDomain(dto));
                 } else {
-                    log.warn("Retrieved data is not of expected type for UUID: {}, got: {}", uuid, data.getClass().getSimpleName());
+                    log.warn("UUID {}에 대해 조회된 데이터가 예상 타입이 아님, 실제: {}", uuid, data.getClass().getSimpleName());
                     return Optional.empty();
                 }
             } else {
-                log.debug("No temporary data found in Redis for UUID: {}", uuid);
+                log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견되지 않음", uuid);
                 return Optional.empty();
             }
             
         } catch (Exception e) {
-            log.error("Failed to retrieve temporary data from Redis for UUID: {}, error: {}", uuid, e.getMessage(), e);
+            log.error("UUID {}에 대한 임시 데이터 Redis 조회 실패: {}", uuid, e.getMessage(), e);
             // Redis 장애 시 빈 결과 반환으로 우아한 degradation
             return Optional.empty();
         }
@@ -160,7 +160,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      */
     public void removeTempData(String uuid) {
         if (uuid == null) {
-            log.debug("Null UUID provided for temp data removal, ignoring");
+            log.debug("임시 데이터 제거에 null UUID 제공됨, 무시");
             return;
         }
         
@@ -169,13 +169,13 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             Boolean deleted = redisTemplate.delete(key);
             
             if (Boolean.TRUE.equals(deleted)) {
-                log.debug("Temporary data removed successfully from Redis for UUID: {}", uuid);
+                log.debug("UUID {}에 대한 임시 데이터가 Redis에서 성공적으로 제거됨", uuid);
             } else {
-                log.debug("No temporary data found to remove in Redis for UUID: {}", uuid);
+                log.debug("UUID {}에 대해 Redis에서 제거할 임시 데이터가 발견되지 않음", uuid);
             }
             
         } catch (Exception e) {
-            log.error("Failed to remove temporary data from Redis for UUID: {}, error: {}", uuid, e.getMessage(), e);
+            log.error("UUID {}에 대한 임시 데이터 Redis 제거 실패: {}", uuid, e.getMessage(), e);
         }
     }
 

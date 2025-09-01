@@ -23,7 +23,7 @@ import java.util.UUID;
 
 /**
  * <h2>소셜 로그인 서비스</h2>
- * <p>SocialLonginUseCase의 구현체 소셜 로그인을 처리하는 서비스 클래스</p>
+ * <p>SocialLoginUseCase의 구현체 소셜 로그인을 처리하는 서비스 클래스</p>
  *
  * @author Jaeik
  * @version 2.0.0
