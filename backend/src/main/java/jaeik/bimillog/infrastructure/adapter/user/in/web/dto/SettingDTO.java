@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.user.in.web.dto;
 
-import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SettingVO;
 import lombok.*;
 
@@ -20,20 +19,11 @@ import lombok.*;
 @Builder
 public class SettingDTO {
 
-    private Long settingId;
-
     private boolean messageNotification;
 
     private boolean commentNotification;
 
     private boolean postFeaturedNotification;
-
-    public SettingDTO(Setting setting) {
-        settingId = setting.getId();
-        messageNotification = setting.isMessageNotification();
-        commentNotification = setting.isCommentNotification();
-        postFeaturedNotification = setting.isPostFeaturedNotification();
-    }
 
     /**
      * <h3>DTO를 SettingVO로 변환</h3>
