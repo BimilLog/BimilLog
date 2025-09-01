@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.awaitility.Awaitility.await;
 
@@ -109,7 +110,7 @@ class PostNoticeEventListenerTest {
 
         // Then
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheCommandPort).deleteCache(null, postId);
+            verify(postCacheCommandPort).deleteCache(null, postId, PostCacheFlag.NOTICE);
         });
         
         // 로그 검증
@@ -149,13 +150,13 @@ class PostNoticeEventListenerTest {
         // Given
         Long postId = 999L;
         PostUnsetAsNoticeEvent event = new PostUnsetAsNoticeEvent(postId);
-        doThrow(new RuntimeException("Cache remove failed")).when(postCacheCommandPort).deleteCache(null, postId);
+        doThrow(new RuntimeException("Cache remove failed")).when(postCacheCommandPort).deleteCache(null, postId, PostCacheFlag.NOTICE);
 
         // When & Then
         assertDoesNotThrow(() -> postNoticeEventListener.handlePostUnsetAsNotice(event));
         
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(postCacheCommandPort).deleteCache(null, postId);
+            verify(postCacheCommandPort).deleteCache(null, postId, PostCacheFlag.NOTICE);
         });
     }
 
@@ -183,7 +184,7 @@ class PostNoticeEventListenerTest {
         await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(postCacheSyncPort).findPostDetail(111L);
             verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail1));
-            verify(postCacheCommandPort).deleteCache(null, 222L);
+            verify(postCacheCommandPort).deleteCache(null, 222L, PostCacheFlag.NOTICE);
         });
     }
 

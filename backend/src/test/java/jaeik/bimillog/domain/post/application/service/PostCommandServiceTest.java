@@ -105,7 +105,7 @@ class PostCommandServiceTest {
         verify(post, times(1)).isAuthor(userId);
         verify(post, times(1)).updatePost(postReqDTO);
         verify(postCommandPort, times(1)).save(post);
-        verify(postCacheCommandPort, times(1)).deleteFullPostCache(postId);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
     }
 
@@ -129,7 +129,7 @@ class PostCommandServiceTest {
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).save(any());
-        verify(postCacheCommandPort, never()).deleteFullPostCache(any());
+        verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
 
     @Test
@@ -155,7 +155,7 @@ class PostCommandServiceTest {
         verify(post, times(1)).isAuthor(userId);
         verify(post, never()).updatePost(any());
         verify(postCommandPort, never()).save(any());
-        verify(postCacheCommandPort, never()).deleteFullPostCache(any());
+        verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
 
     @Test
@@ -177,7 +177,7 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(postCommandPort, times(1)).delete(post);
-        verify(postCacheCommandPort, times(1)).deleteFullPostCache(postId);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
     }
 
@@ -197,7 +197,7 @@ class PostCommandServiceTest {
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).delete(any());
-        verify(postCacheCommandPort, never()).deleteFullPostCache(any());
+        verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
 
     @Test
@@ -218,7 +218,7 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(postCommandPort, never()).delete(any());
-        verify(postCacheCommandPort, never()).deleteFullPostCache(any());
+        verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
 
     @Test
@@ -263,7 +263,7 @@ class PostCommandServiceTest {
         verify(post, times(1)).isAuthor(userId);
         verify(post, times(1)).updatePost(postReqDTO); // updatePost에서 예외 발생
         verify(postCommandPort, never()).save(any()); // 예외로 인해 호출되지 않음
-        verify(postCacheCommandPort, never()).deleteFullPostCache(any()); // 예외로 인해 호출되지 않음
+        verify(postCacheCommandPort, never()).deleteCache(any(), any()); // 예외로 인해 호출되지 않음
     }
 
 
@@ -532,7 +532,7 @@ class PostCommandServiceTest {
         // 권한 검증에 실패했으므로 업데이트가 호출되지 않음
         verify(post, never()).updatePost(any());
         verify(postCommandPort, never()).save(any());
-        verify(postCacheCommandPort, never()).deleteFullPostCache(any());
+        verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
 
     @Test
@@ -554,7 +554,7 @@ class PostCommandServiceTest {
         verify(post, times(1)).isAuthor(userId);
         // 권한 검증에 실패했으므로 삭제가 호출되지 않음
         verify(postCommandPort, never()).delete(any());
-        verify(postCacheCommandPort, never()).deleteFullPostCache(any());
+        verify(postCacheCommandPort, never()).deleteCache(any(), any());
         verify(post, never()).getTitle(); // 권한 실패시 제목을 가져오지 않음
     }
 
@@ -602,7 +602,7 @@ class PostCommandServiceTest {
 
         given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
         given(post.isAuthor(userId)).willReturn(true);
-        doThrow(new RuntimeException("Cache delete failed")).when(postCacheCommandPort).deleteFullPostCache(postId);
+        doThrow(new RuntimeException("Cache delete failed")).when(postCacheCommandPort).deleteCache(null, postId);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
@@ -612,6 +612,6 @@ class PostCommandServiceTest {
         // 게시글 수정은 완료되지만 캐시 삭제에서 실패
         verify(post, times(1)).updatePost(postReqDTO);
         verify(postCommandPort, times(1)).save(post);
-        verify(postCacheCommandPort, times(1)).deleteFullPostCache(postId);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
     }
 }

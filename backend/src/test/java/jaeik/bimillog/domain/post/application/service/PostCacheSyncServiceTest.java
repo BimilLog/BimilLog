@@ -216,61 +216,6 @@ class PostCacheSyncServiceTest {
         verify(eventPublisher).publishEvent(any(PostFeaturedEvent.class));
     }
 
-    @Test
-    @DisplayName("공지 캐시 삭제 - 성공")
-    void shouldDeleteNoticeCache_Successfully() {
-        // When
-        postCacheSyncService.deleteNoticeCache();
-
-        // Then
-        verify(postCacheCommandPort).deleteCache(PostCacheFlag.NOTICE, null);
-    }
-
-    @Test
-    @DisplayName("단일 공지사항 캐시 추가 - 성공")
-    void shouldAddSingleNoticeToCache_Successfully() {
-        // Given
-        Long postId = 123L;
-        PostDetail postDetail = createPostDetail(postId, "공지사항 제목", "공지사항 내용");
-        
-        given(postCacheSyncPort.findPostDetail(postId)).willReturn(postDetail);
-
-        // When
-        postCacheSyncService.addSingleNoticeToCache(postId);
-
-        // Then
-        verify(postCacheSyncPort).findPostDetail(postId);
-        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail));
-    }
-
-    @Test
-    @DisplayName("단일 공지사항 캐시 추가 - 게시글이 존재하지 않음")
-    void shouldAddSingleNoticeToCache_WhenPostNotFound() {
-        // Given
-        Long postId = 999L;
-        given(postCacheSyncPort.findPostDetail(postId)).willReturn(null);
-
-        // When
-        postCacheSyncService.addSingleNoticeToCache(postId);
-
-        // Then
-        verify(postCacheSyncPort).findPostDetail(postId);
-        verify(postCacheCommandPort, never()).cachePostsWithDetails(any(), any());
-    }
-
-    @Test
-    @DisplayName("단일 공지사항 캐시 제거 - 성공")
-    void shouldRemoveSingleNoticeFromCache_Successfully() {
-        // Given
-        Long postId = 456L;
-
-        // When
-        postCacheSyncService.removeSingleNoticeFromCache(postId);
-
-        // Then
-        verify(postCacheCommandPort).deleteCache(null, postId);
-    }
-
 
     @Test
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")

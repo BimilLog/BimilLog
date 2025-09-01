@@ -67,24 +67,6 @@ public class PostInteractionService implements PostInteractionUseCase {
     }
 
     /**
-     * <h3>게시글 조회수 증가 (간단)</h3>
-     * <p>게시글의 조회수를 1 증가시킵니다.</p>
-     * <p>엔티티의 더티 체킹에 의해 자동으로 저장됩니다.</p>
-     *
-     * @param postId 조회수를 증가시킬 게시글 ID
-     * @throws CustomException 게시글을 찾을 수 없는 경우
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @Override
-    public void incrementViewCount(Long postId) {
-        Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        postCommandPort.incrementView(post);
-        log.debug("Post view count incremented: postId={}, newViewCount={}", postId, post.getViews());
-    }
-
-    /**
      * <h3>게시글 조회수 증가 (쿠키 기반 중복 방지)</h3>
      * <p>게시글의 조회수를 1 증가시킵니다.</p>
      * <p>쿠키를 이용하여 동일한 사용자의 중복 조회를 방지합니다.</p>

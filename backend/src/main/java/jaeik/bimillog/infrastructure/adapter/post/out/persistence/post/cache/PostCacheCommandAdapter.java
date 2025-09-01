@@ -177,11 +177,14 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void deleteCache(PostCacheFlag type, Long postId) {
+    public void deleteCache(PostCacheFlag type, Long postId, PostCacheFlag... targetTypes) {
         try {
-            if (type == null) {
-                // 특정 게시글의 모든 캐시 삭제
+            if (type == null && targetTypes.length == 0) {
+                // 특정 게시글의 모든 캐시 삭제 (기존 동작 유지)
                 deleteSpecificPostCache(postId);
+            } else if (type == null && targetTypes.length > 0) {
+                // 특정 게시글의 지정된 캐시만 삭제 (성능 최적화)
+                deleteSpecificPostCache(postId, targetTypes);
             } else {
                 // 특정 타입의 캐시와 관련 상세 캐시 삭제
                 deleteTypeCacheWithDetails(type);
@@ -220,6 +223,29 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
                     .map(postId -> FULL_POST_CACHE_PREFIX + postId)
                     .collect(Collectors.toList());
             redisTemplate.delete(detailKeys);
+        }
+    }
+    
+    /**
+     * <h3>특정 게시글의 지정된 캐시만 삭제</h3>
+     * <p>성능 최적화를 위해 지정된 캐시 타입에서만 게시글을 삭제합니다.</p>
+     * <p>공지 해제 시 NOTICE 캐시만 스캔하도록 최적화하는데 사용됩니다.</p>
+     *
+     * @param postId      삭제할 게시글 ID
+     * @param targetTypes 삭제할 대상 캐시 타입들
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void deleteSpecificPostCache(Long postId, PostCacheFlag[] targetTypes) {
+        // 1. 상세 캐시 삭제
+        String detailKey = FULL_POST_CACHE_PREFIX + postId;
+        redisTemplate.delete(detailKey);
+        
+        // 2. 지정된 목록 캐시에서만 해당 게시글 제거
+        String postIdStr = postId.toString();
+        for (PostCacheFlag type : targetTypes) {
+            CacheMetadata metadata = getCacheMetadata(type);
+            redisTemplate.opsForZSet().remove(metadata.key(), postIdStr);
         }
     }
 

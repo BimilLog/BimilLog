@@ -342,7 +342,7 @@ class PostCacheCommandAdapterTest {
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
         
         // When: 인기 게시글 캐시 삭제 (Redis 작업만 수행)
-        postCacheCommandAdapter.deletePopularPostsCache(cacheType);
+        postCacheCommandAdapter.deleteCache(cacheType, null);
 
         // Then: Redis에서 해당 키 삭제됨 (JPA 작업 없음)
         verify(redisTemplate).delete("cache:posts:weekly");
@@ -359,7 +359,7 @@ class PostCacheCommandAdapterTest {
 
         // When & Then: CustomException 발생
         assertThatThrownBy(() -> {
-            postCacheCommandAdapter.deletePopularPostsCache(cacheType);
+            postCacheCommandAdapter.deleteCache(cacheType, null);
         })
         .isInstanceOf(CustomException.class)
         .satisfies(ex -> {
@@ -375,7 +375,7 @@ class PostCacheCommandAdapterTest {
         Long postId = 123L;
         
         // When: 전체 게시글 캐시 삭제 (목록 + 상세)
-        postCacheCommandAdapter.deleteFullPostCache(postId);
+        postCacheCommandAdapter.deleteCache(null, postId);
 
         // Then: 상세 캐시와 모든 목록 캐시에서 삭제됨
         // 상세 캐시 삭제 검증
@@ -398,13 +398,33 @@ class PostCacheCommandAdapterTest {
 
         // When & Then: CustomException 발생
         assertThatThrownBy(() -> {
-            postCacheCommandAdapter.deleteFullPostCache(postId);
+            postCacheCommandAdapter.deleteCache(null, postId);
         })
         .isInstanceOf(CustomException.class)
         .satisfies(ex -> {
             CustomException customEx = (CustomException) ex;
             assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_DELETE_ERROR.getStatus());
         });
+    }
+
+    @Test
+    @DisplayName("성능 최적화 - 타겟 캐시만 삭제 (공지 해제용)")
+    void shouldDeleteOnlyTargetCaches_WhenTargetTypesProvided() {
+        // Given: 삭제할 게시글 ID
+        Long postId = 456L;
+        
+        // When: NOTICE 캐시에서만 삭제 (성능 최적화)
+        postCacheCommandAdapter.deleteCache(null, postId, PostCacheFlag.NOTICE);
+
+        // Then: 상세 캐시와 NOTICE 캐시에서만 삭제됨
+        // 상세 캐시 삭제 검증
+        verify(redisTemplate).delete(eq("cache:post:456"));
+        // NOTICE 캐시에서만 삭제 검증
+        verify(zSetOperations).remove(eq("cache:posts:notice"), eq("456"));
+        // 다른 캐시는 삭제되지 않음
+        verify(zSetOperations, never()).remove(eq("cache:posts:realtime"), eq("456"));
+        verify(zSetOperations, never()).remove(eq("cache:posts:weekly"), eq("456"));
+        verify(zSetOperations, never()).remove(eq("cache:posts:legend"), eq("456"));
     }
 
     @Test

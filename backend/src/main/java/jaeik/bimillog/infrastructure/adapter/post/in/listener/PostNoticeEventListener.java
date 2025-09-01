@@ -62,8 +62,8 @@ public class PostNoticeEventListener {
     public void handlePostUnsetAsNotice(PostUnsetAsNoticeEvent event) {
         try {
             log.info("Post (ID: {}) unset as notice event received. Removing notice from cache.", event.postId());
-            // 특정 게시글의 모든 캐시 삭제
-            postCacheCommandPort.deleteCache(null, event.postId());
+            // 공지 캐시에서만 삭제 (성능 최적화)
+            postCacheCommandPort.deleteCache(null, event.postId(), PostCacheFlag.NOTICE);
         } catch (Exception e) {
             log.error("Failed to remove notice from cache for post (ID: {}): {}", event.postId(), e.getMessage(), e);
         }

@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
+import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
 import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostAdminService implements PostAdminUseCase {
 
     private final PostQueryPort postQueryPort;
+    private final PostCommandPort postCommandPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -46,6 +48,7 @@ public class PostAdminService implements PostAdminUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
         post.setAsNotice();
+        postCommandPort.save(post);
         log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         
         eventPublisher.publishEvent(new PostSetAsNoticeEvent(postId));
@@ -67,6 +70,7 @@ public class PostAdminService implements PostAdminUseCase {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         
         post.unsetAsNotice();
+        postCommandPort.save(post);
         log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         
         eventPublisher.publishEvent(new PostUnsetAsNoticeEvent(postId));

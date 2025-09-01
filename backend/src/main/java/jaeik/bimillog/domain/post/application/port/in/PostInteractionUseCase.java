@@ -26,17 +26,6 @@ public interface PostInteractionUseCase {
     void likePost(Long userId, Long postId);
 
     /**
-     * <h3>게시글 조회수 증가 (간단)</h3>
-     * <p>게시글의 조회수를 1 증가시킵니다.</p>
-     * <p>쿠키 기반 중복 방지 없이 단순히 조회수만 증가시킵니다.</p>
-     *
-     * @param postId 조회수를 증가시킬 게시글 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    void incrementViewCount(Long postId);
-
-    /**
      * <h3>게시글 조회수 증가 (쿠키 기반 중복 방지)</h3>
      * <p>게시글의 조회수를 1 증가시킵니다.</p>
      * <p>쿠키를 이용하여 동일한 사용자의 중복 조회를 방지합니다.</p>
