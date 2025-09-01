@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,8 +34,8 @@ class SocialAdapterContractTest {
             }
 
             @Override
-            public KakaoFriendsResponse getFriendList(String accessToken, Integer offset, Integer limit) {
-                return new KakaoFriendsResponse();
+            public Mono<KakaoFriendsResponse> getFriendList(String accessToken, Integer offset, Integer limit) {
+                return Mono.just(new KakaoFriendsResponse());
             }
         };
     }
@@ -63,9 +64,9 @@ class SocialAdapterContractTest {
         Integer limit = 10;
 
         // When: getFriendList 호출
-        KakaoFriendsResponse response = adapter.getFriendList(testToken, offset, limit);
+        KakaoFriendsResponse response = adapter.getFriendList(testToken, offset, limit).block();
 
-        // Then: 메서드가 정상적으로 호출되고 응답이 반환되어야 함
+        // Then: 응답이 정상적으로 반환되는지 검증
         assertThat(response).isNotNull();
     }
 
@@ -93,10 +94,9 @@ class SocialAdapterContractTest {
         Integer nullOffset = null;
         Integer nullLimit = null;
 
-        // When & Then: null 파라미터로 메서드 호출 시 예외 발생하지 않아야 함
+        // When & Then: null 파라미터로 메서드 호출 시 처리 검증
         try {
-            KakaoFriendsResponse response = adapter.getFriendList(nullToken, nullOffset, nullLimit);
-            // 응답이 null이 아니어야 함 (최소한 빈 응답이라도)
+            KakaoFriendsResponse response = adapter.getFriendList(nullToken, nullOffset, nullLimit).block();
             assertThat(response).isNotNull();
         } catch (Exception e) {
             // 예외가 발생할 경우 명확한 예외 타입이어야 함
@@ -125,7 +125,7 @@ class SocialAdapterContractTest {
         ).isIn((Object[]) SocialProvider.values());
         
         // Contract 3: getFriendList()는 null 응답을 반환하면 안됨
-        KakaoFriendsResponse response = adapter.getFriendList("test", 0, 10);
+        KakaoFriendsResponse response = adapter.getFriendList("test", 0, 10).block();
         assertThat(response).withFailMessage(
             "SocialAdapter.getFriendList() should never return null response"
         ).isNotNull();

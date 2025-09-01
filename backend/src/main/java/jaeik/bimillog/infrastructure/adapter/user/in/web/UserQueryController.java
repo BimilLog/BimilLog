@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 /**
  * <h2>사용자 조회 컨트롤러</h2>
@@ -166,22 +167,24 @@ public class UserQueryController {
      * @param offset      조회 시작 위치 (기본값: 0)
      * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)
      * @param userDetails 현재 로그인한 사용자 정보
-     * @return 카카오 친구 목록 (비밀로그 가입 여부 포함)
+     * @return Mono<ResponseEntity<KakaoFriendsResponse>> 카카오 친구 목록 (비밀로그 가입 여부 포함)
      * @since 2.0.0
      * @author Jaeik
      */
     @PostMapping("/friendlist")
-    public ResponseEntity<KakaoFriendsResponse> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
+    public Mono<ResponseEntity<KakaoFriendsResponse>> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
                                                                    @RequestParam(defaultValue = "10") Integer limit,
                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
-        KakaoFriendsResponseVO friendsResponseVO = userIntegrationUseCase.getKakaoFriendList(
+        return userIntegrationUseCase.getKakaoFriendList(
                 userDetails.getUserId(),
                 userDetails.getTokenId(), // JWT에서 파싱된 현재 기기의 토큰 ID
                 offset,
                 limit
-        );
-        KakaoFriendsResponse friendsResponse = KakaoFriendsResponse.fromVO(friendsResponseVO);
-        return ResponseEntity.ok(friendsResponse);
+        )
+        .map(friendsResponseVO -> {
+            KakaoFriendsResponse friendsResponse = KakaoFriendsResponse.fromVO(friendsResponseVO);
+            return ResponseEntity.ok(friendsResponse);
+        });
     }
 
     /**

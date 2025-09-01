@@ -4,6 +4,7 @@ import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.KakaoFriendVO;
+import reactor.core.publisher.Mono;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,10 +56,10 @@ class KakaoFriendAdapterTest {
         );
         
         given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(offset), eq(limit)))
-            .willReturn(expectedResponse);
+            .willReturn(Mono.just(expectedResponse));
 
         // When: 친구 목록 조회 실행
-        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit).block();
 
         // Then: 올바른 친구 목록이 반환되고 KakaoSocialAdapter가 호출되었는지 검증
         assertThat(result).isNotNull();
@@ -94,10 +95,10 @@ class KakaoFriendAdapterTest {
         );
         
         given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(offset), eq(limit)))
-            .willReturn(emptyResponse);
+            .willReturn(Mono.just(emptyResponse));
 
         // When: 빈 친구 목록 조회 실행
-        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit).block();
 
         // Then: 빈 목록이 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
@@ -125,10 +126,10 @@ class KakaoFriendAdapterTest {
         );
         
         given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(offset), eq(limit)))
-            .willReturn(paginatedResponse);
+            .willReturn(Mono.just(paginatedResponse));
 
         // When: 페이지네이션으로 친구 목록 조회 실행
-        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit).block();
 
         // Then: 페이지네이션 정보가 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
@@ -142,46 +143,70 @@ class KakaoFriendAdapterTest {
 
     @Test
     @DisplayName("예외 케이스 - null 액세스 토큰으로 친구 목록 조회")
-    void shouldHandleNullAccessToken_WhenNullAccessTokenProvided() {
-        // Given: null 액세스 토큰
+    void shouldHandleNullAccessToken_WhenNullAccessTokenProvided() throws Exception {
+        // Given: null 액세스 토큰과 빈 응답
         String nullAccessToken = null;
         Integer offset = 0;
         Integer limit = 10;
+        
+        KakaoFriendsResponse emptyResponse = createKakaoFriendsResponse(
+            Collections.emptyList(), 0, null, null, 0
+        );
+        
+        given(kakaoSocialAdapter.getFriendList(eq(nullAccessToken), eq(offset), eq(limit)))
+            .willReturn(Mono.just(emptyResponse));
 
         // When: null 액세스 토큰으로 친구 목록 조회 실행
-        kakaoFriendAdapter.getFriendList(nullAccessToken, offset, limit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(nullAccessToken, offset, limit).block();
 
-        // Then: KakaoSocialAdapter에 null이 전달되는지 검증
+        // Then: KakaoSocialAdapter에 null이 전달되고 결과가 반환되는지 검증
+        assertThat(result).isNotNull();
         verify(kakaoSocialAdapter).getFriendList(eq(nullAccessToken), eq(offset), eq(limit));
     }
 
     @Test
     @DisplayName("예외 케이스 - null offset으로 친구 목록 조회")
-    void shouldHandleNullOffset_WhenNullOffsetProvided() {
-        // Given: null offset
+    void shouldHandleNullOffset_WhenNullOffsetProvided() throws Exception {
+        // Given: null offset과 빈 응답
         String accessToken = "valid_access_token";
         Integer nullOffset = null;
         Integer limit = 10;
+        
+        KakaoFriendsResponse emptyResponse = createKakaoFriendsResponse(
+            Collections.emptyList(), 0, null, null, 0
+        );
+        
+        given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(nullOffset), eq(limit)))
+            .willReturn(Mono.just(emptyResponse));
 
         // When: null offset으로 친구 목록 조회 실행
-        kakaoFriendAdapter.getFriendList(accessToken, nullOffset, limit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, nullOffset, limit).block();
 
-        // Then: KakaoSocialAdapter에 null이 전달되는지 검증
+        // Then: KakaoSocialAdapter에 null이 전달되고 결과가 반환되는지 검증
+        assertThat(result).isNotNull();
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(nullOffset), eq(limit));
     }
 
     @Test
     @DisplayName("예외 케이스 - null limit으로 친구 목록 조회")
-    void shouldHandleNullLimit_WhenNullLimitProvided() {
-        // Given: null limit
+    void shouldHandleNullLimit_WhenNullLimitProvided() throws Exception {
+        // Given: null limit과 빈 응답
         String accessToken = "valid_access_token";
         Integer offset = 0;
         Integer nullLimit = null;
+        
+        KakaoFriendsResponse emptyResponse = createKakaoFriendsResponse(
+            Collections.emptyList(), 0, null, null, 0
+        );
+        
+        given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(offset), eq(nullLimit)))
+            .willReturn(Mono.just(emptyResponse));
 
         // When: null limit으로 친구 목록 조회 실행
-        kakaoFriendAdapter.getFriendList(accessToken, offset, nullLimit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, nullLimit).block();
 
-        // Then: KakaoSocialAdapter에 null이 전달되는지 검증
+        // Then: KakaoSocialAdapter에 null이 전달되고 결과가 반환되는지 검증
+        assertThat(result).isNotNull();
         verify(kakaoSocialAdapter).getFriendList(eq(accessToken), eq(offset), eq(nullLimit));
     }
 
@@ -198,10 +223,10 @@ class KakaoFriendAdapterTest {
         );
         
         given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(negativeOffset), eq(negativeLimit)))
-            .willReturn(response);
+            .willReturn(Mono.just(response));
 
         // When: 음수 파라미터로 친구 목록 조회 실행
-        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, negativeOffset, negativeLimit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, negativeOffset, negativeLimit).block();
 
         // Then: 어댑터가 파라미터를 그대로 전달하는지 검증
         assertThat(result).isNotNull();
@@ -227,10 +252,10 @@ class KakaoFriendAdapterTest {
         );
         
         given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(offset), eq(largeLimit)))
-            .willReturn(largeResponse);
+            .willReturn(Mono.just(largeResponse));
 
         // When: 대용량 친구 목록 조회 실행
-        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, largeLimit);
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, largeLimit).block();
 
         // Then: 대용량 요청도 올바르게 처리되는지 검증
         assertThat(result).isNotNull();

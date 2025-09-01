@@ -2,9 +2,9 @@ package jaeik.bimillog.infrastructure.adapter.user.out.social;
 
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 /**
  * <h2>카카오 친구 목록 어댑터</h2>
@@ -21,21 +21,18 @@ public class KakaoFriendAdapter implements KakaoFriendPort {
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
-     * <p>카카오 소셜 어댑터를 통해 친구 목록을 조회합니다.</p>
+     * <p>카카오 소셜 어댑터를 통해 친구 목록을 비동기로 조회합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
      * @param offset      조회 시작 위치
      * @param limit       조회할 친구 수
-     * @return 카카오 친구 목록 응답
+     * @return Mono<KakaoFriendsResponseVO> 카카오 친구 목록 응답 (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public KakaoFriendsResponseVO getFriendList(String accessToken, Integer offset, Integer limit) {
-        KakaoFriendsResponse response = kakaoSocialAdapter.getFriendList(accessToken, offset, limit);
-        if (response == null) {
-            return null;
-        }
-        return response.toVO();
+    public Mono<KakaoFriendsResponseVO> getFriendList(String accessToken, Integer offset, Integer limit) {
+        return kakaoSocialAdapter.getFriendList(accessToken, offset, limit)
+                .map(response -> response != null ? response.toVO() : null);
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import reactor.core.publisher.Mono;
 
 /**
  * <h2>사용자 통합 서비스</h2>
@@ -45,38 +46,37 @@ public class UserIntegrationService implements UserIntegrationUseCase {
      * @param userId 사용자 ID
      * @param offset 조회 시작 위치 (기본값: 0)
      * @param limit  조회할 친구 수 (기본값: 10, 최대: 100)
-     * @return 카카오 친구 목록 응답 (비밀로그 가입 여부 포함)
+     * @return Mono<KakaoFriendsResponseVO> 카카오 친구 목록 응답 (비동기, 비밀로그 가입 여부 포함)
      * @throws CustomException 사용자를 찾을 수 없거나 카카오 API 오류 시
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public KakaoFriendsResponseVO getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
-        // 사용자 조회
-        User user = userQueryPort.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        // 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
-        Token token = tokenPort.findById(tokenId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
-        
-        // 카카오 액세스 토큰 확인
-        if (token.getAccessToken() == null || token.getAccessToken().isEmpty()) {
-            throw new CustomException(ErrorCode.NOT_FIND_TOKEN);
-        }
-
+    public Mono<KakaoFriendsResponseVO> getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
         // 기본값 설정
         int actualOffset = offset != null ? offset : 0;
         int actualLimit = limit != null ? Math.min(limit, 100) : 10;
 
-        try {
-            // 카카오 친구 목록 조회
-            KakaoFriendsResponseVO friendsResponse = kakaoFriendPort.getFriendList(
-                    token.getAccessToken(),
-                    actualOffset,
-                    actualLimit
-            );
+        return Mono.fromCallable(() -> {
+            // 사용자 조회
+            User user = userQueryPort.findById(userId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+            // 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
+            Token token = tokenPort.findById(tokenId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
+            
+            // 카카오 액세스 토큰 확인
+            if (token.getAccessToken() == null || token.getAccessToken().isEmpty()) {
+                throw new CustomException(ErrorCode.NOT_FIND_TOKEN);
+            }
+            
+            return token;
+        })
+        .flatMap(token -> 
+            kakaoFriendPort.getFriendList(token.getAccessToken(), actualOffset, actualLimit)
+        )
+        .map(friendsResponse -> {
             // 각 친구에 대해 비밀로그 가입 여부 확인 (성능 최적화: 배치 조회)
             List<KakaoFriendVO> elements = friendsResponse.elements();
             if (elements != null && !elements.isEmpty()) {
@@ -105,17 +105,15 @@ public class UserIntegrationService implements UserIntegrationUseCase {
                     }
                 }
             }
-
             return friendsResponse;
-
-        } catch (CustomException e) {
+        })
+        .onErrorMap(CustomException.class, e -> {
             // 카카오 친구 동의 필요한 경우 특별한 에러 메시지 처리
             if (e.getErrorCode() == ErrorCode.KAKAO_API_ERROR) {
-                throw new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
+                return new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
             }
-            throw e;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.KAKAO_API_ERROR, e);
-        }
+            return e;
+        })
+        .onErrorMap(Exception.class, e -> new CustomException(ErrorCode.KAKAO_API_ERROR, e));
     }
 }
