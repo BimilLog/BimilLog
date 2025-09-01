@@ -60,9 +60,8 @@ public interface PostQueryUseCase {
      */
     Page<PostSearchResult> searchPost(String type, String query, Pageable pageable);
 
-
     /**
-     * <h3>실시간/주간 인기 게시글 목록 일괄 조회</h3>
+     * <h3>실시간/주간 인기 게시글 목록 조회</h3>
      * <p>
      *     실시간과 주간 인기 게시글을 한 번에 조회합니다. 
      *     성능 최적화를 위해 한 번의 호출로 두 타입의 데이터를 가져옵니다.
@@ -98,7 +97,7 @@ public interface PostQueryUseCase {
     List<PostSearchResult> getNoticePosts();
 
     /**
-     * <h3>게시글 ID로 조회 (내부 도메인용)</h3>
+     * <h3>게시글 ID로 조회 </h3>
      * <p>
      *     다른 도메인에서 게시글 엔티티가 필요한 경우 사용하는 메서드입니다.
      * </p>
@@ -110,7 +109,7 @@ public interface PostQueryUseCase {
     Optional<Post> findById(Long postId);
 
     /**
-     * <h3>사용자 작성 게시글 목록 조회 (도메인 간 연동용)</h3>
+     * <h3>사용자 작성 게시글 목록 조회</h3>
      * <p>
      *     특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.
      * </p>
@@ -123,7 +122,7 @@ public interface PostQueryUseCase {
     Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable);
 
     /**
-     * <h3>사용자 추천한 게시글 목록 조회 (도메인 간 연동용)</h3>
+     * <h3>사용자 추천한 게시글 목록 조회</h3>
      * <p>
      *     특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.
      * </p>

@@ -1,7 +1,11 @@
 package jaeik.bimillog.infrastructure.adapter.post.in.listener;
 
-import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
+import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -23,7 +27,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PostViewEventListener {
 
-    private final PostInteractionUseCase postInteractionUseCase;
+    private final PostQueryPort postQueryPort;
+    private final PostCommandPort postCommandPort;
 
     /**
      * <h3>게시글 조회 이벤트 처리</h3>
@@ -40,7 +45,11 @@ public class PostViewEventListener {
     @Async
     public void handlePostViewedEvent(PostViewedEvent event) {
         try {
-            postInteractionUseCase.incrementViewCount(event.getPostId());
+            Post post = postQueryPort.findById(event.getPostId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+            postCommandPort.incrementView(post);
+            log.debug("Post view count incremented: postId={}, newViewCount={}", event.getPostId(), post.getViews());
             log.debug("Post view count incremented asynchronously for postId: {}", event.getPostId());
         } catch (Exception e) {
             log.error("Failed to increment view count for postId: {}", event.getPostId(), e);

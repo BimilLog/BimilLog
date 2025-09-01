@@ -22,15 +22,4 @@ public interface PostInteractionUseCase {
      */
     void likePost(Long userId, Long postId);
 
-
-    /**
-     * <h3>게시글 조회수 증가</h3>
-     * <p>게시글의 조회수를 1 증가시킵니다.</p>
-     * <p>중복 조회 검증은 Controller 레이어에서 처리합니다.</p>
-     *
-     * @param postId 조회수를 증가시킬 게시글 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    void incrementViewCount(Long postId);
 }

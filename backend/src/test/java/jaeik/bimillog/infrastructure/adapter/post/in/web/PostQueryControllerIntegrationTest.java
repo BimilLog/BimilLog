@@ -26,6 +26,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Arrays;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -385,5 +386,68 @@ class PostQueryControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
                 .andExpect(jsonPath("$.pageable.pageNumber", is(1000)));
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 중복 조회 검증 (쿠키 없는 첫 조회)")
+    void getPost_Success_FirstTimeViewing() throws Exception {
+        // When & Then - 쿠키 없이 첫 조회
+        mockMvc.perform(get("/api/post/{postId}", testPost1.getId())
+                        .with(user(testUser)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(testPost1.getId().intValue())))
+                .andExpect(jsonPath("$.title", is(testPost1.getTitle())))
+                .andExpect(cookie().exists("post_views"))
+                .andExpect(cookie().value("post_views", testPost1.getId().toString()));
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 중복 조회 검증 (쿠키 있는 재조회)")
+    void getPost_Success_RepeatedViewing() throws Exception {
+        // Given - 이미 조회한 게시글 ID가 포함된 쿠키
+        String existingViews = testPost1.getId().toString();
+        
+        // When & Then - 동일 게시글 재조회 시 쿠키에 중복 추가되지 않아야 함
+        mockMvc.perform(get("/api/post/{postId}", testPost1.getId())
+                        .with(user(testUser))
+                        .cookie(new jakarta.servlet.http.Cookie("post_views", existingViews)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(testPost1.getId().intValue())))
+                .andExpect(cookie().value("post_views", existingViews)); // 동일한 값 유지
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 중복 조회 검증 (새로운 게시글 추가)")
+    void getPost_Success_ViewingNewPost() throws Exception {
+        // Given - 다른 게시글 ID가 포함된 쿠키
+        String existingViews = testPost1.getId().toString();
+        
+        // When & Then - 새로운 게시글 조회 시 쿠키에 추가되어야 함
+        mockMvc.perform(get("/api/post/{postId}", testPost2.getId())
+                        .with(user(testUser))
+                        .cookie(new jakarta.servlet.http.Cookie("post_views", existingViews)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(testPost2.getId().intValue())))
+                .andExpect(cookie().exists("post_views"))
+                .andExpect(result -> {
+                    String cookieValue = result.getResponse().getCookie("post_views").getValue();
+                    assertThat(cookieValue).contains(testPost1.getId().toString());
+                    assertThat(cookieValue).contains(testPost2.getId().toString());
+                });
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 비로그인 사용자도 중복 조회 검증")
+    void getPost_Success_AnonymousUserDuplicateCheck() throws Exception {
+        // When & Then - 비로그인 사용자도 쿠키 기반 중복 검증 적용
+        mockMvc.perform(get("/api/post/{postId}", testPost1.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(testPost1.getId().intValue())))
+                .andExpect(cookie().exists("post_views"))
+                .andExpect(cookie().value("post_views", testPost1.getId().toString()));
     }
 }
