@@ -408,13 +408,31 @@ export const userApi = {
   // 사용자 설정 수정 - v2 마이그레이션
   updateUserSettings: (settings: Setting) => apiClient.post("/api/user/setting", settings),
 
-  // 건의사항 제출 (레거시 유지 - 백엔드 v2에 없음)
+  // v2: 신고/건의사항 제출 (UserCommandController.submitReport)
+  submitReport: (report: {
+    reportType: "POST" | "COMMENT" | "SUGGESTION"
+    targetId?: number
+    content: string
+  }) => apiClient.post("/api/user/report", report),
+
+  // 레거시 호환용 (v2 신고 API로 리다이렉트)
   submitSuggestion: (report: {
-    reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
+    reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT" | "SUGGESTION"
     userId?: number
     targetId?: number
     content: string
-  }) => apiClient.post("/user/suggestion", report),
+  }) => {
+    // 레거시 타입을 v2 타입으로 매핑
+    const mappedType = report.reportType === "ERROR" || report.reportType === "IMPROVEMENT" 
+      ? "SUGGESTION" 
+      : report.reportType as "POST" | "COMMENT" | "SUGGESTION";
+    
+    return apiClient.post("/api/user/report", {
+      reportType: mappedType,
+      targetId: report.targetId,
+      content: report.content
+    });
+  },
 
   // 카카오 친구 목록 조회 - v2 마이그레이션 (GET으로 변경, offset/limit 파라미터)
   getFriendList: (offset = 0, limit = 10) => apiClient.get<KakaoFriendList>(`/api/user/friendlist?offset=${offset}&limit=${limit}`),

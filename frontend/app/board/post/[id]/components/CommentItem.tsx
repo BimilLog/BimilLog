@@ -80,18 +80,13 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const marginLeft = actualDepth * 16; // 16px씩 들여쓰기 (모바일 최적화)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  const handleReport = async () => {
-    if (!isAuthenticated || !user) {
-      showError("로그인 필요", "로그인이 필요한 기능입니다.");
-      return;
-    }
-
+  const handleReport = async (reason: string) => {
     try {
-      const response = await userApi.submitSuggestion({
+      // v2 신고 API 사용 - 익명 사용자도 신고 가능
+      const response = await userApi.submitReport({
         reportType: "COMMENT",
-        userId: user.userId,
         targetId: comment.id,
-        content: `댓글 신고: ${comment.content.substring(0, 50)}...`,
+        content: reason,
       });
 
       if (response.success) {
@@ -99,6 +94,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
           "신고 접수",
           "신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다."
         );
+        setIsReportModalOpen(false);
       } else {
         showError(
           "신고 실패",
@@ -225,7 +221,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                       <DropdownMenuContent align="end" className="w-24">
                         {!isMyComment(comment) && !comment.deleted && (
                           <DropdownMenuItem
-                            onClick={handleReport}
+                            onClick={() => setIsReportModalOpen(true)}
                             className="text-red-600 hover:text-red-700 cursor-pointer"
                           >
                             <Flag className="w-3 h-3 mr-2" />

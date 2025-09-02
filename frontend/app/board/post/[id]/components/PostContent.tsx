@@ -24,18 +24,13 @@ export const PostContent: React.FC<PostContentProps> = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { showSuccess, showError } = useToast();
 
-  const handleReport = async () => {
-    if (!isAuthenticated || !user) {
-      showError("로그인 필요", "로그인이 필요한 기능입니다.");
-      return;
-    }
-
+  const handleReport = async (reason: string) => {
     try {
-      const response = await userApi.submitSuggestion({
+      // v2 신고 API 사용 - 익명 사용자도 신고 가능
+      const response = await userApi.submitReport({
         reportType: "POST",
-        userId: user.userId,
-        targetId: post.postId,
-        content: `게시글 신고: ${post.title}`,
+        targetId: post.id, // v2에서는 post.id 사용
+        content: reason,
       });
 
       if (response.success) {
@@ -43,6 +38,7 @@ export const PostContent: React.FC<PostContentProps> = ({
           "신고 접수",
           "신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다."
         );
+        setIsReportModalOpen(false);
       } else {
         showError(
           "신고 실패",
