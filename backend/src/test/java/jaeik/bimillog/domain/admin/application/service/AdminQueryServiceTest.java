@@ -70,7 +70,7 @@ class AdminQueryServiceTest {
                         .id(3L)
                         .reporterId(102L)
                         .reporterName("reporter3")
-                        .reportType(ReportType.PAPER)
+                        .reportType(ReportType.SUGGESTION)
                         .targetId(202L)
                         .content("스팸 메시지")
                         .createdAt(Instant.now().minusSeconds(7200))
@@ -266,7 +266,7 @@ class AdminQueryServiceTest {
     @DisplayName("모든 신고 유형에 대한 개별 조회 테스트")
     void shouldGetReportListForAllReportTypes() {
         // Given
-        ReportType[] allTypes = {ReportType.POST, ReportType.COMMENT, ReportType.PAPER};
+        ReportType[] allTypes = {ReportType.POST, ReportType.COMMENT, ReportType.SUGGESTION};
         
         for (ReportType type : allTypes) {
             List<ReportSummary> filteredReports = testReports.stream()

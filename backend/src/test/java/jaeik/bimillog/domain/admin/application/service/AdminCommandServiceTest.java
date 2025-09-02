@@ -180,7 +180,7 @@ class AdminCommandServiceTest {
         // Given
         ReportedUserResolver postResolver = createMockResolver(ReportType.POST);
         ReportedUserResolver commentResolver = createMockResolver(ReportType.COMMENT);
-        ReportedUserResolver paperResolver = createMockResolver(ReportType.PAPER);
+        ReportedUserResolver paperResolver = createMockResolver(ReportType.SUGGESTION);
 
         given(postResolver.resolve(200L)).willReturn(testUser);
         given(commentResolver.resolve(300L)).willReturn(testUser);
@@ -204,7 +204,7 @@ class AdminCommandServiceTest {
                 .build();
         
         ReportVO paperReport = ReportVO.builder()
-                .reportType(ReportType.PAPER)
+                .reportType(ReportType.SUGGESTION)
                 .targetId(400L)
                 .content("부적절한 메시지")
                 .build();

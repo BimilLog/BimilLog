@@ -290,16 +290,16 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
                   {/* 사용자 부가 정보 */}
                   <div className="space-y-3">
-                    {user.kakaoNickname && (
+                    {user.socialNickname && (
                       <div className="flex items-center justify-center md:justify-start space-x-1 text-gray-600">
                         <Star className="w-4 h-4" />
                         <span className="text-sm">
-                          카카오: {user.kakaoNickname}
+                          소셜: {user.socialNickname}
                         </span>
                       </div>
                     )}
 
-                    {user.settingDTO && (
+                    {user.settingId && (
                       <div className="flex items-center justify-center md:justify-start space-x-1 text-gray-600">
                         <Settings className="w-4 h-4" />
                         <span className="text-sm">알림 설정 완료</span>

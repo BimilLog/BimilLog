@@ -25,25 +25,17 @@ export interface ApiResponse<T = any> {
   needsRelogin?: boolean // 다른 기기에서 로그아웃된 경우
 }
 
-// 사용자 정보 타입 (ClientDTO)
+// 사용자 정보 타입 (백엔드 UserInfoResponseDTO와 일치)
 export interface User {
   userId: number
+  settingId: number
+  socialNickname: string
+  thumbnailImage: string
   userName: string
-  kakaoId?: number
-  settingDTO?: {
-    settingId: number
-    messageNotification: boolean
-    commentNotification: boolean
-    postFeaturedNotification: boolean
-  }
-  kakaoNickname?: string
-  thumbnailImage?: string
-  role?: "USER" | "ADMIN"
-  tokenId?: number
-  fcmTokenId?: number | null
+  role: "USER" | "ADMIN"
 }
 
-// 롤링페이퍼 메시지 타입
+// 롤링페이퍼 메시지 타입 - v2 백엔드 MessageDTO 호환
 export interface RollingPaperMessage {
   id: number
   userId: number
@@ -52,11 +44,10 @@ export interface RollingPaperMessage {
   content: string
   width: number
   height: number
-  createdAt?: string
-  isDeleted?: boolean
+  createdAt?: string // ISO 8601 string format
 }
 
-// 방문용 메시지 타입 (공개 롤링페이퍼용)
+// 방문용 메시지 타입 - v2 백엔드 VisitMessageDTO 호환
 export interface VisitMessage {
   id: number
   userId: number
@@ -65,37 +56,39 @@ export interface VisitMessage {
   height: number
 }
 
-// 게시글 타입
+// 게시글 타입 - v2 백엔드 FullPostResDTO 호환
 export interface Post {
-  postId: number
+  id: number         // v2: postId → id
   userId: number
   userName: string
   title: string
   content: string
-  views: number
-  likes: number
+  viewCount: number  // v2: views → viewCount
+  likeCount: number  // v2: likes → likeCount
+  commentCount: number // v2: 추가된 필드
   postCacheFlag?: "REALTIME" | "WEEKLY" | "LEGEND"
-  createdAt: string
-  userLike: boolean
+  createdAt: string  // v2: Instant → ISO string
+  isLiked: boolean   // v2: userLike → isLiked
+  isNotice: boolean  // v2: notice → isNotice
   password?: number
-  notice: boolean
 }
 
-// 간단한 게시글 타입 (목록용)
+// 간단한 게시글 타입 (목록용) - v2 백엔드 SimplePostResDTO 호환
 export interface SimplePost {
-  postId: number
+  id: number         // v2: postId → id
   userId: number
   userName: string
   title: string
+  content: string    // v2: 추가된 필드 (간단한 내용 미리보기)
   commentCount: number
-  likes: number
-  views: number
-  createdAt: string
+  likeCount: number  // v2: likes → likeCount
+  viewCount: number  // v2: views → viewCount
+  createdAt: string  // v2: Instant → ISO string
   postCacheFlag?: "REALTIME" | "WEEKLY" | "LEGEND"
-  _notice: boolean
+  isNotice: boolean  // v2: _notice → isNotice
 }
 
-// 댓글 타입
+// 댓글 타입 - v2 백엔드 CommentDTO 호환
 export interface Comment {
   id: number
   parentId?: number
@@ -106,35 +99,34 @@ export interface Comment {
   popular: boolean
   deleted: boolean
   password?: number
-  likes: number
+  likeCount: number  // v2: likes → likeCount
   createdAt: string
   userLike: boolean
 }
 
-// 간단한 댓글 타입 (목록용)
+// 간단한 댓글 타입 (목록용) - v2 백엔드 호환
 export interface SimpleComment {
   id: number
   postId: number
   userName: string
   content: string
-  likes: number
+  likeCount: number  // v2: likes → likeCount
   userLike: boolean
   createdAt: string
 }
 
-// 알림 타입
+// 알림 타입 - v2 백엔드 NotificationDTO 호환
 export interface Notification {
   id: number
-  data: string
+  content: string  // v2: data → content
   url: string
-  type: "ADMIN" | "FARM" | "COMMENT" | "POST_FEATURED" | "COMMENT_FEATURED" | "INITIATE"
+  notificationType: "PAPER" | "COMMENT" | "POST_FEATURED" | "INITIATE" | "ADMIN"  // v2: type → notificationType, updated enum values
   createdAt: string
-  read: boolean
+  isRead: boolean  // v2: read → isRead
 }
 
-// 설정 타입
+// 설정 타입 - v2 백엔드 SettingDTO 호환
 export interface Setting {
-  settingId: number
   messageNotification: boolean
   commentNotification: boolean
   postFeaturedNotification: boolean
@@ -155,14 +147,18 @@ export interface KakaoFriendList {
   total_count: number
 }
 
-// 신고 타입
+// 신고 타입 - v2 백엔드 ReportDTO 호환
 export interface Report {
-  reportId: number
-  reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
-  userId: number
+  id: number           // v2: reportId → id
+  reporterId: number   // v2: userId → reporterId  
+  reporterName: string // v2: 추가된 필드
+  reportType: "POST" | "COMMENT" | "SUGGESTION"  // v2: 백엔드 ReportType enum 호환
   targetId: number
   content: string
-  createdAt?: string
+  createdAt: string    // v2: Instant → ISO string
+  // 레거시 호환용 필드들 (선택적)
+  reportId?: number    // 레거시 호환용
+  userId?: number      // 레거시 호환용
   targetTitle?: string
   targetAuthor?: string
   reporterNickname?: string
@@ -359,9 +355,7 @@ export const authApi = {
   kakaoLogin: (code: string, fcmToken?: string) => {
     const queryParams = new URLSearchParams({ provider: 'kakao', code })
     if (fcmToken) queryParams.append("fcmToken", fcmToken)
-    return apiClient.request(`/api/auth/login?${queryParams.toString()}`, {
-      method: 'POST',
-    })
+    return apiClient.post(`/api/auth/login?${queryParams.toString()}`)
   },
 
   // 현재 사용자 정보 조회 (httpOnly 쿠키 자동 포함)
@@ -377,12 +371,22 @@ export const authApi = {
   signUp: (userName: string) => {
     const formData = new URLSearchParams()
     formData.append('userName', userName)
-    return apiClient.request('/api/auth/signup', {
+    // Use a custom request for form data
+    return fetch(`${apiClient['baseURL']}/api/auth/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: formData.toString(),
+      credentials: 'include'
+    }).then(async response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return { success: true, data };
+    }).catch(error => {
+      return { success: false, error: error.message };
     })
   },
 
@@ -392,19 +396,19 @@ export const authApi = {
 
 // 사용자 관련 API
 export const userApi = {
-  // 닉네임 중복 확인
+  // 닉네임 중복 확인 ✅ 이미 v2 호환
   checkUserName: (userName: string) => apiClient.get<boolean>(`/api/user/username/check?userName=${encodeURIComponent(userName)}`),
 
-  // 닉네임 변경
-  updateUserName: (userId: number, userName: string) => apiClient.post("/user/username", { userId, userName }),
+  // 닉네임 변경 - v2 마이그레이션
+  updateUserName: (userName: string) => apiClient.post("/api/user/username", { userName }),
 
-  // 사용자 설정 조회
-  getUserSettings: () => apiClient.get<Setting>("/user/setting"),
+  // 사용자 설정 조회 - v2 마이그레이션  
+  getUserSettings: () => apiClient.get<Setting>("/api/user/setting"),
 
-  // 사용자 설정 수정
-  updateUserSettings: (settings: Setting) => apiClient.post("/user/setting", settings),
+  // 사용자 설정 수정 - v2 마이그레이션
+  updateUserSettings: (settings: Setting) => apiClient.post("/api/user/setting", settings),
 
-  // 건의사항 제출
+  // 건의사항 제출 (레거시 유지 - 백엔드 v2에 없음)
   submitSuggestion: (report: {
     reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
     userId?: number
@@ -412,37 +416,36 @@ export const userApi = {
     content: string
   }) => apiClient.post("/user/suggestion", report),
 
-  // 카카오 친구 목록 조회
-  getFriendList: (offset: number) => apiClient.post<KakaoFriendList>(`/user/friendlist?offset=${offset}`),
+  // 카카오 친구 목록 조회 - v2 마이그레이션 (GET으로 변경, offset/limit 파라미터)
+  getFriendList: (offset = 0, limit = 10) => apiClient.get<KakaoFriendList>(`/api/user/friendlist?offset=${offset}&limit=${limit}`),
 
-  // 사용자가 작성한 글 목록
+  // 사용자가 작성한 글 목록 - v2 마이그레이션
   getUserPosts: (page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimplePost>>(`/user/posts?page=${page}&size=${size}`),
+    apiClient.get<PageResponse<SimplePost>>(`/api/user/posts?page=${page}&size=${size}`),
 
-  // 사용자가 작성한 댓글 목록
+  // 사용자가 작성한 댓글 목록 - v2 마이그레이션
   getUserComments: (page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimpleComment>>(`/user/comments?page=${page}&size=${size}`),
+    apiClient.get<PageResponse<SimpleComment>>(`/api/user/comments?page=${page}&size=${size}`),
 
-  // 사용자가 추천한 글 목록
+  // 사용자가 추천한 글 목록 - v2 마이그레이션
   getUserLikedPosts: (page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimplePost>>(`/user/likeposts?page=${page}&size=${size}`),
+    apiClient.get<PageResponse<SimplePost>>(`/api/user/likeposts?page=${page}&size=${size}`),
 
-  // 사용자가 추천한 댓글 목록
+  // 사용자가 추천한 댓글 목록 - v2 마이그레이션
   getUserLikedComments: (page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimpleComment>>(`/user/likecomments?page=${page}&size=${size}`),
-
+    apiClient.get<PageResponse<SimpleComment>>(`/api/user/likecomments?page=${page}&size=${size}`),
 
 }
 
-// 롤링페이퍼 관련 API
+// 롤링페이퍼 관련 API - v2 마이그레이션
 export const rollingPaperApi = {
-  // 내 롤링페이퍼 조회
-  getMyRollingPaper: () => apiClient.get<RollingPaperMessage[]>("/paper"),
+  // 내 롤링페이퍼 조회 - v2 마이그레이션
+  getMyRollingPaper: () => apiClient.get<RollingPaperMessage[]>("/api/paper"),
 
-  // 다른 사용자의 롤링페이퍼 조회
-  getRollingPaper: (userName: string) => apiClient.get<VisitMessage[]>(`/paper/${encodeURIComponent(userName)}`),
+  // 다른 사용자의 롤링페이퍼 조회 - v2 마이그레이션
+  getRollingPaper: (userName: string) => apiClient.get<VisitMessage[]>(`/api/paper/${encodeURIComponent(userName)}`),
 
-  // 메시지 작성
+  // 메시지 작성 - v2 마이그레이션
   createMessage: (
     userName: string,
     message: {
@@ -452,9 +455,9 @@ export const rollingPaperApi = {
       width: number
       height: number
     },
-  ) => apiClient.post(`/paper/${encodeURIComponent(userName)}`, message),
+  ) => apiClient.post(`/api/paper/${encodeURIComponent(userName)}`, message),
 
-  // 메시지 삭제 (소유자만)
+  // 메시지 삭제 (소유자만) - v2 마이그레이션
   deleteMessage: (messageData: {
     id: number
     userId?: number
@@ -463,128 +466,194 @@ export const rollingPaperApi = {
     content?: string
     width?: number
     height?: number
-  }) => apiClient.post("/paper/delete", messageData),
+  }) => apiClient.post("/api/paper/delete", messageData),
 }
 
-// 게시판 관련 API
+// 게시판 관련 API - v2 백엔드 마이그레이션
 export const boardApi = {
-  // 게시글 목록 조회
-  getPosts: (page = 0, size = 10) => apiClient.get<PageResponse<SimplePost>>(`/post/query?page=${page}&size=${size}`),
+  // 게시글 목록 조회 - v2 마이그레이션
+  getPosts: (page = 0, size = 10) => apiClient.get<PageResponse<SimplePost>>(`/api/post?page=${page}&size=${size}`),
 
-  // 게시글 상세 조회
-  getPost: (postId: number) => apiClient.get<Post>(`/post/query/${postId}`),
+  // 게시글 상세 조회 - v2 마이그레이션
+  getPost: (postId: number) => apiClient.get<Post>(`/api/post/${postId}`),
 
-  // 게시글 검색
+  // 게시글 검색 - v2 마이그레이션
   searchPosts: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR", query: string, page = 0, size = 10) =>
     apiClient.get<PageResponse<SimplePost>>(
-      `/post/search?type=${type}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`,
+      `/api/post/search?type=${type}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`,
     ),
 
-  // 게시글 작성
+  // 게시글 작성 - v2 마이그레이션 (POST /api/post)
   createPost: (post: {
     userName: string | null
     title: string
     content: string
     password?: number
-  }) => apiClient.post<Post>("/post/manage/write", post),
-
-  // 게시글 수정
-  updatePost: (post: Post) => apiClient.post("/post/manage/update", post),
-
-  // 게시글 삭제
-  deletePost: (postId: number, userId?: number, password?: string, content?: string, title?: string) => {
-    const payload: any = { postId };
-    if (userId !== undefined) payload.userId = userId;
-    if (password) payload.password = Number(password);
-    if (content) payload.content = content;
-    if (title) payload.title = title;
-    return apiClient.post("/post/manage/delete", payload);
+  }) => {
+    // v2 백엔드 PostReqDTO 형식에 맞춤
+    const payload = {
+      title: post.title,
+      content: post.content,
+      password: post.password?.toString() || undefined
+    };
+    return apiClient.post<Post>("/api/post", payload);
   },
 
-  // 게시글 추천/취소
-  likePost: (postId: number) => apiClient.post("/post/manage/like", { postId }),
+  // 게시글 수정 - v2 마이그레이션 (PUT /api/post/{postId})
+  updatePost: (post: Post) => {
+    const payload = {
+      title: post.title,
+      content: post.content,
+      password: post.password?.toString() || undefined
+    };
+    return apiClient.put(`/api/post/${post.id}`, payload);
+  },
 
-  // 실시간 인기글 조회
-  getRealtimePosts: () => apiClient.get<SimplePost[]>("/post/cache/realtime"),
+  // 게시글 삭제 - v2 마이그레이션 (DELETE /api/post/{postId})
+  deletePost: (postId: number, userId?: number, password?: string, content?: string, title?: string) => {
+    return apiClient.delete(`/api/post/${postId}`);
+  },
 
-  // 주간 인기글 조회
-  getWeeklyPosts: () => apiClient.get<SimplePost[]>("/post/cache/weekly"),
+  // 게시글 추천/취소 - v2 마이그레이션 (POST /api/post/{postId}/like)
+  likePost: (postId: number) => apiClient.post(`/api/post/${postId}/like`),
 
-  // 레전드 인기글 조회
-  getLegendPosts: () => apiClient.get<SimplePost[]>("/post/cache/legend"),
+  // 인기글 조회 (캐시 엔드포인트) - 백엔드 v2에서 엔드포인트 확인 필요
+  // TODO: 백엔드에서 캐시 엔드포인트 구현 상태 확인
+  getRealtimePosts: () => apiClient.get<SimplePost[]>("/post/cache/realtime"), // 레거시 유지 (확인 필요)
+  getWeeklyPosts: () => apiClient.get<SimplePost[]>("/post/cache/weekly"),     // 레거시 유지 (확인 필요)  
+  getLegendPosts: () => apiClient.get<SimplePost[]>("/post/cache/legend"),     // 레거시 유지 (확인 필요)
 }
 
-// 댓글 관련 API
+// 댓글 관련 API - v2 백엔드 CQRS 마이그레이션
 export const commentApi = {
-  // 댓글 목록 조회
-  getComments: (postId: number, page = 0) => apiClient.get<PageResponse<Comment>>(`/comment/${postId}?page=${page}`),
+  // 댓글 목록 조회 - v2 마이그레이션 (CommentQueryController)
+  getComments: (postId: number, page = 0) => 
+    apiClient.get<PageResponse<Comment>>(`/api/comment/${postId}?page=${page}`),
 
-  // 인기 댓글 조회
-  getPopularComments: (postId: number) => apiClient.get<Comment[]>(`/comment/${postId}/popular`),
+  // 인기 댓글 조회 - v2 마이그레이션 (CommentQueryController)
+  getPopularComments: (postId: number) => 
+    apiClient.get<Comment[]>(`/api/comment/${postId}/popular`),
 
-  // 댓글 작성
+  // 댓글 작성 - v2 마이그레이션 (CommentCommandController)
   createComment: (comment: {
     postId: number
-    userName: string
+    userName?: string  // v2에서는 userName이 선택적 (userDetails에서 가져옴)
     content: string
     parentId?: number
     password?: number
-  }) => apiClient.post("/comment/write", comment),
+  }) => {
+    // v2 백엔드 CommentReqDTO 형식에 맞춤
+    const payload = {
+      postId: comment.postId,
+      content: comment.content,
+      parentId: comment.parentId,
+      password: comment.password
+    };
+    return apiClient.post("/api/comment/write", payload);
+  },
 
-  // 댓글 수정
+  // 댓글 수정 - v2 마이그레이션 (CommentCommandController)
   updateComment: (commentId: number, data: { content: string; password?: string }) => {
-    const payload = data.password 
-      ? { id: commentId, content: data.content, password: Number(data.password) }
-      : { id: commentId, content: data.content };
-    return apiClient.post("/comment/update", payload);
+    // v2 백엔드 CommentReqDTO 형식에 맞춤
+    const payload: any = {
+      id: commentId,
+      content: data.content
+    };
+    if (data.password) {
+      payload.password = Number(data.password);
+    }
+    return apiClient.post("/api/comment/update", payload);
   },
 
-  // 댓글 삭제
+  // 댓글 삭제 - v2 마이그레이션 (CommentCommandController)  
   deleteComment: (commentId: number, userId?: number, password?: number, content?: string) => {
+    // v2 백엔드 CommentReqDTO 형식에 맞춤
     const payload: any = { id: commentId };
-    if (userId !== undefined) payload.userId = userId;
-    if (password !== undefined) payload.password = Number(password);
-    if (content) payload.content = content;
-    return apiClient.post("/comment/delete", payload);
+    if (password !== undefined) {
+      payload.password = Number(password);
+    }
+    return apiClient.post("/api/comment/delete", payload);
   },
 
-  // 댓글 추천/취소
-  likeComment: (commentId: number) => apiClient.post("/comment/like", { id: commentId }),
+  // 댓글 추천/취소 - v2 마이그레이션 (CommentCommandController)
+  likeComment: (commentId: number) => 
+    apiClient.post("/api/comment/like", { commentId }),
 }
 
-// 알림 관련 API
+// 알림 관련 API - v2 백엔드 CQRS 마이그레이션
 export const notificationApi = {
-  // 알림 목록 조회
-  getNotifications: () => apiClient.get<Notification[]>("/notification/list"),
+  // 알림 목록 조회 - v2 마이그레이션 (NotificationQueryController)
+  getNotifications: () => apiClient.get<Notification[]>("/api/notification/list"),
 
-  // 알림 읽음/삭제 처리
+  // 알림 읽음/삭제 처리 - v2 마이그레이션 (NotificationCommandController)
   updateNotifications: (data: {
     readIds?: number[]
-    deletedIds?: number[]
-  }) => apiClient.post("/notification/update", data),
-
-  // SSE 알림 구독
-  subscribeToNotifications: () => `${API_BASE_URL}/notification/subscribe`,
-}
-
-// 관리자 관련 API
-export const adminApi = {
-  // 신고 목록 조회
-  getReports: (page = 0, size = 20, reportType?: string) => {
-    const params = new URLSearchParams({ page: page.toString(), size: size.toString() })
-    if (reportType) params.append("reportType", reportType)
-    return apiClient.get(`/admin/report?${params.toString()}`)
+    deletedIds?: number[]  // v2: deletedIds는 그대로 유지
+  }) => {
+    // v2 백엔드 UpdateNotificationDTO 형식에 맞춤
+    const payload: any = {};
+    if (data.readIds && data.readIds.length > 0) {
+      payload.readIds = data.readIds;
+    }
+    if (data.deletedIds && data.deletedIds.length > 0) {
+      payload.deletedIds = data.deletedIds;
+    }
+    return apiClient.post("/api/notification/update", payload);
   },
 
-  // 신고 상세 조회
-  getReport: (reportId: number) => apiClient.get(`/admin/report/${reportId}`),
+  // SSE 알림 구독 - v2 마이그레이션 (NotificationSseController)
+  subscribeToNotifications: () => `${API_BASE_URL}/api/notification/subscribe`,
+}
 
-  // 사용자 차단
-  banUser: (userId: number) => apiClient.post(`/admin/user/ban?userId=${userId}`),
+// 관리자 관련 API - v2 백엔드 연결
+export const adminApi = {
+  // v2: 신고 목록 조회 (AdminQueryController.getReportList)
+  getReports: (page = 0, size = 20, reportType?: string) => {
+    const params = new URLSearchParams({ page: page.toString(), size: size.toString() })
+    if (reportType && reportType !== "all") {
+      // "ERROR", "IMPROVEMENT" 필터는 "SUGGESTION"으로 매핑 (v2에서는 POST/COMMENT/SUGGESTION만 지원)
+      const mappedType = reportType === "ERROR" || reportType === "IMPROVEMENT" ? "SUGGESTION" : reportType
+      params.append("reportType", mappedType)
+    }
+    return apiClient.get(`/api/admin/reports?${params.toString()}`)
+  },
 
-  // 회원탈퇴 (관리자)
+  // v2: 신고 상세 조회 (현재 v2에 없음, 목록에서 충분한 정보 제공)
+  getReport: async (reportId: number) => {
+    // v2에서는 별도 상세 조회 없이 목록에서 모든 정보 제공
+    // 레거시 호환을 위해 목록 조회로 대체
+    try {
+      const response = await apiClient.get(`/api/admin/reports?page=0&size=1000`);
+      if (response.success && response.data?.content) {
+        const report = response.data.content.find((r: any) => r.id === reportId);
+        return { ...response, data: report };
+      }
+      return response;
+    } catch (error) {
+      return { success: false, error: '신고 내역 조회에 실패했습니다.' };
+    }
+  },
+
+  // v2: 사용자 차단 (AdminCommandController.banUser)
+  banUser: (reportData: { reporterId?: number; reporterName?: string; reportType: string; targetId: number; content: string }) =>
+    apiClient.post("/api/admin/ban", {
+      reporterId: reportData.reporterId,
+      reporterName: reportData.reporterName,
+      reportType: reportData.reportType,
+      targetId: reportData.targetId,
+      content: reportData.content
+    }),
+
+  // v2: 사용자 강제 탈퇴 (AdminCommandController.forceWithdrawUser)
+  forceWithdrawUser: (userId: number) => apiClient.delete(`/api/admin/withdraw/${userId}`),
+
+  // 레거시 호환용
   banUserByReport: (reportData: { targetId: number; reportType: string; content: string }) =>
-    apiClient.post("/admin/user/ban", reportData),
+    adminApi.banUser({
+      reportType: reportData.reportType,
+      targetId: reportData.targetId,
+      content: reportData.content
+    }),
 }
 
 // SSE 연결 관리

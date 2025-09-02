@@ -134,6 +134,9 @@ export const ReportList: React.FC<ReportListProps> = ({
                       .includes(searchTerm.toLowerCase()) ||
                     report.targetTitle
                       ?.toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                    report.reporterName
+                      ?.toLowerCase()
                       .includes(searchTerm.toLowerCase())
                 )
                 .map((report) => (

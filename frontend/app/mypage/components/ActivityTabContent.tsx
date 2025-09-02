@@ -141,7 +141,7 @@ const PostCard = ({
                 <div className="text-base md:text-sm">
                   <span className="text-gray-600">추천</span>
                   <span className="font-semibold text-gray-800 ml-1">
-                    {post.likes.toLocaleString()}
+                    {post.likeCount.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -225,7 +225,7 @@ const CommentCard = ({
                 <div className="flex items-center space-x-2">
                   <ThumbsUp className="w-4 h-4 text-blue-500" />
                   <span className="text-base md:text-sm font-semibold text-gray-800">
-                    {comment.likes.toLocaleString()}
+                    {comment.likeCount.toLocaleString()}
                   </span>
                   <span className="text-sm md:text-xs text-gray-600">추천</span>
                 </div>

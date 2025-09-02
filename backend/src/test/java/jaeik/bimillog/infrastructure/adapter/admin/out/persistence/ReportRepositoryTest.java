@@ -186,7 +186,7 @@ class ReportRepositoryTest {
         User reporter = createAndSaveUser("reporter", "소셜ID123");
         Report report = Report.builder()
                 .reporter(reporter)
-                .reportType(ReportType.PAPER)
+                .reportType(ReportType.SUGGESTION)
                 .targetId(3L)
                 .content("부적절한 메시지입니다.")
                 .build();

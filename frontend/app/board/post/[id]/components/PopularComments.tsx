@@ -122,7 +122,7 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
                         comment.userLike ? "fill-current" : ""
                       }`}
                     />
-                    {comment.likes}
+                    {comment.likeCount}
                   </Button>
 
                   {/* 답글 버튼 */}

@@ -60,7 +60,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                     {notice.views}
                   </td>
                   <td className="p-4 md:p-3 text-left font-medium w-16">
-                    {notice.likes}
+                    {notice.likeCount}
                   </td>
                 </tr>
               ))}

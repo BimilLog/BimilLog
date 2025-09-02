@@ -62,7 +62,7 @@ export const PopularPostList = ({
                           </span>
                           <span className="flex items-center">
                             <ThumbsUp className="w-4 h-4 md:w-3 md:h-3 mr-1" />{" "}
-                            {post.likes}
+                            {post.likeCount}
                           </span>
                           <span className="flex items-center">
                             <MessageCircle className="w-4 h-4 md:w-3 md:h-3 mr-1" />{" "}

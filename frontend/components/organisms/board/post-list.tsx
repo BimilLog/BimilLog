@@ -81,7 +81,7 @@ export const PostList = ({ posts }: PostListProps) => {
                       {formatDate(post.createdAt)}
                     </td>
                     <td className="p-4 md:p-3 text-gray-600">{post.views}</td>
-                    <td className="p-4 md:p-3 text-gray-600">{post.likes}</td>
+                    <td className="p-4 md:p-3 text-gray-600">{post.likeCount}</td>
                   </tr>
                 ))
               ) : (

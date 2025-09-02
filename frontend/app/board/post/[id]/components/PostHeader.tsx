@@ -125,7 +125,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
             </div>
             <div className="flex items-center space-x-1">
               <ThumbsUp className="w-4 h-4" />
-              <span>{post.likes}</span>
+              <span>{post.likeCount}</span>
             </div>
             <div className="flex items-center space-x-1">
               <MessageSquare className="w-4 h-4" />
@@ -143,7 +143,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
             title={post.title}
             author={post.userName || "익명"}
             content={post.content}
-            likes={post.likes}
+            likes={post.likeCount}
             variant="outline"
             size="sm"
             className="w-full sm:w-auto"

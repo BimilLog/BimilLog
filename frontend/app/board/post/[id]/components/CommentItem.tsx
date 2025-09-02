@@ -195,7 +195,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                       comment.userLike ? "fill-current" : ""
                     }`}
                   />
-                  {comment.likes}
+                  {comment.likeCount}
                 </Button>
 
                 {/* 답글 버튼 (모바일에서도 항상 표시) */}

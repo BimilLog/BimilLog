@@ -22,7 +22,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>PaperReportedUserResolver 단위 테스트</h2>
+ * <h2>SuggestionReportedUserResolver 단위 테스트</h2>
  * <p>롤링페이퍼 신고 사용자 해결사의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  *
@@ -30,14 +30,14 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("PaperReportedUserResolver 단위 테스트")
-class PaperReportedUserResolverTest {
+@DisplayName("SuggestionReportedUserResolver 단위 테스트")
+class SuggestionReportedUserResolverTest {
 
     @Mock
     private PaperQueryUseCase paperQueryUseCase;
 
     @InjectMocks
-    private PaperReportedUserResolver paperReportedUserResolver;
+    private SuggestionReportedUserResolver suggestionReportedUserResolver;
 
     private Message testMessage;
     private User testUser;
@@ -65,7 +65,7 @@ class PaperReportedUserResolverTest {
         given(paperQueryUseCase.findMessageById(messageId)).willReturn(Optional.of(testMessage));
 
         // When
-        User result = paperReportedUserResolver.resolve(messageId);
+        User result = suggestionReportedUserResolver.resolve(messageId);
 
         // Then
         assertThat(result).isEqualTo(testUser);
@@ -82,7 +82,7 @@ class PaperReportedUserResolverTest {
         given(paperQueryUseCase.findMessageById(nonExistentMessageId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperReportedUserResolver.resolve(nonExistentMessageId))
+        assertThatThrownBy(() -> suggestionReportedUserResolver.resolve(nonExistentMessageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
 
@@ -93,10 +93,10 @@ class PaperReportedUserResolverTest {
     @DisplayName("지원하는 신고 유형이 PAPER인지 확인")
     void shouldSupportPaperReportType() {
         // When
-        ReportType supportedType = paperReportedUserResolver.supports();
+        ReportType supportedType = suggestionReportedUserResolver.supports();
 
         // Then
-        assertThat(supportedType).isEqualTo(ReportType.PAPER);
+        assertThat(supportedType).isEqualTo(ReportType.SUGGESTION);
     }
 
     @Test
@@ -113,7 +113,7 @@ class PaperReportedUserResolverTest {
         given(paperQueryUseCase.findMessageById(messageId)).willReturn(Optional.of(messageWithNullUser));
 
         // When
-        User result = paperReportedUserResolver.resolve(messageId);
+        User result = suggestionReportedUserResolver.resolve(messageId);
 
         // Then
         assertThat(result).isNull();
@@ -142,7 +142,7 @@ class PaperReportedUserResolverTest {
 
         // When & Then
         for (int i = 0; i < messageIds.length; i++) {
-            User result = paperReportedUserResolver.resolve(messageIds[i]);
+            User result = suggestionReportedUserResolver.resolve(messageIds[i]);
             assertThat(result).isEqualTo(users[i]);
             assertThat(result.getId()).isEqualTo(users[i].getId());
             assertThat(result.getUserName()).isEqualTo(users[i].getUserName());
@@ -174,7 +174,7 @@ class PaperReportedUserResolverTest {
         given(paperQueryUseCase.findMessageById(messageId)).willReturn(Optional.of(anonymousMessage));
 
         // When
-        User result = paperReportedUserResolver.resolve(messageId);
+        User result = suggestionReportedUserResolver.resolve(messageId);
 
         // Then
         assertThat(result).isEqualTo(anonymousUser);
@@ -203,7 +203,7 @@ class PaperReportedUserResolverTest {
         given(paperQueryUseCase.findMessageById(encryptedMessageId)).willReturn(Optional.of(encryptedMessage));
 
         // When
-        User result = paperReportedUserResolver.resolve(encryptedMessageId);
+        User result = suggestionReportedUserResolver.resolve(encryptedMessageId);
 
         // Then
         assertThat(result).isEqualTo(messageUser);
@@ -224,7 +224,7 @@ class PaperReportedUserResolverTest {
 
         // When & Then
         for (Long invalidId : invalidIds) {
-            assertThatThrownBy(() -> paperReportedUserResolver.resolve(invalidId))
+            assertThatThrownBy(() -> suggestionReportedUserResolver.resolve(invalidId))
                     .isInstanceOf(CustomException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
             verify(paperQueryUseCase).findMessageById(invalidId);
@@ -239,7 +239,7 @@ class PaperReportedUserResolverTest {
         given(paperQueryUseCase.findMessageById(largeMessageId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperReportedUserResolver.resolve(largeMessageId))
+        assertThatThrownBy(() -> suggestionReportedUserResolver.resolve(largeMessageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
         verify(paperQueryUseCase).findMessageById(largeMessageId);

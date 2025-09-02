@@ -47,6 +47,8 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
         return "게시글";
       case "COMMENT":
         return "댓글";
+      case "SUGGESTION":
+        return "건의사항";
       case "ERROR":
         return "오류";
       case "IMPROVEMENT":
@@ -67,21 +69,56 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
     setIsBanning(true);
     try {
-      const response = await adminApi.banUserByReport({
-        targetId: report.targetId,
+      // v2 API로 업데이트: banUser 메소드 사용
+      const response = await adminApi.banUser({
+        reporterId: report.reporterId || report.userId,
+        reporterName: report.reporterName,
         reportType: report.reportType,
+        targetId: report.targetId,
         content: report.content,
       });
 
       if (response.success) {
         showSuccess("사용자 차단", "사용자가 성공적으로 차단되었습니다.");
         onOpenChange(false);
+        // 새로고침 신호 발송
+        window.location.reload();
       } else {
         showError("차단 실패", response.error || "사용자 차단에 실패했습니다.");
       }
     } catch (error) {
       console.error("Ban user failed:", error);
       showError("차단 실패", "사용자 차단 중 오류가 발생했습니다.");
+    } finally {
+      setIsBanning(false);
+    }
+  };
+
+  const handleForceWithdrawUser = async () => {
+    if (!report || !report.targetId) return;
+
+    const confirmWithdraw = window.confirm(
+      "정말로 이 사용자를 강제 탈퇴시키시겠습니까? 이 작업은 되돌릴 수 없습니다."
+    );
+
+    if (!confirmWithdraw) return;
+
+    setIsBanning(true);
+    try {
+      // v2 API: forceWithdrawUser 사용
+      const response = await adminApi.forceWithdrawUser(report.targetId);
+
+      if (response.success) {
+        showSuccess("사용자 탈퇴", "사용자가 성공적으로 탈퇴 처리되었습니다.");
+        onOpenChange(false);
+        // 새로고침 신호 발송
+        window.location.reload();
+      } else {
+        showError("탈퇴 실패", response.error || "사용자 탈퇴에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Force withdraw user failed:", error);
+      showError("탈퇴 실패", "사용자 탈퇴 중 오류가 발생했습니다.");
     } finally {
       setIsBanning(false);
     }
@@ -113,9 +150,11 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">
-                신고자 ID
+                신고자
               </label>
-              <p className="text-sm text-gray-900">{report.userId}</p>
+              <p className="text-sm text-gray-900">
+                {report.reporterName || `ID: ${report.reporterId || report.userId}`}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">상태</label>
@@ -167,15 +206,26 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
               반려
             </Button>
             {report.targetId && (
-              <Button
-                onClick={handleBanUser}
-                disabled={isBanning}
-                variant="destructive"
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <UserX className="w-4 h-4 mr-2" />
-                {isBanning ? "처리 중..." : "회원탈퇴"}
-              </Button>
+              <>
+                <Button
+                  onClick={handleBanUser}
+                  disabled={isBanning}
+                  variant="destructive"
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  <UserX className="w-4 h-4 mr-2" />
+                  {isBanning ? "처리 중..." : "사용자 차단"}
+                </Button>
+                <Button
+                  onClick={handleForceWithdrawUser}
+                  disabled={isBanning}
+                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <UserX className="w-4 h-4 mr-2" />
+                  {isBanning ? "처리 중..." : "강제 탈퇴"}
+                </Button>
+              </>
             )}
           </div>
         </div>

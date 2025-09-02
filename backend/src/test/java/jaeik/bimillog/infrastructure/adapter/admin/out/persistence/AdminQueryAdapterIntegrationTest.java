@@ -102,7 +102,7 @@ class AdminQueryAdapterIntegrationTest {
 
         createAndSaveReport(reporter1, ReportType.POST, 1L, "게시글 신고");
         createAndSaveReport(reporter2, ReportType.COMMENT, 2L, "댓글 신고");
-        createAndSaveReport(reporter1, ReportType.PAPER, 3L, "롤링페이퍼 신고");
+        createAndSaveReport(reporter1, ReportType.SUGGESTION, 3L, "롤링페이퍼 신고");
 
         entityManager.flush();
         entityManager.clear();

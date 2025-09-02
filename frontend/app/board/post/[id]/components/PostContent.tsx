@@ -82,7 +82,7 @@ export const PostContent: React.FC<PostContentProps> = ({
           <ThumbsUp
             className={`w-4 h-4 mr-2 ${post.userLike ? "fill-current" : ""}`}
           />
-          추천 {post.likes}
+          추천 {post.likeCount}
         </Button>
 
         {/* 신고 버튼 (자신의 글이 아닌 경우에만 표시) */}

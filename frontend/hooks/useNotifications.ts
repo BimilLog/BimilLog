@@ -121,8 +121,8 @@ export function useNotifications() {
       
       if (response.success && response.data) {
         setNotifications(response.data)
-        setUnreadCount(response.data.filter((n) => !n.read).length)
-        console.log(`알림 ${response.data.length}개 조회됨 (읽지 않음: ${response.data.filter((n) => !n.read).length}개)`)
+        setUnreadCount(response.data.filter((n) => !n.isRead).length)  // v2: read → isRead
+        console.log(`알림 ${response.data.length}개 조회됨 (읽지 않음: ${response.data.filter((n) => !n.isRead).length}개)`)
       }
     } catch (error) {
       console.error("알림 조회 실패:", error)
@@ -163,11 +163,11 @@ export function useNotifications() {
       // 임시 알림을 즉시 표시 (사용자 경험 향상)
       const tempNotification: Notification = {
         id: data.id,
-        data: data.data,
+        content: data.content || data.data,  // v2: data → content (legacy fallback)
         url: data.url,
-        type: data.type,
+        notificationType: data.notificationType || data.type,  // v2: type → notificationType (legacy fallback)
         createdAt: data.createdAt,
-        read: false,
+        isRead: false,  // v2: read → isRead
       }
 
       setNotifications((prev) => {
@@ -184,7 +184,7 @@ export function useNotifications() {
         const response = await notificationApi.getNotifications()
         if (response.success && response.data) {
           setNotifications(response.data)
-          setUnreadCount(response.data.filter((n) => !n.read).length)
+          setUnreadCount(response.data.filter((n) => !n.isRead).length)  // v2: read → isRead
           if (process.env.NODE_ENV === 'development') {
         console.log("서버에서 최신 알림 목록 업데이트 완료");
       }
@@ -195,7 +195,7 @@ export function useNotifications() {
 
       // 브라우저 알림 표시 (권한이 있는 경우)
       if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-        new Notification(data.data, {
+        new Notification(data.content || data.data, {  // v2: data → content (legacy fallback)
           body: data.url,
           icon: "/favicon.ico",
         })
@@ -283,7 +283,7 @@ export function useNotifications() {
     // UI 즉시 업데이트
     setNotifications((prev) =>
       prev.map((notification) =>
-        notification.id === notificationId ? { ...notification, read: true } : notification,
+        notification.id === notificationId ? { ...notification, isRead: true } : notification,  // v2: read → isRead
       ),
     )
     setUnreadCount((prev) => Math.max(0, prev - 1))
@@ -302,7 +302,7 @@ export function useNotifications() {
     
     // UI 즉시 업데이트
     setNotifications((prev) => prev.filter((n) => n.id !== notificationId))
-    if (notification && !notification.read) {
+    if (notification && !notification.isRead) {  // v2: read → isRead
       setUnreadCount((prev) => Math.max(0, prev - 1))
     }
     
@@ -315,7 +315,7 @@ export function useNotifications() {
   // 모든 알림 읽음 처리 (즉시 실행)
   const markAllAsRead = async () => {
     try {
-      const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id)
+      const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id)  // v2: read → isRead
       if (unreadIds.length === 0) return
 
       console.log(`모든 알림 읽음 처리 - 즉시 실행 (${unreadIds.length}개)`)
@@ -323,7 +323,7 @@ export function useNotifications() {
         readIds: unreadIds,
       })
       if (response.success) {
-        setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })))
+        setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })))  // v2: read → isRead
         setUnreadCount(0)
         
         // 배치에서 해당 ID들 제거 (이미 처리됨)
