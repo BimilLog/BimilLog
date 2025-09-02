@@ -14,9 +14,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -29,14 +33,23 @@ import static org.mockito.Mockito.*;
  * <h2>신고 제출 이벤트 워크플로우 통합 테스트</h2>
  * <p>신고 제출부터 저장까지의 전체 이벤트 기반 워크플로우를 검증하는 통합 테스트</p>
  * <p>비동기 이벤트 처리를 Awaitility를 사용하여 검증합니다.</p>
+ * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @SpringBootTest
-@ActiveProfiles("test")
+@Testcontainers
+@Transactional
 @DisplayName("신고 제출 이벤트 워크플로우 통합 테스트")
 class ReportSubmissionEventWorkflowIntegrationTest {
+
+    @Container
+    @ServiceConnection
+    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;

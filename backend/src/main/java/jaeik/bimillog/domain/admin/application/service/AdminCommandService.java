@@ -43,12 +43,16 @@ public class AdminCommandService implements AdminCommandUseCase {
      *
      * <p>사용자가 제출한 신고나 건의사항을 생성하여 저장합니다.</p>
      * <p>인증된 사용자의 경우 사용자 정보를 조회하고, 익명 사용자의 경우 null로 처리합니다.</p>
+     * <p>신고 유형에 따른 비즈니스 검증을 수행합니다.</p>
      */
     @Override
     public void createReport(Long userId, ReportVO reportVO) {
         if (reportVO == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
+        
+        // 비즈니스 규칙 검증
+        validateReportRules(reportVO);
         
         // 신고자 정보 조회 (익명 사용자의 경우 null)
         User reporter = null;
@@ -102,6 +106,67 @@ public class AdminCommandService implements AdminCommandUseCase {
         
         // 이벤트 발행으로 Auth 도메인에 탈퇴 처리 위임
         eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, "관리자 강제 탈퇴"));
+    }
+
+    /**
+     * <h3>신고 비즈니스 규칙 검증</h3>
+     * <p>신고 유형에 따른 필수 필드 및 비즈니스 규칙을 검증합니다.</p>
+     *
+     * @param reportVO 신고 정보 값 객체
+     * @throws CustomException 검증 실패 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void validateReportRules(ReportVO reportVO) {
+        if (reportVO.reportType() == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        // POST, COMMENT 신고는 targetId 필수
+        if (reportVO.reportType() == ReportType.POST || reportVO.reportType() == ReportType.COMMENT) {
+            if (reportVO.targetId() == null) {
+                throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+            }
+            
+            // 신고 대상이 실제 존재하는지 검증
+            validateTargetExists(reportVO.reportType(), reportVO.targetId());
+        }
+        
+        // SUGGESTION은 targetId가 없어야 함
+        if (reportVO.reportType() == ReportType.SUGGESTION && reportVO.targetId() != null) {
+            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+        }
+        
+        // 신고 내용 검증
+        if (reportVO.content() == null || reportVO.content().trim().isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        if (reportVO.content().length() > 500) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+    }
+    
+    /**
+     * <h3>신고 대상 존재 여부 검증</h3>
+     * <p>신고 대상이 실제로 존재하는지 검증합니다.</p>
+     *
+     * @param reportType 신고 유형
+     * @param targetId   신고 대상 ID
+     * @throws CustomException 대상이 존재하지 않거나 찾을 수 없는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void validateTargetExists(ReportType reportType, Long targetId) {
+        try {
+            User targetUser = resolveUser(reportType, targetId);
+            if (targetUser == null) {
+                throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+            }
+        } catch (CustomException e) {
+            // 대상을 찾을 수 없는 경우 신고 대상이 유효하지 않음으로 처리
+            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+        }
     }
 
     /**

@@ -10,6 +10,8 @@ import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.util.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -213,6 +215,173 @@ class UserCommandControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(userNameDTO)))
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @DisplayName("신고 제출 통합 테스트 - 인증된 사용자 게시글 신고")
+    void submitReport_AuthenticatedUser_PostReport_Success() throws Exception {
+        // Given - 테스트 사용자 생성 및 저장
+        User testUser = createTestUser();
+        userRepository.save(testUser);
+        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(123L)
+                .content("부적절한 게시글입니다.")
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("신고/건의사항이 접수되었습니다."));
+    }
+
+    @Test
+    @DisplayName("신고 제출 통합 테스트 - 인증된 사용자 댓글 신고")
+    void submitReport_AuthenticatedUser_CommentReport_Success() throws Exception {
+        // Given - 테스트 사용자 생성 및 저장
+        User testUser = createTestUser();
+        userRepository.save(testUser);
+        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.COMMENT)
+                .targetId(456L)
+                .content("부적절한 댓글입니다.")
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("신고/건의사항이 접수되었습니다."));
+    }
+
+    @Test
+    @DisplayName("신고 제출 통합 테스트 - 인증된 사용자 건의사항")
+    void submitReport_AuthenticatedUser_Suggestion_Success() throws Exception {
+        // Given - 테스트 사용자 생성 및 저장
+        User testUser = createTestUser();
+        userRepository.save(testUser);
+        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.SUGGESTION)
+                .targetId(null) // 건의사항은 targetId 불필요
+                .content("새로운 기능을 건의합니다.")
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("신고/건의사항이 접수되었습니다."));
+    }
+
+    @Test
+    @DisplayName("신고 제출 통합 테스트 - 익명 사용자 신고")
+    void submitReport_AnonymousUser_Success() throws Exception {
+        // Given - 인증되지 않은 상태로 신고
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(789L)
+                .content("익명 신고입니다.")
+                .build();
+
+        // When & Then - 익명 사용자도 신고 가능 (CSRF는 필요함)
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("신고/건의사항이 접수되었습니다."));
+    }
+
+    @Test
+    @DisplayName("신고 제출 통합 테스트 - 유효하지 않은 요청 - 400 Bad Request")
+    void submitReport_InvalidRequest_BadRequest() throws Exception {
+        // Given - reportType이 누락된 잘못된 요청
+        ReportDTO invalidReportDTO = ReportDTO.builder()
+                .reportType(null) // 필수 필드 누락
+                .targetId(123L)
+                .content("내용")
+                .build();
+
+        User testUser = createTestUser();
+        userRepository.save(testUser);
+        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+
+        // When & Then - @Valid 검증 실패로 400 에러
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidReportDTO))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("신고 제출 통합 테스트 - 성공")
+    void submitReport_EmptyContent_BadRequest() throws Exception {
+        // Given - content가 빈 잘못된 요청
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(123L)
+                .content("") // 빈 내용
+                .build();
+
+        User testUser = createTestUser();
+        userRepository.save(testUser);
+        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+
+        // When & Then
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    @DisplayName("신고 제출 - CSRF 토큰 없이 요청 - 403 Forbidden")
+    void submitReport_WithoutCsrf_Forbidden() throws Exception {
+        // Given
+        User testUser = createTestUser();
+        userRepository.save(testUser);
+        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(123L)
+                .content("CSRF 없는 신고")
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(user(userDetails)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 
     /**

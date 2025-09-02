@@ -3,11 +3,10 @@ package jaeik.bimillog.infrastructure.adapter.admin.in.web.dto;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.entity.ReportVO;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 
@@ -28,9 +27,16 @@ public class ReportDTO {
     private Long id;
     private Long reporterId;
     private String reporterName;
+    
+    @NotNull(message = "신고 유형은 필수입니다")
     private ReportType reportType;
+    
     private Long targetId;
+    
+    @NotBlank(message = "신고 내용은 필수입니다")
+    @Size(min = 10, max = 500, message = "신고 내용은 10-500자 사이여야 합니다")
     private String content;
+    
     private Instant createdAt;
 
     /**

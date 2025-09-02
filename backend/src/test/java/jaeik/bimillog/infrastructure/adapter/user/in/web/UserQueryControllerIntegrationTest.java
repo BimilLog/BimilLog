@@ -298,6 +298,7 @@ class UserQueryControllerIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
+
     /**
      * 테스트용 User 엔티티 생성
      */
