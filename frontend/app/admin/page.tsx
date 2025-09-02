@@ -14,24 +14,24 @@ import { ReportList } from "./components/ReportList";
 import { AdminStats } from "./components/AdminStats";
 
 export default function AdminPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [reports, setReports] = useState<PageResponse<Report> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingReports, setIsLoadingReports] = useState(true);
 
   // 권한 확인
   useEffect(() => {
-    if (!isAuthenticated || user?.role !== "ADMIN") {
+    if (!isLoading && (!isAuthenticated || user?.role !== "ADMIN")) {
       window.location.href = "/";
     }
-  }, [isAuthenticated, user]);
+  }, [isLoading, isAuthenticated, user]);
 
   // 신고 목록 조회
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        setIsLoading(true);
+        setIsLoadingReports(true);
         const reportType = filterType === "all" ? undefined : filterType;
         const response = await adminApi.getReports(0, 20, reportType);
         if (response.success && response.data) {
@@ -40,12 +40,27 @@ export default function AdminPage() {
       } catch (error) {
         console.error("Failed to fetch reports:", error);
       } finally {
-        setIsLoading(false);
+        setIsLoadingReports(false);
       }
     };
 
     fetchReports();
   }, [filterType]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <img
+            src="/log.png"
+            alt="비밀로그"
+            className="h-12 object-contain mx-auto mb-4 animate-pulse"
+          />
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || user?.role !== "ADMIN") {
     return null;
@@ -77,7 +92,7 @@ export default function AdminPage() {
           <TabsContent value="reports" className="space-y-6">
             <ReportList
               reports={reports}
-              isLoading={isLoading}
+              isLoading={isLoadingReports}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               filterType={filterType}

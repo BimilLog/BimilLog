@@ -10,7 +10,7 @@ interface NoticeListProps {
 }
 
 export const NoticeList = ({ posts }: NoticeListProps) => {
-  const notices = posts.filter((post) => post._notice);
+  const notices = posts.filter((post) => post.isNotice);
 
   if (notices.length === 0) {
     return null;
@@ -24,7 +24,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
             <tbody>
               {notices.map((notice) => (
                 <tr
-                  key={notice.postId}
+                  key={notice.id}
                   className="border-b border-gray-100 bg-purple-50/50 hover:bg-purple-100/50 transition-colors"
                 >
                   <td className="p-4 md:p-3 text-left font-medium hidden sm:table-cell w-20">
@@ -35,7 +35,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                   </td>
                   <td className="p-4 md:p-3 text-left font-semibold text-purple-800">
                     <Link
-                      href={`/board/post/${notice.postId}`}
+                      href={`/board/post/${notice.id}`}
                       className="hover:underline"
                     >
                       {notice.title}
@@ -57,7 +57,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                     {new Date(notice.createdAt).toLocaleDateString("ko-KR")}
                   </td>
                   <td className="p-4 md:p-3 text-left font-medium w-16">
-                    {notice.views}
+                    {notice.viewCount}
                   </td>
                   <td className="p-4 md:p-3 text-left font-medium w-16">
                     {notice.likeCount}

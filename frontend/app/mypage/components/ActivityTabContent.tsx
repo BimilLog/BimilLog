@@ -99,7 +99,7 @@ const PostCard = ({
                 <span className="text-base md:text-sm font-medium text-gray-700">
                   {post.userName}
                 </span>
-                {post._notice && (
+                {post.isNotice && (
                   <Badge className="bg-red-100 text-red-700 border-red-200">
                     <Pin className="w-3 h-3 mr-1" />
                     공지
@@ -118,7 +118,7 @@ const PostCard = ({
       </CardHeader>
 
       <CardContent className="pt-0">
-        <Link href={`/board/post/${post.postId}`}>
+        <Link href={`/board/post/${post.id}`}>
           <div className="cursor-pointer group">
             <h3 className="font-bold text-lg text-gray-800 group-hover:text-purple-600 transition-colors mb-3 line-clamp-2">
               {post.title}
@@ -131,7 +131,7 @@ const PostCard = ({
                 <div className="text-base md:text-sm">
                   <span className="text-gray-600">조회수</span>
                   <span className="font-semibold text-gray-800 ml-1">
-                    {post.views.toLocaleString()}
+                    {post.viewCount.toLocaleString()}
                   </span>
                 </div>
               </div>

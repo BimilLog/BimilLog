@@ -14,7 +14,7 @@ interface PostListProps {
 }
 
 export const PostList = ({ posts }: PostListProps) => {
-  const regularPosts = posts.filter((post) => !post._notice);
+  const regularPosts = posts.filter((post) => !post.isNotice);
 
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
@@ -41,7 +41,7 @@ export const PostList = ({ posts }: PostListProps) => {
               {regularPosts.length > 0 ? (
                 regularPosts.map((post) => (
                   <tr
-                    key={post.postId}
+                    key={post.id}
                     className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
                   >
                     <td className="p-4 md:p-3 hidden sm:table-cell">
@@ -55,7 +55,7 @@ export const PostList = ({ posts }: PostListProps) => {
                     </td>
                     <td className="p-4 md:p-3">
                       <Link
-                        href={`/board/post/${post.postId}`}
+                        href={`/board/post/${post.id}`}
                         className="font-semibold text-gray-800 hover:text-purple-600 transition-colors"
                       >
                         {post.title}
@@ -80,7 +80,7 @@ export const PostList = ({ posts }: PostListProps) => {
                     <td className="p-4 md:p-3 text-gray-600 hidden md:table-cell">
                       {formatDate(post.createdAt)}
                     </td>
-                    <td className="p-4 md:p-3 text-gray-600">{post.views}</td>
+                    <td className="p-4 md:p-3 text-gray-600">{post.viewCount}</td>
                     <td className="p-4 md:p-3 text-gray-600">{post.likeCount}</td>
                   </tr>
                 ))

@@ -55,7 +55,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
       <div className="mb-4">
         <div className="flex items-center flex-wrap gap-2 mb-3">
           {post.password && <Lock className="w-4 h-4 text-red-500" />}
-          {post.notice && (
+          {post.isNotice && (
             <Badge className="bg-red-500 text-white text-xs">공지</Badge>
           )}
           {post.postCacheFlag && (
@@ -121,7 +121,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             <div className="flex items-center space-x-1">
               <Eye className="w-4 h-4" />
-              <span>{post.views}</span>
+              <span>{post.viewCount}</span>
             </div>
             <div className="flex items-center space-x-1">
               <ThumbsUp className="w-4 h-4" />
@@ -139,7 +139,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
           {/* 카카오톡 공유 버튼 */}
           <KakaoShareButton
             type="post"
-            postId={post.postId}
+            postId={post.id}
             title={post.title}
             author={post.userName || "익명"}
             content={post.content}
@@ -152,7 +152,7 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
           {canModify() && (
             <div className="flex gap-2">
               <Link
-                href={`/board/post/${post.postId}/edit`}
+                href={`/board/post/${post.id}/edit`}
                 className="flex-1 sm:flex-initial"
               >
                 <Button

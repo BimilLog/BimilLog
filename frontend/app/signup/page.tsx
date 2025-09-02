@@ -104,7 +104,7 @@ export default function SignUpPage() {
       } else {
         showError(
           "회원가입 실패",
-          response.error || "회원가입에 실패했습니다."
+          "error" in response ? response.error : "회원가입에 실패했습니다."
         );
         setIsNicknameAvailable(false);
       }

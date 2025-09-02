@@ -67,16 +67,16 @@ export const PostContent: React.FC<PostContentProps> = ({
       <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t">
         <Button
           onClick={onLike}
-          variant={post.userLike ? "default" : "outline"}
+          variant={post.isLiked ? "default" : "outline"}
           className={`${
-            post.userLike
+            post.isLiked
               ? "bg-blue-500 hover:bg-blue-600 text-white"
               : "hover:bg-blue-50 border-blue-300 text-blue-600"
           } transition-colors duration-200`}
           disabled={!isAuthenticated}
         >
           <ThumbsUp
-            className={`w-4 h-4 mr-2 ${post.userLike ? "fill-current" : ""}`}
+            className={`w-4 h-4 mr-2 ${post.isLiked ? "fill-current" : ""}`}
           />
           추천 {post.likeCount}
         </Button>

@@ -73,7 +73,11 @@ export default function UserDetailPage({
     if (!userId) return;
 
     try {
-      const response = await adminApi.banUser(Number(userId));
+      const response = await adminApi.banUser({
+        reportType: "USER",
+        targetId: Number(userId),
+        content: "관리자에 의한 사용자 차단"
+      });
       if (response.success) {
         setActionTaken("banned");
         setUserDetail((prev) => (prev ? { ...prev, status: "blocked" } : null));

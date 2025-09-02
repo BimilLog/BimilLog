@@ -131,7 +131,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
               { title: "커뮤니티", href: "/board" },
               {
                 title: post.title,
-                href: `/board/post/${post.postId}`,
+                href: `/board/post/${post.id}`,
               },
             ]}
           />
@@ -182,7 +182,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
         <CommentList
           comments={comments}
           commentCount={commentCount}
-          postId={post.postId}
+          postId={post.id}
           editingComment={commentActions.editingComment}
           editContent={commentActions.editContent}
           editPassword={commentActions.editPassword}

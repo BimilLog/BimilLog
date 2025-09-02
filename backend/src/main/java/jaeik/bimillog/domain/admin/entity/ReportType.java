@@ -6,13 +6,14 @@ package jaeik.bimillog.domain.admin.entity;
  * <ul>
  *     <li>POST: 게시글 신고</li>
  *     <li>COMMENT: 댓글 신고</li>
- *     <li>SUGGESTION: 건의 사항</li>
+ *     <li>ERROR: 오류 신고</li>
+ *     <li>IMPROVEMENT: 기능 개선 제안</li>
  * </ul>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 public enum ReportType {
-    POST, COMMENT, SUGGESTION
+    POST, COMMENT, ERROR, IMPROVEMENT
 }
 

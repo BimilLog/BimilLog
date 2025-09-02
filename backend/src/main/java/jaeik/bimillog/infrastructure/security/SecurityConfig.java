@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -75,27 +76,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http // 프론트 - 백 자동 테스트를 위해 임시 주석 처리
-//                .csrf(csrf -> csrf
-//                        .csrfTokenRepository(createCsrfTokenRepository())
-//                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(createCsrfTokenRepository())
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(HttpMethod.GET, "/").permitAll()
-//                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-//                        .requestMatchers("/api/auth/login", "/api/auth/health", "/api/auth/me", "/api/auth/signup").permitAll()
-//                        .requestMatchers("/api/comment/like").authenticated()
-//                        .requestMatchers("/api/comment/**").permitAll()
-//                        .requestMatchers("/api/post/{postId}/like").authenticated()
-//                        .requestMatchers("/api/post/**").permitAll()
-//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-//                        .requestMatchers("/api/paper/{userName}").permitAll()
-//                        .requestMatchers("/api/user/suggestion", "/api/user/username/check", "/api/user/report").permitAll()
-//                        .anyRequest().authenticated())
-                        .requestMatchers("/api/**").permitAll())  // 프론트 - 백 자동 테스트를 위해 임시 전체 허용
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/health", "/api/auth/me", "/api/auth/signup").permitAll()
+                        .requestMatchers("/api/comment/like").authenticated()
+                        .requestMatchers("/api/comment/**").permitAll()
+                        .requestMatchers("/api/post/{postId}/like").authenticated()
+                        .requestMatchers("/api/post/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/paper/{userName}").permitAll()
+                        .requestMatchers("/api/user/suggestion", "/api/user/username/check", "/api/user/report").permitAll()
+                        .anyRequest().authenticated())
+                        //.requestMatchers("/api/**").permitAll())  // 프론트 - 백 자동 테스트를 위해 임시 전체 허용
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(LogFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers

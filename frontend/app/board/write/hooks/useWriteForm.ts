@@ -63,7 +63,7 @@ export const useWriteForm = () => {
       const response = await boardApi.createPost(postData);
       if (response.success && response.data) {
         alert("게시글이 성공적으로 작성되었습니다!");
-        router.push(`/board/post/${response.data.postId}`);
+        router.push(`/board/post/${response.data.id}`);
       }
     } catch (error) {
       console.error("Failed to create post:", error);

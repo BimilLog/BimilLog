@@ -21,13 +21,13 @@ public class SuggestionReportedUserResolver implements ReportedUserResolver {
      * <h3>지원하는 신고 유형 반환</h3>
      * <p>이 해결사가 지원하는 신고 유형(PAPER)을 반환합니다.</p>
      *
-     * @return ReportType.SUGGESTION
+     * @return ReportType.IMPROVEMENT
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     public ReportType supports() {
-        return ReportType.SUGGESTION;
+        return ReportType.IMPROVEMENT;
     }
 
     @Override

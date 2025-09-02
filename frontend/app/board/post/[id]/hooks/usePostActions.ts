@@ -14,7 +14,7 @@ export const usePostActions = (
   const handleLike = async () => {
     if (!post) return;
     try {
-      await boardApi.likePost(post.postId);
+      await boardApi.likePost(post.id);
       await onRefresh();
     } catch (error) {
       console.error("추천 실패:", error);
@@ -28,13 +28,13 @@ export const usePostActions = (
       const response =
         post.userName === "익명" || post.userName === null
           ? await boardApi.deletePost(
-              post.postId,
+              post.id,
               post.userId,
               password,
               post.content,
               post.title
             )
-          : await boardApi.deletePost(post.postId, post.userId);
+          : await boardApi.deletePost(post.id, post.userId);
 
       if (response.success) {
         router.push("/board");

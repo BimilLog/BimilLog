@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await userApi.updateUserName(user.userId, userName);
+      const response = await userApi.updateUserName(userName);
       if (response.success) {
         await refreshUser();
         return true;

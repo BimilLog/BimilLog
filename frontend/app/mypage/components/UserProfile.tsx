@@ -115,7 +115,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     setIsNicknameChangeSubmitting(true);
     try {
       const response = await userApi.updateUserName(
-        user.userId,
         nicknameInput.trim()
       );
       if (response.success) {

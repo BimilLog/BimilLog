@@ -132,8 +132,9 @@ public class AdminCommandService implements AdminCommandUseCase {
             validateTargetExists(reportVO.reportType(), reportVO.targetId());
         }
         
-        // SUGGESTION은 targetId가 없어야 함
-        if (reportVO.reportType() == ReportType.SUGGESTION && reportVO.targetId() != null) {
+        // ERROR, IMPROVEMENT는 targetId가 없어야 함
+        if ((reportVO.reportType() == ReportType.ERROR || reportVO.reportType() == ReportType.IMPROVEMENT) 
+                && reportVO.targetId() != null) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
         }
         

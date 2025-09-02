@@ -69,7 +69,7 @@ export function NotificationBell() {
 
   // 알림 읽음 처리
   const handleNotificationClick = async (notification: any) => {
-    if (!notification.isRead) {  // v2: read → isRead
+    if (!notification.isRead) {
       await markAsRead(notification.id);
     }
 
@@ -82,7 +82,7 @@ export function NotificationBell() {
   // 알림 타입별 아이콘 매핑 - v2 NotificationType 호환
   const getNotificationIcon = (notificationType: string) => {
     switch (notificationType) {
-      case "PAPER":  // v2: FARM → PAPER
+      case "PAPER":
         return <Leaf className="w-4 h-4 text-green-600" />;
       case "COMMENT":
         return <MessageSquare className="w-4 h-4 text-blue-600" />;
@@ -221,7 +221,7 @@ export function NotificationBell() {
               <div
                 key={notification.id}
                 className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                  !notification.isRead  // v2: read → isRead
+                  !notification.isRead
                     ? "bg-blue-50/50 border-l-2 border-l-blue-500"
                     : ""
                 }`}
@@ -229,17 +229,17 @@ export function NotificationBell() {
               >
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 mt-0.5">
-                    {getNotificationIcon(notification.notificationType)}  {/* v2: type → notificationType */}
+                    {getNotificationIcon(notification.notificationType)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p
                       className={`text-sm ${
-                        !notification.isRead  // v2: read → isRead
+                        !notification.isRead
                           ? "font-medium text-gray-900"
                           : "text-gray-600"
                       }`}
                     >
-                      {notification.content}  {/* v2: data → content */}
+                      {notification.content}
                     </p>
                     <div className="flex items-center justify-between mt-1">
                       <div className="flex items-center space-x-2 text-xs text-gray-500">
@@ -247,7 +247,7 @@ export function NotificationBell() {
                         <span>{getRelativeTime(notification.createdAt)}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        {!notification.isRead && (  {/* v2: read → isRead */}
+                        {!notification.isRead && (
                           <Button
                             variant="ghost"
                             size="sm"

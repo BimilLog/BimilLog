@@ -38,8 +38,8 @@ export const PopularPostList = ({
         {posts.length > 0 ? (
           <ul className="space-y-4">
             {posts.map((post, index) => (
-              <li key={post.postId}>
-                <Link href={`/board/post/${post.postId}`}>
+              <li key={post.id}>
+                <Link href={`/board/post/${post.id}`}>
                   <div className="p-5 md:p-4 rounded-lg hover:bg-gray-50/50 transition-colors">
                     <div className="flex items-center space-x-4">
                       <span className="text-xl font-bold text-purple-600 w-8 text-center">
