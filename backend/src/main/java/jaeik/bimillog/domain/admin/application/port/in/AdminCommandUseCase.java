@@ -11,6 +11,17 @@ import jaeik.bimillog.domain.admin.entity.ReportVO;
  */
 public interface AdminCommandUseCase {
     /**
+     * <h3>신고/건의사항 생성</h3>
+     * <p>사용자가 제출한 신고나 건의사항을 생성하여 저장합니다.</p>
+     *
+     * @param userId   신고자 ID
+     * @param reportVO 신고 정보 값 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void createReport(Long userId, ReportVO reportVO);
+
+    /**
      * <h3>사용자 제재</h3>
      * <p>주어진 신고 정보를 기반으로 사용자를 제재합니다.</p>
      *

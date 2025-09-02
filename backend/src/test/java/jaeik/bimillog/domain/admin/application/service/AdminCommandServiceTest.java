@@ -1,10 +1,13 @@
 package jaeik.bimillog.domain.admin.application.service;
 
 import jaeik.bimillog.domain.admin.application.port.in.ReportedUserResolver;
+import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
+import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.admin.entity.ReportVO;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -20,11 +23,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,6 +53,12 @@ class AdminCommandServiceTest {
     @Mock
     private ReportedUserResolver reportedUserResolver;
 
+    @Mock
+    private AdminCommandPort adminCommandPort;
+
+    @Mock
+    private UserQueryPort userQueryPort;
+
     @InjectMocks
     private AdminCommandService adminCommandService;
 
@@ -57,7 +69,9 @@ class AdminCommandServiceTest {
     void setUp() {
         adminCommandService = new AdminCommandService(
                 eventPublisher,
-                List.of(reportedUserResolver)
+                List.of(reportedUserResolver),
+                adminCommandPort,
+                userQueryPort
         );
 
         validReportVO = ReportVO.builder()
@@ -188,7 +202,9 @@ class AdminCommandServiceTest {
 
         adminCommandService = new AdminCommandService(
                 eventPublisher,
-                List.of(postResolver, commentResolver, paperResolver)
+                List.of(postResolver, commentResolver, paperResolver),
+                adminCommandPort,
+                userQueryPort
         );
 
         ReportVO postReport = ReportVO.builder()
@@ -234,7 +250,9 @@ class AdminCommandServiceTest {
 
         adminCommandService = new AdminCommandService(
                 eventPublisher,
-                List.of(commentResolver, postResolver)
+                List.of(commentResolver, postResolver),
+                adminCommandPort,
+                userQueryPort
         );
 
         // When
@@ -243,6 +261,145 @@ class AdminCommandServiceTest {
         // Then
         verify(postResolver).resolve(200L);
         verify(commentResolver, never()).resolve(any());
+    }
+
+    // ========== createReport 메서드 테스트 ==========
+
+    @Test
+    @DisplayName("인증된 사용자 신고 생성 - 성공")
+    void createReport_AuthenticatedUser_Success() {
+        // Given
+        Long userId = 1L;
+        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "부적절한 댓글입니다");
+        
+        User reporter = User.builder()
+                .id(userId)
+                .userName("testuser")
+                .socialId("social123")
+                .provider(SocialProvider.KAKAO)
+                .build();
+
+        Report expectedReport = Report.createReport(reportVO, reporter);
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(reporter));
+        given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
+
+        // When
+        adminCommandService.createReport(userId, reportVO);
+
+        // Then
+        verify(userQueryPort, times(1)).findById(userId);
+        verify(adminCommandPort, times(1)).save(any(Report.class));
+    }
+
+    @Test
+    @DisplayName("익명 사용자 신고 생성 - 성공")
+    void createReport_AnonymousUser_Success() {
+        // Given
+        Long userId = null; // 익명 사용자
+        ReportVO reportVO = ReportVO.of(ReportType.POST, 456L, "스팸 게시글입니다");
+        
+        Report expectedReport = Report.createReport(reportVO, null);
+        given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
+
+        // When
+        adminCommandService.createReport(userId, reportVO);
+
+        // Then
+        verify(userQueryPort, never()).findById(any()); // 익명 사용자는 조회하지 않음
+        verify(adminCommandPort, times(1)).save(any(Report.class));
+    }
+
+    @Test
+    @DisplayName("건의사항 생성 - 성공 (targetId null)")
+    void createReport_Suggestion_Success() {
+        // Given
+        Long userId = 2L;
+        ReportVO reportVO = ReportVO.of(ReportType.SUGGESTION, null, "새로운 기능을 건의합니다");
+        
+        User reporter = User.builder()
+                .id(userId)
+                .userName("suggester")
+                .socialId("social456")
+                .provider(SocialProvider.KAKAO)
+                .build();
+
+        Report expectedReport = Report.createReport(reportVO, reporter);
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(reporter));
+        given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
+
+        // When
+        adminCommandService.createReport(userId, reportVO);
+
+        // Then
+        verify(userQueryPort, times(1)).findById(userId);
+        verify(adminCommandPort, times(1)).save(any(Report.class));
+    }
+
+    @Test
+    @DisplayName("신고 생성 - 실패 (reportVO가 null)")
+    void createReport_Fail_NullReportVO() {
+        // Given
+        Long userId = 1L;
+        ReportVO reportVO = null;
+
+        // When & Then
+        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportVO))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+
+        verify(userQueryPort, never()).findById(any());
+        verify(adminCommandPort, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("신고 생성 - 실패 (존재하지 않는 사용자)")
+    void createReport_Fail_UserNotFound() {
+        // Given
+        Long userId = 999L;
+        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "부적절한 댓글입니다");
+        
+        given(userQueryPort.findById(userId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportVO))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+
+        verify(userQueryPort, times(1)).findById(userId);
+        verify(adminCommandPort, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("여러 신고 연속 생성 - 성공")
+    void createMultipleReports_Success() {
+        // Given
+        Long userId1 = 1L;
+        Long userId2 = null; // 익명
+        Long userId3 = 3L;
+
+        ReportVO reportVO1 = ReportVO.of(ReportType.COMMENT, 100L, "신고 내용 1");
+        ReportVO reportVO2 = ReportVO.of(ReportType.POST, 200L, "신고 내용 2");
+        ReportVO reportVO3 = ReportVO.of(ReportType.SUGGESTION, null, "건의 내용");
+
+        User user1 = User.builder().id(userId1).userName("user1").build();
+        User user3 = User.builder().id(userId3).userName("user3").build();
+
+        given(userQueryPort.findById(userId1)).willReturn(Optional.of(user1));
+        given(userQueryPort.findById(userId3)).willReturn(Optional.of(user3));
+        given(adminCommandPort.save(any(Report.class))).willReturn(mock(Report.class));
+
+        // When
+        adminCommandService.createReport(userId1, reportVO1);
+        adminCommandService.createReport(userId2, reportVO2); // 익명
+        adminCommandService.createReport(userId3, reportVO3);
+
+        // Then
+        verify(userQueryPort, times(1)).findById(userId1);
+        verify(userQueryPort, never()).findById(userId2); // 익명은 조회하지 않음
+        verify(userQueryPort, times(1)).findById(userId3);
+        verify(adminCommandPort, times(3)).save(any(Report.class));
     }
 
     private ReportedUserResolver createMockResolver(ReportType supportedType) {

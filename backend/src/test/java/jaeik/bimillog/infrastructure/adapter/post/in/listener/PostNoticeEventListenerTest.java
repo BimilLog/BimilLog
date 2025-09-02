@@ -93,7 +93,7 @@ class PostNoticeEventListenerTest {
                 .anySatisfy(logEvent -> {
                     assertThat(logEvent.getLevel()).isEqualTo(Level.INFO);
                     assertThat(logEvent.getFormattedMessage())
-                            .contains("Post (ID: " + postId + ") set as notice event received")
+                            .contains("Post (ID: " + postId + ") set as notice listener received")
                             .contains("Adding notice to cache");
                 });
     }
@@ -119,7 +119,7 @@ class PostNoticeEventListenerTest {
                 .anySatisfy(logEvent -> {
                     assertThat(logEvent.getLevel()).isEqualTo(Level.INFO);
                     assertThat(logEvent.getFormattedMessage())
-                            .contains("Post (ID: " + postId + ") unset as notice event received")
+                            .contains("Post (ID: " + postId + ") unset as notice listener received")
                             .contains("Removing notice from cache");
                 });
     }

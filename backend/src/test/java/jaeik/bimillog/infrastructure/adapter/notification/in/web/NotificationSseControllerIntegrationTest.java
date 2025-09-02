@@ -137,14 +137,14 @@ class NotificationSseControllerIntegrationTest {
     }
     
     @Test
-    @DisplayName("Accept 헤더 확인 - text/event-stream")
+    @DisplayName("Accept 헤더 확인 - text/listener-stream")
     void subscribe_CheckAcceptHeader_Success() throws Exception {
         // Given
         CustomUserDetails userDetails = createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/notification/subscribe")
-                .header("Accept", "text/event-stream")
+                .header("Accept", "text/listener-stream")
                 .with(user(userDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())

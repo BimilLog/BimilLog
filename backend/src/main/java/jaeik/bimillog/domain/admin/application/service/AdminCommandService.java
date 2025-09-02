@@ -3,8 +3,11 @@ package jaeik.bimillog.domain.admin.application.service;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.application.port.in.ReportedUserResolver;
+import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
+import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.entity.ReportVO;
+import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
@@ -32,6 +35,32 @@ public class AdminCommandService implements AdminCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
     private final List<ReportedUserResolver> userResolvers;
+    private final AdminCommandPort adminCommandPort;
+    private final UserQueryPort userQueryPort;
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>사용자가 제출한 신고나 건의사항을 생성하여 저장합니다.</p>
+     * <p>인증된 사용자의 경우 사용자 정보를 조회하고, 익명 사용자의 경우 null로 처리합니다.</p>
+     */
+    @Override
+    public void createReport(Long userId, ReportVO reportVO) {
+        if (reportVO == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        // 신고자 정보 조회 (익명 사용자의 경우 null)
+        User reporter = null;
+        if (userId != null) {
+            reporter = userQueryPort.findById(userId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        }
+        
+        // Report 엔티티 생성 및 저장
+        Report report = Report.createReport(reportVO, reporter);
+        adminCommandPort.save(report);
+    }
 
     /**
      * <h3>사용자 제재</h3>

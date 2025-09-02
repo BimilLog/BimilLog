@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.admin.application.service;
 
 import jaeik.bimillog.domain.admin.application.port.in.ReportedUserResolver;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,8 +16,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SuggestionReportedUserResolver implements ReportedUserResolver {
-
-    private final PaperQueryUseCase paperQueryUseCase;
 
     /**
      * <h3>지원하는 신고 유형 반환</h3>
