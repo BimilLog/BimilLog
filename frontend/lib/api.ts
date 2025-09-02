@@ -642,8 +642,8 @@ export const adminApi = {
     // 레거시 호환을 위해 목록 조회로 대체
     try {
       const response = await apiClient.get(`/api/admin/reports?page=0&size=1000`);
-      if (response.success && response.data?.content) {
-        const report = response.data.content.find((r: any) => r.id === reportId);
+      if (response.success && response.data && (response.data as any)?.content) {
+        const report = ((response.data as any).content as any[]).find((r: any) => r.id === reportId);
         return { ...response, data: report };
       }
       return response;
@@ -688,19 +688,11 @@ export class SSEManager {
     }
 
     try {
-      // JWT 토큰을 URL 파라미터로 전달 - 토큰이 없으면 SSE 연결하지 않음
-      const token = getCookie("accessToken")
-      if (!token) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("SSE 연결 건너뛰기: 인증 토큰 없음");
-        }
-        return;
-      }
-      
-      const sseUrl = `${notificationApi.subscribeToNotifications()}?token=${encodeURIComponent(token)}`
+      // HttpOnly 쿠키가 자동으로 전송되므로 토큰 확인 불필요
+      const sseUrl = notificationApi.subscribeToNotifications()
 
       if (process.env.NODE_ENV === 'development') {
-        console.log("SSE 연결 시도:", sseUrl.replace(token || '', '[TOKEN]'));
+        console.log("SSE 연결 시도:", sseUrl);
       }
 
       this.eventSource = new EventSource(sseUrl, {

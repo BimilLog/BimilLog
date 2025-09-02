@@ -24,11 +24,8 @@ export function useNotifications() {
       return false
     }
 
-    // 닉네임이 설정되지 않은 신규회원은 연결 불가
+    // 닉네임이 없는 신규회원은 회원가입 완료 후 연결
     if (!user.userName || user.userName.trim() === "") {
-      if (process.env.NODE_ENV === 'development') {
-      console.log("닉네임이 설정되지 않은 사용자 - SSE 연결 불가");
-    }
       return false
     }
 
@@ -131,150 +128,85 @@ export function useNotifications() {
     }
   }
 
-  // SSE 연결 함수 (수동 트리거용)
-  const connectSSE = useCallback(() => {
-    if (!canConnectSSE()) {
-      if (process.env.NODE_ENV === 'development') {
-      console.log("SSE 연결 조건 미충족 - 연결 건너뛰기");
-    }
-      return
-    }
 
-    if (isSSEConnected) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("이미 SSE가 연결되어 있습니다.");
-      }
-      return
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`SSE 연결을 시작합니다 (사용자: ${user?.userName})...`);
-    }
-    
-    // 기존 리스너 제거
-    sseManager.removeEventListener("notification")
-    
-    // 새 알림 수신 리스너 등록
-    sseManager.addEventListener("notification", async (data) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("새 알림 수신:", data);
-      }
-      
-      // 임시 알림을 즉시 표시 (사용자 경험 향상)
-      const tempNotification: Notification = {
-        id: data.id,
-        content: data.content || data.data,  // v2: data → content (legacy fallback)
-        url: data.url,
-        notificationType: data.notificationType || data.type,  // v2: type → notificationType (legacy fallback)
-        createdAt: data.createdAt,
-        isRead: false,  // v2: read → isRead
-      }
-
-      setNotifications((prev) => {
-        console.log("임시 알림 목록 업데이트:", tempNotification)
-        return [tempNotification, ...prev]
-      })
-      setUnreadCount((prev) => prev + 1)
-
-      // 서버에서 최신 알림 목록을 다시 조회하여 정확한 데이터로 업데이트
-      try {
-        if (process.env.NODE_ENV === 'development') {
-        console.log("SSE 알림 수신 후 서버에서 최신 알림 목록 조회...");
-      }
-        const response = await notificationApi.getNotifications()
-        if (response.success && response.data) {
-          setNotifications(response.data)
-          setUnreadCount(response.data.filter((n) => !n.isRead).length)  // v2: read → isRead
-          if (process.env.NODE_ENV === 'development') {
-        console.log("서버에서 최신 알림 목록 업데이트 완료");
-      }
-        }
-      } catch (error) {
-        console.error("SSE 알림 수신 후 알림 목록 조회 실패:", error)
-      }
-
-      // 브라우저 알림 표시 (권한이 있는 경우)
-      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-        new Notification(data.content || data.data, {  // v2: data → content (legacy fallback)
-          body: data.url,
-          icon: "/favicon.ico",
-        })
-      }
-    })
-
-    // SSE 연결
-    sseManager.connect()
-
-    // 연결 상태 모니터링
-    const checkConnection = () => {
-      const state = sseManager.getConnectionState()
-      const connected = sseManager.isConnected()
-      
-      if (process.env.NODE_ENV === 'development') {
-      console.log(`SSE 연결 상태: ${state}, 연결됨: ${connected}`);
-    }
-      setConnectionState(state)
-      setIsSSEConnected(connected)
-      
-      if (!connected && canConnectSSE()) {
-        // 연결이 끊어진 경우 3초 후 재연결 시도
-        setTimeout(() => {
-          if (canConnectSSE() && !sseManager.isConnected()) {
-            console.log("SSE 재연결 시도...")
-            connectSSE()
-          }
-        }, 3000)
-      }
-    }
-
-    // 초기 연결 상태 확인
-    setTimeout(checkConnection, 1000)
-    
-    // 주기적 연결 상태 확인 (30초마다)
-    const intervalId = setInterval(checkConnection, 30000)
-    
-    // cleanup 함수 반환
-    return () => {
-      clearInterval(intervalId)
-    }
-  }, [canConnectSSE, isSSEConnected, user])
-
-  // SSE 연결 해제 함수
-  const disconnectSSE = useCallback(() => {
-    console.log("SSE 연결을 해제합니다...")
-    sseManager.removeEventListener("notification")
-    sseManager.disconnect()
-    setIsSSEConnected(false)
-    setConnectionState("DISCONNECTED")
-  }, [])
-
-  // 인증 상태 및 사용자 정보가 변경될 때 SSE 연결 관리
+  // SSE 알림 리스너 등록 (AuthContext에서 연결 관리)
   useEffect(() => {
     if (canConnectSSE()) {
       if (process.env.NODE_ENV === 'development') {
-      console.log(`사용자 인증 완료 (${user?.userName}) - SSE 연결 준비`);
-    }
-      // 인증된 경우 자동으로 SSE 연결
-      const cleanup = connectSSE()
-      return cleanup
-    } else {
-      if (isAuthenticated && user && (!user.userName || user.userName.trim() === "")) {
-        console.log("닉네임 미설정 사용자 - SSE 연결 대기")
-      } else {
-        console.log("사용자 인증 해제됨 - SSE 연결 해제")
+        console.log(`사용자 인증 완료 (${user?.userName}) - 알림 리스너 등록`);
       }
-      disconnectSSE()
-    }
-  }, [canConnectSSE, connectSSE, disconnectSSE])
+      
+      // 기존 리스너 제거 후 새로 등록
+      sseManager.removeEventListener("notification")
+      
+      // 새 알림 수신 리스너 등록
+      sseManager.addEventListener("notification", async (data) => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log("새 알림 수신:", data);
+        }
+        
+        // 임시 알림을 즉시 표시 (사용자 경험 향상)
+        const tempNotification: Notification = {
+          id: data.id,
+          content: data.content || data.data,
+          url: data.url,
+          notificationType: data.notificationType || data.type,
+          createdAt: data.createdAt,
+          isRead: false,
+        }
 
-  // 컴포넌트 언마운트 시 SSE 연결 해제
-  useEffect(() => {
-    return () => {
-      if (isSSEConnected) {
-        disconnectSSE()
+        setNotifications((prev) => [tempNotification, ...prev])
+        setUnreadCount((prev) => prev + 1)
+
+        // 서버에서 최신 알림 목록을 다시 조회
+        try {
+          const response = await notificationApi.getNotifications()
+          if (response.success && response.data) {
+            setNotifications(response.data)
+            setUnreadCount(response.data.filter((n) => !n.isRead).length)
+          }
+        } catch (error) {
+          console.error("SSE 알림 수신 후 알림 목록 조회 실패:", error)
+        }
+
+        // 브라우저 알림 표시
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+          new Notification(data.content || data.data, {
+            body: data.url,
+            icon: "/favicon.ico",
+          })
+        }
+      })
+
+      // 연결 상태 모니터링
+      const checkConnection = () => {
+        const state = sseManager.getConnectionState()
+        const connected = sseManager.isConnected()
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`SSE 연결 상태: ${state}, 연결됨: ${connected}`);
+        }
+        setConnectionState(state)
+        setIsSSEConnected(connected)
       }
+
+      // 주기적 연결 상태 확인 (30초마다)
+      const intervalId = setInterval(checkConnection, 30000)
+      
+      // 초기 연결 상태 확인
+      setTimeout(checkConnection, 1000)
+      
+      return () => {
+        clearInterval(intervalId)
+        sseManager.removeEventListener("notification")
+      }
+    } else {
+      // 인증이 해제된 경우 리스너만 제거 (연결 해제는 AuthContext에서 처리)
+      sseManager.removeEventListener("notification")
+      setIsSSEConnected(false)
+      setConnectionState("DISCONNECTED")
     }
-  }, [isSSEConnected, disconnectSSE])
+  }, [canConnectSSE, user])
 
   // 개별 알림 읽음 처리 (배치에 추가)
   const markAsRead = useCallback(async (notificationId: number) => {
@@ -388,8 +320,6 @@ export function useNotifications() {
     connectionState,
     canConnectSSE,
     fetchNotifications,
-    connectSSE,
-    disconnectSSE,
     markAsRead,
     deleteNotification,
     markAllAsRead,

@@ -13,7 +13,7 @@ export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshUser } = useAuth();
-  const { connectSSE, fetchNotifications } = useNotifications();
+  const { fetchNotifications } = useNotifications();
   const { showSuccess, showError, toasts, removeToast } = useToast();
   const isProcessing = useRef(false);
 
@@ -61,9 +61,8 @@ export default function AuthCallbackPage() {
               // 정식 회원: 유저 정보가 있고, userName이 존재함
               await refreshUser(); // 전역 상태 업데이트
 
-              // 기존회원 로그인 성공 후 SSE 연결 및 알림 목록 조회
+              // 기존회원 로그인 성공 후 알림 목록 조회 (SSE 연결은 AuthContext에서 자동 처리)
               await fetchNotifications(); // 알림 목록 조회
-              connectSSE(); // SSE 연결 시작
 
               // 카카오 친구 동의 완료 후 돌아온 경우 확인
               const returnUrl = sessionStorage.getItem("returnUrl");
@@ -120,7 +119,6 @@ export default function AuthCallbackPage() {
     router,
     searchParams,
     refreshUser,
-    connectSSE,
     fetchNotifications,
     showSuccess,
     showError,

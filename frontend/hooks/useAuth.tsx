@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect, createContext, useContext } from "react";
-import { authApi, userApi, type User } from "@/lib/api";
+import { authApi, userApi, sseManager, type User } from "@/lib/api";
 import { useToastContext } from "@/hooks/useToast";
 
 interface AuthContextType {
@@ -33,13 +33,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (response.success && response.data) {
         setUser(response.data);
+        
+        // 기존회원(로그인) 또는 신규회원(회원가입 완료) 시 SSE 연결
+        if (response.data.userName && response.data.userName.trim() !== "") {
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`사용자 인증 완료 (${response.data.userName}) - SSE 연결 시작`);
+          }
+          sseManager.connect();
+        }
       } else {
         setUser(null);
+        sseManager.disconnect();
         // needsRelogin인 경우 API 클라이언트에서 자동으로 이벤트가 발생함
       }
     } catch (error) {
       console.error("Failed to fetch user:", error);
       setUser(null);
+      sseManager.disconnect();
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const customEvent = event as CustomEvent;
       const { title, message } = customEvent.detail;
 
-      // 사용자 상태 초기화
+      // SSE 연결 해제하고 사용자 상태 초기화
+      sseManager.disconnect();
       setUser(null);
 
       // 토스트 알림 표시
@@ -93,18 +104,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 로그아웃
   const logout = async (): Promise<void> => {
     try {
-          if (process.env.NODE_ENV === 'development') {
-      console.log("로그아웃 시작...");
-    }
-    const response = await authApi.logout();
-    if (process.env.NODE_ENV === 'development') {
-      console.log("로그아웃 API 응답:", response);
-    }
-      setUser(null);
-      window.location.href = "/";
+      if (process.env.NODE_ENV === 'development') {
+        console.log("로그아웃 시작...");
+      }
+      
+      const response = await authApi.logout();
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log("로그아웃 API 응답:", response);
+      }
     } catch (error) {
       console.error("Logout failed:", error);
-      // 에러가 발생해도 클라이언트 상태는 초기화
+    } finally {
+      // 항상 SSE 연결 해제하고 상태 초기화
+      sseManager.disconnect();
       setUser(null);
       window.location.href = "/";
     }
@@ -120,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await userApi.updateUserName(userName);
       if (response.success) {
-        await refreshUser();
+        await refreshUser(); // 사용자 정보 새로고침 시 SSE 연결도 함께 처리됨
         return true;
       }
       return false;
@@ -135,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await authApi.deleteAccount();
       if (response.success) {
+        sseManager.disconnect();
         setUser(null);
         window.location.href = "/";
         return true;
