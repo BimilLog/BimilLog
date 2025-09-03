@@ -71,7 +71,7 @@ class ReportEventListenerTest {
         // Given
         Long reporterId = 2L;
         String reporterName = "suggester";
-        ReportVO reportVO = ReportVO.of(ReportType.SUGGESTION, null, "새로운 기능을 건의합니다");
+        ReportVO reportVO = ReportVO.of(ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다");
         
         ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
 
@@ -113,7 +113,7 @@ class ReportEventListenerTest {
         ReportSubmittedEvent event2 = ReportSubmittedEvent.of(
                 null, "익명", ReportVO.of(ReportType.POST, 200L, "신고 내용 2"));
         ReportSubmittedEvent event3 = ReportSubmittedEvent.of(
-                3L, "user3", ReportVO.of(ReportType.SUGGESTION, null, "건의 내용"));
+                3L, "user3", ReportVO.of(ReportType.IMPROVEMENT, null, "건의 내용"));
 
         // When
         reportEventListener.handleReportSubmitted(event1);

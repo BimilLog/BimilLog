@@ -116,7 +116,7 @@ class AdminQueryAdapterTest {
         
         Report postReport = createAndSaveReport(reporter1, ReportType.POST, 1L, "게시글 신고");
         Report commentReport = createAndSaveReport(reporter2, ReportType.COMMENT, 2L, "댓글 신고");
-        Report paperReport = createAndSaveReport(reporter1, ReportType.SUGGESTION, 3L, "롤링페이퍼 신고");
+        Report paperReport = createAndSaveReport(reporter1, ReportType.IMPROVEMENT, 3L, "롤링페이퍼 신고");
         
         entityManager.flush();
         entityManager.clear();
@@ -185,7 +185,7 @@ class AdminQueryAdapterTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: PAPER 타입으로 조회
-        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(ReportType.SUGGESTION, pageable);
+        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(ReportType.IMPROVEMENT, pageable);
 
         // Then: 빈 결과 반환
         assertThat(result.getContent()).isEmpty();

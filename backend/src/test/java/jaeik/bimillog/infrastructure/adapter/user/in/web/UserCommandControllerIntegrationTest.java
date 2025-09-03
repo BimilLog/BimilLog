@@ -276,7 +276,7 @@ class UserCommandControllerIntegrationTest {
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
         
         ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.SUGGESTION)
+                .reportType(ReportType.IMPROVEMENT)
                 .targetId(null) // 건의사항은 targetId 불필요
                 .content("새로운 기능을 건의합니다.")
                 .build();

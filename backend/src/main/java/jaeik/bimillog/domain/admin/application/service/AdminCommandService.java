@@ -2,12 +2,15 @@
 package jaeik.bimillog.domain.admin.application.service;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
-import jaeik.bimillog.domain.admin.application.port.in.ReportedUserResolver;
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.entity.ReportVO;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
@@ -34,9 +37,10 @@ import java.util.List;
 public class AdminCommandService implements AdminCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final List<ReportedUserResolver> userResolvers;
     private final AdminCommandPort adminCommandPort;
     private final UserQueryPort userQueryPort;
+    private final PostQueryUseCase postQueryUseCase;
+    private final CommentQueryUseCase commentQueryUseCase;
 
     /**
      * {@inheritDoc}
@@ -77,7 +81,14 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     public void banUser(ReportVO reportVO) {
-        if (reportVO.targetId() == null) {
+        // POST, COMMENT 타입은 targetId가 필수
+        if ((reportVO.reportType() == ReportType.POST || reportVO.reportType() == ReportType.COMMENT) 
+                && reportVO.targetId() == null) {
+            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+        }
+
+        // ERROR, IMPROVEMENT 타입은 banUser 대상이 없음
+        if (reportVO.reportType() == ReportType.ERROR || reportVO.reportType() == ReportType.IMPROVEMENT) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
         }
 
@@ -176,16 +187,48 @@ public class AdminCommandService implements AdminCommandUseCase {
      *
      * @param reportType 신고 유형
      * @param targetId   신고 대상 ID
-     * @return User 신고 대상 사용자 엔티티
+     * @return User 신고 대상 사용자 엔티티, ERROR/IMPROVEMENT 타입의 경우 null
      * @throws CustomException 지원하지 않는 신고 유형이거나 사용자를 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     private User resolveUser(ReportType reportType, Long targetId) {
-        ReportedUserResolver resolver = userResolvers.stream()
-                .filter(r -> r.supports().equals(reportType))
-                .findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT_VALUE));
-        return resolver.resolve(targetId);
+        return switch (reportType) {
+            case POST -> resolvePostUser(targetId);
+            case COMMENT -> resolveCommentUser(targetId);
+            case ERROR, IMPROVEMENT -> null; // 타겟 없는 타입
+        };
+    }
+
+    /**
+     * <h3>게시글 ID로 신고 대상 사용자 해결</h3>
+     * <p>주어진 게시글 ID에 해당하는 게시글의 작성자(사용자)를 조회하여 반환합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return User 게시글 작성 사용자 엔티티
+     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private User resolvePostUser(Long postId) {
+        Post post = postQueryUseCase.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        return post.getUser();
+    }
+
+    /**
+     * <h3>댓글 ID로 신고 대상 사용자 해결</h3>
+     * <p>주어진 댓글 ID에 해당하는 댓글의 작성자(사용자)를 조회하여 반환합니다.</p>
+     *
+     * @param commentId 댓글 ID
+     * @return User 댓글 작성 사용자 엔티티
+     * @throws CustomException 댓글을 찾을 수 없는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private User resolveCommentUser(Long commentId) {
+        Comment comment = commentQueryUseCase.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_FAILED));
+        return comment.getUser();
     }
 }

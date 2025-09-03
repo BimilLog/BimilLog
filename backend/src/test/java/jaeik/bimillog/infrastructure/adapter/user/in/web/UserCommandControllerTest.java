@@ -141,7 +141,7 @@ class UserCommandControllerTest {
     void submitSuggestion_Success() throws Exception {
         // Given
         ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.SUGGESTION)
+                .reportType(ReportType.IMPROVEMENT)
                 .targetId(null) // 건의사항은 targetId가 필요 없음
                 .content("새로운 기능을 건의합니다")
                 .build();
@@ -172,7 +172,7 @@ class UserCommandControllerTest {
         ReportSubmittedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.reporterId()).isEqualTo(3L);
         assertThat(capturedEvent.reporterName()).isEqualTo("suggester");
-        assertThat(capturedEvent.reportVO().reportType()).isEqualTo(ReportType.SUGGESTION);
+        assertThat(capturedEvent.reportVO().reportType()).isEqualTo(ReportType.IMPROVEMENT);
         assertThat(capturedEvent.reportVO().targetId()).isNull();
         assertThat(capturedEvent.reportVO().content()).isEqualTo("새로운 기능을 건의합니다");
     }

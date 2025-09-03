@@ -114,13 +114,13 @@ class AdminCommandAdapterTest {
                 .provider(SocialProvider.KAKAO)
                 .build();
 
-        ReportVO reportVO = ReportVO.of(ReportType.SUGGESTION, null, "새로운 기능을 건의합니다");
+        ReportVO reportVO = ReportVO.of(ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다");
         Report inputReport = Report.createReport(reportVO, reporter);
 
         Report savedReport = Report.builder()
                 .id(102L) // 저장 후 ID 할당됨
                 .reporter(reporter)
-                .reportType(ReportType.SUGGESTION)
+                .reportType(ReportType.IMPROVEMENT)
                 .targetId(null) // 건의사항은 targetId가 null
                 .content("새로운 기능을 건의합니다")
                 .build();
@@ -134,7 +134,7 @@ class AdminCommandAdapterTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(102L);
         assertThat(result.getReporter()).isEqualTo(reporter);
-        assertThat(result.getReportType()).isEqualTo(ReportType.SUGGESTION);
+        assertThat(result.getReportType()).isEqualTo(ReportType.IMPROVEMENT);
         assertThat(result.getTargetId()).isNull(); // 건의사항은 targetId가 null
         assertThat(result.getContent()).isEqualTo("새로운 기능을 건의합니다");
 
@@ -172,7 +172,7 @@ class AdminCommandAdapterTest {
         // Given
         ReportVO reportVO1 = ReportVO.of(ReportType.COMMENT, 100L, "신고 내용 1");
         ReportVO reportVO2 = ReportVO.of(ReportType.POST, 200L, "신고 내용 2");
-        ReportVO reportVO3 = ReportVO.of(ReportType.SUGGESTION, null, "건의 내용");
+        ReportVO reportVO3 = ReportVO.of(ReportType.IMPROVEMENT, null, "건의 내용");
 
         Report report1 = Report.createReport(reportVO1, null);
         Report report2 = Report.createReport(reportVO2, null);
@@ -180,7 +180,7 @@ class AdminCommandAdapterTest {
 
         Report savedReport1 = Report.builder().id(104L).reportType(ReportType.COMMENT).build();
         Report savedReport2 = Report.builder().id(105L).reportType(ReportType.POST).build();
-        Report savedReport3 = Report.builder().id(106L).reportType(ReportType.SUGGESTION).build();
+        Report savedReport3 = Report.builder().id(106L).reportType(ReportType.IMPROVEMENT).build();
 
         when(reportRepository.save(report1)).thenReturn(savedReport1);
         when(reportRepository.save(report2)).thenReturn(savedReport2);

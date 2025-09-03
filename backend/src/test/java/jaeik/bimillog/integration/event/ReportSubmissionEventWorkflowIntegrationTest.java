@@ -122,7 +122,7 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         // Given
         Long reporterId = 2L;
         String reporterName = "suggester";
-        ReportVO reportVO = ReportVO.of(ReportType.SUGGESTION, null, "새로운 기능을 건의합니다");
+        ReportVO reportVO = ReportVO.of(ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다");
 
         User mockReporter = User.builder()
                 .id(reporterId)
@@ -153,7 +153,7 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         ReportSubmittedEvent event2 = ReportSubmittedEvent.of(
                 null, "익명", ReportVO.of(ReportType.POST, 200L, "신고 내용 2"));
         ReportSubmittedEvent event3 = ReportSubmittedEvent.of(
-                3L, "user3", ReportVO.of(ReportType.SUGGESTION, null, "건의 내용"));
+                3L, "user3", ReportVO.of(ReportType.IMPROVEMENT, null, "건의 내용"));
 
         User mockUser1 = User.builder().id(1L).userName("user1").build();
         User mockUser3 = User.builder().id(3L).userName("user3").build();
