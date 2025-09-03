@@ -41,7 +41,6 @@ public class Report extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ReportType reportType;
 
-    @Column(nullable = false)
     private Long targetId;
 
     @Column(nullable = false)

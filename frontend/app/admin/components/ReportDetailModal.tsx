@@ -47,8 +47,6 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
         return "게시글";
       case "COMMENT":
         return "댓글";
-      case "SUGGESTION":
-        return "건의사항";
       case "ERROR":
         return "오류";
       case "IMPROVEMENT":

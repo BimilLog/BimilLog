@@ -16,6 +16,19 @@ function getCookie(name: string): string | null {
   return null;
 }
 
+// 응답 후 CSRF 토큰 상태를 확인하는 헬퍼 함수
+function logCsrfTokenUpdate(method: string, endpoint: string): void {
+  if (process.env.NODE_ENV === 'development' && typeof document !== 'undefined') {
+    // POST/PUT/DELETE/PATCH 요청 후 토큰 변경 확인
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+      setTimeout(() => {
+        const currentToken = getCookie('XSRF-TOKEN');
+        console.log(`[${method}] ${endpoint} - Current CSRF token:`, currentToken?.substring(0, 8) + '...');
+      }, 100);
+    }
+  }
+}
+
 // API 응답 타입 정의
 export interface ApiResponse<T = any> {
   success: boolean
@@ -152,7 +165,7 @@ export interface Report {
   id: number           // v2: reportId → id
   reporterId: number   // v2: userId → reporterId  
   reporterName: string // v2: 추가된 필드
-  reportType: "POST" | "COMMENT" | "SUGGESTION"  // v2: 백엔드 ReportType enum 호환
+  reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"  // v2: 백엔드 ReportType enum 호환
   targetId: number
   content: string
   createdAt: string    // v2: Instant → ISO string
@@ -190,6 +203,7 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
 
+    // 요청 직전에 매번 최신 CSRF 토큰을 가져옴 (POST 요청 후 업데이트된 토큰 반영)
     const csrfToken = getCookie("XSRF-TOKEN");
 
     const defaultHeaders: Record<string, string> = {
@@ -198,6 +212,9 @@ class ApiClient {
 
     if (csrfToken) {
       defaultHeaders["X-XSRF-TOKEN"] = csrfToken;
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[${options.method || 'GET'}] ${endpoint} - Using CSRF token:`, csrfToken.substring(0, 8) + '...');
+      }
     }
 
     const config: RequestInit = {
@@ -233,6 +250,9 @@ class ApiClient {
         // 접두사로 일치하는 경우 (e.g. '/user/', '/api/admin/')
         return endpoint.startsWith(requiredUrl);
       });
+
+      // POST/PUT/DELETE/PATCH 요청 후 토큰 변경 로그
+      logCsrfTokenUpdate(options.method || 'GET', endpoint);
 
       if (!response.ok) {
         // 인증이 필수가 아닌 API에서 발생한 401 에러는 정상 흐름으로 간주
@@ -371,15 +391,30 @@ export const authApi = {
   signUp: (userName: string) => {
     const formData = new URLSearchParams()
     formData.append('userName', userName)
+    
+    // 최신 CSRF 토큰 가져오기
+    const csrfToken = getCookie("XSRF-TOKEN");
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    
+    if (csrfToken) {
+      headers["X-XSRF-TOKEN"] = csrfToken;
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[POST] /api/auth/signup - Using CSRF token:`, csrfToken.substring(0, 8) + '...');
+      }
+    }
+    
     // Use a custom request for form data
     return fetch(`${apiClient['baseURL']}/api/auth/signup`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers,
       body: formData.toString(),
       credentials: 'include'
     }).then(async response => {
+      // POST 요청 후 토큰 변경 로그
+      logCsrfTokenUpdate('POST', '/api/auth/signup');
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -410,22 +445,22 @@ export const userApi = {
 
   // v2: 신고/건의사항 제출 (UserCommandController.submitReport)
   submitReport: (report: {
-    reportType: "POST" | "COMMENT" | "SUGGESTION"
+    reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
     targetId?: number
     content: string
   }) => apiClient.post("/api/user/report", report),
 
-  // 레거시 호환용 (v2 신고 API로 리다이렉트)
+  // 레거시 호환용 (v2 신고 API로 직접 연결)
   submitSuggestion: (report: {
     reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT" | "SUGGESTION"
     userId?: number
     targetId?: number
     content: string
   }) => {
-    // 레거시 타입을 v2 타입으로 매핑
-    const mappedType = report.reportType === "ERROR" || report.reportType === "IMPROVEMENT" 
-      ? "SUGGESTION" 
-      : report.reportType as "POST" | "COMMENT" | "SUGGESTION";
+    // SUGGESTION을 IMPROVEMENT로 매핑
+    const mappedType = report.reportType === "SUGGESTION" 
+      ? "IMPROVEMENT" 
+      : report.reportType as "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT";
     
     return apiClient.post("/api/user/report", {
       reportType: mappedType,
@@ -629,8 +664,8 @@ export const adminApi = {
   getReports: (page = 0, size = 20, reportType?: string) => {
     const params = new URLSearchParams({ page: page.toString(), size: size.toString() })
     if (reportType && reportType !== "all") {
-      // "ERROR", "IMPROVEMENT" 필터는 "SUGGESTION"으로 매핑 (v2에서는 POST/COMMENT/SUGGESTION만 지원)
-      const mappedType = reportType === "ERROR" || reportType === "IMPROVEMENT" ? "SUGGESTION" : reportType
+      // v2에서는 POST/COMMENT/ERROR/IMPROVEMENT 모두 지원
+      const mappedType = reportType
       params.append("reportType", mappedType)
     }
     return apiClient.get(`/api/admin/reports?${params.toString()}`)
@@ -942,4 +977,36 @@ export const getDecoInfo = (decoType: string) => {
       emoji: "📝",
     }
   )
+}
+
+// CSRF 토큰 디버깅용 유틸리티
+export const csrfDebugUtils = {
+  getCurrentToken: () => getCookie("XSRF-TOKEN"),
+  logCurrentToken: () => {
+    const token = getCookie("XSRF-TOKEN");
+    console.log("Current CSRF token:", token);
+    return token;
+  },
+  testTokenRotation: async () => {
+    console.log("=== CSRF Token Rotation Test ===");
+    const beforeToken = getCookie("XSRF-TOKEN");
+    console.log("Before POST:", beforeToken?.substring(0, 8) + "...");
+    
+    // 테스트 POST 요청
+    const response = await apiClient.post("/api/auth/health");
+    
+    // 짧은 지연 후 토큰 확인
+    setTimeout(() => {
+      const afterToken = getCookie("XSRF-TOKEN");
+      console.log("After POST:", afterToken?.substring(0, 8) + "...");
+      console.log("Token changed:", beforeToken !== afterToken);
+    }, 200);
+    
+    return response;
+  }
+};
+
+// 개발 환경에서 전역 접근을 위해 window 객체에 추가
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  (window as any).csrfDebug = csrfDebugUtils;
 }
