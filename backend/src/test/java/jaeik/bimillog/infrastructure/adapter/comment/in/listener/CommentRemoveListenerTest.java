@@ -23,13 +23,13 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("댓글 이벤트 리스너 테스트")
-class CommentEventListenerTest {
+class CommentRemoveListenerTest {
 
     @Mock
     private CommentCommandUseCase commentCommandUseCase;
 
     @InjectMocks
-    private CommentEventListener commentEventListener;
+    private CommentRemoveListener commentRemoveListener;
 
     @Test
     @DisplayName("사용자 탈퇴 이벤트 처리 - 댓글 익명화")
@@ -39,7 +39,7 @@ class CommentEventListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
 
         // When
-        commentEventListener.handleUserWithdrawnEvent(event);
+        commentRemoveListener.handleUserWithdrawnEvent(event);
 
         // Then
         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
@@ -57,7 +57,7 @@ class CommentEventListenerTest {
 
         // When & Then
         try {
-            commentEventListener.handleUserWithdrawnEvent(event);
+            commentRemoveListener.handleUserWithdrawnEvent(event);
         } catch (RuntimeException e) {
             // 예외가 전파되어야 함 (탈퇴 처리 자체가 실패로 간주)
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
@@ -74,8 +74,8 @@ class CommentEventListenerTest {
         UserWithdrawnEvent event2 = new UserWithdrawnEvent(userId2);
         
         // When
-        commentEventListener.handleUserWithdrawnEvent(event1);
-        commentEventListener.handleUserWithdrawnEvent(event2);
+        commentRemoveListener.handleUserWithdrawnEvent(event1);
+        commentRemoveListener.handleUserWithdrawnEvent(event2);
         
         // Then
         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId1));
@@ -93,7 +93,7 @@ class CommentEventListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(null);
 
         // When
-        commentEventListener.handleUserWithdrawnEvent(event);
+        commentRemoveListener.handleUserWithdrawnEvent(event);
 
         // Then - null userId도 서비스로 전달되어야 함
         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(null));
@@ -108,7 +108,7 @@ class CommentEventListenerTest {
         assert userEvent.userId().equals(userId);
 
         // When
-        commentEventListener.handleUserWithdrawnEvent(userEvent);
+        commentRemoveListener.handleUserWithdrawnEvent(userEvent);
 
         // Then
         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));

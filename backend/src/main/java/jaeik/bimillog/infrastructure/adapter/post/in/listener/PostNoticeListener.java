@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PostNoticeEventListener {
+public class PostNoticeListener {
 
     private final PostCacheUseCase postCacheUseCase;
 

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TokenCleanupEventListener {
+public class TokenCleanupListener {
 
     private final TokenCleanupUseCase tokenCleanupUseCase;
 

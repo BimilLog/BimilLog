@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class JwtBlacklistEventListener {
+public class JwtBlacklistListener {
 
     private final TokenBlacklistUseCase tokenBlacklistUseCase;
 
@@ -42,7 +41,7 @@ public class JwtBlacklistEventListener {
      */
     @Async
     @EventListener({UserBannedEvent.class, AdminWithdrawRequestedEvent.class})
-    public void handleJwtBlacklistEvents(ApplicationEvent event) {
+    public void handleJwtBlacklistEvents(Object event) {
         Long userId;
         String reason;
         

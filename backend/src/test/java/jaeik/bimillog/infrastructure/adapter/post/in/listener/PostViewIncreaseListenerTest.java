@@ -33,13 +33,13 @@ import ch.qos.logback.core.read.ListAppender;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("게시글 조회 이벤트 리스너 테스트")
-class PostViewEventListenerTest {
+class PostViewIncreaseListenerTest {
 
     @Mock
     private PostInteractionUseCase postInteractionUseCase;
 
     @InjectMocks
-    private PostViewEventListener postViewEventListener;
+    private PostViewIncreaseListener postViewIncreaseListener;
 
     @Test
     @DisplayName("게시글 조회 이벤트 처리 - 정상적인 조회수 증가")
@@ -49,7 +49,7 @@ class PostViewEventListenerTest {
         PostViewedEvent event = new PostViewedEvent(this, postId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then
         verify(postInteractionUseCase).incrementViewCount(eq(postId));
@@ -67,7 +67,7 @@ class PostViewEventListenerTest {
                 .incrementViewCount(postId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then - 예외가 발생해도 메서드는 정상 완료되어야 함 (로그만 남기고 예외를 삼킴)
         verify(postInteractionUseCase).incrementViewCount(eq(postId));
@@ -80,7 +80,7 @@ class PostViewEventListenerTest {
         PostViewedEvent event = new PostViewedEvent(this, null);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then - null postId인 경우 UseCase 호출하지 않고 early return
         verify(postInteractionUseCase, never()).incrementViewCount(any());
@@ -99,9 +99,9 @@ class PostViewEventListenerTest {
         PostViewedEvent event3 = new PostViewedEvent(this, postId3);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event1);
-        postViewEventListener.handlePostViewedEvent(event2);
-        postViewEventListener.handlePostViewedEvent(event3);
+        postViewIncreaseListener.handlePostViewedEvent(event1);
+        postViewIncreaseListener.handlePostViewedEvent(event2);
+        postViewIncreaseListener.handlePostViewedEvent(event3);
 
         // Then
         verify(postInteractionUseCase).incrementViewCount(eq(postId1));
@@ -120,9 +120,9 @@ class PostViewEventListenerTest {
         PostViewedEvent event3 = new PostViewedEvent(this, postId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event1);
-        postViewEventListener.handlePostViewedEvent(event2);
-        postViewEventListener.handlePostViewedEvent(event3);
+        postViewIncreaseListener.handlePostViewedEvent(event1);
+        postViewIncreaseListener.handlePostViewedEvent(event2);
+        postViewIncreaseListener.handlePostViewedEvent(event3);
 
         // Then - 매번 호출되어야 함 (중복 검사는 Controller 레이어에서)
         verify(postInteractionUseCase, times(3)).incrementViewCount(eq(postId));
@@ -141,7 +141,7 @@ class PostViewEventListenerTest {
                 .incrementViewCount(postId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then - 예외가 발생해도 메서드는 정상 완료되어야 함
         verify(postInteractionUseCase).incrementViewCount(eq(postId));
@@ -160,7 +160,7 @@ class PostViewEventListenerTest {
                 .incrementViewCount(postId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then - 예외가 발생해도 메서드는 정상 완료되어야 함
         verify(postInteractionUseCase).incrementViewCount(eq(postId));
@@ -176,7 +176,7 @@ class PostViewEventListenerTest {
         // When - 1000개의 이벤트 처리
         for (int i = 0; i < eventCount; i++) {
             PostViewedEvent event = new PostViewedEvent(this, postId);
-            postViewEventListener.handlePostViewedEvent(event);
+            postViewIncreaseListener.handlePostViewedEvent(event);
         }
 
         // Then
@@ -191,7 +191,7 @@ class PostViewEventListenerTest {
         PostViewedEvent event = new PostViewedEvent(this, expectedPostId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then - 정확한 파라미터가 전달되어야 함
         verify(postInteractionUseCase, times(1)).incrementViewCount(eq(expectedPostId));
@@ -212,7 +212,7 @@ class PostViewEventListenerTest {
         assert event.getSource().equals(eventSource);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then - 이벤트 소스와 관계없이 정상 처리되어야 함
         verify(postInteractionUseCase).incrementViewCount(eq(postId));
@@ -232,7 +232,7 @@ class PostViewEventListenerTest {
         }).when(postInteractionUseCase).incrementViewCount(postId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
         
         // Then - 단위 테스트에서는 @Async가 동작하지 않으므로 동기적으로 실행됨
         // 실제 통합 테스트에서는 비동기로 처리되지만, 여기서는 UseCase 호출 완료만 확인
@@ -252,9 +252,9 @@ class PostViewEventListenerTest {
         PostViewedEvent event3 = new PostViewedEvent(this, postId3);
 
         // When - 동시에 여러 이벤트 처리 (실제로는 순차 처리되지만 동시 호출 시뮬레이션)
-        CompletableFuture.runAsync(() -> postViewEventListener.handlePostViewedEvent(event1));
-        CompletableFuture.runAsync(() -> postViewEventListener.handlePostViewedEvent(event2));
-        CompletableFuture.runAsync(() -> postViewEventListener.handlePostViewedEvent(event3));
+        CompletableFuture.runAsync(() -> postViewIncreaseListener.handlePostViewedEvent(event1));
+        CompletableFuture.runAsync(() -> postViewIncreaseListener.handlePostViewedEvent(event2));
+        CompletableFuture.runAsync(() -> postViewIncreaseListener.handlePostViewedEvent(event3));
         
         // 모든 비동기 작업이 완료될 때까지 대기
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
@@ -268,7 +268,7 @@ class PostViewEventListenerTest {
     @DisplayName("로깅 검증 - null postId 경고 로그")
     void handlePostViewedEvent_ShouldLogWarning_WhenPostIdIsNull() {
         // Given
-        Logger logger = (Logger) LoggerFactory.getLogger(PostViewEventListener.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(PostViewIncreaseListener.class);
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
@@ -276,7 +276,7 @@ class PostViewEventListenerTest {
         PostViewedEvent event = new PostViewedEvent(this, null);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then
         verify(postInteractionUseCase, never()).incrementViewCount(any());
@@ -295,7 +295,7 @@ class PostViewEventListenerTest {
     @DisplayName("로깅 검증 - UseCase 예외 발생 시 에러 로그")
     void handlePostViewedEvent_ShouldLogError_WhenUseCaseThrowsException() {
         // Given
-        Logger logger = (Logger) LoggerFactory.getLogger(PostViewEventListener.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(PostViewIncreaseListener.class);
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
@@ -307,7 +307,7 @@ class PostViewEventListenerTest {
         doThrow(exception).when(postInteractionUseCase).incrementViewCount(postId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then
         verify(postInteractionUseCase).incrementViewCount(eq(postId));
@@ -326,7 +326,7 @@ class PostViewEventListenerTest {
     @DisplayName("로깅 검증 - 정상 처리 시 로그 없음")
     void handlePostViewedEvent_ShouldNotLog_WhenProcessedSuccessfully() {
         // Given
-        Logger logger = (Logger) LoggerFactory.getLogger(PostViewEventListener.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(PostViewIncreaseListener.class);
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
@@ -335,7 +335,7 @@ class PostViewEventListenerTest {
         PostViewedEvent event = new PostViewedEvent(this, postId);
 
         // When
-        postViewEventListener.handlePostViewedEvent(event);
+        postViewIncreaseListener.handlePostViewedEvent(event);
 
         // Then
         verify(postInteractionUseCase).incrementViewCount(eq(postId));

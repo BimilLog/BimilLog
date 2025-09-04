@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UnlinkEventListener {
+public class SocialUnlinkListener {
 
     private final SocialUnlinkUseCase socialUnlinkUseCase;
 

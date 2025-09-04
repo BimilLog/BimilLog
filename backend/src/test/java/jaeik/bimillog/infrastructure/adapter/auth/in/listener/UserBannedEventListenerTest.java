@@ -30,7 +30,7 @@ class UserBannedEventListenerTest {
     private SocialUnlinkUseCase socialUnlinkUseCase;
 
     @InjectMocks
-    private UnlinkEventListener unlinkEventListener;
+    private SocialUnlinkListener socialUnlinkListener;
 
     @Test
     @DisplayName("사용자 차단 이벤트 처리 - 카카오 로그인 해제")
@@ -42,7 +42,7 @@ class UserBannedEventListenerTest {
         UserBannedEvent event = new UserBannedEvent(this, userId, socialId, provider);
 
         // When
-        unlinkEventListener.handleUserBannedEvent(event);
+        socialUnlinkListener.handleUserBannedEvent(event);
 
         // Then
         verify(socialUnlinkUseCase).unlinkSocialAccount(eq(provider), eq(socialId));
@@ -62,7 +62,7 @@ class UserBannedEventListenerTest {
 
         // When & Then
         try {
-            unlinkEventListener.handleUserBannedEvent(event);
+            socialUnlinkListener.handleUserBannedEvent(event);
         } catch (RuntimeException e) {
             // 예외가 전파되어야 함 (차단 처리 자체가 실패로 간주)
             verify(socialUnlinkUseCase).unlinkSocialAccount(eq(provider), eq(socialId));
@@ -76,7 +76,7 @@ class UserBannedEventListenerTest {
         UserBannedEvent kakaoEvent = new UserBannedEvent(this, 1L, "kakao123", SocialProvider.KAKAO);
         
         // When - KAKAO
-        unlinkEventListener.handleUserBannedEvent(kakaoEvent);
+        socialUnlinkListener.handleUserBannedEvent(kakaoEvent);
         
         // Then - KAKAO
         verify(socialUnlinkUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakao123"));
@@ -97,7 +97,7 @@ class UserBannedEventListenerTest {
         assert event.getProvider().equals(provider);
 
         // When
-        unlinkEventListener.handleUserBannedEvent(event);
+        socialUnlinkListener.handleUserBannedEvent(event);
 
         // Then
         verify(socialUnlinkUseCase).unlinkSocialAccount(eq(provider), eq(socialId));
@@ -110,7 +110,7 @@ class UserBannedEventListenerTest {
         UserBannedEvent event = new UserBannedEvent(this, 1L, null, SocialProvider.KAKAO);
 
         // When
-        unlinkEventListener.handleUserBannedEvent(event);
+        socialUnlinkListener.handleUserBannedEvent(event);
 
         // Then - null socialId도 포트로 전달되어야 함
         verify(socialUnlinkUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq(null));

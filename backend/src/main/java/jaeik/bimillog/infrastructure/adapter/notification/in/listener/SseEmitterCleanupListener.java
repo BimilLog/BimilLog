@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SseEmitterCleanupEventListener {
+public class SseEmitterCleanupListener {
 
     private final NotificationSseUseCase notificationSseUseCase;
 

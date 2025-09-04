@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PostViewEventListener {
+public class PostViewIncreaseListener {
 
     private final PostInteractionUseCase postInteractionUseCase;
 

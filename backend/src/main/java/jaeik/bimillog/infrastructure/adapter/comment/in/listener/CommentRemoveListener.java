@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CommentEventListener {
+public class CommentRemoveListener {
 
     private final CommentCommandUseCase commentCommandUseCase;
 

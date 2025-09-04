@@ -25,13 +25,13 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("토큰 정리 이벤트 리스너 테스트")
-class TokenCleanupEventListenerTest {
+class TokenCleanupListenerTest {
 
     @Mock
     private TokenCleanupUseCase tokenCleanupUseCase;
 
     @InjectMocks
-    private TokenCleanupEventListener tokenCleanupEventListener;
+    private TokenCleanupListener tokenCleanupListener;
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 처리 - 정상 케이스")
@@ -43,7 +43,7 @@ class TokenCleanupEventListenerTest {
         UserLoggedOutEvent event = new UserLoggedOutEvent(userId, tokenId, loggedOutAt);
 
         // When
-        tokenCleanupEventListener.handleUserLoggedOutEvent(event);
+        tokenCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
@@ -63,7 +63,7 @@ class TokenCleanupEventListenerTest {
 
         // When & Then
         // 예외가 발생하지 않아야 함 (비동기 처리로 로그아웃 자체는 성공)
-        tokenCleanupEventListener.handleUserLoggedOutEvent(event);
+        tokenCleanupListener.handleUserLoggedOutEvent(event);
         
         // 포트 호출은 확인
         verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
@@ -78,7 +78,7 @@ class TokenCleanupEventListenerTest {
         // When & Then
         // NPE가 발생할 수 있지만 이는 시스템 오류이므로 적절한 예외 처리 확인
         try {
-            tokenCleanupEventListener.handleUserLoggedOutEvent(event);
+            tokenCleanupListener.handleUserLoggedOutEvent(event);
         } catch (NullPointerException e) {
             // 예상되는 동작
         }
@@ -93,7 +93,7 @@ class TokenCleanupEventListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        tokenCleanupEventListener.handleUserLoggedOutEvent(event);
+        tokenCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));

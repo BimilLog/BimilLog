@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FcmTokenEventListener {
+public class FcmTokenRemoveListener {
 
     private final NotificationFcmUseCase notificationFcmUseCase;
 

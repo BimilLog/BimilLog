@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("알림 이벤트 리스너 테스트")
-class NotificationEventListenerTest {
+class NotificationGenerateListenerTest {
 
     @Mock
     private NotificationSseUseCase notificationSseUseCase;
@@ -34,7 +34,7 @@ class NotificationEventListenerTest {
     private NotificationFcmUseCase notificationFcmUseCase;
 
     @InjectMocks
-    private NotificationEventListener notificationEventListener;
+    private NotificationGenerateListener notificationGenerateListener;
 
     @Test
     @DisplayName("댓글 생성 이벤트 처리 - SSE와 FCM 알림 전송")
@@ -46,7 +46,7 @@ class NotificationEventListenerTest {
         CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
 
         // When
-        notificationEventListener.handleCommentCreatedEvent(event);
+        notificationGenerateListener.handleCommentCreatedEvent(event);
 
         // Then
         verify(notificationSseUseCase).sendCommentNotification(eq(postUserId), eq(commenterName), eq(postId));
@@ -65,7 +65,7 @@ class NotificationEventListenerTest {
         PostFeaturedEvent event = new PostFeaturedEvent(this, userId, sseMessage, postId, fcmTitle, fcmBody);
 
         // When
-        notificationEventListener.handlePostFeaturedEvent(event);
+        notificationGenerateListener.handlePostFeaturedEvent(event);
 
         // Then
         verify(notificationSseUseCase).sendPostFeaturedNotification(eq(userId), eq(sseMessage), eq(postId));
@@ -81,7 +81,7 @@ class NotificationEventListenerTest {
         RollingPaperEvent event = new RollingPaperEvent(this, paperOwnerId, userName);
 
         // When
-        notificationEventListener.handleRollingPaperEvent(event);
+        notificationGenerateListener.handleRollingPaperEvent(event);
 
         // Then
         verify(notificationSseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(userName));
@@ -95,7 +95,7 @@ class NotificationEventListenerTest {
         CommentCreatedEvent event = new CommentCreatedEvent(this, null, null, null);
 
         // When
-        notificationEventListener.handleCommentCreatedEvent(event);
+        notificationGenerateListener.handleCommentCreatedEvent(event);
 
         // Then
         verify(notificationSseUseCase).sendCommentNotification(eq(null), eq(null), eq(null));
@@ -109,7 +109,7 @@ class NotificationEventListenerTest {
         PostFeaturedEvent event = new PostFeaturedEvent(this, null, null, null, null, null);
 
         // When
-        notificationEventListener.handlePostFeaturedEvent(event);
+        notificationGenerateListener.handlePostFeaturedEvent(event);
 
         // Then
         verify(notificationSseUseCase).sendPostFeaturedNotification(eq(null), eq(null), eq(null));
@@ -123,7 +123,7 @@ class NotificationEventListenerTest {
         RollingPaperEvent event = new RollingPaperEvent(this, null, null);
 
         // When
-        notificationEventListener.handleRollingPaperEvent(event);
+        notificationGenerateListener.handleRollingPaperEvent(event);
 
         // Then
         verify(notificationSseUseCase).sendPaperPlantNotification(eq(null), eq(null));
@@ -140,7 +140,7 @@ class NotificationEventListenerTest {
         CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
 
         // When
-        notificationEventListener.handleCommentCreatedEvent(event);
+        notificationGenerateListener.handleCommentCreatedEvent(event);
 
         // Then
         verify(notificationSseUseCase).sendCommentNotification(eq(postUserId), eq(commenterName), eq(postId));

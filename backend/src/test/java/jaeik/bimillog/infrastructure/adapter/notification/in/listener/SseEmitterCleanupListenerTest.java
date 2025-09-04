@@ -23,13 +23,13 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SSE 연결 정리 이벤트 핸들러 테스트")
-class SseEmitterCleanupEventListenerTest {
+class SseEmitterCleanupListenerTest {
 
     @Mock
     private NotificationSseUseCase notificationSseUseCase;
 
     @InjectMocks
-    private SseEmitterCleanupEventListener sseEmitterCleanupEventListener;
+    private SseEmitterCleanupListener sseEmitterCleanupListener;
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 처리 - 특정 기기 SSE 연결 정리")
@@ -40,7 +40,7 @@ class SseEmitterCleanupEventListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -55,7 +55,7 @@ class SseEmitterCleanupEventListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -70,7 +70,7 @@ class SseEmitterCleanupEventListenerTest {
         UserLoggedOutEvent event = new UserLoggedOutEvent(userId, tokenId, java.time.LocalDateTime.now());
 
         // When
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -88,7 +88,7 @@ class SseEmitterCleanupEventListenerTest {
         doThrow(cleanupException).when(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -109,7 +109,7 @@ class SseEmitterCleanupEventListenerTest {
         assert event.tokenId().equals(tokenId);
 
         // When
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -124,7 +124,7 @@ class SseEmitterCleanupEventListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -139,7 +139,7 @@ class SseEmitterCleanupEventListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -154,7 +154,7 @@ class SseEmitterCleanupEventListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
 
         // When
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(event);
 
         // Then
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
@@ -172,13 +172,13 @@ class SseEmitterCleanupEventListenerTest {
         UserLoggedOutEvent eventB = UserLoggedOutEvent.of(userId, tokenId2);
 
         // When - A 기기만 로그아웃
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(eventA);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(eventA);
 
         // Then - A 기기의 토큰만 정리되어야 함
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId1));
         
         // When - B 기기도 로그아웃
-        sseEmitterCleanupEventListener.handleUserLoggedOutEvent(eventB);
+        sseEmitterCleanupListener.handleUserLoggedOutEvent(eventB);
         
         // Then - B 기기의 토큰도 정리되어야 함
         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId2));

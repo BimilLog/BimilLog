@@ -17,19 +17,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.awaitility.Awaitility.await;
 
 /**
- * <h2>PostNoticeEventListener 테스트</h2>
+ * <h2>PostNoticeListener 테스트</h2>
  * <p>게시글 공지 설정/해제 이벤트 리스너의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>이벤트 처리, 캐시 무효화, 비동기 동작, 로그 출력을 테스트합니다.</p>
  *
@@ -37,21 +34,21 @@ import static org.awaitility.Awaitility.await;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("PostNoticeEventListener 테스트")
-class PostNoticeEventListenerTest {
+@DisplayName("PostNoticeListener 테스트")
+class PostNoticeListenerTest {
 
     @Mock
     private PostCacheUseCase postCacheUseCase;
 
     @InjectMocks
-    private PostNoticeEventListener postNoticeEventListener;
+    private PostNoticeListener postNoticeListener;
 
     private Logger logger;
     private ListAppender<ILoggingEvent> listAppender;
 
     @BeforeEach
     void setUp() {
-        logger = (Logger) LoggerFactory.getLogger(PostNoticeEventListener.class);
+        logger = (Logger) LoggerFactory.getLogger(PostNoticeListener.class);
         listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
@@ -70,7 +67,7 @@ class PostNoticeEventListenerTest {
         PostSetAsNoticeEvent event = new PostSetAsNoticeEvent(postId);
 
         // When
-        assertDoesNotThrow(() -> postNoticeEventListener.handlePostSetAsNotice(event));
+        assertDoesNotThrow(() -> postNoticeListener.handlePostSetAsNotice(event));
 
         // Then
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
@@ -96,7 +93,7 @@ class PostNoticeEventListenerTest {
         PostUnsetAsNoticeEvent event = new PostUnsetAsNoticeEvent(postId);
 
         // When
-        assertDoesNotThrow(() -> postNoticeEventListener.handlePostUnsetAsNotice(event));
+        assertDoesNotThrow(() -> postNoticeListener.handlePostUnsetAsNotice(event));
 
         // Then
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
@@ -124,7 +121,7 @@ class PostNoticeEventListenerTest {
         doThrow(new RuntimeException("Cache add failed")).when(postCacheUseCase).addNoticeToCache(postId);
 
         // When & Then
-        assertDoesNotThrow(() -> postNoticeEventListener.handlePostSetAsNotice(event));
+        assertDoesNotThrow(() -> postNoticeListener.handlePostSetAsNotice(event));
         
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(postCacheUseCase).addNoticeToCache(postId);
@@ -140,7 +137,7 @@ class PostNoticeEventListenerTest {
         doThrow(new RuntimeException("Cache remove failed")).when(postCacheUseCase).removeNoticeFromCache(postId);
 
         // When & Then
-        assertDoesNotThrow(() -> postNoticeEventListener.handlePostUnsetAsNotice(event));
+        assertDoesNotThrow(() -> postNoticeListener.handlePostUnsetAsNotice(event));
         
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(postCacheUseCase).removeNoticeFromCache(postId);
@@ -156,9 +153,9 @@ class PostNoticeEventListenerTest {
 
         // When
         CompletableFuture<Void> future1 = CompletableFuture.runAsync(() -> 
-            postNoticeEventListener.handlePostSetAsNotice(event1));
+            postNoticeListener.handlePostSetAsNotice(event1));
         CompletableFuture<Void> future2 = CompletableFuture.runAsync(() -> 
-            postNoticeEventListener.handlePostUnsetAsNotice(event2));
+            postNoticeListener.handlePostUnsetAsNotice(event2));
 
         // Then
         assertDoesNotThrow(() -> {

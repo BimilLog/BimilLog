@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class NotificationEventListener {
+public class NotificationGenerateListener {
 
     private final NotificationSseUseCase notificationSseUseCase;
     private final NotificationFcmUseCase notificationFcmUseCase;

@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
@@ -36,7 +35,6 @@ public class WithdrawService implements WithdrawUseCase {
     private final SocialLoginPort socialLoginPort;
     private final SocialLogoutPort socialLogoutPort;
     private final ApplicationEventPublisher eventPublisher;
-    private final TokenBlacklistUseCase tokenBlacklistUseCase;
 
     /**
      * <h3>회원 탈퇴 처리</h3>
@@ -91,8 +89,7 @@ public class WithdrawService implements WithdrawUseCase {
         User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 관리자 강제 탈퇴 시 해당 사용자의 모든 토큰을 즉시 블랙리스트에 등록
-        tokenBlacklistUseCase.blacklistAllUserTokens(userId, "관리자 강제 탈퇴");
+        // JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리
 
         // 소셜 계정 연결 해제 (강제 탈퇴에서는 소셜 로그아웃 생략)
         try {
