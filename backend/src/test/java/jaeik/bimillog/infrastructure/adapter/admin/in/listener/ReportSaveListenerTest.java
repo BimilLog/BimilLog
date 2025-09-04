@@ -15,7 +15,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>ReportEventListener 단위 테스트</h2>
+ * <h2>ReportSaveListener 단위 테스트</h2>
  * <p>신고 이벤트 리스너의 이벤트 처리 로직에 대한 단위 테스트</p>
  * <p>Given-When-Then 패턴을 사용하여 테스트를 구조화합니다.</p>
  *
@@ -23,13 +23,13 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class ReportEventListenerTest {
+class ReportSaveListenerTest {
 
     @Mock
     private AdminCommandUseCase adminCommandUseCase;
 
     @InjectMocks
-    private ReportEventListener reportEventListener;
+    private ReportSaveListener reportSaveListener;
 
     @Test
     @DisplayName("인증된 사용자 신고 이벤트 처리 - 성공")
@@ -42,7 +42,7 @@ class ReportEventListenerTest {
         ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
 
         // When
-        reportEventListener.handleReportSubmitted(event);
+        reportSaveListener.handleReportSubmitted(event);
 
         // Then
         verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
@@ -59,7 +59,7 @@ class ReportEventListenerTest {
         ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
 
         // When
-        reportEventListener.handleReportSubmitted(event);
+        reportSaveListener.handleReportSubmitted(event);
 
         // Then
         verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
@@ -76,7 +76,7 @@ class ReportEventListenerTest {
         ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
 
         // When
-        reportEventListener.handleReportSubmitted(event);
+        reportSaveListener.handleReportSubmitted(event);
 
         // Then
         verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
@@ -97,7 +97,7 @@ class ReportEventListenerTest {
                 .when(adminCommandUseCase).createReport(any(), any());
 
         // When
-        reportEventListener.handleReportSubmitted(event);
+        reportSaveListener.handleReportSubmitted(event);
 
         // Then
         verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
@@ -116,9 +116,9 @@ class ReportEventListenerTest {
                 3L, "user3", ReportVO.of(ReportType.IMPROVEMENT, null, "건의 내용"));
 
         // When
-        reportEventListener.handleReportSubmitted(event1);
-        reportEventListener.handleReportSubmitted(event2);
-        reportEventListener.handleReportSubmitted(event3);
+        reportSaveListener.handleReportSubmitted(event1);
+        reportSaveListener.handleReportSubmitted(event2);
+        reportSaveListener.handleReportSubmitted(event3);
 
         // Then
         verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(event1.reportVO()));

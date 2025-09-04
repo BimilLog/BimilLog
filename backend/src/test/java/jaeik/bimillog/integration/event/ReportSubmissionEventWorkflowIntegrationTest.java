@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.admin.entity.ReportVO;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
-import jaeik.bimillog.infrastructure.adapter.admin.in.listener.ReportEventListener;
+import jaeik.bimillog.infrastructure.adapter.admin.in.listener.ReportSaveListener;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class ReportSubmissionEventWorkflowIntegrationTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    private ReportEventListener reportEventListener;
+    private ReportSaveListener reportSaveListener;
 
     @MockitoBean
     private AdminCommandUseCase adminCommandUseCase;
@@ -215,7 +215,7 @@ class ReportSubmissionEventWorkflowIntegrationTest {
     void reportEventListener_IsRegistered() {
         // Given & When & Then
         // ReportEventListener가 Spring 컨텍스트에 정상적으로 등록되었는지 확인
-        assert reportEventListener != null;
+        assert reportSaveListener != null;
         assert eventPublisher != null;
     }
 

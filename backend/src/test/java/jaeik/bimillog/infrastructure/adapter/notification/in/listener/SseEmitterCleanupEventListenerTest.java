@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.notification.in.listener;
 
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.domain.notification.application.port.out.SsePort;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 class SseEmitterCleanupEventListenerTest {
 
     @Mock
-    private SsePort ssePort;
+    private NotificationSseUseCase notificationSseUseCase;
 
     @InjectMocks
     private SseEmitterCleanupEventListener sseEmitterCleanupEventListener;
@@ -43,7 +43,7 @@ class SseEmitterCleanupEventListenerTest {
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -58,7 +58,7 @@ class SseEmitterCleanupEventListenerTest {
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -73,7 +73,7 @@ class SseEmitterCleanupEventListenerTest {
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -85,13 +85,13 @@ class SseEmitterCleanupEventListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
         
         RuntimeException cleanupException = new RuntimeException("SSE 정리 실패");
-        doThrow(cleanupException).when(ssePort).deleteEmitterByUserIdAndTokenId(userId, tokenId);
+        doThrow(cleanupException).when(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(userId, tokenId);
 
         // When
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
         // 예외가 발생해도 메서드는 정상적으로 종료되어야 함 (비동기 처리)
         // 실제로는 로그만 남기고 예외를 전파하지 않음
     }
@@ -112,7 +112,7 @@ class SseEmitterCleanupEventListenerTest {
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -127,7 +127,7 @@ class SseEmitterCleanupEventListenerTest {
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -142,7 +142,7 @@ class SseEmitterCleanupEventListenerTest {
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -157,7 +157,7 @@ class SseEmitterCleanupEventListenerTest {
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -175,12 +175,12 @@ class SseEmitterCleanupEventListenerTest {
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(eventA);
 
         // Then - A 기기의 토큰만 정리되어야 함
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId1));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId1));
         
         // When - B 기기도 로그아웃
         sseEmitterCleanupEventListener.handleUserLoggedOutEvent(eventB);
         
         // Then - B 기기의 토큰도 정리되어야 함
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId2));
+        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId2));
     }
 }

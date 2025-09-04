@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.notification.in.listener;
 
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.domain.notification.application.port.out.SsePort;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SseEmitterCleanupEventListener {
 
-    private final SsePort ssePort;
+    private final NotificationSseUseCase notificationSseUseCase;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리 - SSE 연결 정리</h3>
@@ -39,7 +39,7 @@ public class SseEmitterCleanupEventListener {
                      event.userId(), event.tokenId());
             
             // 특정 기기(토큰)의 SSE Emitter 연결만 정리
-            ssePort.deleteEmitterByUserIdAndTokenId(event.userId(), event.tokenId());
+            notificationSseUseCase.deleteEmitterByUserIdAndTokenId(event.userId(), event.tokenId());
             
             log.info("SSE 연결 정리 완료 - 사용자 ID: {}, 토큰 ID: {}", 
                     event.userId(), event.tokenId());

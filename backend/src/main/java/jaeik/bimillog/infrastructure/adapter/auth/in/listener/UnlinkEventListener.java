@@ -1,9 +1,10 @@
 
 package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -15,11 +16,12 @@ import org.springframework.stereotype.Component;
  * @author Jaeik
  * @version 2.0.0
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class UnlinkEventListener {
 
-    private final SocialLoginPort socialLoginPort;
+    private final SocialUnlinkUseCase socialUnlinkUseCase;
 
     /**
      * <h3>사용자 차단 이벤트 핸들러</h3>
@@ -32,6 +34,17 @@ public class UnlinkEventListener {
     @Async
     @EventListener
     public void handleUserBannedEvent(UserBannedEvent event) {
-        socialLoginPort.unlink(event.getProvider(), event.getSocialId());
+        try {
+            log.info("사용자 차단 이벤트 수신 - 소셜 연결 해제 시작: userId={}, provider={}, socialId={}", 
+                    event.getUserId(), event.getProvider(), event.getSocialId());
+            
+            socialUnlinkUseCase.unlinkSocialAccount(event.getProvider(), event.getSocialId());
+            
+            log.info("소셜 연결 해제 완료: userId={}, provider={}, socialId={}", 
+                    event.getUserId(), event.getProvider(), event.getSocialId());
+        } catch (Exception e) {
+            log.error("소셜 연결 해제 실패: userId={}, provider={}, socialId={}, error={}", 
+                    event.getUserId(), event.getProvider(), event.getSocialId(), e.getMessage(), e);
+        }
     }
 }

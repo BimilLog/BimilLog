@@ -44,4 +44,16 @@ public interface CommentCommandUseCase {
      */
     void deleteComment(Long userId, CommentRequest commentRequest);
 
+    /**
+     * <h3>사용자 탈퇴 시 댓글 처리</h3>
+     * <p>사용자 탈퇴 시 해당 사용자의 모든 댓글에 대해 적절한 처리를 수행합니다.</p>
+     * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
+     * <p>자손이 없는 댓글: 하드 삭제</p>
+     *
+     * @param userId 탈퇴하는 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void processUserCommentsOnWithdrawal(Long userId);
+
 }

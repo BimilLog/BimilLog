@@ -20,7 +20,7 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ReportEventListener {
+public class ReportSaveListener {
 
     private final AdminCommandUseCase adminCommandUseCase;
 
@@ -42,67 +42,17 @@ public class ReportEventListener {
         
         try {
             adminCommandUseCase.createReport(event.reporterId(), event.reportVO());
-            
             log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", 
                     event.reporterName(), event.reportVO().reportType(), event.reportVO().targetId());
             
         } catch (CustomException e) {
-            // 비즈니스 로직 오류는 재시도하지 않음
-            log.warn("신고/건의사항 비즈니스 검증 실패 - 신고자: {}, 유형: {}, targetId: {}, 오류: {}", 
+            log.warn("신고/건의사항 비즈니스 검증 실패 - 신고자: {}, 유형: {}, targetId: {}, 오류: {}",
                     event.reporterName(), event.reportVO().reportType(), 
                     event.reportVO().targetId(), e.getMessage());
-            
-            // 향후 알림 서비스나 Dead Letter Queue로 관리자에게 알림 가능
-            handleBusinessValidationFailure(event, e);
-            
         } catch (Exception e) {
             log.error("신고/건의사항 처리 중 시스템 오류 발생 - 신고자: {}, 유형: {}, targetId: {}, 오류: {}", 
                     event.reporterName(), event.reportVO().reportType(), 
                     event.reportVO().targetId(), e.getMessage(), e);
-            
-            // 향후 Dead Letter Queue나 재시도 메커니즘 구현 시 확장 가능
-            handleSystemError(event, e);
         }
-    }
-    
-    /**
-     * <h3>비즈니스 검증 실패 처리</h3>
-     * <p>비즈니스 검증에 실패한 신고에 대한 후속 처리를 수행합니다.</p>
-     * <p>향후 관리자 알림이나 Dead Letter Queue 구현 시 확장 가능한 포인트입니다.</p>
-     *
-     * @param event 실패한 신고 이벤트
-     * @param exception 발생한 비즈니스 예외
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void handleBusinessValidationFailure(ReportSubmittedEvent event, CustomException exception) {
-        // TODO: 향후 구현 계획
-        // 1. 관리자 알림 서비스 연동
-        // 2. 실패한 신고에 대한 별도 저장소 저장
-        // 3. 모니터링 메트릭 수집
-        
-        log.debug("비즈니스 검증 실패 후속처리 - 이벤트: {}, 예외: {}", 
-                event, exception.getMessage());
-    }
-    
-    /**
-     * <h3>시스템 오류 처리</h3>
-     * <p>시스템 오류로 인해 신고 처리에 실패한 경우의 후속 처리를 수행합니다.</p>
-     * <p>향후 재시도 메커니즘이나 Dead Letter Queue 구현 시 확장 가능한 포인트입니다.</p>
-     *
-     * @param event 처리 실패한 신고 이벤트
-     * @param exception 발생한 시스템 예외
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void handleSystemError(ReportSubmittedEvent event, Exception exception) {
-        // TODO: 향후 구현 계획
-        // 1. Dead Letter Queue에 이벤트 저장
-        // 2. 재시도 스케줄링
-        // 3. 시스템 모니터링 알림
-        // 4. 관리자 대시보드에 실패 이벤트 표시
-        
-        log.debug("시스템 오류 후속처리 - 이벤트: {}, 예외: {}", 
-                event, exception.getClass().getSimpleName());
     }
 }

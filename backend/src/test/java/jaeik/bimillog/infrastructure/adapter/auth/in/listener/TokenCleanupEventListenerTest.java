@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
-import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
+import jaeik.bimillog.domain.auth.application.port.in.TokenCleanupUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 class TokenCleanupEventListenerTest {
 
     @Mock
-    private DeleteUserPort deleteUserPort;
+    private TokenCleanupUseCase tokenCleanupUseCase;
 
     @InjectMocks
     private TokenCleanupEventListener tokenCleanupEventListener;
@@ -46,7 +46,7 @@ class TokenCleanupEventListenerTest {
         tokenCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId));
+        verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -59,14 +59,14 @@ class TokenCleanupEventListenerTest {
         UserLoggedOutEvent event = new UserLoggedOutEvent(userId, tokenId, loggedOutAt);
         
         doThrow(new RuntimeException("토큰 삭제 실패"))
-            .when(deleteUserPort).logoutUser(userId, tokenId);
+            .when(tokenCleanupUseCase).cleanupSpecificToken(userId, tokenId);
 
         // When & Then
         // 예외가 발생하지 않아야 함 (비동기 처리로 로그아웃 자체는 성공)
         tokenCleanupEventListener.handleUserLoggedOutEvent(event);
         
         // 포트 호출은 확인
-        verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId));
+        verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
     }
 
     @Test
@@ -96,6 +96,6 @@ class TokenCleanupEventListenerTest {
         tokenCleanupEventListener.handleUserLoggedOutEvent(event);
 
         // Then
-        verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId));
+        verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
     }
 }

@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 class UserBannedEventListenerTest {
 
     @Mock
-    private SocialLoginPort socialLoginPort;
+    private SocialUnlinkUseCase socialUnlinkUseCase;
 
     @InjectMocks
     private UnlinkEventListener unlinkEventListener;
@@ -45,7 +45,7 @@ class UserBannedEventListenerTest {
         unlinkEventListener.handleUserBannedEvent(event);
 
         // Then
-        verify(socialLoginPort).unlink(eq(provider), eq(socialId));
+        verify(socialUnlinkUseCase).unlinkSocialAccount(eq(provider), eq(socialId));
     }
 
     @Test
@@ -58,14 +58,14 @@ class UserBannedEventListenerTest {
         UserBannedEvent event = new UserBannedEvent(this, userId, socialId, provider);
         
         RuntimeException unlinkException = new RuntimeException("소셜 로그인 해제 실패");
-        doThrow(unlinkException).when(socialLoginPort).unlink(provider, socialId);
+        doThrow(unlinkException).when(socialUnlinkUseCase).unlinkSocialAccount(provider, socialId);
 
         // When & Then
         try {
             unlinkEventListener.handleUserBannedEvent(event);
         } catch (RuntimeException e) {
             // 예외가 전파되어야 함 (차단 처리 자체가 실패로 간주)
-            verify(socialLoginPort).unlink(eq(provider), eq(socialId));
+            verify(socialUnlinkUseCase).unlinkSocialAccount(eq(provider), eq(socialId));
         }
     }
 
@@ -79,7 +79,7 @@ class UserBannedEventListenerTest {
         unlinkEventListener.handleUserBannedEvent(kakaoEvent);
         
         // Then - KAKAO
-        verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("kakao123"));
+        verify(socialUnlinkUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakao123"));
     }
 
     @Test
@@ -100,7 +100,7 @@ class UserBannedEventListenerTest {
         unlinkEventListener.handleUserBannedEvent(event);
 
         // Then
-        verify(socialLoginPort).unlink(eq(provider), eq(socialId));
+        verify(socialUnlinkUseCase).unlinkSocialAccount(eq(provider), eq(socialId));
     }
 
     @Test
@@ -113,6 +113,6 @@ class UserBannedEventListenerTest {
         unlinkEventListener.handleUserBannedEvent(event);
 
         // Then - null socialId도 포트로 전달되어야 함
-        verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq(null));
+        verify(socialUnlinkUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq(null));
     }
 }

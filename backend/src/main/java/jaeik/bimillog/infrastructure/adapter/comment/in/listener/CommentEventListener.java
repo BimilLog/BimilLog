@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.comment.in.listener;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
-import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CommentEventListener {
 
-    private final CommentCommandService commentCommandService;
+    private final CommentCommandUseCase commentCommandUseCase;
 
     /**
      * <h3>사용자 탈퇴 이벤트 핸들러</h3>
@@ -38,7 +38,7 @@ public class CommentEventListener {
     @EventListener
     public void handleUserWithdrawnEvent(UserWithdrawnEvent event) {
         log.info("사용자 탈퇴 이벤트 수신 (사용자 ID: {}). 댓글 처리를 진행합니다.", event.userId());
-        commentCommandService.processUserCommentsOnWithdrawal(event.userId());
+        commentCommandUseCase.processUserCommentsOnWithdrawal(event.userId());
     }
 
     /**
@@ -55,7 +55,7 @@ public class CommentEventListener {
     @EventListener
     public void handleAdminWithdrawRequestedEvent(AdminWithdrawRequestedEvent event) {
         log.info("관리자 강제 탈퇴 이벤트 수신 (사용자 ID: {}). 댓글 처리를 진행합니다.", event.userId());
-        commentCommandService.processUserCommentsOnWithdrawal(event.userId());
+        commentCommandUseCase.processUserCommentsOnWithdrawal(event.userId());
     }
 
 }
