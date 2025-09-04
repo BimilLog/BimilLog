@@ -37,7 +37,7 @@ public class AdminCommandController {
     @PostMapping("/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> banUser(@RequestBody ReportDTO reportDTO) {
-        adminCommandUseCase.banUser(reportDTO.toReportVO());
+        adminCommandUseCase.banUser(reportDTO.getReportType(), reportDTO.getTargetId());
         return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
     }
 
@@ -53,7 +53,7 @@ public class AdminCommandController {
     @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> forceWithdrawUser(@RequestBody ReportDTO reportDTO) {
-        adminCommandUseCase.forceWithdrawUser(reportDTO.toReportVO());
+        adminCommandUseCase.forceWithdrawUser(reportDTO.getReportType(), reportDTO.getTargetId());
         return ResponseEntity.ok("관리자 권한으로 사용자 탈퇴가 완료되었습니다.");
     }
 }

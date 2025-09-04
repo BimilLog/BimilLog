@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.adapter.admin.in.listener;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.entity.ReportVO;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,15 +36,17 @@ class ReportSaveListenerTest {
         // Given
         Long reporterId = 1L;
         String reporterName = "testuser";
-        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "부적절한 댓글입니다");
+        ReportType reportType = ReportType.COMMENT;
+        Long targetId = 123L;
+        String content = "부적절한 댓글입니다";
         
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
 
         // When
         reportSaveListener.handleReportSubmitted(event);
 
         // Then
-        verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
+        verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
     }
 
     @Test
@@ -54,15 +55,17 @@ class ReportSaveListenerTest {
         // Given
         Long reporterId = null; // 익명 사용자
         String reporterName = "익명";
-        ReportVO reportVO = ReportVO.of(ReportType.POST, 456L, "스팸 게시글입니다");
+        ReportType reportType = ReportType.POST;
+        Long targetId = 456L;
+        String content = "스팸 게시글입니다";
         
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
 
         // When
         reportSaveListener.handleReportSubmitted(event);
 
         // Then
-        verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
+        verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
     }
 
     @Test
@@ -71,15 +74,17 @@ class ReportSaveListenerTest {
         // Given
         Long reporterId = 2L;
         String reporterName = "suggester";
-        ReportVO reportVO = ReportVO.of(ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다");
+        ReportType reportType = ReportType.IMPROVEMENT;
+        Long targetId = null;
+        String content = "새로운 기능을 건의합니다";
         
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
 
         // When
         reportSaveListener.handleReportSubmitted(event);
 
         // Then
-        verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
+        verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
     }
 
     @Test
@@ -88,19 +93,21 @@ class ReportSaveListenerTest {
         // Given
         Long reporterId = 1L;
         String reporterName = "testuser";
-        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "부적절한 댓글입니다");
+        ReportType reportType = ReportType.COMMENT;
+        Long targetId = 123L;
+        String content = "부적절한 댓글입니다";
         
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
         
         // AdminCommandUseCase에서 예외 발생 시뮬레이션
         doThrow(new RuntimeException("Database connection failed"))
-                .when(adminCommandUseCase).createReport(any(), any());
+                .when(adminCommandUseCase).createReport(any(), any(), any(), any());
 
         // When
         reportSaveListener.handleReportSubmitted(event);
 
         // Then
-        verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
+        verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
         // 예외가 발생해도 메서드가 정상 종료되어야 함 (로깅 후 계속 진행)
     }
 
@@ -109,11 +116,11 @@ class ReportSaveListenerTest {
     void handleMultipleReportSubmittedEvents_Success() {
         // Given
         ReportSubmittedEvent event1 = ReportSubmittedEvent.of(
-                1L, "user1", ReportVO.of(ReportType.COMMENT, 100L, "신고 내용 1"));
+                1L, "user1", ReportType.COMMENT, 100L, "신고 내용 1");
         ReportSubmittedEvent event2 = ReportSubmittedEvent.of(
-                null, "익명", ReportVO.of(ReportType.POST, 200L, "신고 내용 2"));
+                null, "익명", ReportType.POST, 200L, "신고 내용 2");
         ReportSubmittedEvent event3 = ReportSubmittedEvent.of(
-                3L, "user3", ReportVO.of(ReportType.IMPROVEMENT, null, "건의 내용"));
+                3L, "user3", ReportType.IMPROVEMENT, null, "건의 내용");
 
         // When
         reportSaveListener.handleReportSubmitted(event1);
@@ -121,9 +128,9 @@ class ReportSaveListenerTest {
         reportSaveListener.handleReportSubmitted(event3);
 
         // Then
-        verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(event1.reportVO()));
-        verify(adminCommandUseCase, times(1)).createReport(eq(null), eq(event2.reportVO()));
-        verify(adminCommandUseCase, times(1)).createReport(eq(3L), eq(event3.reportVO()));
-        verify(adminCommandUseCase, times(3)).createReport(any(), any());
+        verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("신고 내용 1"));
+        verify(adminCommandUseCase, times(1)).createReport(eq(null), eq(ReportType.POST), eq(200L), eq("신고 내용 2"));
+        verify(adminCommandUseCase, times(1)).createReport(eq(3L), eq(ReportType.IMPROVEMENT), eq(null), eq("건의 내용"));
+        verify(adminCommandUseCase, times(3)).createReport(any(), any(), any(), any());
     }
 }

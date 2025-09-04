@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.admin.application.port.in;
 
-import jaeik.bimillog.domain.admin.entity.ReportVO;
+import jaeik.bimillog.domain.admin.entity.ReportType;
 
 /**
  * <h2>관리자 명령 유스케이스</h2>
@@ -14,30 +14,34 @@ public interface AdminCommandUseCase {
      * <h3>신고/건의사항 저장</h3>
      * <p>사용자가 제출한 신고나 건의사항을 저장합니다.</p>
      *
-     * @param userId   신고자 ID
-     * @param reportVO 신고 정보 값 객체
+     * @param userId     신고자 ID
+     * @param reportType 신고 유형
+     * @param targetId   신고 대상 ID
+     * @param content    신고 내용
      * @author Jaeik
      * @since 2.0.0
      */
-    void createReport(Long userId, ReportVO reportVO);
+    void createReport(Long userId, ReportType reportType, Long targetId, String content);
 
     /**
      * <h3>사용자 제재</h3>
      * <p>주어진 신고 정보를 기반으로 사용자를 제재합니다.</p>
      *
-     * @param reportVO 신고 정보 값 객체
+     * @param reportType 신고 유형
+     * @param targetId   신고 대상 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void banUser(ReportVO reportVO);
+    void banUser(ReportType reportType, Long targetId);
 
     /**
      * <h3>사용자 강제 탈퇴</h3>
      * <p>주어진 신고 정보를 기반으로 사용자를 강제로 탈퇴 처리합니다.</p>
      *
-     * @param reportVO 신고 정보 값 객체
+     * @param reportType 신고 유형
+     * @param targetId   신고 대상 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void forceWithdrawUser(ReportVO reportVO);
+    void forceWithdrawUser(ReportType reportType, Long targetId);
 }

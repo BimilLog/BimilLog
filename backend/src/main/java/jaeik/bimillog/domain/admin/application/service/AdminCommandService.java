@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.entity.ReportVO;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -50,13 +49,9 @@ public class AdminCommandService implements AdminCommandUseCase {
      * <p>신고 유형에 따른 비즈니스 검증을 수행합니다.</p>
      */
     @Override
-    public void createReport(Long userId, ReportVO reportVO) {
-        if (reportVO == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        
+    public void createReport(Long userId, ReportType reportType, Long targetId, String content) {
         // 비즈니스 규칙 검증
-        validateReportRules(reportVO);
+        validateReportRules(reportType, targetId, content);
         
         // 신고자 정보 조회 (익명 사용자의 경우 null)
         User reporter = null;
@@ -66,7 +61,7 @@ public class AdminCommandService implements AdminCommandUseCase {
         }
         
         // Report 엔티티 생성 및 저장
-        Report report = Report.createReport(reportVO, reporter);
+        Report report = Report.createReport(reportType, targetId, content, reporter);
         adminCommandPort.save(report);
     }
 
@@ -74,25 +69,26 @@ public class AdminCommandService implements AdminCommandUseCase {
      * <h3>사용자 제재</h3>
      * <p>주어진 신고 정보를 기반으로 사용자를 제재 처리하고 사용자 제재 이벤트를 발행합니다.</p>
      *
-     * @param reportVO 신고 정보 값 객체
+     * @param reportType 신고 유형
+     * @param targetId   신고 대상 ID
      * @throws CustomException 잘못된 신고 대상이거나 사용자를 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void banUser(ReportVO reportVO) {
+    public void banUser(ReportType reportType, Long targetId) {
         // POST, COMMENT 타입은 targetId가 필수
-        if ((reportVO.reportType() == ReportType.POST || reportVO.reportType() == ReportType.COMMENT) 
-                && reportVO.targetId() == null) {
+        if ((reportType == ReportType.POST || reportType == ReportType.COMMENT) 
+                && targetId == null) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
         }
 
         // ERROR, IMPROVEMENT 타입은 banUser 대상이 없음
-        if (reportVO.reportType() == ReportType.ERROR || reportVO.reportType() == ReportType.IMPROVEMENT) {
+        if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
         }
 
-        User user = resolveUser(reportVO.reportType(), reportVO.targetId());
+        User user = resolveUser(reportType, targetId);
         if (user == null) {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
@@ -105,24 +101,25 @@ public class AdminCommandService implements AdminCommandUseCase {
      * <p>주어진 신고 정보를 기반으로 사용자를 관리자 권한으로 강제 탈퇴 처리합니다.</p>
      * <p>이벤트 드리븐 방식으로 Auth 도메인에 탈퇴 요청을 전달합니다.</p>
      *
-     * @param reportVO 신고 정보 값 객체
+     * @param reportType 신고 유형
+     * @param targetId   신고 대상 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void forceWithdrawUser(ReportVO reportVO) {
+    public void forceWithdrawUser(ReportType reportType, Long targetId) {
         // POST, COMMENT 타입은 targetId가 필수
-        if ((reportVO.reportType() == ReportType.POST || reportVO.reportType() == ReportType.COMMENT) 
-                && reportVO.targetId() == null) {
+        if ((reportType == ReportType.POST || reportType == ReportType.COMMENT) 
+                && targetId == null) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
         }
 
         // ERROR, IMPROVEMENT 타입은 forceWithdrawUser 대상이 없음
-        if (reportVO.reportType() == ReportType.ERROR || reportVO.reportType() == ReportType.IMPROVEMENT) {
+        if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
         }
 
-        User user = resolveUser(reportVO.reportType(), reportVO.targetId());
+        User user = resolveUser(reportType, targetId);
         if (user == null) {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
@@ -135,38 +132,40 @@ public class AdminCommandService implements AdminCommandUseCase {
      * <h3>신고 비즈니스 규칙 검증</h3>
      * <p>신고 유형에 따른 필수 필드 및 비즈니스 규칙을 검증합니다.</p>
      *
-     * @param reportVO 신고 정보 값 객체
+     * @param reportType 신고 유형
+     * @param targetId   신고 대상 ID
+     * @param content    신고 내용
      * @throws CustomException 검증 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
-    private void validateReportRules(ReportVO reportVO) {
-        if (reportVO.reportType() == null) {
+    private void validateReportRules(ReportType reportType, Long targetId, String content) {
+        if (reportType == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         
         // POST, COMMENT 신고는 targetId 필수
-        if (reportVO.reportType() == ReportType.POST || reportVO.reportType() == ReportType.COMMENT) {
-            if (reportVO.targetId() == null) {
+        if (reportType == ReportType.POST || reportType == ReportType.COMMENT) {
+            if (targetId == null) {
                 throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
             }
             
             // 신고 대상이 실제 존재하는지 검증
-            validateTargetExists(reportVO.reportType(), reportVO.targetId());
+            validateTargetExists(reportType, targetId);
         }
         
         // ERROR, IMPROVEMENT는 targetId가 없어야 함
-        if ((reportVO.reportType() == ReportType.ERROR || reportVO.reportType() == ReportType.IMPROVEMENT) 
-                && reportVO.targetId() != null) {
+        if ((reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) 
+                && targetId != null) {
             throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
         }
         
         // 신고 내용 검증
-        if (reportVO.content() == null || reportVO.content().trim().isEmpty()) {
+        if (content == null || content.trim().isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         
-        if (reportVO.content().length() > 500) {
+        if (content.length() > 500) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
     }

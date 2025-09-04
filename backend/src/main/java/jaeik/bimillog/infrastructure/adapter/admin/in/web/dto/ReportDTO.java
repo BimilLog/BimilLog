@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.adapter.admin.in.web.dto;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.entity.ReportVO;
 import lombok.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
@@ -60,15 +59,4 @@ public class ReportDTO {
                 .build();
     }
 
-    /**
-     * <h3>ReportVO로 변환</h3>
-     * <p>ReportDTO를 도메인 순수 값 객체인 ReportVO로 변환합니다.</p>
-     *
-     * @return ReportVO 도메인 값 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public ReportVO toReportVO() {
-        return ReportVO.of(reportType, targetId, content);
-    }
 }

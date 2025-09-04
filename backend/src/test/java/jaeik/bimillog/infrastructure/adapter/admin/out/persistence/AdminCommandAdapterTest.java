@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.adapter.admin.out.persistence;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.entity.ReportVO;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import org.junit.jupiter.api.DisplayName;
@@ -44,10 +43,12 @@ class AdminCommandAdapterTest {
                 .provider(SocialProvider.KAKAO)
                 .build();
 
-        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "부적절한 댓글입니다");
-        Report inputReport = Report.createReport(reportVO, reporter);
+        ReportType reportType = ReportType.COMMENT;
+        Long targetId = 123L;
+        String content = "부적절한 댓글입니다";
+        Report inputReport = Report.createReport(reportType, targetId, content, reporter);
         
-        Report savedReport = Report.createReport(reportVO, reporter);
+        Report savedReport = Report.createReport(reportType, targetId, content, reporter);
         savedReport = Report.builder()
                 .id(100L) // 저장 후 ID 할당됨
                 .reporter(reporter)
@@ -76,8 +77,10 @@ class AdminCommandAdapterTest {
     @DisplayName("익명 사용자 신고 저장 - 성공")
     void save_AnonymousUserReport_Success() {
         // Given
-        ReportVO reportVO = ReportVO.of(ReportType.POST, 456L, "스팸 게시글입니다");
-        Report inputReport = Report.createReport(reportVO, null); // 익명 사용자
+        ReportType reportType = ReportType.POST;
+        Long targetId = 456L;
+        String content = "스팸 게시글입니다";
+        Report inputReport = Report.createReport(reportType, targetId, content, null); // 익명 사용자
 
         Report savedReport = Report.builder()
                 .id(101L) // 저장 후 ID 할당됨
@@ -114,8 +117,10 @@ class AdminCommandAdapterTest {
                 .provider(SocialProvider.KAKAO)
                 .build();
 
-        ReportVO reportVO = ReportVO.of(ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다");
-        Report inputReport = Report.createReport(reportVO, reporter);
+        ReportType reportType = ReportType.IMPROVEMENT;
+        Long targetId = null;
+        String content = "새로운 기능을 건의합니다";
+        Report inputReport = Report.createReport(reportType, targetId, content, reporter);
 
         Report savedReport = Report.builder()
                 .id(102L) // 저장 후 ID 할당됨
@@ -145,8 +150,10 @@ class AdminCommandAdapterTest {
     @DisplayName("Repository 호출 횟수 검증")
     void save_VerifyRepositoryCallCount() {
         // Given
-        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "테스트 신고");
-        Report inputReport = Report.createReport(reportVO, null);
+        ReportType reportType = ReportType.COMMENT;
+        Long targetId = 123L;
+        String content = "테스트 신고";
+        Report inputReport = Report.createReport(reportType, targetId, content, null);
         
         Report savedReport = Report.builder()
                 .id(103L)
@@ -170,13 +177,19 @@ class AdminCommandAdapterTest {
     @DisplayName("여러 신고 연속 저장 - 성공")
     void save_MultipleReports_Success() {
         // Given
-        ReportVO reportVO1 = ReportVO.of(ReportType.COMMENT, 100L, "신고 내용 1");
-        ReportVO reportVO2 = ReportVO.of(ReportType.POST, 200L, "신고 내용 2");
-        ReportVO reportVO3 = ReportVO.of(ReportType.IMPROVEMENT, null, "건의 내용");
+        ReportType reportType1 = ReportType.COMMENT;
+        ReportType reportType2 = ReportType.POST;
+        ReportType reportType3 = ReportType.IMPROVEMENT;
+        Long targetId1 = 100L;
+        Long targetId2 = 200L;
+        Long targetId3 = null;
+        String content1 = "신고 내용 1";
+        String content2 = "신고 내용 2";
+        String content3 = "건의 내용";
 
-        Report report1 = Report.createReport(reportVO1, null);
-        Report report2 = Report.createReport(reportVO2, null);
-        Report report3 = Report.createReport(reportVO3, null);
+        Report report1 = Report.createReport(reportType1, targetId1, content1, null);
+        Report report2 = Report.createReport(reportType2, targetId2, content2, null);
+        Report report3 = Report.createReport(reportType3, targetId3, content3, null);
 
         Report savedReport1 = Report.builder().id(104L).reportType(ReportType.COMMENT).build();
         Report savedReport2 = Report.builder().id(105L).reportType(ReportType.POST).build();
@@ -206,8 +219,10 @@ class AdminCommandAdapterTest {
     @DisplayName("Repository가 반환한 결과를 그대로 반환")
     void save_ReturnRepositoryResult() {
         // Given
-        ReportVO reportVO = ReportVO.of(ReportType.POST, 999L, "테스트 신고 내용");
-        Report inputReport = Report.createReport(reportVO, null);
+        ReportType reportType = ReportType.POST;
+        Long targetId = 999L;
+        String content = "테스트 신고 내용";
+        Report inputReport = Report.createReport(reportType, targetId, content, null);
 
         // Repository가 반환할 특정 Report 객체
         Report expectedReport = Report.builder()

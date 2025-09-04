@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.entity.ReportVO;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
@@ -72,7 +71,9 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         // Given
         Long reporterId = 1L;
         String reporterName = "testuser";
-        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "부적절한 댓글입니다");
+        ReportType reportType = ReportType.COMMENT;
+        Long targetId = 123L;
+        String content = "부적절한 댓글입니다";
 
         User mockReporter = User.builder()
                 .id(reporterId)
@@ -83,14 +84,14 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
 
         // When
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
         eventPublisher.publishEvent(event);
 
         // Then - 비동기 이벤트 처리 완료까지 대기 (최대 5초)
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
+                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
                 });
     }
 
@@ -100,19 +101,21 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         // Given
         Long reporterId = null; // 익명 사용자
         String reporterName = "익명";
-        ReportVO reportVO = ReportVO.of(ReportType.POST, 456L, "스팸 게시글입니다");
+        ReportType reportType = ReportType.POST;
+        Long targetId = 456L;
+        String content = "스팸 게시글입니다";
 
         when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
 
         // When
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
         eventPublisher.publishEvent(event);
 
         // Then - 비동기 이벤트 처리 완료까지 대기 (최대 5초)
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
+                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
                 });
     }
 
@@ -122,7 +125,9 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         // Given
         Long reporterId = 2L;
         String reporterName = "suggester";
-        ReportVO reportVO = ReportVO.of(ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다");
+        ReportType reportType = ReportType.IMPROVEMENT;
+        Long targetId = null;
+        String content = "새로운 기능을 건의합니다";
 
         User mockReporter = User.builder()
                 .id(reporterId)
@@ -133,14 +138,14 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
 
         // When
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportVO);
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
         eventPublisher.publishEvent(event);
 
         // Then - 비동기 이벤트 처리 완료까지 대기 (최대 5초)
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportVO));
+                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
                 });
     }
 
@@ -149,11 +154,11 @@ class ReportSubmissionEventWorkflowIntegrationTest {
     void reportSubmissionWorkflow_MultipleEvents_Success() {
         // Given
         ReportSubmittedEvent event1 = ReportSubmittedEvent.of(
-                1L, "user1", ReportVO.of(ReportType.COMMENT, 100L, "신고 내용 1"));
+                1L, "user1", ReportType.COMMENT, 100L, "신고 내용 1");
         ReportSubmittedEvent event2 = ReportSubmittedEvent.of(
-                null, "익명", ReportVO.of(ReportType.POST, 200L, "신고 내용 2"));
+                null, "익명", ReportType.POST, 200L, "신고 내용 2");
         ReportSubmittedEvent event3 = ReportSubmittedEvent.of(
-                3L, "user3", ReportVO.of(ReportType.IMPROVEMENT, null, "건의 내용"));
+                3L, "user3", ReportType.IMPROVEMENT, null, "건의 내용");
 
         User mockUser1 = User.builder().id(1L).userName("user1").build();
         User mockUser3 = User.builder().id(3L).userName("user3").build();
@@ -171,10 +176,10 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(event1.reportVO()));
-                    verify(adminCommandUseCase, times(1)).createReport(eq(null), eq(event2.reportVO()));
-                    verify(adminCommandUseCase, times(1)).createReport(eq(3L), eq(event3.reportVO()));
-                    verify(adminCommandUseCase, times(3)).createReport(any(), any());
+                    verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("신고 내용 1"));
+                    verify(adminCommandUseCase, times(1)).createReport(eq(null), eq(ReportType.POST), eq(200L), eq("신고 내용 2"));
+                    verify(adminCommandUseCase, times(1)).createReport(eq(3L), eq(ReportType.IMPROVEMENT), eq(null), eq("건의 내용"));
+                    verify(adminCommandUseCase, times(3)).createReport(any(), any(), any(), any());
                 });
     }
 
@@ -183,9 +188,9 @@ class ReportSubmissionEventWorkflowIntegrationTest {
     void reportSubmissionWorkflow_ExceptionInOneEvent_OthersStillProcessed() {
         // Given
         ReportSubmittedEvent successEvent = ReportSubmittedEvent.of(
-                1L, "user1", ReportVO.of(ReportType.COMMENT, 100L, "정상 신고"));
+                1L, "user1", ReportType.COMMENT, 100L, "정상 신고");
         ReportSubmittedEvent failureEvent = ReportSubmittedEvent.of(
-                999L, "baduser", ReportVO.of(ReportType.POST, 200L, "실패할 신고"));
+                999L, "baduser", ReportType.POST, 200L, "실패할 신고");
 
         User mockUser1 = User.builder().id(1L).userName("user1").build();
 
@@ -194,8 +199,8 @@ class ReportSubmissionEventWorkflowIntegrationTest {
 
         // failureEvent는 예외 발생하도록 설정
         doThrow(new RuntimeException("Database connection failed"))
-                .when(adminCommandUseCase).createReport(eq(999L), any());
-        doNothing().when(adminCommandUseCase).createReport(eq(1L), any());
+                .when(adminCommandUseCase).createReport(eq(999L), any(), any(), any());
+        doNothing().when(adminCommandUseCase).createReport(eq(1L), any(), any(), any());
 
         // When
         eventPublisher.publishEvent(successEvent);
@@ -205,8 +210,8 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(successEvent.reportVO()));
-                    verify(adminCommandUseCase, times(1)).createReport(eq(999L), eq(failureEvent.reportVO()));
+                    verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("정상 신고"));
+                    verify(adminCommandUseCase, times(1)).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("실패할 신고"));
                 });
     }
 
@@ -229,7 +234,7 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         // When - 빠른 연속으로 여러 이벤트 발행
         for (int i = 0; i < eventCount; i++) {
             ReportSubmittedEvent event = ReportSubmittedEvent.of(
-                    null, "익명", ReportVO.of(ReportType.COMMENT, (long) i, "신고 내용 " + i));
+                    null, "익명", ReportType.COMMENT, (long) i, "신고 내용 " + i);
             eventPublisher.publishEvent(event);
         }
 
@@ -237,7 +242,7 @@ class ReportSubmissionEventWorkflowIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(30))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(eventCount)).createReport(eq(null), any(ReportVO.class));
+                    verify(adminCommandUseCase, times(eventCount)).createReport(eq(null), eq(ReportType.COMMENT), any(Long.class), any(String.class));
                 });
     }
 }

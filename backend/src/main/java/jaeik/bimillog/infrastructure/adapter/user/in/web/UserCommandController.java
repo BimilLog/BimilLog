@@ -89,7 +89,9 @@ public class UserCommandController {
         ReportSubmittedEvent event = ReportSubmittedEvent.of(
                 reporterId,
                 reporterName,
-                reportDTO.toReportVO()
+                reportDTO.getReportType(),
+                reportDTO.getTargetId(),
+                reportDTO.getContent()
         );
         
         eventPublisher.publishEvent(event);

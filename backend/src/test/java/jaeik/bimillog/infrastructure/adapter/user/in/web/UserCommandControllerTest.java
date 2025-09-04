@@ -90,9 +90,9 @@ class UserCommandControllerTest {
         ReportSubmittedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.reporterId()).isEqualTo(1L);
         assertThat(capturedEvent.reporterName()).isEqualTo("testuser");
-        assertThat(capturedEvent.reportVO().reportType()).isEqualTo(ReportType.COMMENT);
-        assertThat(capturedEvent.reportVO().targetId()).isEqualTo(123L);
-        assertThat(capturedEvent.reportVO().content()).isEqualTo("부적절한 댓글입니다");
+        assertThat(capturedEvent.reportType()).isEqualTo(ReportType.COMMENT);
+        assertThat(capturedEvent.targetId()).isEqualTo(123L);
+        assertThat(capturedEvent.content()).isEqualTo("부적절한 댓글입니다");
     }
 
     @Test
@@ -131,9 +131,9 @@ class UserCommandControllerTest {
         ReportSubmittedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.reporterId()).isEqualTo(2L);
         assertThat(capturedEvent.reporterName()).isEqualTo("reporter");
-        assertThat(capturedEvent.reportVO().reportType()).isEqualTo(ReportType.POST);
-        assertThat(capturedEvent.reportVO().targetId()).isEqualTo(456L);
-        assertThat(capturedEvent.reportVO().content()).isEqualTo("스팸 게시글입니다");
+        assertThat(capturedEvent.reportType()).isEqualTo(ReportType.POST);
+        assertThat(capturedEvent.targetId()).isEqualTo(456L);
+        assertThat(capturedEvent.content()).isEqualTo("스팸 게시글입니다");
     }
 
     @Test
@@ -172,9 +172,9 @@ class UserCommandControllerTest {
         ReportSubmittedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.reporterId()).isEqualTo(3L);
         assertThat(capturedEvent.reporterName()).isEqualTo("suggester");
-        assertThat(capturedEvent.reportVO().reportType()).isEqualTo(ReportType.IMPROVEMENT);
-        assertThat(capturedEvent.reportVO().targetId()).isNull();
-        assertThat(capturedEvent.reportVO().content()).isEqualTo("새로운 기능을 건의합니다");
+        assertThat(capturedEvent.reportType()).isEqualTo(ReportType.IMPROVEMENT);
+        assertThat(capturedEvent.targetId()).isNull();
+        assertThat(capturedEvent.content()).isEqualTo("새로운 기능을 건의합니다");
     }
 
     @Test
@@ -201,9 +201,9 @@ class UserCommandControllerTest {
         ReportSubmittedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.reporterId()).isNull(); // 익명 사용자는 ID가 null
         assertThat(capturedEvent.reporterName()).isEqualTo("익명");
-        assertThat(capturedEvent.reportVO().reportType()).isEqualTo(ReportType.COMMENT);
-        assertThat(capturedEvent.reportVO().targetId()).isEqualTo(123L);
-        assertThat(capturedEvent.reportVO().content()).isEqualTo("부적절한 댓글입니다");
+        assertThat(capturedEvent.reportType()).isEqualTo(ReportType.COMMENT);
+        assertThat(capturedEvent.targetId()).isEqualTo(123L);
+        assertThat(capturedEvent.content()).isEqualTo("부적절한 댓글입니다");
     }
 
     @Test

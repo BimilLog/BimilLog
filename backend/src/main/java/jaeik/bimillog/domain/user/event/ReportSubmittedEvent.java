@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.event;
 
-import jaeik.bimillog.domain.admin.entity.ReportVO;
+import jaeik.bimillog.domain.admin.entity.ReportType;
 
 /**
  * <h2>신고 제출 이벤트</h2>
@@ -13,7 +13,9 @@ import jaeik.bimillog.domain.admin.entity.ReportVO;
 public record ReportSubmittedEvent(
         Long reporterId,
         String reporterName,
-        ReportVO reportVO
+        ReportType reportType,
+        Long targetId,
+        String content
 ) {
 
     /**
@@ -22,12 +24,14 @@ public record ReportSubmittedEvent(
      *
      * @param reporterId   신고자 ID
      * @param reporterName 신고자 이름
-     * @param reportVO     신고 정보 값 객체
+     * @param reportType   신고 유형
+     * @param targetId     신고 대상 ID
+     * @param content      신고 내용
      * @return ReportSubmittedEvent 생성된 이벤트
      * @author Jaeik
      * @since 2.0.0
      */
-    public static ReportSubmittedEvent of(Long reporterId, String reporterName, ReportVO reportVO) {
-        return new ReportSubmittedEvent(reporterId, reporterName, reportVO);
+    public static ReportSubmittedEvent of(Long reporterId, String reporterName, ReportType reportType, Long targetId, String content) {
+        return new ReportSubmittedEvent(reporterId, reporterName, reportType, targetId, content);
     }
 }

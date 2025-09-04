@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.admin.entity.ReportVO;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
@@ -67,8 +66,10 @@ class AdminCommandServiceTest {
     @InjectMocks
     private AdminCommandService adminCommandService;
 
-    private ReportVO validReportVO;
     private User testUser;
+    private ReportType testReportType = ReportType.POST;
+    private Long testTargetId = 200L;
+    private String testContent = "불쾌한 내용";
 
     @BeforeEach
     void setUp() {
@@ -80,11 +81,6 @@ class AdminCommandServiceTest {
                 commentQueryUseCase
         );
 
-        validReportVO = ReportVO.builder()
-                .reportType(ReportType.POST)
-                .targetId(200L)
-                .content("불쾌한 내용")
-                .build();
 
         testUser = User.builder()
                 .id(200L)
@@ -105,7 +101,7 @@ class AdminCommandServiceTest {
         given(postQueryUseCase.findById(200L)).willReturn(Optional.of(testPost));
 
         // When
-        adminCommandService.banUser(validReportVO);
+        adminCommandService.banUser(testReportType, testTargetId);
 
         // Then
         ArgumentCaptor<UserBannedEvent> eventCaptor = ArgumentCaptor.forClass(UserBannedEvent.class);
@@ -121,14 +117,11 @@ class AdminCommandServiceTest {
     @DisplayName("targetId가 null인 경우 INVALID_REPORT_TARGET 예외 발생")
     void shouldThrowException_WhenTargetIdIsNull() {
         // Given
-        ReportVO invalidReport = ReportVO.builder()
-                .reportType(ReportType.POST)
-                .targetId(null)
-                .content("invalid report")
-                .build();
+        ReportType invalidReportType = ReportType.POST;
+        Long invalidTargetId = null;
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(invalidReport))
+        assertThatThrownBy(() -> adminCommandService.banUser(invalidReportType, invalidTargetId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
 
@@ -142,7 +135,7 @@ class AdminCommandServiceTest {
         given(postQueryUseCase.findById(200L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(validReportVO))
+        assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
@@ -153,11 +146,8 @@ class AdminCommandServiceTest {
     @DisplayName("댓글 신고의 경우 정상 처리")
     void shouldBanUser_WhenValidCommentReport() {
         // Given
-        ReportVO commentReport = ReportVO.builder()
-                .reportType(ReportType.COMMENT)
-                .targetId(300L)
-                .content("부적절한 댓글")
-                .build();
+        ReportType commentReportType = ReportType.COMMENT;
+        Long commentTargetId = 300L;
         
         Comment testComment = Comment.builder()
                 .id(300L)
@@ -166,7 +156,7 @@ class AdminCommandServiceTest {
         given(commentQueryUseCase.findById(300L)).willReturn(Optional.of(testComment));
 
         // When
-        adminCommandService.banUser(commentReport);
+        adminCommandService.banUser(commentReportType, commentTargetId);
 
         // Then
         ArgumentCaptor<UserBannedEvent> eventCaptor = ArgumentCaptor.forClass(UserBannedEvent.class);
@@ -184,7 +174,7 @@ class AdminCommandServiceTest {
         // Given
         Long commentId = 1L;
         Long userId = 100L;
-        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, commentId, "악성 댓글 신고");
+        ReportType reportType = ReportType.COMMENT;
         
         User mockUser = User.builder()
                 .id(userId)
@@ -199,7 +189,7 @@ class AdminCommandServiceTest {
         given(commentQueryUseCase.findById(commentId)).willReturn(Optional.of(mockComment));
 
         // When
-        adminCommandService.forceWithdrawUser(reportVO);
+        adminCommandService.forceWithdrawUser(reportType, commentId);
 
         // Then
         ArgumentCaptor<AdminWithdrawRequestedEvent> eventCaptor = 
@@ -215,10 +205,11 @@ class AdminCommandServiceTest {
     @DisplayName("ERROR 타입 신고로 강제 탈퇴 시도 시 예외 발생")
     void shouldThrowException_WhenErrorTypeReport() {
         // Given
-        ReportVO reportVO = ReportVO.of(ReportType.ERROR, null, "시스템 오류 신고");
+        ReportType errorReportType = ReportType.ERROR;
+        Long targetId = null;
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(reportVO))
+        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(errorReportType, targetId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
         
@@ -229,14 +220,11 @@ class AdminCommandServiceTest {
     @DisplayName("ERROR 타입 신고시 null 반환 및 정상 처리")
     void shouldReturnNull_WhenErrorReportType() {
         // Given
-        ReportVO errorReport = ReportVO.builder()
-                .reportType(ReportType.ERROR)
-                .targetId(null)
-                .content("시스템 오류 신고")
-                .build();
+        ReportType errorReportType = ReportType.ERROR;
+        Long targetId = null;
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(errorReport))
+        assertThatThrownBy(() -> adminCommandService.banUser(errorReportType, targetId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
 
@@ -247,14 +235,11 @@ class AdminCommandServiceTest {
     @DisplayName("IMPROVEMENT 타입 신고시 null 반환 및 정상 처리")
     void shouldReturnNull_WhenImprovementReportType() {
         // Given
-        ReportVO improvementReport = ReportVO.builder()
-                .reportType(ReportType.IMPROVEMENT)
-                .targetId(null)
-                .content("기능 개선 건의")
-                .build();
+        ReportType improvementReportType = ReportType.IMPROVEMENT;
+        Long targetId = null;
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(improvementReport))
+        assertThatThrownBy(() -> adminCommandService.banUser(improvementReportType, targetId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
 
@@ -268,7 +253,9 @@ class AdminCommandServiceTest {
     void createReport_AuthenticatedUser_Success() {
         // Given
         Long userId = 1L;
-        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "부적절한 댓글입니다");
+        ReportType reportType = ReportType.COMMENT;
+        Long targetId = 123L;
+        String content = "부적절한 댓글입니다";
         
         User reporter = User.builder()
                 .id(userId)
@@ -282,14 +269,14 @@ class AdminCommandServiceTest {
                 .user(reporter)
                 .build();
 
-        Report expectedReport = Report.createReport(reportVO, reporter);
+        Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(reporter));
         given(commentQueryUseCase.findById(123L)).willReturn(Optional.of(testComment));
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
-        adminCommandService.createReport(userId, reportVO);
+        adminCommandService.createReport(userId, reportType, targetId, content);
 
         // Then
         verify(userQueryPort, times(1)).findById(userId);
@@ -301,7 +288,9 @@ class AdminCommandServiceTest {
     void createReport_AnonymousUser_Success() {
         // Given
         Long userId = null; // 익명 사용자
-        ReportVO reportVO = ReportVO.of(ReportType.POST, 456L, "스팸 게시글입니다");
+        ReportType reportType = ReportType.POST;
+        Long targetId = 456L;
+        String content = "스팸 게시글입니다";
         
         User postUser = User.builder()
                 .id(456L)
@@ -313,12 +302,12 @@ class AdminCommandServiceTest {
                 .user(postUser)
                 .build();
         
-        Report expectedReport = Report.createReport(reportVO, null);
+        Report expectedReport = Report.createReport(reportType, targetId, content, null);
         given(postQueryUseCase.findById(456L)).willReturn(Optional.of(testPost));
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
-        adminCommandService.createReport(userId, reportVO);
+        adminCommandService.createReport(userId, reportType, targetId, content);
 
         // Then
         verify(userQueryPort, never()).findById(any()); // 익명 사용자는 조회하지 않음
@@ -330,7 +319,9 @@ class AdminCommandServiceTest {
     void createReport_Suggestion_Success() {
         // Given
         Long userId = 2L;
-        ReportVO reportVO = ReportVO.of(ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다");
+        ReportType reportType = ReportType.IMPROVEMENT;
+        Long targetId = null;
+        String content = "새로운 기능을 건의합니다";
         
         User reporter = User.builder()
                 .id(userId)
@@ -339,13 +330,13 @@ class AdminCommandServiceTest {
                 .provider(SocialProvider.KAKAO)
                 .build();
 
-        Report expectedReport = Report.createReport(reportVO, reporter);
+        Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(reporter));
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
-        adminCommandService.createReport(userId, reportVO);
+        adminCommandService.createReport(userId, reportType, targetId, content);
 
         // Then
         verify(userQueryPort, times(1)).findById(userId);
@@ -353,14 +344,16 @@ class AdminCommandServiceTest {
     }
 
     @Test
-    @DisplayName("신고 생성 - 실패 (reportVO가 null)")
-    void createReport_Fail_NullReportVO() {
+    @DisplayName("신고 생성 - 실패 (content가 null)")
+    void createReport_Fail_NullContent() {
         // Given
         Long userId = 1L;
-        ReportVO reportVO = null;
+        ReportType reportType = ReportType.IMPROVEMENT; // Use IMPROVEMENT to avoid targetId validation
+        Long targetId = null; // IMPROVEMENT type should have null targetId
+        String content = null;
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportVO))
+        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportType, targetId, content))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
 
@@ -373,7 +366,9 @@ class AdminCommandServiceTest {
     void createReport_Fail_UserNotFound() {
         // Given
         Long userId = 999L;
-        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, 123L, "부적절한 댓글입니다");
+        ReportType reportType = ReportType.COMMENT;
+        Long targetId = 123L;
+        String content = "부적절한 댓글입니다";
         
         User testUser = User.builder()
                 .id(123L)
@@ -389,7 +384,7 @@ class AdminCommandServiceTest {
         given(commentQueryUseCase.findById(123L)).willReturn(Optional.of(testComment));
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportVO))
+        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportType, targetId, content))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
@@ -405,9 +400,15 @@ class AdminCommandServiceTest {
         Long userId2 = null; // 익명
         Long userId3 = 3L;
 
-        ReportVO reportVO1 = ReportVO.of(ReportType.COMMENT, 100L, "신고 내용 1");
-        ReportVO reportVO2 = ReportVO.of(ReportType.POST, 200L, "신고 내용 2");
-        ReportVO reportVO3 = ReportVO.of(ReportType.IMPROVEMENT, null, "건의 내용");
+        ReportType reportType1 = ReportType.COMMENT;
+        ReportType reportType2 = ReportType.POST;
+        ReportType reportType3 = ReportType.IMPROVEMENT;
+        Long targetId1 = 100L;
+        Long targetId2 = 200L;
+        Long targetId3 = null;
+        String content1 = "신고 내용 1";
+        String content2 = "신고 내용 2";
+        String content3 = "건의 내용";
 
         User user1 = User.builder().id(userId1).userName("user1").build();
         User user3 = User.builder().id(userId3).userName("user3").build();
@@ -422,9 +423,9 @@ class AdminCommandServiceTest {
         given(adminCommandPort.save(any(Report.class))).willReturn(mock(Report.class));
 
         // When
-        adminCommandService.createReport(userId1, reportVO1);
-        adminCommandService.createReport(userId2, reportVO2); // 익명
-        adminCommandService.createReport(userId3, reportVO3);
+        adminCommandService.createReport(userId1, reportType1, targetId1, content1);
+        adminCommandService.createReport(userId2, reportType2, targetId2, content2); // 익명
+        adminCommandService.createReport(userId3, reportType3, targetId3, content3);
 
         // Then
         verify(userQueryPort, times(1)).findById(userId1);
