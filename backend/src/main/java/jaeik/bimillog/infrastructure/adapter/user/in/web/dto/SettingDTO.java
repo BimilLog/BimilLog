@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.user.in.web.dto;
 
-import jaeik.bimillog.domain.user.entity.SettingVO;
+import jaeik.bimillog.domain.user.entity.Setting;
 import lombok.*;
 
 /**
@@ -26,31 +26,35 @@ public class SettingDTO {
     private boolean postFeaturedNotification;
 
     /**
-     * <h3>DTO를 SettingVO로 변환</h3>
-     * <p>DTO의 알림 설정 정보를 도메인 값 객체로 변환합니다.</p>
+     * <h3>DTO를 Setting 엔티티로 변환</h3>
+     * <p>DTO의 알림 설정 정보를 Setting 엔티티로 변환합니다.</p>
      *
-     * @return SettingVO 객체
+     * @return Setting 엔티티 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    public SettingVO toSettingVO() {
-        return SettingVO.of(messageNotification, commentNotification, postFeaturedNotification);
+    public Setting toSettingEntity() {
+        return Setting.builder()
+                .messageNotification(messageNotification)
+                .commentNotification(commentNotification)
+                .postFeaturedNotification(postFeaturedNotification)
+                .build();
     }
 
     /**
-     * <h3>SettingVO로부터 SettingDTO 생성</h3>
-     * <p>도메인 값 객체를 DTO로 변환합니다.</p>
+     * <h3>Setting 엔티티로부터 SettingDTO 생성</h3>
+     * <p>도메인 엔티티를 DTO로 변환합니다.</p>
      *
-     * @param settingVO 설정 값 객체
+     * @param setting 설정 엔티티
      * @return SettingDTO 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    public static SettingDTO fromSettingVO(SettingVO settingVO) {
+    public static SettingDTO fromSetting(Setting setting) {
         return SettingDTO.builder()
-                .messageNotification(settingVO.messageNotification())
-                .commentNotification(settingVO.commentNotification())
-                .postFeaturedNotification(settingVO.postFeaturedNotification())
+                .messageNotification(setting.isMessageNotification())
+                .commentNotification(setting.isCommentNotification())
+                .postFeaturedNotification(setting.isPostFeaturedNotification())
                 .build();
     }
 }

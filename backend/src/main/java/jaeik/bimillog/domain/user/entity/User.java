@@ -3,6 +3,9 @@ package jaeik.bimillog.domain.user.entity;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -97,10 +100,32 @@ public class User extends BaseEntity {
     }
 
     /**
-     * <h3>닉네임 수정</h3>
+     * <h3>닉네임 변경</h3>
      *
      * <p>
-     * 사용자의 닉네임을 수정한다.
+     * 비즈니스 규칙에 따른 닉네임 변경 수행. 중복 검사 및 Race Condition 처리 포함.
+     * </p>
+     *
+     * @param newUserName 새로운 닉네임
+     * @param userQueryPort 중복 확인을 위한 쿼리 포트
+     * @throws CustomException 중복된 닉네임인 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void changeUserName(String newUserName, UserQueryPort userQueryPort) {
+        // 1차 중복 확인 (성능 최적화를 위한 사전 검사)
+        if (userQueryPort.existsByUserName(newUserName)) {
+            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
+        }
+        
+        this.userName = newUserName;
+    }
+    
+    /**
+     * <h3>닉네임 수정 (단순)</h3>
+     *
+     * <p>
+     * 방어적 코드 - 단순 닉네임 업데이트. 내부 사용 전용.
      * </p>
      *
      * @param userName 새로운 닉네임
@@ -124,6 +149,23 @@ public class User extends BaseEntity {
      */
     public void updateRole(UserRole role) {
         this.role = role;
+    }
+
+    /**
+     * <h3>사용자 설정 업데이트</h3>
+     *
+     * <p>
+     * 사용자의 알림 설정을 업데이트한다. JPA 변경 감지를 활용하여 자동 저장된다.
+     * </p>
+     *
+     * @param messageNotification 메시지 알림 여부
+     * @param commentNotification 댓글 알림 여부
+     * @param postFeaturedNotification 게시글 추천 알림 여부
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void updateSettings(boolean messageNotification, boolean commentNotification, boolean postFeaturedNotification) {
+        this.setting.updateSettings(messageNotification, commentNotification, postFeaturedNotification);
     }
 
     /**

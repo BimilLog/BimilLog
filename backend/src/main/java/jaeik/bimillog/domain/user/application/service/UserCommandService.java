@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SettingVO;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -34,25 +33,30 @@ public class UserCommandService implements UserCommandUseCase {
     private final UserQueryPort userQueryPort;
     private final UserCommandPort userCommandPort;
 
-/**
+    /**
      * <h3>사용자 설정 수정</h3>
      * <p>사용자의 설정을 수정하는 메서드</p>
      *
      * @param userId    사용자 ID
-     * @param settingVO 수정할 설정 정보
+     * @param newSetting 수정할 설정 정보
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public void updateUserSettings(Long userId, SettingVO settingVO) {
-        if (settingVO == null) {
+    public void updateUserSettings(Long userId, Setting newSetting) {
+        if (newSetting == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        Setting setting = user.getSetting();
-        setting.updateSetting(settingVO);
-        userCommandPort.save(user);
+        
+        // 엔티티 비즈니스 메서드로 업데이트 대체
+        user.updateSettings(
+            newSetting.isMessageNotification(),
+            newSetting.isCommentNotification(),
+            newSetting.isPostFeaturedNotification()
+        );
+        // JPA 변경 감지로 자동 저장
     }
 
     /**
@@ -69,18 +73,14 @@ public class UserCommandService implements UserCommandUseCase {
      */
     @Override
     public void updateUserName(Long userId, String newUserName) {
-        // 1차 중복 확인 (성능 최적화를 위한 사전 검사)
-        if (userQueryPort.existsByUserName(newUserName)) {
-            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
-        }
-        
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
-        user.updateUserName(newUserName);
-        
         try {
-            // 데이터베이스 저장 시도
+            // 엔티티가 비즈니스 로직 처리
+            user.changeUserName(newUserName, userQueryPort);
+            
+            // JPA 변경 감지로 자동 저장 (명시적 save 생략 가능)
             userCommandPort.save(user);
         } catch (DataIntegrityViolationException e) {
             // Race Condition 발생 시: 다른 사용자가 동시에 같은 닉네임으로 변경한 경우

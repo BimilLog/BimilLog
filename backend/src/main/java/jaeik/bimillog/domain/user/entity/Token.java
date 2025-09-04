@@ -55,17 +55,21 @@ public class Token extends BaseEntity {
 
     /**
      * <h3>토큰 생성</h3>
-     * <p>TokenValue와 Users 객체를 사용하여 Token 엔티티를 생성합니다.</p>
+     * <p>사용자와 토큰 정보로 Token 엔티티를 생성합니다.</p>
      *
-     * @param tokenVO TokenValue 객체
-     * @param user Users 객체
+     * @param accessToken 액세스 토큰
+     * @param refreshToken 리프레시 토큰
+     * @param user 사용자 엔티티
      * @return 생성된 Token 엔티티
+     * @author Jaeik
+     * @since 2.0.0
      */
-    public static Token createToken(TokenVO tokenVO, User user) {
+    public static Token createToken(String accessToken, String refreshToken, User user) {
         return Token.builder()
-                .accessToken(tokenVO.accessToken())
-                .refreshToken(tokenVO.refreshToken())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .users(user)
                 .build();
     }
+    
 }

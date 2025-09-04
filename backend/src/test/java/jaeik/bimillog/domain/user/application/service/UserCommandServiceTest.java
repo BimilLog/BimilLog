@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SettingVO;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -68,7 +67,7 @@ class UserCommandServiceTest {
                 .setting(existingSetting)
                 .build();
         
-        SettingVO settingVO = SettingVO.builder()
+        Setting newSetting = Setting.builder()
                 .messageNotification(false)
                 .commentNotification(false)
                 .postFeaturedNotification(true)
@@ -77,7 +76,7 @@ class UserCommandServiceTest {
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
-        userCommandService.updateUserSettings(userId, settingVO);
+        userCommandService.updateUserSettings(userId, newSetting);
 
         // Then
         verify(userQueryPort).findById(userId);
@@ -94,7 +93,7 @@ class UserCommandServiceTest {
     void shouldThrowException_WhenUserNotFoundForSettingUpdate() {
         // Given
         Long userId = 999L;
-        SettingVO settingVO = SettingVO.builder()
+        Setting newSetting = Setting.builder()
                 .messageNotification(true)
                 .commentNotification(true)
                 .postFeaturedNotification(true)
@@ -103,7 +102,7 @@ class UserCommandServiceTest {
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, settingVO))
+        assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, newSetting))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
         
@@ -316,8 +315,8 @@ class UserCommandServiceTest {
     }
 
     @Test
-    @DisplayName("null 설정 VO로 사용자 설정 수정")
-    void shouldThrowException_WhenNullSettingVO() {
+    @DisplayName("null 설정으로 사용자 설정 수정")
+    void shouldThrowException_WhenNullSetting() {
         // Given
         Long userId = 1L;
 
@@ -332,7 +331,7 @@ class UserCommandServiceTest {
 
     @Test
     @DisplayName("부분적 설정 업데이트")
-    void shouldUpdateUserSettings_WhenPartialSettingVO() {
+    void shouldUpdateUserSettings_WhenPartialSetting() {
         // Given
         Long userId = 1L;
         Setting existingSetting = Setting.builder()
@@ -346,8 +345,8 @@ class UserCommandServiceTest {
                 .setting(existingSetting)
                 .build();
         
-        // 부분적 설정만 포함된 VO 
-        SettingVO partialSettingVO = SettingVO.builder()
+        // 부분적 설정만 포함된 Setting 
+        Setting partialSetting = Setting.builder()
                 .messageNotification(true)
                 .commentNotification(false)
                 .postFeaturedNotification(false)
@@ -356,7 +355,7 @@ class UserCommandServiceTest {
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
-        userCommandService.updateUserSettings(userId, partialSettingVO);
+        userCommandService.updateUserSettings(userId, partialSetting);
 
         // Then
         verify(userCommandPort).save(user);

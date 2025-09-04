@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
-import jaeik.bimillog.domain.user.entity.SettingVO;
+import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 
 /**
@@ -18,10 +18,10 @@ public interface SettingQueryUseCase {
      * <p>JWT 토큰의 settingId를 활용하여 효율적으로 설정 정보를 조회</p>
      *
      * @param settingId 설정 ID
-     * @return 설정 VO
+     * @return 설정 엔티티
      * @throws CustomException 설정을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
-    SettingVO findBySettingId(Long settingId);
+    Setting findBySettingId(Long settingId);
 }

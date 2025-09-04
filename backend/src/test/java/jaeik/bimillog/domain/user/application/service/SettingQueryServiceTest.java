@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SettingVO;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -52,14 +51,14 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(setting));
 
         // When
-        SettingVO result = settingQueryService.findBySettingId(settingId);
+        Setting result = settingQueryService.findBySettingId(settingId);
 
         // Then
         verify(userQueryPort).findSettingById(settingId);
         assertThat(result).isNotNull();
-        assertThat(result.messageNotification()).isTrue();
-        assertThat(result.commentNotification()).isFalse();
-        assertThat(result.postFeaturedNotification()).isTrue();
+        assertThat(result.isMessageNotification()).isTrue();
+        assertThat(result.isCommentNotification()).isFalse();
+        assertThat(result.isPostFeaturedNotification()).isTrue();
     }
 
     @Test
@@ -93,15 +92,15 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(defaultSetting));
 
         // When
-        SettingVO result = settingQueryService.findBySettingId(settingId);
+        Setting result = settingQueryService.findBySettingId(settingId);
 
         // Then
         verify(userQueryPort).findSettingById(settingId);
         assertThat(result).isNotNull();
         // 기본값 확인 (Setting.createSetting()의 기본값에 따라)
-        assertThat(result.commentNotification()).isTrue(); // 기본값
-        assertThat(result.postFeaturedNotification()).isTrue(); // 기본값
-        assertThat(result.messageNotification()).isTrue(); // 기본값
+        assertThat(result.isCommentNotification()).isTrue(); // 기본값
+        assertThat(result.isPostFeaturedNotification()).isTrue(); // 기본값
+        assertThat(result.isMessageNotification()).isTrue(); // 기본값
     }
 
     @Test
@@ -119,14 +118,14 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(setting));
 
         // When
-        SettingVO result = settingQueryService.findBySettingId(settingId);
+        Setting result = settingQueryService.findBySettingId(settingId);
 
         // Then
         verify(userQueryPort).findSettingById(settingId);
         assertThat(result).isNotNull();
-        assertThat(result.messageNotification()).isFalse();
-        assertThat(result.commentNotification()).isFalse();
-        assertThat(result.postFeaturedNotification()).isFalse();
+        assertThat(result.isMessageNotification()).isFalse();
+        assertThat(result.isCommentNotification()).isFalse();
+        assertThat(result.isPostFeaturedNotification()).isFalse();
     }
 
     @Test
@@ -144,14 +143,14 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(setting));
 
         // When
-        SettingVO result = settingQueryService.findBySettingId(settingId);
+        Setting result = settingQueryService.findBySettingId(settingId);
 
         // Then
         verify(userQueryPort).findSettingById(settingId);
         assertThat(result).isNotNull();
-        assertThat(result.messageNotification()).isTrue();
-        assertThat(result.commentNotification()).isTrue();
-        assertThat(result.postFeaturedNotification()).isTrue();
+        assertThat(result.isMessageNotification()).isTrue();
+        assertThat(result.isCommentNotification()).isTrue();
+        assertThat(result.isPostFeaturedNotification()).isTrue();
     }
 
     @Test
@@ -169,14 +168,14 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(setting));
 
         // When
-        SettingVO result = settingQueryService.findBySettingId(settingId);
+        Setting result = settingQueryService.findBySettingId(settingId);
 
         // Then
         verify(userQueryPort).findSettingById(settingId);
         assertThat(result).isNotNull();
-        assertThat(result.messageNotification()).isTrue();
-        assertThat(result.commentNotification()).isFalse();
-        assertThat(result.postFeaturedNotification()).isFalse();
+        assertThat(result.isMessageNotification()).isTrue();
+        assertThat(result.isCommentNotification()).isFalse();
+        assertThat(result.isPostFeaturedNotification()).isFalse();
     }
 
     @Test
@@ -194,14 +193,14 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(setting));
 
         // When
-        SettingVO result = settingQueryService.findBySettingId(settingId);
+        Setting result = settingQueryService.findBySettingId(settingId);
 
         // Then
         verify(userQueryPort).findSettingById(settingId);
         assertThat(result).isNotNull();
-        assertThat(result.messageNotification()).isFalse();
-        assertThat(result.commentNotification()).isTrue();
-        assertThat(result.postFeaturedNotification()).isFalse();
+        assertThat(result.isMessageNotification()).isFalse();
+        assertThat(result.isCommentNotification()).isTrue();
+        assertThat(result.isPostFeaturedNotification()).isFalse();
     }
 
     @Test
@@ -219,14 +218,14 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(setting));
 
         // When
-        SettingVO result = settingQueryService.findBySettingId(settingId);
+        Setting result = settingQueryService.findBySettingId(settingId);
 
         // Then
         verify(userQueryPort).findSettingById(settingId);
         assertThat(result).isNotNull();
-        assertThat(result.messageNotification()).isFalse();
-        assertThat(result.commentNotification()).isFalse();
-        assertThat(result.postFeaturedNotification()).isTrue();
+        assertThat(result.isMessageNotification()).isFalse();
+        assertThat(result.isCommentNotification()).isFalse();
+        assertThat(result.isPostFeaturedNotification()).isTrue();
     }
 
     @Test
@@ -294,8 +293,8 @@ class SettingQueryServiceTest {
     }
 
     @Test
-    @DisplayName("SettingDTO 변환 확인")
-    void shouldConvertToDTO_Correctly() {
+    @DisplayName("Setting 엔티티 반환 확인")
+    void shouldReturnSettingEntity_Correctly() {
         // Given
         Long settingId = 1L;
         Setting setting = Setting.builder()
@@ -308,16 +307,16 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(setting));
 
         // When
-        SettingVO result = settingQueryService.findBySettingId(settingId);
+        Setting result = settingQueryService.findBySettingId(settingId);
 
         // Then
         verify(userQueryPort).findSettingById(settingId);
         
-        // SettingVO 변환이 올바르게 동작하는지 확인
+        // Setting 엔티티가 올바르게 반환되는지 확인
         assertThat(result).isNotNull();
-        assertThat(result.messageNotification()).isEqualTo(setting.isMessageNotification());
-        assertThat(result.commentNotification()).isEqualTo(setting.isCommentNotification());
-        assertThat(result.postFeaturedNotification()).isEqualTo(setting.isPostFeaturedNotification());
+        assertThat(result.isMessageNotification()).isEqualTo(setting.isMessageNotification());
+        assertThat(result.isCommentNotification()).isEqualTo(setting.isCommentNotification());
+        assertThat(result.isPostFeaturedNotification()).isEqualTo(setting.isPostFeaturedNotification());
     }
 
     @Test
@@ -366,19 +365,19 @@ class SettingQueryServiceTest {
         given(userQueryPort.findSettingById(settingId2)).willReturn(Optional.of(setting2));
 
         // When
-        SettingVO result1 = settingQueryService.findBySettingId(settingId1);
-        SettingVO result2 = settingQueryService.findBySettingId(settingId2);
+        Setting result1 = settingQueryService.findBySettingId(settingId1);
+        Setting result2 = settingQueryService.findBySettingId(settingId2);
 
         // Then
         verify(userQueryPort).findSettingById(settingId1);
         verify(userQueryPort).findSettingById(settingId2);
         
-        assertThat(result1.messageNotification()).isTrue();
-        assertThat(result1.commentNotification()).isTrue();
-        assertThat(result1.postFeaturedNotification()).isTrue();
+        assertThat(result1.isMessageNotification()).isTrue();
+        assertThat(result1.isCommentNotification()).isTrue();
+        assertThat(result1.isPostFeaturedNotification()).isTrue();
         
-        assertThat(result2.messageNotification()).isFalse();
-        assertThat(result2.commentNotification()).isFalse();
-        assertThat(result2.postFeaturedNotification()).isFalse();
+        assertThat(result2.isMessageNotification()).isFalse();
+        assertThat(result2.isCommentNotification()).isFalse();
+        assertThat(result2.isPostFeaturedNotification()).isFalse();
     }
 }

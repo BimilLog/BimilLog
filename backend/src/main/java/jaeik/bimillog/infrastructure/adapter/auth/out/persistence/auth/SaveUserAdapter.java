@@ -96,7 +96,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         redisUserDataPort.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
-                tokenRepository.save(Token.createToken(tokenVO, user)).getId(),
+                tokenRepository.save(Token.createToken(tokenVO.accessToken(), tokenVO.refreshToken(), user)).getId(),
                 null));
     }
 

@@ -47,29 +47,21 @@ public class Setting {
 
     /**
      * <h3>설정 업데이트</h3>
-     * <p>주어진 VO를 사용하여 알림 설정을 업데이트합니다.</p>
+     * <p>알림 설정을 직접 업데이트합니다.</p>
      *
-     * @param settingVO 업데이트할 설정 정보 값 객체
+     * @param messageNotification 메시지 알림 여부
+     * @param commentNotification 댓글 알림 여부
+     * @param postFeaturedNotification 게시글 추천 알림 여부
      * @author Jaeik
      * @since 2.0.0
      */
-    public void updateSetting(SettingVO settingVO) {
-        messageNotification = settingVO.messageNotification();
-        commentNotification = settingVO.commentNotification();
-        postFeaturedNotification = settingVO.postFeaturedNotification();
+    public void updateSettings(boolean messageNotification, boolean commentNotification, boolean postFeaturedNotification) {
+        this.messageNotification = messageNotification;
+        this.commentNotification = commentNotification;
+        this.postFeaturedNotification = postFeaturedNotification;
     }
 
-    /**
-     * <h3>SettingVO로 변환</h3>
-     * <p>현재 설정 엔티티를 SettingVO로 변환합니다.</p>
-     *
-     * @return 설정 정보를 담은 SettingVO 객체
-     * @author Jaeik  
-     * @since 2.0.0
-     */
-    public SettingVO toSettingVO() {
-        return SettingVO.of(messageNotification, commentNotification, postFeaturedNotification);
-    }
+
 
     /**
      * <h3>기본 설정 생성</h3>
