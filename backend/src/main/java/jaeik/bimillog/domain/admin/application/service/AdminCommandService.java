@@ -15,6 +15,8 @@ import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.AdminCustomException;
+import jaeik.bimillog.infrastructure.exception.AdminErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -50,9 +52,6 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     public void createReport(Long userId, ReportType reportType, Long targetId, String content) {
-        // 비즈니스 규칙 검증
-        validateReportRules(reportType, targetId, content);
-        
         // 신고자 정보 조회 (익명 사용자의 경우 null)
         User reporter = null;
         if (userId != null) {
@@ -60,7 +59,12 @@ public class AdminCommandService implements AdminCommandUseCase {
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         }
         
-        // Report 엔티티 생성 및 저장
+        // 신고 대상 존재 여부 검증 (POST, COMMENT만)
+        if ((reportType == ReportType.POST || reportType == ReportType.COMMENT) && targetId != null) {
+            validateTargetExists(reportType, targetId);
+        }
+        
+        // Report 엔티티 생성 및 저장 (내부에서 도메인 검증 수행)
         Report report = Report.createReport(reportType, targetId, content, reporter);
         adminCommandPort.save(report);
     }
@@ -80,12 +84,12 @@ public class AdminCommandService implements AdminCommandUseCase {
         // POST, COMMENT 타입은 targetId가 필수
         if ((reportType == ReportType.POST || reportType == ReportType.COMMENT) 
                 && targetId == null) {
-            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         }
 
         // ERROR, IMPROVEMENT 타입은 banUser 대상이 없음
         if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
-            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         }
 
         User user = resolveUser(reportType, targetId);
@@ -111,12 +115,12 @@ public class AdminCommandService implements AdminCommandUseCase {
         // POST, COMMENT 타입은 targetId가 필수
         if ((reportType == ReportType.POST || reportType == ReportType.COMMENT) 
                 && targetId == null) {
-            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         }
 
         // ERROR, IMPROVEMENT 타입은 forceWithdrawUser 대상이 없음
         if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
-            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         }
 
         User user = resolveUser(reportType, targetId);
@@ -128,48 +132,6 @@ public class AdminCommandService implements AdminCommandUseCase {
         eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(user.getId(), "관리자 강제 탈퇴"));
     }
 
-    /**
-     * <h3>신고 비즈니스 규칙 검증</h3>
-     * <p>신고 유형에 따른 필수 필드 및 비즈니스 규칙을 검증합니다.</p>
-     *
-     * @param reportType 신고 유형
-     * @param targetId   신고 대상 ID
-     * @param content    신고 내용
-     * @throws CustomException 검증 실패 시
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void validateReportRules(ReportType reportType, Long targetId, String content) {
-        if (reportType == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        
-        // POST, COMMENT 신고는 targetId 필수
-        if (reportType == ReportType.POST || reportType == ReportType.COMMENT) {
-            if (targetId == null) {
-                throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
-            }
-            
-            // 신고 대상이 실제 존재하는지 검증
-            validateTargetExists(reportType, targetId);
-        }
-        
-        // ERROR, IMPROVEMENT는 targetId가 없어야 함
-        if ((reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) 
-                && targetId != null) {
-            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
-        }
-        
-        // 신고 내용 검증
-        if (content == null || content.trim().isEmpty()) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        
-        if (content.length() > 500) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-    }
-    
     /**
      * <h3>신고 대상 존재 여부 검증</h3>
      * <p>신고 대상이 실제로 존재하는지 검증합니다.</p>
@@ -184,11 +146,11 @@ public class AdminCommandService implements AdminCommandUseCase {
         try {
             User targetUser = resolveUser(reportType, targetId);
             if (targetUser == null) {
-                throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+                throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
             }
         } catch (CustomException e) {
             // 대상을 찾을 수 없는 경우 신고 대상이 유효하지 않음으로 처리
-            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         }
     }
 

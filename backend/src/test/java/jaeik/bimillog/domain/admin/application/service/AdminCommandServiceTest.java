@@ -14,6 +14,8 @@ import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.AdminCustomException;
+import jaeik.bimillog.infrastructure.exception.AdminErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -122,8 +124,8 @@ class AdminCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(invalidReportType, invalidTargetId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
 
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -210,8 +212,8 @@ class AdminCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(errorReportType, targetId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
         
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -225,8 +227,8 @@ class AdminCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(errorReportType, targetId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
 
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -240,8 +242,8 @@ class AdminCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(improvementReportType, targetId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
 
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -343,23 +345,6 @@ class AdminCommandServiceTest {
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 
-    @Test
-    @DisplayName("신고 생성 - 실패 (content가 null)")
-    void createReport_Fail_NullContent() {
-        // Given
-        Long userId = 1L;
-        ReportType reportType = ReportType.IMPROVEMENT; // Use IMPROVEMENT to avoid targetId validation
-        Long targetId = null; // IMPROVEMENT type should have null targetId
-        String content = null;
-
-        // When & Then
-        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportType, targetId, content))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
-
-        verify(userQueryPort, never()).findById(any());
-        verify(adminCommandPort, never()).save(any());
-    }
 
     @Test
     @DisplayName("신고 생성 - 실패 (존재하지 않는 사용자)")
@@ -381,7 +366,6 @@ class AdminCommandServiceTest {
                 .build();
         
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
-        given(commentQueryUseCase.findById(123L)).willReturn(Optional.of(testComment));
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.createReport(userId, reportType, targetId, content))
