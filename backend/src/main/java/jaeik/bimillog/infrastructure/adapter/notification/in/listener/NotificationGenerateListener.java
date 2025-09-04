@@ -39,14 +39,14 @@ public class NotificationGenerateListener {
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         // SSE 알림 전송
         notificationSseUseCase.sendCommentNotification(
-                event.getPostUserId(),
-                event.getCommenterName(),
-                event.getPostId());
+                event.postUserId(),
+                event.commenterName(),
+                event.postId());
         
         // FCM 알림 전송
         notificationFcmUseCase.sendCommentNotification(
-                event.getPostUserId(),
-                event.getCommenterName());
+                event.postUserId(),
+                event.commenterName());
     }
 
     /**
@@ -61,12 +61,12 @@ public class NotificationGenerateListener {
     public void handleRollingPaperEvent(RollingPaperEvent event) {
         // SSE 알림 전송
         notificationSseUseCase.sendPaperPlantNotification(
-                event.getPaperOwnerId(),
-                event.getUserName());
+                event.paperOwnerId(),
+                event.userName());
         
         // FCM 알림 전송
         notificationFcmUseCase.sendPaperPlantNotification(
-                event.getPaperOwnerId());
+                event.paperOwnerId());
     }
 
     /**
@@ -81,14 +81,14 @@ public class NotificationGenerateListener {
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         // SSE 알림 전송
         notificationSseUseCase.sendPostFeaturedNotification(
-                event.getUserId(),
-                event.getSseMessage(),
-                event.getPostId());
+                event.userId(),
+                event.sseMessage(),
+                event.postId());
         
         // FCM 알림 전송
         notificationFcmUseCase.sendPostFeaturedNotification(
-                event.getUserId(),
-                event.getFcmTitle(),
-                event.getFcmBody());
+                event.userId(),
+                event.fcmTitle(),
+                event.fcmBody());
     }
 }

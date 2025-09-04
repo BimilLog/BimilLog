@@ -36,15 +36,15 @@ public class SocialUnlinkListener {
     public void handleUserBannedEvent(UserBannedEvent event) {
         try {
             log.info("사용자 차단 이벤트 수신 - 소셜 연결 해제 시작: userId={}, provider={}, socialId={}", 
-                    event.getUserId(), event.getProvider(), event.getSocialId());
+                    event.userId(), event.provider(), event.socialId());
             
-            socialUnlinkUseCase.unlinkSocialAccount(event.getProvider(), event.getSocialId());
+            socialUnlinkUseCase.unlinkSocialAccount(event.provider(), event.socialId());
             
             log.info("소셜 연결 해제 완료: userId={}, provider={}, socialId={}", 
-                    event.getUserId(), event.getProvider(), event.getSocialId());
+                    event.userId(), event.provider(), event.socialId());
         } catch (Exception e) {
             log.error("소셜 연결 해제 실패: userId={}, provider={}, socialId={}, error={}", 
-                    event.getUserId(), event.getProvider(), event.getSocialId(), e.getMessage(), e);
+                    event.userId(), event.provider(), event.socialId(), e.getMessage(), e);
         }
     }
 }

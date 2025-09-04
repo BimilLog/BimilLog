@@ -46,7 +46,7 @@ public class JwtBlacklistListener {
         String reason;
         
         if (event instanceof UserBannedEvent bannedEvent) {
-            userId = bannedEvent.getUserId();
+            userId = bannedEvent.userId();
             reason = "사용자 제재";
         } else if (event instanceof AdminWithdrawRequestedEvent withdrawEvent) {
             userId = withdrawEvent.userId();

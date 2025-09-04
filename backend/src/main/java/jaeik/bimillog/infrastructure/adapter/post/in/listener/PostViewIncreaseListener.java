@@ -43,7 +43,7 @@ public class PostViewIncreaseListener {
     @EventListener
     @Async
     public void handlePostViewedEvent(PostViewedEvent event) {
-        Long postId = event.getPostId();
+        Long postId = event.postId();
         
         if (postId == null) {
             log.warn("게시글 조회 이벤트 처리 실패: postId가 null입니다");

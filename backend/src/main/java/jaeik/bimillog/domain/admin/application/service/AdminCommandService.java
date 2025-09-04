@@ -97,7 +97,7 @@ public class AdminCommandService implements AdminCommandUseCase {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
-        eventPublisher.publishEvent(new UserBannedEvent(this, user.getId(), user.getSocialId(), user.getProvider()));
+        eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider()));
     }
 
     /**

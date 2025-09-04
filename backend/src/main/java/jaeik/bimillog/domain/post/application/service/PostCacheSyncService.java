@@ -90,7 +90,6 @@ public class PostCacheSyncService {
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
-                            this,
                             post.getUserId(),
                             "주간 인기 게시글로 선정되었어요!",
                             post.getId(),
@@ -131,7 +130,6 @@ public class PostCacheSyncService {
             posts.forEach(post -> {
                 if (post.getUserId() != null) {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
-                            this,
                             post.getUserId(),
                             "명예의 전당에 등극했어요!",
                             post.getId(),

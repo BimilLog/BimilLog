@@ -46,7 +46,7 @@ public class BlacklistAddListener {
         String eventType;
         
         if (event instanceof UserBannedEvent bannedEvent) {
-            userId = bannedEvent.getUserId();
+            userId = bannedEvent.userId();
             eventType = "사용자 차단";
         } else if (event instanceof AdminWithdrawRequestedEvent withdrawEvent) {
             userId = withdrawEvent.userId();

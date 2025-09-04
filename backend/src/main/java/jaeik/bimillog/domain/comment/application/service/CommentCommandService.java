@@ -79,7 +79,6 @@ public class CommentCommandService implements CommentCommandUseCase {
 
         if (post.getUser() != null) {
             eventPublisher.publishEvent(new CommentCreatedEvent(
-                    this,
                     post.getUser().getId(),
                     userName,
                     commentRequest.postId()));

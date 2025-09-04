@@ -85,7 +85,6 @@ public class PaperCommandService implements PaperCommandUseCase {
         paperCommandPort.save(message);
 
         eventPublisher.publishEvent(new RollingPaperEvent(
-                this,
                 user.getId(),
                 userName
         ));

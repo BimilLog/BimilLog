@@ -54,8 +54,7 @@ public class WithdrawService implements WithdrawUseCase {
         }
         User user = loadUserPort.findById(userDetails.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 사용자의 모든 토큰을 블랙리스트에 등록 (보안 강화)
-        tokenBlacklistUseCase.blacklistAllUserTokens(user.getId(), "사용자 탈퇴");
+        // JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리
 
         // 소셜 로그아웃 처리 (공통 포트 사용)
         socialLogoutPort.performSocialLogout(userDetails);
