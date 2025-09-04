@@ -62,10 +62,10 @@ class CommentDeletePerformanceTest {
     private CommentClosureQueryPort commentClosureQueryPort;
     
     @Autowired
-    private LoadPostPort loadPostPort;
+    private CommentToPostPort commentToPostPort;
     
     @Autowired
-    private LoadUserPort loadUserPort;
+    private CommentToUserPort commentToUserPort;
     
     @Autowired
     private CommentRepository commentRepository;

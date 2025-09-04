@@ -54,8 +54,6 @@ public class CommentQueryService implements CommentQueryUseCase {
         return commentQueryPort.findPopularComments(postId, userId);
     }
 
-
-
     /**
      * <h3>과거순 댓글 조회</h3>
      * <p>주어진 게시글 ID에 대한 댓글을 과거순으로 페이지네이션하여 조회합니다. 사용자 추천 여부를 한 번의 쿼리로 조회합니다.</p>
@@ -75,8 +73,8 @@ public class CommentQueryService implements CommentQueryUseCase {
     }
 
     /**
-     * <h3>ID로 댓글 조회</h3>
-     * <p>주어진 ID로 댓글을 조회합니다.</p>
+     * <h3>댓글 ID로 댓글 조회</h3>
+     * <p>댓글 ID로 댓글을 조회합니다.</p>
      *
      * @param commentId 댓글 ID
      * @return Optional<Comment> 조회된 댓글 엔티티. 존재하지 않으면 Optional.empty()
@@ -137,20 +135,5 @@ public class CommentQueryService implements CommentQueryUseCase {
     @Transactional(readOnly = true)
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
         return commentQueryPort.findCommentCountsByPostIds(postIds);
-    }
-
-    /**
-     * <h3>단일 게시글의 댓글 수 조회</h3>
-     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @return Integer 댓글 수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Integer countByPostId(Long postId) {
-        return commentQueryPort.countByPostId(postId);
     }
 }

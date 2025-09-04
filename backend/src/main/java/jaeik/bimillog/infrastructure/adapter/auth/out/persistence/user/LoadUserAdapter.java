@@ -11,7 +11,7 @@ import java.util.Optional;
 /**
  * <h2>사용자 조회 어댑터</h2>
  * <p>Auth 도메인에서 User 도메인 정보 조회를 위한 아웃바운드 어댑터</p>
- * <p>헥사고날 아키텍처: LoadUserPort(아웃바운드 포트) -> LoadUserAdapter(아웃바운드 어댑터) -> UserQueryUseCase(User의 인바운드 포트)</p>
+ * <p>헥사고날 아키텍처: CommentToUserPort(아웃바운드 포트) -> CommentToUserAdapter(아웃바운드 어댑터) -> UserQueryUseCase(User의 인바운드 포트)</p>
  *
  * @author Jaeik
  * @version 2.0.0

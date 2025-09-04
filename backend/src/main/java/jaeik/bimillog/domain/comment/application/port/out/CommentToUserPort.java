@@ -5,16 +5,16 @@ import jaeik.bimillog.domain.user.entity.User;
 import java.util.Optional;
 
 /**
- * <h2>사용자 조회 어댑터</h2>
- * <p>Comment 도메인에서 User 도메인의 데이터를 조회하기 위한 아웃바운드 어댑터</p>
+ * <h2>사용자 조회 포트</h2>
+ * <p>Comment 도메인에서 User 도메인의 데이터를 조회하기 위한 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadUserPort {
+public interface CommentToUserPort {
 
     /**
-     * <h3>ID로 사용자 조회</h3>
+     * <h3>사용자 ID로 사용자 조회</h3>
      * <p>사용자 ID를 사용하여 사용자를 조회합니다.</p>
      *
      * @param userId 사용자 ID

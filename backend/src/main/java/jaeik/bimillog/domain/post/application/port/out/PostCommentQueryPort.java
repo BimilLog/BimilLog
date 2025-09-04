@@ -14,16 +14,6 @@ import java.util.Map;
 public interface PostCommentQueryPort {
 
     /**
-     * <h3>단일 게시글의 댓글 수 조회</h3>
-     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void countByPostId(Long postId);
-
-    /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
      * <p>여러 게시글의 댓글 수를 배치로 조회하여 N+1 문제를 해결합니다.</p>
      *

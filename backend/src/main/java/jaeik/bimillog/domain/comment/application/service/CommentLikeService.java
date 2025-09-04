@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.comment.application.service;
 import jaeik.bimillog.domain.comment.application.port.in.CommentLikeUseCase;
 import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
-import jaeik.bimillog.domain.comment.application.port.out.LoadUserPort;
+import jaeik.bimillog.domain.comment.application.port.out.CommentToUserPort;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.user.entity.User;
@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class CommentLikeService implements CommentLikeUseCase {
 
-    private final LoadUserPort loadUserPort;
+    private final CommentToUserPort commentToUserPort;
     private final CommentLikePort commentLikePort;
     private final CommentQueryPort commentQueryPort;
 
@@ -60,7 +60,7 @@ public class CommentLikeService implements CommentLikeUseCase {
             throw new CustomException(ErrorCode.COMMENT_NOT_FOUND);
         }
 
-        boolean userExists = loadUserPort.findById(userId).isPresent();
+        boolean userExists = commentToUserPort.findById(userId).isPresent();
         if (!userExists) {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
@@ -69,7 +69,7 @@ public class CommentLikeService implements CommentLikeUseCase {
             commentLikePort.deleteLikeByIds(commentId, userId);
         } else {
             Comment comment = commentQueryPort.findById(commentId).get();
-            User user = loadUserPort.findById(userId).get();
+            User user = commentToUserPort.findById(userId).get();
             
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)

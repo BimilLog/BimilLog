@@ -48,10 +48,10 @@ class CommentCommandServiceTest {
     private CommentClosureCommandPort commentClosureCommandPort;
 
     @Mock
-    private LoadPostPort loadPostPort;
+    private CommentToPostPort commentToPostPort;
 
     @Mock
-    private LoadUserPort loadUserPort;
+    private CommentToUserPort commentToUserPort;
 
     @InjectMocks
     private CommentCommandService commentCommandService;

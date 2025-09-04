@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.post;
 
-import jaeik.bimillog.domain.comment.application.port.out.LoadPostPort;
+import jaeik.bimillog.domain.comment.application.port.out.CommentToPostPort;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class CommentLoadPostAdapter implements LoadPostPort {
+public class CommentCommentToPostAdapter implements CommentToPostPort {
 
     private final PostQueryUseCase postQueryUseCase;
 

@@ -39,8 +39,8 @@ import java.util.Objects;
 public class CommentCommandService implements CommentCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final LoadPostPort loadPostPort;
-    private final LoadUserPort loadUserPort;
+    private final CommentToPostPort commentToPostPort;
+    private final CommentToUserPort commentToUserPort;
     private final CommentCommandPort commentCommandPort;
     private final CommentQueryPort commentQueryPort;
     private final CommentClosureQueryPort commentClosureQueryPort;
@@ -59,13 +59,13 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     @Override
     public void writeComment(Long userId, CommentRequest commentRequest) {
-        Post post = loadPostPort.findById(commentRequest.postId())
+        Post post = commentToPostPort.findById(commentRequest.postId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         User user = null;
         String userName = "익명";
         if (userId != null) {
-            user = loadUserPort.findById(userId)
+            user = commentToUserPort.findById(userId)
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             userName = user.getUserName();
         }

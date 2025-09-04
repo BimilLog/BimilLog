@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.user;
 
-import jaeik.bimillog.domain.comment.application.port.out.LoadUserPort;
+import jaeik.bimillog.domain.comment.application.port.out.CommentToUserPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.Optional;
  */
 @Component("commentUserAdapter")
 @RequiredArgsConstructor
-public class LoadUserAdapter implements LoadUserPort {
+public class CommentToUserAdapter implements CommentToUserPort {
 
     private final UserQueryUseCase userQueryUseCase;
 

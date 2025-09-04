@@ -19,7 +19,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>LoadUserAdapter 단위 테스트</h2>
+ * <h2>CommentToUserAdapter 단위 테스트</h2>
  * <p>사용자 조회 어댑터의 비즈니스 로직 위주로 테스트</p>
  * <p>헥사고날 아키텍처의 도메인 간 의존성 어댑터 테스트</p>
  *
@@ -314,7 +314,7 @@ class LoadUserAdapterTest {
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(userFromUserDomain);
         
-        // 헥사고날 아키텍처 원칙: Auth 도메인(클라이언트) -> LoadUserPort(인터페이스) -> LoadUserAdapter(구현체) -> UserQueryUseCase(User 도메인)
+        // 헥사고날 아키텍처 원칙: Auth 도메인(클라이언트) -> CommentToUserPort(인터페이스) -> CommentToUserAdapter(구현체) -> UserQueryUseCase(User 도메인)
         verify(userQueryUseCase).findById(userId);
     }
 

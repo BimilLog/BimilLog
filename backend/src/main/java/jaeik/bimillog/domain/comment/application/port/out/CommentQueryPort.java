@@ -44,17 +44,6 @@ public interface CommentQueryPort {
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
 
     /**
-     * <h3>단일 게시글의 댓글 수 조회</h3>
-     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @return Integer 댓글 수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Integer countByPostId(Long postId);
-
-    /**
      * <h3>과거순 댓글 목록 조회</h3>
      * <p>주어진 게시글 ID에 대한 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
      *

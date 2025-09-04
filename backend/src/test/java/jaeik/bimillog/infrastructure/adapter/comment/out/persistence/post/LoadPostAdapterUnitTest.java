@@ -37,7 +37,7 @@ class LoadPostAdapterUnitTest {
     private PostQueryUseCase postQueryUseCase;
 
     @InjectMocks
-    private CommentLoadPostAdapter commentLoadPostAdapter;
+    private CommentCommentToPostAdapter commentLoadPostAdapter;
 
     private User testUser;
     private Post testPost;
@@ -298,7 +298,7 @@ class LoadPostAdapterUnitTest {
     }
 
     @Test
-    @DisplayName("어댑터 계약 - LoadPostPort 인터페이스 메서드 구현 검증")
+    @DisplayName("어댑터 계약 - CommentToPostPort 인터페이스 메서드 구현 검증")
     void shouldImplementLoadPostPortContract_WhenAdapterUsed() {
         // Given: 표준 게시글과 ID
         Long postId = 1L;

@@ -137,7 +137,7 @@ class PostQueryServiceTest {
         verify(postQueryPort, never()).findById(any()); // 기존 개별 쿼리 호출 안함
         verify(postLikeQueryPort, never()).countByPost(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
-        verify(postCommentQueryPort, never()).countByPostId(any());
+//        verify(postCommentQueryPort, never()).countByPostId(any());
     }
 
     @Test
@@ -196,7 +196,7 @@ class PostQueryServiceTest {
         verify(postQueryPort, never()).findById(any());
         verify(postLikeQueryPort, never()).countByPost(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
-        verify(postCommentQueryPort, never()).countByPostId(any());
+//        verify(postCommentQueryPort, never()).countByPostId(any());
     }
 
     @Test
@@ -228,7 +228,7 @@ class PostQueryServiceTest {
         verify(postQueryPort, never()).findById(any());
         verify(postLikeQueryPort, never()).countByPost(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
-        verify(postCommentQueryPort, never()).countByPostId(any());
+//        verify(postCommentQueryPort, never()).countByPostId(any());
     }
 
     @Test

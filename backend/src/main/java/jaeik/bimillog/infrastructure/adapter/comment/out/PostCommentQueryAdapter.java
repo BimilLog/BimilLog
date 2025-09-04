@@ -22,19 +22,6 @@ public class PostCommentQueryAdapter implements PostCommentQueryPort {
 
     private final CommentQueryUseCase commentQueryUseCase;
 
-    /**
-     * <h3>단일 게시글의 댓글 수 조회</h3>
-     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
-     * <p>Comment 도메인의 요구사항을 통해 단일 게시글의 댓글 수를 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void countByPostId(Long postId) {
-        commentQueryUseCase.countByPostId(postId);
-    }
 
     /**
      * <h3>여러 게시글의 댓글 수 배치 조회</h3>

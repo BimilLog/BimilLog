@@ -46,8 +46,8 @@ public interface CommentQueryUseCase {
     Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails);
 
     /**
-     * <h3>ID로 댓글 조회</h3>
-     * <p>주어진 ID로 댓글을 조회합니다.</p>
+     * <h3>댓글 ID로 댓글 조회</h3>
+     * <p>댓글 ID로 댓글을 조회합니다.</p>
      *
      * @param commentId 댓글 ID
      * @return Optional<Comment> 조회된 댓글 엔티티. 존재하지 않으면 Optional.empty()
@@ -91,15 +91,5 @@ public interface CommentQueryUseCase {
      */
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
 
-    /**
-     * <h3>단일 게시글의 댓글 수 조회</h3>
-     * <p>단일 게시글의 댓글 수를 조회합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @return Integer 댓글 수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Integer countByPostId(Long postId);
 
 }

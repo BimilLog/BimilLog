@@ -22,7 +22,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 
 /**
- * <h2>LoadUserAdapter 단위 테스트</h2>
+ * <h2>CommentToUserAdapter 단위 테스트</h2>
  * <p>Comment 도메인에서 User 도메인에 접근하는 LoadUserAdapter의 단위 테스트</p>
  * <p>다른 도메인 UseCase를 호출하는 어댑터이므로 Mock을 사용한 단위 테스트로 작성</p>
  * 
@@ -36,7 +36,7 @@ class LoadUserAdapterUnitTest {
     private UserQueryUseCase userQueryUseCase;
 
     @InjectMocks
-    private LoadUserAdapter loadUserAdapter;
+    private CommentToUserAdapter loadUserAdapter;
 
     private User testUser;
     private Setting testSetting;
@@ -252,7 +252,7 @@ class LoadUserAdapterUnitTest {
     }
 
     @Test
-    @DisplayName("어댑터 계약 - LoadUserPort 인터페이스 메서드 구현 검증")
+    @DisplayName("어댑터 계약 - CommentToUserPort 인터페이스 메서드 구현 검증")
     void shouldImplementLoadUserPortContract_WhenAdapterUsed() {
         // Given: 표준 사용자와 ID
         Long userId = 1L;
