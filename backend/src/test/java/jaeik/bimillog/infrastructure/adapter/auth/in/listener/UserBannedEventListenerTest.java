@@ -39,7 +39,7 @@ class UserBannedEventListenerTest {
         Long userId = 1L;
         String socialId = "12345";
         SocialProvider provider = SocialProvider.KAKAO;
-        UserBannedEvent event = new UserBannedEvent(this, userId, socialId, provider);
+        UserBannedEvent event = new UserBannedEvent(userId, socialId, provider);
 
         // When
         socialUnlinkListener.handleUserBannedEvent(event);
@@ -55,7 +55,7 @@ class UserBannedEventListenerTest {
         Long userId = 1L;
         String socialId = "12345";
         SocialProvider provider = SocialProvider.KAKAO;
-        UserBannedEvent event = new UserBannedEvent(this, userId, socialId, provider);
+        UserBannedEvent event = new UserBannedEvent(userId, socialId, provider);
         
         RuntimeException unlinkException = new RuntimeException("소셜 로그인 해제 실패");
         doThrow(unlinkException).when(socialUnlinkUseCase).unlinkSocialAccount(provider, socialId);
@@ -73,7 +73,7 @@ class UserBannedEventListenerTest {
     @DisplayName("사용자 차단 이벤트 처리 - 다양한 소셜 제공자")
     void handleUserBannedEvent_WithDifferentProviders() {
         // Given - KAKAO
-        UserBannedEvent kakaoEvent = new UserBannedEvent(this, 1L, "kakao123", SocialProvider.KAKAO);
+        UserBannedEvent kakaoEvent = new UserBannedEvent(1L, "kakao123", SocialProvider.KAKAO);
         
         // When - KAKAO
         socialUnlinkListener.handleUserBannedEvent(kakaoEvent);
@@ -89,12 +89,12 @@ class UserBannedEventListenerTest {
         Long userId = 999L;
         String socialId = "testSocialId";
         SocialProvider provider = SocialProvider.KAKAO;
-        UserBannedEvent event = new UserBannedEvent(this, userId, socialId, provider);
+        UserBannedEvent event = new UserBannedEvent(userId, socialId, provider);
 
         // 이벤트 데이터 검증
-        assert event.getUserId().equals(userId);
-        assert event.getSocialId().equals(socialId);
-        assert event.getProvider().equals(provider);
+        assert event.userId().equals(userId);
+        assert event.socialId().equals(socialId);
+        assert event.provider().equals(provider);
 
         // When
         socialUnlinkListener.handleUserBannedEvent(event);
@@ -107,7 +107,7 @@ class UserBannedEventListenerTest {
     @DisplayName("사용자 차단 이벤트 처리 - null socialId 처리")
     void handleUserBannedEvent_WithNullSocialId() {
         // Given
-        UserBannedEvent event = new UserBannedEvent(this, 1L, null, SocialProvider.KAKAO);
+        UserBannedEvent event = new UserBannedEvent(1L, null, SocialProvider.KAKAO);
 
         // When
         socialUnlinkListener.handleUserBannedEvent(event);

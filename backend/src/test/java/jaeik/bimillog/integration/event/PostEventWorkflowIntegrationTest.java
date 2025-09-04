@@ -68,7 +68,7 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEventWorkflow_ShouldCompleteViewCountIncrement() {
         // Given
         Long postId = 123L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
 
         // When
         eventPublisher.publishEvent(event);
@@ -89,9 +89,9 @@ class PostEventWorkflowIntegrationTest {
         Long postId2 = 200L;
         Long postId3 = 300L;
 
-        PostViewedEvent event1 = new PostViewedEvent(this, postId1);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId2);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId3);
+        PostViewedEvent event1 = new PostViewedEvent(postId1);
+        PostViewedEvent event2 = new PostViewedEvent(postId2);
+        PostViewedEvent event3 = new PostViewedEvent(postId3);
 
         // When - 동시에 여러 이벤트 발행
         eventPublisher.publishEvent(event1);
@@ -114,9 +114,9 @@ class PostEventWorkflowIntegrationTest {
         // Given
         Long postId = 123L;
         
-        PostViewedEvent event1 = new PostViewedEvent(this, postId);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId);
+        PostViewedEvent event1 = new PostViewedEvent(postId);
+        PostViewedEvent event2 = new PostViewedEvent(postId);
+        PostViewedEvent event3 = new PostViewedEvent(postId);
 
         // When - 동일 게시글에 대한 여러 조회 이벤트
         eventPublisher.publishEvent(event1);
@@ -136,7 +136,7 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEventWithException_ShouldHandleGracefully() {
         // Given
         Long postId = 999L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
         
         doThrow(new CustomException(ErrorCode.POST_NOT_FOUND))
                 .when(postInteractionUseCase)
@@ -158,7 +158,7 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEventProcessingTime_ShouldCompleteWithinTimeout() {
         // Given
         Long postId = 123L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
 
         long startTime = System.currentTimeMillis();
 
@@ -188,7 +188,7 @@ class PostEventWorkflowIntegrationTest {
 
         // When - 100개의 조회 이벤트 발행
         for (int i = 0; i < eventCount; i++) {
-            PostViewedEvent event = new PostViewedEvent(this, postId);
+            PostViewedEvent event = new PostViewedEvent(postId);
             eventPublisher.publishEvent(event);
         }
 
@@ -204,7 +204,7 @@ class PostEventWorkflowIntegrationTest {
     @DisplayName("null 값을 포함한 게시글 조회 이벤트 처리")
     void postViewedEventWithNullValues_ShouldBeProcessed() {
         // Given - null postId를 포함한 이벤트
-        PostViewedEvent event = new PostViewedEvent(this, null);
+        PostViewedEvent event = new PostViewedEvent(null);
 
         // When
         eventPublisher.publishEvent(event);
@@ -223,8 +223,8 @@ class PostEventWorkflowIntegrationTest {
         // Given
         Long postId = 123L;
 
-        PostViewedEvent event1 = new PostViewedEvent(this, postId);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId);
+        PostViewedEvent event1 = new PostViewedEvent(postId);
+        PostViewedEvent event2 = new PostViewedEvent(postId);
 
         // When
         eventPublisher.publishEvent(event1);
@@ -247,9 +247,9 @@ class PostEventWorkflowIntegrationTest {
         Long postId3 = 300L;
 
         // When - 순차적으로 이벤트 발행
-        eventPublisher.publishEvent(new PostViewedEvent(this, postId1));
-        eventPublisher.publishEvent(new PostViewedEvent(this, postId2));
-        eventPublisher.publishEvent(new PostViewedEvent(this, postId3));
+        eventPublisher.publishEvent(new PostViewedEvent(postId1));
+        eventPublisher.publishEvent(new PostViewedEvent(postId2));
+        eventPublisher.publishEvent(new PostViewedEvent(postId3));
 
         // Then - 모든 이벤트가 처리되어야 함 (비동기이므로 순서는 보장되지 않음)
         Awaitility.await()
@@ -266,7 +266,7 @@ class PostEventWorkflowIntegrationTest {
     void postViewedEvent_ShouldPassCorrectViewHistory() {
         // Given
         Long postId = 123L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
 
         // When
         eventPublisher.publishEvent(event);
@@ -490,7 +490,7 @@ class PostEventWorkflowIntegrationTest {
         Long postId = 123L;
         
         PostSetAsNoticeEvent noticeEvent = new PostSetAsNoticeEvent(postId);
-        PostViewedEvent viewedEvent = new PostViewedEvent(this, postId);
+        PostViewedEvent viewedEvent = new PostViewedEvent(postId);
 
         // When - 공지 설정과 조회 이벤트 동시 발행
         eventPublisher.publishEvent(noticeEvent);

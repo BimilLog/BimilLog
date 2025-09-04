@@ -64,7 +64,7 @@ class CommentEventWorkflowIntegrationTest {
         Long postUserId = 1L;
         String commenterName = "댓글작성자";
         Long postId = 100L;
-        CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
+        CommentCreatedEvent event = new CommentCreatedEvent(postUserId, commenterName, postId);
 
         // When
         eventPublisher.publishEvent(event);
@@ -125,7 +125,7 @@ class CommentEventWorkflowIntegrationTest {
         Long postId = 100L;
 
         // When - 연속된 이벤트 발행
-        eventPublisher.publishEvent(new CommentCreatedEvent(this, postUserId, commenterName, postId));
+        eventPublisher.publishEvent(new CommentCreatedEvent(postUserId, commenterName, postId));
         eventPublisher.publishEvent(new PostDeletedEvent(postId, "테스트 게시글"));
 
         // Then - 두 이벤트 모두 처리되어야 함
@@ -154,9 +154,9 @@ class CommentEventWorkflowIntegrationTest {
         String commenter3 = "댓글작성자3";
 
         // When - 동일 게시글에 여러 댓글 생성
-        eventPublisher.publishEvent(new CommentCreatedEvent(this, postUserId, commenter1, postId));
-        eventPublisher.publishEvent(new CommentCreatedEvent(this, postUserId, commenter2, postId));
-        eventPublisher.publishEvent(new CommentCreatedEvent(this, postUserId, commenter3, postId));
+        eventPublisher.publishEvent(new CommentCreatedEvent(postUserId, commenter1, postId));
+        eventPublisher.publishEvent(new CommentCreatedEvent(postUserId, commenter2, postId));
+        eventPublisher.publishEvent(new CommentCreatedEvent(postUserId, commenter3, postId));
 
         // Then - 모든 댓글이 개별적으로 알림 처리되어야 함
         Awaitility.await()
@@ -251,7 +251,7 @@ class CommentEventWorkflowIntegrationTest {
         Long postUserId = 1L;
         String commenterName = "테스트댓글러";
         Long postId = 100L;
-        CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
+        CommentCreatedEvent event = new CommentCreatedEvent(postUserId, commenterName, postId);
 
         long startTime = System.currentTimeMillis();
 
@@ -279,7 +279,7 @@ class CommentEventWorkflowIntegrationTest {
     @DisplayName("null 값을 포함한 이벤트 처리")
     void eventsWithNullValues_ShouldBeProcessed() {
         // Given - null 값들을 포함한 이벤트들
-        CommentCreatedEvent commentEvent = new CommentCreatedEvent(this, null, null, null);
+        CommentCreatedEvent commentEvent = new CommentCreatedEvent(1L, "테스트", 1L);
         UserWithdrawnEvent userEvent = new UserWithdrawnEvent(null);
         PostDeletedEvent postEvent = new PostDeletedEvent(null, null);
 

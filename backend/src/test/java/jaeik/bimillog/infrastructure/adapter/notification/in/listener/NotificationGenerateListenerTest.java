@@ -43,7 +43,7 @@ class NotificationGenerateListenerTest {
         Long postUserId = 1L;
         String commenterName = "테스트사용자";
         Long postId = 100L;
-        CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
+        CommentCreatedEvent event = new CommentCreatedEvent(postUserId, commenterName, postId);
 
         // When
         notificationGenerateListener.handleCommentCreatedEvent(event);
@@ -62,7 +62,7 @@ class NotificationGenerateListenerTest {
         Long postId = 100L;
         String fcmTitle = "FCM 제목";
         String fcmBody = "FCM 내용";
-        PostFeaturedEvent event = new PostFeaturedEvent(this, userId, sseMessage, postId, fcmTitle, fcmBody);
+        PostFeaturedEvent event = new PostFeaturedEvent(userId, sseMessage, postId, fcmTitle, fcmBody);
 
         // When
         notificationGenerateListener.handlePostFeaturedEvent(event);
@@ -78,7 +78,7 @@ class NotificationGenerateListenerTest {
         // Given
         Long paperOwnerId = 1L;
         String userName = "테스트사용자";
-        RollingPaperEvent event = new RollingPaperEvent(this, paperOwnerId, userName);
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
 
         // When
         notificationGenerateListener.handleRollingPaperEvent(event);
@@ -92,7 +92,7 @@ class NotificationGenerateListenerTest {
     @DisplayName("댓글 생성 이벤트 처리 - null 값들 처리")
     void handleCommentCreatedEvent_WithNullValues() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(this, null, null, null);
+        CommentCreatedEvent event = new CommentCreatedEvent(null, null, null);
 
         // When
         notificationGenerateListener.handleCommentCreatedEvent(event);
@@ -106,7 +106,7 @@ class NotificationGenerateListenerTest {
     @DisplayName("인기글 선정 이벤트 처리 - null 값들 처리")
     void handlePostFeaturedEvent_WithNullValues() {
         // Given
-        PostFeaturedEvent event = new PostFeaturedEvent(this, null, null, null, null, null);
+        PostFeaturedEvent event = new PostFeaturedEvent(null, null, null, null, null);
 
         // When
         notificationGenerateListener.handlePostFeaturedEvent(event);
@@ -120,7 +120,7 @@ class NotificationGenerateListenerTest {
     @DisplayName("롤링페이퍼 이벤트 처리 - null 값들 처리")
     void handleRollingPaperEvent_WithNullValues() {
         // Given
-        RollingPaperEvent event = new RollingPaperEvent(this, null, null);
+        RollingPaperEvent event = new RollingPaperEvent(null, null);
 
         // When
         notificationGenerateListener.handleRollingPaperEvent(event);
@@ -137,7 +137,7 @@ class NotificationGenerateListenerTest {
         Long postUserId = 999L;
         String commenterName = "특별한사용자";
         Long postId = 12345L;
-        CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
+        CommentCreatedEvent event = new CommentCreatedEvent(postUserId, commenterName, postId);
 
         // When
         notificationGenerateListener.handleCommentCreatedEvent(event);

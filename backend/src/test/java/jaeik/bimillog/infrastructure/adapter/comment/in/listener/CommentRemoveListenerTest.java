@@ -39,7 +39,7 @@ class CommentRemoveListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
 
         // When
-        commentRemoveListener.handleUserWithdrawnEvent(event);
+        commentRemoveListener.handleCommentProcessingEvents(event);
 
         // Then
         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
@@ -57,7 +57,7 @@ class CommentRemoveListenerTest {
 
         // When & Then
         try {
-            commentRemoveListener.handleUserWithdrawnEvent(event);
+            commentRemoveListener.handleCommentProcessingEvents(event);
         } catch (RuntimeException e) {
             // 예외가 전파되어야 함 (탈퇴 처리 자체가 실패로 간주)
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
@@ -74,8 +74,8 @@ class CommentRemoveListenerTest {
         UserWithdrawnEvent event2 = new UserWithdrawnEvent(userId2);
         
         // When
-        commentRemoveListener.handleUserWithdrawnEvent(event1);
-        commentRemoveListener.handleUserWithdrawnEvent(event2);
+        commentRemoveListener.handleCommentProcessingEvents(event1);
+        commentRemoveListener.handleCommentProcessingEvents(event2);
         
         // Then
         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId1));
@@ -93,7 +93,7 @@ class CommentRemoveListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(null);
 
         // When
-        commentRemoveListener.handleUserWithdrawnEvent(event);
+        commentRemoveListener.handleCommentProcessingEvents(event);
 
         // Then - null userId도 서비스로 전달되어야 함
         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(null));
@@ -108,7 +108,7 @@ class CommentRemoveListenerTest {
         assert userEvent.userId().equals(userId);
 
         // When
-        commentRemoveListener.handleUserWithdrawnEvent(userEvent);
+        commentRemoveListener.handleCommentProcessingEvents(userEvent);
 
         // Then
         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));

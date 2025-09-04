@@ -123,10 +123,10 @@ class PostCacheSyncServiceTest {
         
         List<PostFeaturedEvent> events = eventCaptor.getAllValues();
         assertThat(events).hasSize(2);
-        assertThat(events.getFirst().getUserId()).isEqualTo(1L);
-        assertThat(events.get(0).getSseMessage()).isEqualTo("주간 인기 게시글로 선정되었어요!");
-        assertThat(events.get(0).getPostId()).isEqualTo(1L);
-        assertThat(events.get(1).getUserId()).isEqualTo(2L);
+        assertThat(events.getFirst().userId()).isEqualTo(1L);
+        assertThat(events.get(0).sseMessage()).isEqualTo("주간 인기 게시글로 선정되었어요!");
+        assertThat(events.get(0).postId()).isEqualTo(1L);
+        assertThat(events.get(1).userId()).isEqualTo(2L);
     }
 
     @Test
@@ -157,8 +157,8 @@ class PostCacheSyncServiceTest {
         verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
         
         PostFeaturedEvent event = eventCaptor.getValue();
-        assertThat(event.getUserId()).isEqualTo(2L);
-        assertThat(event.getPostId()).isEqualTo(2L);
+        assertThat(event.userId()).isEqualTo(2L);
+        assertThat(event.postId()).isEqualTo(2L);
     }
 
     @Test
@@ -186,10 +186,10 @@ class PostCacheSyncServiceTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         
         PostFeaturedEvent event = eventCaptor.getValue();
-        assertThat(event.getUserId()).isEqualTo(1L);
-        assertThat(event.getSseMessage()).isEqualTo("명예의 전당에 등극했어요!");
-        assertThat(event.getFcmTitle()).isEqualTo("명예의 전당 등극");
-        assertThat(event.getFcmBody()).contains("명예의 전당에 등극했습니다");
+        assertThat(event.userId()).isEqualTo(1L);
+        assertThat(event.sseMessage()).isEqualTo("명예의 전당에 등극했어요!");
+        assertThat(event.fcmTitle()).isEqualTo("명예의 전당 등극");
+        assertThat(event.fcmBody()).contains("명예의 전당에 등극했습니다");
     }
 
     @Test

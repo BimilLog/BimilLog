@@ -46,7 +46,7 @@ class PostViewIncreaseListenerTest {
     void handlePostViewedEvent_ShouldIncrementViewCount() {
         // Given
         Long postId = 123L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
 
         // When
         postViewIncreaseListener.handlePostViewedEvent(event);
@@ -60,7 +60,7 @@ class PostViewIncreaseListenerTest {
     void handlePostViewedEvent_WhenPostNotFound_ShouldHandleException() {
         // Given
         Long postId = 999L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
         
         doThrow(new CustomException(ErrorCode.POST_NOT_FOUND))
                 .when(postInteractionUseCase)
@@ -74,16 +74,17 @@ class PostViewIncreaseListenerTest {
     }
 
     @Test
-    @DisplayName("게시글 조회 이벤트 처리 - null postId (early return)")
-    void handlePostViewedEvent_WithNullPostId_ShouldReturnEarly() {
+    @DisplayName("게시글 조회 이벤트 처리 - 정상적인 조회수 증가 (다른 ID)")
+    void handlePostViewedEvent_WithValidPostId_ShouldIncrementViewCount() {
         // Given
-        PostViewedEvent event = new PostViewedEvent(this, null);
+        Long postId = 999L;
+        PostViewedEvent event = new PostViewedEvent(postId);
 
         // When
         postViewIncreaseListener.handlePostViewedEvent(event);
 
-        // Then - null postId인 경우 UseCase 호출하지 않고 early return
-        verify(postInteractionUseCase, never()).incrementViewCount(any());
+        // Then
+        verify(postInteractionUseCase).incrementViewCount(eq(postId));
     }
 
     @Test
@@ -94,9 +95,9 @@ class PostViewIncreaseListenerTest {
         Long postId2 = 999999L;
         Long postId3 = 0L;
         
-        PostViewedEvent event1 = new PostViewedEvent(this, postId1);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId2);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId3);
+        PostViewedEvent event1 = new PostViewedEvent(postId1);
+        PostViewedEvent event2 = new PostViewedEvent(postId2);
+        PostViewedEvent event3 = new PostViewedEvent(postId3);
 
         // When
         postViewIncreaseListener.handlePostViewedEvent(event1);
@@ -115,9 +116,9 @@ class PostViewIncreaseListenerTest {
         // Given
         Long postId = 123L;
         
-        PostViewedEvent event1 = new PostViewedEvent(this, postId);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId);
+        PostViewedEvent event1 = new PostViewedEvent(postId);
+        PostViewedEvent event2 = new PostViewedEvent(postId);
+        PostViewedEvent event3 = new PostViewedEvent(postId);
 
         // When
         postViewIncreaseListener.handlePostViewedEvent(event1);
@@ -133,7 +134,7 @@ class PostViewIncreaseListenerTest {
     void handlePostViewedEvent_WhenUseCaseThrowsRuntimeException() {
         // Given
         Long postId = 123L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
         
         RuntimeException runtimeException = new RuntimeException("데이터베이스 연결 오류");
         doThrow(runtimeException)
@@ -152,7 +153,7 @@ class PostViewIncreaseListenerTest {
     void handlePostViewedEvent_WhenUseCaseThrowsIllegalArgumentException() {
         // Given
         Long postId = -1L; // 잘못된 postId
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
         
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("잘못된 게시글 ID");
         doThrow(illegalArgumentException)
@@ -175,7 +176,7 @@ class PostViewIncreaseListenerTest {
 
         // When - 1000개의 이벤트 처리
         for (int i = 0; i < eventCount; i++) {
-            PostViewedEvent event = new PostViewedEvent(this, postId);
+            PostViewedEvent event = new PostViewedEvent(postId);
             postViewIncreaseListener.handlePostViewedEvent(event);
         }
 
@@ -188,7 +189,7 @@ class PostViewIncreaseListenerTest {
     void handlePostViewedEvent_ShouldPassCorrectParameters() {
         // Given
         Long expectedPostId = 789L;
-        PostViewedEvent event = new PostViewedEvent(this, expectedPostId);
+        PostViewedEvent event = new PostViewedEvent(expectedPostId);
 
         // When
         postViewIncreaseListener.handlePostViewedEvent(event);
@@ -205,11 +206,7 @@ class PostViewIncreaseListenerTest {
     void handlePostViewedEvent_EventSourceValidation() {
         // Given
         Long postId = 123L;
-        Object eventSource = new Object();
-        PostViewedEvent event = new PostViewedEvent(eventSource, postId);
-        
-        // 이벤트 소스 검증
-        assert event.getSource().equals(eventSource);
+        PostViewedEvent event = new PostViewedEvent(postId);
 
         // When
         postViewIncreaseListener.handlePostViewedEvent(event);
@@ -223,7 +220,7 @@ class PostViewIncreaseListenerTest {
     void handlePostViewedEvent_ShouldProcessAsynchronously() {
         // Given
         Long postId = 456L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
         
         // UseCase 처리에 지연을 추가하여 비동기 동작 시뮬레이션
         doAnswer(invocation -> {
@@ -247,9 +244,9 @@ class PostViewIncreaseListenerTest {
         Long postId2 = 200L;
         Long postId3 = 300L;
         
-        PostViewedEvent event1 = new PostViewedEvent(this, postId1);
-        PostViewedEvent event2 = new PostViewedEvent(this, postId2);
-        PostViewedEvent event3 = new PostViewedEvent(this, postId3);
+        PostViewedEvent event1 = new PostViewedEvent(postId1);
+        PostViewedEvent event2 = new PostViewedEvent(postId2);
+        PostViewedEvent event3 = new PostViewedEvent(postId3);
 
         // When - 동시에 여러 이벤트 처리 (실제로는 순차 처리되지만 동시 호출 시뮬레이션)
         CompletableFuture.runAsync(() -> postViewIncreaseListener.handlePostViewedEvent(event1));
@@ -273,7 +270,7 @@ class PostViewIncreaseListenerTest {
         listAppender.start();
         logger.addAppender(listAppender);
         
-        PostViewedEvent event = new PostViewedEvent(this, null);
+        PostViewedEvent event = new PostViewedEvent(null);
 
         // When
         postViewIncreaseListener.handlePostViewedEvent(event);
@@ -301,7 +298,7 @@ class PostViewIncreaseListenerTest {
         logger.addAppender(listAppender);
         
         Long postId = 123L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
         
         CustomException exception = new CustomException(ErrorCode.POST_NOT_FOUND);
         doThrow(exception).when(postInteractionUseCase).incrementViewCount(postId);
@@ -332,7 +329,7 @@ class PostViewIncreaseListenerTest {
         logger.addAppender(listAppender);
         
         Long postId = 123L;
-        PostViewedEvent event = new PostViewedEvent(this, postId);
+        PostViewedEvent event = new PostViewedEvent(postId);
 
         // When
         postViewIncreaseListener.handlePostViewedEvent(event);

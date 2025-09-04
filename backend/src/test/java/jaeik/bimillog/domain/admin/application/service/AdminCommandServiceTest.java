@@ -112,9 +112,9 @@ class AdminCommandServiceTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
         UserBannedEvent capturedEvent = eventCaptor.getValue();
-        assertThat(capturedEvent.getUserId()).isEqualTo(200L);
-        assertThat(capturedEvent.getSocialId()).isEqualTo("kakao123");
-        assertThat(capturedEvent.getProvider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(capturedEvent.userId()).isEqualTo(200L);
+        assertThat(capturedEvent.socialId()).isEqualTo("kakao123");
+        assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
     }
 
     @Test
@@ -173,9 +173,9 @@ class AdminCommandServiceTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
         UserBannedEvent capturedEvent = eventCaptor.getValue();
-        assertThat(capturedEvent.getUserId()).isEqualTo(200L);
-        assertThat(capturedEvent.getSocialId()).isEqualTo("kakao123");
-        assertThat(capturedEvent.getProvider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(capturedEvent.userId()).isEqualTo(200L);
+        assertThat(capturedEvent.socialId()).isEqualTo("kakao123");
+        assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
     }
 
     @Test

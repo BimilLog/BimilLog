@@ -40,7 +40,7 @@ class FcmTokenRemoveListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, 1L);
 
         // When
-        fcmTokenRemoveListener.handleUserLoggedOutEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -54,7 +54,7 @@ class FcmTokenRemoveListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, 1L);
 
         // When
-        fcmTokenRemoveListener.handleUserLoggedOutEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -68,7 +68,7 @@ class FcmTokenRemoveListenerTest {
         UserLoggedOutEvent event = new UserLoggedOutEvent(userId, 1L, java.time.LocalDateTime.now());
 
         // When
-        fcmTokenRemoveListener.handleUserLoggedOutEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -82,7 +82,7 @@ class FcmTokenRemoveListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
 
         // When
-        fcmTokenRemoveListener.handleUserWithdrawnEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -96,7 +96,7 @@ class FcmTokenRemoveListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
 
         // When
-        fcmTokenRemoveListener.handleUserWithdrawnEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -110,7 +110,7 @@ class FcmTokenRemoveListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
 
         // When
-        fcmTokenRemoveListener.handleUserWithdrawnEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -128,7 +128,7 @@ class FcmTokenRemoveListenerTest {
 
         // When & Then
         try {
-            fcmTokenRemoveListener.handleUserLoggedOutEvent(event);
+            fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
         } catch (RuntimeException e) {
             verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
         }
@@ -146,7 +146,7 @@ class FcmTokenRemoveListenerTest {
 
         // When & Then
         try {
-            fcmTokenRemoveListener.handleUserWithdrawnEvent(event);
+            fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
         } catch (RuntimeException e) {
             verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
         }
@@ -163,7 +163,7 @@ class FcmTokenRemoveListenerTest {
         assert event.userId().equals(userId);
 
         // When
-        fcmTokenRemoveListener.handleUserLoggedOutEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -180,7 +180,7 @@ class FcmTokenRemoveListenerTest {
         assert event.userId().equals(userId);
 
         // When
-        fcmTokenRemoveListener.handleUserWithdrawnEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -194,7 +194,7 @@ class FcmTokenRemoveListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, 1L);
 
         // When
-        fcmTokenRemoveListener.handleUserLoggedOutEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -208,7 +208,7 @@ class FcmTokenRemoveListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
 
         // When
-        fcmTokenRemoveListener.handleUserWithdrawnEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -222,7 +222,7 @@ class FcmTokenRemoveListenerTest {
         UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, 1L);
 
         // When
-        fcmTokenRemoveListener.handleUserLoggedOutEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
@@ -236,7 +236,7 @@ class FcmTokenRemoveListenerTest {
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
 
         // When
-        fcmTokenRemoveListener.handleUserWithdrawnEvent(event);
+        fcmTokenRemoveListener.handleFcmTokenRemovalEvents(event);
 
         // Then
         verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));

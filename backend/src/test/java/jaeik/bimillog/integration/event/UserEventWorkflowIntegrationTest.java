@@ -62,7 +62,7 @@ class UserEventWorkflowIntegrationTest {
         Long userId = 1L;
         String socialId = "testKakaoId123";
         SocialProvider provider = SocialProvider.KAKAO;
-        UserBannedEvent event = new UserBannedEvent(this, userId, socialId, provider);
+        UserBannedEvent event = new UserBannedEvent(userId, socialId, provider);
 
         // When
         eventPublisher.publishEvent(event);
@@ -122,7 +122,7 @@ class UserEventWorkflowIntegrationTest {
         SocialProvider provider = SocialProvider.KAKAO;
 
         // When - 연속된 이벤트 발행
-        eventPublisher.publishEvent(new UserBannedEvent(this, userId, socialId, provider));
+        eventPublisher.publishEvent(new UserBannedEvent(userId, socialId, provider));
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
 
         // Then - 두 이벤트 모두 처리되어야 함
@@ -141,9 +141,9 @@ class UserEventWorkflowIntegrationTest {
     @DisplayName("여러 사용자 차단 이벤트 동시 처리")
     void multipleUserBannedEvents() {
         // Given
-        UserBannedEvent event1 = new UserBannedEvent(this, 1L, "kakao123", SocialProvider.KAKAO);
-        UserBannedEvent event2 = new UserBannedEvent(this, 2L, "kakao456", SocialProvider.KAKAO);
-        UserBannedEvent event3 = new UserBannedEvent(this, 3L, "kakao789", SocialProvider.KAKAO);
+        UserBannedEvent event1 = new UserBannedEvent(1L, "kakao123", SocialProvider.KAKAO);
+        UserBannedEvent event2 = new UserBannedEvent(2L, "kakao456", SocialProvider.KAKAO);
+        UserBannedEvent event3 = new UserBannedEvent(3L, "kakao789", SocialProvider.KAKAO);
 
         // When - 여러 사용자 차단 이벤트 발행
         eventPublisher.publishEvent(event1);
@@ -192,7 +192,7 @@ class UserEventWorkflowIntegrationTest {
         String socialId = "sameUserTest";
 
         // When - 동일 사용자에 대해 여러 이벤트 연속 발행
-        eventPublisher.publishEvent(new UserBannedEvent(this, userId, socialId, SocialProvider.KAKAO));
+        eventPublisher.publishEvent(new UserBannedEvent(userId, socialId, SocialProvider.KAKAO));
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
 
         // Then - 모든 이벤트가 처리되어야 함
@@ -211,7 +211,7 @@ class UserEventWorkflowIntegrationTest {
     @DisplayName("이벤트 처리 시간 검증 - 사용자 차단")
     void userBannedEventProcessingTime_ShouldCompleteWithinTimeout() {
         // Given
-        UserBannedEvent event = new UserBannedEvent(this, 1L, "performanceTest", SocialProvider.KAKAO);
+        UserBannedEvent event = new UserBannedEvent(1L, "performanceTest", SocialProvider.KAKAO);
 
         long startTime = System.currentTimeMillis();
 
@@ -261,7 +261,7 @@ class UserEventWorkflowIntegrationTest {
     @DisplayName("null 값을 포함한 사용자 이벤트 처리")
     void userEventsWithNullValues_ShouldBeProcessed() {
         // Given - null 값들을 포함한 이벤트들
-        UserBannedEvent bannedEvent = new UserBannedEvent(this, null, null, null);
+        UserBannedEvent bannedEvent = new UserBannedEvent(null, null, null);
         UserWithdrawnEvent withdrawnEvent = new UserWithdrawnEvent(null);
 
         // When
@@ -286,7 +286,7 @@ class UserEventWorkflowIntegrationTest {
         // When - 대량 이벤트 발행
         for (int i = 1; i <= eventCount; i++) {
             eventPublisher.publishEvent(new UserBannedEvent(
-                    this, (long) i, "bulkTest" + i, SocialProvider.KAKAO));
+                    (long) i, "bulkTest" + i, SocialProvider.KAKAO));
         }
 
         // Then - 모든 이벤트가 15초 내에 처리되어야 함
@@ -327,7 +327,7 @@ class UserEventWorkflowIntegrationTest {
     @DisplayName("예외 상황에서의 이벤트 처리 - 소셜 로그인 해제 실패")
     void eventProcessingWithException_SocialUnlinkFailure() {
         // Given
-        UserBannedEvent event = new UserBannedEvent(this, 1L, "errorTest", SocialProvider.KAKAO);
+        UserBannedEvent event = new UserBannedEvent(1L, "errorTest", SocialProvider.KAKAO);
         
         // 소셜 로그인 해제 실패 시뮬레이션
         doThrow(new RuntimeException("소셜 로그인 해제 실패"))

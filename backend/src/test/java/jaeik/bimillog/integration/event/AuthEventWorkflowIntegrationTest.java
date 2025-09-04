@@ -89,7 +89,7 @@ class AuthEventWorkflowIntegrationTest {
         Long userId = 1L;
         String socialId = "testSocialId";
         SocialProvider provider = SocialProvider.KAKAO;
-        UserBannedEvent event = new UserBannedEvent(this, userId, socialId, provider);
+        UserBannedEvent event = new UserBannedEvent(userId, socialId, provider);
 
         // When
         eventPublisher.publishEvent(event);
@@ -114,7 +114,7 @@ class AuthEventWorkflowIntegrationTest {
 
         // When - 연속된 이벤트 발행
         eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId));
-        eventPublisher.publishEvent(new UserBannedEvent(this, userId, socialId, provider));
+        eventPublisher.publishEvent(new UserBannedEvent(userId, socialId, provider));
 
         // Then - 두 이벤트 모두 처리되어야 함
         Awaitility.await()
@@ -180,7 +180,7 @@ class AuthEventWorkflowIntegrationTest {
         String withdrawReason = "관리자 강제 탈퇴";
 
         // When - 연속된 관리자 이벤트 발행
-        eventPublisher.publishEvent(new UserBannedEvent(this, userId, socialId, provider));
+        eventPublisher.publishEvent(new UserBannedEvent(userId, socialId, provider));
         eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, withdrawReason));
 
         // Then - 두 이벤트 모두 처리되어야 함

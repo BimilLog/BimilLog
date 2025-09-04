@@ -235,8 +235,8 @@ class PaperCommandServiceTest {
 
         // Then
         verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 
-            event.getPaperOwnerId().equals(userId) && 
-            event.getUserName().equals(userName)
+            event.paperOwnerId().equals(userId) && 
+            event.userName().equals(userName)
         ));
     }
 
@@ -318,8 +318,8 @@ class PaperCommandServiceTest {
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 
-            event.getPaperOwnerId().equals(userId) && 
-            event.getUserName().equals(userName)
+            event.paperOwnerId().equals(userId) && 
+            event.userName().equals(userName)
         ));
     }
 

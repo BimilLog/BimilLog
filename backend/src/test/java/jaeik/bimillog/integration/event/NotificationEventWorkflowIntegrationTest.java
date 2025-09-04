@@ -93,7 +93,7 @@ class NotificationEventWorkflowIntegrationTest {
         Long postUserId = 1L;
         String commenterName = "댓글작성자";
         Long postId = 100L;
-        CommentCreatedEvent event = new CommentCreatedEvent(this, postUserId, commenterName, postId);
+        CommentCreatedEvent event = new CommentCreatedEvent(postUserId, commenterName, postId);
 
         // When
         eventPublisher.publishEvent(event);
@@ -115,7 +115,7 @@ class NotificationEventWorkflowIntegrationTest {
         // Given
         Long paperOwnerId = 1L;
         String userName = "메시지작성자";
-        RollingPaperEvent event = new RollingPaperEvent(this, paperOwnerId, userName);
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
 
         // When
         eventPublisher.publishEvent(event);
@@ -140,7 +140,7 @@ class NotificationEventWorkflowIntegrationTest {
         Long postId = 100L;
         String fcmTitle = "인기글 선정";
         String fcmBody = "회원님의 게시글이 인기글로 선정되었습니다!";
-        PostFeaturedEvent event = new PostFeaturedEvent(this, userId, sseMessage, postId, fcmTitle, fcmBody);
+        PostFeaturedEvent event = new PostFeaturedEvent(userId, sseMessage, postId, fcmTitle, fcmBody);
 
         // When
         eventPublisher.publishEvent(event);
@@ -204,7 +204,7 @@ class NotificationEventWorkflowIntegrationTest {
         Long tokenId = 100L;
 
         // When - 연속된 이벤트 발행
-        eventPublisher.publishEvent(new CommentCreatedEvent(this, userId, commenterName, postId));
+        eventPublisher.publishEvent(new CommentCreatedEvent(userId, commenterName, postId));
         eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId));
 
         // Then - 두 이벤트 모두 처리되어야 함
@@ -234,9 +234,9 @@ class NotificationEventWorkflowIntegrationTest {
         Long postId = 100L;
 
         // When - 다양한 알림 이벤트 동시 발행
-        eventPublisher.publishEvent(new CommentCreatedEvent(this, userId1, commenterName1, postId));
-        eventPublisher.publishEvent(new RollingPaperEvent(this, userId2, userName2));
-        eventPublisher.publishEvent(new PostFeaturedEvent(this, userId1, "인기글 메시지", postId, "인기글", "축하합니다"));
+        eventPublisher.publishEvent(new CommentCreatedEvent(userId1, commenterName1, postId));
+        eventPublisher.publishEvent(new RollingPaperEvent(userId2, userName2));
+        eventPublisher.publishEvent(new PostFeaturedEvent(userId1, "인기글 메시지", postId, "인기글", "축하합니다"));
 
         // Then - 모든 이벤트가 개별적으로 처리되어야 함
         Awaitility.await()
@@ -273,9 +273,9 @@ class NotificationEventWorkflowIntegrationTest {
         Long postId2 = 200L;
 
         // When - 동일 사용자에 대한 여러 알림 이벤트
-        eventPublisher.publishEvent(new CommentCreatedEvent(this, userId, commenterName, postId1));
-        eventPublisher.publishEvent(new RollingPaperEvent(this, userId, userName));
-        eventPublisher.publishEvent(new PostFeaturedEvent(this, userId, "인기글 메시지", postId2, "인기글", "축하합니다"));
+        eventPublisher.publishEvent(new CommentCreatedEvent(userId, commenterName, postId1));
+        eventPublisher.publishEvent(new RollingPaperEvent(userId, userName));
+        eventPublisher.publishEvent(new PostFeaturedEvent(userId, "인기글 메시지", postId2, "인기글", "축하합니다"));
 
         // Then - 모든 알림이 해당 사용자에게 전송되어야 함
         Awaitility.await()
@@ -330,7 +330,7 @@ class NotificationEventWorkflowIntegrationTest {
         // When - 대량 댓글 생성 이벤트 발행
         for (int i = 0; i < eventCount; i++) {
             Long userId = (long) (i % 10); // 10명의 사용자에게 분산
-            eventPublisher.publishEvent(new CommentCreatedEvent(this, userId, "댓글작성자" + i, (long) (i + 100)));
+            eventPublisher.publishEvent(new CommentCreatedEvent(userId, "댓글작성자" + i, (long) (i + 100)));
         }
 
         // Then - 모든 이벤트가 10초 내에 처리되어야 함
@@ -355,9 +355,9 @@ class NotificationEventWorkflowIntegrationTest {
     @DisplayName("null 값을 포함한 알림 이벤트 처리")
     void notificationEventsWithNullValues_ShouldBeProcessed() {
         // Given - null 값들을 포함한 이벤트들
-        CommentCreatedEvent commentEvent = new CommentCreatedEvent(this, null, null, null);
-        RollingPaperEvent paperEvent = new RollingPaperEvent(this, null, null);
-        PostFeaturedEvent postEvent = new PostFeaturedEvent(this, null, null, null, null, null);
+        CommentCreatedEvent commentEvent = new CommentCreatedEvent(null, null, null);
+        RollingPaperEvent paperEvent = new RollingPaperEvent(null, null);
+        PostFeaturedEvent postEvent = new PostFeaturedEvent(null, null, null, null, null);
 
         // When
         eventPublisher.publishEvent(commentEvent);
@@ -387,9 +387,9 @@ class NotificationEventWorkflowIntegrationTest {
         long startTime = System.currentTimeMillis();
 
         // When - 각각 다른 타입의 알림 이벤트 발행
-        eventPublisher.publishEvent(new CommentCreatedEvent(this, userId, "댓글러", 100L));
-        eventPublisher.publishEvent(new RollingPaperEvent(this, userId, "메시지작성자"));
-        eventPublisher.publishEvent(new PostFeaturedEvent(this, userId, "축하", 100L, "제목", "내용"));
+        eventPublisher.publishEvent(new CommentCreatedEvent(userId, "댓글러", 100L));
+        eventPublisher.publishEvent(new RollingPaperEvent(userId, "메시지작성자"));
+        eventPublisher.publishEvent(new PostFeaturedEvent(userId, "축하", 100L, "제목", "내용"));
 
         // Then - 3초 내에 모든 알림이 처리되어야 함
         Awaitility.await()
