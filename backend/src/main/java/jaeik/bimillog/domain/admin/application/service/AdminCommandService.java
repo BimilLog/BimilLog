@@ -102,21 +102,33 @@ public class AdminCommandService implements AdminCommandUseCase {
 
     /**
      * <h3>사용자 강제 탈퇴</h3>
-     * <p>주어진 사용자 ID에 해당하는 사용자를 관리자 권한으로 강제 탈퇴 처리합니다.</p>
+     * <p>주어진 신고 정보를 기반으로 사용자를 관리자 권한으로 강제 탈퇴 처리합니다.</p>
      * <p>이벤트 드리븐 방식으로 Auth 도메인에 탈퇴 요청을 전달합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param reportVO 신고 정보 값 객체
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void forceWithdrawUser(Long userId) {
-        if (userId == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+    public void forceWithdrawUser(ReportVO reportVO) {
+        // POST, COMMENT 타입은 targetId가 필수
+        if ((reportVO.reportType() == ReportType.POST || reportVO.reportType() == ReportType.COMMENT) 
+                && reportVO.targetId() == null) {
+            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+        }
+
+        // ERROR, IMPROVEMENT 타입은 forceWithdrawUser 대상이 없음
+        if (reportVO.reportType() == ReportType.ERROR || reportVO.reportType() == ReportType.IMPROVEMENT) {
+            throw new CustomException(ErrorCode.INVALID_REPORT_TARGET);
+        }
+
+        User user = resolveUser(reportVO.reportType(), reportVO.targetId());
+        if (user == null) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
         
         // 이벤트 발행으로 Auth 도메인에 탈퇴 처리 위임
-        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, "관리자 강제 탈퇴"));
+        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(user.getId(), "관리자 강제 탈퇴"));
     }
 
     /**

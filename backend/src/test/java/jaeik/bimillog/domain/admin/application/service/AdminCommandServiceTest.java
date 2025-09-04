@@ -179,13 +179,27 @@ class AdminCommandServiceTest {
     }
 
     @Test
-    @DisplayName("유효한 사용자 ID로 강제 탈퇴 시 이벤트 발행")
-    void shouldPublishEvent_WhenValidUserId() {
+    @DisplayName("유효한 댓글 신고로 강제 탈퇴 시 이벤트 발행")
+    void shouldPublishEvent_WhenValidCommentReport() {
         // Given
+        Long commentId = 1L;
         Long userId = 100L;
+        ReportVO reportVO = ReportVO.of(ReportType.COMMENT, commentId, "악성 댓글 신고");
+        
+        User mockUser = User.builder()
+                .id(userId)
+                .socialId("social123")
+                .provider(SocialProvider.KAKAO)
+                .build();
+        Comment mockComment = Comment.builder()
+                .id(commentId)
+                .user(mockUser)
+                .build();
+        
+        given(commentQueryUseCase.findById(commentId)).willReturn(Optional.of(mockComment));
 
         // When
-        adminCommandService.forceWithdrawUser(userId);
+        adminCommandService.forceWithdrawUser(reportVO);
 
         // Then
         ArgumentCaptor<AdminWithdrawRequestedEvent> eventCaptor = 
@@ -198,15 +212,15 @@ class AdminCommandServiceTest {
     }
 
     @Test
-    @DisplayName("null 사용자 ID로 강제 탈퇴 시도 시 예외 발생")
-    void shouldThrowException_WhenNullUserId() {
+    @DisplayName("ERROR 타입 신고로 강제 탈퇴 시도 시 예외 발생")
+    void shouldThrowException_WhenErrorTypeReport() {
         // Given
-        Long userId = null;
+        ReportVO reportVO = ReportVO.of(ReportType.ERROR, null, "시스템 오류 신고");
 
         // When & Then
-        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(userId))
+        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(reportVO))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REPORT_TARGET);
         
         verify(eventPublisher, never()).publishEvent(any());
     }

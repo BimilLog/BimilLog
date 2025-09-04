@@ -5,6 +5,8 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * <h2>댓글 커맨드 어댑터</h2>
  * <p>댓글 엔티티의 저장 및 삭제 작업을 처리하는 아웃바운드 어댑터 구현체</p>
@@ -99,6 +101,20 @@ public class CommentCommandAdapter implements CommentCommandPort {
     @Override
     public int hardDeleteComment(Long commentId) {
         return commentRepository.hardDeleteComment(commentId);
+    }
+
+    /**
+     * <h3>사용자 댓글 ID 목록 조회</h3>
+     * <p>특정 사용자가 작성한 모든 댓글 ID 목록을 조회합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @return List<Long> 사용자가 작성한 댓글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<Long> findCommentIdsByUserId(Long userId) {
+        return commentRepository.findCommentIdsByUserId(userId);
     }
 
 }

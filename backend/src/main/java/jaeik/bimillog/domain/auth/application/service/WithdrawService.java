@@ -100,6 +100,7 @@ public class WithdrawService implements WithdrawUseCase {
         } catch (Exception e) {
             throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED, e);
         }
+        deleteUserPort.logoutUser(userId, null);
         deleteUserPort.performWithdrawProcess(userId);
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
     }

@@ -33,11 +33,11 @@ public interface AdminCommandUseCase {
 
     /**
      * <h3>사용자 강제 탈퇴</h3>
-     * <p>주어진 사용자 ID에 해당하는 사용자를 강제로 탈퇴 처리합니다.</p>
+     * <p>주어진 신고 정보를 기반으로 사용자를 강제로 탈퇴 처리합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param reportVO 신고 정보 값 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    void forceWithdrawUser(Long userId);
+    void forceWithdrawUser(ReportVO reportVO);
 }

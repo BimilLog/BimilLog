@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.comment.in.listener;
 
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
-import jaeik.bimillog.domain.comment.application.port.out.CommentCommandPort;
+import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 class CommentEventListenerTest {
 
     @Mock
-    private CommentCommandPort commentCommandPort;
+    private CommentCommandService commentCommandService;
 
     @InjectMocks
     private CommentEventListener commentEventListener;
@@ -42,7 +42,7 @@ class CommentEventListenerTest {
         commentEventListener.handleUserWithdrawnEvent(event);
 
         // Then
-        verify(commentCommandPort).anonymizeUserComments(eq(userId));
+        verify(commentCommandService).processUserCommentsOnWithdrawal(eq(userId));
     }
 
     @Test
@@ -52,15 +52,15 @@ class CommentEventListenerTest {
         Long userId = 1L;
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
         
-        RuntimeException anonymizeException = new RuntimeException("댓글 익명화 실패");
-        doThrow(anonymizeException).when(commentCommandPort).anonymizeUserComments(userId);
+        RuntimeException processException = new RuntimeException("댓글 처리 실패");
+        doThrow(processException).when(commentCommandService).processUserCommentsOnWithdrawal(userId);
 
         // When & Then
         try {
             commentEventListener.handleUserWithdrawnEvent(event);
         } catch (RuntimeException e) {
             // 예외가 전파되어야 함 (탈퇴 처리 자체가 실패로 간주)
-            verify(commentCommandPort).anonymizeUserComments(eq(userId));
+            verify(commentCommandService).processUserCommentsOnWithdrawal(eq(userId));
         }
     }
 
@@ -78,8 +78,8 @@ class CommentEventListenerTest {
         commentEventListener.handleUserWithdrawnEvent(event2);
         
         // Then
-        verify(commentCommandPort).anonymizeUserComments(eq(userId1));
-        verify(commentCommandPort).anonymizeUserComments(eq(userId2));
+        verify(commentCommandService).processUserCommentsOnWithdrawal(eq(userId1));
+        verify(commentCommandService).processUserCommentsOnWithdrawal(eq(userId2));
     }
 
 
@@ -95,8 +95,8 @@ class CommentEventListenerTest {
         // When
         commentEventListener.handleUserWithdrawnEvent(event);
 
-        // Then - null userId도 포트로 전달되어야 함
-        verify(commentCommandPort).anonymizeUserComments(eq(null));
+        // Then - null userId도 서비스로 전달되어야 함
+        verify(commentCommandService).processUserCommentsOnWithdrawal(eq(null));
     }
 
     @Test
@@ -111,6 +111,6 @@ class CommentEventListenerTest {
         commentEventListener.handleUserWithdrawnEvent(userEvent);
 
         // Then
-        verify(commentCommandPort).anonymizeUserComments(eq(userId));
+        verify(commentCommandService).processUserCommentsOnWithdrawal(eq(userId));
     }
 }

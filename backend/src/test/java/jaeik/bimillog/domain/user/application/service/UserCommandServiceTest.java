@@ -514,7 +514,7 @@ class UserCommandServiceTest {
                 .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
 
         verify(userQueryPort, never()).findById(any());
-        verify(userCommandPort, never()).save(any());
+        verify(userCommandPort, never()).save(any(User.class));
     }
 
     @Test

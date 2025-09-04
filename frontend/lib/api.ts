@@ -698,7 +698,12 @@ export const adminApi = {
     }),
 
   // v2: 사용자 강제 탈퇴 (AdminCommandController.forceWithdrawUser)
-  forceWithdrawUser: (userId: number) => apiClient.delete(`/api/admin/withdraw/${userId}`),
+  forceWithdrawUser: (reportData: { targetId: number; reportType: string; content: string }) =>
+    apiClient.post('/api/admin/withdraw', {
+      reportType: reportData.reportType,
+      targetId: reportData.targetId,
+      content: reportData.content
+    }),
 
   // 레거시 호환용
   banUserByReport: (reportData: { targetId: number; reportType: string; content: string }) =>

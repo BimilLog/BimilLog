@@ -11,50 +11,57 @@ VALUES
 -- 사용자 데이터 (3명) - 테이블명 "user" 사용
 INSERT INTO user (user_id, setting_id, social_id, provider, user_name, role, social_nickname, thumbnail_image, created_at, modified_at)
 VALUES 
-    (2, 2, 'kakao_123456', 'KAKAO', '비밀농부1', 'USER', '카카오닉네임1', 'https://example.com/thumb1.jpg', NOW(6), NOW(6)),
-    (3, 3, 'kakao_789012', 'KAKAO', '익명작가', 'USER', '카카오닉네임2', 'https://example.com/thumb2.jpg', NOW(6), NOW(6)),
-    (4, 4, 'kakao_345678', 'KAKAO', '롤링메신저', 'ADMIN', '카카오닉네임3', 'https://example.com/thumb3.jpg', NOW(6), NOW(6));
+    (2, 2, '1234561111', 'KAKAO', '비밀농부1', 'USER', '카카오닉네임1', 'https://example.com/thumb1.jpg', NOW(6), NOW(6)),
+    (3, 3, '7890121111', 'KAKAO', '익명작가', 'USER', '카카오닉네임2', 'https://example.com/thumb2.jpg', NOW(6), NOW(6)),
+    (4, 4, '4456781111', 'KAKAO', '롤링메신저', 'ADMIN', '카카오닉네임3', 'https://example.com/thumb3.jpg', NOW(6), NOW(6));
 
--- 게시글 데이터 (각 유저당 10개씩, 총 30개)
--- 사용자2의 게시글 (ERROR 유형 10개)
+-- 토큰 데이터 (사용자 2, 3, 4)
+INSERT INTO token (token_id, user_id, access_token, refresh_token, created_at, modified_at)
+VALUES
+    (2, 2, 'kakao_access_token_user2_sample123456', 'kakao_refresh_token_user2_sample789012', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
+    (3, 3, 'kakao_access_token_user3_sample234567', 'kakao_refresh_token_user3_sample890123', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
+    (4, 4, 'kakao_access_token_user4_sample345678', 'kakao_refresh_token_user4_sample901234', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 12 HOUR));
+
+-- 게시글 데이터 (로그인/비로그인 사용자 혼합, 총 30개)
+-- 사용자2의 게시글 (ERROR 유형 8개) + 익명 게시글 2개
 INSERT INTO post (post_id, user_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES 
     (1, 2, '로그인 버그 발견', '카카오 로그인 시 무한 로딩이 발생합니다.', 15, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (2, 2, '댓글 작성 오류', '댓글 작성 후 새로고침하면 댓글이 사라져요.', 23, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (2, null, '댓글 작성 오류', '댓글 작성 후 새로고침하면 댓글이 사라져요.', 23, 0, 1234, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
     (3, 2, '이미지 업로드 실패', '프로필 이미지 변경이 되지 않습니다.', 8, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
     (4, 2, '알림 설정 버그', '알림 설정을 변경해도 적용이 안 돼요.', 12, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
     (5, 2, '롤링페이퍼 오류', '메시지 작성 후 위치가 겹쳐서 보입니다.', 31, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (6, 2, '검색 기능 버그', '한글 검색이 제대로 작동하지 않아요.', 19, 0, null, DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
+    (6, null, '검색 기능 버그', '한글 검색이 제대로 작동하지 않아요.', 19, 0, 5678, DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
     (7, 2, '모바일 화면 깨짐', '스마트폰에서 레이아웃이 깨져 보여요.', 27, 0, null, DATE_SUB(NOW(6), INTERVAL 5 HOUR), DATE_SUB(NOW(6), INTERVAL 5 HOUR)),
     (8, 2, '추천 기능 오류', '글 추천을 눌러도 반응이 없습니다.', 14, 0, null, DATE_SUB(NOW(6), INTERVAL 4 HOUR), DATE_SUB(NOW(6), INTERVAL 4 HOUR)),
     (9, 2, '페이지네이션 버그', '다음 페이지로 넘어가지 않아요.', 9, 0, null, DATE_SUB(NOW(6), INTERVAL 3 HOUR), DATE_SUB(NOW(6), INTERVAL 3 HOUR)),
     (10, 2, '로그아웃 오류', '로그아웃 후에도 로그인 상태가 유지돼요.', 21, 0, null, DATE_SUB(NOW(6), INTERVAL 2 HOUR), DATE_SUB(NOW(6), INTERVAL 2 HOUR));
 
--- 사용자3의 게시글 (IMPROVEMENT 유형 10개)
+-- 사용자3의 게시글 (IMPROVEMENT 유형 7개) + 익명 게시글 3개
 INSERT INTO post (post_id, user_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES 
     (11, 3, '다크모드 기능 요청', '밤에 사용할 때 다크모드가 있으면 좋겠어요.', 45, 0, null, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
-    (12, 3, '태그 기능 추가', '게시글에 태그를 달 수 있으면 좋을 것 같아요.', 33, 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (12, null, '태그 기능 추가', '게시글에 태그를 달 수 있으면 좋을 것 같아요.', 33, 0, 9999, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
     (13, 3, '북마크 기능', '마음에 드는 글을 저장할 수 있는 기능이 있으면 좋겠어요.', 28, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (14, 3, '글자 크기 조절', '글자 크기를 조절할 수 있는 옵션이 있으면 좋겠습니다.', 17, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (14, null, '글자 크기 조절', '글자 크기를 조절할 수 있는 옵션이 있으면 좋겠습니다.', 17, 0, 1111, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
     (15, 3, '이모티콘 추가', '댓글에 이모티콘을 사용할 수 있으면 더 재미있을 것 같아요.', 52, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
     (16, 3, '검색 필터 기능', '날짜, 작성자별로 검색할 수 있는 필터가 있으면 좋겠어요.', 26, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
     (17, 3, '알림 소리 설정', '알림 소리를 선택할 수 있는 기능을 추가해주세요.', 39, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (18, 3, '게시글 임시저장', '작성 중인 글을 임시저장할 수 있으면 좋겠어요.', 22, 0, null, DATE_SUB(NOW(6), INTERVAL 8 HOUR), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
+    (18, null, '게시글 임시저장', '작성 중인 글을 임시저장할 수 있으면 좋겠어요.', 22, 0, 2222, DATE_SUB(NOW(6), INTERVAL 8 HOUR), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
     (19, 3, '사용자 차단 기능', '특정 사용자를 차단할 수 있는 기능이 필요해요.', 41, 0, null, DATE_SUB(NOW(6), INTERVAL 7 HOUR), DATE_SUB(NOW(6), INTERVAL 7 HOUR)),
     (20, 3, '테마 변경 기능', '다양한 테마를 선택할 수 있으면 좋겠습니다.', 34, 0, null, DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR));
 
--- 사용자4의 게시글 (POST, COMMENT 유형 10개)
+-- 사용자4의 게시글 (POST, COMMENT 유형 6개) + 익명 게시글 4개
 INSERT INTO post (post_id, user_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES 
     (21, 4, '부적절한 게시글 신고', '욕설이 포함된 게시글을 발견했습니다.', 18, 0, null, DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
-    (22, 4, '스팸 댓글 신고', '같은 내용의 댓글을 반복해서 작성하는 사용자가 있어요.', 29, 0, null, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
+    (22, null, '스팸 댓글 신고', '같은 내용의 댓글을 반복해서 작성하는 사용자가 있어요.', 29, 0, 3333, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
     (23, 4, '광고성 게시글', '상업적 목적의 게시글이 올라왔어요.', 16, 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (24, 4, '악성 댓글 신고', '개인 공격성 댓글을 신고합니다.', 24, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (24, null, '악성 댓글 신고', '개인 공격성 댓글을 신고합니다.', 24, 0, 4444, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
     (25, 4, '도배성 게시글', '의미없는 글을 반복해서 작성하고 있어요.', 13, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (26, 4, '비방 댓글', '특정인을 비방하는 댓글이 있습니다.', 31, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (26, null, '비방 댓글', '특정인을 비방하는 댓글이 있습니다.', 31, 0, 5555, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
     (27, 4, '허위정보 게시글', '잘못된 정보를 퍼뜨리는 글이 있어요.', 27, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (28, 4, '음란성 내용', '부적절한 내용이 포함된 게시글입니다.', 19, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (28, null, '음란성 내용', '부적절한 내용이 포함된 게시글입니다.', 19, 0, 6666, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
     (29, 4, '혐오 발언', '특정 집단을 혐오하는 발언이 담긴 댓글이에요.', 22, 0, null, DATE_SUB(NOW(6), INTERVAL 10 HOUR), DATE_SUB(NOW(6), INTERVAL 10 HOUR)),
     (30, 4, '개인정보 노출', '타인의 개인정보가 노출된 글이 있습니다.', 35, 0, null, DATE_SUB(NOW(6), INTERVAL 9 HOUR), DATE_SUB(NOW(6), INTERVAL 9 HOUR));
 
@@ -195,3 +202,5 @@ VALUES
     (2, 'COMMENT', 1, '개인 공격성 댓글 신고', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
     (3, 'COMMENT', 5, '같은 내용 반복 댓글 신고', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
     (4, 'COMMENT', 10, '특정인 비방 댓글 신고', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY));
+
+

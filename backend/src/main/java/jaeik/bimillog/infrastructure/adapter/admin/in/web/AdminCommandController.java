@@ -43,17 +43,17 @@ public class AdminCommandController {
 
     /**
      * <h3>사용자 강제 탈퇴 API</h3>
-     * <p>관리자 권한으로 특정 사용자를 시스템에서 강제로 탈퇴 처리합니다.</p>
+     * <p>신고 정보를 바탕으로 사용자를 강제 탈퇴 처리합니다.</p>
      *
-     * @param userId 강제 탈퇴시킬 사용자 ID
+     * @param reportDTO 신고 정보 DTO
      * @return ResponseEntity<String> 탈퇴 완료 메시지
      * @author Jaeik
      * @since 2.0.0
      */
-    @DeleteMapping("/withdraw/{userId}")
+    @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> forceWithdrawUser(@PathVariable Long userId) {
-        adminCommandUseCase.forceWithdrawUser(userId);
+    public ResponseEntity<String> forceWithdrawUser(@RequestBody ReportDTO reportDTO) {
+        adminCommandUseCase.forceWithdrawUser(reportDTO.toReportVO());
         return ResponseEntity.ok("관리자 권한으로 사용자 탈퇴가 완료되었습니다.");
     }
 }

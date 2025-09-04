@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, UserX } from "lucide-react";
+import { UserX } from "lucide-react";
 import { type Report, adminApi } from "@/lib/api";
 import { useState } from "react";
 import { useToast } from "@/hooks/useToast";
@@ -103,8 +103,12 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
     setIsBanning(true);
     try {
-      // v2 API: forceWithdrawUser 사용
-      const response = await adminApi.forceWithdrawUser(report.targetId);
+      // v2 API: forceWithdrawUser 사용 (ReportDTO 방식)
+      const response = await adminApi.forceWithdrawUser({
+        targetId: report.targetId,
+        reportType: report.reportType,
+        content: report.content
+      });
 
       if (response.success) {
         showSuccess("사용자 탈퇴", "사용자가 성공적으로 탈퇴 처리되었습니다.");
@@ -192,41 +196,28 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button className="bg-green-600 hover:bg-green-700 flex-shrink-0">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              승인
-            </Button>
-            <Button
-              variant="outline"
-              className="border-red-200 text-red-600 hover:bg-red-50 flex-shrink-0"
-            >
-              <XCircle className="w-4 h-4 mr-2" />
-              반려
-            </Button>
-            {report.targetId && (
-              <>
-                <Button
-                  onClick={handleBanUser}
-                  disabled={isBanning}
-                  variant="destructive"
-                  className="bg-orange-600 hover:bg-orange-700 flex-shrink-0"
-                >
-                  <UserX className="w-4 h-4 mr-2" />
-                  {isBanning ? "처리 중..." : "사용자 차단"}
-                </Button>
-                <Button
-                  onClick={handleForceWithdrawUser}
-                  disabled={isBanning}
-                  variant="destructive"
-                  className="bg-red-600 hover:bg-red-700 flex-shrink-0"
-                >
-                  <UserX className="w-4 h-4 mr-2" />
-                  {isBanning ? "처리 중..." : "강제 탈퇴"}
-                </Button>
-              </>
-            )}
-          </div>
+          {report.targetId && (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={handleBanUser}
+                disabled={isBanning}
+                variant="destructive"
+                className="bg-orange-600 hover:bg-orange-700 flex-shrink-0"
+              >
+                <UserX className="w-4 h-4 mr-2" />
+                {isBanning ? "처리 중..." : "사용자 제재"}
+              </Button>
+              <Button
+                onClick={handleForceWithdrawUser}
+                disabled={isBanning}
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 flex-shrink-0"
+              >
+                <UserX className="w-4 h-4 mr-2" />
+                {isBanning ? "처리 중..." : "강제 탈퇴"}
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -2,6 +2,8 @@ package jaeik.bimillog.domain.comment.application.port.out;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 
+import java.util.List;
+
 /**
  * <h2>댓글 명령 어댑터</h2>
  * <p>댓글 엔티티 생성/수정/삭제를 위한 아웃바운드 어댑터</p>
@@ -42,6 +44,17 @@ public interface CommentCommandPort {
      * @since 2.0.0
      */
     void anonymizeUserComments(Long userId);
+
+    /**
+     * <h3>사용자 댓글 ID 목록 조회</h3>
+     * <p>특정 사용자가 작성한 모든 댓글 ID 목록을 조회합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @return List<Long> 사용자가 작성한 댓글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    List<Long> findCommentIdsByUserId(Long userId);
 
     /**
      * <h3>조건부 소프트 삭제</h3>

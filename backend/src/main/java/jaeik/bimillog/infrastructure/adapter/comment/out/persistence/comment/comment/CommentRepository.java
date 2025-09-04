@@ -109,6 +109,18 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Modifying
     @Query(value = "DELETE FROM comment WHERE comment_id = :commentId", nativeQuery = true)
     int hardDeleteComment(@Param("commentId") Long commentId);
+
+    /**
+     * <h3>사용자 댓글 ID 목록 조회</h3>
+     * <p>특정 사용자가 작성한 모든 댓글 ID 목록을 조회합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @return List<Long> 사용자가 작성한 댓글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Query("SELECT c.id FROM Comment c WHERE c.user.id = :userId AND c.deleted = false")
+    List<Long> findCommentIdsByUserId(@Param("userId") Long userId);
 }
 
 
