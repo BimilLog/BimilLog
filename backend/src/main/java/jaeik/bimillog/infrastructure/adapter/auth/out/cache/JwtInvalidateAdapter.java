@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.cache;
 
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistCachePort;
+import jaeik.bimillog.domain.auth.application.port.out.JwtInvalidatePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,7 +20,7 @@ import java.time.Duration;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class BlacklistCacheAdapter implements BlacklistCachePort {
+public class JwtInvalidateAdapter implements JwtInvalidatePort {
 
     private final RedisTemplate<String, Object> redisTemplate;
 

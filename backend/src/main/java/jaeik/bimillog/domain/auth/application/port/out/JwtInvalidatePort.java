@@ -11,7 +11,7 @@ import java.time.Duration;
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface BlacklistCachePort {
+public interface JwtInvalidatePort {
 
     /**
      * <h3>토큰 해시 블랙리스트 여부 확인</h3>

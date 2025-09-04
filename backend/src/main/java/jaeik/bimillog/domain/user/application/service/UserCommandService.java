@@ -4,6 +4,7 @@ package jaeik.bimillog.domain.user.application.service;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SettingVO;
@@ -33,6 +34,7 @@ public class UserCommandService implements UserCommandUseCase {
 
     private final UserQueryPort userQueryPort;
     private final UserCommandPort userCommandPort;
+    private final TokenBlacklistUseCase tokenBlacklistUseCase;
 
 /**
      * <h3>사용자 설정 수정</h3>
@@ -148,7 +150,11 @@ public class UserCommandService implements UserCommandUseCase {
      * {@inheritDoc}
      *
      * <p>사용자의 역할을 BAN으로 변경하여 일정 기간 서비스 이용을 제한합니다.</p>
-     * <p>BAN 상태의 사용자는 로그인은 가능하지만 주요 기능 이용이 제한됩니다.</p>
+     * <p>제재 시 다음 작업을 수행합니다:</p>
+     * <ul>
+     *   <li>사용자 역할을 BAN으로 변경</li>
+     *   <li>해당 사용자의 모든 JWT 토큰을 블랙리스트에 등록하여 즉시 무효화</li>
+     * </ul>
      */
     @Override
     public void banUser(Long userId) {
@@ -159,11 +165,15 @@ public class UserCommandService implements UserCommandUseCase {
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        // 1. 사용자 역할을 BAN으로 변경
         user.updateRole(UserRole.BAN);
         userCommandPort.save(user);
         
-        log.info("사용자 제재 완료 - userId: {}, userName: {}, 이전 역할: {}, 현재 역할: BAN", 
-                userId, user.getUserName(), user.getRole());
+        // 2. 해당 사용자의 모든 JWT 토큰을 블랙리스트에 등록 (즉시 무효화)
+        tokenBlacklistUseCase.blacklistAllUserTokens(userId, "사용자 제재");
+        
+        log.info("사용자 제재 완료 - userId: {}, userName: {}, 역할 변경: BAN, JWT 토큰 무효화 완료", 
+                userId, user.getUserName());
     }
 
 }

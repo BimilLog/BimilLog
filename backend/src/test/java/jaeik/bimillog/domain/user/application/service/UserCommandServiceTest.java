@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.user.application.service;
 
+import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SettingVO;
 import jaeik.bimillog.domain.user.entity.User;
@@ -42,6 +44,9 @@ class UserCommandServiceTest {
     
     @Mock
     private UserCommandPort userCommandPort;
+
+    @Mock
+    private TokenBlacklistUseCase tokenBlacklistUseCase;
 
     @InjectMocks
     private UserCommandService userCommandService;
@@ -456,5 +461,190 @@ class UserCommandServiceTest {
         verify(userCommandPort).save(user);
         
         assertThat(user.getUserName()).isEqualTo(newUserName);
+    }
+
+    @Test
+    @DisplayName("블랙리스트 추가 - 정상 케이스")
+    void shouldAddToBlacklist_WhenUserExists() {
+        // Given
+        Long userId = 1L;
+        User user = User.builder()
+                .id(userId)
+                .socialId("kakao123")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser")
+                .role(UserRole.USER)
+                .build();
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+
+        // When
+        userCommandService.addToBlacklist(userId);
+
+        // Then
+        verify(userQueryPort).findById(userId);
+        verify(userCommandPort).save(any(BlackList.class));
+    }
+
+    @Test
+    @DisplayName("블랙리스트 추가 - 사용자가 존재하지 않는 경우")
+    void shouldThrowException_WhenUserNotFoundForBlacklist() {
+        // Given
+        Long userId = 999L;
+        given(userQueryPort.findById(userId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> userCommandService.addToBlacklist(userId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+
+        verify(userQueryPort).findById(userId);
+        verify(userCommandPort, never()).save(any(BlackList.class));
+    }
+
+    @Test
+    @DisplayName("블랙리스트 추가 - null userId")
+    void shouldThrowException_WhenNullUserIdForBlacklist() {
+        // Given
+        Long userId = null;
+
+        // When & Then
+        assertThatThrownBy(() -> userCommandService.addToBlacklist(userId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
+
+        verify(userQueryPort, never()).findById(any());
+        verify(userCommandPort, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("블랙리스트 추가 - 중복 등록 시 예외 무시")
+    void shouldIgnoreException_WhenDuplicateBlacklistEntry() {
+        // Given
+        Long userId = 1L;
+        User user = User.builder()
+                .id(userId)
+                .socialId("kakao123")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser")
+                .role(UserRole.USER)
+                .build();
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+        willThrow(new DataIntegrityViolationException("Duplicate entry")).given(userCommandPort).save(any(BlackList.class));
+
+        // When (예외가 발생하지 않아야 함)
+        userCommandService.addToBlacklist(userId);
+
+        // Then
+        verify(userQueryPort).findById(userId);
+        verify(userCommandPort).save(any(BlackList.class));
+    }
+
+    @Test
+    @DisplayName("사용자 제재 - 정상 케이스")
+    void shouldBanUser_WhenUserExists() {
+        // Given
+        Long userId = 1L;
+        User user = User.builder()
+                .id(userId)
+                .socialId("kakao123")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser")
+                .role(UserRole.USER)
+                .build();
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+
+        // When
+        userCommandService.banUser(userId);
+
+        // Then
+        verify(userQueryPort).findById(userId);
+        verify(userCommandPort).save(user);
+        verify(tokenBlacklistUseCase).blacklistAllUserTokens(userId, "사용자 제재");
+        assertThat(user.getRole()).isEqualTo(UserRole.BAN);
+    }
+
+    @Test
+    @DisplayName("사용자 제재 - 사용자가 존재하지 않는 경우")
+    void shouldThrowException_WhenUserNotFoundForBan() {
+        // Given
+        Long userId = 999L;
+        given(userQueryPort.findById(userId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> userCommandService.banUser(userId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+
+        verify(userQueryPort).findById(userId);
+        verify(userCommandPort, never()).save(any(User.class));
+        verify(tokenBlacklistUseCase, never()).blacklistAllUserTokens(any(), any());
+    }
+
+    @Test
+    @DisplayName("사용자 제재 - null userId")
+    void shouldThrowException_WhenNullUserIdForBan() {
+        // Given
+        Long userId = null;
+
+        // When & Then
+        assertThatThrownBy(() -> userCommandService.banUser(userId))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
+
+        verify(userQueryPort, never()).findById(any());
+        verify(userCommandPort, never()).save(any(User.class));
+        verify(tokenBlacklistUseCase, never()).blacklistAllUserTokens(any(), any());
+    }
+
+    @Test
+    @DisplayName("사용자 제재 - 이미 BAN인 사용자")
+    void shouldBanUser_WhenUserAlreadyBanned() {
+        // Given
+        Long userId = 1L;
+        User user = User.builder()
+                .id(userId)
+                .socialId("kakao123")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser")
+                .role(UserRole.BAN)
+                .build();
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+
+        // When
+        userCommandService.banUser(userId);
+
+        // Then
+        verify(userQueryPort).findById(userId);
+        verify(userCommandPort).save(user);
+        verify(tokenBlacklistUseCase).blacklistAllUserTokens(userId, "사용자 제재");
+        assertThat(user.getRole()).isEqualTo(UserRole.BAN);
+    }
+
+    @Test
+    @DisplayName("사용자 제재 - JWT 토큰 무효화 실행 순서 확인")
+    void shouldBanUser_VerifyTokenBlacklistOrder() {
+        // Given
+        Long userId = 1L;
+        User user = User.builder()
+                .id(userId)
+                .socialId("kakao123")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser")
+                .role(UserRole.USER)
+                .build();
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+
+        // When
+        userCommandService.banUser(userId);
+
+        // Then - 역할 변경 후 JWT 토큰 무효화 순서 확인
+        var inOrder = inOrder(userCommandPort, tokenBlacklistUseCase);
+        inOrder.verify(userCommandPort).save(user);
+        inOrder.verify(tokenBlacklistUseCase).blacklistAllUserTokens(userId, "사용자 제재");
     }
 }

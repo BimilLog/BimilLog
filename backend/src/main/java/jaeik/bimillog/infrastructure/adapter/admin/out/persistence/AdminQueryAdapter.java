@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>관리자 조회 어댑터</h2>
@@ -33,7 +32,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AdminQueryAdapter implements AdminQueryPort {
 
-    private final ReportRepository reportRepository;
     private final JPAQueryFactory queryFactory;
 
     /**
@@ -72,20 +70,5 @@ public class AdminQueryAdapter implements AdminQueryPort {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, count == null ? 0 : count);
-    }
-
-
-    /**
-     * <h3>ID로 신고 조회</h3>
-     * <p>주어진 신고 ID로 신고 엔티티를 조회합니다.</p>
-     *
-     * @param reportId 신고 ID
-     * @return Optional<Report> 조회된 신고 엔티티. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Optional<Report> findById(Long reportId) {
-        return reportRepository.findById(reportId);
     }
 }

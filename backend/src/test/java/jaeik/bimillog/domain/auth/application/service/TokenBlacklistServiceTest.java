@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthPort;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistCachePort;
+import jaeik.bimillog.domain.auth.application.port.out.JwtInvalidatePort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
 class TokenBlacklistServiceTest {
 
     @Mock
-    private BlacklistCachePort blacklistCachePort;
+    private JwtInvalidatePort jwtInvalidatePort;
 
     @Mock
     private BlacklistPort blacklistPort;
@@ -91,7 +91,7 @@ class TokenBlacklistServiceTest {
     void shouldReturnTrue_WhenTokenIsBlacklisted() {
         // Given
         given(authPort.generateTokenHash(testToken)).willReturn(testTokenHash);
-        given(blacklistCachePort.isBlacklisted(testTokenHash)).willReturn(true);
+        given(jwtInvalidatePort.isBlacklisted(testTokenHash)).willReturn(true);
 
         // When
         boolean result = tokenBlacklistService.isBlacklisted(testToken);
@@ -99,7 +99,7 @@ class TokenBlacklistServiceTest {
         // Then
         assertThat(result).isTrue();
         verify(authPort).generateTokenHash(testToken);
-        verify(blacklistCachePort).isBlacklisted(testTokenHash);
+        verify(jwtInvalidatePort).isBlacklisted(testTokenHash);
     }
 
     @Test
@@ -107,7 +107,7 @@ class TokenBlacklistServiceTest {
     void shouldReturnFalse_WhenTokenIsNotBlacklisted() {
         // Given
         given(authPort.generateTokenHash(testToken)).willReturn(testTokenHash);
-        given(blacklistCachePort.isBlacklisted(testTokenHash)).willReturn(false);
+        given(jwtInvalidatePort.isBlacklisted(testTokenHash)).willReturn(false);
 
         // When
         boolean result = tokenBlacklistService.isBlacklisted(testToken);
@@ -115,7 +115,7 @@ class TokenBlacklistServiceTest {
         // Then
         assertThat(result).isFalse();
         verify(authPort).generateTokenHash(testToken);
-        verify(blacklistCachePort).isBlacklisted(testTokenHash);
+        verify(jwtInvalidatePort).isBlacklisted(testTokenHash);
     }
 
     @Test
@@ -131,7 +131,7 @@ class TokenBlacklistServiceTest {
         // Then
         assertThat(result).isTrue();
         verify(authPort).generateTokenHash(testToken);
-        verify(blacklistCachePort, never()).isBlacklisted(anyString());
+        verify(jwtInvalidatePort, never()).isBlacklisted(anyString());
     }
 
     @Test
@@ -140,7 +140,7 @@ class TokenBlacklistServiceTest {
         // Given
         given(authPort.generateTokenHash(testToken)).willReturn(testTokenHash);
         doThrow(new RuntimeException("Cache check failed"))
-                .when(blacklistCachePort).isBlacklisted(testTokenHash);
+                .when(jwtInvalidatePort).isBlacklisted(testTokenHash);
 
         // When
         boolean result = tokenBlacklistService.isBlacklisted(testToken);
@@ -148,7 +148,7 @@ class TokenBlacklistServiceTest {
         // Then
         assertThat(result).isTrue();
         verify(authPort).generateTokenHash(testToken);
-        verify(blacklistCachePort).isBlacklisted(testTokenHash);
+        verify(jwtInvalidatePort).isBlacklisted(testTokenHash);
     }
 
     @Test
@@ -174,7 +174,7 @@ class TokenBlacklistServiceTest {
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
         
-        verify(blacklistCachePort).blacklistTokenHashes(
+        verify(jwtInvalidatePort).blacklistTokenHashes(
                 hashesCaptor.capture(), 
                 eq(reason), 
                 durationCaptor.capture()
@@ -199,7 +199,7 @@ class TokenBlacklistServiceTest {
         // Then
         verify(loadTokenPort).findAllByUserId(userId);
         verify(authPort, never()).generateTokenHash(anyString());
-        verify(blacklistCachePort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(jwtInvalidatePort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 
     @Test
@@ -220,7 +220,7 @@ class TokenBlacklistServiceTest {
 
         // Then
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
-        verify(blacklistCachePort).blacklistTokenHashes(
+        verify(jwtInvalidatePort).blacklistTokenHashes(
                 hashesCaptor.capture(), 
                 eq(reason), 
                 any(Duration.class)
@@ -249,7 +249,7 @@ class TokenBlacklistServiceTest {
         verify(loadTokenPort).findAllByUserId(userId);
         verify(authPort).generateTokenHash("access-token-1");
         verify(authPort).generateTokenHash("access-token-2");
-        verify(blacklistCachePort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(jwtInvalidatePort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 
     @Test
@@ -267,7 +267,7 @@ class TokenBlacklistServiceTest {
         // Then
         verify(loadTokenPort).findAllByUserId(userId);
         verify(authPort, never()).generateTokenHash(anyString());
-        verify(blacklistCachePort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(jwtInvalidatePort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 
     @Test
@@ -286,7 +286,7 @@ class TokenBlacklistServiceTest {
             tokenBlacklistService.blacklistAllUserTokens(userId, reason);
 
             // Then
-            verify(blacklistCachePort).blacklistTokenHashes(
+            verify(jwtInvalidatePort).blacklistTokenHashes(
                     eq(List.of("hash1")), 
                     eq(reason), 
                     any(Duration.class)
@@ -300,7 +300,7 @@ class TokenBlacklistServiceTest {
         // Given
         String emptyToken = "";
         given(authPort.generateTokenHash(emptyToken)).willReturn("");
-        given(blacklistCachePort.isBlacklisted("")).willReturn(false);
+        given(jwtInvalidatePort.isBlacklisted("")).willReturn(false);
 
         // When
         boolean result = tokenBlacklistService.isBlacklisted(emptyToken);
@@ -308,7 +308,7 @@ class TokenBlacklistServiceTest {
         // Then
         assertThat(result).isFalse();
         verify(authPort).generateTokenHash(emptyToken);
-        verify(blacklistCachePort).isBlacklisted("");
+        verify(jwtInvalidatePort).isBlacklisted("");
     }
 
     @Test

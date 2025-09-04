@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.AuthPort;
+import jaeik.bimillog.domain.auth.application.port.out.JwtInvalidatePort;
 import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistCachePort;
 import jaeik.bimillog.domain.user.entity.Token;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TokenBlacklistService implements TokenBlacklistUseCase {
 
-    private final BlacklistCachePort blacklistCachePort;
+    private final JwtInvalidatePort jwtInvalidatePort;
     private final LoadTokenPort loadTokenPort;
     private final AuthPort authPort;
 
@@ -45,7 +45,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
             String tokenHash = authPort.generateTokenHash(token);
             
             // Redis에서 블랙리스트 여부 확인
-            boolean isBlacklisted = blacklistCachePort.isBlacklisted(tokenHash);
+            boolean isBlacklisted = jwtInvalidatePort.isBlacklisted(tokenHash);
             
             if (isBlacklisted) {
                 log.debug("토큰이 블랙리스트에서 발견됨: hash={}", tokenHash.substring(0, 8) + "...");
@@ -97,7 +97,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
                 Duration defaultTtl = Duration.ofHours(1);
                 
                 // 개별 토큰 해시들을 모두 블랙리스트에 등록
-                blacklistCachePort.blacklistTokenHashes(tokenHashes, reason, defaultTtl);
+                jwtInvalidatePort.blacklistTokenHashes(tokenHashes, reason, defaultTtl);
                 
                 log.info("사용자 {}의 모든 토큰 {}개가 블랙리스트에 추가됨: reason={}", 
                         userId, tokenHashes.size(), reason);
