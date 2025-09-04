@@ -126,17 +126,17 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>신고 상세 정보</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700">
                 신고 유형
               </label>
-              <p className="text-sm text-gray-900">
+              <p className="text-sm text-gray-900 break-words">
                 {getReportTypeLabel(report.reportType)}
               </p>
             </div>
@@ -144,13 +144,13 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
               <label className="text-sm font-medium text-gray-700">
                 대상 ID
               </label>
-              <p className="text-sm text-gray-900">{report.targetId}</p>
+              <p className="text-sm text-gray-900 break-all">{report.targetId}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">
                 신고자
               </label>
-              <p className="text-sm text-gray-900">
+              <p className="text-sm text-gray-900 break-words">
                 {report.reporterName || `ID: ${report.reporterId || report.userId}`}
               </p>
             </div>
@@ -176,8 +176,8 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             <label className="text-sm font-medium text-gray-700">
               신고 내용
             </label>
-            <div className="mt-1 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-900">{report.content}</p>
+            <div className="mt-1 p-3 bg-gray-50 rounded-lg max-h-40 overflow-y-auto">
+              <p className="text-sm text-gray-900 whitespace-pre-wrap break-words">{report.content}</p>
             </div>
           </div>
 
@@ -187,18 +187,19 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             </label>
             <Textarea
               placeholder="처리 내용을 기록하세요..."
-              className="mt-1"
+              className="mt-1 resize-none"
+              rows={4}
             />
           </div>
 
-          <div className="flex space-x-2">
-            <Button className="bg-green-600 hover:bg-green-700">
+          <div className="flex flex-wrap gap-2">
+            <Button className="bg-green-600 hover:bg-green-700 flex-shrink-0">
               <CheckCircle className="w-4 h-4 mr-2" />
               승인
             </Button>
             <Button
               variant="outline"
-              className="border-red-200 text-red-600 hover:bg-red-50"
+              className="border-red-200 text-red-600 hover:bg-red-50 flex-shrink-0"
             >
               <XCircle className="w-4 h-4 mr-2" />
               반려
@@ -209,7 +210,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   onClick={handleBanUser}
                   disabled={isBanning}
                   variant="destructive"
-                  className="bg-orange-600 hover:bg-orange-700"
+                  className="bg-orange-600 hover:bg-orange-700 flex-shrink-0"
                 >
                   <UserX className="w-4 h-4 mr-2" />
                   {isBanning ? "처리 중..." : "사용자 차단"}
@@ -218,7 +219,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   onClick={handleForceWithdrawUser}
                   disabled={isBanning}
                   variant="destructive"
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-red-600 hover:bg-red-700 flex-shrink-0"
                 >
                   <UserX className="w-4 h-4 mr-2" />
                   {isBanning ? "처리 중..." : "강제 탈퇴"}
