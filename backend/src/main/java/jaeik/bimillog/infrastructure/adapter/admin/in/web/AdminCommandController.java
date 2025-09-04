@@ -26,8 +26,8 @@ public class AdminCommandController {
     private final AdminCommandUseCase adminCommandUseCase;
 
     /**
-     * <h3>사용자 차단 API</h3>
-     * <p>신고 정보를 바탕으로 사용자를 제재하고 차단 처리합니다.</p>
+     * <h3>사용자 제재 API</h3>
+     * <p>신고 정보를 바탕으로 사용자를 제재 처리합니다.</p>
      *
      * @param reportDTO 신고 정보 DTO
      * @return ResponseEntity<String> 차단 완료 메시지

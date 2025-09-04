@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
+import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -22,10 +23,12 @@ import org.springframework.stereotype.Component;
 public class AdminWithdrawEventListener {
 
     private final WithdrawUseCase withdrawUseCase;
+    private final UserCommandUseCase userCommandUseCase;
 
     /**
      * <h3>관리자 강제 탈퇴 요청 처리</h3>
      * <p>AdminWithdrawRequestedEvent를 수신하여 실제 탈퇴 프로세스를 수행합니다.</p>
+     * <p>탈퇴 처리 전 블랙리스트에 추가하여 재가입을 방지합니다.</p>
      * <p>비동기 처리로 이벤트 발행자의 트랜잭션과 분리됩니다.</p>
      *
      * @param event 관리자 강제 탈퇴 요청 이벤트
@@ -39,8 +42,13 @@ public class AdminWithdrawEventListener {
                 event.userId(), event.reason());
         
         try {
+            // 1. 블랙리스트 추가 (탈퇴 전에 먼저 수행하여 socialId 정보 보존)
+            userCommandUseCase.addToBlacklist(event.userId());
+            
+            // 2. 실제 탈퇴 처리
             withdrawUseCase.forceWithdraw(event.userId());
-            log.info("관리자 강제 탈퇴 완료 - userId: {}", event.userId());
+            
+            log.info("관리자 강제 탈퇴 완료 (블랙리스트 추가 포함) - userId: {}", event.userId());
         } catch (Exception e) {
             log.error("관리자 강제 탈퇴 처리 실패 - userId: {}, error: {}", 
                     event.userId(), e.getMessage(), e);

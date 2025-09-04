@@ -112,6 +112,21 @@ public class User extends BaseEntity {
     }
 
     /**
+     * <h3>사용자 역할 변경</h3>
+     *
+     * <p>
+     * 사용자의 역할을 변경한다. (예: 제재를 위한 BAN 역할로 변경)
+     * </p>
+     *
+     * @param role 새로운 역할
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void updateRole(UserRole role) {
+        this.role = role;
+    }
+
+    /**
      * <h3>사용자 생성</h3>
      *
      * <p>
