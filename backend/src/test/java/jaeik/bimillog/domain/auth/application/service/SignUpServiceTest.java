@@ -6,6 +6,8 @@ import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -113,8 +115,8 @@ class SignUpServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> signUpService.signUp(testUserName, nonExistentUuid))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_DATA);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_TEMP_DATA);
 
         verify(redisUserDataPort).getTempData(nonExistentUuid);
         verify(saveUserPort, never()).saveNewUser(
@@ -209,8 +211,8 @@ class SignUpServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> signUpService.signUp(emptyUserName, testUuid))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_INPUT_VALUE);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
         verify(redisUserDataPort, never()).getTempData(testUuid);
@@ -235,8 +237,8 @@ class SignUpServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> signUpService.signUp(nullUserName, testUuid))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_INPUT_VALUE);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
         verify(redisUserDataPort, never()).getTempData(testUuid);
@@ -279,8 +281,8 @@ class SignUpServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> signUpService.signUp(testUserName, nullUuid))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_UUID);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_TEMP_UUID);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
         verify(redisUserDataPort, never()).getTempData(nullUuid);
@@ -301,8 +303,8 @@ class SignUpServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> signUpService.signUp(testUserName, emptyUuid))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_TEMP_UUID);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_TEMP_UUID);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
         verify(redisUserDataPort, never()).getTempData(emptyUuid);
@@ -323,8 +325,8 @@ class SignUpServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> signUpService.signUp(whitespaceUserName, testUuid))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_INPUT_VALUE);
 
         // 입력 검증 실패로 인해 tempDataPort나 saveUserPort는 호출되지 않아야 함
         verify(redisUserDataPort, never()).getTempData(testUuid);

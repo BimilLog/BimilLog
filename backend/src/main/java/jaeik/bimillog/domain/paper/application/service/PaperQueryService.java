@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.paper.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.paper.exception.PaperCustomException;
+import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +66,7 @@ public class PaperQueryService implements PaperQueryUseCase {
     public List<VisitMessageDetail> visitPaper(String userName) {
         boolean exists = loadUserPort.existsByUserName(userName);
         if (!exists) {
-            throw new CustomException(ErrorCode.USERNAME_NOT_FOUND);
+            throw new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND);
         }
         List<Message> messages = paperQueryPort.findMessagesByUserName(userName);
         return messages.stream()

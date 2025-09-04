@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialLogoutPort;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +52,7 @@ public class WithdrawService implements WithdrawUseCase {
     @Transactional
     public List<ResponseCookie> withdraw(CustomUserDetails userDetails) {
         if (userDetails == null) {
-            throw new CustomException(ErrorCode.NULL_SECURITY_CONTEXT);
+            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
         }
         User user = loadUserPort.findById(userDetails.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
@@ -63,7 +65,7 @@ public class WithdrawService implements WithdrawUseCase {
         try {
             socialLoginPort.unlink(user.getProvider(), user.getSocialId());
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED, e);
+            throw new AuthCustomException(AuthErrorCode.SOCIAL_UNLINK_FAILED, e);
         }
         
         deleteUserPort.performWithdrawProcess(userDetails.getUserId());
@@ -94,7 +96,7 @@ public class WithdrawService implements WithdrawUseCase {
         try {
             socialLoginPort.unlink(user.getProvider(), user.getSocialId());
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.SOCIAL_UNLINK_FAILED, e);
+            throw new AuthCustomException(AuthErrorCode.SOCIAL_UNLINK_FAILED, e);
         }
         deleteUserPort.logoutUser(userId, null);
         deleteUserPort.performWithdrawProcess(userId);

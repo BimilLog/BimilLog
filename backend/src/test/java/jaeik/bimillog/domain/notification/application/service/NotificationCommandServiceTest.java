@@ -2,6 +2,8 @@ package jaeik.bimillog.domain.notification.application.service;
 
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -124,8 +126,8 @@ class NotificationCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> notificationCommandService.batchUpdate(nullUserDetails, updateCommand))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("사용자 정보가 없습니다.");
+                .isInstanceOf(NotificationCustomException.class)
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
         
         verifyNoInteractions(notificationCommandPort);
     }

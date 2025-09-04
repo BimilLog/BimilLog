@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -68,19 +68,19 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         // 1. UUID 검증
         if (uuid == null || uuid.trim().isEmpty()) {
             log.warn("유효하지 않은 임시 UUID 제공됨: {}", uuid);
-            throw new CustomException(ErrorCode.INVALID_TEMP_UUID);
+            throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_UUID);
         }
         
         // 2. userProfile 검증
         if (userProfile == null) {
             log.warn("UUID {}에 대해 유효하지 않은 사용자 프로필 제공됨", uuid);
-            throw new CustomException(ErrorCode.INVALID_USER_DATA);
+            throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
         
         // 3. tokenVO 검증
         if (tokenVO == null) {
             log.warn("UUID {}에 대해 유효하지 않은 토큰 데이터 제공됨", uuid);
-            throw new CustomException(ErrorCode.INVALID_TOKEN_DATA);
+            throw new AuthCustomException(AuthErrorCode.INVALID_TOKEN_DATA);
         }
         
         try {
@@ -96,7 +96,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 Redis 저장 실패: {}", uuid, e.getMessage(), e);
-            throw new CustomException(ErrorCode.INVALID_USER_DATA);
+            throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
     }
 
@@ -139,11 +139,11 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                         return Optional.of(convertToDomain(dto));
                     } catch (Exception e) {
                         log.error("UUID {}에 대한 LinkedHashMap -> DTO 변환 실패: {}", uuid, e.getMessage(), e);
-                        throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
+                        throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
                     }
                 } else {
                     log.warn("UUID {}에 대해 조회된 데이터가 예상 타입이 아님, 실제: {}", uuid, data.getClass().getSimpleName());
-                    throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
+                    throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
                 }
             } else {
                 log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견되지 않음", uuid);
@@ -274,7 +274,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             
         } catch (Exception e) {
             log.error("LinkedHashMap -> TemporaryUserDataDTO 변환 실패: {}", e.getMessage(), e);
-            throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
+            throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
     }
 }

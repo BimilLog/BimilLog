@@ -7,6 +7,8 @@ import jaeik.bimillog.domain.comment.application.port.out.CommentToUserPort;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -57,7 +59,7 @@ public class CommentLikeService implements CommentLikeUseCase {
 
         boolean commentExists = commentQueryPort.findById(commentId).isPresent();
         if (!commentExists) {
-            throw new CustomException(ErrorCode.COMMENT_NOT_FOUND);
+            throw new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
         boolean userExists = commentToUserPort.findById(userId).isPresent();

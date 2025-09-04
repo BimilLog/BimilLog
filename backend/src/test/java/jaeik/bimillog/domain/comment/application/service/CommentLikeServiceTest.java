@@ -6,6 +6,8 @@ import jaeik.bimillog.domain.comment.application.port.out.CommentToUserPort;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -116,8 +118,8 @@ class CommentLikeServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_NOT_FOUND);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
         verify(commentToUserPort, never()).findById(any());

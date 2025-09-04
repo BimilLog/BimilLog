@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.notification.entity.NotificationEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -73,7 +73,7 @@ public class SseAdapter implements SsePort {
             String url = event.getUrl();
 
             User user = userQueryUseCase.findById(userId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
             notificationCommandPort.save(user, type, data, url);
             Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
 
@@ -82,7 +82,7 @@ public class SseAdapter implements SsePort {
                         sendNotification(emitter, emitterId, type, data, url);
                     });
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.NOTIFICATION_SEND_ERROR, e);
+            throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_SEND_ERROR, e);
         }
     }
 

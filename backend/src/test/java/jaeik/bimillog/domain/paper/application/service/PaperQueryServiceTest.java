@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.paper.exception.PaperCustomException;
+import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -163,8 +163,8 @@ class PaperQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperQueryService.visitPaper(userName))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USERNAME_NOT_FOUND);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
         verify(loadUserPort, times(1)).existsByUserName(userName);
         verify(paperQueryPort, never()).findMessagesByUserName(any());
@@ -240,8 +240,8 @@ class PaperQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperQueryService.visitPaper(userName))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USERNAME_NOT_FOUND);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
         verify(loadUserPort, times(1)).existsByUserName(userName);
     }
@@ -256,8 +256,8 @@ class PaperQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperQueryService.visitPaper(userName))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USERNAME_NOT_FOUND);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
         verify(loadUserPort, times(1)).existsByUserName(userName);
     }

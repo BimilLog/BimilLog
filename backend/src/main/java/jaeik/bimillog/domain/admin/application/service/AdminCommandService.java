@@ -13,16 +13,16 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.AdminCustomException;
-import jaeik.bimillog.infrastructure.exception.AdminErrorCode;
+import jaeik.bimillog.domain.admin.exception.AdminCustomException;
+import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * <h2>관리자 명령 서비스</h2>
@@ -201,7 +201,7 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     private User resolveCommentUser(Long commentId) {
         Comment comment = commentQueryUseCase.findById(commentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_FAILED));
+                .orElseThrow(() -> new CommentCustomException(CommentErrorCode.COMMENT_FAILED));
         return comment.getUser();
     }
 }

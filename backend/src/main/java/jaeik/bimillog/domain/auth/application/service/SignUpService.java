@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -35,9 +35,9 @@ public class SignUpService implements SignUpUseCase {
      * @param userName 사용자의 이름
      * @param uuid     임시 UUID
      * @return ResponseCookie 리스트
-     * @throws CustomException userName이 null이거나 빈 문자열인 경우 (INVALID_INPUT_VALUE)
-     * @throws CustomException uuid가 null이거나 빈 문자열인 경우 (INVALID_TEMP_UUID)  
-     * @throws CustomException 임시 데이터가 존재하지 않는 경우 (INVALID_TEMP_DATA)
+     * @throws AuthCustomException userName이 null이거나 빈 문자열인 경우 (INVALID_INPUT_VALUE)
+     * @throws AuthCustomException uuid가 null이거나 빈 문자열인 경우 (INVALID_TEMP_UUID)  
+     * @throws AuthCustomException 임시 데이터가 존재하지 않는 경우 (INVALID_TEMP_DATA)
      * @since 2.0.0
      * @author Jaeik
      */
@@ -48,7 +48,7 @@ public class SignUpService implements SignUpUseCase {
         Optional<TempUserData> tempUserData = redisUserDataPort.getTempData(uuid);
 
         if (tempUserData.isEmpty()) {
-            throw new CustomException(ErrorCode.INVALID_TEMP_DATA);
+            throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
         
         TempUserData userData = tempUserData.get();
@@ -61,17 +61,17 @@ public class SignUpService implements SignUpUseCase {
      *
      * @param userName 사용자 이름
      * @param uuid     임시 UUID
-     * @throws CustomException 입력값이 유효하지 않은 경우
+     * @throws AuthCustomException 입력값이 유효하지 않은 경우
      * @since 2.0.0
      * @author Jaeik
      */
     private void validateSignUpInput(String userName, String uuid) {
         if (isNullOrEmpty(userName)) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new AuthCustomException(AuthErrorCode.INVALID_INPUT_VALUE);
         }
         
         if (isNullOrEmpty(uuid)) {
-            throw new CustomException(ErrorCode.INVALID_TEMP_UUID);
+            throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_UUID);
         }
     }
 

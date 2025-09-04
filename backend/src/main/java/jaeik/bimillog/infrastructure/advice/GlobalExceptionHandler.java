@@ -1,5 +1,10 @@
 package jaeik.bimillog.infrastructure.advice;
 
+import jaeik.bimillog.domain.admin.exception.AdminCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +30,141 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * <h3>관리자 도메인 커스텀 예외 처리</h3>
+     * <p>관리자 도메인에서 발생하는 커스텀 예외를 처리하여 적절한 응답을 반환</p>
+     *
+     * @param e 발생한 관리자 커스텀 예외
+     * @return 관리자 커스텀 예외에 대한 응답 엔티티
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @ExceptionHandler(AdminCustomException.class)
+    public ResponseEntity<ErrorResponse> handleAdminCustomException(AdminCustomException e) {
+        ErrorResponse response = new ErrorResponse(
+                e.getAdminErrorCode().getStatus().value(),
+                "AdminError",
+                e.getMessage());
+
+        String logMessage = "AdminCustomException: 코드: {}, 메시지: {}";
+        switch (e.getAdminErrorCode().getLogLevel()) {
+            case INFO -> log.info(logMessage, e.getAdminErrorCode().name(), e.getMessage());
+            case WARN -> log.warn(logMessage, e.getAdminErrorCode().name(), e.getMessage());
+            case ERROR -> log.error(logMessage, e.getAdminErrorCode().name(), e.getMessage());
+            case FATAL -> log.error("FATAL - " + logMessage, e.getAdminErrorCode().name(), e.getMessage());
+        }
+
+        return new ResponseEntity<>(response, e.getAdminErrorCode().getStatus());
+    }
+
+    /**
+     * <h3>인증 도메인 커스텀 예외 처리</h3>
+     * <p>인증 도메인에서 발생하는 커스텀 예외를 처리하여 적절한 응답을 반환</p>
+     *
+     * @param e 발생한 인증 커스텀 예외
+     * @return 인증 커스텀 예외에 대한 응답 엔티티
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @ExceptionHandler(AuthCustomException.class)
+    public ResponseEntity<ErrorResponse> handleAuthCustomException(AuthCustomException e) {
+        ErrorResponse response = new ErrorResponse(
+                e.getAuthErrorCode().getStatus().value(),
+                "AuthError",
+                e.getMessage());
+
+        String logMessage = "AuthCustomException: 코드: {}, 메시지: {}";
+        switch (e.getAuthErrorCode().getLogLevel()) {
+            case INFO -> log.info(logMessage, e.getAuthErrorCode().name(), e.getMessage());
+            case WARN -> log.warn(logMessage, e.getAuthErrorCode().name(), e.getMessage());
+            case ERROR -> log.error(logMessage, e.getAuthErrorCode().name(), e.getMessage());
+            case FATAL -> log.error("FATAL - " + logMessage, e.getAuthErrorCode().name(), e.getMessage());
+        }
+
+        return new ResponseEntity<>(response, e.getAuthErrorCode().getStatus());
+    }
+
+    /**
+     * <h3>댓글 도메인 커스텀 예외 처리</h3>
+     * <p>댓글 도메인에서 발생하는 커스텀 예외를 처리하여 적절한 응답을 반환</p>
+     *
+     * @param e 발생한 댓글 커스텀 예외
+     * @return 댓글 커스텀 예외에 대한 응답 엔티티
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @ExceptionHandler(CommentCustomException.class)
+    public ResponseEntity<ErrorResponse> handleCommentCustomException(CommentCustomException e) {
+        ErrorResponse response = new ErrorResponse(
+                e.getCommentErrorCode().getStatus().value(),
+                "CommentError",
+                e.getMessage());
+
+        String logMessage = "CommentCustomException: 코드: {}, 메시지: {}";
+        switch (e.getCommentErrorCode().getLogLevel()) {
+            case INFO -> log.info(logMessage, e.getCommentErrorCode().name(), e.getMessage());
+            case WARN -> log.warn(logMessage, e.getCommentErrorCode().name(), e.getMessage());
+            case ERROR -> log.error(logMessage, e.getCommentErrorCode().name(), e.getMessage());
+            case FATAL -> log.error("FATAL - " + logMessage, e.getCommentErrorCode().name(), e.getMessage());
+        }
+
+        return new ResponseEntity<>(response, e.getCommentErrorCode().getStatus());
+    }
+
+    /**
+     * <h3>알림 도메인 커스텀 예외 처리</h3>
+     * <p>알림 도메인에서 발생하는 커스텀 예외를 처리하여 적절한 응답을 반환</p>
+     *
+     * @param e 발생한 알림 커스텀 예외
+     * @return 알림 커스텀 예외에 대한 응답 엔티티
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @ExceptionHandler(NotificationCustomException.class)
+    public ResponseEntity<ErrorResponse> handleNotificationCustomException(NotificationCustomException e) {
+        ErrorResponse response = new ErrorResponse(
+                e.getNotificationErrorCode().getStatus().value(),
+                "NotificationError",
+                e.getMessage());
+
+        String logMessage = "NotificationCustomException: 코드: {}, 메시지: {}";
+        switch (e.getNotificationErrorCode().getLogLevel()) {
+            case INFO -> log.info(logMessage, e.getNotificationErrorCode().name(), e.getMessage());
+            case WARN -> log.warn(logMessage, e.getNotificationErrorCode().name(), e.getMessage());
+            case ERROR -> log.error(logMessage, e.getNotificationErrorCode().name(), e.getMessage());
+            case FATAL -> log.error("FATAL - " + logMessage, e.getNotificationErrorCode().name(), e.getMessage());
+        }
+
+        return new ResponseEntity<>(response, e.getNotificationErrorCode().getStatus());
+    }
+
+    /**
+     * <h3>롤링페이퍼 도메인 커스텀 예외 처리</h3>
+     * <p>롤링페이퍼 도메인에서 발생하는 커스텀 예외를 처리하여 적절한 응답을 반환</p>
+     *
+     * @param e 발생한 롤링페이퍼 커스텀 예외
+     * @return 롤링페이퍼 커스텀 예외에 대한 응답 엔티티
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @ExceptionHandler(PaperCustomException.class)
+    public ResponseEntity<ErrorResponse> handlePaperCustomException(PaperCustomException e) {
+        ErrorResponse response = new ErrorResponse(
+                e.getPaperErrorCode().getStatus().value(),
+                "PaperError",
+                e.getMessage());
+
+        String logMessage = "PaperCustomException: 코드: {}, 메시지: {}";
+        switch (e.getPaperErrorCode().getLogLevel()) {
+            case INFO -> log.info(logMessage, e.getPaperErrorCode().name(), e.getMessage());
+            case WARN -> log.warn(logMessage, e.getPaperErrorCode().name(), e.getMessage());
+            case ERROR -> log.error(logMessage, e.getPaperErrorCode().name(), e.getMessage());
+            case FATAL -> log.error("FATAL - " + logMessage, e.getPaperErrorCode().name(), e.getMessage());
+        }
+
+        return new ResponseEntity<>(response, e.getPaperErrorCode().getStatus());
+    }
 
     /**
      * <h3>커스텀 예외 처리</h3>

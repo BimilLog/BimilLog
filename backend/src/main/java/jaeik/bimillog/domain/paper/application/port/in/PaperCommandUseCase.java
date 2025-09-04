@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.paper.application.port.in;
 
 import jaeik.bimillog.domain.paper.entity.MessageCommand;
-import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 
 /**
  * <h2>롤링페이퍼 명령 유스케이스</h2>
@@ -25,7 +25,7 @@ public interface PaperCommandUseCase {
      *
      * @param userId 현재 로그인한 사용자 ID
      * @param messageCommand 삭제할 메시지 정보
-     * @throws CustomException 삭제 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
+     * @throws PaperCustomException 삭제 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -42,7 +42,7 @@ public interface PaperCommandUseCase {
      *
      * @param userName 롤링페이퍼 소유자의 사용자명
      * @param messageCommand 작성할 메시지 정보
-     * @throws CustomException 사용자가 존재하지 않는 경우
+     * @throws PaperCustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */

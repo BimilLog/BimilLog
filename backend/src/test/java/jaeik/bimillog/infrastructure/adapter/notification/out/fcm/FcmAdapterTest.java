@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.FcmTokenRepository;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -222,8 +222,8 @@ class FcmAdapterTest {
 
         // When & Then: FCM 전송 중 예외 발생 시 CustomException 발생 검증
         assertThatThrownBy(() -> fcmAdapter.send(1L, testEvent))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FCM_SEND_ERROR);
+                .isInstanceOf(NotificationCustomException.class)
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.FCM_SEND_ERROR);
 
         verify(fcmTokenRepository).findValidFcmTokensForMessageNotification(1L);
     }

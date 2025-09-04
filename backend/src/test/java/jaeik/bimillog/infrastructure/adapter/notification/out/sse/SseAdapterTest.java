@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.notification.entity.NotificationEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -129,8 +129,8 @@ class SseAdapterTest {
 
         // When & Then
         assertThatThrownBy(() -> sseAdapter.send(userId, event))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOTIFICATION_SEND_ERROR);
+                .isInstanceOf(NotificationCustomException.class)
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
 
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort, never()).save(any(), any(), any(), any());
@@ -153,8 +153,8 @@ class SseAdapterTest {
 
         // When & Then
         assertThatThrownBy(() -> sseAdapter.send(userId, event))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOTIFICATION_SEND_ERROR);
+                .isInstanceOf(NotificationCustomException.class)
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
 
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(mockUser, NotificationType.COMMENT, "테스트 메시지", "/test/url");

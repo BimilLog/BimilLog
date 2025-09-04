@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLogoutPort;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
@@ -50,7 +50,7 @@ public class LogoutService implements LogoutUseCase {
             SecurityContextHolder.clearContext();
             return deleteUserPort.getLogoutCookies();
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.LOGOUT_FAIL, e);
+            throw new AuthCustomException(AuthErrorCode.LOGOUT_FAIL, e);
         }
     }
 }

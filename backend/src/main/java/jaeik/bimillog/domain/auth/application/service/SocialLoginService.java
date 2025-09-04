@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +48,7 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @param code     인가 코드
      * @param fcmToken Firebase Cloud Messaging 토큰
      * @return 타입 안전성이 보장된 로그인 결과
-     * @throws CustomException 블랙리스트 사용자인 경우
+     * @throws AuthCustomException 블랙리스트 사용자인 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -59,7 +61,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         SocialLoginPort.SocialUserProfile userProfile = loginResult.userProfile();
         
         if (blacklistPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
-            throw new CustomException(ErrorCode.BLACKLIST_USER);
+            throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
         if (!loginResult.isNewUser()) {
@@ -108,14 +110,14 @@ public class SocialLoginService implements SocialLoginUseCase {
      * <p>현재 사용자가 로그인 상태인지 확인합니다.</p>
      * <p>로그인 상태라면 예외를 발생시킵니다.</p>
      *
-     * @throws CustomException 이미 로그인 상태인 경우
+     * @throws AuthCustomException 이미 로그인 상태인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     private void validateLogin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
-            throw new CustomException(ErrorCode.ALREADY_LOGIN);
+            throw new AuthCustomException(AuthErrorCode.ALREADY_LOGIN);
         }
     }
 }

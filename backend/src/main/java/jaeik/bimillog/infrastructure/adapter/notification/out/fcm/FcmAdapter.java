@@ -10,6 +10,8 @@ import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.FcmTokenRepository;
 import jaeik.bimillog.domain.notification.entity.NotificationEvent;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -104,7 +106,7 @@ public class FcmAdapter implements FcmPort {
                 sendMessageTo(fcmMessage);
             }
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.FCM_SEND_ERROR, e);
+            throw new NotificationCustomException(NotificationErrorCode.FCM_SEND_ERROR, e);
         }
     }
 

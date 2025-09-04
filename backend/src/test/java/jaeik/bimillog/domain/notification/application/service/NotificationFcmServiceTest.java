@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.notification.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,8 +79,8 @@ class NotificationFcmServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(NotificationCustomException.class)
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
         verify(loadUserPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());
@@ -299,8 +299,8 @@ class NotificationFcmServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining("사용자를 찾을 수 없습니다");
+                .isInstanceOf(NotificationCustomException.class)
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
         verify(loadUserPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());
@@ -317,8 +317,8 @@ class NotificationFcmServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(NotificationCustomException.class)
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
         verify(loadUserPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());

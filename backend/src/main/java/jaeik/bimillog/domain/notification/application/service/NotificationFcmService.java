@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.notification.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,7 +48,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
         }
 
         User user = loadUserPort.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
 
         fcmPort.save(FcmToken.create(user, fcmToken));
     }

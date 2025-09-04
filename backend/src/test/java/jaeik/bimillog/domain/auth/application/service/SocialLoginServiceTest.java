@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -143,8 +145,8 @@ class SocialLoginServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token"))
-                    .isInstanceOf(CustomException.class)
-                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_USER);
+                    .isInstanceOf(AuthCustomException.class)
+                    .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.BLACKLIST_USER);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
             verify(blacklistPort).existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123");
@@ -164,8 +166,8 @@ class SocialLoginServiceTest {
 
             // When & Then
             assertThatThrownBy(() -> socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token"))
-                    .isInstanceOf(CustomException.class)
-                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ALREADY_LOGIN);
+                    .isInstanceOf(AuthCustomException.class)
+                    .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.ALREADY_LOGIN);
         }
     }
 }

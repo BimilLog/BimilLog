@@ -12,6 +12,8 @@ import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -128,8 +130,8 @@ class WithdrawServiceTest {
     void shouldThrowException_WhenUserDetailsIsNull() {
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NULL_SECURITY_CONTEXT);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.NULL_SECURITY_CONTEXT);
 
         // null userDetails일 때는 어떤 메서드도 호출되지 않아야 함
     }
@@ -161,8 +163,8 @@ class WithdrawServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOCIAL_UNLINK_FAILED);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.SOCIAL_UNLINK_FAILED);
 
         // 소셜 연결 해제 실패로 인해 트랜잭션 롤백, 후속 작업들은 실행되지 않음
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
@@ -232,8 +234,8 @@ class WithdrawServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOCIAL_UNLINK_FAILED);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.SOCIAL_UNLINK_FAILED);
 
         verify(socialLogoutPort).performSocialLogout(userDetails);
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");

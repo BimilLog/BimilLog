@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageCommand;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.paper.exception.PaperCustomException;
+import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -49,14 +49,14 @@ public class PaperCommandService implements PaperCommandUseCase {
     @Override
     public void deleteMessageInMyPaper(Long userId, MessageCommand messageCommand) {
         if (messageCommand == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
         
         Long ownerId = paperQueryPort.findOwnerIdByMessageId(messageCommand.id())
-                .orElseThrow(() -> new CustomException(ErrorCode.MESSAGE_NOT_FOUND));
+                .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
 
         if (!ownerId.equals(userId)) {
-            throw new CustomException(ErrorCode.MESSAGE_DELETE_FORBIDDEN);
+            throw new PaperCustomException(PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
         }
         paperCommandPort.deleteById(messageCommand.id());
     }
@@ -75,11 +75,11 @@ public class PaperCommandService implements PaperCommandUseCase {
     @Override
     public void writeMessage(String userName, MessageCommand messageCommand) {
         if (messageCommand == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
         
         User user = loadUserPort.findByUserName(userName)
-                .orElseThrow(() -> new CustomException(ErrorCode.USERNAME_NOT_FOUND));
+                .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
 
         Message message = Message.createMessage(user, messageCommand);
         paperCommandPort.save(message);

@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.comment.entity.CommentRequest;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -169,17 +171,17 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     private Comment validateComment(CommentRequest commentRequest, Long userId) {
         Comment comment = commentQueryPort.findById(commentRequest.id())
-                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+                .orElseThrow(() -> new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
 
         if (commentRequest.password() != null && !Objects.equals(comment.getPassword(), commentRequest.password())) {
-            throw new CustomException(ErrorCode.COMMENT_PASSWORD_NOT_MATCH);
+            throw new CommentCustomException(CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
         }
 
         if (commentRequest.password() == null
                 && (userId == null 
                     || comment.getUser() == null 
                     || !Objects.equals(comment.getUser().getId(), userId))) {
-            throw new CustomException(ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+            throw new CommentCustomException(CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
         }
         return comment;
     }
@@ -212,9 +214,9 @@ public class CommentCommandService implements CommentCommandUseCase {
             // 부모 댓글이 있는 경우 부모의 모든 조상과의 클로저 생성
             if (parentId != null) {
                 Comment parentComment = commentQueryPort.findById(parentId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
+                        .orElseThrow(() -> new CommentCustomException(CommentErrorCode.PARENT_COMMENT_NOT_FOUND));
                 List<CommentClosure> parentClosures = commentClosureQueryPort.findByDescendantId(parentComment.getId())
-                        .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
+                        .orElseThrow(() -> new CommentCustomException(CommentErrorCode.PARENT_COMMENT_NOT_FOUND));
 
                 for (CommentClosure parentClosure : parentClosures) {
                     Comment ancestor = parentClosure.getAncestor();
@@ -227,7 +229,7 @@ public class CommentCommandService implements CommentCommandUseCase {
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
+            throw new CommentCustomException(CommentErrorCode.COMMENT_WRITE_FAILED, e);
         }
     }
 

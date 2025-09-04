@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationComman
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,7 +38,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param updateCommand 업데이트할 알림 정보 명령
-     * @throws IllegalArgumentException 잘못된 입력값인 경우
+     * @throws NotificationCustomException 잘못된 입력값인 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -44,7 +46,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
     public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateVO updateCommand) {
         // Null 체크
         if (userDetails == null || userDetails.getUserId() == null) {
-            throw new IllegalArgumentException("사용자 정보가 없습니다.");
+            throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
         }
         
         if (updateCommand == null) {

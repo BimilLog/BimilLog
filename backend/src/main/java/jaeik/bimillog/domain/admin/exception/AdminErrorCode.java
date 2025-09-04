@@ -1,5 +1,6 @@
-package jaeik.bimillog.infrastructure.exception;
+package jaeik.bimillog.domain.admin.exception;
 
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 

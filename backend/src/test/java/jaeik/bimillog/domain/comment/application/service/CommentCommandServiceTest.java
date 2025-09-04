@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.comment.application.port.out.*;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.comment.entity.CommentRequest;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -134,8 +136,8 @@ class CommentCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(100L, commentRequest))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_NOT_FOUND);
 
         verify(commentQueryPort).findById(200L);
         verify(commentCommandPort, never()).save(any());
@@ -163,8 +165,8 @@ class CommentCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(null, wrongPasswordRequest))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_PASSWORD_NOT_MATCH);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
 
         verify(commentQueryPort).findById(200L);
         verify(commentCommandPort, never()).save(any());
@@ -192,8 +194,8 @@ class CommentCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(userId, commentRequest))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(200L);
         verify(commentCommandPort, never()).save(any());
@@ -249,8 +251,8 @@ class CommentCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(null, commentRequest))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(200L);
         verify(commentCommandPort, never()).save(any());
@@ -301,8 +303,8 @@ class CommentCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(null, emptyPasswordRequest))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(200L);
         verify(commentCommandPort, never()).save(any());
@@ -363,8 +365,8 @@ class CommentCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(null, deleteRequest))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_PASSWORD_NOT_MATCH);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
 
         verify(commentQueryPort).findById(300L);
         verify(commentClosureQueryPort, never()).hasDescendants(any());
@@ -461,8 +463,8 @@ class CommentCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(requestUserId, deleteRequest))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(600L);
         verify(commentClosureQueryPort, never()).hasDescendants(any());

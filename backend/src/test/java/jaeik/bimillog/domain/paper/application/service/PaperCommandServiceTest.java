@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.paper.entity.MessageCommand;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.paper.in.web.dto.MessageDTO;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.paper.exception.PaperCustomException;
+import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,8 +90,8 @@ class PaperCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(999L, messageDTO.toCommand()))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_NOT_FOUND);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_NOT_FOUND);
 
         verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
         verify(paperCommandPort, never()).deleteById(any());
@@ -111,8 +111,8 @@ class PaperCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand()))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_DELETE_FORBIDDEN);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
         verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
         verify(paperCommandPort, never()).deleteById(any());
@@ -152,8 +152,8 @@ class PaperCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USERNAME_NOT_FOUND);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());
@@ -172,8 +172,8 @@ class PaperCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USERNAME_NOT_FOUND);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());
@@ -210,8 +210,8 @@ class PaperCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageCommand))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
         verify(loadUserPort, never()).findByUserName(any());
         verify(paperCommandPort, never()).save(any());
@@ -248,8 +248,8 @@ class PaperCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(1L, messageCommand))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
     }
 
 
@@ -379,8 +379,8 @@ class PaperCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand()))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MESSAGE_DELETE_FORBIDDEN);
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
         // 소유권 검증에 실패했으므로 삭제가 호출되지 않음
         verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);

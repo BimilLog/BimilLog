@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.exception;
+package jaeik.bimillog.domain.admin.exception;
 
 import lombok.Getter;
 
