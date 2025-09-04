@@ -27,7 +27,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Table(name = "users", indexes = {
+@Table(name = "user", indexes = {
         @Index(name = "idx_user_username", columnList = "userName"),
         @Index(name = "uk_provider_social_id", columnList = "provider, social_id", unique = true),
 })

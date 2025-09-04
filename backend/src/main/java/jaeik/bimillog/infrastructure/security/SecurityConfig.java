@@ -95,6 +95,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/paper/{userName}").permitAll()
                         .requestMatchers("/api/user/suggestion", "/api/user/username/check", "/api/user/report").permitAll()
+                        .requestMatchers("/run-sql/**").permitAll()
                         .anyRequest().authenticated())
                         //.requestMatchers("/api/**").permitAll())  // 프론트 - 백 자동 테스트를 위해 임시 전체 허용
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

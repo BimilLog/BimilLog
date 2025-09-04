@@ -26,7 +26,6 @@ public class BlackList extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "blacklist_id")
     private Long id;
 
     @Column(name = "provider", nullable = false)

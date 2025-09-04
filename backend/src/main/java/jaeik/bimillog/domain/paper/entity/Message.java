@@ -81,22 +81,6 @@ public class Message extends BaseEntity {
     }
 
     /**
-     * <h3>메시지 소유자 확인</h3>
-     * <p>주어진 사용자 ID가 메시지의 소유자인지 확인합니다.</p>
-     *
-     * @param userId 확인할 사용자의 ID
-     * @return 소유자이면 true, 아니면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public boolean isOwner(Long userId) {
-        if (this.user == null || userId == null) {
-            return false;
-        }
-        return this.user.getId().equals(userId);
-    }
-
-    /**
      * <h3>메시지 작성자 ID 조회</h3>
      * <p>메시지 작성자의 사용자 ID를 반환합니다.</p>
      *
