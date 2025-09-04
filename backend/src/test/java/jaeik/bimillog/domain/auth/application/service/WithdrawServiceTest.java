@@ -102,8 +102,6 @@ class WithdrawServiceTest {
         // Then
         assertThat(result).isEqualTo(logoutCookies);
 
-        // 토큰 블랙리스트 등록 검증
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
 
         // 소셜 로그아웃 검증
         verify(socialLogoutPort).performSocialLogout(userDetails);
@@ -167,7 +165,6 @@ class WithdrawServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOCIAL_UNLINK_FAILED);
 
         // 소셜 연결 해제 실패로 인해 트랜잭션 롤백, 후속 작업들은 실행되지 않음
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
         // DB 삭제 및 이벤트 발행은 롤백으로 인해 실행되지 않음
     }
@@ -190,11 +187,12 @@ class WithdrawServiceTest {
         withdrawService.forceWithdraw(targetUserId);
 
         // Then
-        // 토큰 블랙리스트 등록 검증
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(targetUserId, "관리자 강제 탈퇴");
 
         // 소셜 로그인 연결 해제 검증
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao456");
+
+        // 로그아웃 처리 검증
+        verify(deleteUserPort).logoutUser(targetUserId, null);
 
         // 탈퇴 프로세스 수행 검증
         verify(deleteUserPort).performWithdrawProcess(targetUserId);
@@ -224,20 +222,21 @@ class WithdrawServiceTest {
     }
 
     @Test
-    @DisplayName("토큰 블랙리스트 등록 실패 시에도 탈퇴 프로세스 계속 진행")
-    void shouldContinueWithdraw_WhenTokenBlacklistFails() {
+    @DisplayName("소셜 계정 연결 해제 실패 시 예외 발생")
+    void shouldThrow_WhenSocialUnlinkFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
-        doThrow(new RuntimeException("블랙리스트 등록 실패"))
-                .when(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
+        doThrow(new RuntimeException("소셜 연결 해제 실패"))
+                .when(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("블랙리스트 등록 실패");
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SOCIAL_UNLINK_FAILED);
 
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
+        verify(socialLogoutPort).performSocialLogout(userDetails);
+        verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
     }
 
     @Test
@@ -283,7 +282,6 @@ class WithdrawServiceTest {
                 .hasMessage("이벤트 발행 실패");
 
         // 이벤트 발행 전까지의 모든 작업은 완료되어야 함
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(100L, "사용자 탈퇴");
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
         verify(deleteUserPort).performWithdrawProcess(100L);
     }
@@ -309,7 +307,6 @@ class WithdrawServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("데이터 처리 실패");
 
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(targetUserId, "관리자 강제 탈퇴");
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao456");
         verify(deleteUserPort).performWithdrawProcess(targetUserId);
     }

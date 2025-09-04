@@ -143,7 +143,7 @@ class AdminCommandControllerIntegrationTest {
         CustomUserDetails adminUser = createAdminUserDetails();
         
         // When & Then
-        mockMvc.perform(post("/api/dto/reports/ban")
+        mockMvc.perform(post("/api/admin/ban")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody)
                         .with(csrf())
@@ -175,7 +175,7 @@ class AdminCommandControllerIntegrationTest {
         CustomUserDetails regularUser = createUserUserDetails();
         
         // When & Then
-        mockMvc.perform(post("/api/dto/reports/ban")
+        mockMvc.perform(post("/api/admin/ban")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody)
                         .with(csrf())
@@ -197,7 +197,7 @@ class AdminCommandControllerIntegrationTest {
         String requestBody = objectMapper.writeValueAsString(reportDTO);
         
         // When & Then
-        mockMvc.perform(post("/api/dto/reports/ban")
+        mockMvc.perform(post("/api/admin/ban")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody)
                         .with(csrf()))
@@ -213,7 +213,7 @@ class AdminCommandControllerIntegrationTest {
         CustomUserDetails adminUser = createAdminUserDetails();
         
         // When & Then
-        mockMvc.perform(post("/api/dto/reports/ban")
+        mockMvc.perform(post("/api/admin/ban")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequestBody)
                         .with(csrf())
@@ -235,10 +235,29 @@ class AdminCommandControllerIntegrationTest {
                 .setting(setting)
                 .build();
         User savedUser = userRepository.save(testUser);
+        
+        var testPost = jaeik.bimillog.domain.post.entity.Post.builder()
+                .title("테스트 게시글")
+                .content("테스트 내용")
+                .views(0)
+                .isNotice(false)
+                .user(savedUser)
+                .build();
+        var savedPost = postRepository.save(testPost);
+        
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(savedPost.getId())
+                .content("강제 탈퇴 사유 게시글")
+                .build();
+        
+        String requestBody = objectMapper.writeValueAsString(reportDTO);
         CustomUserDetails adminUser = createAdminUserDetails();
         
         // When & Then
-        mockMvc.perform(delete("/api/dto/users/{userId}", savedUser.getId())
+        mockMvc.perform(post("/api/admin/withdraw")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)
                         .with(csrf())
                         .with(user(adminUser)))
                 .andDo(print())
@@ -250,11 +269,19 @@ class AdminCommandControllerIntegrationTest {
     @DisplayName("일반 사용자 권한으로 사용자 강제 탈퇴 - 실패 (권한 부족)")
     void forceWithdrawUser_WithUserRole_Forbidden() throws Exception {
         // Given
-        Long userId = 1L;
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(1L)
+                .content("권한 없는 강제 탈퇴 시도")
+                .build();
+        
+        String requestBody = objectMapper.writeValueAsString(reportDTO);
         CustomUserDetails regularUser = createUserUserDetails();
         
         // When & Then
-        mockMvc.perform(delete("/api/dto/users/{userId}", userId)
+        mockMvc.perform(post("/api/admin/withdraw")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)
                         .with(csrf())
                         .with(user(regularUser)))
                 .andDo(print())
@@ -269,7 +296,17 @@ class AdminCommandControllerIntegrationTest {
         CustomUserDetails adminUser = createAdminUserDetails();
         
         // When & Then
-        mockMvc.perform(delete("/api/dto/users/{userId}", nonExistentUserId)
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(nonExistentUserId) // Using as post ID
+                .content("존재하지 않는 게시글 신고")
+                .build();
+        
+        String requestBody = objectMapper.writeValueAsString(reportDTO);
+        
+        mockMvc.perform(post("/api/admin/withdraw")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)
                         .with(csrf())
                         .with(user(adminUser)))
                 .andDo(print())

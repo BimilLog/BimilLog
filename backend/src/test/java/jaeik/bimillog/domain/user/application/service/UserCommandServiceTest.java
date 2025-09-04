@@ -80,7 +80,6 @@ class UserCommandServiceTest {
 
         // Then
         verify(userQueryPort).findById(userId);
-        verify(userCommandPort).save(user);
         
         // Setting이 업데이트되었는지 확인
         assertThat(user.getSetting().isMessageNotification()).isFalse();
@@ -125,14 +124,12 @@ class UserCommandServiceTest {
                 .role(UserRole.USER)
                 .build();
 
-        given(userQueryPort.existsByUserName(newUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
         userCommandService.updateUserName(userId, newUserName);
 
         // Then
-        verify(userQueryPort).existsByUserName(newUserName);
         verify(userQueryPort).findById(userId);
         verify(userCommandPort).save(user);
         
@@ -145,17 +142,22 @@ class UserCommandServiceTest {
         // Given
         Long userId = 1L;
         String existingUserName = "existingUser";
+        User user = User.builder()
+                .id(userId)
+                .userName("oldUserName")
+                .build();
 
-        given(userQueryPort.existsByUserName(existingUserName)).willReturn(true);
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+        willThrow(new DataIntegrityViolationException("Unique constraint violation"))
+                .given(userCommandPort).save(user);
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserName(userId, existingUserName))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.EXISTED_NICKNAME.getMessage());
         
-        verify(userQueryPort).existsByUserName(existingUserName);
-        verify(userQueryPort, never()).findById(any());
-        verify(userCommandPort, never()).save(any(User.class));
+        verify(userQueryPort).findById(userId);
+        verify(userCommandPort).save(user);
     }
 
     @Test
@@ -165,7 +167,6 @@ class UserCommandServiceTest {
         Long userId = 999L;
         String newUserName = "newUserName";
 
-        given(userQueryPort.existsByUserName(newUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
@@ -173,7 +174,6 @@ class UserCommandServiceTest {
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
         
-        verify(userQueryPort).existsByUserName(newUserName);
         verify(userQueryPort).findById(userId);
         verify(userCommandPort, never()).save(any(User.class));
     }
@@ -234,7 +234,6 @@ class UserCommandServiceTest {
                 .userName("oldUserName")
                 .build();
 
-        given(userQueryPort.existsByUserName(emptyUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
@@ -257,7 +256,6 @@ class UserCommandServiceTest {
                 .userName("oldUserName")
                 .build();
 
-        given(userQueryPort.existsByUserName(nullUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
@@ -280,7 +278,6 @@ class UserCommandServiceTest {
                 .userName("oldUserName")
                 .build();
 
-        given(userQueryPort.existsByUserName(longUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
@@ -303,7 +300,6 @@ class UserCommandServiceTest {
                 .userName("oldUserName")
                 .build();
 
-        given(userQueryPort.existsByUserName(specialUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
@@ -358,8 +354,8 @@ class UserCommandServiceTest {
         userCommandService.updateUserSettings(userId, partialSetting);
 
         // Then
-        verify(userCommandPort).save(user);
-        // 부분적 업데이트 동작은 Setting.updateSetting 메서드에 의존
+        verify(userQueryPort).findById(userId);
+        // 부분적 업데이트 동작은 JPA 변경 감지에 의존
     }
 
     @Test
@@ -380,7 +376,6 @@ class UserCommandServiceTest {
                 .build();
 
         // 1차 중복 검사에서는 사용 가능하다고 응답 (Race Condition 발생 전)
-        given(userQueryPort.existsByUserName(racedUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         
         // 데이터베이스 저장 시점에 UNIQUE 제약조건 위반 발생 (Race Condition)
@@ -395,7 +390,6 @@ class UserCommandServiceTest {
                 .hasMessage(ErrorCode.EXISTED_NICKNAME.getMessage());
         
         // 모든 단계가 실행되었는지 확인
-        verify(userQueryPort).existsByUserName(racedUserName);
         verify(userQueryPort).findById(userId);
         verify(userCommandPort).save(user);
         
@@ -415,7 +409,6 @@ class UserCommandServiceTest {
                 .userName("oldUserName")
                 .build();
 
-        given(userQueryPort.existsByUserName(newUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         
         // UNIQUE 제약조건 위반이 아닌 다른 데이터베이스 예외
@@ -427,7 +420,6 @@ class UserCommandServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Database connection failed");
         
-        verify(userQueryPort).existsByUserName(newUserName);
         verify(userQueryPort).findById(userId);
         verify(userCommandPort).save(user);
     }
@@ -447,7 +439,6 @@ class UserCommandServiceTest {
                 .role(UserRole.USER)
                 .build();
 
-        given(userQueryPort.existsByUserName(newUserName)).willReturn(false);
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         // save() 호출 시 예외 발생하지 않음 (정상 저장)
 
@@ -455,7 +446,6 @@ class UserCommandServiceTest {
         userCommandService.updateUserName(userId, newUserName);
 
         // Then: 모든 단계가 성공적으로 실행됨
-        verify(userQueryPort).existsByUserName(newUserName);
         verify(userQueryPort).findById(userId);
         verify(userCommandPort).save(user);
         
@@ -561,7 +551,6 @@ class UserCommandServiceTest {
         // Then
         verify(userQueryPort).findById(userId);
         verify(userCommandPort).save(user);
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(userId, "사용자 제재");
         assertThat(user.getRole()).isEqualTo(UserRole.BAN);
     }
 
@@ -579,7 +568,6 @@ class UserCommandServiceTest {
 
         verify(userQueryPort).findById(userId);
         verify(userCommandPort, never()).save(any(User.class));
-        verify(tokenBlacklistUseCase, never()).blacklistAllUserTokens(any(), any());
     }
 
     @Test
@@ -595,7 +583,6 @@ class UserCommandServiceTest {
 
         verify(userQueryPort, never()).findById(any());
         verify(userCommandPort, never()).save(any(User.class));
-        verify(tokenBlacklistUseCase, never()).blacklistAllUserTokens(any(), any());
     }
 
     @Test
@@ -619,7 +606,6 @@ class UserCommandServiceTest {
         // Then
         verify(userQueryPort).findById(userId);
         verify(userCommandPort).save(user);
-        verify(tokenBlacklistUseCase).blacklistAllUserTokens(userId, "사용자 제재");
         assertThat(user.getRole()).isEqualTo(UserRole.BAN);
     }
 
@@ -641,9 +627,9 @@ class UserCommandServiceTest {
         // When
         userCommandService.banUser(userId);
 
-        // Then - 역할 변경 후 JWT 토큰 무효화 순서 확인
-        var inOrder = inOrder(userCommandPort, tokenBlacklistUseCase);
-        inOrder.verify(userCommandPort).save(user);
-        inOrder.verify(tokenBlacklistUseCase).blacklistAllUserTokens(userId, "사용자 제재");
+        // Then
+        verify(userQueryPort).findById(userId);
+        verify(userCommandPort).save(user);
+        assertThat(user.getRole()).isEqualTo(UserRole.BAN);
     }
 }

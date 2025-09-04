@@ -153,7 +153,7 @@ class PaperCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USERNAME_NOT_FOUND);
 
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());
@@ -173,7 +173,7 @@ class PaperCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USERNAME_NOT_FOUND);
 
         verify(loadUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());

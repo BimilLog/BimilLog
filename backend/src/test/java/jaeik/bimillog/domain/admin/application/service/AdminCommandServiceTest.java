@@ -136,7 +136,7 @@ class AdminCommandServiceTest {
     }
 
     @Test
-    @DisplayName("게시글이 존재하지 않는 경우 USER_NOT_FOUND 예외 발생")
+    @DisplayName("게시글이 존재하지 않는 경우 POST_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenPostNotFound() {
         // Given
         given(postQueryUseCase.findById(200L)).willReturn(Optional.empty());
