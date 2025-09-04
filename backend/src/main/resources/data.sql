@@ -174,24 +174,24 @@ VALUES
 
 
 -- 신고 데이터 (각 신고 유형별로)
-INSERT INTO report (user_id, report_type, content, created_at, modified_at)
+INSERT INTO report (user_id, report_type, target_id, content, created_at, modified_at)
 VALUES
-    /* ERROR 유형 신고 */
-    (2, 'ERROR', '카카오 로그인 시 무한 로딩 문제', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (3, 'ERROR', '댓글 작성 후 새로고침하면 사라지는 문제', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (4, 'ERROR', '프로필 이미지 변경 불가 문제', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    /* ERROR 유형 신고 - target_id는 NULL */
+    (2, 'ERROR', NULL, '카카오 로그인 시 무한 로딩 문제', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (3, 'ERROR', NULL, '댓글 작성 후 새로고침하면 사라지는 문제', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (4, 'ERROR', NULL, '프로필 이미지 변경 불가 문제', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
 
-    /* IMPROVEMENT 유형 신고 */
-    (2, 'IMPROVEMENT', '야간 사용을 위한 다크모드 기능 추가 건의', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
-    (3, 'IMPROVEMENT', '게시글 분류를 위한 태그 기능 건의', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (4, 'IMPROVEMENT', '좋은 글 저장을 위한 북마크 기능 건의', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    /* IMPROVEMENT 유형 신고 - target_id는 NULL */
+    (2, 'IMPROVEMENT', NULL, '야간 사용을 위한 다크모드 기능 추가 건의', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
+    (3, 'IMPROVEMENT', NULL, '게시글 분류를 위한 태그 기능 건의', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (4, 'IMPROVEMENT', NULL, '좋은 글 저장을 위한 북마크 기능 건의', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
 
-    /* POST 유형 신고 */
-    (2, 'POST', '욕설이 포함된 게시글 신고', DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
-    (4, 'POST', '광고성 내용의 반복 게시글 신고', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
-    (2, 'POST', '잘못된 정보를 담은 게시글 신고', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    /* POST 유형 신고 - target_id는 게시글 ID */
+    (2, 'POST', 21, '욕설이 포함된 게시글 신고', DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
+    (4, 'POST', 22, '광고성 내용의 반복 게시글 신고', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
+    (2, 'POST', 23, '잘못된 정보를 담은 게시글 신고', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
 
-    /* COMMENT 유형 신고 */
-    (2, 'COMMENT', '개인 공격성 댓글 신고', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (3, 'COMMENT', '같은 내용 반복 댓글 신고', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (4, 'COMMENT', '특정인 비방 댓글 신고', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY));
+    /* COMMENT 유형 신고 - target_id는 댓글 ID */
+    (2, 'COMMENT', 1, '개인 공격성 댓글 신고', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (3, 'COMMENT', 5, '같은 내용 반복 댓글 신고', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (4, 'COMMENT', 10, '특정인 비방 댓글 신고', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY));

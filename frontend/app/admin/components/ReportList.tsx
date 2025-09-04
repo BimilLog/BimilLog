@@ -137,11 +137,12 @@ export const ReportList: React.FC<ReportListProps> = ({
                       .includes(searchTerm.toLowerCase()) ||
                     report.reporterName
                       ?.toLowerCase()
-                      .includes(searchTerm.toLowerCase())
+                      .includes(searchTerm.toLowerCase()) ||
+                    report.targetId.toString().includes(searchTerm)
                 )
                 .map((report) => (
                   <div
-                    key={report.reportId}
+                    key={report.id}
                     className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
                   >
                     <div className="flex-1">
@@ -172,13 +173,16 @@ export const ReportList: React.FC<ReportListProps> = ({
                         {report.targetTitle || "신고 내용"}
                       </h3>
                       <p className="text-sm text-gray-600 mb-2">
-                        대상 ID: {report.targetId} | 신고자 ID: {report.userId}
+                        {report.reportType === 'ERROR' || report.reportType === 'IMPROVEMENT' 
+                          ? `신고자: ${report.reporterName} (ID: ${report.reporterId})`
+                          : `대상 ID: ${report.targetId} | 신고자: ${report.reporterName} (ID: ${report.reporterId})`
+                        }
                       </p>
                       <p className="text-sm text-gray-700 mb-2">
                         내용: {report.content}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {report.createdAt || "날짜 미상"}
+                        {new Date(report.createdAt).toLocaleString('ko-KR')}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">

@@ -162,21 +162,21 @@ export interface KakaoFriendList {
 
 // 신고 타입 - v2 백엔드 ReportDTO 호환
 export interface Report {
-  id: number           // v2: reportId → id
-  reporterId: number   // v2: userId → reporterId  
-  reporterName: string // v2: 추가된 필드
-  reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"  // v2: 백엔드 ReportType enum 호환
+  id: number
+  reporterId: number
+  reporterName: string
+  reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
   targetId: number
   content: string
-  createdAt: string    // v2: Instant → ISO string
-  // 레거시 호환용 필드들 (선택적)
-  reportId?: number    // 레거시 호환용
-  userId?: number      // 레거시 호환용
+  createdAt: string
+  // 레거시 호환용 필드들 (ReportList 컴포넌트에서 사용 중)
+  reportId?: number
+  userId?: number
   targetTitle?: string
+  status?: "pending" | "investigating" | "resolved" | "rejected"
   targetAuthor?: string
   reporterNickname?: string
   reason?: string
-  status?: "pending" | "investigating" | "resolved" | "rejected"
 }
 
 // 페이지네이션 타입
