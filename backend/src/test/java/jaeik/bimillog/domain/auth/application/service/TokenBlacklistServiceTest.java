@@ -71,10 +71,10 @@ class TokenBlacklistServiceTest {
                 .socialId("kakao123")
                 .build();
 
-        testToken1 = Token.createTemporaryToken("access-token", "refresh-token");
+        testToken1 = Token.createTemporaryToken("access-token-1", "refresh-token-1");
                 
 
-        testToken2 = Token.createTemporaryToken("access-token", "refresh-token");
+        testToken2 = Token.createTemporaryToken("access-token-2", "refresh-token-2");
                 
     }
 

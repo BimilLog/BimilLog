@@ -170,7 +170,7 @@ class UserIntegrationServiceTest {
                 .userName("testUser")
                 .build();
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken(null, "refresh-token");
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -193,7 +193,7 @@ class UserIntegrationServiceTest {
                 .userName("testUser")
                 .build();
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("", "refresh-token");
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
