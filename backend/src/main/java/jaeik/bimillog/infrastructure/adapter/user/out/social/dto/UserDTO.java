@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.social.dto;
 
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.auth.in.web.dto.UserInfoResponseDTO;

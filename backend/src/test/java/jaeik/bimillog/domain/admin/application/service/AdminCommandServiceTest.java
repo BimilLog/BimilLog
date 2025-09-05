@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;

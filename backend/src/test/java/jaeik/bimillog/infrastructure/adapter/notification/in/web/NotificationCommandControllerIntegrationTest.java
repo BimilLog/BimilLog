@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.notification.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.Setting;

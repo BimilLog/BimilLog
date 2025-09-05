@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

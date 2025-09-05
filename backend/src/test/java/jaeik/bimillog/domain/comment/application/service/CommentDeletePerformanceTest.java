@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.util.TestContainersConfiguration;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;

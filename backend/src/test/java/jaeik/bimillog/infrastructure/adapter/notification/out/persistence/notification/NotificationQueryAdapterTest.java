@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification;
 
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.Setting;

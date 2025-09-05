@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;

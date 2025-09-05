@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.user.out.persistence;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;

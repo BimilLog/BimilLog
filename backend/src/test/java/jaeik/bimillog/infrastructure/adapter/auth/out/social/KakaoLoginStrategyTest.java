@@ -1,11 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.social;
 
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.auth.KakaoKeyVO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,7 +12,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 /**

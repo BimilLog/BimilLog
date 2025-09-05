@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post;
 
 import jaeik.bimillog.domain.post.application.port.out.PostCommentQueryPort;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;

@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.social;
 
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import reactor.core.publisher.Mono;

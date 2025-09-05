@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.cache;
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.exception.CustomException;

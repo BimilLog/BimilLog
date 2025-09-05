@@ -3,7 +3,7 @@ package jaeik.bimillog.util;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

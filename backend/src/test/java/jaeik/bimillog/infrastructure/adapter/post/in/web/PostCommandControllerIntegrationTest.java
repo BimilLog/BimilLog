@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.post.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;

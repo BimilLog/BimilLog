@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialLogoutPort;
 // TODO: 작은 변경 필요 - SocialLogoutPort 추가 및 LogoutUseCase 의존성 제거
 // 변경 사유: 소셜로그인 비즈니스 로직 리팩토링으로 SocialLogoutPort가 새로 추가되고 LogoutUseCase 순환 의존성 제거됨
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;

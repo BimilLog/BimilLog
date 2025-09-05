@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.blacklist.BlackListRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

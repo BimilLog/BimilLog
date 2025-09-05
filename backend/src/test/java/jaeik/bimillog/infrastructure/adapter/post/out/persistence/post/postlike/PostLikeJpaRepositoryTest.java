@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.postlike
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.user.entity.Setting;

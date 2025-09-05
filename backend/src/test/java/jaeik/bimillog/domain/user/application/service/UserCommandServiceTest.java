@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.BlackList;

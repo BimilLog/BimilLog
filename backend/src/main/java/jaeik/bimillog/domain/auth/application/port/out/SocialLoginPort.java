@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 
 /**

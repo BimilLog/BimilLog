@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.blacklist;
 
 import jaeik.bimillog.domain.user.entity.BlackList;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.TokenVO;
 import jaeik.bimillog.domain.user.entity.User;

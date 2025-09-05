@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.social;
 
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import reactor.core.publisher.Mono;
 

@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.user.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
@@ -19,7 +19,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;

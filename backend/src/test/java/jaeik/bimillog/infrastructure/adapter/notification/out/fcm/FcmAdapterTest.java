@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.fcm;
 
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;

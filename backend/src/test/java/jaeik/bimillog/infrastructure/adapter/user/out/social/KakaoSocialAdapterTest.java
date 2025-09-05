@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.social;
 
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.auth.KakaoKeyVO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

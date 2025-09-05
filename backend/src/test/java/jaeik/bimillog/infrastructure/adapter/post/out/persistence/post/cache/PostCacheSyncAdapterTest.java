@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.cache;
 
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.common.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostLike;
