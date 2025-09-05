@@ -2,6 +2,8 @@ package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -71,8 +73,8 @@ class SettingQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> settingQueryService.findBySettingId(nonexistentSettingId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.SETTINGS_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.SETTINGS_NOT_FOUND);
         
         verify(userQueryPort).findSettingById(nonexistentSettingId);
     }
@@ -238,8 +240,8 @@ class SettingQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> settingQueryService.findBySettingId(nullSettingId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.SETTINGS_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.SETTINGS_NOT_FOUND);
         
         verify(userQueryPort).findSettingById(nullSettingId);
     }
@@ -254,8 +256,8 @@ class SettingQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> settingQueryService.findBySettingId(negativeSettingId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.SETTINGS_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.SETTINGS_NOT_FOUND);
         
         verify(userQueryPort).findSettingById(negativeSettingId);
     }
@@ -270,8 +272,8 @@ class SettingQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> settingQueryService.findBySettingId(zeroSettingId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.SETTINGS_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.SETTINGS_NOT_FOUND);
         
         verify(userQueryPort).findSettingById(zeroSettingId);
     }
@@ -286,8 +288,8 @@ class SettingQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> settingQueryService.findBySettingId(largeSettingId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.SETTINGS_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.SETTINGS_NOT_FOUND);
         
         verify(userQueryPort).findSettingById(largeSettingId);
     }

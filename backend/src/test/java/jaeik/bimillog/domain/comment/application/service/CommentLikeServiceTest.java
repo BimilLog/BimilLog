@@ -137,8 +137,8 @@ class CommentLikeServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.USER_NOT_FOUND);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
         verify(commentToUserPort).findById(TEST_USER_ID);
@@ -152,8 +152,8 @@ class CommentLikeServiceTest {
     void shouldThrowException_WhenUserIdIsNull() {
         // When & Then
         assertThatThrownBy(() -> commentLikeService.likeComment(null, TEST_COMMENT_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.USER_NOT_FOUND);
 
         verify(commentQueryPort, never()).findById(any());
         verify(commentToUserPort, never()).findById(any());

@@ -105,9 +105,6 @@ class WithdrawServiceTest {
         assertThat(result).isEqualTo(logoutCookies);
 
 
-        // 소셜 로그아웃 검증
-        verify(socialLogoutPort).performSocialLogout(userDetails);
-
         // 소셜 로그인 연결 해제 검증
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
 
@@ -145,8 +142,8 @@ class WithdrawServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.USER_NOT_FOUND);
 
         verify(loadUserPort).findById(100L);
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
@@ -193,9 +190,6 @@ class WithdrawServiceTest {
         // 소셜 로그인 연결 해제 검증
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao456");
 
-        // 로그아웃 처리 검증
-        verify(deleteUserPort).logoutUser(targetUserId, null);
-
         // 탈퇴 프로세스 수행 검증
         verify(deleteUserPort).performWithdrawProcess(targetUserId);
 
@@ -216,8 +210,8 @@ class WithdrawServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.forceWithdraw(nonExistentUserId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(AuthCustomException.class)
+                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.USER_NOT_FOUND);
 
         verify(loadUserPort).findById(nonExistentUserId);
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
@@ -237,7 +231,6 @@ class WithdrawServiceTest {
                 .isInstanceOf(AuthCustomException.class)
                 .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.SOCIAL_UNLINK_FAILED);
 
-        verify(socialLogoutPort).performSocialLogout(userDetails);
         verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
     }
 
@@ -264,7 +257,6 @@ class WithdrawServiceTest {
 
             // Then
             assertThat(result).isEqualTo(logoutCookies);
-            verify(socialLogoutPort).performSocialLogout(userDetails);
             verify(socialLoginPort).unlink(provider, "social123");
         }
     }

@@ -29,6 +29,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -347,8 +348,8 @@ class AdminCommandServiceTest {
 
 
     @Test
-    @DisplayName("신고 생성 - 실패 (존재하지 않는 사용자)")
-    void createReport_Fail_UserNotFound() {
+    @DisplayName("신고 생성 - 성공 (존재하지 않는 사용자 ID는 익명 신고로 처리)")
+    void createReport_Success_NonExistentUserTreatedAsAnonymous() {
         // Given
         Long userId = 999L;
         ReportType reportType = ReportType.COMMENT;
@@ -366,14 +367,15 @@ class AdminCommandServiceTest {
                 .build();
         
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
+        given(commentQueryUseCase.findById(targetId)).willReturn(Optional.of(testComment));
 
-        // When & Then
-        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportType, targetId, content))
-                .isInstanceOf(AdminCustomException.class)
-                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.USER_NOT_FOUND);
+        // When & Then - 예외가 발생하지 않고 정상적으로 처리되어야 함
+        assertThatCode(() -> adminCommandService.createReport(userId, reportType, targetId, content))
+                .doesNotThrowAnyException();
 
         verify(userQueryPort, times(1)).findById(userId);
-        verify(adminCommandPort, never()).save(any());
+        verify(commentQueryUseCase, times(1)).findById(targetId);
+        verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 
     @Test
