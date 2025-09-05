@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -115,7 +115,7 @@ public class User extends BaseEntity {
     public void changeUserName(String newUserName, UserQueryPort userQueryPort) {
         // 1차 중복 확인 (성능 최적화를 위한 사전 검사)
         if (userQueryPort.existsByUserName(newUserName)) {
-            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
+            throw new UserCustomException(UserErrorCode.EXISTED_NICKNAME);
         }
         
         this.userName = newUserName;

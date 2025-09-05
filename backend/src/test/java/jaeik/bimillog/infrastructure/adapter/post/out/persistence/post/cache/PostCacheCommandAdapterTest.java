@@ -7,8 +7,8 @@ import com.querydsl.jpa.impl.JPAUpdateClause;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -241,10 +241,10 @@ class PostCacheCommandAdapterTest {
         assertThatThrownBy(() -> {
             postCacheCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
         })
-        .isInstanceOf(CustomException.class)
+        .isInstanceOf(PostCustomException.class)
         .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_WRITE_ERROR.getStatus());
+            PostCustomException customEx = (PostCustomException) ex;
+            assertThat(customEx.getPostErrorCode().getStatus()).isEqualTo(PostErrorCode.REDIS_WRITE_ERROR.getStatus());
         });
     }
 
@@ -362,10 +362,10 @@ class PostCacheCommandAdapterTest {
         assertThatThrownBy(() -> {
             postCacheCommandAdapter.deleteCache(cacheType, null);
         })
-        .isInstanceOf(CustomException.class)
+        .isInstanceOf(PostCustomException.class)
         .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_DELETE_ERROR.getStatus());
+            PostCustomException customEx = (PostCustomException) ex;
+            assertThat(customEx.getPostErrorCode().getStatus()).isEqualTo(PostErrorCode.REDIS_DELETE_ERROR.getStatus());
         });
     }
 
@@ -401,10 +401,10 @@ class PostCacheCommandAdapterTest {
         assertThatThrownBy(() -> {
             postCacheCommandAdapter.deleteCache(null, postId, new PostCacheFlag[0]);
         })
-        .isInstanceOf(CustomException.class)
+        .isInstanceOf(PostCustomException.class)
         .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_DELETE_ERROR.getStatus());
+            PostCustomException customEx = (PostCustomException) ex;
+            assertThat(customEx.getPostErrorCode().getStatus()).isEqualTo(PostErrorCode.REDIS_DELETE_ERROR.getStatus());
         });
     }
 
@@ -618,10 +618,10 @@ class PostCacheCommandAdapterTest {
         assertThatThrownBy(() -> {
             postCacheCommandAdapter.cachePostsWithDetails(PostCacheFlag.REALTIME, fullPosts);
         })
-        .isInstanceOf(CustomException.class)
+        .isInstanceOf(PostCustomException.class)
         .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_WRITE_ERROR.getStatus());
+            PostCustomException customEx = (PostCustomException) ex;
+            assertThat(customEx.getPostErrorCode().getStatus()).isEqualTo(PostErrorCode.REDIS_WRITE_ERROR.getStatus());
         });
     }
 

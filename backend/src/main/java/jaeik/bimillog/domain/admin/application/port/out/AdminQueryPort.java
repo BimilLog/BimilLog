@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.admin.application.port.out;
 
-import jaeik.bimillog.domain.admin.entity.ReportSummary;
+import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +20,10 @@ public interface AdminQueryPort {
      *
      * @param reportType 신고 유형 (null 가능, 전체 조회 시)
      * @param pageable   페이지 정보
-     * @return Page<ReportSummary> 신고 목록 페이지
+     * @return Page<Report> 신고 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<ReportSummary> findReportsWithPaging(ReportType reportType, Pageable pageable);
+    Page<Report> findReportsWithPaging(ReportType reportType, Pageable pageable);
 
 }

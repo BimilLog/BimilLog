@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
-import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
 
 /**
  * <h2>게시글 공지사항 유스케이스</h2>
@@ -18,7 +18,7 @@ public interface PostAdminUseCase {
      * <p>관리자 권한이 필요하며, 설정 후 공지사항 캐시를 무효화합니다.</p>
      *
      * @param postId 공지로 설정할 게시글 ID
-     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
@@ -30,7 +30,7 @@ public interface PostAdminUseCase {
      * <p>관리자 권한이 필요하며, 해제 후 공지사항 캐시를 무효화합니다.</p>
      *
      * @param postId 공지 설정을 해제할 게시글 ID
-     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */

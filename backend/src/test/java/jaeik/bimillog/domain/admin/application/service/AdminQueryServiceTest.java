@@ -2,7 +2,9 @@ package jaeik.bimillog.domain.admin.application.service;
 
 import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.entity.ReportSummary;
+import jaeik.bimillog.domain.admin.entity.Report;
+import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.common.entity.SocialProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,37 +45,52 @@ class AdminQueryServiceTest {
     @InjectMocks
     private AdminQueryService adminQueryService;
 
-    private List<ReportSummary> testReports;
+    private List<Report> testReports;
 
     @BeforeEach
     void setUp() {
+        User reporter1 = User.builder()
+                .id(100L)
+                .userName("reporter1")
+                .provider(SocialProvider.KAKAO)
+                .socialId("kakao100")
+                .build();
+        
+        User reporter2 = User.builder()
+                .id(101L)
+                .userName("reporter2")
+                .provider(SocialProvider.KAKAO)
+                .socialId("kakao101")
+                .build();
+        
+        User reporter3 = User.builder()
+                .id(102L)
+                .userName("reporter3")
+                .provider(SocialProvider.KAKAO)
+                .socialId("kakao102")
+                .build();
+        
         testReports = List.of(
-                ReportSummary.builder()
+                Report.builder()
                         .id(1L)
-                        .reporterId(100L)
-                        .reporterName("reporter1")
+                        .reporter(reporter1)
                         .reportType(ReportType.POST)
                         .targetId(200L)
                         .content("부적절한 게시글")
-                        .createdAt(Instant.now())
                         .build(),
-                ReportSummary.builder()
+                Report.builder()
                         .id(2L)
-                        .reporterId(101L)
-                        .reporterName("reporter2")
+                        .reporter(reporter2)
                         .reportType(ReportType.COMMENT)
                         .targetId(201L)
                         .content("욕설 댓글")
-                        .createdAt(Instant.now().minusSeconds(3600))
                         .build(),
-                ReportSummary.builder()
+                Report.builder()
                         .id(3L)
-                        .reporterId(102L)
-                        .reporterName("reporter3")
+                        .reporter(reporter3)
                         .reportType(ReportType.IMPROVEMENT)
-                        .targetId(202L)
-                        .content("스팸 메시지")
-                        .createdAt(Instant.now().minusSeconds(7200))
+                        .targetId(null)
+                        .content("기능 개선 건의")
                         .build()
         );
     }
@@ -85,13 +102,13 @@ class AdminQueryServiceTest {
         int page = 0;
         int size = 10;
         ReportType reportType = ReportType.POST;
-        Page<ReportSummary> expectedPage = new PageImpl<>(testReports);
+        Page<Report> expectedPage = new PageImpl<>(testReports);
 
         given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportSummary> result = adminQueryService.getReportList(page, size, reportType);
+        Page<Report> result = adminQueryService.getReportList(page, size, reportType);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -114,13 +131,13 @@ class AdminQueryServiceTest {
         int page = 1;
         int size = 5;
         ReportType reportType = null;
-        Page<ReportSummary> expectedPage = new PageImpl<>(testReports.subList(0, 2));
+        Page<Report> expectedPage = new PageImpl<>(testReports.subList(0, 2));
 
         given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportSummary> result = adminQueryService.getReportList(page, size, reportType);
+        Page<Report> result = adminQueryService.getReportList(page, size, reportType);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -142,21 +159,21 @@ class AdminQueryServiceTest {
         int page = 0;
         int size = 10;
         ReportType reportType = ReportType.COMMENT;
-        List<ReportSummary> commentReports = testReports.stream()
-                .filter(report -> report.reportType() == ReportType.COMMENT)
+        List<Report> commentReports = testReports.stream()
+                .filter(report -> report.getReportType() == ReportType.COMMENT)
                 .toList();
-        Page<ReportSummary> expectedPage = new PageImpl<>(commentReports);
+        Page<Report> expectedPage = new PageImpl<>(commentReports);
 
         given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportSummary> result = adminQueryService.getReportList(page, size, reportType);
+        Page<Report> result = adminQueryService.getReportList(page, size, reportType);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().reportType()).isEqualTo(ReportType.COMMENT);
+        assertThat(result.getContent().getFirst().getReportType()).isEqualTo(ReportType.COMMENT);
         verify(adminQueryPort).findReportsWithPaging(eq(reportType), any(Pageable.class));
     }
 
@@ -167,13 +184,13 @@ class AdminQueryServiceTest {
         int page = 99;
         int size = 10;
         ReportType reportType = ReportType.POST;
-        Page<ReportSummary> emptyPage = new PageImpl<>(List.of());
+        Page<Report> emptyPage = new PageImpl<>(List.of());
 
         given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
                 .willReturn(emptyPage);
 
         // When
-        Page<ReportSummary> result = adminQueryService.getReportList(page, size, reportType);
+        Page<Report> result = adminQueryService.getReportList(page, size, reportType);
 
         // Then
         assertThat(result).isEqualTo(emptyPage);
@@ -187,12 +204,12 @@ class AdminQueryServiceTest {
     void shouldGetReportList_WithPageSize20() {
         // Given
         int size = 20;
-        Page<ReportSummary> expectedPage = new PageImpl<>(testReports);
+        Page<Report> expectedPage = new PageImpl<>(testReports);
         given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportSummary> result = adminQueryService.getReportList(0, size, null);
+        Page<Report> result = adminQueryService.getReportList(0, size, null);
 
         // Then
         assertThat(result).isNotNull();
@@ -208,7 +225,7 @@ class AdminQueryServiceTest {
     @DisplayName("올바른 정렬 조건 확인 - createdAt DESC")
     void shouldApplyCorrectSorting_CreatedAtDescending() {
         // Given
-        Page<ReportSummary> expectedPage = new PageImpl<>(testReports);
+        Page<Report> expectedPage = new PageImpl<>(testReports);
         given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
                 .willReturn(expectedPage);
 
@@ -233,12 +250,12 @@ class AdminQueryServiceTest {
     void shouldHandleLargePageSize() {
         // Given
         int largePageSize = 1000;
-        Page<ReportSummary> expectedPage = new PageImpl<>(testReports);
+        Page<Report> expectedPage = new PageImpl<>(testReports);
         given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
                 .willReturn(expectedPage);
 
         // When
-        Page<ReportSummary> result = adminQueryService.getReportList(0, largePageSize, null);
+        Page<Report> result = adminQueryService.getReportList(0, largePageSize, null);
 
         // Then
         assertThat(result).isNotNull();
@@ -269,10 +286,10 @@ class AdminQueryServiceTest {
         ReportType[] allTypes = {ReportType.POST, ReportType.COMMENT, ReportType.IMPROVEMENT};
         
         for (ReportType type : allTypes) {
-            List<ReportSummary> filteredReports = testReports.stream()
-                    .filter(report -> report.reportType() == type)
+            List<Report> filteredReports = testReports.stream()
+                    .filter(report -> report.getReportType() == type)
                     .toList();
-            Page<ReportSummary> expectedPage = new PageImpl<>(filteredReports);
+            Page<Report> expectedPage = new PageImpl<>(filteredReports);
             
             given(adminQueryPort.findReportsWithPaging(eq(type), any(Pageable.class)))
                     .willReturn(expectedPage);
@@ -280,7 +297,7 @@ class AdminQueryServiceTest {
 
         // When & Then
         for (ReportType type : allTypes) {
-            Page<ReportSummary> result = adminQueryService.getReportList(0, 10, type);
+            Page<Report> result = adminQueryService.getReportList(0, 10, type);
             assertThat(result).isNotNull();
             verify(adminQueryPort).findReportsWithPaging(eq(type), any(Pageable.class));
         }

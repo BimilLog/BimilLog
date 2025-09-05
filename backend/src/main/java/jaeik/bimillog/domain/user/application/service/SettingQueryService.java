@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.user.application.service;
 import jaeik.bimillog.domain.user.application.port.in.SettingQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class SettingQueryService implements SettingQueryUseCase {
     public Setting findBySettingId(Long settingId) {
 
         Setting setting = userQueryPort.findSettingById(settingId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SETTINGS_NOT_FOUND));
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.SETTINGS_NOT_FOUND));
 
         return setting;
     }

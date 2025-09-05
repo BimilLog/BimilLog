@@ -48,7 +48,13 @@ public enum AuthErrorCode {
     /**
      * <h3>입력값 관련 에러 코드</h3>
      */
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", ErrorCode.LogLevel.WARN);
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", ErrorCode.LogLevel.WARN),
+    
+    /**
+     * <h3>Auth 도메인에서 필요한 외부 도메인 에러 코드 (임시)</h3>
+     * <p>추후 리팩토링 예정</p>
+     */
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", ErrorCode.LogLevel.INFO);
 
     private final HttpStatus status;
     private final String message;

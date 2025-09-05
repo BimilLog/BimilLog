@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.admin.application.service;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminQueryUseCase;
 import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
-import jaeik.bimillog.domain.admin.entity.ReportSummary;
+import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,12 +35,12 @@ public class AdminQueryService implements AdminQueryUseCase {
      * @param page       페이지 번호
      * @param size       페이지 크기
      * @param reportType 신고 유형 (선택 사항)
-     * @return Page<ReportSummary> 신고 목록 페이지
+     * @return Page<Report> 신고 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<ReportSummary> getReportList(int page, int size, ReportType reportType) {
+    public Page<Report> getReportList(int page, int size, ReportType reportType) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return adminQueryPort.findReportsWithPaging(reportType, pageable);
     }

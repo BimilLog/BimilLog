@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
 import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -138,7 +138,7 @@ class PostEventWorkflowIntegrationTest {
         Long postId = 999L;
         PostViewedEvent event = new PostViewedEvent(postId);
         
-        doThrow(new CustomException(ErrorCode.POST_NOT_FOUND))
+        doThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND))
                 .when(postInteractionUseCase)
                 .incrementViewCount(postId);
 

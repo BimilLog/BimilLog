@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.admin.in.web;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminQueryUseCase;
-import jaeik.bimillog.domain.admin.entity.ReportSummary;
+import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class AdminQueryController {
     /**
      * <h3>신고 목록 조회 API</h3>
      * <p>신고 목록을 페이지네이션하여 조회합니다. 특정 신고 유형에 따라 필터링할 수 있습니다.</p>
-     * <p>도메인 ReportSummary를 웹 계층의 ReportDTO로 변환하여 반환합니다.</p>
+     * <p>도메인 Report 엔티티를 웹 계층의 ReportDTO로 변환하여 반환합니다.</p>
      *
      * @param page       페이지 번호 (0부터 시작, 기본값: 0)
      * @param size       페이지 크기 (기본값: 10)
@@ -44,16 +44,8 @@ public class AdminQueryController {
     public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size,
                                                          @RequestParam(required = false) ReportType reportType) {
-        Page<ReportSummary> reportSummaries = adminQueryUseCase.getReportList(page, size, reportType);
-        Page<ReportDTO> reportList = reportSummaries.map(reportSummary -> ReportDTO.builder()
-                .id(reportSummary.id())
-                .reporterId(reportSummary.reporterId())
-                .reporterName(reportSummary.reporterName())
-                .reportType(reportSummary.reportType())
-                .targetId(reportSummary.targetId())
-                .content(reportSummary.content())
-                .createdAt(reportSummary.createdAt())
-                .build());
+        Page<Report> reports = adminQueryUseCase.getReportList(page, size, reportType);
+        Page<ReportDTO> reportList = reports.map(ReportDTO::from);
         return ResponseEntity.ok(reportList);
     }
 }

@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.post.application.port.out.*;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -131,8 +131,8 @@ class PostInteractionServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postInteractionService.likePost(userId, postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(loadUserInfoPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);

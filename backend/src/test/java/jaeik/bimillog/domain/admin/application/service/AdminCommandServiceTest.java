@@ -138,8 +138,8 @@ class AdminCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.POST_NOT_FOUND);
 
         verify(eventPublisher, never()).publishEvent(any());
     }

@@ -5,8 +5,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.bimillog.domain.admin.entity.QReport;
 import jaeik.bimillog.domain.admin.entity.Report;
-import jaeik.bimillog.domain.admin.entity.ReportSummary;
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.domain.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,30 +38,29 @@ public class AdminQueryAdapter implements AdminQueryPort {
      * <h3>신고 목록 페이지네이션 조회</h3>
      * <p>주어진 신고 유형에 따라 신고 목록을 페이지네이션하여 조회합니다.</p>
      * <p>QueryDSL을 사용하여 동적 쿼리를 생성하고, 최신 신고 순으로 정렬합니다.</p>
+     * <p>N+1 문제 방지를 위해 User 연관관계를 fetch join으로 함께 조회합니다.</p>
      *
      * @param reportType 신고 유형 (null 가능, 전체 조회 시)
      * @param pageable   페이지 정보 (정렬, 페이지 크기, 오프셋 포함)
-     * @return Page<ReportSummary> 변환된 신고 요약 정보 페이지
+     * @return Page<Report> 신고 엔티티 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<ReportSummary> findReportsWithPaging(ReportType reportType, Pageable pageable) {
+    public Page<Report> findReportsWithPaging(ReportType reportType, Pageable pageable) {
         QReport report = QReport.report;
+        QUser user = QUser.user;
         BooleanExpression whereClause = (reportType != null) ? report.reportType.eq(reportType) : null;
 
         List<Report> reports = queryFactory
                 .select(report)
                 .from(report)
+                .leftJoin(report.reporter, user).fetchJoin()
                 .where(whereClause)
                 .orderBy(report.createdAt.desc(), report.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
-        
-        List<ReportSummary> content = reports.stream()
-                .map(ReportSummary::from)
-                .toList();
 
         Long count = queryFactory
                 .select(report.count())
@@ -69,6 +68,6 @@ public class AdminQueryAdapter implements AdminQueryPort {
                 .where(whereClause)
                 .fetchOne();
 
-        return new PageImpl<>(content, pageable, count == null ? 0 : count);
+        return new PageImpl<>(reports, pageable, count == null ? 0 : count);
     }
 }

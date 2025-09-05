@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
 import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,14 +38,14 @@ public class PostAdminService implements PostAdminUseCase {
      * <p>설정 후 PostSetAsNoticeEvent를 발행하여 공지사항 캐시 무효화를 트리거합니다.</p>
      *
      * @param postId 공지로 설정할 게시글 ID
-     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     public void setPostAsNotice(Long postId) {
         Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
         
         post.setAsNotice();
         postCommandPort.save(post);
@@ -60,14 +60,14 @@ public class PostAdminService implements PostAdminUseCase {
      * <p>해제 후 PostUnsetAsNoticeEvent를 발행하여 공지사항 캐시 무효화를 트리거합니다.</p>
      *
      * @param postId 공지 설정을 해제할 게시글 ID
-     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     public void unsetPostAsNotice(Long postId) {
         Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
         
         post.unsetAsNotice();
         postCommandPort.save(post);

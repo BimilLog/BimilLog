@@ -18,8 +18,8 @@ import jaeik.bimillog.domain.post.entity.QPostLike;
 import jaeik.bimillog.domain.post.entity.QPostDetailProjectionRecord;
 import jaeik.bimillog.domain.user.entity.QUser;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.fulltext.PostFulltextRepository;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -200,7 +200,7 @@ public class PostQueryAdapter implements PostQueryPort {
             case "content" -> post.content.contains(query);
             case "title_content" -> post.title.contains(query)
                                    .or(post.content.contains(query));
-            default -> throw new CustomException(ErrorCode.INVALID_SEARCH_TYPE);
+            default -> throw new PostCustomException(PostErrorCode.INVALID_SEARCH_TYPE);
         };
         
         return likeCondition.and(post.isNotice.isFalse());

@@ -2,8 +2,8 @@ package jaeik.bimillog.infrastructure.adapter.post.in.listener;
 
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,7 +62,7 @@ class PostViewIncreaseListenerTest {
         Long postId = 999L;
         PostViewedEvent event = new PostViewedEvent(postId);
         
-        doThrow(new CustomException(ErrorCode.POST_NOT_FOUND))
+        doThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND))
                 .when(postInteractionUseCase)
                 .incrementViewCount(postId);
 
@@ -300,7 +300,7 @@ class PostViewIncreaseListenerTest {
         Long postId = 123L;
         PostViewedEvent event = new PostViewedEvent(postId);
         
-        CustomException exception = new CustomException(ErrorCode.POST_NOT_FOUND);
+        PostCustomException exception = new PostCustomException(PostErrorCode.POST_NOT_FOUND);
         doThrow(exception).when(postInteractionUseCase).incrementViewCount(postId);
 
         // When

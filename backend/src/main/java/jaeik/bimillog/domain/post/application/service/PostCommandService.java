@@ -9,8 +9,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -66,17 +66,17 @@ public class PostCommandService implements PostCommandUseCase {
      * @param userId     현재 로그인한 사용자 ID
      * @param postId     수정할 게시글 ID
      * @param postReqVO 수정할 게시글 정보 값 객체
-     * @throws CustomException 권한이 없거나 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     public void updatePost(Long userId, Long postId, PostReqVO postReqVO) {
         Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
         
         if (!post.isAuthor(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
+            throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }
 
         post.updatePost(postReqVO);
@@ -93,17 +93,17 @@ public class PostCommandService implements PostCommandUseCase {
      *
      * @param userId 현재 로그인한 사용자 ID
      * @param postId 삭제할 게시글 ID
-     * @throws CustomException 권한이 없거나 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     public void deletePost(Long userId, Long postId) {
         Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
         
         if (!post.isAuthor(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
+            throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }
 
         String postTitle = post.getTitle();

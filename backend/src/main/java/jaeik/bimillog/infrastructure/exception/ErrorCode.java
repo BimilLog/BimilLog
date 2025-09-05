@@ -26,20 +26,6 @@ public enum ErrorCode {
     KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의을 해야 합니다.", LogLevel.INFO),
 
     /**
-     * <h3>게시판 관련 에러 코드</h3>
-     * <p>
-     * 게시판 작성, 수정, 삭제 등과 관련된 에러 코드
-     * </p>
-     */
-    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", LogLevel.INFO),
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다."),
-    INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 검색 타입입니다. 허용된 타입: title, content, writer, title_content", LogLevel.WARN),
-    FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다.", LogLevel.WARN),
-    REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 작성 중 오류가 발생했습니다.", LogLevel.ERROR),
-    REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
-    REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR),
-
-    /**
      * <h3>유저 관련 에러 코드</h3>
      * <p>
      * 유저 정보 조회, 수정, 삭제 등과 관련된 에러 코드
@@ -69,21 +55,6 @@ public enum ErrorCode {
         this.status = status;
         this.message = message;
         this.logLevel = logLevel;
-    }
-
-    /**
-     * <h3>ErrorCode 생성자 (로그 레벨 기본값)</h3>
-     * <p>HTTP 상태와 메시지를 받아 에러 코드를 생성합니다. 로그 레벨은 기본적으로 ERROR로 설정됩니다.</p>
-     *
-     * @param status HTTP 상태 코드
-     * @param message 에러 메시지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    ErrorCode(HttpStatus status, String message) {
-        this.status = status;
-        this.message = message;
-        this.logLevel = LogLevel.ERROR; // Default to ERROR for new constructors
     }
 
     /**

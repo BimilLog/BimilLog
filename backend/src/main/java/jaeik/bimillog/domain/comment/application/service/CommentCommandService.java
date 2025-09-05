@@ -62,13 +62,13 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Override
     public void writeComment(Long userId, CommentRequest commentRequest) {
         Post post = commentToPostPort.findById(commentRequest.postId())
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new CommentCustomException(CommentErrorCode.POST_NOT_FOUND));
 
         User user = null;
         String userName = "익명";
         if (userId != null) {
             user = commentToUserPort.findById(userId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new CommentCustomException(CommentErrorCode.USER_NOT_FOUND));
             userName = user.getUserName();
         }
 

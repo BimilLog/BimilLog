@@ -34,7 +34,14 @@ public enum AdminErrorCode {
      * <h3>관리자 권한 관련 에러 코드</h3>
      */
     ADMIN_PERMISSION_REQUIRED(HttpStatus.FORBIDDEN, "관리자 권한이 필요합니다.", ErrorCode.LogLevel.WARN),
-    ADMIN_ACTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "관리자 작업 처리 중 오류가 발생했습니다.", ErrorCode.LogLevel.ERROR);
+    ADMIN_ACTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "관리자 작업 처리 중 오류가 발생했습니다.", ErrorCode.LogLevel.ERROR),
+    
+    /**
+     * <h3>관리자 도메인에서 필요한 외부 도메인 에러 코드 (임시)</h3>
+     * <p>추후 리팩토링 예정</p>
+     */
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", ErrorCode.LogLevel.INFO),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", ErrorCode.LogLevel.INFO);
 
     private final HttpStatus status;
     private final String message;

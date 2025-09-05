@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.common.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.admin.entity.ReportSummary;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -110,18 +109,18 @@ class AdminQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전체 신고 목록 조회 (reportType = null)
-        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(null, pageable);
+        Page<Report> result = adminQueryAdapter.findReportsWithPaging(null, pageable);
 
         // Then: 모든 신고가 조회되는지 검증
         assertThat(result.getContent()).hasSize(3);
         assertThat(result.getTotalElements()).isEqualTo(3);
 
         // ReportDTO 매핑 검증
-        ReportSummary firstReport = result.getContent().getFirst();
-        assertThat(firstReport.reporterId()).isNotNull();
-        assertThat(firstReport.reporterName()).isNotNull();
-        assertThat(firstReport.content()).isNotNull();
-        assertThat(firstReport.targetId()).isNotNull();
+        Report firstReport = result.getContent().getFirst();
+        assertThat(firstReport.getReporter().getId()).isNotNull();
+        assertThat(firstReport.getReporter().getUserName()).isNotNull();
+        assertThat(firstReport.getContent()).isNotNull();
+        assertThat(firstReport.getTargetId()).isNotNull();
     }
 
     /**
@@ -142,12 +141,12 @@ class AdminQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: POST 타입만 조회
-        Page<ReportSummary> result = adminQueryAdapter.findReportsWithPaging(ReportType.POST, pageable);
+        Page<Report> result = adminQueryAdapter.findReportsWithPaging(ReportType.POST, pageable);
 
         // Then: POST 타입 신고만 조회되는지 검증
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent()).allMatch(report -> report.reportType() == ReportType.POST);
+        assertThat(result.getContent()).allMatch(report -> report.getReportType() == ReportType.POST);
     }
 
     /**

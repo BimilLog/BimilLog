@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.cache;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -288,10 +288,10 @@ class PostCacheQueryAdapterTest {
         assertThatThrownBy(() -> {
             postCacheQueryAdapter.hasPopularPostsCache(PostCacheFlag.REALTIME);
         })
-        .isInstanceOf(CustomException.class)
+        .isInstanceOf(PostCustomException.class)
         .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_READ_ERROR.getStatus());
+            PostCustomException customEx = (PostCustomException) ex;
+            assertThat(customEx.getPostErrorCode().getStatus()).isEqualTo(PostErrorCode.REDIS_READ_ERROR.getStatus());
         });
     }
 
@@ -306,10 +306,10 @@ class PostCacheQueryAdapterTest {
         assertThatThrownBy(() -> {
             postCacheQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
         })
-        .isInstanceOf(CustomException.class)
+        .isInstanceOf(PostCustomException.class)
         .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_READ_ERROR.getStatus());
+            PostCustomException customEx = (PostCustomException) ex;
+            assertThat(customEx.getPostErrorCode().getStatus()).isEqualTo(PostErrorCode.REDIS_READ_ERROR.getStatus());
         });
     }
 
@@ -324,10 +324,10 @@ class PostCacheQueryAdapterTest {
         assertThatThrownBy(() -> {
             postCacheQueryAdapter.getCachedPostIfExists(1L);
         })
-        .isInstanceOf(CustomException.class)
+        .isInstanceOf(PostCustomException.class)
         .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_READ_ERROR.getStatus());
+            PostCustomException customEx = (PostCustomException) ex;
+            assertThat(customEx.getPostErrorCode().getStatus()).isEqualTo(PostErrorCode.REDIS_READ_ERROR.getStatus());
         });
     }
 
@@ -344,10 +344,10 @@ class PostCacheQueryAdapterTest {
         assertThatThrownBy(() -> {
             postCacheQueryAdapter.getCachedPostListPaged(pageable);
         })
-        .isInstanceOf(CustomException.class)
+        .isInstanceOf(PostCustomException.class)
         .satisfies(ex -> {
-            CustomException customEx = (CustomException) ex;
-            assertThat(customEx.getStatus()).isEqualTo(ErrorCode.REDIS_READ_ERROR.getStatus());
+            PostCustomException customEx = (PostCustomException) ex;
+            assertThat(customEx.getPostErrorCode().getStatus()).isEqualTo(PostErrorCode.REDIS_READ_ERROR.getStatus());
         });
     }
 

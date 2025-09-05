@@ -9,8 +9,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -81,7 +81,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @param postId 게시글 ID
      * @param userId 현재 로그인한 사용자 ID (Optional, 추천 여부 확인용)
      * @return 게시글 상세 정보 DTO
-     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -110,14 +110,14 @@ public class PostQueryService implements PostQueryUseCase {
      * @param postId 게시글 ID
      * @param userId 현재 로그인한 사용자 ID (Optional)
      * @return 게시글 상세 정보 DTO
-     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     private PostDetail getPostFromDatabaseOptimized(Long postId, Long userId) {
         return postQueryPort.findPostDetailWithCounts(postId, userId)
                 .map(projection -> projection.toPostDetail())
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
     }
 
     /**
@@ -145,7 +145,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @param type 조회할 인기 게시글 유형 (PostCacheFlag.LEGEND만 지원)
      * @param pageable 페이지 정보
      * @return 인기 게시글 목록 페이지
-     * @throws CustomException 유효하지 않은 캐시 유형인 경우
+     * @throws PostCustomException 유효하지 않은 캐시 유형인 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -153,7 +153,7 @@ public class PostQueryService implements PostQueryUseCase {
     public Page<PostSearchResult> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
         // 타입 검증: LEGEND만 허용
         if (type != PostCacheFlag.LEGEND) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
         }
         
         if (!postCacheQueryPort.hasPopularPostsCache(type)) {

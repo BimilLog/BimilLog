@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -62,7 +62,7 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
     private CacheMetadata getCacheMetadata(PostCacheFlag type) {
         CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
-            throw new CustomException(ErrorCode.REDIS_READ_ERROR.getStatus(), "Unknown PostCacheFlag type: " + type);
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
         }
         return metadata;
     }
@@ -82,7 +82,7 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
         try {
             return redisTemplate.hasKey(metadata.key());
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
     }
 
@@ -115,7 +115,7 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
                     .map(PostDetail::toSearchResult)
                     .toList();
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
     }
 
@@ -138,7 +138,7 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
                 return postDetail;
             }
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
         return null;
     }
@@ -185,7 +185,7 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
             return new PageImpl<>(pagedPosts, pageable, totalElements);
             
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_READ_ERROR, e);
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
     }
 

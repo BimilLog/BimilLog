@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,8 +102,8 @@ class UserCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, newSetting))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
         
         verify(userQueryPort).findById(userId);
         verify(userCommandPort, never()).save(any(User.class));
@@ -153,8 +153,8 @@ class UserCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserName(userId, existingUserName))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.EXISTED_NICKNAME.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.EXISTED_NICKNAME.getMessage());
         
         verify(userQueryPort).findById(userId);
         verify(userCommandPort).save(user);
@@ -171,8 +171,8 @@ class UserCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserName(userId, newUserName))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
         
         verify(userQueryPort).findById(userId);
         verify(userCommandPort, never()).save(any(User.class));
@@ -318,8 +318,8 @@ class UserCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, null))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
         
         // null 검증이 먼저 실행되므로 userQueryPort가 호출되지 않음
         verify(userQueryPort, never()).findById(any());
@@ -386,8 +386,8 @@ class UserCommandServiceTest {
 
         // When & Then: Race Condition 발생 시 커스텀 예외로 변환
         assertThatThrownBy(() -> userCommandService.updateUserName(userId, racedUserName))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.EXISTED_NICKNAME.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.EXISTED_NICKNAME.getMessage());
         
         // 모든 단계가 실행되었는지 확인
         verify(userQueryPort).findById(userId);
@@ -484,8 +484,8 @@ class UserCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.addToBlacklist(userId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
 
         verify(userQueryPort).findById(userId);
         verify(userCommandPort, never()).save(any(BlackList.class));
@@ -499,8 +499,8 @@ class UserCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.addToBlacklist(userId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
 
         verify(userQueryPort, never()).findById(any());
         verify(userCommandPort, never()).save(any(User.class));
@@ -563,8 +563,8 @@ class UserCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.banUser(userId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
 
         verify(userQueryPort).findById(userId);
         verify(userCommandPort, never()).save(any(User.class));
@@ -578,8 +578,8 @@ class UserCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.banUser(userId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.INVALID_INPUT_VALUE.getMessage());
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
 
         verify(userQueryPort, never()).findById(any());
         verify(userCommandPort, never()).save(any(User.class));

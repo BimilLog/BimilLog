@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.event.PostSetAsNoticeEvent;
 import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,8 +87,8 @@ class PostAdminServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.setPostAsNotice(postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort).findById(postId);
         verify(post, never()).setAsNotice();
@@ -146,8 +146,8 @@ class PostAdminServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.unsetPostAsNotice(postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort).findById(postId);
         verify(post, never()).unsetAsNotice();
@@ -335,7 +335,7 @@ class PostAdminServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.setPostAsNotice(postId))
-                .isInstanceOf(CustomException.class);
+                .isInstanceOf(PostCustomException.class);
 
         // 예외 발생 시 이벤트 발행되지 않음
         verify(eventPublisher, never()).publishEvent(any());

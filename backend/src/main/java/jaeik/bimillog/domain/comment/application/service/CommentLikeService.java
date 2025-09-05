@@ -54,7 +54,7 @@ public class CommentLikeService implements CommentLikeUseCase {
     @Override
     public void likeComment(Long userId, Long commentId) {
         if (userId == null) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+            throw new CommentCustomException(CommentErrorCode.USER_NOT_FOUND);
         }
 
         boolean commentExists = commentQueryPort.findById(commentId).isPresent();
@@ -64,7 +64,7 @@ public class CommentLikeService implements CommentLikeUseCase {
 
         boolean userExists = commentToUserPort.findById(userId).isPresent();
         if (!userExists) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+            throw new CommentCustomException(CommentErrorCode.USER_NOT_FOUND);
         }
 
         if (commentLikePort.isLikedByUser(commentId, userId)) {

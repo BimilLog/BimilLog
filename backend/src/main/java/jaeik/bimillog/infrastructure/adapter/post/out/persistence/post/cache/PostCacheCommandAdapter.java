@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.QPost;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -62,7 +62,7 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
     private CacheMetadata getCacheMetadata(PostCacheFlag type) {
         CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
-            throw new CustomException(ErrorCode.REDIS_READ_ERROR.getStatus(), "Unknown PostCacheFlag type: " + type);
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
         }
         return metadata;
     }
@@ -122,7 +122,7 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
             }
 
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_WRITE_ERROR, e);
+            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
         }
     }
 
@@ -190,7 +190,7 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
                 deleteTypeCacheWithDetails(type);
             }
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.REDIS_DELETE_ERROR, e);
+            throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
         }
     }
     

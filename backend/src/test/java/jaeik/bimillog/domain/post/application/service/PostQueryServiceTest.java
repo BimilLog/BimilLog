@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.post.entity.PostDetailProjection;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -244,8 +244,8 @@ class PostQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, userId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postCacheQueryPort).getCachedPostIfExists(postId);
         verify(postQueryPort).findPostDetailWithCounts(postId, userId);
@@ -416,8 +416,8 @@ class PostQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPopularPostLegend(type, pageable))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.INVALID_INPUT_VALUE);
 
         // 타입 검증에서 바로 예외가 발생하므로 다른 메서드들은 호출되지 않음
         verifyNoInteractions(postCacheQueryPort);
@@ -433,8 +433,8 @@ class PostQueryServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPopularPostLegend(type, pageable))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.INVALID_INPUT_VALUE);
 
         verifyNoInteractions(postCacheQueryPort);
         verifyNoInteractions(postCacheSyncService);

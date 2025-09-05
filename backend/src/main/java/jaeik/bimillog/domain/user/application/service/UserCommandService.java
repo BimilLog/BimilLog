@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +47,10 @@ public class UserCommandService implements UserCommandUseCase {
     @Override
     public void updateUserSettings(Long userId, Setting newSetting) {
         if (newSetting == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
         }
         User user = userQueryPort.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
         
         // 엔티티 비즈니스 메서드로 업데이트 대체
         user.updateSettings(
@@ -74,7 +76,7 @@ public class UserCommandService implements UserCommandUseCase {
     @Override
     public void updateUserName(Long userId, String newUserName) {
         User user = userQueryPort.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
         
         try {
             // 엔티티가 비즈니스 로직 처리
@@ -86,7 +88,7 @@ public class UserCommandService implements UserCommandUseCase {
             // Race Condition 발생 시: 다른 사용자가 동시에 같은 닉네임으로 변경한 경우
             // 데이터베이스 UNIQUE 제약조건 위반으로 인한 예외를 커스텀 예외로 변환
             log.warn("닉네임 경쟁 상태 감지됨 - 사용자 ID: {}, 새 닉네임: {}", userId, newUserName, e);
-            throw new CustomException(ErrorCode.EXISTED_NICKNAME);
+            throw new UserCustomException(UserErrorCode.EXISTED_NICKNAME);
         }
     }
 
@@ -126,11 +128,11 @@ public class UserCommandService implements UserCommandUseCase {
     @Override
     public void addToBlacklist(Long userId) {
         if (userId == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
         }
 
         User user = userQueryPort.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         BlackList blackList = BlackList.createBlackList(user.getSocialId(), user.getProvider());
         
@@ -153,11 +155,11 @@ public class UserCommandService implements UserCommandUseCase {
     @Override
     public void banUser(Long userId) {
         if (userId == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
         }
 
         User user = userQueryPort.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         // 사용자 역할을 BAN으로 변경
         user.updateRole(UserRole.BAN);

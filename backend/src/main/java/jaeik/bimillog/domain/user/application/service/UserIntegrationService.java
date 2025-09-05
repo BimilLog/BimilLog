@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.KakaoFriendVO;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -60,15 +62,15 @@ public class UserIntegrationService implements UserIntegrationUseCase {
         return Mono.fromCallable(() -> {
             // 사용자 조회
             User user = userQueryPort.findById(userId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
             // 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
             Token token = tokenPort.findById(tokenId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FIND_TOKEN));
+                    .orElseThrow(() -> new UserCustomException(UserErrorCode.NOT_FIND_TOKEN));
             
             // 카카오 액세스 토큰 확인
             if (token.getAccessToken() == null || token.getAccessToken().isEmpty()) {
-                throw new CustomException(ErrorCode.NOT_FIND_TOKEN);
+                throw new UserCustomException(UserErrorCode.NOT_FIND_TOKEN);
             }
             
             return token;
@@ -110,10 +112,10 @@ public class UserIntegrationService implements UserIntegrationUseCase {
         .onErrorMap(CustomException.class, e -> {
             // 카카오 친구 동의 필요한 경우 특별한 에러 메시지 처리
             if (e.getErrorCode() == ErrorCode.KAKAO_API_ERROR) {
-                return new CustomException(ErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
+                return new UserCustomException(UserErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
             }
             return e;
         })
-        .onErrorMap(Exception.class, e -> new CustomException(ErrorCode.KAKAO_API_ERROR, e));
+        .onErrorMap(Exception.class, e -> new UserCustomException(UserErrorCode.KAKAO_API_ERROR, e));
     }
 }

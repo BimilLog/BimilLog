@@ -54,7 +54,7 @@ public class WithdrawService implements WithdrawUseCase {
         if (userDetails == null) {
             throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
         }
-        User user = loadUserPort.findById(userDetails.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = loadUserPort.findById(userDetails.getUserId()).orElseThrow(() -> new AuthCustomException(AuthErrorCode.USER_NOT_FOUND));
 
         // JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리
 
@@ -88,7 +88,7 @@ public class WithdrawService implements WithdrawUseCase {
     @Transactional
     public void forceWithdraw(Long userId) {
         User user = loadUserPort.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.USER_NOT_FOUND));
 
         // JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리
 

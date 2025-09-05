@@ -56,7 +56,7 @@ public class AdminCommandService implements AdminCommandUseCase {
         User reporter = null;
         if (userId != null) {
             reporter = userQueryPort.findById(userId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new AdminCustomException(AdminErrorCode.USER_NOT_FOUND));
         }
         
         // 신고 대상 존재 여부 검증 (POST, COMMENT만)
@@ -94,7 +94,7 @@ public class AdminCommandService implements AdminCommandUseCase {
 
         User user = resolveUser(reportType, targetId);
         if (user == null) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+            throw new AdminCustomException(AdminErrorCode.USER_NOT_FOUND);
         }
 
         eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider()));
@@ -125,7 +125,7 @@ public class AdminCommandService implements AdminCommandUseCase {
 
         User user = resolveUser(reportType, targetId);
         if (user == null) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+            throw new AdminCustomException(AdminErrorCode.USER_NOT_FOUND);
         }
         
         // 이벤트 발행으로 Auth 도메인에 탈퇴 처리 위임
@@ -185,7 +185,7 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     private User resolvePostUser(Long postId) {
         Post post = postQueryUseCase.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new AdminCustomException(AdminErrorCode.POST_NOT_FOUND));
         return post.getUser();
     }
 

@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ public class PostInteractionService implements PostInteractionUseCase {
      *
      * @param userId 현재 로그인한 사용자 ID
      * @param postId 추천할 게시글 ID
-     * @throws CustomException 게시글을 찾을 수 없는 경우
+     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
@@ -50,7 +50,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     public void likePost(Long userId, Long postId) {
         User user = loadUserInfoPort.getReferenceById(userId);
         Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         if (postLikeQueryPort.existsByUserAndPost(user, post)) {
             postLikeCommandPort.deleteByUserAndPost(user, post);

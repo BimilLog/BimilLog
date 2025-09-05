@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -125,8 +125,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).save(any());
@@ -149,8 +149,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
@@ -193,8 +193,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).delete(any());
@@ -213,8 +213,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
@@ -354,8 +354,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
@@ -378,8 +378,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).save(any());
@@ -397,8 +397,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
@@ -416,8 +416,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).delete(any());
@@ -459,8 +459,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).save(any());
@@ -477,8 +477,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).delete(any());
@@ -525,8 +525,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         // isAuthor가 호출되었는지 확인 (권한 검증이 먼저 실행됨)
         verify(post, times(1)).isAuthor(userId);
@@ -548,8 +548,8 @@ class PostCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+                .isInstanceOf(PostCustomException.class)
+                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         // isAuthor가 호출되었는지 확인 (권한 검증이 먼저 실행됨)
         verify(post, times(1)).isAuthor(userId);
