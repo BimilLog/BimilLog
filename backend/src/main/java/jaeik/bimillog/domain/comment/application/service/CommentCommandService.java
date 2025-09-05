@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.out.*;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
-import jaeik.bimillog.domain.comment.entity.CommentRequest;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
@@ -60,7 +59,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Override
-    public void writeComment(Long userId, CommentRequest commentRequest) {
+    public void writeComment(Long userId, Comment.Request commentRequest) {
         Post post = commentToPostPort.findById(commentRequest.postId())
                 .orElseThrow(() -> new CommentCustomException(CommentErrorCode.POST_NOT_FOUND));
 
@@ -97,7 +96,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Override
-    public void updateComment(Long userId, CommentRequest commentRequest) {
+    public void updateComment(Long userId, Comment.Request commentRequest) {
         Comment comment = validateComment(commentRequest, userId);
         comment.updateComment(commentRequest.content());
         commentCommandPort.save(comment);
@@ -114,7 +113,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Override
-    public void deleteComment(Long userId, CommentRequest commentRequest) {
+    public void deleteComment(Long userId, Comment.Request commentRequest) {
         Comment comment = validateComment(commentRequest, userId);
         handleCommentDeletion(comment.getId());
     }
@@ -146,7 +145,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Comment validateComment(CommentRequest commentRequest, Long userId) {
+    private Comment validateComment(Comment.Request commentRequest, Long userId) {
         Comment comment = commentQueryPort.findById(commentRequest.id())
                 .orElseThrow(() -> new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
 

@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.comment.application.port.out.*;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
-import jaeik.bimillog.domain.comment.entity.CommentRequest;
+import jaeik.bimillog.domain.comment.entity.Comment.Request;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
@@ -105,7 +105,7 @@ class CommentDeletePerformanceTest {
         CommentClosure selfClosure = CommentClosure.createCommentClosure(singleComment, singleComment, 0);
         commentClosureCommandPort.save(selfClosure);
         
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(singleComment.getId())
                 .build();
         
@@ -142,7 +142,7 @@ class CommentDeletePerformanceTest {
         // 클로저 테이블 구성
         setupCommentHierarchy(parentComment, childComment, grandChildComment);
         
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(parentComment.getId())
                 .build();
         
@@ -195,7 +195,7 @@ class CommentDeletePerformanceTest {
         
         // When: 모든 댓글을 순차적으로 삭제
         for (Comment comment : allComments) {
-            CommentRequest deleteRequest = CommentRequest.builder()
+            Comment.Request deleteRequest = Comment.Request.builder()
                     .id(comment.getId())
                     .build();
             commentCommandService.deleteComment(testUser.getId(), deleteRequest);
@@ -241,7 +241,7 @@ class CommentDeletePerformanceTest {
         entityManager.clear();
         
         // When: 최상위 댓글 삭제 (모든 하위 댓글 때문에 소프트 삭제)
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(level1.getId())
                 .build();
         
@@ -284,7 +284,7 @@ class CommentDeletePerformanceTest {
         
         long startTime = System.currentTimeMillis();
         for (Comment comment : comments) {
-            CommentRequest deleteRequest = CommentRequest.builder()
+            Comment.Request deleteRequest = Comment.Request.builder()
                     .id(comment.getId())
                     .build();
             commentCommandService.deleteComment(testUser.getId(), deleteRequest);
@@ -322,7 +322,7 @@ class CommentDeletePerformanceTest {
         CommentClosure selfClosure = CommentClosure.createCommentClosure(leafComment, leafComment, 0);
         commentClosureCommandPort.save(selfClosure);
         
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(leafComment.getId())
                 .build();
         

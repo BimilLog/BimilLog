@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.user.NotificationToUserAdapter;
 
 import java.util.Optional;
 
@@ -21,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
- * <h2>NotificationToUserAdapter 테스트</h2>
+ * <h2>NotificationToNotificationToUserAdapter 테스트</h2>
  * <p>Notification 도메인의 User 어댑터 단위 테스트</p>
  * <p>헥사고날 아키텍처에서 도메인 간 통신을 위한 어댑터 동작 검증</p>
  *
@@ -29,14 +30,14 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("NotificationToUserAdapter 테스트")
-class NotificationToPaperToUserAdapterTest {
+@DisplayName("NotificationToNotificationToUserAdapter 테스트")
+class NotificationToUserAdapterTest {
 
     @Mock
     private UserQueryUseCase userQueryUseCase;
 
     @InjectMocks
-    private UserAdapter userAdapter;
+    private NotificationToUserAdapter notificationToUserAdapter;
 
     private User testUser;
 
@@ -67,7 +68,7 @@ class NotificationToPaperToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
 
         // When: 사용자 조회
-        Optional<User> result = userAdapter.findById(userId);
+        Optional<User> result = notificationToUserAdapter.findById(userId);
 
         // Then: 조회 결과 검증
         assertThat(result).isPresent();
@@ -91,7 +92,7 @@ class NotificationToPaperToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When: 존재하지 않는 사용자 조회
-        Optional<User> result = userAdapter.findById(userId);
+        Optional<User> result = notificationToUserAdapter.findById(userId);
 
         // Then: 빈 Optional 반환 검증
         assertThat(result).isEmpty();
@@ -109,7 +110,7 @@ class NotificationToPaperToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When: null ID로 사용자 조회
-        Optional<User> result = userAdapter.findById(userId);
+        Optional<User> result = notificationToUserAdapter.findById(userId);
 
         // Then: 빈 Optional 반환 검증
         assertThat(result).isEmpty();
@@ -127,7 +128,7 @@ class NotificationToPaperToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When: 0 ID로 사용자 조회
-        Optional<User> result = userAdapter.findById(userId);
+        Optional<User> result = notificationToUserAdapter.findById(userId);
 
         // Then: 빈 Optional 반환 검증
         assertThat(result).isEmpty();
@@ -145,7 +146,7 @@ class NotificationToPaperToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When: 음수 ID로 사용자 조회
-        Optional<User> result = userAdapter.findById(userId);
+        Optional<User> result = notificationToUserAdapter.findById(userId);
 
         // Then: 빈 Optional 반환 검증
         assertThat(result).isEmpty();
@@ -163,7 +164,7 @@ class NotificationToPaperToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When: 매우 큰 ID로 사용자 조회
-        Optional<User> result = userAdapter.findById(userId);
+        Optional<User> result = notificationToUserAdapter.findById(userId);
 
         // Then: 빈 Optional 반환 검증
         assertThat(result).isEmpty();
@@ -196,7 +197,7 @@ class NotificationToPaperToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(userWithCustomSetting));
 
         // When: 사용자 조회
-        Optional<User> result = userAdapter.findById(userId);
+        Optional<User> result = notificationToUserAdapter.findById(userId);
 
         // Then: 사용자와 설정 정보 검증
         assertThat(result).isPresent();
@@ -230,7 +231,7 @@ class NotificationToPaperToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(adminUser));
 
         // When: 관리자 사용자 조회
-        Optional<User> result = userAdapter.findById(userId);
+        Optional<User> result = notificationToUserAdapter.findById(userId);
 
         // Then: 관리자 사용자 검증
         assertThat(result).isPresent();

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
-import jaeik.bimillog.domain.comment.entity.CommentRequest;
+import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
@@ -53,7 +53,7 @@ class CommentDeleteQueryAnalysisTest {
         // Given: 기존 테스트에서 생성된 댓글이 있다고 가정 (ID = 1)
         Long existingCommentId = 1L;
         
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(existingCommentId)
                 .build();
         

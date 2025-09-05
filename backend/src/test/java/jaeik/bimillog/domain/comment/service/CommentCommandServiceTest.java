@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.comment.service;
 import jaeik.bimillog.domain.comment.application.port.out.*;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.CommentRequest;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
@@ -58,7 +57,7 @@ class CommentCommandServiceTest {
 
     private User testUser;
     private Comment testComment;
-    private CommentRequest commentRequest;
+    private Comment.Request commentRequest;
 
     @BeforeEach
     void setUp() {
@@ -76,7 +75,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        commentRequest = CommentRequest.builder()
+        commentRequest = Comment.Request.builder()
                 .id(200L)
                 .content("수정된 댓글")
                 .build();
@@ -110,7 +109,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest anonymousCommentRequest = CommentRequest.builder()
+        Comment.Request anonymousCommentRequest = Comment.Request.builder()
                 .id(200L)
                 .content("수정된 익명 댓글")
                 .password(1234)
@@ -153,7 +152,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest wrongPasswordRequest = CommentRequest.builder()
+        Comment.Request wrongPasswordRequest = Comment.Request.builder()
                 .id(200L)
                 .content("수정된 댓글")
                 .password(9999)
@@ -291,7 +290,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest emptyPasswordRequest = CommentRequest.builder()
+        Comment.Request emptyPasswordRequest = Comment.Request.builder()
                 .id(200L)
                 .content("수정된 댓글")
                 .password(null)
@@ -322,7 +321,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(300L)
                 .password(1234)
                 .build();
@@ -354,7 +353,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(300L)
                 .password(9999)
                 .build();
@@ -384,7 +383,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(400L)
                 .build();
 
@@ -415,7 +414,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(500L)
                 .password(5678)
                 .build();
@@ -453,7 +452,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        CommentRequest deleteRequest = CommentRequest.builder()
+        Comment.Request deleteRequest = Comment.Request.builder()
                 .id(600L)
                 .build();
 

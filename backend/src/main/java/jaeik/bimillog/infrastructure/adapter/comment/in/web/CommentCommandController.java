@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.comment.in.web;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentLikeUseCase;
-import jaeik.bimillog.domain.comment.entity.CommentRequest;
+import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.infrastructure.adapter.comment.in.web.dto.CommentLikeReqDTO;
 import jaeik.bimillog.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -47,7 +47,7 @@ public class CommentCommandController {
     public ResponseEntity<String> writeComment(
             @Valid @RequestBody CommentReqDTO commentReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
+        Comment.Request commentRequest = convertToCommentRequest(commentReqDto);
         Long userId = userDetails != null ? userDetails.getUserId() : null;
         commentCommandUseCase.writeComment(userId, commentRequest);
         return ResponseEntity.ok("댓글 작성 완료");
@@ -70,7 +70,7 @@ public class CommentCommandController {
     public ResponseEntity<String> updateComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
+        Comment.Request commentRequest = convertToCommentRequest(commentReqDto);
         Long userId = userDetails != null ? userDetails.getUserId() : null;
         commentCommandUseCase.updateComment(userId, commentRequest);
         return ResponseEntity.ok("댓글 수정 완료");
@@ -93,7 +93,7 @@ public class CommentCommandController {
     public ResponseEntity<String> deleteComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        CommentRequest commentRequest = convertToCommentRequest(commentReqDto);
+        Comment.Request commentRequest = convertToCommentRequest(commentReqDto);
         Long userId = userDetails != null ? userDetails.getUserId() : null;
         commentCommandUseCase.deleteComment(userId, commentRequest);
         return ResponseEntity.ok("댓글 삭제 완료");
@@ -126,16 +126,16 @@ public class CommentCommandController {
 
     /**
      * <h3>DTO를 도메인 객체로 변환</h3>
-     * <p>CommentReqDTO를 CommentRequest(도메인)로 변환합니다.</p>
+     * <p>CommentReqDTO를 Comment.Request(도메인)로 변환합니다.</p>
      * <p>헥사고날 아키텍처에서 인프라스트럭처 계층과 도메인 계층을 분리하기 위한 변환 로직</p>
      *
      * @param commentReqDto DTO 댓글 요청
-     * @return CommentRequest 도메인 댓글 요청
+     * @return Comment.Request 도메인 댓글 요청
      * @author Jaeik
      * @since 2.0.0
      */
-    private CommentRequest convertToCommentRequest(CommentReqDTO commentReqDto) {
-        return CommentRequest.builder()
+    private Comment.Request convertToCommentRequest(CommentReqDTO commentReqDto) {
+        return Comment.Request.builder()
                 .id(commentReqDto.getId())
                 .parentId(commentReqDto.getParentId())
                 .postId(commentReqDto.getPostId())

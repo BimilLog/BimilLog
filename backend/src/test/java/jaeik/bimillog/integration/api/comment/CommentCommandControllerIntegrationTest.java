@@ -3,7 +3,7 @@ package jaeik.bimillog.integration.api.comment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.CommentRequest;
+import jaeik.bimillog.domain.comment.entity.Comment.Request;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.comment.in.web.dto.CommentLikeReqDTO;
@@ -152,7 +152,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("대댓글 작성 통합 테스트")
     void writeReplyComment_IntegrationTest() throws Exception {
         // Given - 부모 댓글 생성 (비즈니스 로직 사용하여 클로저 테이블 보장)
-        CommentRequest parentRequest = CommentTestDataBuilder.createCommentRequest(
+        Comment.Request parentRequest = CommentTestDataBuilder.createCommentRequest(
                 testPost.getId(), "부모 댓글입니다.");
         commentCommandUseCase.writeComment(testUser.getId(), parentRequest);
         
@@ -236,7 +236,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("댓글 삭제 통합 테스트")
     void deleteComment_IntegrationTest() throws Exception {
         // Given - 비즈니스 로직으로 댓글 생성 (클로저 포함)
-        CommentRequest commentRequest = CommentTestDataBuilder.createCommentRequest(
+        Comment.Request commentRequest = CommentTestDataBuilder.createCommentRequest(
                 testPost.getId(), "테스트 댓글입니다.");
         commentCommandUseCase.writeComment(testUser.getId(), commentRequest);
         
@@ -316,7 +316,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("익명 댓글 삭제 통합 테스트 - 패스워드 인증")
     void deleteAnonymousComment_IntegrationTest() throws Exception {
         // Given: 비즈니스 로직으로 익명 댓글 생성 (클로저 포함)
-        CommentRequest commentRequest = CommentTestDataBuilder.createAnonymousCommentRequest(
+        Comment.Request commentRequest = CommentTestDataBuilder.createAnonymousCommentRequest(
                 testPost.getId(), "익명 댓글입니다", 1234);
         commentCommandUseCase.writeComment(null, commentRequest);
         
@@ -348,7 +348,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("익명 댓글 삭제 실패 - 잘못된 패스워드")
     void deleteAnonymousComment_WrongPassword_IntegrationTest() throws Exception {
         // Given: 비즈니스 로직으로 익명 댓글 생성
-        CommentRequest commentRequest = CommentTestDataBuilder.createAnonymousCommentRequest(
+        Comment.Request commentRequest = CommentTestDataBuilder.createAnonymousCommentRequest(
                 testPost.getId(), "익명 댓글입니다", 1234);
         commentCommandUseCase.writeComment(null, commentRequest);
         

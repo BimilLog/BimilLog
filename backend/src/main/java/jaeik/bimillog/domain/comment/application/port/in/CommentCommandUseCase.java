@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.application.port.in;
 
-import jaeik.bimillog.domain.comment.entity.CommentRequest;
+import jaeik.bimillog.domain.comment.entity.Comment;
 
 /**
  * <h2>댓글 명령 요구사항</h2>
@@ -20,7 +20,7 @@ public interface CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void writeComment(Long userId, CommentRequest commentRequest);
+    void writeComment(Long userId, Comment.Request commentRequest);
 
     /**
      * <h3>댓글 수정</h3>
@@ -31,7 +31,7 @@ public interface CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void updateComment(Long userId, CommentRequest commentRequest);
+    void updateComment(Long userId, Comment.Request commentRequest);
 
     /**
      * <h3>댓글 삭제</h3>
@@ -42,7 +42,7 @@ public interface CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteComment(Long userId, CommentRequest commentRequest);
+    void deleteComment(Long userId, Comment.Request commentRequest);
 
     /**
      * <h3>사용자 탈퇴 시 댓글 처리</h3>

@@ -2,7 +2,6 @@ package jaeik.bimillog.integration.api.comment;
 
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.CommentRequest;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
@@ -182,10 +181,10 @@ public class CommentTestDataBuilder {
      *
      * @param postId 게시글 ID
      * @param content 댓글 내용
-     * @return CommentRequest 테스트용 댓글 요청 엔티티
+     * @return Comment.Request 테스트용 댓글 요청 엔티티
      */
-    public static CommentRequest createCommentRequest(Long postId, String content) {
-        return CommentRequest.builder()
+    public static Comment.Request createCommentRequest(Long postId, String content) {
+        return Comment.Request.builder()
                 .postId(postId)
                 .content(content)
                 .build();
@@ -198,10 +197,10 @@ public class CommentTestDataBuilder {
      * @param postId 게시글 ID
      * @param content 댓글 내용
      * @param password 댓글 비밀번호
-     * @return CommentRequest 테스트용 익명 댓글 요청 엔티티
+     * @return Comment.Request 테스트용 익명 댓글 요청 엔티티
      */
-    public static CommentRequest createAnonymousCommentRequest(Long postId, String content, Integer password) {
-        return CommentRequest.builder()
+    public static Comment.Request createAnonymousCommentRequest(Long postId, String content, Integer password) {
+        return Comment.Request.builder()
                 .postId(postId)
                 .content(content)
                 .password(password)

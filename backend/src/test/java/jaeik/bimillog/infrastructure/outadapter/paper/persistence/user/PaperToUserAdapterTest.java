@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.infrastructure.adapter.paper.out.persistence.user.PaperToUserAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
@@ -23,11 +26,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 /**
- * <h2>Paper 도메인의 NotificationToUserAdapter 통합 테스트</h2>
+ * <h2>Paper 도메인의 NotificationToPaperToUserAdapter 통합 테스트</h2>
  *
  * <p><strong>테스트 커버리지:</strong></p>
  * <ul>
@@ -45,18 +49,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DataJpaTest(
-        excludeFilters = @org.springframework.context.annotation.ComponentScan.Filter(
-                type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE,
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
                 classes = BimilLogApplication.class
         )
 )
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({UserAdapter.class, LoadUserInfoAdapterTest.TestUserQueryUseCase.class, TestContainersConfiguration.class})
+@Import({PaperToUserAdapter.class, PaperToUserAdapterTest.TestUserQueryUseCase.class, TestContainersConfiguration.class})
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
-class LoadUserInfoAdapterTest {
+class PaperToUserAdapterTest {
 
     // TestUserQueryUseCase: UserQueryUseCase 실제 구현체 테스트용 버전
     @Component
@@ -119,7 +123,7 @@ class LoadUserInfoAdapterTest {
     }
 
     @Autowired
-    private UserAdapter userAdapter;
+    private PaperToUserAdapter paperToUserAdapter;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -173,7 +177,7 @@ class LoadUserInfoAdapterTest {
     @DisplayName("정상 케이스 - 존재하는 사용자 이름으로 사용자 조회 성공")
     void shouldFindUserByUserName_WhenUserExists() {
         // When: 실제 사용자 이름으로 조회
-        Optional<User> result = userAdapter.findByUserName("testUser");
+        Optional<User> result = paperToUserAdapter.findByUserName("testUser");
 
         // Then: 정확한 사용자 데이터 반환
         assertThat(result).isPresent();
@@ -188,7 +192,7 @@ class LoadUserInfoAdapterTest {
     @DisplayName("경계값 - 존재하지 않는 사용자 이름으로 빈 결과 반환")
     void shouldReturnEmpty_WhenUserNotExists() {
         // When: 존재하지 않는 사용자 이름으로 조회
-        Optional<User> result = userAdapter.findByUserName("nonExistentUser");
+        Optional<User> result = paperToUserAdapter.findByUserName("nonExistentUser");
 
         // Then: 빈 Optional 반환
         assertThat(result).isEmpty();
@@ -198,7 +202,7 @@ class LoadUserInfoAdapterTest {
     @DisplayName("경계값 - null 사용자 이름으로 빈 결과 반환")
     void shouldReturnEmpty_WhenNullUserNameProvided() {
         // When: null 사용자 이름으로 조회
-        Optional<User> result = userAdapter.findByUserName(null);
+        Optional<User> result = paperToUserAdapter.findByUserName(null);
 
         // Then: 빈 Optional 반환
         assertThat(result).isEmpty();
@@ -208,7 +212,7 @@ class LoadUserInfoAdapterTest {
     @DisplayName("정상 케이스 - 존재하는 사용자 이름으로 존재 여부 확인")
     void shouldReturnTrue_WhenUserExistsForExistsByUserName() {
         // When: 실제 존재하는 사용자 이름으로 존재 여부 확인
-        boolean result = userAdapter.existsByUserName("testUser");
+        boolean result = paperToUserAdapter.existsByUserName("testUser");
 
         // Then: true 반환
         assertThat(result).isTrue();
@@ -218,7 +222,7 @@ class LoadUserInfoAdapterTest {
     @DisplayName("경계값 - 존재하지 않는 사용자 이름으로 존재 여부 확인")
     void shouldReturnFalse_WhenUserNotExistsForExistsByUserName() {
         // When: 존재하지 않는 사용자 이름으로 존재 여부 확인
-        boolean result = userAdapter.existsByUserName("nonExistentUser");
+        boolean result = paperToUserAdapter.existsByUserName("nonExistentUser");
 
         // Then: false 반환
         assertThat(result).isFalse();
@@ -228,7 +232,7 @@ class LoadUserInfoAdapterTest {
     @DisplayName("경계값 - null 사용자 이름으로 존재 여부 확인")
     void shouldReturnFalse_WhenNullUserNameProvidedForExistsByUserName() {
         // When: null 사용자 이름으로 존재 여부 확인
-        boolean result = userAdapter.existsByUserName(null);
+        boolean result = paperToUserAdapter.existsByUserName(null);
 
         // Then: false 반환
         assertThat(result).isFalse();
@@ -238,8 +242,8 @@ class LoadUserInfoAdapterTest {
     @DisplayName("빈 문자열 - 빈 문자열로 조회 시 빈 결과 반환")
     void shouldReturnEmpty_WhenEmptyStringProvided() {
         // When: 빈 문자열로 조회
-        Optional<User> findResult = userAdapter.findByUserName("");
-        boolean existsResult = userAdapter.existsByUserName("");
+        Optional<User> findResult = paperToUserAdapter.findByUserName("");
+        boolean existsResult = paperToUserAdapter.existsByUserName("");
 
         // Then: 빈 결과 반환
         assertThat(findResult).isEmpty();
@@ -250,8 +254,8 @@ class LoadUserInfoAdapterTest {
     @DisplayName("공백문자 - 공백만 있는 문자열로 조회 시 빈 결과 반환")
     void shouldReturnEmpty_WhenWhitespaceOnlyStringProvided() {
         // When: 공백만 있는 문자열로 조회
-        Optional<User> findResult = userAdapter.findByUserName("   ");
-        boolean existsResult = userAdapter.existsByUserName("   ");
+        Optional<User> findResult = paperToUserAdapter.findByUserName("   ");
+        boolean existsResult = paperToUserAdapter.existsByUserName("   ");
 
         // Then: 빈 결과 반환
         assertThat(findResult).isEmpty();
@@ -262,16 +266,16 @@ class LoadUserInfoAdapterTest {
     @DisplayName("일관성 - findByUserName과 existsByUserName의 결과 일치 확인")
     void shouldBeConsistent_BetweenFindAndExistsByUserName() {
         // When & Then: 존재하는 사용자
-        Optional<User> foundUser = userAdapter.findByUserName("testUser");
-        boolean exists = userAdapter.existsByUserName("testUser");
+        Optional<User> foundUser = paperToUserAdapter.findByUserName("testUser");
+        boolean exists = paperToUserAdapter.existsByUserName("testUser");
         
         assertThat(foundUser).isPresent();
         assertThat(foundUser.get().getUserName()).isEqualTo("testUser");
         assertThat(exists).isTrue();
 
         // When & Then: 존재하지 않는 사용자
-        Optional<User> notFoundUser = userAdapter.findByUserName("nonExistentUser");
-        boolean notExists = userAdapter.existsByUserName("nonExistentUser");
+        Optional<User> notFoundUser = paperToUserAdapter.findByUserName("nonExistentUser");
+        boolean notExists = paperToUserAdapter.existsByUserName("nonExistentUser");
 
         assertThat(notFoundUser).isEmpty();
         assertThat(notExists).isFalse();
@@ -288,9 +292,9 @@ class LoadUserInfoAdapterTest {
         // Given: Paper 도메인에서 User 도메인 정보가 필요한 상황
         String targetUserName = "testUser";
         
-        // When: UserAdapter를 통해 Paper -> User 도메인 연결
-        Optional<User> userFromAdapter = userAdapter.findByUserName(targetUserName);
-        boolean userExistsFromAdapter = userAdapter.existsByUserName(targetUserName);
+        // When: PaperToUserAdapter를 통해 Paper -> User 도메인 연결
+        Optional<User> userFromAdapter = paperToUserAdapter.findByUserName(targetUserName);
+        boolean userExistsFromAdapter = paperToUserAdapter.existsByUserName(targetUserName);
         
         // Then: 도메인 간 결합도 확인
         // 1. User 도메인의 UseCase를 통한 간접 연결
@@ -309,7 +313,7 @@ class LoadUserInfoAdapterTest {
     @DisplayName("지연 로딩 - 사용자 연관데이터 접근")
     void shouldLoadAssociatedData_WhenAccessingUserRelations() {
         // When: 연관데이터가 있는 사용자 조회
-        Optional<User> result = userAdapter.findByUserName("duplicateTest");
+        Optional<User> result = paperToUserAdapter.findByUserName("duplicateTest");
         
         // Then: 주 데이터와 연관데이터 모두 접근 가능
         assertThat(result).isPresent();
@@ -349,8 +353,8 @@ class LoadUserInfoAdapterTest {
 
         // When: 특정 사용자 조회
         long startTime = System.currentTimeMillis();
-        Optional<User> result = userAdapter.findByUserName("bulkUser50");
-        boolean exists = userAdapter.existsByUserName("bulkUser75");
+        Optional<User> result = paperToUserAdapter.findByUserName("bulkUser50");
+        boolean exists = paperToUserAdapter.existsByUserName("bulkUser75");
         long endTime = System.currentTimeMillis();
 
         // Then: 성능 및 정확성 확인
@@ -368,12 +372,12 @@ class LoadUserInfoAdapterTest {
         
         // When: 순차적으로 여러 번 조회 (실제 동시성은 아니지만 일관성 검증)
         List<Optional<User>> findResults = IntStream.range(0, 5)
-                .mapToObj(i -> userAdapter.findByUserName(targetUserName))
-                .toList();
+                .mapToObj(i -> paperToUserAdapter.findByUserName(targetUserName))
+                .collect(Collectors.toList());
         
         List<Boolean> existsResults = IntStream.range(0, 5)
-                .mapToObj(i -> userAdapter.existsByUserName(targetUserName))
-                .toList();
+                .mapToObj(i -> paperToUserAdapter.existsByUserName(targetUserName))
+                .collect(Collectors.toList());
         
         // Then: 모든 결과가 일관됨을 확인
         findResults.forEach(result -> {
@@ -405,8 +409,8 @@ class LoadUserInfoAdapterTest {
         String userName = "testUser";
         
         // When: 어댑터를 통한 도메인 간 통신
-        Optional<User> findResult = userAdapter.findByUserName(userName);
-        boolean existsResult = userAdapter.existsByUserName(userName);
+        Optional<User> findResult = paperToUserAdapter.findByUserName(userName);
+        boolean existsResult = paperToUserAdapter.existsByUserName(userName);
         
         // Then: 어댑터 패턴 준수 확인
         // 1. 어댑터는 UseCase 인터페이스를 단순 위임
@@ -428,14 +432,14 @@ class LoadUserInfoAdapterTest {
         String userName = "testUser";
         
         // When: Paper 도메인에서 User 도메인 접근
-        Optional<User> result = userAdapter.findByUserName(userName);
+        Optional<User> result = paperToUserAdapter.findByUserName(userName);
         
         // Then: 단방향 의존성 확인
         // 1. Paper 도메인 -> User 도메인 (O)
         assertThat(result).isPresent();
         
         // 2. User 도메인 -> Paper 도메인 의존성 없음
-        // (이는 UserAdapter의 구현체에서 확인 가능 - Paper 엔티티 참조 없음)
+        // (이는 PaperToUserAdapter의 구현체에서 확인 가능 - Paper 엔티티 참조 없음)
         
         // 3. UseCase 인터페이스를 통한 느슨한 결합
         assertThat(result.get().getUserName()).isEqualTo(userName);
