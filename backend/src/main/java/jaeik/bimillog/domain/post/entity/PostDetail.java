@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.entity;
 
 import lombok.Builder;
+
 import java.io.Serializable;
 import java.time.Instant;
 

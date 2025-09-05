@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.user.application.service;
 
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.bimillog.domain.user.application.port.out.LoadCommentPort;
 import jaeik.bimillog.domain.user.application.port.out.LoadPostPort;
-import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.LoadUserInfoPort;
+import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostReqVO;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

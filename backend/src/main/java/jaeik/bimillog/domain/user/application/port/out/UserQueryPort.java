@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
 
 import java.util.List;
 import java.util.Optional;

@@ -2,12 +2,14 @@ package jaeik.bimillog.infrastructure.outadapter.notification.sse;
 
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
-import jaeik.bimillog.domain.notification.event.NotificationEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.notification.event.NotificationEvent;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
+import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.infrastructure.adapter.notification.out.sse.EmitterRepository;
+import jaeik.bimillog.infrastructure.adapter.notification.out.sse.SseAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

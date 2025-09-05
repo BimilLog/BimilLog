@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.paper.in.web.dto;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
-import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.MessageCommand;
+import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.outadapter.auth.persistence;
 
+import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
@@ -7,10 +8,8 @@ import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.auth.SaveUserAdapter;
-import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;

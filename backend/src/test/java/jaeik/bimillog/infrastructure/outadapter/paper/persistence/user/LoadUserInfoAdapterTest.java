@@ -27,7 +27,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 /**
- * <h2>Paper 도메인의 UserAdapter 통합 테스트</h2>
+ * <h2>Paper 도메인의 NotificationToUserAdapter 통합 테스트</h2>
  *
  * <p><strong>테스트 커버리지:</strong></p>
  * <ul>

@@ -1,8 +1,8 @@
 
 package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
-import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
+import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

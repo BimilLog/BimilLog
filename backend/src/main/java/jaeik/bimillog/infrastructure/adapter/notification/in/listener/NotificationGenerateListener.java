@@ -1,10 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.notification.in.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

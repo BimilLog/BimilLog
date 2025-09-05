@@ -1,17 +1,17 @@
 package jaeik.bimillog.integration.api.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.infrastructure.adapter.admin.in.web.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.admin.in.web.dto.ReportDTO;
-import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +32,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * <h2>사용자 명령 컨트롤러 통합 테스트</h2>

@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
+import jaeik.bimillog.domain.user.entity.User;
 
 /**
  * <h2>알림 명령 포트</h2>

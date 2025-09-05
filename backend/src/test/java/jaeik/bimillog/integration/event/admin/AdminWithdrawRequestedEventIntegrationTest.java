@@ -1,13 +1,13 @@
 package jaeik.bimillog.integration.event.admin;
 
-import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
+import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

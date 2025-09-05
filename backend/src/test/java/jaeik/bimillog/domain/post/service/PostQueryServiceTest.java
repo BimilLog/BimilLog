@@ -1,15 +1,15 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommentQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.*;
-import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostDetailProjection;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
+import jaeik.bimillog.domain.post.application.service.PostCacheSyncService;
+import jaeik.bimillog.domain.post.application.service.PostQueryService;
+import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

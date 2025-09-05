@@ -3,9 +3,9 @@ package jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notif
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationQueryPort;
+import jaeik.bimillog.domain.notification.entity.NotificationInfo;
 import jaeik.bimillog.domain.notification.entity.QNotification;
 import jaeik.bimillog.domain.user.entity.QUser;
-import jaeik.bimillog.domain.notification.entity.NotificationInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

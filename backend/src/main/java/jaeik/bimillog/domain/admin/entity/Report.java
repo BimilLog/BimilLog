@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.admin.entity;
 
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
+import jaeik.bimillog.domain.common.entity.BaseEntity;
+import jaeik.bimillog.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

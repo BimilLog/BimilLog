@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.outadapter.user.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
-import jakarta.persistence.EntityManager;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -12,6 +11,7 @@ import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.setting.S
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

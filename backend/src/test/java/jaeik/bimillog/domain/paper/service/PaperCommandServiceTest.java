@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.paper.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
+import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
+import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageCommand;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.paper.in.web.dto.MessageDTO;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.infrastructure.adapter.paper.in.web.dto.MessageDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +44,7 @@ class PaperCommandServiceTest {
     private PaperQueryPort paperQueryPort;
 
     @Mock
-    private LoadUserPort loadUserPort;
+    private PaperToUserPort paperToUserPort;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -127,17 +128,17 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setContent("테스트 메시지");
         
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
         paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
-        verify(loadUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
-        verifyNoMoreInteractions(loadUserPort, paperCommandPort, eventPublisher);
+        verifyNoMoreInteractions(paperToUserPort, paperCommandPort, eventPublisher);
     }
 
     @Test
@@ -148,14 +149,14 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setContent("테스트 메시지");
 
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.empty());
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
-        verify(loadUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -168,14 +169,14 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setContent("테스트 메시지");
 
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.empty());
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
-        verify(loadUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -189,14 +190,14 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setContent("");
         
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
         paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
-        verify(loadUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
@@ -213,7 +214,7 @@ class PaperCommandServiceTest {
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(loadUserPort, never()).findByUserName(any());
+        verify(paperToUserPort, never()).findByUserName(any());
         verify(paperCommandPort, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -227,7 +228,7 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setContent("테스트 메시지");
         
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
@@ -263,14 +264,14 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setContent(longContent);
         
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
         paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
-        verify(loadUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
@@ -285,14 +286,14 @@ class PaperCommandServiceTest {
         messageDTO.setContent("테스트 메시지");
         messageDTO.setAnonymity("익명123");
         
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
         paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
-        verify(loadUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
@@ -308,14 +309,14 @@ class PaperCommandServiceTest {
         messageDTO.setWidth(100);
         messageDTO.setHeight(50);
         
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
         paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
-        verify(loadUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 
             event.paperOwnerId().equals(userId) && 
@@ -353,14 +354,14 @@ class PaperCommandServiceTest {
         MessageDTO messageDTO = new MessageDTO();
         messageDTO.setContent("테스트 메시지");
         
-        given(loadUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
         paperCommandService.writeMessage(userName, messageDTO.toCommand());
 
         // Then
-        verify(loadUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }

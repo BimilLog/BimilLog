@@ -1,9 +1,10 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthPort;
-import jaeik.bimillog.domain.auth.application.port.out.JwtInvalidatePort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
+import jaeik.bimillog.domain.auth.application.port.out.JwtInvalidatePort;
 import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
+import jaeik.bimillog.domain.auth.application.service.TokenBlacklistService;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,13 +20,9 @@ import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * <h2>TokenBlacklistService 단위 테스트</h2>

@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.notification.in.listener;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

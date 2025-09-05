@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheSyncPort;
+import jaeik.bimillog.domain.post.application.service.PostCacheSyncService;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;

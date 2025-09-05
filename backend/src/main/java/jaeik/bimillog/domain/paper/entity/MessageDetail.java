@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.paper.entity;
 
 import lombok.Builder;
+
 import java.time.Instant;
 
 /**

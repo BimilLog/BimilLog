@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.outadapter.auth.persistence.auth;
 
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
+import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.auth.DeleteUserAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;

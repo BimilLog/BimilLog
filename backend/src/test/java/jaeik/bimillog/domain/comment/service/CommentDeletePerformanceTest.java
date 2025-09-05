@@ -1,17 +1,20 @@
 package jaeik.bimillog.domain.comment.service;
 
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.comment.application.port.out.*;
+import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentRequest;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,8 +27,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.Optional;
 

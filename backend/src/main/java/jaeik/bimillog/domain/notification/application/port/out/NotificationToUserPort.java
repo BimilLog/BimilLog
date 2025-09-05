@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
 import jaeik.bimillog.domain.user.entity.User;
+
 import java.util.Optional;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadUserPort {
+public interface NotificationToUserPort {
     
     /**
      * <h3>사용자 ID로 조회</h3>

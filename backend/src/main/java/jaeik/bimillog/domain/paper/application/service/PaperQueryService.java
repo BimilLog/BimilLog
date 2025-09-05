@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.paper.application.service;
 
 import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.bimillog.domain.paper.application.port.out.LoadUserPort;
+import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
@@ -30,7 +30,7 @@ import java.util.Optional;
 public class PaperQueryService implements PaperQueryUseCase {
 
     private final PaperQueryPort paperQueryPort;
-    private final LoadUserPort loadUserPort;
+    private final PaperToUserPort paperToUserPort;
 
 
     /**
@@ -64,7 +64,7 @@ public class PaperQueryService implements PaperQueryUseCase {
      */
     @Override
     public List<VisitMessageDetail> visitPaper(String userName) {
-        boolean exists = loadUserPort.existsByUserName(userName);
+        boolean exists = paperToUserPort.existsByUserName(userName);
         if (!exists) {
             throw new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND);
         }

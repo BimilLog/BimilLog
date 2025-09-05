@@ -1,11 +1,12 @@
 package jaeik.bimillog.domain.user.entity;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

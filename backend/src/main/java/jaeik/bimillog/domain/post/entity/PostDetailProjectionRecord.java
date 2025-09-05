@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.entity;
 
 import com.querydsl.core.annotations.QueryProjection;
+
 import java.time.Instant;
 
 /**

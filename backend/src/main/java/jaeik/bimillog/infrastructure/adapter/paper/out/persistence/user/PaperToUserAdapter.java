@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.paper.out.persistence.user;
 
-import jaeik.bimillog.domain.paper.application.port.out.LoadUserPort;
+import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class UserAdapter implements LoadUserPort {
+public class PaperToUserAdapter implements PaperToUserPort {
 
     private final UserQueryUseCase userQueryUseCase;
 

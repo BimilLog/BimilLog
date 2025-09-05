@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
+import jaeik.bimillog.domain.notification.application.service.NotificationSseService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

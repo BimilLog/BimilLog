@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.user.CommentToUserAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.times;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class LoadUserAdapterUnitTest {
+class LoadNotificationToPaperToUserAdapterUnitTest {
 
     @Mock
     private UserQueryUseCase userQueryUseCase;

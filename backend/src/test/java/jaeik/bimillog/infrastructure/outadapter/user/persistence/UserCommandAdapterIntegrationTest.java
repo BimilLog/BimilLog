@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.outadapter.user.persistence;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.BlackList;
@@ -12,6 +11,7 @@ import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.blacklist
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.setting.SettingRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserCommandAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,16 +1,17 @@
 package jaeik.bimillog.integration.event.notification;
 
+import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.comment.application.port.out.CommentCommandPort;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
-import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.comment.application.port.out.CommentCommandPort;
+import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
+import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.time.Duration;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>Notification 도메인 이벤트 워크플로우 통합 테스트</h2>

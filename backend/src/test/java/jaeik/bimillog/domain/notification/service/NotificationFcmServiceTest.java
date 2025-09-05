@@ -1,12 +1,13 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
-import jaeik.bimillog.domain.notification.application.port.out.LoadUserPort;
-import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.notification.application.port.out.NotificationToUserPort;
+import jaeik.bimillog.domain.notification.application.service.NotificationFcmService;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
+import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +43,7 @@ class NotificationFcmServiceTest {
     private FcmPort fcmPort;
 
     @Mock
-    private LoadUserPort loadUserPort;
+    private NotificationToUserPort notificationToUserPort;
 
     @Mock
     private User user;
@@ -57,15 +58,15 @@ class NotificationFcmServiceTest {
         Long userId = 1L;
         String fcmToken = "valid-fcm-token";
         
-        given(loadUserPort.findById(userId)).willReturn(Optional.of(user));
+        given(notificationToUserPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
         notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
-        verify(loadUserPort, times(1)).findById(userId);
+        verify(notificationToUserPort, times(1)).findById(userId);
         verify(fcmPort, times(1)).save(any(FcmToken.class));
-        verifyNoMoreInteractions(loadUserPort, fcmPort);
+        verifyNoMoreInteractions(notificationToUserPort, fcmPort);
     }
 
     @Test
@@ -75,14 +76,14 @@ class NotificationFcmServiceTest {
         Long userId = 999L;
         String fcmToken = "valid-fcm-token";
         
-        given(loadUserPort.findById(userId)).willReturn(Optional.empty());
+        given(notificationToUserPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
-        verify(loadUserPort, times(1)).findById(userId);
+        verify(notificationToUserPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());
     }
 
@@ -97,7 +98,7 @@ class NotificationFcmServiceTest {
         notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
-        verify(loadUserPort, never()).findById(anyLong());
+        verify(notificationToUserPort, never()).findById(anyLong());
         verify(fcmPort, never()).save(any());
     }
 
@@ -112,7 +113,7 @@ class NotificationFcmServiceTest {
         notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
-        verify(loadUserPort, never()).findById(anyLong());
+        verify(notificationToUserPort, never()).findById(anyLong());
         verify(fcmPort, never()).save(any());
     }
 
@@ -295,14 +296,14 @@ class NotificationFcmServiceTest {
         // Given
         Long userId = null;
         String fcmToken = "valid-fcm-token";
-        given(loadUserPort.findById(userId)).willReturn(Optional.empty());
+        given(notificationToUserPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
-        verify(loadUserPort, times(1)).findById(userId);
+        verify(notificationToUserPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());
     }
 
@@ -313,14 +314,14 @@ class NotificationFcmServiceTest {
         Long userId = -1L;
         String fcmToken = "valid-fcm-token";
         
-        given(loadUserPort.findById(userId)).willReturn(Optional.empty());
+        given(notificationToUserPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
-        verify(loadUserPort, times(1)).findById(userId);
+        verify(notificationToUserPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());
     }
 
@@ -331,15 +332,15 @@ class NotificationFcmServiceTest {
         Long userId = 1L;
         String veryLongToken = "A".repeat(1000); // 매우 긴 토큰
         
-        given(loadUserPort.findById(userId)).willReturn(Optional.of(user));
+        given(notificationToUserPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
         notificationFcmService.registerFcmToken(userId, veryLongToken);
 
         // Then
-        verify(loadUserPort, times(1)).findById(userId);
+        verify(notificationToUserPort, times(1)).findById(userId);
         verify(fcmPort, times(1)).save(any(FcmToken.class));
-        verifyNoMoreInteractions(loadUserPort, fcmPort);
+        verifyNoMoreInteractions(notificationToUserPort, fcmPort);
     }
 
     @Test

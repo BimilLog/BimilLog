@@ -2,13 +2,15 @@ package jaeik.bimillog.infrastructure.outadapter.comment.persistence.comment.com
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
-import jakarta.persistence.EntityManager;
-import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentCommandAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -33,8 +36,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.test.annotation.Commit;
 
 /**
  * <h2>CommentCommandAdapter 통합 테스트</h2>

@@ -2,15 +2,17 @@ package jaeik.bimillog.infrastructure.outadapter.comment.persistence.comment.com
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.CommentInfo;
+import jaeik.bimillog.domain.comment.entity.CommentLike;
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentQueryAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentlike.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;

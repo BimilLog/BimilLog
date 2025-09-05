@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.infrastructure.adapter.paper.out.persistence.paper.PaperQueryAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

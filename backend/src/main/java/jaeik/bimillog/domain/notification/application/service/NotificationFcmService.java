@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.application.service;
 
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
-import jaeik.bimillog.domain.notification.application.port.out.LoadUserPort;
+import jaeik.bimillog.domain.notification.application.port.out.NotificationToUserPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
@@ -27,7 +27,7 @@ import java.util.List;
 public class NotificationFcmService implements NotificationFcmUseCase {
 
     private final FcmPort fcmPort;
-    private final LoadUserPort loadUserPort;
+    private final NotificationToUserPort notificationToUserPort;
 
     /**
      * <h3>FCM 토큰 등록 처리</h3>
@@ -47,7 +47,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             return;
         }
 
-        User user = loadUserPort.findById(userId)
+        User user = notificationToUserPort.findById(userId)
                 .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
 
         fcmPort.save(FcmToken.create(user, fcmToken));

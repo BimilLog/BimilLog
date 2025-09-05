@@ -2,14 +2,11 @@ package jaeik.bimillog.infrastructure.outadapter.post.persistence.post.cache;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostLike;
+import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.cache.PostCacheSyncAdapter;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.postlike.PostLikeJpaRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;

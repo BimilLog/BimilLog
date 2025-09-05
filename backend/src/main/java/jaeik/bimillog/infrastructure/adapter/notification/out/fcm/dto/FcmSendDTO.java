@@ -1,6 +1,9 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * <h2>FCM 전송 DTO</h2>

@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.persistence.user;
 
-import jaeik.bimillog.domain.notification.application.port.out.LoadUserPort;
+import jaeik.bimillog.domain.notification.application.port.out.NotificationToUserPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +16,9 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-@Component("notificationUserAdapter")
+@Component
 @RequiredArgsConstructor
-public class UserAdapter implements LoadUserPort {
+public class NotificationToUserAdapter implements NotificationToUserPort {
 
     private final UserQueryUseCase userQueryUseCase;
 

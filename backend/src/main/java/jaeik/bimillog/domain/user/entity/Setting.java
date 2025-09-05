@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.user.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 /**
  * <h2>설정 엔티티</h2>

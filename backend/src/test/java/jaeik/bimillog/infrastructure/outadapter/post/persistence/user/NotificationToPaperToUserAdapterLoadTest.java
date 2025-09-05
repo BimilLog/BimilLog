@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.infrastructure.adapter.post.out.persistence.user.LoadUserInfoAdapter;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -69,7 +70,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "jaeik.bimillog.domain.notification.entity",
         "jaeik.bimillog.domain.common.entity"
 })
-@Import({LoadUserInfoAdapter.class, UserAdapterLoadTest.TestUserQueryUseCase.class})
+@Import({LoadUserInfoAdapter.class, NotificationToPaperToUserAdapterLoadTest.TestUserQueryUseCase.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create",
@@ -77,7 +78,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "logging.level.org.hibernate.SQL=DEBUG",
         "logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE"
 })
-class  UserAdapterLoadTest {
+class NotificationToPaperToUserAdapterLoadTest {
 
     @Container
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")

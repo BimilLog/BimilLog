@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.outadapter.notification.sse;
 
+import jaeik.bimillog.infrastructure.adapter.notification.out.sse.EmitterRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

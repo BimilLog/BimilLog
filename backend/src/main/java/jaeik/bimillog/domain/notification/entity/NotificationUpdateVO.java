@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.notification.entity;
 
 import lombok.Builder;
+
 import java.util.List;
 
 /**

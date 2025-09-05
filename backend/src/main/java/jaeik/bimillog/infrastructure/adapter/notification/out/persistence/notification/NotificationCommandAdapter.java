@@ -4,9 +4,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.entity.QNotification;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

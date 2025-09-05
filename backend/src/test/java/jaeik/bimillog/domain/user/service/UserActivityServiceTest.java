@@ -1,9 +1,10 @@
 package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.domain.user.application.port.out.LoadCommentPort;
-import jaeik.bimillog.domain.user.application.port.out.LoadPostPort;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.user.application.port.out.LoadCommentPort;
+import jaeik.bimillog.domain.user.application.port.out.LoadPostPort;
+import jaeik.bimillog.domain.user.application.service.UserActivityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

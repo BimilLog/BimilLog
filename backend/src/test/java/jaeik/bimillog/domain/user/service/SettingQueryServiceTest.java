@@ -1,11 +1,10 @@
 package jaeik.bimillog.domain.user.service;
 
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.user.application.service.SettingQueryService;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

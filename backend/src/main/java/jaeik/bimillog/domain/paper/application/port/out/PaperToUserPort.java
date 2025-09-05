@@ -11,7 +11,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadUserPort {
+public interface PaperToUserPort {
 
     /**
      * <h3>사용자 이름으로 사용자 조회</h3>

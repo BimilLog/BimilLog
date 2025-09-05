@@ -2,10 +2,10 @@ package jaeik.bimillog.integration.event.auth;
 
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.event.UserSignedUpEvent;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.comment.application.port.out.CommentCommandPort;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

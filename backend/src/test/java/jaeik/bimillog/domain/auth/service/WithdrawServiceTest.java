@@ -1,21 +1,17 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
+import jaeik.bimillog.domain.auth.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLogoutPort;
-
-// TODO: 작은 변경 필요 - SocialLogoutPort 추가 및 LogoutUseCase 의존성 제거
-// 변경 사유: 소셜로그인 비즈니스 로직 리팩토링으로 SocialLogoutPort가 새로 추가되고 LogoutUseCase 순환 의존성 제거됨
-import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.auth.application.service.WithdrawService;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

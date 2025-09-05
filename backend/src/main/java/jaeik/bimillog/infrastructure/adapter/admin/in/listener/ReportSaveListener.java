@@ -2,12 +2,12 @@ package jaeik.bimillog.infrastructure.adapter.admin.in.listener;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
+import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 
 /**
  * <h2>신고 이벤트 리스너</h2>

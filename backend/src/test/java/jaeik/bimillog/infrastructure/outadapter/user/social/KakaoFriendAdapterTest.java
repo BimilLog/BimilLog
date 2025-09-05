@@ -1,15 +1,17 @@
 package jaeik.bimillog.infrastructure.outadapter.user.social;
 
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsDTO;
-import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import reactor.core.publisher.Mono;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoFriendAdapter;
+import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoSocialAdapter;
+import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;

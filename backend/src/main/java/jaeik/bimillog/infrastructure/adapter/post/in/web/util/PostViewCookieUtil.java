@@ -3,7 +3,10 @@ package jaeik.bimillog.infrastructure.adapter.post.in.web.util;
 import jakarta.servlet.http.Cookie;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * <h2>게시글 조회 쿠키 유틸리티</h2>

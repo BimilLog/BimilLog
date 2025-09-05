@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.paper.application.service;
 
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
-import jaeik.bimillog.domain.paper.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
+import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageCommand;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
@@ -31,7 +31,7 @@ public class PaperCommandService implements PaperCommandUseCase {
 
     private final PaperCommandPort paperCommandPort;
     private final PaperQueryPort paperQueryPort;
-    private final LoadUserPort loadUserPort;
+    private final PaperToUserPort paperToUserPort;
     private final ApplicationEventPublisher eventPublisher;
 
 
@@ -77,7 +77,7 @@ public class PaperCommandService implements PaperCommandUseCase {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
         
-        User user = loadUserPort.findByUserName(userName)
+        User user = paperToUserPort.findByUserName(userName)
                 .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
 
         Message message = Message.createMessage(user, messageCommand);

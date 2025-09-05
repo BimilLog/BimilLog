@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentlike;
 
+import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

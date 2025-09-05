@@ -2,9 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLogoutPort;
-
-// TODO: 작은 변경 필요 - SocialLogoutPort 사용 확인 필요
-// 변경 사유: 소셜로그인 비즈니스 로직 리팩토링으로 공통화된 SocialLogoutPort 사용
+import jaeik.bimillog.domain.auth.application.service.LogoutService;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;

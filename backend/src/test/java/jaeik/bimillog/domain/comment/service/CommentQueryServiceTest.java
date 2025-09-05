@@ -1,10 +1,11 @@
 package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +26,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>CommentQueryService 단위 테스트</h2>

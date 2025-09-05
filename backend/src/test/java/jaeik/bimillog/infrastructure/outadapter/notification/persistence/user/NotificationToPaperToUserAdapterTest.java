@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.outadapter.notification.persistence.user;
 
+import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
- * <h2>UserAdapter 테스트</h2>
+ * <h2>NotificationToUserAdapter 테스트</h2>
  * <p>Notification 도메인의 User 어댑터 단위 테스트</p>
  * <p>헥사고날 아키텍처에서 도메인 간 통신을 위한 어댑터 동작 검증</p>
  *
@@ -29,8 +29,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("UserAdapter 테스트")
-class UserAdapterTest {
+@DisplayName("NotificationToUserAdapter 테스트")
+class NotificationToPaperToUserAdapterTest {
 
     @Mock
     private UserQueryUseCase userQueryUseCase;
