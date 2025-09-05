@@ -6,14 +6,14 @@ import jaeik.bimillog.domain.post.event.PostUnsetAsNoticeEvent;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
@@ -32,17 +32,12 @@ import static org.mockito.Mockito.doThrow;
  * @version 2.0.0
  */
 @SpringBootTest
+@Import(TestContainersConfiguration.class)
 @Testcontainers
 @Transactional
 @DisplayName("게시글 공지사항 이벤트 워크플로우 통합 테스트")
 public class PostSetAsNoticeEventIntegrationTest {
 
-    @Container
-    @ServiceConnection
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;

@@ -2,18 +2,17 @@ package jaeik.bimillog.integration.event.auth;
 
 import jaeik.bimillog.domain.auth.application.port.in.TokenCleanupUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.domain.notification.application.port.out.SseEmitterCommandPort;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
@@ -33,16 +32,11 @@ import static org.mockito.Mockito.times;
  */
 @SpringBootTest
 @Testcontainers
+@Import(TestContainersConfiguration.class)
 @Transactional
 @DisplayName("사용자 로그아웃 이벤트 워크플로우 통합 테스트")
 public class UserLoggedOutEventIntegrationTest {
 
-    @Container
-    @ServiceConnection
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -51,7 +45,7 @@ public class UserLoggedOutEventIntegrationTest {
     private TokenCleanupUseCase tokenCleanupUseCase;
 
     @MockitoBean
-    private SseEmitterCommandPort sseEmitterCommandPort;
+    private NotificationSseUseCase notificationSseUseCase;
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리와 SSE 정리까지 완료")
@@ -71,8 +65,8 @@ public class UserLoggedOutEventIntegrationTest {
                 .untilAsserted(() -> {
                     // 특정 토큰 정리
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
-                    // SSE 연결 정리
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(userId));
+                    // 특정 기기의 SSE 연결 정리
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                 });
     }
 
@@ -92,7 +86,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(userId));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                 });
     }
 
@@ -117,9 +111,9 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(2L), eq(102L));
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(3L), eq(103L));
                     
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(1L));
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(2L));
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(3L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(101L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(2L), eq(102L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(3L), eq(103L));
                 });
     }
 
@@ -145,8 +139,10 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(102L));
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(103L));
                     
-                    // SSE는 사용자별로 3번 호출됨
-                    verify(sseEmitterCommandPort, times(3)).deleteByUserId(eq(userId));
+                    // SSE는 기기별로 3번 호출됨
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(101L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(102L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(103L));
                 });
     }
 
@@ -168,7 +164,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(userId));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
 
                     long endTime = System.currentTimeMillis();
                     long processingTime = endTime - startTime;
@@ -199,8 +195,9 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(1L), eq(null));
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(1L), eq(100L));
                     
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(null));
-                    verify(sseEmitterCommandPort, times(2)).deleteByUserId(eq(1L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(null), eq(100L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(null));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(100L));
                 });
     }
 
@@ -223,7 +220,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .untilAsserted(() -> {
                     for (int i = 1; i <= userCount; i++) {
                         verify(tokenCleanupUseCase).cleanupSpecificToken(eq((long) i), eq((long) (i + 1000)));
-                        verify(sseEmitterCommandPort).deleteByUserId(eq((long) i));
+                        verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq((long) i), eq((long) (i + 1000)));
                     }
 
                     long endTime = System.currentTimeMillis();
@@ -254,8 +251,8 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId1), eq(101L));
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId2), eq(102L));
                     
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(userId1));
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(userId2));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId1), eq(101L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId2), eq(102L));
                 });
     }
 
@@ -276,7 +273,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
-                    verify(sseEmitterCommandPort).deleteByUserId(eq(userId));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                 });
     }
 
@@ -299,8 +296,10 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(102L));
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(103L));
                     
-                    // SSE 정리는 사용자별로 3번 호출
-                    verify(sseEmitterCommandPort, times(3)).deleteByUserId(eq(userId));
+                    // SSE 정리는 기기별로 3번 호출
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(101L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(102L));
+                    verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(103L));
                 });
     }
 }

@@ -1,22 +1,18 @@
 package jaeik.bimillog.integration.event.comment;
 
-import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
-import jaeik.bimillog.domain.comment.application.port.out.CommentCommandPort;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
-import jaeik.bimillog.domain.post.event.PostDeletedEvent;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
@@ -25,8 +21,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>댓글 도메인 이벤트 워크플로우 통합 테스트</h2>
- * <p>댓글 관련 이벤트들의 전체 흐름을 검증하는 통합 테스트</p>
+ * <h2>댓글 생성 이벤트 워크플로우 통합 테스트</h2>
+ * <p>댓글 생성 시 발생하는 모든 후속 처리를 검증하는 통합 테스트</p>
  * <p>비동기 이벤트 처리와 실제 스프링 컨텍스트를 사용하여 전체 워크플로우를 테스트</p>
  *
  * @author Jaeik
@@ -34,22 +30,13 @@ import static org.mockito.Mockito.verify;
  */
 @SpringBootTest
 @Testcontainers
+@Import(TestContainersConfiguration.class)
 @Transactional
-@DisplayName("댓글 도메인 이벤트 워크플로우 통합 테스트")
+@DisplayName("댓글 생성 이벤트 워크플로우 통합 테스트")
 class CommentCreatedEventIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
-
-    @MockitoBean
-    private CommentCommandPort commentCommandPort;
 
     @MockitoBean
     private NotificationSseUseCase notificationSseUseCase;
@@ -77,69 +64,6 @@ class CommentCreatedEventIntegrationTest {
                             eq(postUserId), eq(commenterName), eq(postId));
                     verify(notificationFcmUseCase).sendCommentNotification(
                             eq(postUserId), eq(commenterName));
-                });
-    }
-
-    @Test
-    @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 댓글 익명화까지 완료")
-    void userWithdrawnEventWorkflow_ShouldCompleteCommentAnonymization() {
-        // Given
-        Long userId = 1L;
-        UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 비동기 처리를 고려하여 Awaitility 사용
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId));
-                });
-    }
-
-    @Test
-    @DisplayName("게시글 삭제 이벤트 워크플로우 - 댓글 삭제까지 완료")
-    void postDeletedEventWorkflow_ShouldCompleteCommentDeletion() {
-        // Given
-        Long postId = 100L;
-        PostDeletedEvent event = new PostDeletedEvent(postId, "테스트 게시글");
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 비동기 처리를 고려하여 Awaitility 사용
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(commentCommandPort).deleteAllByPostId(eq(postId));
-                });
-    }
-
-    @Test
-    @DisplayName("복합 이벤트 시나리오 - 댓글 생성 후 게시글 삭제")
-    void complexEventScenario_CommentCreatedThenPostDeleted() {
-        // Given
-        Long postUserId = 1L;
-        String commenterName = "댓글작성자";
-        Long postId = 100L;
-
-        // When - 연속된 이벤트 발행
-        eventPublisher.publishEvent(new CommentCreatedEvent(postUserId, commenterName, postId));
-        eventPublisher.publishEvent(new PostDeletedEvent(postId, "테스트 게시글"));
-
-        // Then - 두 이벤트 모두 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    // 댓글 생성 알림
-                    verify(notificationSseUseCase).sendCommentNotification(
-                            eq(postUserId), eq(commenterName), eq(postId));
-                    verify(notificationFcmUseCase).sendCommentNotification(
-                            eq(postUserId), eq(commenterName));
-                    
-                    // 게시글 삭제로 인한 댓글 삭제
-                    verify(commentCommandPort).deleteAllByPostId(eq(postId));
                 });
     }
 
@@ -179,72 +103,6 @@ class CommentCreatedEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("사용자 탈퇴와 게시글 삭제 동시 발생")
-    void simultaneousUserWithdrawalAndPostDeletion() {
-        // Given
-        Long userId = 1L;
-        Long postId = 100L;
-
-        // When - 동시에 사용자 탈퇴와 게시글 삭제 이벤트 발행
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
-        eventPublisher.publishEvent(new PostDeletedEvent(postId, "테스트 게시글"));
-
-        // Then - 두 이벤트 모두 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId));
-                    verify(commentCommandPort).deleteAllByPostId(eq(postId));
-                });
-    }
-
-    @Test
-    @DisplayName("여러 사용자 탈퇴 이벤트 처리")
-    void multipleUserWithdrawalEvents() {
-        // Given
-        Long userId1 = 1L;
-        Long userId2 = 2L;
-        Long userId3 = 3L;
-
-        // When - 여러 사용자 탈퇴 이벤트 발행
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId1));
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId2));
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId3));
-
-        // Then - 모든 사용자의 댓글이 익명화되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId1));
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId2));
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId3));
-                });
-    }
-
-    @Test
-    @DisplayName("여러 게시글 삭제 이벤트 처리")
-    void multiplePostDeletionEvents() {
-        // Given
-        Long postId1 = 100L;
-        Long postId2 = 200L;
-        Long postId3 = 300L;
-
-        // When - 여러 게시글 삭제 이벤트 발행
-        eventPublisher.publishEvent(new PostDeletedEvent(postId1, "테스트 게시글1"));
-        eventPublisher.publishEvent(new PostDeletedEvent(postId2, "테스트 게시글2"));
-        eventPublisher.publishEvent(new PostDeletedEvent(postId3, "테스트 게시글3"));
-
-        // Then - 모든 게시글의 댓글이 삭제되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    verify(commentCommandPort).deleteAllByPostId(eq(postId1));
-                    verify(commentCommandPort).deleteAllByPostId(eq(postId2));
-                    verify(commentCommandPort).deleteAllByPostId(eq(postId3));
-                });
-    }
-
-    @Test
     @DisplayName("이벤트 처리 시간 검증 - 댓글 생성 알림")
     void commentCreatedEventProcessingTime_ShouldCompleteWithinTimeout() {
         // Given
@@ -276,28 +134,91 @@ class CommentCreatedEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("null 값을 포함한 이벤트 처리")
-    void eventsWithNullValues_ShouldBeProcessed() {
-        // Given - null 값들을 포함한 이벤트들
-        CommentCreatedEvent commentEvent = new CommentCreatedEvent(1L, "테스트", 1L);
-        UserWithdrawnEvent userEvent = new UserWithdrawnEvent(null);
-        PostDeletedEvent postEvent = new PostDeletedEvent(null, null);
+    @DisplayName("null 값을 포함한 댓글 생성 이벤트 처리")
+    void commentCreatedEventWithNullValues_ShouldBeProcessed() {
+        // Given - null 값들을 포함한 댓글 생성 이벤트
+        CommentCreatedEvent commentEvent = new CommentCreatedEvent(null, null, null);
 
         // When
         eventPublisher.publishEvent(commentEvent);
-        eventPublisher.publishEvent(userEvent);
-        eventPublisher.publishEvent(postEvent);
 
         // Then - null 값이어도 이벤트는 처리되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(notificationSseUseCase).sendCommentNotification(
                             eq(null), eq(null), eq(null));
                     verify(notificationFcmUseCase).sendCommentNotification(
                             eq(null), eq(null));
-                    verify(commentCommandPort).anonymizeUserComments(eq(null));
-                    verify(commentCommandPort).deleteAllByPostId(eq(null));
+                });
+    }
+
+    @Test
+    @DisplayName("여러 게시글의 댓글 생성 이벤트 처리")
+    void multipleCommentCreatedEvents_ForDifferentPosts() {
+        // Given - 여러 게시글에 댓글 생성
+        CommentCreatedEvent event1 = new CommentCreatedEvent(1L, "댓글러1", 101L);
+        CommentCreatedEvent event2 = new CommentCreatedEvent(2L, "댓글러2", 102L);
+        CommentCreatedEvent event3 = new CommentCreatedEvent(3L, "댓글러3", 103L);
+
+        // When
+        eventPublisher.publishEvent(event1);
+        eventPublisher.publishEvent(event2);
+        eventPublisher.publishEvent(event3);
+
+        // Then - 모든 게시글의 댓글 생성 알림이 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(notificationSseUseCase).sendCommentNotification(
+                            eq(1L), eq("댓글러1"), eq(101L));
+                    verify(notificationSseUseCase).sendCommentNotification(
+                            eq(2L), eq("댓글러2"), eq(102L));
+                    verify(notificationSseUseCase).sendCommentNotification(
+                            eq(3L), eq("댓글러3"), eq(103L));
+                    
+                    verify(notificationFcmUseCase).sendCommentNotification(
+                            eq(1L), eq("댓글러1"));
+                    verify(notificationFcmUseCase).sendCommentNotification(
+                            eq(2L), eq("댓글러2"));
+                    verify(notificationFcmUseCase).sendCommentNotification(
+                            eq(3L), eq("댓글러3"));
+                });
+    }
+
+    @Test
+    @DisplayName("대량 댓글 생성 이벤트 처리")
+    void massCommentCreatedEvents_ShouldProcessEfficiently() {
+        // Given - 대량의 댓글 생성 이벤트 (50개)
+        int eventCount = 50;
+        
+        long startTime = System.currentTimeMillis();
+
+        // When - 대량 댓글 생성 이벤트 발행
+        for (int i = 1; i <= eventCount; i++) {
+            CommentCreatedEvent event = new CommentCreatedEvent(
+                    (long) i, 
+                    "댓글러" + i,
+                    (long) (i + 1000));
+            eventPublisher.publishEvent(event);
+        }
+
+        // Then - 모든 이벤트가 15초 내에 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(15))
+                .untilAsserted(() -> {
+                    for (int i = 1; i <= eventCount; i++) {
+                        verify(notificationSseUseCase).sendCommentNotification(
+                                eq((long) i), eq("댓글러" + i), eq((long) (i + 1000)));
+                        verify(notificationFcmUseCase).sendCommentNotification(
+                                eq((long) i), eq("댓글러" + i));
+                    }
+
+                    long endTime = System.currentTimeMillis();
+                    long totalProcessingTime = endTime - startTime;
+                    
+                    // 대량 처리 시간이 15초를 초과하지 않아야 함
+                    assert totalProcessingTime < 15000L : "대량 댓글 생성 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
                 });
     }
 }

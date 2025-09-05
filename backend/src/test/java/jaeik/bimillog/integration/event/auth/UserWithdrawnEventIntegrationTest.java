@@ -1,18 +1,18 @@
 package jaeik.bimillog.integration.event.auth;
 
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
-import jaeik.bimillog.domain.comment.application.port.out.CommentCommandPort;
+import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
@@ -30,28 +30,25 @@ import static org.mockito.Mockito.*;
  */
 @SpringBootTest
 @Testcontainers
+@Import(TestContainersConfiguration.class)
 @Transactional
 @DisplayName("사용자 탈퇴 이벤트 워크플로우 통합 테스트")
 class UserWithdrawnEventIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
     @MockitoBean
-    private CommentCommandPort commentCommandPort;
+    private CommentCommandUseCase commentCommandUseCase;
+
+    @MockitoBean
+    private NotificationFcmUseCase notificationFcmUseCase;
 
 
 
     @Test
-    @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 댓글 익명화까지 완료")
-    void userWithdrawnEventWorkflow_ShouldCompleteCommentAnonymization() {
+    @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 댓글 처리 및 FCM 토큰 삭제 완료")
+    void userWithdrawnEventWorkflow_ShouldCompleteAllCleanupTasks() {
         // Given
         Long userId = 1L;
         UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
@@ -63,7 +60,8 @@ class UserWithdrawnEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
                 });
     }
 
@@ -84,13 +82,16 @@ class UserWithdrawnEventIntegrationTest {
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId2));
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId3));
 
-        // Then - 모든 사용자의 댓글이 익명화되어야 함
+        // Then - 모든 사용자의 댓글 처리 및 FCM 토큰 삭제가 완료되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId1));
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId2));
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId3));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId1));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId2));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId3));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId1));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId2));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId3));
                 });
     }
 
@@ -112,7 +113,8 @@ class UserWithdrawnEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(1L));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
 
                     long endTime = System.currentTimeMillis();
                     long processingTime = endTime - startTime;
@@ -135,7 +137,8 @@ class UserWithdrawnEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(null));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(null));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(null));
                 });
     }
 
@@ -154,9 +157,10 @@ class UserWithdrawnEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(15))
                 .untilAsserted(() -> {
-                    // 모든 사용자에 대해 댓글 익명화가 호출되었는지 확인
+                    // 모든 사용자에 대해 댓글 처리 및 FCM 토큰 삭제가 호출되었는지 확인
                     for (int i = 1; i <= eventCount; i++) {
-                        verify(commentCommandPort).anonymizeUserComments(eq((long) i));
+                        verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq((long) i));
+                        verify(notificationFcmUseCase).deleteFcmTokens(eq((long) i));
                     }
                 });
     }
@@ -178,22 +182,25 @@ class UserWithdrawnEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId1));
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId2));
-                    verify(commentCommandPort).anonymizeUserComments(eq(userId3));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId1));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId2));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId3));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId1));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId2));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId3));
                 });
     }
 
 
     @Test
-    @DisplayName("예외 상황에서의 이벤트 처리 - 댓글 익명화 실패")
-    void eventProcessingWithException_CommentAnonymizationFailure() {
+    @DisplayName("예외 상황에서의 이벤트 처리 - 댓글 처리 실패")
+    void eventProcessingWithException_CommentProcessingFailure() {
         // Given
         UserWithdrawnEvent event = new UserWithdrawnEvent(1L);
         
-        // 댓글 익명화 실패 시뮬레이션
-        doThrow(new RuntimeException("댓글 익명화 실패"))
-                .when(commentCommandPort).anonymizeUserComments(1L);
+        // 댓글 처리 실패 시뮬레이션
+        doThrow(new RuntimeException("댓글 처리 실패"))
+                .when(commentCommandUseCase).processUserCommentsOnWithdrawal(1L);
 
         // When
         eventPublisher.publishEvent(event);
@@ -202,7 +209,32 @@ class UserWithdrawnEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(commentCommandPort).anonymizeUserComments(eq(1L));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
+                    // FCM 토큰 삭제는 별도 리스너이므로 댓글 처리 실패와 관계없이 처리되어야 함
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
+                });
+    }
+
+    @Test
+    @DisplayName("예외 상황에서의 이벤트 처리 - FCM 토큰 삭제 실패")
+    void eventProcessingWithException_FcmTokenDeletionFailure() {
+        // Given
+        UserWithdrawnEvent event = new UserWithdrawnEvent(1L);
+        
+        // FCM 토큰 삭제 실패 시뮬레이션
+        doThrow(new RuntimeException("FCM 토큰 삭제 실패"))
+                .when(notificationFcmUseCase).deleteFcmTokens(1L);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 예외가 발생해도 이벤트 리스너는 호출되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
+                    // 댓글 처리는 별도 리스너이므로 FCM 토큰 삭제 실패와 관계없이 처리되어야 함
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
                 });
     }
 }
