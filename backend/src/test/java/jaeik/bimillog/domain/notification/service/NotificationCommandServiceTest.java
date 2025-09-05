@@ -153,6 +153,10 @@ class NotificationCommandServiceTest {
     @Test
     @DisplayName("알림 일괄 업데이트 - 음수 ID 값 필터링")
     void shouldFilterNegativeIds_WhenNegativeIds() {
+        // TODO: 테스트 실패 - 메인 로직 검증 필요
+        // 기존: 음수 ID 필터링 가정
+        // 수정: 실제 서비스 로직의 validateAndFilterIds 메서드 동작 확인
+        
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(-1L, -2L, 3L);
@@ -163,7 +167,7 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        // 음수 ID는 필터링되어 양수만 전달됨
+        // 실제 메인 로직: validateAndFilterIds에서 id <= 0 인 값들을 필터링
         verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), argThat(cmd -> {
             return cmd.readIds().size() == 1 && cmd.readIds().contains(3L) &&
                    cmd.deletedIds().size() == 1 && cmd.deletedIds().contains(5L);
@@ -174,6 +178,10 @@ class NotificationCommandServiceTest {
     @Test
     @DisplayName("알림 일괄 업데이트 - 0 값 ID 필터링")
     void shouldFilterZeroIds_WhenZeroIds() {
+        // TODO: 테스트 실패 - 메인 로직 검증 필요
+        // 기존: 0 값 ID만 필터링 가정
+        // 수정: 실제 서비스 로직에서 id <= 0 조건으로 0도 포함하여 필터링
+        
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(0L, 1L);
@@ -184,7 +192,7 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        // 0 ID는 필터링되어 양수만 전달됨
+        // 실제 메인 로직: validateAndFilterIds에서 id <= 0 조건으로 0도 필터링됨
         verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), argThat(cmd -> {
             return cmd.readIds().size() == 1 && cmd.readIds().contains(1L) &&
                    cmd.deletedIds().size() == 1 && cmd.deletedIds().contains(2L);
@@ -212,6 +220,10 @@ class NotificationCommandServiceTest {
     @Test
     @DisplayName("알림 일괄 업데이트 - 중복 ID 제거")
     void shouldRemoveDuplicateIds_WhenDuplicateIds() {
+        // TODO: 테스트 실패 - 메인 로직 검증 필요
+        // 기존: 중복 제거 기능 가정
+        // 수정: 실제 서비스 로직의 validateAndFilterIds에서 distinct() 호출로 중복 제거 확인
+        
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(1L, 1L, 2L, 2L, 3L);
@@ -222,7 +234,7 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        // 중복이 제거되어 고유 ID만 전달됨
+        // 실제 메인 로직: validateAndFilterIds에서 stream().distinct()로 중복 제거
         verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), argThat(cmd -> {
             return cmd.readIds().size() == 3 && 
                    cmd.readIds().containsAll(Arrays.asList(1L, 2L, 3L)) &&
@@ -235,6 +247,10 @@ class NotificationCommandServiceTest {
     @Test
     @DisplayName("알림 일괄 업데이트 - read와 delete ID가 겹치는 경우 삭제 우선")
     void shouldPrioritizeDelete_WhenReadAndDeleteIdsOverlap() {
+        // TODO: 테스트 실패 - 메인 로직 검증 필요
+        // 기존: 삭제 우선 정책 가정
+        // 수정: 실제 서비스 로직 64-75줄에서 deletedIdSet을 이용한 필터링 확인
+        
         // Given
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(1L, 2L, 3L);
@@ -245,7 +261,7 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        // 삭제 우선 정책에 따라 readIds에서 중복 ID 제거
+        // 실제 메인 로직: 삭제 우선 정책으로 readIds에서 deletedIds와 겹치는 ID 제거
         verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), argThat(cmd -> {
             return cmd.readIds().size() == 1 && cmd.readIds().contains(1L) &&
                    cmd.deletedIds().size() == 3 && 

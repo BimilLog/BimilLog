@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -61,7 +62,7 @@ class AdminCommandControllerIntegrationTest {
     private UserRepository userRepository;
     
     @Autowired
-    private jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository postRepository;
+    private PostJpaRepository postRepository;
     
     private MockMvc mockMvc;
     

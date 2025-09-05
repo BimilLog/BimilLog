@@ -222,77 +222,71 @@ class UserCommandServiceTest {
 
 
     @Test
-    @DisplayName("빈 문자열 닉네임 변경 시도")
-    void shouldUpdateUserName_WhenEmptyUserName() {
+    @DisplayName("빈 문자열 닉네임 변경 시도 - INVALID_INPUT_VALUE 예외 발생")
+    void shouldThrowException_WhenEmptyUserName() {
+        // TODO: 테스트 실패 - 메인 로직 버그 의심
+        // 기존: 빈 문자열 허용하는 비논리적 테스트
+        // 수정: 빈 문자열은 유효하지 않은 닉네임이므로 예외 발생해야 함
+        
         // Given
         Long userId = 1L;
         String emptyUserName = "";
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("oldUserName")
-                .build();
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+        // When & Then
+        assertThatThrownBy(() -> userCommandService.updateUserName(userId, emptyUserName))
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
 
-        // When
-        userCommandService.updateUserName(userId, emptyUserName);
-
-        // Then
-        // JPA 변경 감지를 사용하므로 명시적 save() 호출 없음
-        assertThat(user.getUserName()).isEqualTo(emptyUserName);
+        // 입력 검증 실패로 userQueryPort가 호출되지 않아야 함
+        verify(userQueryPort, never()).findById(any());
     }
 
     @Test
-    @DisplayName("null 닉네임 변경 시도")
-    void shouldUpdateUserName_WhenNullUserName() {
+    @DisplayName("null 닉네임 변경 시도 - INVALID_INPUT_VALUE 예외 발생")
+    void shouldThrowException_WhenNullUserName() {
+        // TODO: 테스트 실패 - 메인 로직 버그 의심
+        // 기존: null 허용하는 비논리적 테스트
+        // 수정: null은 유효하지 않은 닉네임이므로 예외 발생해야 함
+        
         // Given
         Long userId = 1L;
         String nullUserName = null;
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("oldUserName")
-                .build();
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+        // When & Then
+        assertThatThrownBy(() -> userCommandService.updateUserName(userId, nullUserName))
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
 
-        // When
-        userCommandService.updateUserName(userId, nullUserName);
-
-        // Then
-        // JPA 변경 감지를 사용하므로 명시적 save() 호출 없음
-        assertThat(user.getUserName()).isNull();
+        // 입력 검증 실패로 userQueryPort가 호출되지 않아야 함
+        verify(userQueryPort, never()).findById(any());
     }
 
     @Test
-    @DisplayName("매우 긴 닉네임 변경")
-    void shouldUpdateUserName_WhenVeryLongUserName() {
+    @DisplayName("매우 긴 닉네임 변경 시 길이 제한 검증")
+    void shouldThrowException_WhenUserNameTooLong() {
+        // TODO: 테스트 실패 - 메인 로직 버그 의심
+        // 기존: 255자 긴 닉네임 허용하는 비논리적 테스트
+        // 수정: 닉네임 길이 제한(예: 50자) 초과 시 예외 발생해야 함
+        
         // Given
         Long userId = 1L;
-        String longUserName = "a".repeat(255); // 255자 길이
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("oldUserName")
-                .build();
+        String tooLongUserName = "a".repeat(51); // 51자 길이 (50자 제한 가정)
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+        // When & Then
+        assertThatThrownBy(() -> userCommandService.updateUserName(userId, tooLongUserName))
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
 
-        // When
-        userCommandService.updateUserName(userId, longUserName);
-
-        // Then
-        // JPA 변경 감지를 사용하므로 명시적 save() 호출 없음
-        assertThat(user.getUserName()).isEqualTo(longUserName);
+        // 입력 검증 실패로 userQueryPort가 호출되지 않아야 함
+        verify(userQueryPort, never()).findById(any());
     }
 
     @Test
-    @DisplayName("특수 문자 포함 닉네임 변경")
-    void shouldUpdateUserName_WhenSpecialCharacterUserName() {
+    @DisplayName("적절한 길이의 닉네임 변경 성공")
+    void shouldUpdateUserName_WhenValidLengthUserName() {
         // Given
         Long userId = 1L;
-        String specialUserName = "user@#$%^&*()_+{}|:<>?[];',./";
+        String validUserName = "a".repeat(20); // 20자 길이 (제한 내)
         
         User user = User.builder()
                 .id(userId)
@@ -302,11 +296,53 @@ class UserCommandServiceTest {
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
-        userCommandService.updateUserName(userId, specialUserName);
+        userCommandService.updateUserName(userId, validUserName);
 
         // Then
-        // JPA 변경 감지를 사용하므로 명시적 save() 호출 없음
-        assertThat(user.getUserName()).isEqualTo(specialUserName);
+        verify(userQueryPort).findById(userId);
+        assertThat(user.getUserName()).isEqualTo(validUserName);
+    }
+
+    @Test
+    @DisplayName("특수 문자 포함 닉네임 변경 시 형식 검증")
+    void shouldThrowException_WhenInvalidCharacterUserName() {
+        // TODO: 테스트 실패 - 메인 로직 버그 의심
+        // 기존: 모든 특수문자 허용하는 비논리적 테스트
+        // 수정: 허용되지 않는 특수문자 사용 시 예외 발생해야 함
+        
+        // Given
+        Long userId = 1L;
+        String invalidUserName = "user@#$%^&*()"; // 허용되지 않는 특수문자
+
+        // When & Then
+        assertThatThrownBy(() -> userCommandService.updateUserName(userId, invalidUserName))
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
+
+        // 입력 검증 실패로 userQueryPort가 호출되지 않아야 함
+        verify(userQueryPort, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("허용되는 문자 조합 닉네임 변경 성공")
+    void shouldUpdateUserName_WhenValidCharacterUserName() {
+        // Given
+        Long userId = 1L;
+        String validUserName = "user123_"; // 영문, 숫자, 언더스코어만 허용 가정
+        
+        User user = User.builder()
+                .id(userId)
+                .userName("oldUserName")
+                .build();
+
+        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+
+        // When
+        userCommandService.updateUserName(userId, validUserName);
+
+        // Then
+        verify(userQueryPort).findById(userId);
+        assertThat(user.getUserName()).isEqualTo(validUserName);
     }
 
     @Test

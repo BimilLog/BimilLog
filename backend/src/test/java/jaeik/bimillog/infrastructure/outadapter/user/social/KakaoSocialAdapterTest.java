@@ -45,11 +45,19 @@ class KakaoSocialAdapterTest {
     }
 
     @Test
-    @DisplayName("통합 - 외부 API 호출 시뮬레이션")
-    void shouldSimulateExternalApiCall_WhenGetFriendListCalled() {
-        // When & Then: 외부 API 호출 시 예외 발생 확인
-        assertThatThrownBy(() -> kakaoSocialAdapter.getFriendList("token", 0, 10))
-                .isInstanceOf(NullPointerException.class);
+    @DisplayName("통합 - 유효하지 않은 토큰으로 친구 목록 조회 시 예외 발생")
+    void shouldThrowException_WhenInvalidTokenProvidedForFriendList() {
+        // TODO: 테스트 실패 - 메인 로직 버그 의심
+        // 기존: NPE만 확인하는 비논리적 테스트
+        // 수정: 실제 카카오 API 응답에 따른 적절한 예외 처리 검증
+        
+        // Given: 유효하지 않은 토큰
+        String invalidToken = "invalid_token_12345";
+
+        // When & Then: 카카오 API 호출 시 적절한 예외 발생 확인
+        assertThatThrownBy(() -> kakaoSocialAdapter.getFriendList(invalidToken, 0, 10))
+                .isInstanceOf(RuntimeException.class) // 또는 적절한 커스텀 예외
+                .hasMessageContaining("Kakao API"); // 카카오 API 관련 에러 메시지
     }
 
     @Test

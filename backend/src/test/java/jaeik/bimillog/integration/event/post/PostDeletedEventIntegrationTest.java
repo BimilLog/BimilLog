@@ -30,18 +30,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-/**
- * <h2>게시글 도메인 이벤트 워크플로우 통합 테스트</h2>
- * <p>게시글 관련 이벤트들의 전체 흐름을 검증하는 통합 테스트</p>
- * <p>비동기 이벤트 처리와 실제 스프링 컨텍스트를 사용하여 전체 워크플로우를 테스트</p>
- *
- * @author Jaeik
- * @version 2.0.0
- */
+
 @SpringBootTest
 @Testcontainers
 @Transactional
-@DisplayName("게시글 도메인 이벤트 워크플로우 통합 테스트")
+@DisplayName("통트")
 class PostDeletedEventIntegrationTest {
 
     @Container

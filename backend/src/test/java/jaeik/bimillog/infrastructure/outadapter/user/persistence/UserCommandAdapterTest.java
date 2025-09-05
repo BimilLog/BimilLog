@@ -137,49 +137,60 @@ class UserCommandAdapterTest {
     }
 
     @Test
-    @DisplayName("경계값 - null 사용자 저장")
-    void shouldHandleNullUser_WhenNullUserProvided() {
+    @DisplayName("예외 케이스 - null 사용자 저장 시 예외 발생")
+    void shouldThrowException_WhenNullUserProvided() {
+        // TODO: 테스트 실패 - 메인 로직 버그 의심
+        // 기존: null 허용하는 비논리적 테스트
+        // 수정: null 사용자는 저장될 수 없으므로 적절한 예외 처리 필요
+        
         // Given: null 사용자
         User nullUser = null;
-        
-        given(userRepository.save(any())).willReturn(null);
 
-        // When: null 사용자 저장 실행
-        User result = userCommandAdapter.save(nullUser);
+        // When & Then: null 사용자 저장 시 예외 발생 확인
+        assertThatThrownBy(() -> userCommandAdapter.save(nullUser))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("User cannot be null");
 
-        // Then: Repository에 null이 전달되고 결과도 null인지 검증
-        assertThat(result).isNull();
-        verify(userRepository).save(nullUser);
+        // 검증 실패로 repository 호출되지 않아야 함
+        verify(userRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("경계값 - null 설정 저장")
-    void shouldHandleNullSetting_WhenNullSettingProvided() {
+    @DisplayName("예외 케이스 - null 설정 저장 시 예외 발생")
+    void shouldThrowException_WhenNullSettingProvided() {
+        // TODO: 테스트 실패 - 메인 로직 버그 의심
+        // 기존: null 설정 허용하는 비논리적 테스트
+        // 수정: null 설정은 저장될 수 없으므로 적절한 예외 처리 필요
+        
         // Given: null 설정
         Setting nullSetting = null;
-        
-        given(settingRepository.save(any())).willReturn(null);
 
-        // When: null 설정 저장 실행
-        Setting result = userCommandAdapter.save(nullSetting);
+        // When & Then: null 설정 저장 시 예외 발생 확인
+        assertThatThrownBy(() -> userCommandAdapter.save(nullSetting))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Setting cannot be null");
 
-        // Then: Repository에 null이 전달되고 결과도 null인지 검증
-        assertThat(result).isNull();
-        verify(settingRepository).save(nullSetting);
+        // 검증 실패로 repository 호출되지 않아야 함
+        verify(settingRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("경계값 - null ID로 사용자 삭제")
-    void shouldHandleNullId_WhenNullIdProvided() {
+    @DisplayName("예외 케이스 - null ID로 사용자 삭제 시 예외 발생")
+    void shouldThrowException_WhenNullIdProvided() {
+        // TODO: 테스트 실패 - 메인 로직 버그 의심
+        // 기존: null ID 허용하는 비논리적 테스트
+        // 수정: null ID로는 삭제할 수 없으므로 적절한 예외 처리 필요
+        
         // Given: null ID
         Long nullId = null;
 
-        // When: null ID로 삭제 실행
-        userCommandAdapter.deleteById(nullId);
+        // When & Then: null ID로 삭제 시 예외 발생 확인
+        assertThatThrownBy(() -> userCommandAdapter.deleteById(nullId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("User ID cannot be null");
 
-        // Then: Repository에 null이 전달되는지 검증
-
-        verify(userRepository).deleteById(nullId);
+        // 검증 실패로 repository 호출되지 않아야 함
+        verify(userRepository, never()).deleteById(any());
     }
 
     @Test
