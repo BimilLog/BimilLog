@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
@@ -49,7 +49,7 @@ public class SocialLoginAdapter implements SocialLoginPort {
         SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code).block(); // 동기 변환
 
         SocialLoginUserData rawData = initialResult.userData();
-        TokenVO tokenVO = initialResult.token();
+        Token token = initialResult.token();
 
         // 인프라 DTO → 도메인 모델 변환 (의존성 역전 원칙 준수)
         SocialUserProfile userProfile = new SocialUserProfile(
@@ -75,9 +75,9 @@ public class SocialLoginAdapter implements SocialLoginPort {
             if (needsUpdate) {
                 user.updateUserInfo(rawData.nickname(), rawData.profileImageUrl());
             }
-            return new LoginResult(userProfile, tokenVO, false); // 기존 사용자
+            return new LoginResult(userProfile, token, false); // 기존 사용자
         } else {
-            return new LoginResult(userProfile, tokenVO, true); // 신규 사용자
+            return new LoginResult(userProfile, token, true); // 신규 사용자
         }
     }
 

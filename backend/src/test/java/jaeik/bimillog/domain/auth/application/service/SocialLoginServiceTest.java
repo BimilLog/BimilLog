@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -54,7 +54,7 @@ class SocialLoginServiceTest {
 
     private SocialLoginUserData testUserData;
     private SocialLoginPort.SocialUserProfile testUserProfile;
-    private TokenVO testTokenVO;
+    private Token testToken;
     private SocialLoginPort.LoginResult existingUserResult;
     private SocialLoginPort.LoginResult newUserResult;
 
@@ -62,13 +62,10 @@ class SocialLoginServiceTest {
     void setUp() {
         testUserData = new SocialLoginUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "fcm-token");
         testUserProfile = new SocialLoginPort.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
-        testTokenVO = TokenVO.builder()
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
-                .build();
+        testToken = Token.createTemporaryToken("access-token", "refresh-token");
 
-        existingUserResult = new SocialLoginPort.LoginResult(testUserProfile, testTokenVO, false); // 기존 사용자
-        newUserResult = new SocialLoginPort.LoginResult(testUserProfile, testTokenVO, true); // 신규 사용자
+        existingUserResult = new SocialLoginPort.LoginResult(testUserProfile, testToken, false); // 기존 사용자
+        newUserResult = new SocialLoginPort.LoginResult(testUserProfile, testToken, true); // 신규 사용자
     }
 
     @Test
@@ -85,7 +82,7 @@ class SocialLoginServiceTest {
 
             given(socialLoginPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(existingUserResult);
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
-            given(saveUserPort.handleExistingUserLogin(testUserProfile, testTokenVO, fcmToken)).willReturn(cookies);
+            given(saveUserPort.handleExistingUserLogin(testUserProfile, testToken, fcmToken)).willReturn(cookies);
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", fcmToken);
@@ -96,7 +93,7 @@ class SocialLoginServiceTest {
             assertThat(existingUserResponse.cookies()).isEqualTo(cookies);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
-            verify(saveUserPort).handleExistingUserLogin(testUserProfile, testTokenVO, fcmToken);
+            verify(saveUserPort).handleExistingUserLogin(testUserProfile, testToken, fcmToken);
         }
     }
 
@@ -124,7 +121,7 @@ class SocialLoginServiceTest {
             assertThat(newUserResponse.tempCookie()).isEqualTo(tempCookie);
 
             verify(socialLoginPort).login(SocialProvider.KAKAO, "auth-code");
-            verify(redisUserDataPort).saveTempData(anyString(), eq(testUserProfile), eq(testTokenVO), eq("fcm-token"));
+            verify(redisUserDataPort).saveTempData(anyString(), eq(testUserProfile), eq(testToken), eq("fcm-token"));
             verify(redisUserDataPort).createTempCookie(anyString());
         }
     }

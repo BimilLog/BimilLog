@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.cache;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.TemporaryUserDataDTO;
@@ -57,14 +57,14 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      *
      * @param uuid UUID 키
      * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
-     * @param tokenVO 토큰 정보
+     * @param token 토큰 정보
      * @param fcmToken FCM 토큰 (선택적)
-     * @throws CustomException UUID, userProfile, tokenVO가 유효하지 않은 경우
+     * @throws CustomException UUID, userProfile, token이 유효하지 않은 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
+    public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken) {
         // 1. UUID 검증
         if (uuid == null || uuid.trim().isEmpty()) {
             log.warn("유효하지 않은 임시 UUID 제공됨: {}", uuid);
@@ -77,8 +77,8 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
         
-        // 3. tokenVO 검증
-        if (tokenVO == null) {
+        // 3. token 검증
+        if (token == null) {
             log.warn("UUID {}에 대해 유효하지 않은 토큰 데이터 제공됨", uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TOKEN_DATA);
         }
@@ -87,7 +87,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             String key = TEMP_KEY_PREFIX + uuid;
             
             // 도메인 모델을 인프라 DTO로 변환하여 저장
-            TemporaryUserDataDTO tempData = TemporaryUserDataDTO.fromDomainProfile(userProfile, tokenVO, fcmToken);
+            TemporaryUserDataDTO tempData = TemporaryUserDataDTO.fromDomainProfile(userProfile, token, fcmToken);
             
             // Redis에 TTL과 함께 저장
             redisTemplate.opsForValue().set(key, tempData, TTL);
@@ -219,7 +219,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     private TempUserData convertToDomain(TemporaryUserDataDTO dto) {
         return TempUserData.of(
             dto.toDomainProfile(),
-            dto.getTokenVO(),
+            dto.getToken(),
             dto.getFcmToken()
         );
     }
@@ -247,12 +247,12 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             // tokenVO 변환
             Object tokenObj = map.get("tokenVO");
             if (!(tokenObj instanceof java.util.Map)) {
-                throw new IllegalArgumentException("tokenVO가 Map 타입이 아닙니다");
+                throw new IllegalArgumentException("token이 Map 타입이 아닙니다");
             }
             java.util.Map<String, Object> tokenMap = (java.util.Map<String, Object>) tokenObj;
             
-            // TokenVO 생성
-            TokenVO tokenVO = TokenVO.of(
+            // Token 생성
+            Token token = Token.createTemporaryToken(
                 (String) tokenMap.get("accessToken"),
                 (String) tokenMap.get("refreshToken")
             );
@@ -270,7 +270,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             // FCM 토큰
             String fcmToken = (String) map.get("fcmToken");
             
-            return new TemporaryUserDataDTO(socialData, tokenVO, fcmToken);
+            return new TemporaryUserDataDTO(socialData, token, fcmToken);
             
         } catch (Exception e) {
             log.error("LinkedHashMap -> TemporaryUserDataDTO 변환 실패: {}", e.getMessage(), e);

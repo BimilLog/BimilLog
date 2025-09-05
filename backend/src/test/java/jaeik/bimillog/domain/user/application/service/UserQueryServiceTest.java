@@ -226,11 +226,8 @@ class UserQueryServiceTest {
     void shouldFindTokenById_WhenTokenIdExists() {
         // Given
         Long tokenId = 1L;
-        Token expectedToken = Token.builder()
-                .id(tokenId)
-                .accessToken("access_token")
-                .refreshToken("refresh_token")
-                .build();
+        Token expectedToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(expectedToken));
 
@@ -240,8 +237,8 @@ class UserQueryServiceTest {
         // Then
         verify(tokenPort).findById(tokenId);
         assertThat(result).isPresent();
-        assertThat(result.get().getAccessToken()).isEqualTo("access_token");
-        assertThat(result.get().getRefreshToken()).isEqualTo("refresh_token");
+        assertThat(result.get().getAccessToken()).isEqualTo("access-token");
+        assertThat(result.get().getRefreshToken()).isEqualTo("refresh-token");
     }
 
 

@@ -103,11 +103,8 @@ class TokenJpaAdapterTest {
         // Given: 실제 User와 Token 데이터 생성
         User user = createAndSaveUser("testUser", "123456789");
         
-        Token token = Token.builder()
-                .accessToken("test-access-token")
-                .refreshToken("test-refresh-token")
-                .users(user)
-                .build();
+        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+                
         
         Token savedToken = entityManager.persistAndFlush(token);
         entityManager.clear(); // 1차 캐시 클리어
@@ -144,17 +141,11 @@ class TokenJpaAdapterTest {
         // Given: 한 사용자가 여러 토큰을 가진 경우 (재로그인 등)
         User user = createAndSaveUser("multiTokenUser", "987654321");
         
-        Token token1 = Token.builder()
-                .accessToken("access-token-1")
-                .refreshToken("refresh-token-1")
-                .users(user)
-                .build();
+        Token token1 = Token.createTemporaryToken("access-token", "refresh-token");
+                
         
-        Token token2 = Token.builder()
-                .accessToken("access-token-2")
-                .refreshToken("refresh-token-2")
-                .users(user)
-                .build();
+        Token token2 = Token.createTemporaryToken("access-token", "refresh-token");
+                
         
         entityManager.persistAndFlush(token1);
         entityManager.persistAndFlush(token2);
@@ -198,11 +189,8 @@ class TokenJpaAdapterTest {
         // Given: User-Token 양방향 관계
         User user = createAndSaveUser("relationUser", "444555666");
         
-        Token token = Token.builder()
-                .accessToken("relation-access-token")
-                .refreshToken("relation-refresh-token")
-                .users(user)
-                .build();
+        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+                
         
         Token savedToken = entityManager.persistAndFlush(token);
         entityManager.clear(); // 캐시 클리어로 실제 DB 조회 강제

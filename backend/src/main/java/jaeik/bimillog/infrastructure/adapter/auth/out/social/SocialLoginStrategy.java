@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.social;
 
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import reactor.core.publisher.Mono;
 
@@ -23,7 +23,7 @@ public interface SocialLoginStrategy {
      * @since 2.0.0
      * @author Jaeik
      */
-    record StrategyLoginResult(SocialLoginUserData userData, TokenVO token) {}
+    record StrategyLoginResult(SocialLoginUserData userData, Token token) {}
 
     /**
      * <h3>소셜 로그인 처리</h3>

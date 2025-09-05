@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.entity;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 
 /**
  * <h2>임시 사용자 데이터</h2>
@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.user.entity.TokenVO;
  * <p>소셜 로그인 후 회원가입 완료까지의 임시 데이터를 담고 있습니다.</p>
  *
  * @param userProfile 소셜 사용자 프로필 정보
- * @param tokenVO 소셜 로그인 토큰 정보
+ * @param token 소셜 로그인 토큰 정보
  * @param fcmToken FCM 푸시 알림 토큰 (선택적)
  * 
  * @author Jaeik
@@ -18,7 +18,7 @@ import jaeik.bimillog.domain.user.entity.TokenVO;
  */
 public record TempUserData(
         SocialLoginPort.SocialUserProfile userProfile,
-        TokenVO tokenVO,
+        Token token,
         String fcmToken
 ) {
     /**
@@ -26,19 +26,19 @@ public record TempUserData(
      * <p>FCM 토큰 검증 후 임시 데이터 객체를 생성합니다.</p>
      *
      * @param userProfile 소셜 사용자 프로필 (필수)
-     * @param tokenVO 토큰 정보 (필수)  
+     * @param token 토큰 정보 (필수)  
      * @param fcmToken FCM 토큰 (선택적)
      * @return 검증된 임시 사용자 데이터
-     * @throws IllegalArgumentException userProfile이나 tokenVO가 null인 경우
+     * @throws IllegalArgumentException userProfile이나 token이 null인 경우
      * @since 2.0.0
      */
-    public static TempUserData of(SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
+    public static TempUserData of(SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken) {
         if (userProfile == null) {
             throw new IllegalArgumentException("userProfile cannot be null");
         }
-        if (tokenVO == null) {
-            throw new IllegalArgumentException("tokenVO cannot be null");
+        if (token == null) {
+            throw new IllegalArgumentException("token cannot be null");
         }
-        return new TempUserData(userProfile, tokenVO, fcmToken);
+        return new TempUserData(userProfile, token, fcmToken);
     }
 }

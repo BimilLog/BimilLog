@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.entity.Setting;
@@ -42,7 +42,7 @@ class SocialLoginAdapterTest {
 
     private SocialLoginUserData testUserData;
     private SocialLoginPort.SocialUserProfile testUserProfile;
-    private TokenVO testTokenVO;
+    private Token testToken;
     private SocialLoginStrategy.StrategyLoginResult testStrategyResult;
 
     @BeforeEach
@@ -60,12 +60,10 @@ class SocialLoginAdapterTest {
         testUserProfile = new SocialLoginPort.SocialUserProfile("123456789", "test@example.com", 
                 SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url");
         
-        testTokenVO = TokenVO.builder()
-                .accessToken("access-token-12345")
-                .refreshToken("refresh-token-12345")
-                .build();
+        testToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
-        testStrategyResult = new SocialLoginStrategy.StrategyLoginResult(testUserData, testTokenVO);
+        testStrategyResult = new SocialLoginStrategy.StrategyLoginResult(testUserData, testToken);
     }
 
     @Test
@@ -83,7 +81,7 @@ class SocialLoginAdapterTest {
         // Then: 신규 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isTrue();
         assertThat(result.userProfile()).isEqualTo(testUserProfile);
-        assertThat(result.token()).isEqualTo(testTokenVO);
+        assertThat(result.token()).isEqualTo(testToken);
         
         verify(kakaoStrategy).login(code);
         verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");
@@ -114,7 +112,7 @@ class SocialLoginAdapterTest {
         // Then: 기존 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isFalse();
         assertThat(result.userProfile()).isEqualTo(testUserProfile);
-        assertThat(result.token()).isEqualTo(testTokenVO);
+        assertThat(result.token()).isEqualTo(testToken);
         
         verify(kakaoStrategy).login(code);
         verify(userQueryUseCase).findByProviderAndSocialId(SocialProvider.KAKAO, "123456789");

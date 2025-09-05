@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.auth.SaveUserAdapter;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
@@ -61,10 +61,8 @@ class SaveDataAdapterTest {
         // Given: 기존 사용자와 토큰 정보
         SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg");
 
-        TokenVO tokenDTO = TokenVO.builder()
-                .accessToken("new-access-token")
-                .refreshToken("new-refresh-token")
-                .build();
+        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         String fcmToken = "fcm-token-12345";
 
@@ -81,12 +79,8 @@ class SaveDataAdapterTest {
                 .setting(Setting.createSetting()) // 기존 사용자는 Setting 보유
                 .build();
 
-        Token existingToken = Token.builder()
-                .id(1L)
-                .accessToken("old-access-token")
-                .refreshToken("old-refresh-token")
-                .users(existingUser)
-                .build();
+        Token existingToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         List<ResponseCookie> expectedCookies = List.of(
                 ResponseCookie.from("jwt", "generated-jwt").build()
@@ -125,10 +119,8 @@ class SaveDataAdapterTest {
         // Given: 존재하지 않는 사용자 정보
         SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile("nonexistent", "nonexistent@example.com", SocialProvider.KAKAO, "존재안함", "https://example.jpg");
 
-        TokenVO tokenDTO = TokenVO.builder()
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
-                .build();
+        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "nonexistent"))
                 .willReturn(Optional.empty());
@@ -149,10 +141,8 @@ class SaveDataAdapterTest {
         // Given: FCM 토큰이 없는 기존 사용자 로그인
         SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg");
 
-        TokenVO tokenDTO = TokenVO.builder()
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
-                .build();
+        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         User existingUser = User.builder()
                 .id(1L)
@@ -162,12 +152,8 @@ class SaveDataAdapterTest {
                 .setting(Setting.createSetting())
                 .build();
 
-        Token savedToken = Token.builder()
-                .id(1L)
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
-                .users(existingUser)
-                .build();
+        Token savedToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(Optional.of(existingUser));
@@ -195,10 +181,8 @@ class SaveDataAdapterTest {
         
         SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg");
 
-        TokenVO tokenDTO = TokenVO.builder()
-                .accessToken("new-user-access-token")
-                .refreshToken("new-user-refresh-token")
-                .build();
+        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         User newUser = User.builder()
                 .id(2L)
@@ -210,12 +194,8 @@ class SaveDataAdapterTest {
                 .setting(Setting.createSetting()) // 이벤트 처리 완료 상태 반영
                 .build();
 
-        Token newToken = Token.builder()
-                .id(2L)
-                .accessToken(tokenDTO.accessToken())
-                .refreshToken(tokenDTO.refreshToken())
-                .users(newUser)
-                .build();
+        Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         List<ResponseCookie> expectedCookies = List.of(
                 ResponseCookie.from("jwt", "new-user-jwt").build()
@@ -261,10 +241,8 @@ class SaveDataAdapterTest {
         
         SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg");
 
-        TokenVO tokenDTO = TokenVO.builder()
-                .accessToken("no-fcm-access")
-                .refreshToken("no-fcm-refresh")
-                .build();
+        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         User newUser = User.builder()
                 .id(3L)
@@ -272,10 +250,8 @@ class SaveDataAdapterTest {
                 .setting(Setting.createSetting()) // 이벤트 처리 완료 상태
                 .build();
 
-        Token newToken = Token.builder()
-                .id(3L)
-                .users(newUser)
-                .build();
+        Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         given(userCommandUseCase.save(any(User.class))).willReturn(newUser);
         given(tokenRepository.save(any(Token.class))).willReturn(newToken);

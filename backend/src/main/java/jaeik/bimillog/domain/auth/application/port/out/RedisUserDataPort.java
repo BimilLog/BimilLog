@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.TempUserData;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import org.springframework.http.ResponseCookie;
 
 import java.util.Optional;
@@ -20,10 +20,10 @@ public interface RedisUserDataPort {
      *
      * @param uuid UUID 키
      * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
-     * @param tokenVO 토큰 정보
+     * @param token 토큰 정보
      * @param fcmToken Firebase Cloud Messaging 토큰 (선택적)
      */
-    void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken);
+    void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken);
 
     /**
      * <h3>임시 사용자 데이터 조회</h3>

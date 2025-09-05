@@ -72,11 +72,8 @@ class FcmAdapterTest {
                 .setting(testSetting)
                 .build();
 
-        testFcmToken = FcmToken.builder()
-                .id(1L)
-                .user(testUser)
-                .fcmRegistrationToken("test-fcm-token")
-                .build();
+        testFcmToken = FcmToken.create(testUser, "test-fcm-token");
+                
 
         testEvent = NotificationEvent.create(
                 NotificationType.COMMENT,
@@ -89,11 +86,8 @@ class FcmAdapterTest {
     @DisplayName("정상 케이스 - FCM 토큰 저장")
     void shouldSaveFcmToken_WhenValidTokenProvided() {
         // Given: 저장할 FCM 토큰과 예상 결과
-        FcmToken savedToken = FcmToken.builder()
-                .id(1L)
-                .user(testUser)
-                .fcmRegistrationToken("new-fcm-token")
-                .build();
+        FcmToken savedToken = FcmToken.create(testUser, "new-fcm-token");
+                
 
         given(fcmTokenRepository.save(any(FcmToken.class))).willReturn(savedToken);
 

@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.social.dto;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import lombok.Getter;
 
 /**
@@ -16,7 +16,7 @@ import lombok.Getter;
 @Getter
 public class TemporaryUserDataDTO {
     public SocialLoginUserData socialLoginUserData;
-    public TokenVO tokenVO;
+    public Token token;
     public String fcmToken;
 
     /**
@@ -33,14 +33,14 @@ public class TemporaryUserDataDTO {
      * <p>모든 필드를 초기화하는 생성자</p>
      *
      * @param socialLoginUserData 소셜 로그인 사용자 데이터
-     * @param tokenVO 토큰 정보
+     * @param token 토큰 정보
      * @param fcmToken FCM 토큰
      * @since 2.0.0
      * @author Jaeik
      */
-    public TemporaryUserDataDTO(SocialLoginUserData socialLoginUserData, TokenVO tokenVO, String fcmToken) {
+    public TemporaryUserDataDTO(SocialLoginUserData socialLoginUserData, Token token, String fcmToken) {
         this.socialLoginUserData = socialLoginUserData;
-        this.tokenVO = tokenVO;
+        this.token = token;
         this.fcmToken = fcmToken;
     }
 
@@ -49,13 +49,13 @@ public class TemporaryUserDataDTO {
      * <p>의존성 역전 원칙을 준수하면서 어댑터에서 변환 처리</p>
      *
      * @param userProfile 소셜 사용자 프로필 도메인 모델
-     * @param tokenVO 토큰 정보
+     * @param token 토큰 정보
      * @param fcmToken FCM 토큰
      * @return 인프라 DTO 객체
      * @since 2.0.0
      * @author Jaeik
      */
-    public static TemporaryUserDataDTO fromDomainProfile(SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
+    public static TemporaryUserDataDTO fromDomainProfile(SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken) {
         SocialLoginUserData socialLoginUserData = SocialLoginUserData.builder()
                 .socialId(userProfile.socialId())
                 .email(userProfile.email())
@@ -65,7 +65,7 @@ public class TemporaryUserDataDTO {
                 .fcmToken(fcmToken) // FCM 토큰 저장
                 .build();
 
-        return new TemporaryUserDataDTO(socialLoginUserData, tokenVO, fcmToken);
+        return new TemporaryUserDataDTO(socialLoginUserData, token, fcmToken);
     }
 
     /**

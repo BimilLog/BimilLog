@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.domain.user.entity.TokenVO;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
@@ -45,7 +44,7 @@ public class SaveUserAdapter implements SaveUserPort {
      * <p>소셜 사용자 프로필 정보를 업데이트하고, FCM 토큰을 등록합니다.</p>
      *
      * @param userProfile  소셜 사용자 프로필 (순수 도메인 모델)
-     * @param tokenVO  토큰 정보
+     * @param token  토큰 정보
      * @param fcmToken  FCM 토큰 (선택적)
      * @return ResponseCookie 리스트
      * @since 2.0.0
@@ -53,15 +52,15 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> handleExistingUserLogin(SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) { // fcmToken 인자 추가
+    public List<ResponseCookie> handleExistingUserLogin(SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
         User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
         Token newToken = Token.builder()
-                .accessToken(tokenVO.accessToken())
-                .refreshToken(tokenVO.refreshToken())
+                .accessToken(token.getAccessToken())
+                .refreshToken(token.getRefreshToken())
                 .users(user)
                 .build();
 
@@ -79,7 +78,7 @@ public class SaveUserAdapter implements SaveUserPort {
      * @param userName  사용자의 이름
      * @param uuid      임시 UUID
      * @param userProfile  소셜 사용자 프로필 (순수 도메인 모델)
-     * @param tokenVO  토큰 정보
+     * @param token  토큰 정보
      * @param fcmToken  FCM 토큰 (선택적)
      * @return ResponseCookie 리스트
      * @since 2.0.0
@@ -87,7 +86,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) { // fcmToken 인자 추가
+    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
         Setting setting = Setting.createSetting();
         
         User user = userCommandUseCase.save(User.createUser(userProfile, userName, setting));
@@ -96,7 +95,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         redisUserDataPort.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
-                tokenRepository.save(Token.createToken(tokenVO.accessToken(), tokenVO.refreshToken(), user)).getId(),
+                tokenRepository.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
                 null));
     }
 

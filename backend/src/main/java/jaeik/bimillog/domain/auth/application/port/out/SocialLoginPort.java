@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 
 /**
  * <h2>소셜 로그인 포트</h2>
@@ -37,7 +37,7 @@ public interface SocialLoginPort {
      * @since 2.0.0
      * @author Jaeik
      */
-    record LoginResult(SocialUserProfile userProfile, TokenVO token, boolean isNewUser) {}
+    record LoginResult(SocialUserProfile userProfile, Token token, boolean isNewUser) {}
 
     /**
      * <h3>소셜 로그인</h3>

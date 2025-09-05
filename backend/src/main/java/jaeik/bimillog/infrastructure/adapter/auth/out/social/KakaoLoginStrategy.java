@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.social;
 
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import jaeik.bimillog.infrastructure.auth.KakaoKeyVO;
 import org.springframework.core.ParameterizedTypeReference;
@@ -44,8 +44,8 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     @Override
     public Mono<StrategyLoginResult> login(String code) {
         return getToken(code)
-                .flatMap(tokenVO -> getUserInfo(tokenVO.accessToken())
-                        .map(userData -> new StrategyLoginResult(userData, tokenVO)));
+                .flatMap(token -> getUserInfo(token.getAccessToken())
+                        .map(userData -> new StrategyLoginResult(userData, token)));
     }
 
     /**
@@ -105,7 +105,7 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * @since 2.0.0
      * @author Jaeik
      */
-    private Mono<TokenVO> getToken(String code) {
+    private Mono<Token> getToken(String code) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "authorization_code");
         formData.add("client_id", kakaoKeyVO.getCLIENT_ID());
@@ -122,10 +122,10 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                         response -> response.bodyToMono(String.class)
                                 .map(errorBody -> new RuntimeException("Kakao token request failed: " + errorBody)))
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(responseBody -> TokenVO.builder()
-                        .accessToken((String) responseBody.get("access_token"))
-                        .refreshToken((String) responseBody.get("refresh_token"))
-                        .build());
+                .map(responseBody -> Token.createTemporaryToken(
+                        (String) responseBody.get("access_token"),
+                        (String) responseBody.get("refresh_token")
+                ));
     }
 
 

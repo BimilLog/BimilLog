@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -53,68 +53,19 @@ public class TestSocialLoginPortConfig {
                     "Test User", 
                     "https://example.com/profile.jpg"
                 );
-                TokenVO token = new TokenVO("dummy-access-token", "dummy-refresh-token");
+                Token token = Token.createTemporaryToken("dummy-access-token", "dummy-refresh-token");
                 
                 return new LoginResult(profile, token, isNewUser);
             }
 
             @Override
-            public void unlink(SocialProvider provider, String socialId) {
-                // 테스트 환경에서는 실제 API 호출하지 않음 - 성공으로 처리
-                System.out.println("테스트 환경: 소셜 연결 해제 성공 (Mock)");
-            }
-
-            @Override
             public void logout(SocialProvider provider, String accessToken) {
-                // 테스트 환경에서는 실제 API 호출하지 않음 - 성공으로 처리
-                System.out.println("테스트 환경: 소셜 로그아웃 성공 (Mock)");
-            }
-        };
-    }
-
-    @Bean
-    @Primary
-    public RedisUserDataPort testTempDataPort() {
-        return new RedisUserDataPort() {
-            @Override
-            public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, TokenVO tokenVO, String fcmToken) {
-                // 테스트 환경에서는 실제 Redis 저장하지 않음 - 성공으로 처리
-                System.out.println("테스트 환경: 임시 데이터 저장 성공 (Mock) - UUID: " + uuid);
+                // 테스트용 더미 구현 - 아무 작업도 하지 않음
             }
 
             @Override
-            public Optional<TempUserData> getTempData(String uuid) {
-                // 특정 UUID에 대해서는 테스트용 임시 데이터 반환
-                if ("integration-test-uuid-12345".equals(uuid)) {
-                    SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile(
-                            "test-social-id",
-                            "test@example.com", 
-                            SocialProvider.KAKAO,
-                            "Test User",
-                            "https://example.com/profile.jpg"
-                    );
-                    
-                    TokenVO tokenVO = new TokenVO("dummy-access-token", "dummy-refresh-token");
-                    
-                    TempUserData tempData = TempUserData.of(userProfile, tokenVO, "integration-test-fcm-token");
-                    
-                    return Optional.of(tempData);
-                }
-                return Optional.empty();
-            }
-
-            @Override
-            public void removeTempData(String uuid) {
-                // 테스트 환경에서는 실제 삭제하지 않음 - 성공으로 처리
-                System.out.println("테스트 환경: 임시 데이터 삭제 성공 (Mock) - UUID: " + uuid);
-            }
-
-            @Override
-            public ResponseCookie createTempCookie(String uuid) {
-                return ResponseCookie.from("temp", uuid)
-                        .maxAge(Duration.ofMinutes(30))
-                        .httpOnly(true)
-                        .build();
+            public void unlink(SocialProvider provider, String socialId) {
+                // 테스트용 더미 구현 - 아무 작업도 하지 않음
             }
         };
     }

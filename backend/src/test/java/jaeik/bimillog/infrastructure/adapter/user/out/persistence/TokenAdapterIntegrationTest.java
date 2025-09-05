@@ -129,11 +129,8 @@ class TokenAdapterIntegrationTest {
         testUser = entityManager.persistAndFlush(testUser);
 
         // 토큰 생성
-        testToken = Token.builder()
-                .accessToken("kakao-access-token-123")
-                .refreshToken("kakao-refresh-token-123")
-                .users(testUser)
-                .build();
+        testToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
         testToken = entityManager.persistAndFlush(testToken);
         
         entityManager.clear(); // 캐시 클리어
@@ -191,11 +188,8 @@ class TokenAdapterIntegrationTest {
         newUser = userRepository.save(newUser);
 
         // 새로운 토큰 생성
-        Token newToken = Token.builder()
-                .accessToken("new-access-token-456")
-                .refreshToken("new-refresh-token-456")
-                .users(newUser)
-                .build();
+        Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         // When: 새로운 토큰 저장
         Token savedToken = tokenAdapter.save(newToken);
@@ -280,11 +274,8 @@ class TokenAdapterIntegrationTest {
     @DisplayName("관계 매핑 - 사용자 삭제 시 모든 토큰 자동 삭제 (CASCADE)")
     void shouldDeleteAllTokens_WhenUserIsDeleted() {
         // Given: 사용자가 여러 토큰을 가진 상황 생성 (다중 로그인)
-        Token additionalToken = Token.builder()
-                .accessToken("second-access-token")
-                .refreshToken("second-refresh-token")
-                .users(testUser)
-                .build();
+        Token additionalToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
         Token savedAdditionalToken = entityManager.persistAndFlush(additionalToken);
         entityManager.clear();
         
@@ -360,11 +351,8 @@ class TokenAdapterIntegrationTest {
     @DisplayName("다중 로그인 - 한 사용자의 여러 토큰 관리 시나리오")
     void shouldHandleMultipleTokensPerUser_WhenMultipleDeviceLogin() {
         // Given: 동일한 사용자에 대한 추가 토큰 생성 (다중 기기 로그인 지원)
-        Token additionalToken = Token.builder()
-                .accessToken("additional-access-token-pc")
-                .refreshToken("additional-refresh-token-pc")
-                .users(testUser)
-                .build();
+        Token additionalToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         // When: 추가 토큰 저장 (새로운 기기에서 로그인)
         Token savedAdditionalToken = tokenAdapter.save(additionalToken);
@@ -399,11 +387,8 @@ class TokenAdapterIntegrationTest {
     @DisplayName("다중 로그인 - 특정 기기 로그아웃 시나리오")
     void shouldDeleteSpecificToken_WhenSingleDeviceLogout() {
         // Given: 사용자가 두 기기에서 로그인한 상황
-        Token pcToken = Token.builder()
-                .accessToken("pc-access-token")
-                .refreshToken("pc-refresh-token")
-                .users(testUser)
-                .build();
+        Token pcToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
         Token savedPcToken = entityManager.persistAndFlush(pcToken);
         entityManager.clear();
         

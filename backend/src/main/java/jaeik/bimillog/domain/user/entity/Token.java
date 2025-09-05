@@ -29,10 +29,9 @@ public class Token extends BaseEntity {
     @Column(name = "token_id")
     private Long id;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User users;
 
     private String accessToken;
@@ -69,6 +68,24 @@ public class Token extends BaseEntity {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .users(user)
+                .build();
+    }
+
+    /**
+     * <h3>임시 토큰 생성</h3>
+     * <p>사용자 없이 토큰 정보만으로 Token 엔티티를 생성합니다.</p>
+     * <p>소셜 로그인 중간 단계에서 사용됩니다.</p>
+     *
+     * @param accessToken 액세스 토큰
+     * @param refreshToken 리프레시 토큰
+     * @return 생성된 Token 엔티티 (사용자 없음)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static Token createTemporaryToken(String accessToken, String refreshToken) {
+        return Token.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
     

@@ -43,11 +43,8 @@ class TokenAdapterTest {
     void shouldFindToken_WhenValidIdProvided() {
         // Given: 조회할 토큰 ID와 예상 결과
         Long tokenId = 1L;
-        Token expectedToken = Token.builder()
-                .id(tokenId)
-                .accessToken("access-token-value")
-                .refreshToken("refresh-token-value")
-                .build();
+        Token expectedToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
                 
         given(tokenRepository.findById(tokenId)).willReturn(Optional.of(expectedToken));
 
@@ -68,17 +65,11 @@ class TokenAdapterTest {
         // Given: 조회할 사용자 ID와 예상 결과
         Long userId = 1L;
         
-        Token expectedToken1 = Token.builder()
-                .id(1L)
-                .accessToken("user-access-token-1")
-                .refreshToken("user-refresh-token-1")
-                .build();
+        Token expectedToken1 = Token.createTemporaryToken("access-token", "refresh-token");
                 
-        Token expectedToken2 = Token.builder()
-                .id(2L)
-                .accessToken("user-access-token-2")
-                .refreshToken("user-refresh-token-2")
-                .build();
+                
+        Token expectedToken2 = Token.createTemporaryToken("access-token", "refresh-token");
+                
                 
         given(tokenRepository.findByUsersId(userId)).willReturn(List.of(expectedToken1, expectedToken2));
 
@@ -101,18 +92,11 @@ class TokenAdapterTest {
                 .userName("testUser")
                 .build();
                 
-        Token inputToken = Token.builder()
-                .users(user)
-                .accessToken("new-access-token")
-                .refreshToken("new-refresh-token")
-                .build();
+        Token inputToken = Token.createTemporaryToken("access-token", "refresh-token");
                 
-        Token savedToken = Token.builder()
-                .id(1L)
-                .users(user)
-                .accessToken("new-access-token")
-                .refreshToken("new-refresh-token")
-                .build();
+                
+        Token savedToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
                 
         given(tokenRepository.save(any(Token.class))).willReturn(savedToken);
 
@@ -211,17 +195,11 @@ class TokenAdapterTest {
         // Given: 사용자 ID와 삭제할 토큰들
         Long userId = 1L;
         
-        Token token1 = Token.builder()
-                .id(1L)
-                .accessToken("access-token-1")
-                .refreshToken("refresh-token-1")
-                .build();
+        Token token1 = Token.createTemporaryToken("access-token", "refresh-token");
                 
-        Token token2 = Token.builder()
-                .id(2L)
-                .accessToken("access-token-2")
-                .refreshToken("refresh-token-2")
-                .build();
+                
+        Token token2 = Token.createTemporaryToken("access-token", "refresh-token");
+                
                 
         given(tokenRepository.findByUsersId(userId)).willReturn(List.of(token1, token2));
 

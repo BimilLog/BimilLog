@@ -4,7 +4,7 @@ import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TokenVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.util.TestContainersConfiguration;
@@ -65,7 +65,7 @@ class RedisTempDataAdapterTest {
     private AuthCookieManager authCookieManager;
 
     private SocialLoginPort.SocialUserProfile testUserProfile;
-    private TokenVO testTokenVO;
+    private Token testToken;
     private String testUuid;
 
     @BeforeEach
@@ -88,17 +88,15 @@ class RedisTempDataAdapterTest {
             "testUser", 
             "https://example.com/profile.jpg"
         );
-        testTokenVO = TokenVO.builder()
-                .accessToken("access-token-12345")
-                .refreshToken("refresh-token-12345")
-                .build();
+        testToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
     }
 
     @Test
     @DisplayName("정상 케이스 - 임시 데이터 저장 및 조회")
     void shouldSaveAndRetrieveTempData_WhenValidDataProvided() {
         // When: 임시 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
 
         // Then: 저장된 데이터 조회 검증
         Optional<TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
@@ -106,7 +104,7 @@ class RedisTempDataAdapterTest {
         assertThat(savedData).isPresent();
         assertThat(savedData.get().userProfile().socialId()).isEqualTo("123456789");
         assertThat(savedData.get().userProfile().email()).isEqualTo("test@example.com");
-        assertThat(savedData.get().tokenVO().accessToken()).isEqualTo("access-token-12345");
+        assertThat(savedData.get().token().getAccessToken()).isEqualTo("access-token-12345");
         assertThat(savedData.get().fcmToken()).isEqualTo("test-fcm-token");
         
         // Redis에서 직접 확인
@@ -118,7 +116,7 @@ class RedisTempDataAdapterTest {
     @DisplayName("정상 케이스 - TTL 설정 확인")
     void shouldSetCorrectTTL_WhenDataSaved() {
         // When: 임시 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
         
         String key = "temp:user:" + testUuid;
         
@@ -135,11 +133,11 @@ class RedisTempDataAdapterTest {
     @DisplayName("예외 케이스 - null 값들로 저장 시 예외 발생")
     void shouldThrowException_WhenInvalidDataProvided() {
         // When & Then: null UUID로 저장 시도 시 예외 발생
-        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(null, testUserProfile, testTokenVO, null))
+        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(null, testUserProfile, testToken, null))
                 .isInstanceOf(CustomException.class);
                 
         // null userProfile로 저장 시도 시 예외 발생
-        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(testUuid, null, testTokenVO, null))
+        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(testUuid, null, testToken, null))
                 .isInstanceOf(CustomException.class);
                 
         // null tokenVO로 저장 시도 시 예외 발생
@@ -177,7 +175,7 @@ class RedisTempDataAdapterTest {
     @DisplayName("정상 케이스 - 임시 데이터 삭제")
     void shouldRemoveTempData_WhenDataExists() {
         // Given: 저장된 데이터
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
         assertThat(redisTempDataAdapter.getTempData(testUuid)).isPresent();
 
         // When: 데이터 삭제
@@ -242,7 +240,7 @@ class RedisTempDataAdapterTest {
     @DisplayName("정상 케이스 - 데이터 덮어쓰기")
     void shouldOverwriteData_WhenSameUuidSavedMultipleTimes() {
         // Given: 첫 번째 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
         
         // 새로운 데이터
         SocialLoginPort.SocialUserProfile newUserProfile = new SocialLoginPort.SocialUserProfile(
@@ -252,20 +250,18 @@ class RedisTempDataAdapterTest {
             "newUser", 
             "https://example.com/new-profile.jpg"
         );
-        TokenVO newTokenVO = TokenVO.builder()
-                .accessToken("new-access-token")
-                .refreshToken("new-refresh-token")
-                .build();
+        Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
+                
 
         // When: 동일한 UUID로 새 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, newUserProfile, newTokenVO, "new-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, newUserProfile, newToken, "new-fcm-token");
 
         // Then: 새 데이터로 덮어써짐
         Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
         assertThat(result.get().userProfile().socialId()).isEqualTo("987654321");
         assertThat(result.get().userProfile().nickname()).isEqualTo("newUser");
-        assertThat(result.get().tokenVO().accessToken()).isEqualTo("new-access-token");
+        assertThat(result.get().token().getAccessToken()).isEqualTo("new-access-token");
         assertThat(result.get().fcmToken()).isEqualTo("new-fcm-token");
     }
 
@@ -273,7 +269,7 @@ class RedisTempDataAdapterTest {
     @DisplayName("멀티 인스턴스 - 여러 어댑터 인스턴스에서 동일 데이터 접근")
     void shouldShareDataBetweenInstances_WhenMultipleAdaptersAccess() {
         // Given: 첫 번째 어댑터에서 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
 
         // When: 새로운 어댑터 인스턴스 생성 (멀티 인스턴스 환경 시뮬레이션)
         RedisUserDataAdapter secondAdapter = new RedisUserDataAdapter(redisTemplate, authCookieManager);
@@ -306,7 +302,7 @@ class RedisTempDataAdapterTest {
                 "user-" + i, 
                 "https://example.com/profile" + i + ".jpg"
             );
-            redisTempDataAdapter.saveTempData(uuid, userProfile, testTokenVO, "fcm-" + i);
+            redisTempDataAdapter.saveTempData(uuid, userProfile, testToken, "fcm-" + i);
         }
 
         // Then: 모든 데이터가 정상 저장되고 조회됨
@@ -327,7 +323,7 @@ class RedisTempDataAdapterTest {
     @DisplayName("데이터 일관성 - Redis 키 패턴 검증")
     void shouldUseCorrectKeyPattern_WhenDataSaved() {
         // When: 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
         
         // Then: 올바른 키 패턴 사용 확인
         String expectedKey = "temp:user:" + testUuid;
@@ -342,7 +338,7 @@ class RedisTempDataAdapterTest {
     @DisplayName("FCM 토큰 - null FCM 토큰으로 저장 및 조회")
     void shouldHandleNullFcmToken_WhenFcmTokenIsNull() {
         // When: FCM 토큰 없이 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testTokenVO, null);
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, null);
 
         // Then: FCM 토큰이 null로 저장됨
         Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
