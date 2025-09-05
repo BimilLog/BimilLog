@@ -54,7 +54,6 @@ public record PostDetailProjectionRecord(
     public PostDetailProjectionRecord {
     }
 
-    // PostDetailProjection 인터페이스 메서드들을 명시적으로 구현
     @Override
     public Long getId() {
         return id;
@@ -114,6 +113,4 @@ public record PostDetailProjectionRecord(
     public Boolean getIsLiked() {
         return isLiked;
     }
-
-    // toPostDetail() default 메서드는 인터페이스에서 상속받아 사용
 }

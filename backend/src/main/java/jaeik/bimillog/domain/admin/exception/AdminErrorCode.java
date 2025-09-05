@@ -18,23 +18,10 @@ public enum AdminErrorCode {
     /**
      * <h3>신고 관련 에러 코드</h3>
      */
-    INVALID_REPORT_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 신고 유형입니다.", ErrorCode.LogLevel.WARN),
-    INVALID_REPORT_CONTENT(HttpStatus.BAD_REQUEST, "신고 내용이 유효하지 않습니다. 10-500자 사이로 입력해주세요.", ErrorCode.LogLevel.WARN),
     INVALID_REPORT_TARGET(HttpStatus.BAD_REQUEST, "신고 대상이 유효하지 않습니다.", ErrorCode.LogLevel.WARN),
     REPORT_TARGET_REQUIRED(HttpStatus.BAD_REQUEST, "게시글/댓글 신고 시에는 대상 ID가 필요합니다.", ErrorCode.LogLevel.WARN),
     REPORT_TARGET_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "오류/개선 신고 시에는 대상 ID를 입력할 수 없습니다.", ErrorCode.LogLevel.WARN),
-    
-    /**
-     * <h3>사용자 제재 관련 에러 코드</h3>
-     */
-    BAN_TARGET_NOT_FOUND(HttpStatus.NOT_FOUND, "제재할 대상 사용자를 찾을 수 없습니다.", ErrorCode.LogLevel.WARN),
-    INVALID_BAN_REQUEST(HttpStatus.BAD_REQUEST, "유효하지 않은 제재 요청입니다.", ErrorCode.LogLevel.WARN),
-    
-    /**
-     * <h3>관리자 권한 관련 에러 코드</h3>
-     */
-    ADMIN_PERMISSION_REQUIRED(HttpStatus.FORBIDDEN, "관리자 권한이 필요합니다.", ErrorCode.LogLevel.WARN),
-    ADMIN_ACTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "관리자 작업 처리 중 오류가 발생했습니다.", ErrorCode.LogLevel.ERROR),
+
     
     /**
      * <h3>관리자 도메인에서 필요한 외부 도메인 에러 코드 (임시)</h3>

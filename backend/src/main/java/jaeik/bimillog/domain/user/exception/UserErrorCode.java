@@ -28,11 +28,6 @@ public enum UserErrorCode {
     EXISTED_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다.", ErrorCode.LogLevel.INFO),
     
     /**
-     * <h3>사용자 권한 관련 에러 코드</h3>
-     */
-    FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다.", ErrorCode.LogLevel.WARN),
-    
-    /**
      * <h3>User 도메인에서 필요한 외부 도메인 에러 코드 (임시)</h3>
      * <p>추후 리팩토링 예정</p>
      */

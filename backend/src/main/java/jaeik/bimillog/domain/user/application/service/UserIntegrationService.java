@@ -2,11 +2,10 @@ package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
-import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.port.out.TokenPort;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -14,10 +13,10 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import reactor.core.publisher.Mono;
 
 /**
  * <h2>사용자 통합 서비스</h2>
@@ -59,9 +58,6 @@ public class UserIntegrationService implements UserIntegrationUseCase {
         int actualLimit = limit != null ? Math.min(limit, 100) : 10;
 
         return Mono.fromCallable(() -> {
-            // 사용자 조회
-            User user = userQueryPort.findById(userId)
-                    .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
             // 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
             Token token = tokenPort.findById(tokenId)

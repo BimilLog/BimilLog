@@ -91,11 +91,6 @@ public class FcmAdapter implements FcmPort {
             if (fcmTokens == null || fcmTokens.isEmpty()) return;
 
             for (FcmToken fcmToken : fcmTokens) {
-                FcmSendDTO fcmSendDto = new FcmSendDTO(
-                        fcmToken.getFcmRegistrationToken(),
-                        event.message(),
-                        "지금 확인해보세요!"
-                );
                 FcmMessage fcmMessage = FcmMessage.of(
                         fcmToken.getFcmRegistrationToken(),
                         event.message(),

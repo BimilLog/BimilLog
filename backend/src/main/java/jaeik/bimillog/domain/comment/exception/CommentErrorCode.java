@@ -32,8 +32,7 @@ public enum CommentErrorCode {
      */
     COMMENT_PASSWORD_NOT_MATCH(HttpStatus.FORBIDDEN, "댓글 비밀번호가 일치하지 않습니다.", ErrorCode.LogLevel.WARN),
     ONLY_COMMENT_OWNER_UPDATE(HttpStatus.FORBIDDEN, "댓글 작성자만 수정할 수 있습니다.", ErrorCode.LogLevel.INFO),
-    COMMENT_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다.", ErrorCode.LogLevel.ERROR),
-    
+
     /**
      * <h3>댓글 도메인에서 필요한 외부 도메인 에러 코드 (임시)</h3>
      * <p>추후 리팩토링 예정</p>

@@ -68,16 +68,5 @@ public class Notification extends BaseEntity {
                 .isRead(false)
                 .build();
     }
-
-    /**
-     * <h3>알림 읽음 처리</h3>
-     * <p>알림의 읽음 상태를 true로 변경합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void read() {
-        this.isRead = true;
-    }
 }
 

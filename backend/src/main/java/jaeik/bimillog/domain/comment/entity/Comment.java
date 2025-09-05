@@ -96,23 +96,5 @@ public class Comment extends BaseEntity {
     public void updateComment(String content) {
         this.content = content;
     }
-
-    /**
-     * <h3>댓글 논리 삭제</h3>
-     * <p>
-     * 자손 댓글이 있는 경우 논리적 삭제를 수행한다.
-     * </p>
-     * <p>
-     * 사용자 정보를 null로 처리하고, 내용을 "삭제된 댓글 입니다."로 변경한다.
-     * </p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void softDelete() {
-        this.user = null;
-        this.deleted = true;
-        this.content = "삭제된 댓글 입니다.";
-    }
 }
 

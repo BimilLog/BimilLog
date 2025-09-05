@@ -170,13 +170,4 @@ public class Post extends BaseEntity {
         return this.user != null && this.user.getId().equals(userId);
     }
 
-    /**
-     * <h3>조회수 증가</h3>
-     * <p>
-     *     게시글의 조회수를 1 증가시킨다.
-     * </p>
-     */
-    public void incrementView() {
-        this.views++;
-    }
 }

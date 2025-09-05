@@ -238,24 +238,5 @@ public class JwtHandler implements AuthPort {
             throw new RuntimeException("SHA-256 algorithm not available", e);
         }
     }
-
-    /**
-     * <h3>JWT 토큰 만료 시간 추출</h3>
-     *
-     * <p>JWT 토큰에서 만료 시간을 추출합니다. 블랙리스트 TTL 설정에 사용됩니다.</p>
-     *
-     * @param token JWT 토큰
-     * @return 토큰 만료 시간 (Date 객체)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Date getTokenExpiration(String token) {
-        try {
-            Claims claims = getClaims(token);
-            return claims.getExpiration();
-        } catch (Exception e) {
-            return null;
-        }
-    }
 }
 

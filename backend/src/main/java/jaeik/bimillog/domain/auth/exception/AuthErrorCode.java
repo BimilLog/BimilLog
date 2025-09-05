@@ -19,17 +19,12 @@ public enum AuthErrorCode {
      * <h3>인증 및 권한 관련 에러 코드</h3>
      */
     NULL_SECURITY_CONTEXT(HttpStatus.UNAUTHORIZED, "유저 인증 정보가 없습니다. 다시 로그인 해주세요", ErrorCode.LogLevel.WARN),
-    NOT_FIND_TOKEN(HttpStatus.FORBIDDEN, "토큰을 찾을 수 없습니다. 다시 로그인 해주세요 ", ErrorCode.LogLevel.WARN),
-    REPEAT_LOGIN(HttpStatus.FORBIDDEN, "다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요", ErrorCode.LogLevel.INFO),
     ALREADY_LOGIN(HttpStatus.FORBIDDEN, "이미 로그인 된 유저 입니다.", ErrorCode.LogLevel.WARN),
-    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", ErrorCode.LogLevel.WARN),
-    
+
     /**
      * <h3>소셜 로그인 관련 에러 코드</h3>
      */
     BLACKLIST_USER(HttpStatus.FORBIDDEN, "차단된 회원은 회원가입이 불가능합니다", ErrorCode.LogLevel.INFO),
-    KAKAO_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 API 호출 실패", ErrorCode.LogLevel.ERROR),
-    KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의을 해야 합니다.", ErrorCode.LogLevel.INFO),
     SOCIAL_UNLINK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 연결 해제에 실패했습니다.", ErrorCode.LogLevel.ERROR),
     
     /**

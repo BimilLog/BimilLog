@@ -54,19 +54,6 @@ public class PostQueryService implements PostQueryUseCase {
         return postQueryPort.findByPage(pageable);
     }
 
-    /**
-     * <h3>인기글 여부 확인</h3>
-     * <p>주어진 게시글 ID가 현재 캐시된 인기글(실시간, 주간, 전설, 공지)에 포함되어 있는지 확인합니다.</p>
-     * <p>PostCacheQueryPort의 최적화된 메서드를 사용하여 O(1) 시간 복잡도로 확인합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @return 인기글 여부 (true: 인기글, false: 일반글)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private boolean isPopularPost(Long postId) {
-        return postCacheQueryPort.isPopularPost(postId);
-    }
 
     /**
      * <h3>게시글 상세 조회 (최적화)</h3>

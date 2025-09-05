@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -313,8 +314,6 @@ public class GlobalExceptionHandler {
     /**
      * <h3>시큐리티 권한 부족 예외 처리</h3>
      * 시큐리티의 권한 에러를 잡는다.
-     * @param
-     * @return
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
@@ -353,7 +352,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .findFirst()
-                .map(fieldError -> fieldError.getDefaultMessage())
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .orElse("Validation failed");
 
         ErrorResponse response = new ErrorResponse(

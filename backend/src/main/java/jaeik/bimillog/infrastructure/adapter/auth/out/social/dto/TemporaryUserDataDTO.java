@@ -20,15 +20,6 @@ public class TemporaryUserDataDTO {
     public String fcmToken;
 
     /**
-     * <h3>기본 생성자</h3>
-     * <p>Jackson 직렬화/역직렬화를 위한 기본 생성자</p>
-     *
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public TemporaryUserDataDTO() {}
-
-    /**
      * <h3>전체 매개변수 생성자</h3>
      * <p>모든 필드를 초기화하는 생성자</p>
      *
