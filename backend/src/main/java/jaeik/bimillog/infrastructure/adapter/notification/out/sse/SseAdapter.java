@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.notification.out.sse;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
-import jaeik.bimillog.domain.notification.entity.NotificationEvent;
+import jaeik.bimillog.domain.notification.event.NotificationEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
@@ -68,9 +68,9 @@ public class SseAdapter implements SsePort {
     @Override
     public void send(Long userId, NotificationEvent event) {
         try {
-            NotificationType type = event.getType();
-            String data = event.getMessage();
-            String url = event.getUrl();
+            NotificationType type = event.type();
+            String data = event.message();
+            String url = event.url();
 
             User user = userQueryUseCase.findById(userId)
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));

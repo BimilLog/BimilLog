@@ -5,6 +5,9 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
+import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
+import reactor.core.publisher.Mono;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -12,6 +15,7 @@ import org.springframework.http.ResponseCookie;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.Collections;
 
 /**
  * <h2>테스트용 소셜 로그인 포트 설정</h2>
@@ -66,6 +70,25 @@ public class TestSocialLoginPortConfig {
             @Override
             public void unlink(SocialProvider provider, String socialId) {
                 // 테스트용 더미 구현 - 아무 작업도 하지 않음
+            }
+        };
+    }
+
+    @Bean
+    @Primary
+    public KakaoFriendPort testKakaoFriendPort() {
+        return new KakaoFriendPort() {
+            @Override
+            public Mono<KakaoFriendsResponseVO> getFriendList(String accessToken, Integer offset, Integer limit) {
+                // 테스트용 더미 친구 목록 응답
+                KakaoFriendsResponseVO response = KakaoFriendsResponseVO.of(
+                    Collections.emptyList(), // 빈 친구 목록
+                    0, // 전체 친구 수
+                    null, // 이전 페이지 URL
+                    null, // 다음 페이지 URL  
+                    0 // 즐겨찾기 친구 수
+                );
+                return Mono.just(response);
             }
         };
     }

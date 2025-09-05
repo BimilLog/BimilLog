@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.social;
 
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsDTO;
 import reactor.core.publisher.Mono;
 
 /**
@@ -32,9 +32,9 @@ public interface SocialAdapter {
      * @param accessToken 액세스 토큰
      * @param offset      조회 시작 위치
      * @param limit       조회할 친구 수
-     * @return Mono<KakaoFriendsResponse> 친구 목록 응답 (비동기)
+     * @return Mono<KakaoFriendsDTO> 친구 목록 응답 (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
-    Mono<KakaoFriendsResponse> getFriendList(String accessToken, Integer offset, Integer limit);
+    Mono<KakaoFriendsDTO> getFriendList(String accessToken, Integer offset, Integer limit);
 }

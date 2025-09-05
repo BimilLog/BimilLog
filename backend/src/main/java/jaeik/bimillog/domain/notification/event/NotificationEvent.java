@@ -1,6 +1,6 @@
-package jaeik.bimillog.domain.notification.entity;
+package jaeik.bimillog.domain.notification.event;
 
-import lombok.Getter;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 
 /**
  * <h2>알림 이벤트</h2>
@@ -13,30 +13,8 @@ import lombok.Getter;
  * @version 2.0.0
  * @since 2.0.0
  */
-@Getter
-public class NotificationEvent {
+public record NotificationEvent(NotificationType type, String message, String url) {
 
-    private final NotificationType type;
-
-    private final String message;
-
-    private final String url;
-
-    /**
-     * <h3>알림 이벤트 생성자</h3>
-     * <p>알림 이벤트의 모든 필드를 초기화합니다.</p>
-     *
-     * @param type    알림 유형
-     * @param message 알림 메시지
-     * @param url     알림 URL
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private NotificationEvent(NotificationType type, String message, String url) {
-        this.type = type;
-        this.message = message;
-        this.url = url;
-    }
 
     /**
      * <h3>알림 이벤트 생성</h3>
@@ -52,5 +30,4 @@ public class NotificationEvent {
     public static NotificationEvent create(NotificationType type, String message, String url) {
         return new NotificationEvent(type, message, url);
     }
-
 }

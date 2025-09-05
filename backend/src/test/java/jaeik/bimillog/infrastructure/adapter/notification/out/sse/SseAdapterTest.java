@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.notification.out.sse;
 
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
-import jaeik.bimillog.domain.notification.entity.NotificationEvent;
+import jaeik.bimillog.domain.notification.event.NotificationEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;

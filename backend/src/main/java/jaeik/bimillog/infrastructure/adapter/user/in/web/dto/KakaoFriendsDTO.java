@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.adapter.user.in.web.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.domain.user.entity.KakaoFriendVO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
-public class KakaoFriendsResponse {
+public class KakaoFriendsDTO {
 
     private List<KakaoFriendDTO> elements;
 
@@ -35,11 +34,11 @@ public class KakaoFriendsResponse {
      * @return KakaoFriendsResponseVO 객체
      */
     public KakaoFriendsResponseVO toVO() {
-        List<KakaoFriendVO> voElements = null;
+        List<KakaoFriendsResponseVO.Friend> voElements = null;
         if (elements != null) {
             voElements = elements.stream()
                     .map(KakaoFriendDTO::toVO)
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return KakaoFriendsResponseVO.of(voElements, totalCount, beforeUrl, afterUrl, favoriteCount);
     }
@@ -49,10 +48,10 @@ public class KakaoFriendsResponse {
      * <p>도메인 KakaoFriendsResponseVO를 인프라 DTO로 변환합니다.</p>
      *
      * @param vo 도메인 KakaoFriendsResponseVO
-     * @return KakaoFriendsResponse DTO
+     * @return KakaoFriendsDTO DTO
      */
-    public static KakaoFriendsResponse fromVO(KakaoFriendsResponseVO vo) {
-        KakaoFriendsResponse response = new KakaoFriendsResponse();
+    public static KakaoFriendsDTO fromVO(KakaoFriendsResponseVO vo) {
+        KakaoFriendsDTO response = new KakaoFriendsDTO();
         if (vo.elements() != null) {
             response.elements = vo.elements().stream()
                     .map(KakaoFriendDTO::fromVO)

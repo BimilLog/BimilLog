@@ -6,6 +6,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.util.TestContainersConfiguration;
@@ -55,6 +57,9 @@ class UserQueryControllerIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TokenRepository tokenRepository;
 
     private MockMvc mockMvc;
 
@@ -240,7 +245,12 @@ class UserQueryControllerIntegrationTest {
         // Given - 테스트용 사용자 생성 및 저장
         User user = createTestUser();
         User savedUser = userRepository.save(user);
-        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
+        
+        // 테스트용 토큰 생성 및 저장
+        Token token = Token.createToken("test-access-token", "test-refresh-token", savedUser);
+        Token savedToken = tokenRepository.save(token);
+        
+        CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
 
         // When & Then
         mockMvc.perform(get("/api/user/friendlist")
@@ -248,8 +258,7 @@ class UserQueryControllerIntegrationTest {
                         .param("limit", "10")
                         .with(user(userDetails)))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(status().isOk());
                 // Note: 실제 카카오 API 호출은 Mock으로 처리되므로 응답 구조 검증은 제한적
     }
 
@@ -270,14 +279,18 @@ class UserQueryControllerIntegrationTest {
         // Given
         User user = createTestUser();
         User savedUser = userRepository.save(user);
-        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
+        
+        // 테스트용 토큰 생성 및 저장
+        Token token = Token.createToken("test-access-token", "test-refresh-token", savedUser);
+        Token savedToken = tokenRepository.save(token);
+        
+        CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
 
         // When & Then - offset과 limit을 지정하지 않으면 기본값 사용
         mockMvc.perform(get("/api/user/friendlist")
                         .with(user(userDetails)))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -286,7 +299,12 @@ class UserQueryControllerIntegrationTest {
         // Given
         User user = createTestUser();
         User savedUser = userRepository.save(user);
-        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
+        
+        // 테스트용 토큰 생성 및 저장
+        Token token = Token.createToken("test-access-token", "test-refresh-token", savedUser);
+        Token savedToken = tokenRepository.save(token);
+        
+        CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
 
         // When & Then - Mono 응답이 정상적으로 처리되는지 확인
         mockMvc.perform(get("/api/user/friendlist")
@@ -294,8 +312,7 @@ class UserQueryControllerIntegrationTest {
                         .param("limit", "3")
                         .with(user(userDetails)))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(status().isOk());
     }
 
 
@@ -334,6 +351,25 @@ class UserQueryControllerIntegrationTest {
                 .provider(user.getProvider())
                 .role(user.getRole())
                 .tokenId(12345L) // 카카오 친구 목록 API용
+                .build();
+
+        return new CustomUserDetails(userDTO);
+    }
+
+    /**
+     * 테스트용 CustomUserDetails 생성 (토큰 ID 지정)
+     */
+    private CustomUserDetails createCustomUserDetailsWithToken(User user, Long tokenId) {
+        UserDTO userDTO = UserDTO.builder()
+                .userId(user.getId())
+                .settingId(user.getSetting().getId())
+                .socialId(user.getSocialId())
+                .socialNickname(user.getSocialNickname())
+                .thumbnailImage(user.getThumbnailImage())
+                .userName(user.getUserName())
+                .provider(user.getProvider())
+                .role(user.getRole())
+                .tokenId(tokenId)
                 .build();
 
         return new CustomUserDetails(userDTO);

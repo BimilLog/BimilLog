@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
-import jaeik.bimillog.domain.notification.entity.NotificationEvent;
+import jaeik.bimillog.domain.notification.event.NotificationEvent;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**

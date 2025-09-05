@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.social.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jaeik.bimillog.domain.user.entity.KakaoFriendVO;
+import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,20 +29,20 @@ public class KakaoFriendDTO {
      * <h3>DTO를 VO로 변환</h3>
      * <p>인프라 KakaoFriendDTO를 도메인 VO로 변환합니다.</p>
      *
-     * @return KakaoFriendVO 객체
+     * @return KakaoFriendsResponseVO.Friend 객체
      */
-    public KakaoFriendVO toVO() {
-        return KakaoFriendVO.of(id, uuid, profileNickname, profileThumbnailImage, favorite, userName);
+    public KakaoFriendsResponseVO.Friend toVO() {
+        return KakaoFriendsResponseVO.Friend.of(id, uuid, profileNickname, profileThumbnailImage, favorite, userName);
     }
 
     /**
      * <h3>VO에서 DTO로 변환</h3>
-     * <p>도메인 KakaoFriendVO를 인프라 DTO로 변환합니다.</p>
+     * <p>도메인 KakaoFriendsResponseVO.Friend를 인프라 DTO로 변환합니다.</p>
      *
-     * @param vo 도메인 KakaoFriendVO
+     * @param vo 도메인 KakaoFriendsResponseVO.Friend
      * @return KakaoFriendDTO 객체
      */
-    public static KakaoFriendDTO fromVO(KakaoFriendVO vo) {
+    public static KakaoFriendDTO fromVO(KakaoFriendsResponseVO.Friend vo) {
         KakaoFriendDTO dto = new KakaoFriendDTO();
         dto.id = vo.id();
         dto.uuid = vo.uuid();

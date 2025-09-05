@@ -9,11 +9,9 @@ import jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto.FcmMessage
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.FcmTokenRepository;
-import jaeik.bimillog.domain.notification.entity.NotificationEvent;
+import jaeik.bimillog.domain.notification.event.NotificationEvent;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
@@ -95,12 +93,12 @@ public class FcmAdapter implements FcmPort {
             for (FcmToken fcmToken : fcmTokens) {
                 FcmSendDTO fcmSendDto = new FcmSendDTO(
                         fcmToken.getFcmRegistrationToken(),
-                        event.getMessage(),
+                        event.message(),
                         "지금 확인해보세요!"
                 );
                 FcmMessage fcmMessage = FcmMessage.of(
                         fcmToken.getFcmRegistrationToken(),
-                        event.getMessage(),
+                        event.message(),
                         "지금 확인해보세요!"
                 );
                 sendMessageTo(fcmMessage);

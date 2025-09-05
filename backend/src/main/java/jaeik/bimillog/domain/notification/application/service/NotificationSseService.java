@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.notification.application.service;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
-import jaeik.bimillog.domain.notification.entity.NotificationEvent;
+import jaeik.bimillog.domain.notification.event.NotificationEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

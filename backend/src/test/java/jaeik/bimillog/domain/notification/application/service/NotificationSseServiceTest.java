@@ -85,9 +85,9 @@ class NotificationSseServiceTest {
         // Then
         verify(notificationUrlPort).generatePostUrl(postId);
         verify(ssePort).send(eq(postUserId), argThat(event ->
-                event.getType() == NotificationType.COMMENT &&
-                event.getMessage().equals(expectedMessage) &&
-                event.getUrl().equals(expectedUrl)
+                event.type() == NotificationType.COMMENT &&
+                event.message().equals(expectedMessage) &&
+                event.url().equals(expectedUrl)
         ));
     }
 
@@ -108,9 +108,9 @@ class NotificationSseServiceTest {
         // Then
         verify(notificationUrlPort).generateRollingPaperUrl(userName);
         verify(ssePort).send(eq(farmOwnerId), argThat(event ->
-                event.getType() == NotificationType.PAPER &&
-                event.getMessage().equals(expectedMessage) &&
-                event.getUrl().equals(expectedUrl)
+                event.type() == NotificationType.PAPER &&
+                event.message().equals(expectedMessage) &&
+                event.url().equals(expectedUrl)
         ));
     }
 
@@ -131,9 +131,9 @@ class NotificationSseServiceTest {
         // Then
         verify(notificationUrlPort).generatePostUrl(postId);
         verify(ssePort).send(eq(userId), argThat(event ->
-                event.getType() == NotificationType.POST_FEATURED &&
-                event.getMessage().equals(message) &&
-                event.getUrl().equals(expectedUrl)
+                event.type() == NotificationType.POST_FEATURED &&
+                event.message().equals(message) &&
+                event.url().equals(expectedUrl)
         ));
     }
 }

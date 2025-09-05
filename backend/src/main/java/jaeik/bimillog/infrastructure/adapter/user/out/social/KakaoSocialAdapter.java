@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.social;
 
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.auth.KakaoKeyVO;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -48,12 +48,12 @@ public class KakaoSocialAdapter implements SocialAdapter {
      * @param accessToken 카카오 액세스 토큰
      * @param offset      조회 시작 위치 (기본값: 0)
      * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)
-     * @return Mono<KakaoFriendsResponse> 친구 목록 응답 (비동기)
+     * @return Mono<KakaoFriendsDTO> 친구 목록 응답 (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public Mono<KakaoFriendsResponse> getFriendList(String accessToken, Integer offset, Integer limit) {
+    public Mono<KakaoFriendsDTO> getFriendList(String accessToken, Integer offset, Integer limit) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(kakaoKeyVO.getGET_FRIEND_LIST_URL())
@@ -65,7 +65,7 @@ public class KakaoSocialAdapter implements SocialAdapter {
                 .onStatus(httpStatus -> httpStatus.is4xxClientError() || httpStatus.is5xxServerError(),
                         clientResponse -> clientResponse.bodyToMono(String.class)
                                 .flatMap(errorBody -> Mono.error(new CustomException(ErrorCode.KAKAO_API_ERROR, new RuntimeException(errorBody)))))
-                .bodyToMono(KakaoFriendsResponse.class)
+                .bodyToMono(KakaoFriendsDTO.class)
                 .timeout(java.time.Duration.ofSeconds(10));
     }
 }

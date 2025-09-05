@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.application.port.out;
 
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
-import jaeik.bimillog.domain.notification.entity.NotificationEvent;
+import jaeik.bimillog.domain.notification.event.NotificationEvent;
 
 import java.io.IOException;
 import java.util.List;

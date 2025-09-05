@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.domain.user.entity.KakaoFriendVO;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -80,7 +79,7 @@ public class UserIntegrationService implements UserIntegrationUseCase {
         )
         .map(friendsResponse -> {
             // 각 친구에 대해 비밀로그 가입 여부 확인 (성능 최적화: 배치 조회)
-            List<KakaoFriendVO> elements = friendsResponse.elements();
+            List<KakaoFriendsResponseVO.Friend> elements = friendsResponse.elements();
             if (elements != null && !elements.isEmpty()) {
                 // 1. 모든 친구의 소셜 ID를 수집
                 List<String> socialIds = elements.stream()
@@ -90,12 +89,13 @@ public class UserIntegrationService implements UserIntegrationUseCase {
                 // 2. 배치로 사용자 이름 조회 (N+1 문제 해결)
                 List<String> userNames = userQueryPort.findUserNamesInOrder(socialIds);
 
-                // 3. 결과를 각 친구에게 매핑 - VO는 불변이므로 새로운 객체 생성
+                // 3. 결과를 각 친구에게 매핑 - 새로운 리스트 생성 (불변 리스트 대응)
+                List<KakaoFriendsResponseVO.Friend> updatedElements = new java.util.ArrayList<>();
                 for (int i = 0; i < elements.size(); i++) {
                     String userName = userNames.get(i);
+                    KakaoFriendsResponseVO.Friend originalFriend = elements.get(i);
                     if (!userName.isEmpty()) {
-                        KakaoFriendVO originalFriend = elements.get(i);
-                        KakaoFriendVO updatedFriend = KakaoFriendVO.of(
+                        KakaoFriendsResponseVO.Friend updatedFriend = KakaoFriendsResponseVO.Friend.of(
                                 originalFriend.id(),
                                 originalFriend.uuid(),
                                 originalFriend.profileNickname(),
@@ -103,9 +103,20 @@ public class UserIntegrationService implements UserIntegrationUseCase {
                                 originalFriend.favorite(),
                                 userName
                         );
-                        elements.set(i, updatedFriend);
+                        updatedElements.add(updatedFriend);
+                    } else {
+                        updatedElements.add(originalFriend);
                     }
                 }
+                
+                // 4. 새로운 응답 객체 생성
+                return KakaoFriendsResponseVO.of(
+                    updatedElements,
+                    friendsResponse.totalCount(),
+                    friendsResponse.beforeUrl(),
+                    friendsResponse.afterUrl(),
+                    friendsResponse.favoriteCount()
+                );
             }
             return friendsResponse;
         })
@@ -116,6 +127,12 @@ public class UserIntegrationService implements UserIntegrationUseCase {
             }
             return e;
         })
-        .onErrorMap(Exception.class, e -> new UserCustomException(UserErrorCode.KAKAO_API_ERROR, e));
+        .onErrorMap(Exception.class, e -> {
+            // UserCustomException은 그대로 전파
+            if (e instanceof UserCustomException) {
+                return e;
+            }
+            return new UserCustomException(UserErrorCode.KAKAO_API_ERROR, e);
+        });
     }
 }

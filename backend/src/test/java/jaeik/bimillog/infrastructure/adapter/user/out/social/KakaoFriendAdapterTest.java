@@ -1,9 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.social;
 
+import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsResponse;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.domain.user.entity.KakaoFriendVO;
 import reactor.core.publisher.Mono;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,7 @@ class KakaoFriendAdapterTest {
         Integer offset = 0;
         Integer limit = 10;
         
-        KakaoFriendsResponse expectedResponse = createKakaoFriendsResponse(
+        KakaoFriendsDTO expectedResponse = createKakaoFriendsResponse(
             Arrays.asList(
                 createKakaoFriendDTO(1L, "uuid1", "친구1", "image1.jpg", false),
                 createKakaoFriendDTO(2L, "uuid2", "친구2", "image2.jpg", true)
@@ -68,13 +67,13 @@ class KakaoFriendAdapterTest {
         assertThat(result.favoriteCount()).isEqualTo(1);
         
         // 첫 번째 친구 검증
-        KakaoFriendVO friend1 = result.elements().get(0);
+        KakaoFriendsResponseVO.Friend friend1 = result.elements().get(0);
         assertThat(friend1.id()).isEqualTo(1L);
         assertThat(friend1.profileNickname()).isEqualTo("친구1");
         assertThat(friend1.favorite()).isFalse();
         
         // 두 번째 친구 검증
-        KakaoFriendVO friend2 = result.elements().get(1);
+        KakaoFriendsResponseVO.Friend friend2 = result.elements().get(1);
         assertThat(friend2.id()).isEqualTo(2L);
         assertThat(friend2.profileNickname()).isEqualTo("친구2");
         assertThat(friend2.favorite()).isTrue();
@@ -90,7 +89,7 @@ class KakaoFriendAdapterTest {
         Integer offset = 0;
         Integer limit = 10;
         
-        KakaoFriendsResponse emptyResponse = createKakaoFriendsResponse(
+        KakaoFriendsDTO emptyResponse = createKakaoFriendsResponse(
             Collections.emptyList(), 0, null, null, 0
         );
         
@@ -117,7 +116,7 @@ class KakaoFriendAdapterTest {
         Integer offset = 10;
         Integer limit = 5;
         
-        KakaoFriendsResponse paginatedResponse = createKakaoFriendsResponse(
+        KakaoFriendsDTO paginatedResponse = createKakaoFriendsResponse(
             Arrays.asList(
                 createKakaoFriendDTO(11L, "uuid11", "친구11", "image11.jpg", true),
                 createKakaoFriendDTO(12L, "uuid12", "친구12", "image12.jpg", false)
@@ -149,7 +148,7 @@ class KakaoFriendAdapterTest {
         Integer offset = 0;
         Integer limit = 10;
         
-        KakaoFriendsResponse emptyResponse = createKakaoFriendsResponse(
+        KakaoFriendsDTO emptyResponse = createKakaoFriendsResponse(
             Collections.emptyList(), 0, null, null, 0
         );
         
@@ -172,7 +171,7 @@ class KakaoFriendAdapterTest {
         Integer nullOffset = null;
         Integer limit = 10;
         
-        KakaoFriendsResponse emptyResponse = createKakaoFriendsResponse(
+        KakaoFriendsDTO emptyResponse = createKakaoFriendsResponse(
             Collections.emptyList(), 0, null, null, 0
         );
         
@@ -195,7 +194,7 @@ class KakaoFriendAdapterTest {
         Integer offset = 0;
         Integer nullLimit = null;
         
-        KakaoFriendsResponse emptyResponse = createKakaoFriendsResponse(
+        KakaoFriendsDTO emptyResponse = createKakaoFriendsResponse(
             Collections.emptyList(), 0, null, null, 0
         );
         
@@ -218,7 +217,7 @@ class KakaoFriendAdapterTest {
         Integer negativeOffset = -1;
         Integer negativeLimit = -5;
         
-        KakaoFriendsResponse response = createKakaoFriendsResponse(
+        KakaoFriendsDTO response = createKakaoFriendsResponse(
             Collections.emptyList(), 0, null, null, 0
         );
         
@@ -247,7 +246,7 @@ class KakaoFriendAdapterTest {
             createKakaoFriendDTO(2L, "uuid2", "친구2", "image2.jpg", false)
         );
         
-        KakaoFriendsResponse largeResponse = createKakaoFriendsResponse(
+        KakaoFriendsDTO largeResponse = createKakaoFriendsResponse(
             largeFriendList, 1000, null, null, 500
         );
         
@@ -282,11 +281,11 @@ class KakaoFriendAdapterTest {
     }
 
     /**
-     * <h3>KakaoFriendsResponse 생성 헬퍼 메서드</h3>
+     * <h3>KakaoFriendsDTO 생성 헬퍼 메서드</h3>
      */
-    private KakaoFriendsResponse createKakaoFriendsResponse(List<KakaoFriendDTO> elements, Integer totalCount,
-                                                           String beforeUrl, String afterUrl, Integer favoriteCount) throws Exception {
-        KakaoFriendsResponse response = new KakaoFriendsResponse();
+    private KakaoFriendsDTO createKakaoFriendsResponse(List<KakaoFriendDTO> elements, Integer totalCount,
+                                                       String beforeUrl, String afterUrl, Integer favoriteCount) throws Exception {
+        KakaoFriendsDTO response = new KakaoFriendsDTO();
         
         // Reflection을 사용하여 private 필드 설정
         setField(response, "elements", elements);
