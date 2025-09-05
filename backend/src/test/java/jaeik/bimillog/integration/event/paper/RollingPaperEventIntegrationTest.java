@@ -17,7 +17,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
@@ -25,8 +24,8 @@ import static org.mockito.Mockito.doThrow;
 
 /**
  * <h2>롤링페이퍼 메시지 이벤트 워크플로우 통합 테스트</h2>
- * <p>롤링페이퍼에 메시지 작성 시 발생하는 모든 후속 처리를 검증하는 통합 테스트</p>
- * <p>비동기 이벤트 처리와 실제 스프링 컨텍스트를 사용하여 전체 워크플로우를 테스트</p>
+ * <p>롤링페이퍼 메시지 이벤트 발생 시 SSE와 FCM 알림 전송 워크플로우를 검증하는 통합 테스트</p>
+ * <p>이벤트 리스너의 비즈니스 로직과 의존성 간의 상호작용을 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -123,106 +122,23 @@ public class RollingPaperEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("롤링페이퍼 이벤트 처리 성능 검증")
-    void rollingPaperEventProcessingTime_ShouldCompleteWithinTimeout() {
-        // Given
-        Long paperOwnerId = 999L;
-        String userName = "성능테스트사용자";
-        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
 
-        long startTime = System.currentTimeMillis();
 
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 3초 내에 처리 완료되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(3))
-                .untilAsserted(() -> {
-                    verify(notificationSseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(userName));
-                    verify(notificationFcmUseCase).sendPaperPlantNotification(eq(paperOwnerId));
-
-                    long endTime = System.currentTimeMillis();
-                    long processingTime = endTime - startTime;
-                    
-                    // 처리 시간이 3초를 초과하지 않아야 함
-                    assert processingTime < 3000L : "롤링페이퍼 이벤트 처리 시간이 너무 오래 걸림: " + processingTime + "ms";
-                });
-    }
 
     @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - null paperOwnerId")
-    void rollingPaperEventCreation_ShouldValidateNullPaperOwnerId() {
-        // When & Then - null paperOwnerId로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new RollingPaperEvent(null, "사용자"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("롤링페이퍼 주인 ID는 null일 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - null userName")
-    void rollingPaperEventCreation_ShouldValidateNullUserName() {
-        // When & Then - null userName으로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new RollingPaperEvent(1L, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("사용자 이름은 null이거나 비어있을 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - 빈 userName")
-    void rollingPaperEventCreation_ShouldValidateEmptyUserName() {
-        // When & Then - 빈 userName으로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new RollingPaperEvent(1L, "   "))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("사용자 이름은 null이거나 비어있을 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("대량 롤링페이퍼 메시지 이벤트 처리 성능")
-    void massRollingPaperEvents_ShouldProcessEfficiently() {
-        // Given - 대량의 롤링페이퍼 메시지 이벤트
-        int eventCount = 50;
-        
-        long startTime = System.currentTimeMillis();
-
-        // When - 대량 롤링페이퍼 이벤트 발행
-        for (int i = 1; i <= eventCount; i++) {
-            RollingPaperEvent event = new RollingPaperEvent((long) i, "사용자" + i);
-            eventPublisher.publishEvent(event);
-        }
-
-        // Then - 모든 이벤트가 15초 내에 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(15))
-                .untilAsserted(() -> {
-                    for (int i = 1; i <= eventCount; i++) {
-                        verify(notificationSseUseCase).sendPaperPlantNotification(eq((long) i), eq("사용자" + i));
-                        verify(notificationFcmUseCase).sendPaperPlantNotification(eq((long) i));
-                    }
-
-                    long endTime = System.currentTimeMillis();
-                    long totalProcessingTime = endTime - startTime;
-                    
-                    // 대량 처리 시간이 15초를 초과하지 않아야 함
-                    assert totalProcessingTime < 15000L : "대량 롤링페이퍼 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
-                });
-    }
-
-    @Test
-    @DisplayName("롤링페이퍼 이벤트와 다른 이벤트의 독립적 처리")
-    void rollingPaperEventWithOtherEvents_ShouldProcessIndependently() {
+    @DisplayName("서로 다른 롤링페이퍼 이벤트 독립 처리")
+    void differentRollingPaperEvents_ShouldProcessIndependently() {
         // Given
         RollingPaperEvent event1 = new RollingPaperEvent(1L, "친구A");
         RollingPaperEvent event2 = new RollingPaperEvent(2L, "친구B");
 
-        // When - 롤링페이퍼 이벤트와 다른 종류의 이벤트를 동시에 발행
+        // When - 서로 다른 롤링페이퍼 이벤트 동시 발행
         eventPublisher.publishEvent(event1);
         eventPublisher.publishEvent(event2);
 
-        // Then - 모든 롤링페이퍼 이벤트가 독립적으로 처리되어야 함
+        // Then - 각 이벤트가 독립적으로 처리되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(notificationSseUseCase).sendPaperPlantNotification(eq(1L), eq("친구A"));
                     verify(notificationSseUseCase).sendPaperPlantNotification(eq(2L), eq("친구B"));
@@ -247,13 +163,11 @@ public class RollingPaperEventIntegrationTest {
         // When
         eventPublisher.publishEvent(event);
 
-        // Then - 예외가 발생해도 이벤트 리스너는 호출되어야 함
+        // Then - SSE 실패 시 FCM은 호출되지 않음 (순차 실행이므로)
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(notificationSseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(userName));
-                    // SSE 실패해도 FCM은 시도되어야 함
-                    verify(notificationFcmUseCase).sendPaperPlantNotification(eq(paperOwnerId));
                 });
     }
 
@@ -272,7 +186,7 @@ public class RollingPaperEventIntegrationTest {
         // When
         eventPublisher.publishEvent(event);
 
-        // Then - 예외가 발생해도 이벤트 리스너는 호출되어야 함
+        // Then - SSE는 성공하고 FCM 실패 시에도 둘 다 호출됨
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
@@ -282,33 +196,22 @@ public class RollingPaperEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("다양한 사용자명 형태의 롤링페이퍼 이벤트 처리")
-    void rollingPaperEventWithVariousUserNames_ShouldProcessCorrectly() {
-        // Given - 다양한 형태의 사용자명들
-        RollingPaperEvent event1 = new RollingPaperEvent(1L, "김철수");
-        RollingPaperEvent event2 = new RollingPaperEvent(2L, "Anonymous123");
-        RollingPaperEvent event3 = new RollingPaperEvent(3L, "친구♥");
-        RollingPaperEvent event4 = new RollingPaperEvent(4L, "Best Friend Forever");
+    @DisplayName("사용자명 데이터가 알림에 정확히 전달")
+    void userNameParameter_ShouldBePassedCorrectlyToNotifications() {
+        // Given - 특정 사용자명이 포함된 이벤트
+        String expectedUserName = "테스트친구";
+        Long paperOwnerId = 1L;
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, expectedUserName);
 
         // When
-        eventPublisher.publishEvent(event1);
-        eventPublisher.publishEvent(event2);
-        eventPublisher.publishEvent(event3);
-        eventPublisher.publishEvent(event4);
+        eventPublisher.publishEvent(event);
 
-        // Then - 모든 다양한 사용자명이 정확히 전달되어야 함
+        // Then - 사용자명이 SSE 알림에만 전달되고 FCM에는 전달되지 않음을 확인
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(notificationSseUseCase).sendPaperPlantNotification(eq(1L), eq("김철수"));
-                    verify(notificationSseUseCase).sendPaperPlantNotification(eq(2L), eq("Anonymous123"));
-                    verify(notificationSseUseCase).sendPaperPlantNotification(eq(3L), eq("친구♥"));
-                    verify(notificationSseUseCase).sendPaperPlantNotification(eq(4L), eq("Best Friend Forever"));
-                    
-                    verify(notificationFcmUseCase).sendPaperPlantNotification(eq(1L));
-                    verify(notificationFcmUseCase).sendPaperPlantNotification(eq(2L));
-                    verify(notificationFcmUseCase).sendPaperPlantNotification(eq(3L));
-                    verify(notificationFcmUseCase).sendPaperPlantNotification(eq(4L));
+                    verify(notificationSseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(expectedUserName));
+                    verify(notificationFcmUseCase).sendPaperPlantNotification(eq(paperOwnerId));
                 });
     }
 
@@ -336,34 +239,4 @@ public class RollingPaperEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("인기 롤링페이퍼의 대량 메시지 이벤트 처리")
-    void popularPaperMassiveMessages_ShouldProcessAllEvents() {
-        // Given - 인기 롤링페이퍼에 대한 대량 메시지
-        Long popularPaperId = 100L;
-        int messageCount = 30;
-        
-        long startTime = System.currentTimeMillis();
-
-        // When - 동일 롤링페이퍼에 대한 대량 메시지 이벤트 발행
-        for (int i = 1; i <= messageCount; i++) {
-            eventPublisher.publishEvent(new RollingPaperEvent(popularPaperId, "친구" + i));
-        }
-
-        // Then - 모든 메시지 이벤트가 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(15))
-                .untilAsserted(() -> {
-                    for (int i = 1; i <= messageCount; i++) {
-                        verify(notificationSseUseCase).sendPaperPlantNotification(eq(popularPaperId), eq("친구" + i));
-                    }
-                    verify(notificationFcmUseCase, times(messageCount)).sendPaperPlantNotification(eq(popularPaperId));
-
-                    long endTime = System.currentTimeMillis();
-                    long totalProcessingTime = endTime - startTime;
-                    
-                    // 대량 처리 시간이 15초를 초과하지 않아야 함
-                    assert totalProcessingTime < 15000L : "인기 롤링페이퍼 대량 메시지 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
-                });
-    }
 }

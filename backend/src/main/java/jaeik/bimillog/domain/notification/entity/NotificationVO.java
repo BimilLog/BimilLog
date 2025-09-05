@@ -4,12 +4,10 @@ package jaeik.bimillog.domain.notification.entity;
  * <h2>알림 이벤트</h2>
  * <p>
  * 알림 전송에 필요한 비즈니스 데이터를 담는 도메인 엔티티입니다.
- * 헥사고날 아키텍처에서 도메인 순수성을 보장하기 위해 외부 기술 의존성이 없는 순수한 도메인 모델입니다.
  * </p>
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 public record NotificationVO(NotificationType type, String message, String url) {
 
