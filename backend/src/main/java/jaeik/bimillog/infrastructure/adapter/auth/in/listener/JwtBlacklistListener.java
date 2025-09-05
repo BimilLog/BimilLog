@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
+import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class JwtBlacklistListener {
      * <p>처리 대상 이벤트:</p>
      * <ul>
      *   <li>UserBannedEvent: 사용자 차단 시 - "사용자 제재" 사유로 토큰 무효화</li>
-     *   <li>AdminWithdrawRequestedEvent: 관리자 강제 탈퇴 시 - "관리자 강제 탈퇴" 사유로 토큰 무효화</li>
+     *   <li>AdminWithdrawEvent: 관리자 강제 탈퇴 시 - "관리자 강제 탈퇴" 사유로 토큰 무효화</li>
      * </ul>
      *
      * @param event 사용자 차단 또는 강제 탈퇴 이벤트
@@ -40,7 +40,7 @@ public class JwtBlacklistListener {
      * @since 2.0.0
      */
     @Async
-    @EventListener({UserBannedEvent.class, AdminWithdrawRequestedEvent.class})
+    @EventListener({UserBannedEvent.class, AdminWithdrawEvent.class})
     public void handleJwtBlacklistEvents(Object event) {
         Long userId;
         String reason;
@@ -48,7 +48,7 @@ public class JwtBlacklistListener {
         if (event instanceof UserBannedEvent bannedEvent) {
             userId = bannedEvent.userId();
             reason = "사용자 제재";
-        } else if (event instanceof AdminWithdrawRequestedEvent withdrawEvent) {
+        } else if (event instanceof AdminWithdrawEvent withdrawEvent) {
             userId = withdrawEvent.userId();
             reason = "관리자 강제 탈퇴";
         } else {

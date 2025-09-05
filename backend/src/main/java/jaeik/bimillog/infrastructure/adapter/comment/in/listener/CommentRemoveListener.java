@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.comment.in.listener;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
+import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class CommentRemoveListener {
      * <p>처리 대상 이벤트:</p>
      * <ul>
      *   <li>UserWithdrawnEvent: 사용자 자발적 탈퇴 시</li>
-     *   <li>AdminWithdrawRequestedEvent: 관리자 강제 탈퇴 시</li>
+     *   <li>AdminWithdrawEvent: 관리자 강제 탈퇴 시</li>
      * </ul>
      *
      * @param event 사용자 탈퇴 또는 관리자 강제 탈퇴 이벤트
@@ -45,7 +45,7 @@ public class CommentRemoveListener {
      */
     @Async
     @Transactional
-    @EventListener({UserWithdrawnEvent.class, AdminWithdrawRequestedEvent.class})
+    @EventListener({UserWithdrawnEvent.class, AdminWithdrawEvent.class})
     public void handleCommentProcessingEvents(Object event) {
         Long userId;
         String eventType;
@@ -53,7 +53,7 @@ public class CommentRemoveListener {
         if (event instanceof UserWithdrawnEvent withdrawnEvent) {
             userId = withdrawnEvent.userId();
             eventType = "사용자 탈퇴";
-        } else if (event instanceof AdminWithdrawRequestedEvent adminEvent) {
+        } else if (event instanceof AdminWithdrawEvent adminEvent) {
             userId = adminEvent.userId();
             eventType = "관리자 강제 탈퇴";
         } else {

@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
+import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
@@ -188,11 +188,11 @@ class AdminCommandServiceTest {
         adminCommandService.forceWithdrawUser(reportType, commentId);
 
         // Then
-        ArgumentCaptor<AdminWithdrawRequestedEvent> eventCaptor = 
-                ArgumentCaptor.forClass(AdminWithdrawRequestedEvent.class);
+        ArgumentCaptor<AdminWithdrawEvent> eventCaptor =
+                ArgumentCaptor.forClass(AdminWithdrawEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         
-        AdminWithdrawRequestedEvent capturedEvent = eventCaptor.getValue();
+        AdminWithdrawEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(userId);
         assertThat(capturedEvent.reason()).isEqualTo("관리자 강제 탈퇴");
     }

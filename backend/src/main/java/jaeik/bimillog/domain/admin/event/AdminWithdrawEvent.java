@@ -11,11 +11,11 @@ package jaeik.bimillog.domain.admin.event;
  * @version 2.0.0
  * @since 2.0.0
  */
-public record AdminWithdrawRequestedEvent(
+public record AdminWithdrawEvent(
         Long userId,
         String reason
 ) {
-    public AdminWithdrawRequestedEvent {
+    public AdminWithdrawEvent {
         if (userId == null) {
             throw new IllegalArgumentException("사용자 ID는 null일 수 없습니다.");
         }

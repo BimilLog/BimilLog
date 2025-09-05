@@ -1,6 +1,6 @@
 package jaeik.bimillog.integration.event.admin;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
+import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.doThrow;
 @Testcontainers
 @Transactional
 @DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 통합 테스트")
-class AdminWithdrawRequestedEventIntegrationTest {
+class AdminWithdrawEventIntegrationTest {
 
 
     @Autowired
@@ -55,7 +55,7 @@ class AdminWithdrawRequestedEventIntegrationTest {
         // Given
         Long userId = 1L;
         String reason = "관리자 강제 탈퇴";
-        AdminWithdrawRequestedEvent event = new AdminWithdrawRequestedEvent(userId, reason);
+        AdminWithdrawEvent event = new AdminWithdrawEvent(userId, reason);
 
         // When
         eventPublisher.publishEvent(event);
@@ -79,9 +79,9 @@ class AdminWithdrawRequestedEventIntegrationTest {
     @DisplayName("다중 관리자 강제 탈퇴 요청 이벤트 동시 처리")
     void multipleAdminWithdrawRequestedEvents_ShouldProcessConcurrently() {
         // Given
-        AdminWithdrawRequestedEvent event1 = new AdminWithdrawRequestedEvent(1L, "스팸 행위");
-        AdminWithdrawRequestedEvent event2 = new AdminWithdrawRequestedEvent(2L, "지속적 규칙 위반");
-        AdminWithdrawRequestedEvent event3 = new AdminWithdrawRequestedEvent(3L, "부적절한 컸텐츠 게시");
+        AdminWithdrawEvent event1 = new AdminWithdrawEvent(1L, "스팸 행위");
+        AdminWithdrawEvent event2 = new AdminWithdrawEvent(2L, "지속적 규칙 위반");
+        AdminWithdrawEvent event3 = new AdminWithdrawEvent(3L, "부적절한 컸텐츠 게시");
 
         // When - 동시에 여러 강제 탈퇴 이벤트 발행
         eventPublisher.publishEvent(event1);
@@ -120,9 +120,9 @@ class AdminWithdrawRequestedEventIntegrationTest {
         String reason3 = "세 번째 사유";
 
         // When - 동일 사용자에 대한 강제 탈퇴 이벤트 여러 번 발행
-        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, reason1));
-        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, reason2));
-        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, reason3));
+        eventPublisher.publishEvent(new AdminWithdrawEvent(userId, reason1));
+        eventPublisher.publishEvent(new AdminWithdrawEvent(userId, reason2));
+        eventPublisher.publishEvent(new AdminWithdrawEvent(userId, reason3));
 
         // Then - 모든 이벤트가 처리되어야 함 (중복 호출 가능)
         Awaitility.await()
@@ -141,7 +141,7 @@ class AdminWithdrawRequestedEventIntegrationTest {
         // Given
         Long userId = 1L;
         String reason = "성능 테스트";
-        AdminWithdrawRequestedEvent event = new AdminWithdrawRequestedEvent(userId, reason);
+        AdminWithdrawEvent event = new AdminWithdrawEvent(userId, reason);
         
         long startTime = System.currentTimeMillis();
 
@@ -172,7 +172,7 @@ class AdminWithdrawRequestedEventIntegrationTest {
         // AdminWithdrawRequestedEvent는 생성자에서 검증하므로 null userId 시 예외 발생
         
         // When & Then - 예외가 발생해야 함
-        assertThatThrownBy(() -> new AdminWithdrawRequestedEvent(null, "테스트 사유"))
+        assertThatThrownBy(() -> new AdminWithdrawEvent(null, "테스트 사유"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("사용자 ID는 null일 수 없습니다");
     }
@@ -187,7 +187,7 @@ class AdminWithdrawRequestedEventIntegrationTest {
 
         // When - 대량 강제 탈퇴 이벤트 발행
         for (int i = 1; i <= eventCount; i++) {
-            eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(
+            eventPublisher.publishEvent(new AdminWithdrawEvent(
                     (long) i, "대량 처리 테스트"));
         }
 
@@ -217,7 +217,7 @@ class AdminWithdrawRequestedEventIntegrationTest {
         // Given
         Long userId = 1L;
         String reason = "예외 테스트";
-        AdminWithdrawRequestedEvent event = new AdminWithdrawRequestedEvent(userId, reason);
+        AdminWithdrawEvent event = new AdminWithdrawEvent(userId, reason);
         
         // 댓글 처리 실패 시뮬레이션
         doThrow(new RuntimeException("댓글 처리 실패"))
@@ -242,9 +242,9 @@ class AdminWithdrawRequestedEventIntegrationTest {
     void adminWithdrawRequestedEvent_EmptyReasonHandling() {
         // Given - 빈 사유 문자열로 이벤트 생성
         Long userId = 1L;
-        AdminWithdrawRequestedEvent event1 = new AdminWithdrawRequestedEvent(userId, "");
-        AdminWithdrawRequestedEvent event2 = new AdminWithdrawRequestedEvent(userId, null);
-        AdminWithdrawRequestedEvent event3 = new AdminWithdrawRequestedEvent(userId, "   ");
+        AdminWithdrawEvent event1 = new AdminWithdrawEvent(userId, "");
+        AdminWithdrawEvent event2 = new AdminWithdrawEvent(userId, null);
+        AdminWithdrawEvent event3 = new AdminWithdrawEvent(userId, "   ");
 
         // When - 빈 사유로 이벤트 발행
         eventPublisher.publishEvent(event1);

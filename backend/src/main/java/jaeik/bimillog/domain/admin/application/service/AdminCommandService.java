@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
+import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
@@ -96,7 +96,7 @@ public class AdminCommandService implements AdminCommandUseCase {
         User user = resolveUserForAction(reportType, targetId);
 
         // 이벤트 발행으로 Auth 도메인에 탈퇴 처리 위임
-        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(user.getId(), "관리자 강제 탈퇴"));
+        eventPublisher.publishEvent(new AdminWithdrawEvent(user.getId(), "관리자 강제 탈퇴"));
     }
 
     /**
