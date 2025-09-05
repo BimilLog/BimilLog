@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.application.port.out;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.event.NotificationEvent;
+import jaeik.bimillog.domain.notification.entity.NotificationVO;
 
 import java.io.IOException;
 import java.util.List;
@@ -93,5 +93,5 @@ public interface FcmPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void send(Long userId, NotificationEvent event);
+    void send(Long userId, NotificationVO event);
 }

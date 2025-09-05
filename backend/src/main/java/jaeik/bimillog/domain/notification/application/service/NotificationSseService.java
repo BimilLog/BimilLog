@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUse
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.event.NotificationEvent;
+import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -76,7 +76,7 @@ public class NotificationSseService implements NotificationSseUseCase {
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = notificationUrlPort.generatePostUrl(postId);
-        NotificationEvent event = NotificationEvent.create(NotificationType.COMMENT, message, url);
+        NotificationVO event = NotificationVO.create(NotificationType.COMMENT, message, url);
         ssePort.send(postUserId, event);
     }
 
@@ -90,7 +90,7 @@ public class NotificationSseService implements NotificationSseUseCase {
     public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = notificationUrlPort.generateRollingPaperUrl(userName);
-        NotificationEvent event = NotificationEvent.create(NotificationType.PAPER, message, url);
+        NotificationVO event = NotificationVO.create(NotificationType.PAPER, message, url);
         ssePort.send(farmOwnerId, event);
     }
 
@@ -104,7 +104,7 @@ public class NotificationSseService implements NotificationSseUseCase {
     @Override
     public void sendPostFeaturedNotification(Long userId, String message, Long postId) {
         String url = notificationUrlPort.generatePostUrl(postId);
-        NotificationEvent event = NotificationEvent.create(NotificationType.POST_FEATURED, message, url);
+        NotificationVO event = NotificationVO.create(NotificationType.POST_FEATURED, message, url);
         ssePort.send(userId, event);
     }
 }

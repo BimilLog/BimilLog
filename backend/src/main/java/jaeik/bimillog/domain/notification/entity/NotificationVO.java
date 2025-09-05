@@ -1,6 +1,4 @@
-package jaeik.bimillog.domain.notification.event;
-
-import jaeik.bimillog.domain.notification.entity.NotificationType;
+package jaeik.bimillog.domain.notification.entity;
 
 /**
  * <h2>알림 이벤트</h2>
@@ -13,7 +11,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
  * @version 2.0.0
  * @since 2.0.0
  */
-public record NotificationEvent(NotificationType type, String message, String url) {
+public record NotificationVO(NotificationType type, String message, String url) {
 
 
     /**
@@ -27,7 +25,7 @@ public record NotificationEvent(NotificationType type, String message, String ur
      * @author Jaeik
      * @since 2.0.0
      */
-    public static NotificationEvent create(NotificationType type, String message, String url) {
-        return new NotificationEvent(type, message, url);
+    public static NotificationVO create(NotificationType type, String message, String url) {
+        return new NotificationVO(type, message, url);
     }
 }

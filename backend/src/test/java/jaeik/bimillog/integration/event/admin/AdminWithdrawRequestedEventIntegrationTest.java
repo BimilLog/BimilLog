@@ -1,45 +1,36 @@
 package jaeik.bimillog.integration.event.admin;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
-import jaeik.bimillog.domain.admin.event.UserBannedEvent;
+import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
+import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doThrow;
 
-/**
- * <h2>Auth 도메인 이벤트 워크플로우 통합 테스트</h2>
- * <p>인증 관련 이벤트들의 전체 흐름을 검증하는 통합 테스트</p>
- * <p>비동기 이벤트 처리와 실제 스프링 컨텍스트를 사용하여 전체 워크플로우를 테스트</p>
- *
- * @author Jaeik
- * @version 2.0.0
- */
+
 @SpringBootTest
 @Import(TestContainersConfiguration.class)
 @Testcontainers
 @Transactional
-@DisplayName("Auth 도메인 이벤트 워크플로우 통합 테스트")
+@DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 통합 테스트")
 class AdminWithdrawRequestedEventIntegrationTest {
 
 
@@ -47,107 +38,20 @@ class AdminWithdrawRequestedEventIntegrationTest {
     private ApplicationEventPublisher eventPublisher;
 
     @MockitoBean
-    private DeleteUserPort deleteUserPort;
+    private UserCommandUseCase userCommandUseCase;
 
     @MockitoBean
-    private SocialLoginPort socialLoginPort;
+    private TokenBlacklistUseCase tokenBlacklistUseCase;
+
+    @MockitoBean
+    private CommentCommandUseCase commentCommandUseCase;
 
     @MockitoBean
     private WithdrawUseCase withdrawUseCase;
 
-    @MockitoBean
-    private UserCommandUseCase userCommandUseCase;
-
     @Test
-    @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리까지 완료")
-    void userLogoutEventWorkflow_ShouldCompleteTokenCleanup() {
-        // Given
-        Long userId = 1L;
-        Long tokenId = 100L;
-        UserLoggedOutEvent event = UserLoggedOutEvent.of(userId, tokenId);
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 비동기 처리를 고려하여 Awaitility 사용
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId));
-                });
-    }
-
-    @Test
-    @DisplayName("사용자 제재 이벤트 워크플로우 - BAN 역할 변경 및 블랙리스트 추가까지 완료")
-    void userBannedEventWorkflow_ShouldCompleteBanAndBlacklist() {
-        // Given
-        Long userId = 1L;
-        String socialId = "testSocialId";
-        SocialProvider provider = SocialProvider.KAKAO;
-        UserBannedEvent event = new UserBannedEvent(userId, socialId, provider);
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 비동기 처리를 고려하여 Awaitility 사용
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(userCommandUseCase).banUser(eq(userId));
-                    verify(userCommandUseCase).addToBlacklist(eq(userId));
-                });
-    }
-
-    @Test
-    @DisplayName("복합 이벤트 시나리오 - 사용자 로그아웃 후 제재")
-    void complexEventScenario_LogoutThenBan() {
-        // Given
-        Long userId = 1L;
-        Long tokenId = 100L;
-        String socialId = "testSocialId";
-        SocialProvider provider = SocialProvider.KAKAO;
-
-        // When - 연속된 이벤트 발행
-        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId));
-        eventPublisher.publishEvent(new UserBannedEvent(userId, socialId, provider));
-
-        // Then - 두 이벤트 모두 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId));
-                    verify(userCommandUseCase).banUser(eq(userId));
-                    verify(userCommandUseCase).addToBlacklist(eq(userId));
-                });
-    }
-
-    @Test
-    @DisplayName("동일한 사용자의 여러 토큰 로그아웃 이벤트")
-    void multipleTokenLogoutEvents_ForSameUser() {
-        // Given
-        Long userId = 1L;
-        Long tokenId1 = 100L;
-        Long tokenId2 = 101L;
-        Long tokenId3 = 102L;
-
-        // When - 동일 사용자의 여러 토큰 로그아웃
-        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId1));
-        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId2));
-        eventPublisher.publishEvent(UserLoggedOutEvent.of(userId, tokenId3));
-
-        // Then - 모든 토큰이 개별적으로 정리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId1));
-                    verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId2));
-                    verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId3));
-                });
-    }
-
-    @Test
-    @DisplayName("관리자 강제 탈퇴 이벤트 워크플로우 - 블랙리스트 추가 및 탈퇴 처리까지 완료")
-    void adminWithdrawRequestEventWorkflow_ShouldCompleteBlacklistAndWithdrawProcess() {
+    @DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 - 모든 후속 처리 완료")
+    void adminWithdrawRequestedEventWorkflow_ShouldCompleteAllProcessing() {
         // Given
         Long userId = 1L;
         String reason = "관리자 강제 탈퇴";
@@ -156,81 +60,205 @@ class AdminWithdrawRequestedEventIntegrationTest {
         // When
         eventPublisher.publishEvent(event);
 
-        // Then - 비동기 처리를 고려하여 Awaitility 사용 (블랙리스트 추가 후 탈퇴 처리)
+        // Then - 비동기 처리를 고려하여 Awaitility 사용
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
+                    // 사용자 블랙리스트 등록
                     verify(userCommandUseCase).addToBlacklist(eq(userId));
+                    // JWT 토큰 무효화
+                    verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
+                    // 댓글 처리
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
+                    // 강제 탈퇴 처리
                     verify(withdrawUseCase).forceWithdraw(eq(userId));
                 });
     }
 
     @Test
-    @DisplayName("복합 관리자 시나리오 - 제재 후 강제 탈퇴")
-    void complexAdminScenario_BanThenForceWithdraw() {
+    @DisplayName("다중 관리자 강제 탈퇴 요청 이벤트 동시 처리")
+    void multipleAdminWithdrawRequestedEvents_ShouldProcessConcurrently() {
         // Given
-        Long userId = 1L;
-        String socialId = "testSocialId";
-        SocialProvider provider = SocialProvider.KAKAO;
-        String withdrawReason = "관리자 강제 탈퇴";
+        AdminWithdrawRequestedEvent event1 = new AdminWithdrawRequestedEvent(1L, "스팸 행위");
+        AdminWithdrawRequestedEvent event2 = new AdminWithdrawRequestedEvent(2L, "지속적 규칙 위반");
+        AdminWithdrawRequestedEvent event3 = new AdminWithdrawRequestedEvent(3L, "부적절한 컸텐츠 게시");
 
-        // When - 연속된 관리자 이벤트 발행
-        eventPublisher.publishEvent(new UserBannedEvent(userId, socialId, provider));
-        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, withdrawReason));
+        // When - 동시에 여러 강제 탈퇴 이벤트 발행
+        eventPublisher.publishEvent(event1);
+        eventPublisher.publishEvent(event2);
+        eventPublisher.publishEvent(event3);
 
-        // Then - 두 이벤트 모두 처리되어야 함
+        // Then - 모든 사용자의 후속 처리가 완료되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(userCommandUseCase).banUser(eq(userId));
-                    verify(userCommandUseCase).addToBlacklist(eq(userId));
-                    verify(withdrawUseCase).forceWithdraw(eq(userId));
+                    verify(userCommandUseCase).addToBlacklist(eq(1L));
+                    verify(userCommandUseCase).addToBlacklist(eq(2L));
+                    verify(userCommandUseCase).addToBlacklist(eq(3L));
+                    
+                    verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(1L), eq("관리자 강제 탈퇴"));
+                    verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(2L), eq("관리자 강제 탈퇴"));
+                    verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(3L), eq("관리자 강제 탈퇴"));
+                    
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(2L));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(3L));
+                    
+                    verify(withdrawUseCase).forceWithdraw(eq(1L));
+                    verify(withdrawUseCase).forceWithdraw(eq(2L));
+                    verify(withdrawUseCase).forceWithdraw(eq(3L));
                 });
     }
 
     @Test
-    @DisplayName("이벤트 처리 시간 검증 - 타임아웃 내 완료")
-    void eventProcessingTime_ShouldCompleteWithinTimeout() {
+    @DisplayName("동일 사용자의 여러 강제 탈퇴 요청 이벤트 처리")
+    void multipleAdminWithdrawRequestedEventsForSameUser_ShouldProcessAll() {
+        // Given - 동일 사용자에 대한 여러 강제 탈퇴 요청 (동시 처리 등의 시나리오)
+        Long userId = 1L;
+        String reason1 = "첫 번째 사유";
+        String reason2 = "두 번째 사유";
+        String reason3 = "세 번째 사유";
+
+        // When - 동일 사용자에 대한 강제 탈퇴 이벤트 여러 번 발행
+        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, reason1));
+        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, reason2));
+        eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(userId, reason3));
+
+        // Then - 모든 이벤트가 처리되어야 함 (중복 호출 가능)
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(userCommandUseCase, times(3)).addToBlacklist(eq(userId));
+                    verify(tokenBlacklistUseCase, times(3)).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
+                    verify(commentCommandUseCase, times(3)).processUserCommentsOnWithdrawal(eq(userId));
+                    verify(withdrawUseCase, times(3)).forceWithdraw(eq(userId));
+                });
+    }
+
+    @Test
+    @DisplayName("강제 탈퇴 이벤트 처리 성능 검증")
+    void adminWithdrawRequestedEventProcessingTime_ShouldCompleteWithinTimeout() {
         // Given
         Long userId = 1L;
-        Long tokenId = 100L;
-        UserLoggedOutEvent event = new UserLoggedOutEvent(userId, tokenId, LocalDateTime.now());
+        String reason = "성능 테스트";
+        AdminWithdrawRequestedEvent event = new AdminWithdrawRequestedEvent(userId, reason);
         
         long startTime = System.currentTimeMillis();
 
         // When
         eventPublisher.publishEvent(event);
 
-        // Then - 2초 내에 처리 완료되어야 함
+        // Then - 3초 내에 처리 완료되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(2))
+                .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
-                    verify(deleteUserPort).logoutUser(eq(userId), eq(tokenId));
-                });
+                    verify(userCommandUseCase).addToBlacklist(eq(userId));
+                    verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
+                    verify(withdrawUseCase).forceWithdraw(eq(userId));
 
-        long endTime = System.currentTimeMillis();
-        assert (endTime - startTime) < 2000; // 2초 미만 처리 확인
+                    long endTime = System.currentTimeMillis();
+                    long processingTime = endTime - startTime;
+                    
+                    // 처리 시간이 3초를 초과하지 않아야 함
+                    assert processingTime < 3000L : "강제 탈퇴 이벤트 처리 시간이 너무 오래 걸림: " + processingTime + "ms";
+                });
     }
 
     @Test
-    @DisplayName("강제 탈퇴 시 블랙리스트 추가 우선순위 검증 - 블랙리스트 추가가 탈퇴 처리보다 먼저")
-    void adminWithdrawRequest_BlacklistBeforeWithdraw() {
+    @DisplayName("잘못된 이벤트 데이터 처리 - null userId")
+    void adminWithdrawRequestedEventsWithInvalidData_ShouldThrowException() {
+        // Given - 잘못된 데이터로 이벤트 생성 시 예외 발생 확인
+        // AdminWithdrawRequestedEvent는 생성자에서 검증하므로 null userId 시 예외 발생
+        
+        // When & Then - 예외가 발생해야 함
+        assertThatThrownBy(() -> new AdminWithdrawRequestedEvent(null, "테스트 사유"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("사용자 ID는 null일 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("대량 강제 탈퇴 요청 이벤트 처리 성능")
+    void massAdminWithdrawRequestedEvents_ShouldProcessEfficiently() {
+        // Given - 대량의 강제 탈퇴 요청 이벤트 (50개)
+        int eventCount = 50;
+        
+        long startTime = System.currentTimeMillis();
+
+        // When - 대량 강제 탈퇴 이벤트 발행
+        for (int i = 1; i <= eventCount; i++) {
+            eventPublisher.publishEvent(new AdminWithdrawRequestedEvent(
+                    (long) i, "대량 처리 테스트"));
+        }
+
+        // Then - 모든 이벤트가 15초 내에 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(15))
+                .untilAsserted(() -> {
+                    // 모든 사용자에 대해 후속 처리 확인
+                    for (int i = 1; i <= eventCount; i++) {
+                        verify(userCommandUseCase).addToBlacklist(eq((long) i));
+                        verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq((long) i), eq("관리자 강제 탈퇴"));
+                        verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq((long) i));
+                        verify(withdrawUseCase).forceWithdraw(eq((long) i));
+                    }
+
+                    long endTime = System.currentTimeMillis();
+                    long totalProcessingTime = endTime - startTime;
+                    
+                    // 대량 처리 시간이 15초를 초과하지 않아야 함
+                    assert totalProcessingTime < 15000L : "대량 강제 탈퇴 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
+                });
+    }
+
+    @Test
+    @DisplayName("예외 상황에서의 이벤트 처리 - 댓글 처리 실패")
+    void eventProcessingWithException_CommentProcessingFailure() {
         // Given
         Long userId = 1L;
-        String reason = "관리자 강제 탈퇴";
+        String reason = "예외 테스트";
         AdminWithdrawRequestedEvent event = new AdminWithdrawRequestedEvent(userId, reason);
+        
+        // 댓글 처리 실패 시뮬레이션
+        doThrow(new RuntimeException("댓글 처리 실패"))
+                .when(commentCommandUseCase).processUserCommentsOnWithdrawal(userId);
 
         // When
         eventPublisher.publishEvent(event);
 
-        // Then - 실행 순서 확인: 블랙리스트 추가 → 탈퇴 처리
+        // Then - 예외가 발생해도 다른 리스너들은 호출되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    // InOrder를 사용해 블랙리스트 추가가 먼저 호출되는지 확인할 수 있음
-                    // (실제로는 이벤트 처리에서 순서가 보장되므로 단순 verify로도 충분)
                     verify(userCommandUseCase).addToBlacklist(eq(userId));
+                    verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
+                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
                     verify(withdrawUseCase).forceWithdraw(eq(userId));
+                });
+    }
+
+    @Test
+    @DisplayName("빈 사유 문자열 처리 - 디폴트 사유로 대체")
+    void adminWithdrawRequestedEvent_EmptyReasonHandling() {
+        // Given - 빈 사유 문자열로 이벤트 생성
+        Long userId = 1L;
+        AdminWithdrawRequestedEvent event1 = new AdminWithdrawRequestedEvent(userId, "");
+        AdminWithdrawRequestedEvent event2 = new AdminWithdrawRequestedEvent(userId, null);
+        AdminWithdrawRequestedEvent event3 = new AdminWithdrawRequestedEvent(userId, "   ");
+
+        // When - 빈 사유로 이벤트 발행
+        eventPublisher.publishEvent(event1);
+        eventPublisher.publishEvent(event2);
+        eventPublisher.publishEvent(event3);
+
+        // Then - 디폴트 사유로 정상 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    verify(userCommandUseCase, times(3)).addToBlacklist(eq(userId));
+                    verify(tokenBlacklistUseCase, times(3)).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
+                    verify(commentCommandUseCase, times(3)).processUserCommentsOnWithdrawal(eq(userId));
+                    verify(withdrawUseCase, times(3)).forceWithdraw(eq(userId));
                 });
     }
 }

@@ -125,18 +125,19 @@ class UserWithdrawnEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("null 값을 포함한 사용자 탈퇴 이벤트 처리")
-    void userWithdrawnEventsWithNullValues_ShouldBeProcessed() {
-        // Given - null 값을 포함한 탈퇴 이벤트
+    @DisplayName("탈퇴 이벤트에서 리스너의 null 값 안전 처리")
+    void userWithdrawnEventWithNullUserId_ShouldBeHandledSafely() {
+        // Given - null userId를 포함한 탈퇴 이벤트 (리스너에서 안전하게 처리되어야 함)
         UserWithdrawnEvent withdrawnEvent = new UserWithdrawnEvent(null);
 
-        // When
+        // When - null userId로 이벤트 발행
         eventPublisher.publishEvent(withdrawnEvent);
 
-        // Then - null 값이어도 이벤트는 처리되어야 함
+        // Then - 리스너들이 null userId를 안전하게 처리해야 함 (예외 발생하지 않음)
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
+                    // 리스너들은 null 값을 받을 수 있지만 안전하게 처리해야 함
                     verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(null));
                     verify(notificationFcmUseCase).deleteFcmTokens(eq(null));
                 });

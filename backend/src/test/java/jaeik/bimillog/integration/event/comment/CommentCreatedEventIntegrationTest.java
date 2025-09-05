@@ -17,7 +17,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -134,23 +136,24 @@ class CommentCreatedEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("null 값을 포함한 댓글 생성 이벤트 처리")
-    void commentCreatedEventWithNullValues_ShouldBeProcessed() {
-        // Given - null 값들을 포함한 댓글 생성 이벤트
-        CommentCreatedEvent commentEvent = new CommentCreatedEvent(null, null, null);
-
-        // When
-        eventPublisher.publishEvent(commentEvent);
-
-        // Then - null 값이어도 이벤트는 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(notificationSseUseCase).sendCommentNotification(
-                            eq(null), eq(null), eq(null));
-                    verify(notificationFcmUseCase).sendCommentNotification(
-                            eq(null), eq(null));
-                });
+    @DisplayName("댓글 생성 이벤트 유효성 검사 - null 값 검증")
+    void commentCreatedEventValidation_ShouldThrowExceptionForNullValues() {
+        // Then - null 값들로 이벤트 생성 시 예외가 발생해야 함
+        assertThatThrownBy(() -> new CommentCreatedEvent(null, "댓글러", 1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("게시글 작성자 ID는 null일 수 없습니다");
+        
+        assertThatThrownBy(() -> new CommentCreatedEvent(1L, null, 1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("댓글 작성자 이름은 null이거나 비어있을 수 없습니다");
+        
+        assertThatThrownBy(() -> new CommentCreatedEvent(1L, "", 1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("댓글 작성자 이름은 null이거나 비어있을 수 없습니다");
+        
+        assertThatThrownBy(() -> new CommentCreatedEvent(1L, "댓글러", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("게시글 ID는 null일 수 없습니다");
     }
 
     @Test
@@ -219,6 +222,52 @@ class CommentCreatedEventIntegrationTest {
                     
                     // 대량 처리 시간이 15초를 초과하지 않아야 함
                     assert totalProcessingTime < 15000L : "대량 댓글 생성 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
+                });
+    }
+
+    @Test
+    @DisplayName("예외 상황에서의 이벤트 처리 - SSE 알림 실패")
+    void eventProcessingWithException_SseNotificationFailure() {
+        // Given
+        CommentCreatedEvent event = new CommentCreatedEvent(1L, "댓글러", 100L);
+        
+        // SSE 알림 실패 시뮬레이션
+        doThrow(new RuntimeException("SSE 알림 실패"))
+                .when(notificationSseUseCase).sendCommentNotification(1L, "댓글러", 100L);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 예외가 발생해도 이벤트 리스너는 호출되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(notificationSseUseCase).sendCommentNotification(eq(1L), eq("댓글러"), eq(100L));
+                    // FCM 알림은 별도 처리이므로 SSE 실패와 관계없이 처리되어야 함
+                    verify(notificationFcmUseCase).sendCommentNotification(eq(1L), eq("댓글러"));
+                });
+    }
+
+    @Test
+    @DisplayName("예외 상황에서의 이벤트 처리 - FCM 알림 실패")
+    void eventProcessingWithException_FcmNotificationFailure() {
+        // Given
+        CommentCreatedEvent event = new CommentCreatedEvent(1L, "댓글러", 100L);
+        
+        // FCM 알림 실패 시뮬레이션
+        doThrow(new RuntimeException("FCM 알림 실패"))
+                .when(notificationFcmUseCase).sendCommentNotification(1L, "댓글러");
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 예외가 발생해도 이벤트 리스너는 호출되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(notificationFcmUseCase).sendCommentNotification(eq(1L), eq("댓글러"));
+                    // SSE 알림은 별도 처리이므로 FCM 실패와 관계없이 처리되어야 함
+                    verify(notificationSseUseCase).sendCommentNotification(eq(1L), eq("댓글러"), eq(100L));
                 });
     }
 }

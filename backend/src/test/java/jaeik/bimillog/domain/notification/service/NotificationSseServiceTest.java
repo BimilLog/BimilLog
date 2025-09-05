@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>NotificationSseService 테스트</h2>
  * <p>SSE 알림 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>EventDTO 제거 후 NotificationEvent 도메인 엔티티를 사용하도록 리팩토링됨</p>
+ * <p>EventDTO 제거 후 NotificationVO 도메인 엔티티를 사용하도록 리팩토링됨</p>
  *
  * @author Jaeik
  * @version 2.0.0

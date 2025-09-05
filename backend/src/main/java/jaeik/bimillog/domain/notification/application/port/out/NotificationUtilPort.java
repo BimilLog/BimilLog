@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
  * <p>알림 관련 유틸리티 기능을 정의하는 아웃바운드 포트</p>
  * <p>
  * 헥사고날 아키텍처 리팩토링으로 EventDTO 생성 기능을 제거하고,
- * 도메인 서비스에서 직접 NotificationEvent.create()를 사용하도록 변경되었습니다.
+ * 도메인 서비스에서 직접 NotificationVO.create()를 사용하도록 변경되었습니다.
  * </p>
  *
  * @author Jaeik

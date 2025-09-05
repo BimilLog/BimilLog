@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationComma
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.event.NotificationEvent;
+import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -66,7 +66,7 @@ public class SseAdapter implements SsePort {
      * @since 2.0.0
      */
     @Override
-    public void send(Long userId, NotificationEvent event) {
+    public void send(Long userId, NotificationVO event) {
         try {
             NotificationType type = event.type();
             String data = event.message();

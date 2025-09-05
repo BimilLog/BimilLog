@@ -6,7 +6,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.event.NotificationEvent;
+import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto.FcmMessageDTO;
@@ -80,7 +80,7 @@ public class FcmAdapter implements FcmPort {
      */
     @Override
     @Async("fcmNotificationExecutor")
-    public void send(Long userId, NotificationEvent event) {
+    public void send(Long userId, NotificationVO event) {
         try {
             List<FcmToken> fcmTokens = findValidFcmTokensForMessageNotification(userId);
             if (hasNoValidTokens(fcmTokens)) return;
@@ -222,14 +222,14 @@ public class FcmAdapter implements FcmPort {
         return fcmTokens == null || fcmTokens.isEmpty();
     }
 
-    private void sendNotificationsToTokens(List<FcmToken> fcmTokens, NotificationEvent event) throws IOException {
+    private void sendNotificationsToTokens(List<FcmToken> fcmTokens, NotificationVO event) throws IOException {
         for (FcmToken fcmToken : fcmTokens) {
             FcmMessage fcmMessage = createFcmMessage(fcmToken, event);
             sendMessageTo(fcmMessage);
         }
     }
 
-    private FcmMessage createFcmMessage(FcmToken fcmToken, NotificationEvent event) {
+    private FcmMessage createFcmMessage(FcmToken fcmToken, NotificationVO event) {
         return FcmMessage.of(
                 fcmToken.getFcmRegistrationToken(),
                 event.message(),

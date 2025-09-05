@@ -3,6 +3,7 @@ package jaeik.bimillog.integration.event.auth;
 import jaeik.bimillog.domain.auth.application.port.in.TokenCleanupUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +48,9 @@ public class UserLoggedOutEventIntegrationTest {
     @MockitoBean
     private NotificationSseUseCase notificationSseUseCase;
 
+    @MockitoBean
+    private NotificationFcmUseCase notificationFcmUseCase;
+
     @Test
     @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리와 SSE 정리까지 완료")
     void userLoggedOutEventWorkflow_ShouldCompleteCleanupTasks() {
@@ -67,6 +71,8 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
                     // 특정 기기의 SSE 연결 정리
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+                    // FCM 토큰 삭제
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
                 });
     }
 
@@ -87,6 +93,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .untilAsserted(() -> {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
                 });
     }
 
@@ -114,6 +121,10 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(101L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(2L), eq(102L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(3L), eq(103L));
+                    
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(2L));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(3L));
                 });
     }
 
@@ -143,6 +154,9 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(101L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(102L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(103L));
+                    
+                    // FCM 토큰 삭제는 사용자별로 3번 호출됨
+                    verify(notificationFcmUseCase, times(3)).deleteFcmTokens(eq(userId));
                 });
     }
 
@@ -165,6 +179,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .untilAsserted(() -> {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
 
                     long endTime = System.currentTimeMillis();
                     long processingTime = endTime - startTime;
@@ -175,22 +190,23 @@ public class UserLoggedOutEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("null 값을 포함한 로그아웃 이벤트 처리")
-    void userLoggedOutEventWithNullValues_ShouldBeHandledGracefully() {
-        // Given
+    @DisplayName("로그아웃 이벤트에서 리스너의 null 값 안전 처리")
+    void userLoggedOutEventWithNullValues_ShouldBeHandledSafely() {
+        // Given - null 값을 포함한 이벤트 (리스너에서 안전하게 처리되어야 함)
         UserLoggedOutEvent eventWithNullUserId = new UserLoggedOutEvent(null, 100L, LocalDateTime.now());
         UserLoggedOutEvent eventWithNullTokenId = new UserLoggedOutEvent(1L, null, LocalDateTime.now());
         UserLoggedOutEvent eventWithNullTime = new UserLoggedOutEvent(1L, 100L, null);
 
-        // When
+        // When - null 값을 포함한 이벤트 발행
         eventPublisher.publishEvent(eventWithNullUserId);
         eventPublisher.publishEvent(eventWithNullTokenId);
         eventPublisher.publishEvent(eventWithNullTime);
 
-        // Then - null 값이어도 이벤트는 처리되어야 함 (리스너에서 null 체크)
+        // Then - 리스너들이 null 값을 안전하게 처리해야 함 (예외 발생하지 않음)
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
+                    // null userId로 호출될 수 있지만 리스너에서 안전하게 처리
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(null), eq(100L));
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(1L), eq(null));
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(1L), eq(100L));
@@ -198,6 +214,10 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(null), eq(100L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(null));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(100L));
+                    
+                    // FCM 삭제 - null userId에 대해서는 2번, 정상 userId에 대해서는 1번 호출
+                    verify(notificationFcmUseCase, times(2)).deleteFcmTokens(eq(null));
+                    verify(notificationFcmUseCase, times(2)).deleteFcmTokens(eq(1L));
                 });
     }
 
@@ -221,6 +241,7 @@ public class UserLoggedOutEventIntegrationTest {
                     for (int i = 1; i <= userCount; i++) {
                         verify(tokenCleanupUseCase).cleanupSpecificToken(eq((long) i), eq((long) (i + 1000)));
                         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq((long) i), eq((long) (i + 1000)));
+                        verify(notificationFcmUseCase).deleteFcmTokens(eq((long) i));
                     }
 
                     long endTime = System.currentTimeMillis();
@@ -253,6 +274,9 @@ public class UserLoggedOutEventIntegrationTest {
                     
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId1), eq(101L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId2), eq(102L));
+                    
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId1));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId2));
                 });
     }
 
@@ -274,6 +298,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .untilAsserted(() -> {
                     verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
                 });
     }
 
@@ -300,6 +325,9 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(101L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(102L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(103L));
+                    
+                    // FCM 토큰 삭제는 동일 사용자에 대해 3번 호출됨
+                    verify(notificationFcmUseCase, times(3)).deleteFcmTokens(eq(userId));
                 });
     }
 }

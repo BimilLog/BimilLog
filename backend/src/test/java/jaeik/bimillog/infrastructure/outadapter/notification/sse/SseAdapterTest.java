@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.outadapter.notification.sse;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.event.NotificationEvent;
+import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -98,7 +98,7 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 성공")
     void shouldSend_WhenValidInput() {
         // Given
-        NotificationEvent event = NotificationEvent.create(
+        NotificationVO event = NotificationVO.create(
                 NotificationType.COMMENT,
                 "테스트 메시지",
                 "/test/url"
@@ -121,7 +121,7 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 사용자 없음 예외")
     void shouldThrowException_WhenUserNotFound() {
         // Given
-        NotificationEvent event = NotificationEvent.create(
+        NotificationVO event = NotificationVO.create(
                 NotificationType.COMMENT,
                 "테스트 메시지",
                 "/test/url"
@@ -143,7 +143,7 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 알림 저장 실패 시 예외")
     void shouldThrowException_WhenNotificationSaveFails() {
         // Given
-        NotificationEvent event = NotificationEvent.create(
+        NotificationVO event = NotificationVO.create(
                 NotificationType.COMMENT,
                 "테스트 메시지",
                 "/test/url"
@@ -167,7 +167,7 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - Emitter가 없는 경우")
     void shouldHandleEmptyEmitters_WhenNoEmittersExist() {
         // Given
-        NotificationEvent event = NotificationEvent.create(
+        NotificationVO event = NotificationVO.create(
                 NotificationType.COMMENT,
                 "테스트 메시지",
                 "/test/url"
@@ -202,7 +202,7 @@ class SseAdapterTest {
     @DisplayName("다양한 알림 타입 전송 테스트")
     void shouldSendDifferentNotificationTypes() {
         // Given
-        NotificationEvent paperEvent = NotificationEvent.create(
+        NotificationVO paperEvent = NotificationVO.create(
                 NotificationType.PAPER,
                 "롤링페이퍼 메시지",
                 "/paper/url"
@@ -223,7 +223,7 @@ class SseAdapterTest {
     @DisplayName("여러 Emitter에 동시 전송 테스트")
     void shouldSendToMultipleEmitters() {
         // Given
-        NotificationEvent event = NotificationEvent.create(
+        NotificationVO event = NotificationVO.create(
                 NotificationType.COMMENT,
                 "테스트 메시지",
                 "/test/url"

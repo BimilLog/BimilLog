@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
-import jaeik.bimillog.domain.notification.event.NotificationEvent;
+import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -57,6 +57,6 @@ public interface SsePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void send(Long userId, NotificationEvent event);
+    void send(Long userId, NotificationVO event);
 
 }

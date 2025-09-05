@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.outadapter.notification.fcm;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.event.NotificationEvent;
+import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.Setting;
@@ -53,7 +53,7 @@ class FcmAdapterTest {
 
     private User testUser;
     private FcmToken testFcmToken;
-    private NotificationEvent testEvent;
+    private NotificationVO testEvent;
 
     @BeforeEach
     void setUp() {
@@ -76,7 +76,7 @@ class FcmAdapterTest {
         testFcmToken = FcmToken.create(testUser, "test-fcm-token");
                 
 
-        testEvent = NotificationEvent.create(
+        testEvent = NotificationVO.create(
                 NotificationType.COMMENT,
                 "테스트 알림 메시지",
                 "/test/url"
