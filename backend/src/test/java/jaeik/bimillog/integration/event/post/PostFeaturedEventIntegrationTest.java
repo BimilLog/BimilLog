@@ -19,8 +19,10 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 /**
  * <h2>게시글 인기글 등극 이벤트 워크플로우 통합 테스트</h2>
@@ -211,6 +213,7 @@ public class PostFeaturedEventIntegrationTest {
                     assert totalProcessingTime < 15000L : "대량 인기글 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
                 });
     }
+
 
     @Test
     @DisplayName("이벤트 생성 시 유효성 검증 - null userId")
