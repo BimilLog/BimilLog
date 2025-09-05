@@ -45,6 +45,9 @@ public class FcmAdapter implements FcmPort {
 
     private static final String API_URL = "https://fcm.googleapis.com/v1/projects/growfarm-6cd79/messages:send";
     private static final String FIREBASE_CONFIG_PATH = "growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json";
+    private static final String DEFAULT_NOTIFICATION_BODY = "지금 확인해보세요!";
+    private static final String FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     /**
      * <h3>FCM 메시지 전송</h3>
@@ -57,20 +60,12 @@ public class FcmAdapter implements FcmPort {
      */
     @Override
     public void sendMessageTo(FcmMessage fcmMessage) throws IOException {
-
         FcmSendDTO fcmSendDto = toDto(fcmMessage);
         String message = makeMessage(fcmSendDto);
-        RestTemplate restTemplate = new RestTemplate();
-
-        restTemplate.getMessageConverters()
-                .addFirst(new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + getAccessToken());
-
-        HttpEntity<String> entity = new HttpEntity<>(message, headers);
-
+        
+        RestTemplate restTemplate = createConfiguredRestTemplate();
+        HttpEntity<String> entity = createHttpEntity(message);
+        
         restTemplate.exchange(API_URL, HttpMethod.POST, entity, String.class);
     }
 
@@ -88,16 +83,9 @@ public class FcmAdapter implements FcmPort {
     public void send(Long userId, NotificationEvent event) {
         try {
             List<FcmToken> fcmTokens = findValidFcmTokensForMessageNotification(userId);
-            if (fcmTokens == null || fcmTokens.isEmpty()) return;
+            if (hasNoValidTokens(fcmTokens)) return;
 
-            for (FcmToken fcmToken : fcmTokens) {
-                FcmMessage fcmMessage = FcmMessage.of(
-                        fcmToken.getFcmRegistrationToken(),
-                        event.message(),
-                        "지금 확인해보세요!"
-                );
-                sendMessageTo(fcmMessage);
-            }
+            sendNotificationsToTokens(fcmTokens, event);
         } catch (Exception e) {
             throw new NotificationCustomException(NotificationErrorCode.FCM_SEND_ERROR, e);
         }
@@ -118,14 +106,11 @@ public class FcmAdapter implements FcmPort {
     }
 
 
+    /* ===================== FCM Token Query Methods ===================== */
+
     /**
      * <h3>사용자 ID로 유효한 FCM 토큰 조회 (메시지 알림)</h3>
      * <p>메시지 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
-     *
-     * @param userId 조회할 사용자의 ID
-     * @return FCM 토큰 엔티티 목록
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Override
     public List<FcmToken> findValidFcmTokensForMessageNotification(Long userId) {
@@ -135,11 +120,6 @@ public class FcmAdapter implements FcmPort {
     /**
      * <h3>사용자 ID로 유효한 FCM 토큰 조회 (댓글 알림)</h3>
      * <p>댓글 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
-     *
-     * @param userId 조회할 사용자의 ID
-     * @return FCM 토큰 엔티티 목록
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Override
     public List<FcmToken> findValidFcmTokensForCommentNotification(Long userId) {
@@ -149,11 +129,6 @@ public class FcmAdapter implements FcmPort {
     /**
      * <h3>사용자 ID로 유효한 FCM 토큰 조회 (인기글 알림)</h3>
      * <p>인기글 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
-     *
-     * @param userId 조회할 사용자의 ID
-     * @return FCM 토큰 엔티티 목록
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Override
     public List<FcmToken> findValidFcmTokensForPostFeaturedNotification(Long userId) {
@@ -185,7 +160,7 @@ public class FcmAdapter implements FcmPort {
     private String getAccessToken() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
                 .fromStream(new ClassPathResource(FIREBASE_CONFIG_PATH).getInputStream())
-                .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
+                .createScoped(List.of(FCM_SCOPE));
 
         googleCredentials.refreshIfExpired();
         return googleCredentials.getAccessToken().getTokenValue();
@@ -227,5 +202,38 @@ public class FcmAdapter implements FcmPort {
      */
     private FcmSendDTO toDto(FcmMessage fcmMessage) {
         return new FcmSendDTO(fcmMessage.token(), fcmMessage.title(), fcmMessage.body());
+    }
+
+    private RestTemplate createConfiguredRestTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters()
+                .addFirst(new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        return restTemplate;
+    }
+
+    private HttpEntity<String> createHttpEntity(String message) throws IOException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", BEARER_PREFIX + getAccessToken());
+        return new HttpEntity<>(message, headers);
+    }
+
+    private boolean hasNoValidTokens(List<FcmToken> fcmTokens) {
+        return fcmTokens == null || fcmTokens.isEmpty();
+    }
+
+    private void sendNotificationsToTokens(List<FcmToken> fcmTokens, NotificationEvent event) throws IOException {
+        for (FcmToken fcmToken : fcmTokens) {
+            FcmMessage fcmMessage = createFcmMessage(fcmToken, event);
+            sendMessageTo(fcmMessage);
+        }
+    }
+
+    private FcmMessage createFcmMessage(FcmToken fcmToken, NotificationEvent event) {
+        return FcmMessage.of(
+                fcmToken.getFcmRegistrationToken(),
+                event.message(),
+                DEFAULT_NOTIFICATION_BODY
+        );
     }
 }

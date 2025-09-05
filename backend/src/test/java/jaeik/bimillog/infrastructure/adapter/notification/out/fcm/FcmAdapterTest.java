@@ -86,8 +86,11 @@ class FcmAdapterTest {
     @DisplayName("정상 케이스 - FCM 토큰 저장")
     void shouldSaveFcmToken_WhenValidTokenProvided() {
         // Given: 저장할 FCM 토큰과 예상 결과
-        FcmToken savedToken = FcmToken.create(testUser, "new-fcm-token");
-                
+        FcmToken savedToken = FcmToken.builder()
+                .id(1L)
+                .user(testUser)
+                .fcmRegistrationToken("new-fcm-token")
+                .build();
 
         given(fcmTokenRepository.save(any(FcmToken.class))).willReturn(savedToken);
 

@@ -6,7 +6,6 @@ import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.Tok
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +18,6 @@ public class DeleteUserAdapter implements DeleteUserPort {
 
     private final EntityManager entityManager;
     private final TokenRepository tokenRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final AuthCookieManager authCookieManager;
     private final UserCommandUseCase userCommandUseCase;
 
