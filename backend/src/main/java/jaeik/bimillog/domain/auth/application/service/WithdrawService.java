@@ -10,8 +10,6 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;

@@ -16,7 +16,6 @@ import jaeik.bimillog.domain.admin.event.AdminWithdrawRequestedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import lombok.RequiredArgsConstructor;

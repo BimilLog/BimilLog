@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.user.entity;
 
 import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;

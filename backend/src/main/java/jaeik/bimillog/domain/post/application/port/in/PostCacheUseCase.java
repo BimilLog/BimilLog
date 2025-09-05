@@ -1,10 +1,5 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostDetail;
-
-import java.util.List;
-
 /**
  * <h2>게시글 캐시 유스케이스</h2>
  * <p>게시글 캐시 관리와 관련된 비즈니스 로직을 처리하는 유스케이스 인터페이스</p>

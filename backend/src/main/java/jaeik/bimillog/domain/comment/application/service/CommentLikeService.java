@@ -10,7 +10,6 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.application.port.out.*;
-import jaeik.bimillog.domain.post.application.port.out.LoadUserInfoPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.user.entity.User;
@@ -12,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
 
 /**
  * <h2>게시글 상호작용 서비스</h2>
