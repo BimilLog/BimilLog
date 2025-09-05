@@ -3,16 +3,16 @@ package jaeik.bimillog.domain.notification.application.service;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.application.port.out.LoadUserPort;
-import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
+import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
+import java.util.List;
 
 /**
  * <h2>FCM 토큰 관리 서비스</h2>
@@ -76,24 +76,11 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendCommentNotification(Long postUserId, String commenterName) {
         try {
-            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForCommentNotification(postUserId);
-            if (fcmTokens.isEmpty()) {
-                log.info("댓글 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. 사용자 ID={}", postUserId);
-                return;
-            }
-
+            List<FcmToken> tokens = fcmPort.findValidFcmTokensForCommentNotification(postUserId);
             String title = commenterName + "님이 댓글을 남겼습니다!";
             String body = "지금 확인해보세요!";
-            
-            for (FcmToken token : fcmTokens) {
-                FcmMessage fcmMessage = FcmMessage.of(
-                        token.getFcmRegistrationToken(),
-                        title,
-                        body
-                );
-                fcmPort.sendMessageTo(fcmMessage);
-            }
-            log.info("댓글 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", postUserId, fcmTokens.size());
+            sendNotifications(tokens, title, body);
+            log.info("댓글 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", postUserId, tokens.size());
         } catch (Exception e) {
             log.error("FCM 댓글 알림 전송 실패: 사용자 ID={}, 댓글작성자={}", postUserId, commenterName, e);
         }
@@ -107,24 +94,11 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendPaperPlantNotification(Long farmOwnerId) {
         try {
-            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForMessageNotification(farmOwnerId);
-            if (fcmTokens.isEmpty()) {
-                log.info("메시지 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. 사용자 ID={}", farmOwnerId);
-                return;
-            }
-
+            List<FcmToken> tokens = fcmPort.findValidFcmTokensForMessageNotification(farmOwnerId);
             String title = "롤링페이퍼에 메시지가 작성되었어요!";
             String body = "지금 확인해보세요!";
-            
-            for (FcmToken token : fcmTokens) {
-                FcmMessage fcmMessage = FcmMessage.of(
-                        token.getFcmRegistrationToken(),
-                        title,
-                        body
-                );
-                fcmPort.sendMessageTo(fcmMessage);
-            }
-            log.info("롤링페이퍼 메시지 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", farmOwnerId, fcmTokens.size());
+            sendNotifications(tokens, title, body);
+            log.info("롤링페이퍼 메시지 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", farmOwnerId, tokens.size());
         } catch (Exception e) {
             log.error("FCM 롤링페이퍼 알림 전송 실패: 롤링페이퍼 주인 ID={}", farmOwnerId, e);
         }
@@ -140,23 +114,35 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendPostFeaturedNotification(Long userId, String title, String body) {
         try {
-            List<FcmToken> fcmTokens = fcmPort.findValidFcmTokensForPostFeaturedNotification(userId);
-            if (fcmTokens.isEmpty()) {
-                log.info("인기글 알림이 비활성화되어 있거나 FCM 토큰이 없어 알림을 전송하지 않습니다. 사용자 ID={}", userId);
-                return;
-            }
-            
-            for (FcmToken token : fcmTokens) {
-                FcmMessage fcmMessage = FcmMessage.of(
-                        token.getFcmRegistrationToken(),
-                        title,
-                        body
-                );
-                fcmPort.sendMessageTo(fcmMessage);
-            }
-            log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", userId, fcmTokens.size());
+            List<FcmToken> tokens = fcmPort.findValidFcmTokensForPostFeaturedNotification(userId);
+            sendNotifications(tokens, title, body);
+            log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", userId, tokens.size());
         } catch (Exception e) {
             log.error("FCM 인기글 등극 알림 전송 실패: 사용자 ID={}, 제목={}", userId, title, e);
+        }
+    }
+
+    /**
+     * <h3>FCM 알림 전송 도우미 메서드</h3>
+     * <p>토큰 목록을 받아 FCM 메시지를 전송하는 공통 로직을 처리합니다.</p>
+     *
+     * @param tokens 전송 대상 FCM 토큰 목록
+     * @param title  메시지 제목
+     * @param body   메시지 본문
+     */
+    private void sendNotifications(List<FcmToken> tokens, String title, String body) {
+        if (tokens == null || tokens.isEmpty()) {
+            log.debug("전송할 FCM 토큰이 없습니다. 알림을 전송하지 않습니다.");
+            return;
+        }
+
+        for (FcmToken token : tokens) {
+            try {
+                fcmPort.sendMessageTo(FcmMessage.of(token.getFcmRegistrationToken(), title, body));
+            } catch (Exception e) {
+                // 개별 메시지 전송 실패 시에도 전체 전송을 중단하지 않도록 함
+                log.warn("FCM 메시지 전송 중 일부 실패: 토큰={}", token.getFcmRegistrationToken(), e);
+            }
         }
     }
 }

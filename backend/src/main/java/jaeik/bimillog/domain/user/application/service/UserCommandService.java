@@ -1,4 +1,3 @@
-
 package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
@@ -10,7 +9,6 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -50,12 +48,12 @@ public class UserCommandService implements UserCommandUseCase {
         }
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-        
+
         // 엔티티 비즈니스 메서드로 업데이트 대체
         user.updateSettings(
-            newSetting.isMessageNotification(),
-            newSetting.isCommentNotification(),
-            newSetting.isPostFeaturedNotification()
+                newSetting.isMessageNotification(),
+                newSetting.isCommentNotification(),
+                newSetting.isPostFeaturedNotification()
         );
         // JPA 변경 감지로 자동 저장
     }
@@ -67,8 +65,8 @@ public class UserCommandService implements UserCommandUseCase {
      *
      * @param userId      사용자 ID
      * @param newUserName 새로운 닉네임
-     * @throws CustomException EXISTED_NICKNAME - 닉네임이 중복된 경우
-     * @throws CustomException USER_NOT_FOUND - 사용자를 찾을 수 없는 경우
+     * @throws UserCustomException EXISTED_NICKNAME - 닉네임이 중복된 경우
+     * @throws UserCustomException USER_NOT_FOUND - 사용자를 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
@@ -76,16 +74,12 @@ public class UserCommandService implements UserCommandUseCase {
     public void updateUserName(Long userId, String newUserName) {
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-        
+
         try {
-            // 엔티티가 비즈니스 로직 처리
+            // 엔티티가 비즈니스 로직 처리. JPA 변경 감지로 자동 저장되므로 명시적 save는 불필요합니다.
             user.changeUserName(newUserName, userQueryPort);
-            
-            // JPA 변경 감지로 자동 저장 (명시적 save 생략 가능)
-            userCommandPort.save(user);
         } catch (DataIntegrityViolationException e) {
             // Race Condition 발생 시: 다른 사용자가 동시에 같은 닉네임으로 변경한 경우
-            // 데이터베이스 UNIQUE 제약조건 위반으로 인한 예외를 커스텀 예외로 변환
             log.warn("닉네임 경쟁 상태 감지됨 - 사용자 ID: {}, 새 닉네임: {}", userId, newUserName, e);
             throw new UserCustomException(UserErrorCode.EXISTED_NICKNAME);
         }
@@ -134,13 +128,13 @@ public class UserCommandService implements UserCommandUseCase {
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         BlackList blackList = BlackList.createBlackList(user.getSocialId(), user.getProvider());
-        
+
         try {
             userCommandPort.save(blackList);
-            log.info("사용자 블랙리스트 추가 완료 - userId: {}, socialId: {}, provider: {}", 
+            log.info("사용자 블랙리스트 추가 완료 - userId: {}, socialId: {}, provider: {}",
                     userId, user.getSocialId(), user.getProvider());
         } catch (DataIntegrityViolationException e) {
-            log.warn("이미 블랙리스트에 등록된 사용자 - userId: {}, socialId: {}", 
+            log.warn("이미 블랙리스트에 등록된 사용자 - userId: {}, socialId: {}",
                     userId, user.getSocialId());
         }
     }
@@ -163,8 +157,8 @@ public class UserCommandService implements UserCommandUseCase {
         // 사용자 역할을 BAN으로 변경
         user.updateRole(UserRole.BAN);
         userCommandPort.save(user);
-        
-        log.info("사용자 제재 완료 - userId: {}, userName: {}, 역할 변경: BAN", 
+
+        log.info("사용자 제재 완료 - userId: {}, userName: {}, 역할 변경: BAN",
                 userId, user.getUserName());
     }
 

@@ -20,12 +20,13 @@ import java.util.stream.Collectors;
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenBlacklistService implements TokenBlacklistUseCase {
+
+    private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
     private final JwtInvalidatePort jwtInvalidatePort;
     private final LoadTokenPort loadTokenPort;
@@ -41,21 +42,16 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     @Override
     public boolean isBlacklisted(String token) {
         try {
-            // 토큰 해시 생성
             String tokenHash = authPort.generateTokenHash(token);
-            
-            // Redis에서 블랙리스트 여부 확인
             boolean isBlacklisted = jwtInvalidatePort.isBlacklisted(tokenHash);
-            
+
             if (isBlacklisted) {
                 log.debug("토큰이 블랙리스트에서 발견됨: hash={}", tokenHash.substring(0, 8) + "...");
             }
-            
             return isBlacklisted;
-
         } catch (Exception e) {
             log.error("토큰 블랙리스트 상태 확인 실패: error={}", e.getMessage(), e);
-            // 에러 발생 시 안전하게 블랙리스트로 간주
+            // 예외 발생 시 안전하게 블랙리스트로 간주하여 접근을 막습니다.
             return true;
         }
     }
@@ -71,43 +67,34 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     @Override
     public void blacklistAllUserTokens(Long userId, String reason) {
         try {
-            // 사용자의 모든 활성 토큰 조회
             List<Token> userTokens = loadTokenPort.findAllByUserId(userId);
-            
+
             if (userTokens.isEmpty()) {
                 log.info("사용자 {}의 활성 토큰을 찾을 수 없음", userId);
                 return;
             }
-            
-            // 토큰에서 해시값 생성
+
             List<String> tokenHashes = userTokens.stream()
                     .map(token -> {
                         try {
                             return authPort.generateTokenHash(token.getAccessToken());
                         } catch (Exception e) {
-                            log.warn("토큰 {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
+                            log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;
                         }
                     })
                     .filter(hash -> hash != null)
                     .collect(Collectors.toList());
-            
+
             if (!tokenHashes.isEmpty()) {
-                // 일반적인 JWT 만료 시간(1시간)을 기본값으로 설정
-                Duration defaultTtl = Duration.ofHours(1);
-                
-                // 개별 토큰 해시들을 모두 블랙리스트에 등록
-                jwtInvalidatePort.blacklistTokenHashes(tokenHashes, reason, defaultTtl);
-                
-                log.info("사용자 {}의 모든 토큰 {}개가 블랙리스트에 추가됨: reason={}", 
-                        userId, tokenHashes.size(), reason);
+                jwtInvalidatePort.blacklistTokenHashes(tokenHashes, reason, DEFAULT_TTL);
+                log.info("사용자 {}의 토큰 {}개가 블랙리스트에 추가됨: 사유={}", userId, tokenHashes.size(), reason);
             } else {
-                log.warn("사용자 {}에 대한 유효한 토큰 해시가 생성되지 않음", userId);
+                log.warn("사용자 {}에 대해 블랙리스트에 추가할 유효한 토큰 해시가 없음", userId);
             }
 
         } catch (Exception e) {
-            log.error("사용자 {}의 모든 토큰 블랙리스트 등록 실패: reason={}, error={}", 
-                    userId, reason, e.getMessage(), e);
+            log.error("사용자 {}의 모든 토큰 블랙리스트 등록 실패: 사유={}, 오류={}", userId, reason, e.getMessage(), e);
         }
     }
 }

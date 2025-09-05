@@ -5,10 +5,7 @@ import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +56,7 @@ public class PostQueryService implements PostQueryUseCase {
      * <h3>게시글 상세 조회 (최적화)</h3>
      * <p>게시글 ID를 통해 게시글 상세 정보를 조회합니다.</p>
      * <p>인기글인 경우 캐시에서 먼저 조회를 시도하고, 캐시에 없거나 일반 게시글인 경우 최적화된 JOIN 쿼리로 조회합니다.</p>
-     * 
+     *
      * <ul>
      *   <li>Redis 호출 최적화: 2회 → 1회 (50% 감소)</li>
      *   <li>DB 쿼리 최적화: 4회 → 1회 (75% 감소)</li>
@@ -103,7 +100,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     private PostDetail getPostFromDatabaseOptimized(Long postId, Long userId) {
         return postQueryPort.findPostDetailWithCounts(postId, userId)
-                .map(projection -> projection.toPostDetail())
+                .map(PostDetailProjection::toPostDetail)
                 .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
     }
 
@@ -142,7 +139,7 @@ public class PostQueryService implements PostQueryUseCase {
         if (type != PostCacheFlag.LEGEND) {
             throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
         }
-        
+
         if (!postCacheQueryPort.hasPopularPostsCache(type)) {
             postCacheSyncService.updateLegendaryPosts();
         }
@@ -225,11 +222,11 @@ public class PostQueryService implements PostQueryUseCase {
         if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)) {
             postCacheSyncService.updateWeeklyPopularPosts();
         }
-        
+
         // 두 타입의 데이터를 한 번에 조회
         List<PostSearchResult> realtimePosts = postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME);
         List<PostSearchResult> weeklyPosts = postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
-        
+
         return Map.of(
             "realtime", realtimePosts,
             "weekly", weeklyPosts

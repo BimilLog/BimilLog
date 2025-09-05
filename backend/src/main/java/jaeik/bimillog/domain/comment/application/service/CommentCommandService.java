@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * <h2>댓글 명령 서비스</h2>
@@ -63,13 +64,11 @@ public class CommentCommandService implements CommentCommandUseCase {
         Post post = commentToPostPort.findById(commentRequest.postId())
                 .orElseThrow(() -> new CommentCustomException(CommentErrorCode.POST_NOT_FOUND));
 
-        User user = null;
-        String userName = "익명";
-        if (userId != null) {
-            user = commentToUserPort.findById(userId)
-                    .orElseThrow(() -> new CommentCustomException(CommentErrorCode.USER_NOT_FOUND));
-            userName = user.getUserName();
-        }
+        User user = Optional.ofNullable(userId)
+                .flatMap(commentToUserPort::findById)
+                .orElse(null);
+
+        String userName = (user != null) ? user.getUserName() : "익명";
 
         saveCommentWithClosure(
                 post,
@@ -107,7 +106,6 @@ public class CommentCommandService implements CommentCommandUseCase {
     /**
      * <h3>댓글 삭제</h3>
      * <p>댓글을 삭제합니다. 자손 댓글이 있는 경우 소프트 삭제, 없는 경우 하드 삭제를 수행합니다.</p>
-     * <p>하드 삭제 시 클로저 테이블의 관련 엔트리도 함께 삭제됩니다.</p>
      *
      * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param commentRequest 삭제할 댓글 요청 (비밀번호 포함)
@@ -118,16 +116,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Override
     public void deleteComment(Long userId, CommentRequest commentRequest) {
         Comment comment = validateComment(commentRequest, userId);
-        Long commentId = comment.getId();
-        
-        // 자손 존재 여부에 따라 소프트/하드 삭제 결정 (비즈니스 로직)
-        int softDeleteCount = commentCommandPort.conditionalSoftDelete(commentId);
-        
-        if (softDeleteCount == 0) {
-            // 자손이 없는 경우 하드 삭제
-            commentCommandPort.deleteClosuresByDescendantId(commentId);
-            commentCommandPort.hardDeleteComment(commentId);
-        }
+        handleCommentDeletion(comment.getId());
     }
 
     /**
@@ -142,27 +131,16 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     public void processUserCommentsOnWithdrawal(Long userId) {
         List<Long> commentIds = commentCommandPort.findCommentIdsByUserId(userId);
-        
-        for (Long commentId : commentIds) {
-            // 자손 존재 여부에 따라 소프트/하드 삭제 결정
-            int softDeleteCount = commentCommandPort.conditionalSoftDelete(commentId);
-            
-            if (softDeleteCount == 0) {
-                // 자손이 없는 경우 하드 삭제
-                commentCommandPort.deleteClosuresByDescendantId(commentId);
-                commentCommandPort.hardDeleteComment(commentId);
-            }
-        }
+        commentIds.forEach(this::handleCommentDeletion);
     }
-
 
     /**
      * <h3>댓글 유효성 검사 및 조회</h3>
      * <p>댓글 요청과 사용자 ID를 기반으로 댓글의 유효성을 검사하고 댓글 엔티티를 조회합니다.</p>
      * <p>비밀번호가 일치하지 않거나, 사용자 본인이 아닌 경우 예외를 발생시킵니다.</p>
      *
-     * @param commentRequest  댓글 요청 (비밀번호 포함)
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param commentRequest 댓글 요청 (비밀번호 포함)
+     * @param userId         사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @return Comment 유효성 검사를 통과한 댓글 엔티티
      * @throws CustomException 댓글을 찾을 수 없거나, 비밀번호가 일치하지 않거나, 사용자 권한이 없는 경우
      * @author Jaeik
@@ -172,15 +150,16 @@ public class CommentCommandService implements CommentCommandUseCase {
         Comment comment = commentQueryPort.findById(commentRequest.id())
                 .orElseThrow(() -> new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
 
-        if (commentRequest.password() != null && !Objects.equals(comment.getPassword(), commentRequest.password())) {
-            throw new CommentCustomException(CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
-        }
-
-        if (commentRequest.password() == null
-                && (userId == null 
-                    || comment.getUser() == null 
-                    || !Objects.equals(comment.getUser().getId(), userId))) {
-            throw new CommentCustomException(CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+        // 비밀 댓글인 경우 비밀번호 확인
+        if (commentRequest.password() != null) {
+            if (!Objects.equals(comment.getPassword(), commentRequest.password())) {
+                throw new CommentCustomException(CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
+            }
+        } else {
+            // 로그인 사용자이고 소유자인지 확인
+            if (userId == null || comment.getUser() == null || !Objects.equals(comment.getUser().getId(), userId)) {
+                throw new CommentCustomException(CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+            }
         }
         return comment;
     }
@@ -203,33 +182,43 @@ public class CommentCommandService implements CommentCommandUseCase {
         try {
             Comment comment = commentCommandPort.save(Comment.createComment(post, user, content, password));
 
-            // 클로저 엔티티들을 배치로 저장하기 위한 리스트
             List<CommentClosure> closuresToSave = new ArrayList<>();
-            
-            // 자기 자신에 대한 클로저 추가 (depth = 0)
-            CommentClosure selfClosure = CommentClosure.createCommentClosure(comment, comment, 0);
-            closuresToSave.add(selfClosure);
+            closuresToSave.add(CommentClosure.createCommentClosure(comment, comment, 0));
 
-            // 부모 댓글이 있는 경우 부모의 모든 조상과의 클로저 생성
             if (parentId != null) {
-                Comment parentComment = commentQueryPort.findById(parentId)
-                        .orElseThrow(() -> new CommentCustomException(CommentErrorCode.PARENT_COMMENT_NOT_FOUND));
-                List<CommentClosure> parentClosures = commentClosureQueryPort.findByDescendantId(parentComment.getId())
+                List<CommentClosure> parentClosures = commentClosureQueryPort.findByDescendantId(parentId)
                         .orElseThrow(() -> new CommentCustomException(CommentErrorCode.PARENT_COMMENT_NOT_FOUND));
 
                 for (CommentClosure parentClosure : parentClosures) {
-                    Comment ancestor = parentClosure.getAncestor();
-                    int newDepth = parentClosure.getDepth() + 1;
-                    CommentClosure newClosure = CommentClosure.createCommentClosure(ancestor, comment, newDepth);
-                    closuresToSave.add(newClosure);
+                    closuresToSave.add(CommentClosure.createCommentClosure(
+                            parentClosure.getAncestor(),
+                            comment,
+                            parentClosure.getDepth() + 1));
                 }
             }
             commentClosureCommandPort.saveAll(closuresToSave);
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
+            log.error("댓글 작성 중 예상치 못한 오류 발생", e);
             throw new CommentCustomException(CommentErrorCode.COMMENT_WRITE_FAILED, e);
         }
     }
 
+    /**
+     * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
+     * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
+     * <p>자손이 없으면 하드 삭제를, 있으면 소프트 삭제를 수행합니다.</p>
+     *
+     * @param commentId 삭제 대상 댓글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void handleCommentDeletion(Long commentId) {
+        int softDeleteCount = commentCommandPort.conditionalSoftDelete(commentId);
+        if (softDeleteCount == 0) {
+            commentCommandPort.deleteClosuresByDescendantId(commentId);
+            commentCommandPort.hardDeleteComment(commentId);
+        }
+    }
 }

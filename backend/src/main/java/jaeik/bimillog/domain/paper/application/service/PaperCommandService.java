@@ -7,9 +7,9 @@ import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageCommand;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,6 @@ public class PaperCommandService implements PaperCommandUseCase {
      *
      * @param userId 현재 로그인한 사용자 ID
      * @param messageCommand 삭제할 메시지 정보
-     * @throws CustomException 삭제 권한이 없거나 메시지가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -68,7 +67,7 @@ public class PaperCommandService implements PaperCommandUseCase {
      *
      * @param userName 롤링페이퍼 소유자의 사용자명
      * @param messageCommand 작성할 메시지 정보
-     * @throws CustomException 사용자가 존재하지 않거나 입력값이 유효하지 않은 경우
+     * @throws PaperCustomException 사용자가 존재하지 않거나 입력값이 유효하지 않은 경우
      * @author Jaeik
      * @since 2.0.0
      */

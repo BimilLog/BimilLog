@@ -139,7 +139,7 @@ class AdminCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))
                 .isInstanceOf(AdminCustomException.class)
-                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.POST_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
 
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -369,8 +369,8 @@ class AdminCommandServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.createReport(userId, reportType, targetId, content))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.USER_NOT_FOUND);
 
         verify(userQueryPort, times(1)).findById(userId);
         verify(adminCommandPort, never()).save(any());

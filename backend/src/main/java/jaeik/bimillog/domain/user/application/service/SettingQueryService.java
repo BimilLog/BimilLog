@@ -33,16 +33,13 @@ public class SettingQueryService implements SettingQueryUseCase {
      *
      * @param settingId 설정 ID
      * @return 설정 엔티티
-     * @throws CustomException 설정을 찾을 수 없는 경우
+     * @throws UserCustomException 설정을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     public Setting findBySettingId(Long settingId) {
-
-        Setting setting = userQueryPort.findSettingById(settingId)
+        return userQueryPort.findSettingById(settingId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.SETTINGS_NOT_FOUND));
-
-        return setting;
     }
 }

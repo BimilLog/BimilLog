@@ -57,7 +57,7 @@ public class SocialLoginService implements SocialLoginUseCase {
 
         SocialLoginPort.LoginResult loginResult = socialLoginPort.login(provider, code);
         SocialLoginPort.SocialUserProfile userProfile = loginResult.userProfile();
-        
+
         if (blacklistPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
@@ -68,7 +68,7 @@ public class SocialLoginService implements SocialLoginUseCase {
             return handleNewUser(loginResult, fcmToken);
         }
     }
-    
+
     /**
      * <h3>기존 사용자 로그인 처리</h3>
      * <p>기존 사용자의 로그인 결과를 처리하고 쿠키를 생성합니다.</p>
@@ -85,7 +85,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         );
         return new LoginResult.ExistingUser(cookies);
     }
-    
+
     /**
      * <h3>신규 사용자 로그인 처리</h3>
      * <p>신규 사용자의 로그인 결과를 처리하고 임시 데이터를 저장합니다.</p>
@@ -102,7 +102,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         ResponseCookie tempCookie = redisUserDataPort.createTempCookie(uuid);
         return new LoginResult.NewUser(uuid, tempCookie);
     }
-    
+
     /**
      * <h3>로그인 유효성 검사</h3>
      * <p>현재 사용자가 로그인 상태인지 확인합니다.</p>

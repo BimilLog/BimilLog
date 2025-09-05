@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>회원 탈퇴 서비스</h2>
@@ -49,27 +50,18 @@ public class WithdrawService implements WithdrawUseCase {
     @Override
     @Transactional
     public List<ResponseCookie> withdraw(CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
-        }
-        User user = loadUserPort.findById(userDetails.getUserId()).orElseThrow(() -> new AuthCustomException(AuthErrorCode.USER_NOT_FOUND));
+        // 사용자 ID가 유효한지 확인하고 사용자 정보를 가져옵니다.
+        Long userId = Optional.ofNullable(userDetails)
+                .map(CustomUserDetails::getUserId)
+                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT));
 
-        // JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리
+        User user = loadUserPort.findById(userId)
+                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.USER_NOT_FOUND));
 
-        // 소셜 로그아웃 처리 (공통 포트 사용)
-        socialLogoutPort.performSocialLogout(userDetails);
-        
-        // 소셜 계정 연결 해제
-        try {
-            socialLoginPort.unlink(user.getProvider(), user.getSocialId());
-        } catch (Exception e) {
-            throw new AuthCustomException(AuthErrorCode.SOCIAL_UNLINK_FAILED, e);
-        }
-        
-        deleteUserPort.performWithdrawProcess(userDetails.getUserId());
-        eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId()));
+        // 핵심 탈퇴 로직을 수행합니다.
+        performCoreWithdrawal(user);
 
-        // 순환 의존성 제거: 직접 로그아웃 쿠키 생성
+        // 소셜 로그아웃 쿠키를 반환하여 클라이언트 측 로그아웃을 유도합니다.
         return deleteUserPort.getLogoutCookies();
     }
 
@@ -88,16 +80,29 @@ public class WithdrawService implements WithdrawUseCase {
         User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.USER_NOT_FOUND));
 
-        // JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리
+        // 핵심 탈퇴 로직을 수행합니다.
+        performCoreWithdrawal(user);
+    }
 
-        // 소셜 계정 연결 해제 (강제 탈퇴에서는 소셜 로그아웃 생략)
+    /**
+     * <h3>공통 탈퇴 로직</h3>
+     * <p>소셜 계정 연결 해제, DB에서 사용자 삭제, 그리고 탈퇴 이벤트 발행 등 핵심적인 탈퇴 절차를 수행합니다.</p>
+     *
+     * @param user 탈퇴 대상 사용자 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void performCoreWithdrawal(User user) {
         try {
             socialLoginPort.unlink(user.getProvider(), user.getSocialId());
         } catch (Exception e) {
             throw new AuthCustomException(AuthErrorCode.SOCIAL_UNLINK_FAILED, e);
         }
-        deleteUserPort.logoutUser(userId, null);
-        deleteUserPort.performWithdrawProcess(userId);
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
+
+        // DB에서 사용자 정보 삭제
+        deleteUserPort.performWithdrawProcess(user.getId());
+
+        // 탈퇴 이벤트 발행 (JWT 토큰 무효화, 데이터 정리 등은 이벤트 리스너가 처리)
+        eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId()));
     }
 }

@@ -58,7 +58,7 @@ public class PaperQueryService implements PaperQueryUseCase {
      *
      * @param userName 방문할 사용자명
      * @return 방문용 메시지 상세 정보 목록
-     * @throws CustomException 사용자가 존재하지 않는 경우
+     * @throws PaperCustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
