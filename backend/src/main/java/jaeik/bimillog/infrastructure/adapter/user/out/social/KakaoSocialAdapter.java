@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsDTO;
-import jaeik.bimillog.infrastructure.auth.KakaoKeyVO;
+import jaeik.bimillog.global.vo.KakaoKeyVO;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;

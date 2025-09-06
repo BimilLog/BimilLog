@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.social;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
-import jaeik.bimillog.infrastructure.auth.KakaoKeyVO;
+import jaeik.bimillog.global.vo.KakaoKeyVO;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;

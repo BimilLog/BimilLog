@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.auth;
+package jaeik.bimillog.global.vo;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
