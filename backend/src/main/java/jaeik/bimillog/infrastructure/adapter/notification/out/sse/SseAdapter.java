@@ -44,7 +44,7 @@ public class SseAdapter implements SsePort {
      */
     @Override
     public SseEmitter subscribe(Long userId, Long tokenId) {
-        String emitterId = notificationUtilPort.makeTimeIncludeId(userId, tokenId);
+        String emitterId = makeTimeIncludeId(userId, tokenId);
         SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(Long.MAX_VALUE));
 
         emitter.onCompletion(() -> emitterRepository.deleteById(emitterId));
@@ -137,5 +137,20 @@ public class SseAdapter implements SsePort {
     @Override
     public void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId) {
         emitterRepository.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+    }
+
+    /**
+     * <h3>시간 포함 Emitter ID 생성</h3>
+     * <p>사용자 ID, 토큰 ID, 현재 시간을 조합하여 고유한 Emitter ID를 생성합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param tokenId 토큰 ID
+     * @return 생성된 Emitter ID 문자열
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public String makeTimeIncludeId(Long userId, Long tokenId) {
+        return userId + "_" + tokenId + "_" + System.currentTimeMillis();
     }
 }

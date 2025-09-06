@@ -28,21 +28,6 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
     private final JPAQueryFactory queryFactory;
 
     /**
-     * <h3>시간 포함 Emitter ID 생성</h3>
-     * <p>사용자 ID, 토큰 ID, 현재 시간을 조합하여 고유한 Emitter ID를 생성합니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @param tokenId 토큰 ID
-     * @return 생성된 Emitter ID 문자열
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public String makeTimeIncludeId(Long userId, Long tokenId) {
-        return userId + "_" + tokenId + "_" + System.currentTimeMillis();
-    }
-
-    /**
      * <h3>알림 수신 자격 확인</h3>
      * <p>주어진 사용자 ID와 알림 유형에 따라 사용자가 알림을 수신할 자격이 있는지 확인합니다.</p>
      *

@@ -75,10 +75,8 @@ class SseAdapterTest {
     @DisplayName("SSE 구독 - 성공")
     void shouldSubscribe_WhenValidInput() {
         // Given
-        given(notificationUtilPort.makeTimeIncludeId(userId, tokenId)).willReturn(emitterId);
-        
         // emitterRepository.save()가 실제로 전달받은 SseEmitter를 그대로 반환하도록 설정
-        given(emitterRepository.save(eq(emitterId), any(SseEmitter.class)))
+        given(emitterRepository.save(any(String.class), any(SseEmitter.class)))
                 .willAnswer(invocation -> invocation.getArgument(1));
 
         // When
@@ -86,8 +84,7 @@ class SseAdapterTest {
 
         // Then
         assertThat(result).isNotNull();
-        verify(notificationUtilPort).makeTimeIncludeId(userId, tokenId);
-        verify(emitterRepository).save(eq(emitterId), any(SseEmitter.class));
+        verify(emitterRepository).save(any(String.class), any(SseEmitter.class));
         
         // sendNotification 호출을 위한 private 메서드는 직접 검증할 수 없으므로
         // 대신 구독이 성공적으로 완료되었는지 확인

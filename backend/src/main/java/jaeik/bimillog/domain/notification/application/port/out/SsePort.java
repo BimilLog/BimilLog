@@ -58,4 +58,16 @@ public interface SsePort {
      */
     void send(SseMessage sseMessage);
 
+    /**
+     * <h3>고유 Emitter ID 생성</h3>
+     * <p>타임스탬프를 포함한 고유한 Emitter ID를 생성합니다.</p>
+     *
+     * @param userId  사용자 ID
+     * @param tokenId 토큰 ID
+     * @return Emitter ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    String makeTimeIncludeId(Long userId, Long tokenId);
+
 }
