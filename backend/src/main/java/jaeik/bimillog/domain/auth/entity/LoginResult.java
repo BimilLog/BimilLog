@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.auth.entity;
 
+import jaeik.bimillog.domain.user.entity.Token;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
@@ -46,4 +47,19 @@ public sealed interface LoginResult
     default boolean isExistingUser() {
         return this instanceof ExistingUser;
     }
+
+    /**
+     * <h3>소셜 로그인 포트 결과</h3>
+     * <p>
+     * SocialLoginPort에서 사용하는 로그인 처리 결과를 담는 레코드 클래스
+     * 도메인 LoginResult와 구분되는 포트 계층용 원시 데이터 구조
+     * </p>
+     *
+     * @param userProfile 소셜 사용자 프로필
+     * @param token 토큰 정보
+     * @param isNewUser 신규 사용자 여부
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    record SocialLoginData(SocialUserProfile userProfile, Token token, boolean isNewUser) {}
 }

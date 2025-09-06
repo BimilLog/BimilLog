@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.auth.entity;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.user.entity.Token;
 
 /**
@@ -17,7 +16,7 @@ import jaeik.bimillog.domain.user.entity.Token;
  * @since 2.0.0
  */
 public record TempUserData(
-        SocialLoginPort.SocialUserProfile userProfile,
+        SocialUserProfile userProfile,
         Token token,
         String fcmToken
 ) {
@@ -32,7 +31,7 @@ public record TempUserData(
      * @throws IllegalArgumentException userProfile이나 token이 null인 경우
      * @since 2.0.0
      */
-    public static TempUserData of(SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken) {
+    public static TempUserData of(SocialUserProfile userProfile, Token token, String fcmToken) {
         if (userProfile == null) {
             throw new IllegalArgumentException("userProfile cannot be null");
         }

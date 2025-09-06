@@ -1,7 +1,9 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
@@ -44,7 +46,7 @@ public class SocialLoginAdapter implements SocialLoginPort {
      */
     @Override
     @Transactional
-    public LoginResult login(SocialProvider provider, String code) {
+    public LoginResult.SocialLoginData login(SocialProvider provider, String code) {
         SocialLoginStrategy strategy = strategies.get(provider);
         SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code).block(); // 동기 변환
 
@@ -75,9 +77,9 @@ public class SocialLoginAdapter implements SocialLoginPort {
             if (needsUpdate) {
                 user.updateUserInfo(rawData.nickname(), rawData.profileImageUrl());
             }
-            return new LoginResult(userProfile, token, false); // 기존 사용자
+            return new LoginResult.SocialLoginData(userProfile, token, false); // 기존 사용자
         } else {
-            return new LoginResult(userProfile, token, true); // 신규 사용자
+            return new LoginResult.SocialLoginData(userProfile, token, true); // 신규 사용자
         }
     }
 
