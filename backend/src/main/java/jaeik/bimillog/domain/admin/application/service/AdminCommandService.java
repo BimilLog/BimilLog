@@ -73,7 +73,7 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     public void banUser(ReportType reportType, Long targetId) {
-        User user = resolveUserForAction(reportType, targetId);
+        User user = resolveUser(reportType, targetId);
         eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider()));
     }
 
@@ -89,7 +89,7 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     public void forceWithdrawUser(ReportType reportType, Long targetId) {
-        User user = resolveUserForAction(reportType, targetId);
+        User user = resolveUser(reportType, targetId);
         eventPublisher.publishEvent(new AdminWithdrawEvent(user.getId(), "관리자 강제 탈퇴"));
     }
 
@@ -110,28 +110,6 @@ public class AdminCommandService implements AdminCommandUseCase {
     }
 
     /**
-     * <h3>사용자 액션을 위한 대상 사용자 해결</h3>
-     * <p>사용자 제재나 강제 탈퇴 액션을 위해 대상 사용자를 해결하고 null 체크까지 수행합니다.</p>
-     * <p>사용자 액션에 대한 신고 유형도 함께 검증합니다.</p>
-     *
-     * @param reportType 신고 유형
-     * @param targetId   신고 대상 ID
-     * @return User 신고 대상 사용자 엔티티 (null이 아님을 보장)
-     * @throws AdminCustomException 사용자를 찾을 수 없거나 잘못된 신고 유형인 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private User resolveUserForAction(ReportType reportType, Long targetId) {
-
-        if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
-            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
-        }
-
-        return resolveUser(reportType, targetId);
-    }
-
-
-    /**
      * <h3>신고 대상 사용자 해결</h3>
      * <p>신고 유형과 대상 ID를 기반으로 해당 사용자를 찾아 반환합니다.</p>
      *
@@ -142,10 +120,18 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @since 2.0.0
      */
     private User resolveUser(ReportType reportType, Long targetId) {
-        return switch (reportType) {
-            case POST -> postQueryUseCase.findById(targetId).getUser();
-            case COMMENT -> commentQueryUseCase.findById(targetId).getUser();
-            default -> null; // IMPROVEMENT와 ERROR는 도달 불가로 null이 일어나지 않음
-        };
+        if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
+            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
+        }
+
+        return Optional.of(reportType)
+                .map(rt -> switch (rt) {
+                    case POST -> postQueryUseCase.findById(targetId).getUser();
+                    case COMMENT -> commentQueryUseCase.findById(targetId).getUser();
+                    default -> null; // IMPROVEMENT와 ERROR는 도달 불가로 null이 일어나지 않음
+                })
+                .orElseThrow(() -> new AdminCustomException(AdminErrorCode.USER_NOT_FOUND));
+
+        // 글이나 댓글이 있어도 비로그인자나 탈퇴한 회원의 경우 유저가 null일 수 있기에 방어조치
     }
 }
