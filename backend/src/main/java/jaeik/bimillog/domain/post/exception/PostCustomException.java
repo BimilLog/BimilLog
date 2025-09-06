@@ -55,19 +55,4 @@ public class PostCustomException extends RuntimeException {
         super(postErrorCode.getMessage(), cause);
         this.postErrorCode = postErrorCode;
     }
-
-    /**
-     * <h3>게시글 커스텀 예외 생성자 (전체)</h3>
-     * <p>PostErrorCode, 추가 메시지, 원인 예외를 모두 받아 게시글 도메인 전용 예외를 생성합니다.</p>
-     *
-     * @param postErrorCode 게시글 전용 에러 코드
-     * @param message 추가 메시지
-     * @param cause 원인 예외
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public PostCustomException(PostErrorCode postErrorCode, String message, Throwable cause) {
-        super(message, cause);
-        this.postErrorCode = postErrorCode;
-    }
 }

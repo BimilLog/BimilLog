@@ -39,40 +39,6 @@ public class CustomException extends RuntimeException {
     }
 
     /**
-     * <h3>CustomException 생성자</h3>
-     * <p>ErrorCode와 원인(Throwable)을 받아 예외를 생성합니다.</p>
-     *
-     * @param errorCode 발생한 에러 코드
-     * @param cause 예외의 원인
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public CustomException(ErrorCode errorCode, Throwable cause) {
-        super(errorCode.getMessage(), cause);
-        this.errorCode = errorCode;
-        this.status = errorCode.getStatus();
-        this.message = errorCode.getMessage();
-        this.target = extractTarget();
-    }
-
-    /**
-     * <h3>CustomException 생성자</h3>
-     * <p>HttpStatus와 메시지를 받아 예외를 생성합니다. ErrorCode가 없는 경우 사용됩니다.</p>
-     *
-     * @param status HTTP 상태 코드
-     * @param message 예외 메시지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public CustomException(HttpStatus status, String message) {
-        super(message);
-        this.errorCode = null;
-        this.status = status;
-        this.target = extractTarget();
-        this.message = message;
-    }
-
-    /**
      * <h3>메소드 이름 추출</h3>
      * <p>
      * 현재 예외가 발생한 메소드의 이름을 추출하여 반환

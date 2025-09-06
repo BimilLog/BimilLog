@@ -27,47 +27,4 @@ public class AdminCustomException extends RuntimeException {
         super(adminErrorCode.getMessage());
         this.adminErrorCode = adminErrorCode;
     }
-
-    /**
-     * <h3>관리자 커스텀 예외 생성자 (메시지 포함)</h3>
-     * <p>AdminErrorCode와 추가 메시지를 받아 관리자 도메인 전용 예외를 생성합니다.</p>
-     *
-     * @param adminErrorCode 관리자 전용 에러 코드
-     * @param message 추가 메시지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public AdminCustomException(AdminErrorCode adminErrorCode, String message) {
-        super(message);
-        this.adminErrorCode = adminErrorCode;
-    }
-
-    /**
-     * <h3>관리자 커스텀 예외 생성자 (원인 포함)</h3>
-     * <p>AdminErrorCode와 원인 예외를 받아 관리자 도메인 전용 예외를 생성합니다.</p>
-     *
-     * @param adminErrorCode 관리자 전용 에러 코드
-     * @param cause 원인 예외
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public AdminCustomException(AdminErrorCode adminErrorCode, Throwable cause) {
-        super(adminErrorCode.getMessage(), cause);
-        this.adminErrorCode = adminErrorCode;
-    }
-
-    /**
-     * <h3>관리자 커스텀 예외 생성자 (전체)</h3>
-     * <p>AdminErrorCode, 추가 메시지, 원인 예외를 모두 받아 관리자 도메인 전용 예외를 생성합니다.</p>
-     *
-     * @param adminErrorCode 관리자 전용 에러 코드
-     * @param message 추가 메시지
-     * @param cause 원인 예외
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public AdminCustomException(AdminErrorCode adminErrorCode, String message, Throwable cause) {
-        super(message, cause);
-        this.adminErrorCode = adminErrorCode;
-    }
 }

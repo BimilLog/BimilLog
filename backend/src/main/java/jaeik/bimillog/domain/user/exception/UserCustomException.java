@@ -29,20 +29,6 @@ public class UserCustomException extends RuntimeException {
     }
 
     /**
-     * <h3>사용자 커스텀 예외 생성자 (메시지 포함)</h3>
-     * <p>UserErrorCode와 추가 메시지를 받아 사용자 도메인 전용 예외를 생성합니다.</p>
-     *
-     * @param userErrorCode 사용자 전용 에러 코드
-     * @param message 추가 메시지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public UserCustomException(UserErrorCode userErrorCode, String message) {
-        super(message);
-        this.userErrorCode = userErrorCode;
-    }
-
-    /**
      * <h3>사용자 커스텀 예외 생성자 (원인 포함)</h3>
      * <p>UserErrorCode와 원인 예외를 받아 사용자 도메인 전용 예외를 생성합니다.</p>
      *
@@ -53,21 +39,6 @@ public class UserCustomException extends RuntimeException {
      */
     public UserCustomException(UserErrorCode userErrorCode, Throwable cause) {
         super(userErrorCode.getMessage(), cause);
-        this.userErrorCode = userErrorCode;
-    }
-
-    /**
-     * <h3>사용자 커스텀 예외 생성자 (전체)</h3>
-     * <p>UserErrorCode, 추가 메시지, 원인 예외를 모두 받아 사용자 도메인 전용 예외를 생성합니다.</p>
-     *
-     * @param userErrorCode 사용자 전용 에러 코드
-     * @param message 추가 메시지
-     * @param cause 원인 예외
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public UserCustomException(UserErrorCode userErrorCode, String message, Throwable cause) {
-        super(message, cause);
         this.userErrorCode = userErrorCode;
     }
 }
