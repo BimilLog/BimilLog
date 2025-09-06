@@ -1,6 +1,6 @@
 package jaeik.bimillog.integration.event.auth;
 
-import jaeik.bimillog.domain.auth.application.port.in.TokenCleanupUseCase;
+import jaeik.bimillog.domain.user.application.port.in.TokenCleanupUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;

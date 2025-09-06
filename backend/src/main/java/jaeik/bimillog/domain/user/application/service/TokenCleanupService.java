@@ -1,7 +1,7 @@
-package jaeik.bimillog.domain.auth.application.service;
+package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.TokenCleanupUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
+import jaeik.bimillog.domain.user.application.port.in.TokenCleanupUseCase;
+import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

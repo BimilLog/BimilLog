@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.auth.application.port.out;
+package jaeik.bimillog.domain.user.application.port.out;
 
 import org.springframework.http.ResponseCookie;
 

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
+import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLogoutPort;
 import jaeik.bimillog.domain.auth.application.service.LogoutService;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;

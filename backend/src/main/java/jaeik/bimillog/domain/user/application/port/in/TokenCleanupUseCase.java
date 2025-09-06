@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.auth.application.port.in;
+package jaeik.bimillog.domain.user.application.port.in;
 
 /**
  * <h2>토큰 정리 유스케이스</h2>

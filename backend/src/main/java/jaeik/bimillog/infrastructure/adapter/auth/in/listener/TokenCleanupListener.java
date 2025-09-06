@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
-import jaeik.bimillog.domain.auth.application.port.in.TokenCleanupUseCase;
+import jaeik.bimillog.domain.user.application.port.in.TokenCleanupUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,6 @@
-package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.auth;
+package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user;
 
-import jaeik.bimillog.domain.auth.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
+import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;
@@ -19,7 +18,7 @@ public class DeleteUserAdapter implements DeleteUserPort {
     private final EntityManager entityManager;
     private final TokenRepository tokenRepository;
     private final AuthCookieManager authCookieManager;
-    private final UserCommandUseCase userCommandUseCase;
+    private final UserRepository userRepository;
 
     /**
      * <h3>로그아웃 처리</h3>
@@ -46,7 +45,7 @@ public class DeleteUserAdapter implements DeleteUserPort {
 
     /**
      * <h3>회원 탈퇴 처리</h3>
-     * <p>사용자를 탈퇴시키고, 소셜 로그아웃을 수행하며, 이벤트를 발행합니다.</p>
+     * <p>사용자를 탈퇴시키고, 소셜 로그아웃을 수행합니다.</p>
      *
      * @param userId 사용자 ID
      * @since 2.0.0
@@ -59,7 +58,7 @@ public class DeleteUserAdapter implements DeleteUserPort {
         entityManager.clear();
 
         tokenRepository.deleteAllByUserId(userId);
-        userCommandUseCase.deleteById(userId);
+        userRepository.deleteById(userId);
     }
 
     /**
