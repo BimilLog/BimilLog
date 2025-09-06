@@ -189,38 +189,4 @@ public class PostCacheQueryAdapter implements PostCacheQueryPort {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
     }
-
-    /**
-     * <h3>특정 게시글이 인기글인지 확인</h3>
-     * <p>주어진 게시글 ID가 현재 캐시되어 있는지 빠르게 확인합니다.</p>
-     * <p>Redis Set 구조를 활용하여 O(1) 시간 복잡도로 확인합니다.</p>
-     *
-     * @param postId 확인할 게시글 ID
-     * @return 인기글이면 true, 아니면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public boolean isPopularPost(Long postId) {
-        try {
-            // 모든 인기글 타입에 대해 확인
-            for (PostCacheFlag flag : PostCacheFlag.getPopularPostTypes()) {
-                // 해당 타입의 캐시가 있는지 확인
-                if (hasPopularPostsCache(flag)) {
-                    // Sorted Set에서 해당 ID가 있는지 확인
-                    Double score = redisTemplate.opsForZSet().score(getCacheMetadata(flag).key(), postId.toString());
-                    if (score != null) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        } catch (Exception e) {
-            // 캐시 조회 실패 시 false 반환 (일반 게시글로 처리)
-            return false;
-        }
-    }
-
-
 }

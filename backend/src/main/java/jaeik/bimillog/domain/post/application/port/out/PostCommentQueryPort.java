@@ -4,9 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <h2>Post 도메인용 Comment 조회 Port</h2>
+ * <h2>Post 도메인용 Comment 조회 ㅍ트</h2>
  * <p>Post 도메인에서 Comment 도메인의 데이터가 필요할 때 사용하는 인터페이스입니다.</p>
- * <p>헥사고날 아키텍처 원칙을 준수하여 Service가 유스케이스 대신 Port에 의존하도록 합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

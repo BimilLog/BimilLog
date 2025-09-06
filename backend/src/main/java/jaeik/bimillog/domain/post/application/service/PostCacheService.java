@@ -51,8 +51,7 @@ public class PostCacheService implements PostCacheUseCase {
     }
 
     /**
-     * <h3>DB에서 게시글 상세 정보를 조회한 후 공지사항 캐시에 추가합니다.</h3>
-     * <p>캐시 추가 실패 시 예외가 발생하지만, 이벤트 리스너에서 처리됩니다.</p>
+     * <h3>DB에서 글 조회 후 캐시 추가</h3>
      * @param postId 글 id
      * @author Jaeik
      * @since 2.0.0
@@ -71,8 +70,8 @@ public class PostCacheService implements PostCacheUseCase {
         }
     }
 
-    /***
-     * <h3>공지사항 캐시에서만 특정 게시글을 제거합니다.</h3>
+    /**
+     * <h3>캐시에서 공지사항 제거</h3>
      * <p>성능 최적화를 위해 공지사항 캐시에서만 삭제합니다.</p>
      * @param postId 글 id
      * @author Jaeik

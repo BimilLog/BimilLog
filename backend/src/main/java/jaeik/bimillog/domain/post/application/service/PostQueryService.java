@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * <h2>PostQueryService</h2>
@@ -169,7 +170,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public java.util.Optional<Post> findById(Long postId) {
+    public Optional<Post> findById(Long postId) {
         return postQueryPort.findById(postId);
     }
 
@@ -232,5 +233,4 @@ public class PostQueryService implements PostQueryUseCase {
             "weekly", weeklyPosts
         );
     }
-
 }
