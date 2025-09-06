@@ -84,7 +84,7 @@ public class FcmAdapter implements FcmPort {
     @Async("fcmNotificationExecutor")
     public void send(Long userId, NotificationType type, String message, String url) {
         try {
-            List<FcmToken> fcmTokens = findValidFcmTokensForMessageNotification(userId);
+            List<FcmToken> fcmTokens = findValidFcmTokensByNotificationType(userId, type);
             if (hasNoValidTokens(fcmTokens)) return;
 
             sendNotificationsToTokens(fcmTokens, type, message, url);
@@ -111,30 +111,16 @@ public class FcmAdapter implements FcmPort {
     /* ===================== FCM Token Query Methods ===================== */
 
     /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (메시지 알림)</h3>
-     * <p>메시지 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
+     * <h3>알림 타입별 유효한 FCM 토큰 조회</h3>
+     * <p>특정 알림 타입이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
+     *
+     * @param userId 조회할 사용자의 ID
+     * @param notificationType 알림 타입 (PAPER, COMMENT, POST_FEATURED)
+     * @return FCM 토큰 엔티티 목록
      */
     @Override
-    public List<FcmToken> findValidFcmTokensForMessageNotification(Long userId) {
-        return fcmTokenRepository.findValidFcmTokensForMessageNotification(userId);
-    }
-
-    /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (댓글 알림)</h3>
-     * <p>댓글 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
-     */
-    @Override
-    public List<FcmToken> findValidFcmTokensForCommentNotification(Long userId) {
-        return fcmTokenRepository.findValidFcmTokensForCommentNotification(userId);
-    }
-
-    /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (인기글 알림)</h3>
-     * <p>인기글 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
-     */
-    @Override
-    public List<FcmToken> findValidFcmTokensForPostFeaturedNotification(Long userId) {
-        return fcmTokenRepository.findValidFcmTokensForPostFeaturedNotification(userId);
+    public List<FcmToken> findValidFcmTokensByNotificationType(Long userId, NotificationType notificationType) {
+        return fcmTokenRepository.findValidFcmTokensByNotificationType(userId, notificationType);
     }
 
     /**

@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification;
 
 import jaeik.bimillog.domain.notification.entity.FcmToken;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,12 +20,14 @@ import java.util.List;
 public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
 
     /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (메시지 알림)</h3>
+     * <h3>알림 타입별 유효한 FCM 토큰 조회</h3>
      * <p>
-     * 메시지 알림이 활성화된 사용자의 FCM 토큰만 조회합니다.
+     * 특정 알림 타입이 활성화된 사용자의 FCM 토큰만 조회합니다.
+     * 알림 타입에 따라 해당하는 설정 필드를 동적으로 확인합니다.
      * </p>
      *
      * @param userId 사용자 ID
+     * @param notificationType 알림 타입 (PAPER, COMMENT, POST_FEATURED)
      * @return 유효한 FCM 토큰 리스트
      * @author Jaeik
      * @since 2.0.0
@@ -34,49 +37,15 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
         JOIN f.user u
         JOIN u.setting s
         WHERE u.id = :userId
-        AND s.messageNotification = true
+        AND (
+            (:notificationType = 'PAPER' AND s.messageNotification = true) OR
+            (:notificationType = 'COMMENT' AND s.commentNotification = true) OR
+            (:notificationType = 'POST_FEATURED' AND s.postFeaturedNotification = true)
+        )
         """)
-    List<FcmToken> findValidFcmTokensForMessageNotification(@Param("userId") Long userId);
-
-    /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (댓글 알림)</h3>
-     * <p>
-     * 댓글 알림이 활성화된 사용자의 FCM 토큰만 조회합니다.
-     * </p>
-     *
-     * @param userId 사용자 ID
-     * @return 유효한 FCM 토큰 리스트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Query("""
-        SELECT f FROM FcmToken f
-        JOIN f.user u
-        JOIN u.setting s
-        WHERE u.id = :userId
-        AND s.commentNotification = true
-        """)
-    List<FcmToken> findValidFcmTokensForCommentNotification(@Param("userId") Long userId);
-
-    /**
-     * <h3>사용자 ID로 유효한 FCM 토큰 조회 (인기글 알림)</h3>
-     * <p>
-     * 인기글 알림이 활성화된 사용자의 FCM 토큰만 조회합니다.
-     * </p>
-     *
-     * @param userId 사용자 ID
-     * @return 유효한 FCM 토큰 리스트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Query("""
-        SELECT f FROM FcmToken f
-        JOIN f.user u
-        JOIN u.setting s
-        WHERE u.id = :userId
-        AND s.postFeaturedNotification = true
-        """)
-    List<FcmToken> findValidFcmTokensForPostFeaturedNotification(@Param("userId") Long userId);
+    List<FcmToken> findValidFcmTokensByNotificationType(
+            @Param("userId") Long userId, 
+            @Param("notificationType") NotificationType notificationType);
 
 
     /**
