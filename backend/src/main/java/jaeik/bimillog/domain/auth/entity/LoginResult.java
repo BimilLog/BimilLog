@@ -40,6 +40,21 @@ public sealed interface LoginResult
     record ExistingUser(List<ResponseCookie> cookies) implements LoginResult {}
 
     /**
+     * <h3>소셜 로그인 포트 결과</h3>
+     * <p>
+     * SocialLoginPort에서 사용하는 로그인 처리 결과를 담는 레코드 클래스
+     * 도메인 LoginResult와 구분되는 포트 계층용 원시 데이터 구조
+     * </p>
+     *
+     * @param userProfile 소셜 사용자 프로필
+     * @param token 토큰 정보
+     * @param isNewUser 신규 사용자 여부
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    record SocialLoginData(SocialUserProfile userProfile, Token token, boolean isNewUser) {}
+
+    /**
      * <h3>로그인 타입 확인</h3>
      * <p>현재 결과가 기존 사용자인지 확인</p>
      *
@@ -110,19 +125,4 @@ public sealed interface LoginResult
             return new TempUserData(userProfile, token, fcmToken);
         }
     }
-
-    /**
-     * <h3>소셜 로그인 포트 결과</h3>
-     * <p>
-     * SocialLoginPort에서 사용하는 로그인 처리 결과를 담는 레코드 클래스
-     * 도메인 LoginResult와 구분되는 포트 계층용 원시 데이터 구조
-     * </p>
-     *
-     * @param userProfile 소셜 사용자 프로필
-     * @param token 토큰 정보
-     * @param isNewUser 신규 사용자 여부
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    record SocialLoginData(SocialUserProfile userProfile, Token token, boolean isNewUser) {}
 }

@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.admin.entity;
 
-import jaeik.bimillog.domain.admin.exception.AdminCustomException;
-import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jaeik.bimillog.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -56,42 +54,16 @@ public class Report extends BaseEntity {
      * @param content    신고 내용
      * @param reporter   신고한 사용자 엔티티
      * @return Report 생성된 신고 엔티티
-     * @throws AdminCustomException targetId 관련 비즈니스 규칙 위반 시
      * @author Jaeik
      * @since 2.0.0
      */
     public static Report createReport(ReportType reportType, Long targetId, String content, User reporter) {
-        validateTargetIdRules(reportType, targetId);
-        
+
         return Report.builder()
                 .reportType(reportType)
                 .targetId(targetId)
                 .content(content)
                 .reporter(reporter)
                 .build();
-    }
-    
-    /**
-     * <h3>targetId 비즈니스 규칙 검증</h3>
-     * <p>reportType과 targetId 조합의 비즈니스 규칙을 검증합니다.</p>
-     *
-     * @param reportType 신고 유형
-     * @param targetId   신고 대상 ID
-     * @throws AdminCustomException 비즈니스 규칙 위반 시
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private static void validateTargetIdRules(ReportType reportType, Long targetId) {
-        // POST, COMMENT 신고는 targetId 필수
-        if ((reportType == ReportType.POST || reportType == ReportType.COMMENT) 
-                && targetId == null) {
-            throw new AdminCustomException(AdminErrorCode.REPORT_TARGET_REQUIRED);
-        }
-        
-        // ERROR, IMPROVEMENT는 targetId가 없어야 함
-        if ((reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) 
-                && targetId != null) {
-            throw new AdminCustomException(AdminErrorCode.REPORT_TARGET_NOT_ALLOWED);
-        }
     }
 }
