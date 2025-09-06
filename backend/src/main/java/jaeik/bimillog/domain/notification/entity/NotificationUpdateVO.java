@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.notification.entity;
 
-import lombok.Builder;
-
 import java.util.List;
 
 /**
@@ -22,14 +20,6 @@ public record NotificationUpdateVO(
 ) {
 
     /**
-     * <h3>빌더를 통한 생성자</h3>
-     * <p>Record의 컴팩트 생성자입니다. 빌더 패턴을 지원합니다.</p>
-     */
-    @Builder
-    public NotificationUpdateVO {
-    }
-
-    /**
      * <h3>알림 업데이트 명령 생성</h3>
      * <p>읽음 처리할 ID와 삭제할 ID 목록으로 명령을 생성합니다.</p>
      *
@@ -38,9 +28,6 @@ public record NotificationUpdateVO(
      * @return NotificationUpdateVO 값 객체
      */
     public static NotificationUpdateVO of(List<Long> readIds, List<Long> deletedIds) {
-        return NotificationUpdateVO.builder()
-                .readIds(readIds)
-                .deletedIds(deletedIds)
-                .build();
+        return new NotificationUpdateVO(readIds, deletedIds);
     }
 }

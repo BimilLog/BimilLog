@@ -12,7 +12,6 @@ import lombok.Getter;
 @Getter
 public enum NotificationType {
 
-
     PAPER("messageNotification"), // 롤링페이퍼에 메시지가 달렸을 때
     COMMENT("commentNotification"), // 게시글에 댓글이 달렸을 때
     POST_FEATURED("postFeaturedNotification"), // 주간, 전설 인기글이 되었을 때
