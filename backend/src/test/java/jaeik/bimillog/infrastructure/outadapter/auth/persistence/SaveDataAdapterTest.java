@@ -97,12 +97,12 @@ class SaveDataAdapterTest {
         assertThat(existingUser.getSocialNickname()).isEqualTo("업데이트된닉네임");
         assertThat(existingUser.getThumbnailImage()).isEqualTo("https://updated-profile.jpg");
         
-        // 새로운 토큰이 저장되는지 검증 (실제 구현에서는 새 토큰을 생성)
+        // 토큰이 저장되는지 검증 (실제 구현에서는 전달받은 토큰을 사용)
         ArgumentCaptor<Token> tokenCaptor = ArgumentCaptor.forClass(Token.class);
         verify(tokenRepository).save(tokenCaptor.capture());
         Token savedToken = tokenCaptor.getValue();
-        assertThat(savedToken.getAccessToken()).isEqualTo("new-access-token");
-        assertThat(savedToken.getRefreshToken()).isEqualTo("new-refresh-token");
+        assertThat(savedToken.getAccessToken()).isEqualTo("access-token");
+        assertThat(savedToken.getRefreshToken()).isEqualTo("refresh-token");
         assertThat(savedToken.getUsers()).isEqualTo(existingUser);
         
         // FCM 토큰 직접 등록 검증

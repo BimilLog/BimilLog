@@ -13,7 +13,6 @@ import jaeik.bimillog.domain.user.entity.Token;
  * 
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 public record TempUserData(
         SocialUserProfile userProfile,
@@ -33,10 +32,10 @@ public record TempUserData(
      */
     public static TempUserData of(SocialUserProfile userProfile, Token token, String fcmToken) {
         if (userProfile == null) {
-            throw new IllegalArgumentException("userProfile cannot be null");
+            throw new IllegalArgumentException("유저 프로파일은 null이 될 수 없습니다");
         }
         if (token == null) {
-            throw new IllegalArgumentException("token cannot be null");
+            throw new IllegalArgumentException("token은 null이 될 수 없습니다");
         }
         return new TempUserData(userProfile, token, fcmToken);
     }
