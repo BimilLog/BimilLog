@@ -11,27 +11,6 @@ package jaeik.bimillog.domain.post.application.port.in;
 public interface PostCacheUseCase {
 
     /**
-     * <h3>공지사항 캐시 추가</h3>
-     * <p>새로운 공지사항을 캐시에 추가합니다.</p>
-     * <p>게시글 상세 정보를 DB에서 조회한 후 캐시에 저장합니다.</p>
-     *
-     * @param postId 캐시에 추가할 공지사항 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void addNoticeToCache(Long postId);
-
-    /**
-     * <h3>공지사항 캐시 제거</h3>
-     * <p>공지사항 설정이 해제된 게시글을 캐시에서 제거합니다.</p>
-     *
-     * @param postId 캐시에서 제거할 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void removeNoticeFromCache(Long postId);
-
-    /**
      * <h3>공지사항 캐시 동기화</h3>
      * <p>게시글의 공지 상태에 따라 캐시를 동기화합니다.</p>
      * <p>공지 설정 시 캐시에 추가, 공지 해제 시 캐시에서 제거합니다.</p>

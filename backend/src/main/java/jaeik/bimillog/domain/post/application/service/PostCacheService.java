@@ -29,16 +29,37 @@ public class PostCacheService implements PostCacheUseCase {
     private final PostCacheCommandPort postCacheCommandPort;
     private final PostCacheSyncPort postCacheSyncPort;
 
+
     /**
-     * {@inheritDoc}
+     * <h3>공지사항 캐시 동기화</h3>
      * 
-     * <p>DB에서 게시글 상세 정보를 조회한 후 공지사항 캐시에 추가합니다.</p>
-     * <p>캐시 추가 실패 시 예외가 발생하지만, 이벤트 리스너에서 처리됩니다.</p>
+     * <p>게시글의 공지 상태에 따라 캐시를 동기화합니다.</p>
+     * <p>공지 설정 시 캐시에 추가, 공지 해제 시 캐시에서 제거하여 상태를 일치시킵니다.</p>
+     * @param postId 글 id
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
-    public void addNoticeToCache(Long postId) {
+    public void syncNoticeCache(Long postId, boolean isNotice) {
+        if (isNotice) {
+            log.info("공지사항 캐시 추가 동기화 시작: postId={}", postId);
+            addNoticeToCache(postId);
+        } else {
+            log.info("공지사항 캐시 제거 동기화 시작: postId={}", postId);
+            removeNoticeFromCache(postId);
+        }
+    }
+
+    /**
+     * <h3>DB에서 게시글 상세 정보를 조회한 후 공지사항 캐시에 추가합니다.</h3>
+     * <p>캐시 추가 실패 시 예외가 발생하지만, 이벤트 리스너에서 처리됩니다.</p>
+     * @param postId 글 id
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void addNoticeToCache(Long postId) {
         log.info("공지사항 캐시 추가 시작: postId={}", postId);
-        
+
         // 게시글 상세 정보를 DB에서 조회
         PostDetail postDetail = postCacheSyncPort.findPostDetail(postId);
         if (postDetail != null) {
@@ -50,36 +71,19 @@ public class PostCacheService implements PostCacheUseCase {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * <p>공지사항 캐시에서만 특정 게시글을 제거합니다.</p>
+    /***
+     * <h3>공지사항 캐시에서만 특정 게시글을 제거합니다.</h3>
      * <p>성능 최적화를 위해 공지사항 캐시에서만 삭제합니다.</p>
+     * @param postId 글 id
+     * @author Jaeik
+     * @since 2.0.0
      */
-    @Override
-    public void removeNoticeFromCache(Long postId) {
+    private void removeNoticeFromCache(Long postId) {
         log.info("공지사항 캐시 제거 시작: postId={}", postId);
-        
+
         // 공지 캐시에서만 삭제 (성능 최적화)
         postCacheCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
-        
-        log.info("공지사항 캐시 제거 완료: postId={}", postId);
-    }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * <p>게시글의 공지 상태에 따라 캐시를 동기화합니다.</p>
-     * <p>공지 설정 시 캐시에 추가, 공지 해제 시 캐시에서 제거하여 상태를 일치시킵니다.</p>
-     */
-    @Override
-    public void syncNoticeCache(Long postId, boolean isNotice) {
-        if (isNotice) {
-            log.info("공지사항 캐시 추가 동기화 시작: postId={}", postId);
-            addNoticeToCache(postId);
-        } else {
-            log.info("공지사항 캐시 제거 동기화 시작: postId={}", postId);
-            removeNoticeFromCache(postId);
-        }
+        log.info("공지사항 캐시 제거 완료: postId={}", postId);
     }
 }
