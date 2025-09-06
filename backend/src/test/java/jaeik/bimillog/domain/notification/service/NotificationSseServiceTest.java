@@ -19,7 +19,6 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>NotificationSseService 테스트</h2>
  * <p>SSE 알림 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>EventDTO 제거 후 NotificationVO 도메인 엔티티를 사용하도록 리팩토링됨</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -85,11 +84,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generatePostUrl(postId);
-        verify(ssePort).send(eq(postUserId), argThat(event ->
-                event.type() == NotificationType.COMMENT &&
-                event.message().equals(expectedMessage) &&
-                event.url().equals(expectedUrl)
-        ));
+        verify(ssePort).send(eq(postUserId), eq(NotificationType.COMMENT), eq(expectedMessage), eq(expectedUrl));
     }
 
     @Test
@@ -108,11 +103,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generateRollingPaperUrl(userName);
-        verify(ssePort).send(eq(farmOwnerId), argThat(event ->
-                event.type() == NotificationType.PAPER &&
-                event.message().equals(expectedMessage) &&
-                event.url().equals(expectedUrl)
-        ));
+        verify(ssePort).send(eq(farmOwnerId), eq(NotificationType.PAPER), eq(expectedMessage), eq(expectedUrl));
     }
 
     @Test
@@ -131,10 +122,6 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generatePostUrl(postId);
-        verify(ssePort).send(eq(userId), argThat(event ->
-                event.type() == NotificationType.POST_FEATURED &&
-                event.message().equals(message) &&
-                event.url().equals(expectedUrl)
-        ));
+        verify(ssePort).send(eq(userId), eq(NotificationType.POST_FEATURED), eq(message), eq(expectedUrl));
     }
 }

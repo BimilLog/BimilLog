@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.application.port.out;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.entity.NotificationVO;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +41,7 @@ public interface FcmPort {
      * <h3>FCM 메시지 전송</h3>
      * <p>주어진 FCM 전송 DTO를 사용하여 메시지를 특정 기기로 전송합니다.</p>
      *
-     * @param fcmSendDto 전송할 FCM 메시지 정보
+     * @param fcmMessage 전송할 FCM 메시지 정보
      * @throws IOException 메시지 전송 중 발생할 수 있는 IO 예외
      * @author Jaeik
      * @since 2.0.0
@@ -89,9 +89,11 @@ public interface FcmPort {
      * </p>
      *
      * @param userId 사용자 ID
-     * @param event  알림 이벤트 (도메인 엔티티)
+     * @param type   알림 유형
+     * @param message 알림 메시지
+     * @param url    알림 URL
      * @author Jaeik
      * @since 2.0.0
      */
-    void send(Long userId, NotificationVO event);
+    void send(Long userId, NotificationType type, String message, String url);
 }

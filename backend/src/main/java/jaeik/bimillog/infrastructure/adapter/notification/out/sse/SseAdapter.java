@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationComma
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -60,26 +59,24 @@ public class SseAdapter implements SsePort {
      * <h3>SSE 알림 전송</h3>
      * <p>지정된 사용자에게 SSE 알림을 전송하고 데이터베이스에 알림을 저장합니다.</p>
      *
-     * @param userId 알림을 받을 사용자의 ID
-     * @param event 전송할 알림 이벤트 (도메인 엔티티)
+     * @param userId  알림을 받을 사용자의 ID
+     * @param type    알림 유형
+     * @param message 알림 메시지
+     * @param url     알림 URL
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void send(Long userId, NotificationVO event) {
+    public void send(Long userId, NotificationType type, String message, String url) {
         try {
-            NotificationType type = event.type();
-            String data = event.message();
-            String url = event.url();
-
             User user = userQueryUseCase.findById(userId)
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
-            notificationCommandPort.save(user, type, data, url);
+            notificationCommandPort.save(user, type, message, url);
             Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
 
             emitters.forEach(
                     (emitterId, emitter) -> {
-                        sendNotification(emitter, emitterId, type, data, url);
+                        sendNotification(emitter, emitterId, type, message, url);
                     });
         } catch (Exception e) {
             throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_SEND_ERROR, e);

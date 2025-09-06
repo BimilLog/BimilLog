@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.outadapter.notification.fcm;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.Setting;
@@ -53,7 +52,6 @@ class FcmAdapterTest {
 
     private User testUser;
     private FcmToken testFcmToken;
-    private NotificationVO testEvent;
 
     @BeforeEach
     void setUp() {
@@ -76,11 +74,6 @@ class FcmAdapterTest {
         testFcmToken = FcmToken.create(testUser, "test-fcm-token");
                 
 
-        testEvent = NotificationVO.create(
-                NotificationType.COMMENT,
-                "테스트 알림 메시지",
-                "/test/url"
-        );
     }
 
     @Test
@@ -203,7 +196,7 @@ class FcmAdapterTest {
                 .willReturn(Collections.emptyList());
 
         // When: FCM 알림 전송 시도
-        fcmAdapter.send(1L, testEvent);
+        fcmAdapter.send(1L, NotificationType.COMMENT, "테스트 알림 메시지", "/test/url");
 
         // Then: FCM 토큰 조회만 수행되고 실제 전송은 수행되지 않음
         verify(fcmTokenRepository).findValidFcmTokensForMessageNotification(1L);
@@ -224,7 +217,7 @@ class FcmAdapterTest {
 
         // Firebase Admin SDK가 초기화되지 않은 상황에서는 예외 발생
         // When & Then: FCM 전송 중 Firebase 연결 실패 시 적절한 예외 발생 검증
-        assertThatThrownBy(() -> fcmAdapter.send(1L, testEvent))
+        assertThatThrownBy(() -> fcmAdapter.send(1L, NotificationType.COMMENT, "테스트 알림 메시지", "/test/url"))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.FCM_SEND_ERROR);
 
@@ -240,7 +233,7 @@ class FcmAdapterTest {
                 .willReturn(null);
 
         // When: FCM 알림 전송 시도
-        fcmAdapter.send(1L, testEvent);
+        fcmAdapter.send(1L, NotificationType.COMMENT, "테스트 알림 메시지", "/test/url");
 
         // Then: 조기 리턴으로 실제 전송 수행되지 않음
         verify(fcmTokenRepository).findValidFcmTokensForMessageNotification(1L);

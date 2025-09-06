@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
-import jaeik.bimillog.domain.notification.entity.NotificationVO;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -53,10 +53,12 @@ public interface SsePort {
      * </p>
      *
      * @param userId 사용자 ID
-     * @param event  알림 이벤트 (도메인 엔티티)
+     * @param type   알림 유형
+     * @param message 알림 메시지
+     * @param url    알림 URL
      * @author Jaeik
      * @since 2.0.0
      */
-    void send(Long userId, NotificationVO event);
+    void send(Long userId, NotificationType type, String message, String url);
 
 }

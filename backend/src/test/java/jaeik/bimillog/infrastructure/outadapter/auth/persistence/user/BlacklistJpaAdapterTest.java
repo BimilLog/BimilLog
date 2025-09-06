@@ -18,7 +18,6 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>BlacklistJpaAdapter 단위 테스트</h2>
  * <p>블랙리스트 확인 어댑터의 비즈니스 로직 위주로 테스트</p>
- * <p>완벽한 테스트로 메인 로직의 문제를 발견</p>
  *
  * @author Jaeik
  * @version 2.0.0

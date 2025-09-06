@@ -6,7 +6,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.entity.NotificationVO;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto.FcmMessageDTO;
@@ -73,19 +73,21 @@ public class FcmAdapter implements FcmPort {
      * <h3>FCM 알림 전송</h3>
      * <p>지정된 사용자에게 FCM 알림을 비동기적으로 전송합니다.</p>
      *
-     * @param userId 알림을 받을 사용자의 ID
-     * @param event 전송할 알림 이벤트 (도메인 엔티티)
+     * @param userId  알림을 받을 사용자의 ID
+     * @param type    알림 유형
+     * @param message 알림 메시지
+     * @param url     알림 URL
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Async("fcmNotificationExecutor")
-    public void send(Long userId, NotificationVO event) {
+    public void send(Long userId, NotificationType type, String message, String url) {
         try {
             List<FcmToken> fcmTokens = findValidFcmTokensForMessageNotification(userId);
             if (hasNoValidTokens(fcmTokens)) return;
 
-            sendNotificationsToTokens(fcmTokens, event);
+            sendNotificationsToTokens(fcmTokens, type, message, url);
         } catch (Exception e) {
             throw new NotificationCustomException(NotificationErrorCode.FCM_SEND_ERROR, e);
         }
@@ -222,17 +224,17 @@ public class FcmAdapter implements FcmPort {
         return fcmTokens == null || fcmTokens.isEmpty();
     }
 
-    private void sendNotificationsToTokens(List<FcmToken> fcmTokens, NotificationVO event) throws IOException {
+    private void sendNotificationsToTokens(List<FcmToken> fcmTokens, NotificationType type, String message, String url) throws IOException {
         for (FcmToken fcmToken : fcmTokens) {
-            FcmMessage fcmMessage = createFcmMessage(fcmToken, event);
+            FcmMessage fcmMessage = createFcmMessage(fcmToken, message);
             sendMessageTo(fcmMessage);
         }
     }
 
-    private FcmMessage createFcmMessage(FcmToken fcmToken, NotificationVO event) {
+    private FcmMessage createFcmMessage(FcmToken fcmToken, String message) {
         return FcmMessage.of(
                 fcmToken.getFcmRegistrationToken(),
-                event.message(),
+                message,
                 DEFAULT_NOTIFICATION_BODY
         );
     }

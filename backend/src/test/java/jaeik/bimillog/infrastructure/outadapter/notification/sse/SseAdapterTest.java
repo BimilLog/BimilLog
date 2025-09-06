@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.outadapter.notification.sse;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.entity.NotificationVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -98,18 +97,12 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 성공")
     void shouldSend_WhenValidInput() {
         // Given
-        NotificationVO event = NotificationVO.create(
-                NotificationType.COMMENT,
-                "테스트 메시지",
-                "/test/url"
-        );
-        
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
         given(emitterRepository.findAllEmitterByUserId(userId))
                 .willReturn(Map.of(emitterId, mockEmitter));
 
         // When
-        sseAdapter.send(userId, event);
+        sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
 
         // Then
         verify(userQueryUseCase).findById(userId);
@@ -121,16 +114,10 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 사용자 없음 예외")
     void shouldThrowException_WhenUserNotFound() {
         // Given
-        NotificationVO event = NotificationVO.create(
-                NotificationType.COMMENT,
-                "테스트 메시지",
-                "/test/url"
-        );
-        
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> sseAdapter.send(userId, event))
+        assertThatThrownBy(() -> sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url"))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
 
@@ -143,18 +130,13 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 알림 저장 실패 시 예외")
     void shouldThrowException_WhenNotificationSaveFails() {
         // Given
-        NotificationVO event = NotificationVO.create(
-                NotificationType.COMMENT,
-                "테스트 메시지",
-                "/test/url"
-        );
         
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
         doThrow(new RuntimeException("DB 저장 실패"))
                 .when(notificationCommandPort).save(any(), any(), any(), any());
 
         // When & Then
-        assertThatThrownBy(() -> sseAdapter.send(userId, event))
+        assertThatThrownBy(() -> sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url"))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
 
@@ -167,17 +149,12 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - Emitter가 없는 경우")
     void shouldHandleEmptyEmitters_WhenNoEmittersExist() {
         // Given
-        NotificationVO event = NotificationVO.create(
-                NotificationType.COMMENT,
-                "테스트 메시지",
-                "/test/url"
-        );
         
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
         given(emitterRepository.findAllEmitterByUserId(userId)).willReturn(Map.of());
 
         // When
-        sseAdapter.send(userId, event);
+        sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
 
         // Then
         verify(userQueryUseCase).findById(userId);
@@ -202,18 +179,13 @@ class SseAdapterTest {
     @DisplayName("다양한 알림 타입 전송 테스트")
     void shouldSendDifferentNotificationTypes() {
         // Given
-        NotificationVO paperEvent = NotificationVO.create(
-                NotificationType.PAPER,
-                "롤링페이퍼 메시지",
-                "/paper/url"
-        );
         
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
         given(emitterRepository.findAllEmitterByUserId(userId))
                 .willReturn(Map.of(emitterId, mockEmitter));
 
         // When
-        sseAdapter.send(userId, paperEvent);
+        sseAdapter.send(userId, NotificationType.PAPER, "롤링페이퍼 메시지", "/paper/url");
 
         // Then
         verify(notificationCommandPort).save(mockUser, NotificationType.PAPER, "롤링페이퍼 메시지", "/paper/url");
@@ -223,11 +195,6 @@ class SseAdapterTest {
     @DisplayName("여러 Emitter에 동시 전송 테스트")
     void shouldSendToMultipleEmitters() {
         // Given
-        NotificationVO event = NotificationVO.create(
-                NotificationType.COMMENT,
-                "테스트 메시지",
-                "/test/url"
-        );
         
         SseEmitter emitter1 = mock(SseEmitter.class);
         SseEmitter emitter2 = mock(SseEmitter.class);
@@ -240,7 +207,7 @@ class SseAdapterTest {
                 ));
 
         // When
-        sseAdapter.send(userId, event);
+        sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
 
         // Then
         verify(userQueryUseCase).findById(userId);

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * <h2>JwtInvalidateAdapter 단위 테스트</h2>
- * <p>Redis 연동, 예외 처리, 동시성, 성능을 풍부하게 테스트</p>
+ * <p>Redis 연동, 예외 처리, 동시성, 성능 테스트</p>
  * <p>외부 시스템(Redis) 장애 상황에서의 안전한 동작을 중점 검증</p>
  * 
  * @author Jaeik
