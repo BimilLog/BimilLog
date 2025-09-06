@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserQueryService;

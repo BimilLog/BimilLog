@@ -3,7 +3,7 @@ package jaeik.bimillog.integration.event.admin;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;

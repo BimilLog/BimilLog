@@ -89,7 +89,7 @@ public class SaveUserAdapter implements SaveUserPort {
     public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
         Setting setting = Setting.createSetting();
         
-        User user = userCommandUseCase.save(User.createUser(userProfile, userName, setting));
+        User user = userCommandUseCase.save(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
 
         registerFcmTokenIfPresent(user.getId(), fcmToken);
 

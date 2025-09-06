@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.outadapter.comment.persistence.comment.commentclosure;
 
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.post.entity.Post;

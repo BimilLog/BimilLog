@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.user.entity;
 
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

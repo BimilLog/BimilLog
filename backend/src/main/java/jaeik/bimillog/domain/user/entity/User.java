@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.user.entity;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
@@ -176,18 +174,20 @@ public class User extends BaseEntity {
      * 소셜 사용자 프로필과 사용자 이름을 기반으로 새로운 사용자 엔티티를 생성한다.
      * Setting은 명시적으로 전달되어야 한다.
      * </p>
-     *
-     * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
+     * @param socialId 소셜 id
+     * @param provider 소셜 제공자
+     * @param nickname 소셜 닉네임
+     * @param profileImageUrl 소셜 프로필 사진 url
      * @param userName 사용자 이름
      * @param setting 사용자 설정
      * @return 생성된 사용자 엔티티
      */
-    public static User createUser(SocialUserProfile userProfile, String userName, Setting setting) {
+    public static User createUser(String socialId, SocialProvider provider, String nickname, String profileImageUrl, String userName, Setting setting) {
         return User.builder()
-                .socialId(userProfile.socialId())
-                .provider(userProfile.provider())
-                .socialNickname(userProfile.nickname())
-                .thumbnailImage(userProfile.profileImageUrl())
+                .socialId(socialId)
+                .provider(provider)
+                .socialNickname(nickname)
+                .thumbnailImage(profileImageUrl)
                 .userName(userName)
                 .role(UserRole.USER)
                 .setting(setting)

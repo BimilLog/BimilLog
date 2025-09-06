@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.in;
 
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 
 /**
  * <h2>소셜 연결 해제 유스케이스</h2>

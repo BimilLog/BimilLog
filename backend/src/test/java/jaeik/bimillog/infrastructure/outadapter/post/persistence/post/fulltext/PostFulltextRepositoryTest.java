@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.outadapter.post.persistence.post.fulltext;
 
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.user.entity.Setting;

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.admin.event;
 
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 
 /**
  * <h2>사용자 차단 이벤트</h2>

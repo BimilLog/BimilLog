@@ -1,7 +1,7 @@
 package jaeik.bimillog.integration.api.admin;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;

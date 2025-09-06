@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.auth.entity;
+package jaeik.bimillog.domain.user.entity;
 
 /**
  * <h2>소셜 제공자 열거형</h2>

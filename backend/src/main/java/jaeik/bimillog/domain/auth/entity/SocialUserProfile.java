@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.auth.entity;
 
+import jaeik.bimillog.domain.user.entity.SocialProvider;
+
 /**
  * <h3>소셜 사용자 프로필</h3>
  * <p>
@@ -18,7 +20,7 @@ package jaeik.bimillog.domain.auth.entity;
 public record SocialUserProfile(
         String socialId, 
         String email, 
-        SocialProvider provider, 
+        SocialProvider provider,
         String nickname, 
         String profileImageUrl
 ) {}

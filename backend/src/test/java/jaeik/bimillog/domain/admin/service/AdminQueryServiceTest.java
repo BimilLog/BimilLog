@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.bimillog.domain.admin.application.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.auth.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
