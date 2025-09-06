@@ -48,7 +48,6 @@ public interface FcmPort {
      */
     void sendMessageTo(FcmMessage fcmMessage) throws IOException;
 
-
     /**
      * <h3>사용자 ID로 유효한 FCM 토큰 조회 (메시지 알림)</h3>
      * <p>메시지 알림이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>

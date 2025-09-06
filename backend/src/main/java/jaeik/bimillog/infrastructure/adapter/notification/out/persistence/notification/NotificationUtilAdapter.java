@@ -12,7 +12,7 @@ import java.util.Optional;
 
 /**
  * <h2>알림 유틸리티 어댑터</h2>
- * <p>알림 이벤트 DTO 생성 등 유틸리티 기능을 제공하는 어댑터</p>
+ * <p>알림 이벤트 유틸리티 기능을 제공하는 어댑터</p>
  *
  * @author Jaeik
  * @version 2.0.0

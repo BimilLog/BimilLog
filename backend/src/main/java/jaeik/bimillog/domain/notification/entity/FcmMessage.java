@@ -1,12 +1,9 @@
 package jaeik.bimillog.domain.notification.entity;
 
-import lombok.Builder;
-
 /**
  * <h3>FCM 메시지 값 객체</h3>
  * <p>
  * Firebase Cloud Messaging 전송을 위한 도메인 순수 값 객체
- * FcmSendDTO의 도메인 전용 대체
  * </p>
  *
  * @param token FCM 토큰
@@ -21,13 +18,6 @@ public record FcmMessage(
         String body
 ) {
 
-    /**
-     * <h3>빌더를 통한 생성자</h3>
-     * <p>Record의 컴팩트 생성자입니다. 빌더 패턴을 지원합니다.</p>
-     */
-    @Builder
-    public FcmMessage {
-    }
 
     /**
      * <h3>FCM 메시지 생성</h3>
@@ -39,10 +29,6 @@ public record FcmMessage(
      * @return FcmMessage 값 객체
      */
     public static FcmMessage of(String token, String title, String body) {
-        return FcmMessage.builder()
-                .token(token)
-                .title(title)
-                .body(body)
-                .build();
+        return new FcmMessage(token, title, body);
     }
 }

@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPo
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.application.service.NotificationSseService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.entity.SseMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,7 +85,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generatePostUrl(postId);
-        verify(ssePort).send(eq(postUserId), eq(NotificationType.COMMENT), eq(expectedMessage), eq(expectedUrl));
+        verify(ssePort).send(eq(SseMessage.of(postUserId, NotificationType.COMMENT, expectedMessage, expectedUrl)));
     }
 
     @Test
@@ -103,7 +104,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generateRollingPaperUrl(userName);
-        verify(ssePort).send(eq(farmOwnerId), eq(NotificationType.PAPER), eq(expectedMessage), eq(expectedUrl));
+        verify(ssePort).send(eq(SseMessage.of(farmOwnerId, NotificationType.PAPER, expectedMessage, expectedUrl)));
     }
 
     @Test
@@ -122,6 +123,6 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generatePostUrl(postId);
-        verify(ssePort).send(eq(userId), eq(NotificationType.POST_FEATURED), eq(message), eq(expectedUrl));
+        verify(ssePort).send(eq(SseMessage.of(userId, NotificationType.POST_FEATURED, message, expectedUrl)));
     }
 }

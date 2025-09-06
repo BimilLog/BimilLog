@@ -10,8 +10,8 @@ package jaeik.bimillog.domain.notification.entity;
 public enum NotificationType {
     PAPER, // 롤링페이퍼에 메시지가 달렸을 때
     COMMENT, // 게시글에 댓글이 달렸을 때
-    POST_FEATURED, // 인기글이 되었을 때
-    INITIATE, // SSE 초기화 용
-    ADMIN
+    POST_FEATURED, // 주간, 전설 인기글이 되었을 때
+    ADMIN, // 관리자 알림
+    INITIATE // SSE 초기화 용도
 }
 

@@ -17,7 +17,6 @@ public interface NotificationToUserPort {
      *
      * @param userId 사용자 ID
      * @return User 조회된 사용자 객체
-     * @throws UserCustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */

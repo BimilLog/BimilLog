@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationComma
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -49,8 +50,9 @@ public class SseAdapter implements SsePort {
         emitter.onCompletion(() -> emitterRepository.deleteById(emitterId));
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
-        sendNotification(emitter, emitterId, NotificationType.INITIATE,
+        SseMessage initMessage = SseMessage.of(userId, NotificationType.INITIATE,
                 "이벤트 스트림이 생성되었습니다. [emitterId=%s]".formatted(emitterId), "");
+        sendNotification(emitter, emitterId, initMessage);
 
         return emitter;
     }
@@ -59,24 +61,21 @@ public class SseAdapter implements SsePort {
      * <h3>SSE 알림 전송</h3>
      * <p>지정된 사용자에게 SSE 알림을 전송하고 데이터베이스에 알림을 저장합니다.</p>
      *
-     * @param userId  알림을 받을 사용자의 ID
-     * @param type    알림 유형
-     * @param message 알림 메시지
-     * @param url     알림 URL
+     * @param sseMessage SSE 메시지 값 객체
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void send(Long userId, NotificationType type, String message, String url) {
+    public void send(SseMessage sseMessage) {
         try {
-            User user = userQueryUseCase.findById(userId)
+            User user = userQueryUseCase.findById(sseMessage.userId())
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
-            notificationCommandPort.save(user, type, message, url);
-            Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
+            notificationCommandPort.save(user, sseMessage.type(), sseMessage.message(), sseMessage.url());
+            Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(sseMessage.userId());
 
             emitters.forEach(
                     (emitterId, emitter) -> {
-                        sendNotification(emitter, emitterId, type, message, url);
+                        sendNotification(emitter, emitterId, sseMessage);
                     });
         } catch (Exception e) {
             throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_SEND_ERROR, e);
@@ -89,23 +88,20 @@ public class SseAdapter implements SsePort {
      *
      * @param emitter 전송에 사용할 SseEmitter 객체
      * @param emitterId Emitter의 고유 ID
-     * @param type 알림 유형
-     * @param data 알림 내용
-     * @param url 알림 클릭 시 이동할 URL
+     * @param sseMessage SSE 메시지 값 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    private void sendNotification(SseEmitter emitter, String emitterId, NotificationType type, String data, String url) {
-        String jsonData = String.format("{\"message\": \"%s\", \"url\": \"%s\"}",
-                data, url);
+    private void sendNotification(SseEmitter emitter, String emitterId, SseMessage sseMessage) {
         try {
             emitter.send(SseEmitter.event()
-                    .name(type.toString())
-                    .data(jsonData));
+                    .name(sseMessage.type().toString())
+                    .data(sseMessage.toJsonData()));
         } catch (IOException e) {
             emitterRepository.deleteById(emitterId);
         }
     }
+
 
 
     /**

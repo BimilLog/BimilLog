@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.outadapter.notification.sse;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -102,7 +103,8 @@ class SseAdapterTest {
                 .willReturn(Map.of(emitterId, mockEmitter));
 
         // When
-        sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        sseAdapter.send(sseMessage);
 
         // Then
         verify(userQueryUseCase).findById(userId);
@@ -117,7 +119,8 @@ class SseAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url"))
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        assertThatThrownBy(() -> sseAdapter.send(sseMessage))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
 
@@ -136,7 +139,8 @@ class SseAdapterTest {
                 .when(notificationCommandPort).save(any(), any(), any(), any());
 
         // When & Then
-        assertThatThrownBy(() -> sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url"))
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        assertThatThrownBy(() -> sseAdapter.send(sseMessage))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
 
@@ -154,7 +158,8 @@ class SseAdapterTest {
         given(emitterRepository.findAllEmitterByUserId(userId)).willReturn(Map.of());
 
         // When
-        sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        sseAdapter.send(sseMessage);
 
         // Then
         verify(userQueryUseCase).findById(userId);
@@ -185,7 +190,8 @@ class SseAdapterTest {
                 .willReturn(Map.of(emitterId, mockEmitter));
 
         // When
-        sseAdapter.send(userId, NotificationType.PAPER, "롤링페이퍼 메시지", "/paper/url");
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.PAPER, "롤링페이퍼 메시지", "/paper/url");
+        sseAdapter.send(sseMessage);
 
         // Then
         verify(notificationCommandPort).save(mockUser, NotificationType.PAPER, "롤링페이퍼 메시지", "/paper/url");
@@ -207,7 +213,8 @@ class SseAdapterTest {
                 ));
 
         // When
-        sseAdapter.send(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        sseAdapter.send(sseMessage);
 
         // Then
         verify(userQueryUseCase).findById(userId);

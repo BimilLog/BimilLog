@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUse
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.entity.SseMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -75,7 +76,8 @@ public class NotificationSseService implements NotificationSseUseCase {
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = notificationUrlPort.generatePostUrl(postId);
-        ssePort.send(postUserId, NotificationType.COMMENT, message, url);
+        SseMessage sseMessage = SseMessage.of(postUserId, NotificationType.COMMENT, message, url);
+        ssePort.send(sseMessage);
     }
 
     /**
@@ -88,7 +90,8 @@ public class NotificationSseService implements NotificationSseUseCase {
     public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = notificationUrlPort.generateRollingPaperUrl(userName);
-        ssePort.send(farmOwnerId, NotificationType.PAPER, message, url);
+        SseMessage sseMessage = SseMessage.of(farmOwnerId, NotificationType.PAPER, message, url);
+        ssePort.send(sseMessage);
     }
 
     /**
@@ -101,6 +104,7 @@ public class NotificationSseService implements NotificationSseUseCase {
     @Override
     public void sendPostFeaturedNotification(Long userId, String message, Long postId) {
         String url = notificationUrlPort.generatePostUrl(postId);
-        ssePort.send(userId, NotificationType.POST_FEATURED, message, url);
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.POST_FEATURED, message, url);
+        ssePort.send(sseMessage);
     }
 }
