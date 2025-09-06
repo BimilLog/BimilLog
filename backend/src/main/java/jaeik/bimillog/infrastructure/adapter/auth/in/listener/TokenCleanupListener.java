@@ -38,6 +38,8 @@ public class TokenCleanupListener {
                      event.userId(), event.tokenId());
             
             // 특정 토큰 정리
+            // TODO : 로그아웃시에는 FCM토큰도 삭제해야함 하지만 사용자 일괄 FCM토큰 삭제 기능은 있지만 특정 기기의 FCM토큰 삭제 기능이없음
+            //  회원탈퇴시에는 사용자 일괄 FCM토큰 삭제가 가능하지만 로그아웃시에는 특정 기기의 FCM토큰 기능 구현 필요
             tokenCleanupUseCase.cleanupSpecificToken(event.userId(), event.tokenId());
             
             log.info("토큰 정리 완료 - 사용자 ID: {}, 토큰 ID: {}", 
