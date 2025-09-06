@@ -70,7 +70,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "jaeik.bimillog.domain.post.entity",
         "jaeik.bimillog.domain.comment.entity",
         "jaeik.bimillog.domain.notification.entity",
-        "jaeik.bimillog.domain.common.entity"
+        "jaeik.bimillog.domain.global.entity"
 })
 @Import({LoadUserInfoAdapter.class, NotificationToPaperToUserAdapterLoadTest.TestUserQueryUseCase.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.admin.exception;
 
-import jaeik.bimillog.infrastructure.advice.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,8 +28,8 @@ public class AdminExceptionHandler {
      * @since 2.0.0
      */
     @ExceptionHandler(AdminCustomException.class)
-    public ResponseEntity<ErrorResponse> handleAdminCustomException(AdminCustomException e) {
-        ErrorResponse response = new ErrorResponse(
+    public ResponseEntity<AdminErrorResponse> handleAdminCustomException(AdminCustomException e) {
+        AdminErrorResponse response = new AdminErrorResponse(
                 e.getAdminErrorCode().getStatus().value(),
                 "AdminError",
                 e.getMessage());

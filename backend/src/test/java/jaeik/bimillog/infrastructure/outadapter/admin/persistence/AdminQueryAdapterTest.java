@@ -58,7 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "jaeik.bimillog.domain.post.entity",
         "jaeik.bimillog.domain.comment.entity",
         "jaeik.bimillog.domain.notification.entity",
-        "jaeik.bimillog.domain.common.entity"
+        "jaeik.bimillog.domain.global.entity"
 })
 @Import(AdminQueryAdapter.class)
 @TestPropertySource(properties = {

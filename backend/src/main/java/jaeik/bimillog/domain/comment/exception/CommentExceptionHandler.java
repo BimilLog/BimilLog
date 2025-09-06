@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.comment.exception;
 
-import jaeik.bimillog.infrastructure.advice.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,8 +28,8 @@ public class CommentExceptionHandler {
      * @since 2.0.0
      */
     @ExceptionHandler(CommentCustomException.class)
-    public ResponseEntity<ErrorResponse> handleCommentCustomException(CommentCustomException e) {
-        ErrorResponse response = new ErrorResponse(
+    public ResponseEntity<CommentErrorResponse> handleCommentCustomException(CommentCustomException e) {
+        CommentErrorResponse response = new CommentErrorResponse(
                 e.getCommentErrorCode().getStatus().value(),
                 "CommentError",
                 e.getMessage());

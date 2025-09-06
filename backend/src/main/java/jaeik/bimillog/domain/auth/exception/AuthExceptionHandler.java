@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.auth.exception;
 
-import jaeik.bimillog.infrastructure.advice.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,8 +28,8 @@ public class AuthExceptionHandler {
      * @since 2.0.0
      */
     @ExceptionHandler(AuthCustomException.class)
-    public ResponseEntity<ErrorResponse> handleAuthCustomException(AuthCustomException e) {
-        ErrorResponse response = new ErrorResponse(
+    public ResponseEntity<AuthErrorResponse> handleAuthCustomException(AuthCustomException e) {
+        AuthErrorResponse response = new AuthErrorResponse(
                 e.getAuthErrorCode().getStatus().value(),
                 "AuthError",
                 e.getMessage());

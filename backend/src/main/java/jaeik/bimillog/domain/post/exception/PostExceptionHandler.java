@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.exception;
 
-import jaeik.bimillog.infrastructure.advice.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,8 +28,8 @@ public class PostExceptionHandler {
      * @since 2.0.0
      */
     @ExceptionHandler(PostCustomException.class)
-    public ResponseEntity<ErrorResponse> handlePostCustomException(PostCustomException e) {
-        ErrorResponse response = new ErrorResponse(
+    public ResponseEntity<PostErrorResponse> handlePostCustomException(PostCustomException e) {
+        PostErrorResponse response = new PostErrorResponse(
                 e.getPostErrorCode().getStatus().value(),
                 "PostError",
                 e.getMessage());

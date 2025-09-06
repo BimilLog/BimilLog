@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.entity;
 
-import jaeik.bimillog.domain.common.entity.BaseEntity;
+import jaeik.bimillog.global.entity.BaseEntity;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;

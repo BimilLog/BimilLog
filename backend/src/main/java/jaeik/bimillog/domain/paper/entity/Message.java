@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.entity;
 
-import jaeik.bimillog.domain.common.entity.BaseEntity;
+import jaeik.bimillog.global.entity.BaseEntity;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.security.MessageEncryptConverter;
 import jakarta.persistence.*;

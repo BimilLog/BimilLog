@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.user.exception;
 
-import jaeik.bimillog.infrastructure.advice.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,8 +28,8 @@ public class UserExceptionHandler {
      * @since 2.0.0
      */
     @ExceptionHandler(UserCustomException.class)
-    public ResponseEntity<ErrorResponse> handleUserCustomException(UserCustomException e) {
-        ErrorResponse response = new ErrorResponse(
+    public ResponseEntity<UserErrorResponse> handleUserCustomException(UserCustomException e) {
+        UserErrorResponse response = new UserErrorResponse(
                 e.getUserErrorCode().getStatus().value(),
                 "UserError",
                 e.getMessage());

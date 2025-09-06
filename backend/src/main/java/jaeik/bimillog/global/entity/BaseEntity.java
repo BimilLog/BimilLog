@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.common.entity;
+package jaeik.bimillog.global.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

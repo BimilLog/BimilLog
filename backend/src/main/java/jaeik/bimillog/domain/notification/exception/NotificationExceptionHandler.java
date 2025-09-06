@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.notification.exception;
 
-import jaeik.bimillog.infrastructure.advice.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,8 +28,8 @@ public class NotificationExceptionHandler {
      * @since 2.0.0
      */
     @ExceptionHandler(NotificationCustomException.class)
-    public ResponseEntity<ErrorResponse> handleNotificationCustomException(NotificationCustomException e) {
-        ErrorResponse response = new ErrorResponse(
+    public ResponseEntity<NotificationErrorResponse> handleNotificationCustomException(NotificationCustomException e) {
+        NotificationErrorResponse response = new NotificationErrorResponse(
                 e.getNotificationErrorCode().getStatus().value(),
                 "NotificationError",
                 e.getMessage());

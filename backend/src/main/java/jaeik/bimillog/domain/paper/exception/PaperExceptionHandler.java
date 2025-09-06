@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.paper.exception;
 
-import jaeik.bimillog.infrastructure.advice.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,8 +28,8 @@ public class PaperExceptionHandler {
      * @since 2.0.0
      */
     @ExceptionHandler(PaperCustomException.class)
-    public ResponseEntity<ErrorResponse> handlePaperCustomException(PaperCustomException e) {
-        ErrorResponse response = new ErrorResponse(
+    public ResponseEntity<PaperErrorResponse> handlePaperCustomException(PaperCustomException e) {
+        PaperErrorResponse response = new PaperErrorResponse(
                 e.getPaperErrorCode().getStatus().value(),
                 "PaperError",
                 e.getMessage());

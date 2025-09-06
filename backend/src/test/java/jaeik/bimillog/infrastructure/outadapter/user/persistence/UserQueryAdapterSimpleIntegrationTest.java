@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @EntityScan(basePackages = {
         "jaeik.bimillog.domain.user.entity",
-        "jaeik.bimillog.domain.common.entity"
+        "jaeik.bimillog.domain.global.entity"
 })
 @EnableJpaRepositories(basePackages = {
         "jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user",
