@@ -1,20 +1,14 @@
 package jaeik.bimillog.integration.event.user;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
-import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
-import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
-import jaeik.bimillog.infrastructure.adapter.admin.in.listener.ReportSaveListener;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -22,17 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
-import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
  * <h2>신고 제출 이벤트 워크플로우 통합 테스트</h2>
  * <p>신고 제출부터 저장까지의 전체 이벤트 기반 워크플로우를 검증하는 통합 테스트</p>
- * <p>비동기 이벤트 처리를 Awaitility를 사용하여 검증합니다.</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트합니다.</p>
+ * <p>비동기 이벤트 처리와 실제 스프링 컨텍스트를 사용하여 전체 워크플로우를 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -44,25 +35,15 @@ import static org.mockito.Mockito.*;
 @DisplayName("신고 제출 이벤트 워크플로우 통합 테스트")
 class ReportSubmittedEventIntegrationTest {
 
-
     @Autowired
     private ApplicationEventPublisher eventPublisher;
-
-    @Autowired
-    private ReportSaveListener reportSaveListener;
 
     @MockitoBean
     private AdminCommandUseCase adminCommandUseCase;
 
-    @MockitoBean
-    private AdminCommandPort adminCommandPort;
-
-    @MockitoBean
-    private UserQueryPort userQueryPort;
-
     @Test
-    @DisplayName("인증된 사용자 신고 이벤트 워크플로우 - 성공")
-    void reportSubmissionWorkflow_AuthenticatedUser_Success() {
+    @DisplayName("인증된 사용자 신고 이벤트 워크플로우 - 댓글 신고")
+    void reportSubmissionWorkflow_AuthenticatedUser_CommentReport() {
         // Given
         Long reporterId = 1L;
         String reporterName = "testuser";
@@ -70,29 +51,22 @@ class ReportSubmittedEventIntegrationTest {
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
 
-        User mockReporter = User.builder()
-                .id(reporterId)
-                .userName(reporterName)
-                .build();
-
-        when(userQueryPort.findById(reporterId)).thenReturn(Optional.of(mockReporter));
-        when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
-
         // When
         ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
         eventPublisher.publishEvent(event);
 
-        // Then - 비동기 이벤트 처리 완료까지 대기 (최대 5초)
+        // Then - 비동기 처리를 고려하여 Awaitility 사용
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
+                    verify(adminCommandUseCase).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
+                    verifyNoMoreInteractions(adminCommandUseCase);
                 });
     }
 
     @Test
-    @DisplayName("익명 사용자 신고 이벤트 워크플로우 - 성공")
-    void reportSubmissionWorkflow_AnonymousUser_Success() {
+    @DisplayName("익명 사용자 신고 이벤트 워크플로우 - 게시글 신고")
+    void reportSubmissionWorkflow_AnonymousUser_PostReport() {
         // Given
         Long reporterId = null; // 익명 사용자
         String reporterName = "익명";
@@ -100,53 +74,45 @@ class ReportSubmittedEventIntegrationTest {
         Long targetId = 456L;
         String content = "스팸 게시글입니다";
 
-        when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
-
         // When
         ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
         eventPublisher.publishEvent(event);
 
-        // Then - 비동기 이벤트 처리 완료까지 대기 (최대 5초)
+        // Then - 익명 사용자도 정상적으로 처리되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
+                    verify(adminCommandUseCase).createReport(eq(null), eq(reportType), eq(targetId), eq(content));
+                    verifyNoMoreInteractions(adminCommandUseCase);
                 });
     }
 
     @Test
-    @DisplayName("건의사항 이벤트 워크플로우 - 성공")
-    void reportSubmissionWorkflow_Suggestion_Success() {
+    @DisplayName("건의사항 이벤트 워크플로우 - targetId 없음")
+    void reportSubmissionWorkflow_Improvement_NoTargetId() {
         // Given
         Long reporterId = 2L;
         String reporterName = "suggester";
         ReportType reportType = ReportType.IMPROVEMENT;
-        Long targetId = null;
+        Long targetId = null; // 건의사항은 특정 타겟이 없을 수 있음
         String content = "새로운 기능을 건의합니다";
-
-        User mockReporter = User.builder()
-                .id(reporterId)
-                .userName(reporterName)
-                .build();
-
-        when(userQueryPort.findById(reporterId)).thenReturn(Optional.of(mockReporter));
-        when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
 
         // When
         ReportSubmittedEvent event = ReportSubmittedEvent.of(reporterId, reporterName, reportType, targetId, content);
         eventPublisher.publishEvent(event);
 
-        // Then - 비동기 이벤트 처리 완료까지 대기 (최대 5초)
+        // Then - targetId가 null이어도 정상 처리되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(reporterId), eq(reportType), eq(targetId), eq(content));
+                    verify(adminCommandUseCase).createReport(eq(reporterId), eq(reportType), eq(null), eq(content));
+                    verifyNoMoreInteractions(adminCommandUseCase);
                 });
     }
 
     @Test
-    @DisplayName("여러 신고 이벤트 동시 처리 워크플로우 - 성공")
-    void reportSubmissionWorkflow_MultipleEvents_Success() {
+    @DisplayName("여러 신고 이벤트 동시 처리")
+    void reportSubmissionWorkflow_MultipleEvents_ProcessIndependently() {
         // Given
         ReportSubmittedEvent event1 = ReportSubmittedEvent.of(
                 1L, "user1", ReportType.COMMENT, 100L, "신고 내용 1");
@@ -155,89 +121,158 @@ class ReportSubmittedEventIntegrationTest {
         ReportSubmittedEvent event3 = ReportSubmittedEvent.of(
                 3L, "user3", ReportType.IMPROVEMENT, null, "건의 내용");
 
-        User mockUser1 = User.builder().id(1L).userName("user1").build();
-        User mockUser3 = User.builder().id(3L).userName("user3").build();
-
-        when(userQueryPort.findById(1L)).thenReturn(Optional.of(mockUser1));
-        when(userQueryPort.findById(3L)).thenReturn(Optional.of(mockUser3));
-        when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
-
         // When - 여러 이벤트 동시 발행
         eventPublisher.publishEvent(event1);
         eventPublisher.publishEvent(event2);
         eventPublisher.publishEvent(event3);
 
-        // Then - 모든 이벤트가 비동기로 처리될 때까지 대기 (최대 10초)
+        // Then - 모든 이벤트가 독립적으로 처리되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("신고 내용 1"));
-                    verify(adminCommandUseCase, times(1)).createReport(eq(null), eq(ReportType.POST), eq(200L), eq("신고 내용 2"));
-                    verify(adminCommandUseCase, times(1)).createReport(eq(3L), eq(ReportType.IMPROVEMENT), eq(null), eq("건의 내용"));
-                    verify(adminCommandUseCase, times(3)).createReport(any(), any(), any(), any());
+                    verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("신고 내용 1"));
+                    verify(adminCommandUseCase).createReport(eq(null), eq(ReportType.POST), eq(200L), eq("신고 내용 2"));
+                    verify(adminCommandUseCase).createReport(eq(3L), eq(ReportType.IMPROVEMENT), eq(null), eq("건의 내용"));
+                    verifyNoMoreInteractions(adminCommandUseCase);
                 });
     }
 
     @Test
-    @DisplayName("이벤트 처리 중 예외 발생 시 다른 이벤트 처리에 영향 없음")
-    void reportSubmissionWorkflow_ExceptionInOneEvent_OthersStillProcessed() {
+    @DisplayName("비즈니스 예외 발생 시 처리")
+    void reportSubmissionWorkflow_BusinessExceptionHandling() {
+        // Given
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(
+                1L, "user1", ReportType.COMMENT, 100L, "중복 신고");
+        
+        // 비즈니스 예외 발생 시뮬레이션 (예: 중복 신고)  
+        doThrow(new IllegalStateException("이미 처리된 신고입니다"))
+                .when(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("중복 신고"));
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 비즈니스 예외가 발생해도 리스너는 호출되고 예외를 삼켜야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("중복 신고"));
+                    verifyNoMoreInteractions(adminCommandUseCase);
+                });
+    }
+
+    @Test
+    @DisplayName("시스템 예외 발생 시 처리")
+    void reportSubmissionWorkflow_SystemExceptionHandling() {
+        // Given
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(
+                999L, "baduser", ReportType.POST, 200L, "시스템 오류 발생");
+        
+        // 시스템 예외 발생 시뮬레이션 (예: DB 연결 실패)
+        doThrow(new RuntimeException("Database connection failed"))
+                .when(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("시스템 오류 발생"));
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 시스템 예외가 발생해도 리스너는 호출되고 예외를 삼켜야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("시스템 오류 발생"));
+                    verifyNoMoreInteractions(adminCommandUseCase);
+                });
+    }
+
+    @Test
+    @DisplayName("이벤트 처리 중 예외 발생 시 다른 이벤트에 영향 없음")
+    void reportSubmissionWorkflow_ExceptionIsolation() {
         // Given
         ReportSubmittedEvent successEvent = ReportSubmittedEvent.of(
                 1L, "user1", ReportType.COMMENT, 100L, "정상 신고");
         ReportSubmittedEvent failureEvent = ReportSubmittedEvent.of(
                 999L, "baduser", ReportType.POST, 200L, "실패할 신고");
 
-        User mockUser1 = User.builder().id(1L).userName("user1").build();
-
-        when(userQueryPort.findById(1L)).thenReturn(Optional.of(mockUser1));
-        when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
-
         // failureEvent는 예외 발생하도록 설정
         doThrow(new RuntimeException("Database connection failed"))
-                .when(adminCommandUseCase).createReport(eq(999L), any(), any(), any());
-        doNothing().when(adminCommandUseCase).createReport(eq(1L), any(), any(), any());
+                .when(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("실패할 신고"));
 
         // When
         eventPublisher.publishEvent(successEvent);
         eventPublisher.publishEvent(failureEvent);
 
-        // Then - 성공 이벤트는 처리되고, 실패 이벤트도 시도는 됨
+        // Then - 성공 이벤트와 실패 이벤트 모두 호출되어야 함
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(1)).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("정상 신고"));
-                    verify(adminCommandUseCase, times(1)).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("실패할 신고"));
+                    verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("정상 신고"));
+                    verify(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("실패할 신고"));
+                    verifyNoMoreInteractions(adminCommandUseCase);
                 });
     }
 
     @Test
-    @DisplayName("이벤트 리스너가 정상적으로 등록되어 있는지 검증")
-    void reportEventListener_IsRegistered() {
-        // Given & When & Then
-        // ReportEventListener가 Spring 컨텍스트에 정상적으로 등록되었는지 확인
-        assert reportSaveListener != null;
-        assert eventPublisher != null;
+    @DisplayName("모든 신고 유형 처리 검증")
+    void reportSubmissionWorkflow_AllReportTypes() {
+        // Given - 모든 신고 유형
+        ReportSubmittedEvent commentReport = ReportSubmittedEvent.of(
+                1L, "user1", ReportType.COMMENT, 100L, "댓글 신고");
+        ReportSubmittedEvent postReport = ReportSubmittedEvent.of(
+                2L, "user2", ReportType.POST, 200L, "게시글 신고");
+        ReportSubmittedEvent improvement = ReportSubmittedEvent.of(
+                3L, "user3", ReportType.IMPROVEMENT, null, "기능 개선 건의");
+
+        // When
+        eventPublisher.publishEvent(commentReport);
+        eventPublisher.publishEvent(postReport);
+        eventPublisher.publishEvent(improvement);
+
+        // Then - 모든 신고 유형이 정상 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("댓글 신고"));
+                    verify(adminCommandUseCase).createReport(eq(2L), eq(ReportType.POST), eq(200L), eq("게시글 신고"));
+                    verify(adminCommandUseCase).createReport(eq(3L), eq(ReportType.IMPROVEMENT), eq(null), eq("기능 개선 건의"));
+                    verifyNoMoreInteractions(adminCommandUseCase);
+                });
     }
 
     @Test
-    @DisplayName("빠른 연속 이벤트 처리 성능 테스트")
-    void reportSubmissionWorkflow_RapidEvents_Performance() {
+    @DisplayName("비동기 이벤트 리스너 정상 작동 검증")
+    void reportSubmissionEventAsync_ShouldTriggerListenerCorrectly() {
         // Given
-        int eventCount = 50;
-        when(adminCommandPort.save(any(Report.class))).thenReturn(mock(Report.class));
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(
+                999L, "asynctest", ReportType.POST, 9999L, "비동기 테스트 신고");
 
-        // When - 빠른 연속으로 여러 이벤트 발행
-        for (int i = 0; i < eventCount; i++) {
-            ReportSubmittedEvent event = ReportSubmittedEvent.of(
-                    null, "익명", ReportType.COMMENT, (long) i, "신고 내용 " + i);
-            eventPublisher.publishEvent(event);
-        }
+        // When
+        eventPublisher.publishEvent(event);
 
-        // Then - 모든 이벤트가 처리될 때까지 대기 (최대 30초)
+        // Then - 비동기 처리가 정상 완료되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(30))
+                .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
-                    verify(adminCommandUseCase, times(eventCount)).createReport(eq(null), eq(ReportType.COMMENT), any(Long.class), any(String.class));
+                    verify(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(9999L), eq("비동기 테스트 신고"));
+                    verifyNoMoreInteractions(adminCommandUseCase);
+                });
+    }
+
+    @Test
+    @DisplayName("특수 문자가 포함된 신고 내용 처리")
+    void reportSubmissionWorkflow_SpecialCharacters() {
+        // Given - 특수문자가 포함된 신고 내용
+        String specialContent = "신고합니다! <script>alert('XSS')</script> & \"악성코드\" 포함됨";
+        ReportSubmittedEvent event = ReportSubmittedEvent.of(
+                1L, "reporter", ReportType.COMMENT, 100L, specialContent);
+
+        // When
+        eventPublisher.publishEvent(event);
+
+        // Then - 특수문자가 포함된 내용도 정상 처리되어야 함
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq(specialContent));
+                    verifyNoMoreInteractions(adminCommandUseCase);
                 });
     }
 }

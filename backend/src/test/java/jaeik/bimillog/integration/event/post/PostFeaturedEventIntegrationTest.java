@@ -19,10 +19,8 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * <h2>게시글 인기글 등극 이벤트 워크플로우 통합 테스트</h2>
@@ -71,12 +69,13 @@ public class PostFeaturedEventIntegrationTest {
                             eq(userId), eq(sseMessage), eq(postId));
                     verify(notificationFcmUseCase).sendPostFeaturedNotification(
                             eq(userId), eq(fcmTitle), eq(fcmBody));
+                    verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
                 });
     }
 
     @Test
-    @DisplayName("여러 게시글 인기글 등극 이벤트 동시 처리")
-    void multiplePostFeaturedEvents_ShouldProcessConcurrently() {
+    @DisplayName("여러 다른 사용자의 인기글 이벤트 동시 처리")
+    void multipleDifferentUserPostFeaturedEvents_ShouldProcessIndependently() {
         // Given
         PostFeaturedEvent event1 = new PostFeaturedEvent(
                 1L, "게시글 1이 인기글에 선정되었습니다!", 101L, "인기글 선정", "축하합니다!");
@@ -85,14 +84,14 @@ public class PostFeaturedEventIntegrationTest {
         PostFeaturedEvent event3 = new PostFeaturedEvent(
                 3L, "게시글 3이 주간 베스트에 선정되었습니다!", 103L, "주간 베스트", "훌륭합니다!");
 
-        // When - 동시에 여러 인기글 등극 이벤트 발행
+        // When
         eventPublisher.publishEvent(event1);
         eventPublisher.publishEvent(event2);
         eventPublisher.publishEvent(event3);
 
-        // Then - 모든 이벤트가 독립적으로 알림 처리되어야 함
+        // Then - 모든 이벤트가 독립적으로 처리되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(notificationSseUseCase).sendPostFeaturedNotification(
                             eq(1L), eq("게시글 1이 인기글에 선정되었습니다!"), eq(101L));
@@ -107,6 +106,7 @@ public class PostFeaturedEventIntegrationTest {
                             eq(2L), eq("명예의 전당"), eq("대단합니다!"));
                     verify(notificationFcmUseCase).sendPostFeaturedNotification(
                             eq(3L), eq("주간 베스트"), eq("훌륭합니다!"));
+                    verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
                 });
     }
 
@@ -127,9 +127,9 @@ public class PostFeaturedEventIntegrationTest {
         eventPublisher.publishEvent(event2);
         eventPublisher.publishEvent(event3);
 
-        // Then - 모든 게시글에 대해 개별 알림이 발송되어야 함
+        // Then - 동일 사용자라도 각 게시글에 대해 개별 알림이 발송되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(notificationSseUseCase).sendPostFeaturedNotification(
                             eq(userId), eq("첫 번째 게시글이 인기글에 선정!"), eq(101L));
@@ -144,76 +144,32 @@ public class PostFeaturedEventIntegrationTest {
                             eq(userId), eq("인기글 2"), eq("대단해요!"));
                     verify(notificationFcmUseCase).sendPostFeaturedNotification(
                             eq(userId), eq("인기글 3"), eq("놀라워요!"));
+                    verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
                 });
     }
 
     @Test
-    @DisplayName("인기글 이벤트 처리 성능 검증")
-    void postFeaturedEventProcessingTime_ShouldCompleteWithinTimeout() {
-        // Given
+    @DisplayName("특수문자가 포함된 메시지 처리")
+    void postFeaturedEventWithSpecialCharacters_ShouldProcessCorrectly() {
+        // Given - 특수문자가 포함된 메시지
         PostFeaturedEvent event = new PostFeaturedEvent(
-                1L, "성능 테스트 게시글이 인기글에 선정!", 999L, "성능 테스트", "빠른 처리!");
-
-        long startTime = System.currentTimeMillis();
+                1L, "🎉 축하합니다! <게시글>이 \"인기글\"에 선정되었습니다! & 더 많은 혜택을...", 101L, 
+                "🏆 \"인기글\" 선정!", "<축하> & 더 많은 혜택을...");
 
         // When
         eventPublisher.publishEvent(event);
 
-        // Then - 3초 내에 처리 완료되어야 함
+        // Then - 특수문자가 포함된 메시지도 정확히 전달되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(3))
+                .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(notificationSseUseCase).sendPostFeaturedNotification(
-                            eq(1L), eq("성능 테스트 게시글이 인기글에 선정!"), eq(999L));
+                            eq(1L), eq("🎉 축하합니다! <게시글>이 \"인기글\"에 선정되었습니다! & 더 많은 혜택을..."), eq(101L));
                     verify(notificationFcmUseCase).sendPostFeaturedNotification(
-                            eq(1L), eq("성능 테스트"), eq("빠른 처리!"));
-
-                    long endTime = System.currentTimeMillis();
-                    long processingTime = endTime - startTime;
-                    
-                    // 처리 시간이 3초를 초과하지 않아야 함
-                    assert processingTime < 3000L : "인기글 이벤트 처리 시간이 너무 오래 걸림: " + processingTime + "ms";
+                            eq(1L), eq("🏆 \"인기글\" 선정!"), eq("<축하> & 더 많은 혜택을..."));
+                    verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
                 });
     }
-
-    @Test
-    @DisplayName("대량 인기글 등극 이벤트 처리 성능")
-    void massPostFeaturedEvents_ShouldProcessEfficiently() {
-        // Given - 대량의 인기글 등극 이벤트 (50개)
-        int eventCount = 50;
-        
-        long startTime = System.currentTimeMillis();
-
-        // When - 대량 이벤트 발행
-        for (int i = 1; i <= eventCount; i++) {
-            PostFeaturedEvent event = new PostFeaturedEvent(
-                    (long) i, 
-                    "게시글 " + i + "이 인기글에 선정!",
-                    (long) (i + 1000),
-                    "인기글 " + i,
-                    "축하 " + i);
-            eventPublisher.publishEvent(event);
-        }
-
-        // Then - 모든 이벤트가 15초 내에 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(15))
-                .untilAsserted(() -> {
-                    for (int i = 1; i <= eventCount; i++) {
-                        verify(notificationSseUseCase).sendPostFeaturedNotification(
-                                eq((long) i), eq("게시글 " + i + "이 인기글에 선정!"), eq((long) (i + 1000)));
-                        verify(notificationFcmUseCase).sendPostFeaturedNotification(
-                                eq((long) i), eq("인기글 " + i), eq("축하 " + i));
-                    }
-
-                    long endTime = System.currentTimeMillis();
-                    long totalProcessingTime = endTime - startTime;
-                    
-                    // 대량 처리 시간이 15초를 초과하지 않아야 함
-                    assert totalProcessingTime < 15000L : "대량 인기글 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
-                });
-    }
-
 
     @Test
     @DisplayName("이벤트 생성 시 유효성 검증 - null userId")
@@ -266,98 +222,24 @@ public class PostFeaturedEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("다양한 메시지 형태의 인기글 이벤트 처리")
-    void postFeaturedEventWithVariousMessages_ShouldProcessCorrectly() {
-        // Given - 다양한 형태의 메시지들
-        PostFeaturedEvent event1 = new PostFeaturedEvent(
-                1L, "🎉 축하합니다! 게시글이 주간 인기글 1위에 선정되었습니다!", 101L, 
-                "🏆 1위 달성!", "주간 인기글 1위 축하드려요!");
-        PostFeaturedEvent event2 = new PostFeaturedEvent(
-                2L, "명예의 전당 등록 완료! 게시글이 영구 보관됩니다.", 102L,
-                "명예의 전당", "영구 보관되는 명예를 얻으셨네요!");
-        PostFeaturedEvent event3 = new PostFeaturedEvent(
-                3L, "이달의 베스트 게시글로 선정! 특별 뱃지가 지급됩니다.", 103L,
-                "이달의 베스트", "특별 뱃지를 받으셨어요!");
-
-        // When
-        eventPublisher.publishEvent(event1);
-        eventPublisher.publishEvent(event2);
-        eventPublisher.publishEvent(event3);
-
-        // Then - 모든 다양한 메시지가 정확히 전달되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    verify(notificationSseUseCase).sendPostFeaturedNotification(
-                            eq(1L), eq("🎉 축하합니다! 게시글이 주간 인기글 1위에 선정되었습니다!"), eq(101L));
-                    verify(notificationSseUseCase).sendPostFeaturedNotification(
-                            eq(2L), eq("명예의 전당 등록 완료! 게시글이 영구 보관됩니다."), eq(102L));
-                    verify(notificationSseUseCase).sendPostFeaturedNotification(
-                            eq(3L), eq("이달의 베스트 게시글로 선정! 특별 뱃지가 지급됩니다."), eq(103L));
-                    
-                    verify(notificationFcmUseCase).sendPostFeaturedNotification(
-                            eq(1L), eq("🏆 1위 달성!"), eq("주간 인기글 1위 축하드려요!"));
-                    verify(notificationFcmUseCase).sendPostFeaturedNotification(
-                            eq(2L), eq("명예의 전당"), eq("영구 보관되는 명예를 얻으셨네요!"));
-                    verify(notificationFcmUseCase).sendPostFeaturedNotification(
-                            eq(3L), eq("이달의 베스트"), eq("특별 뱃지를 받으셨어요!"));
-                });
-    }
-
-    @Test
-    @DisplayName("연속된 인기글 이벤트 처리 순서")
-    void sequentialPostFeaturedEvents_ShouldMaintainOrder() {
-        // Given - 동일 사용자의 연속된 인기글 등극
-        Long userId = 1L;
-        
-        // When - 순서대로 인기글 이벤트 발행
-        eventPublisher.publishEvent(new PostFeaturedEvent(
-                userId, "첫 번째 인기글!", 101L, "1등", "첫 번째"));
-        eventPublisher.publishEvent(new PostFeaturedEvent(
-                userId, "두 번째 인기글!", 102L, "2등", "두 번째"));
-        eventPublisher.publishEvent(new PostFeaturedEvent(
-                userId, "세 번째 인기글!", 103L, "3등", "세 번째"));
-
-        // Then - 비동기 처리이지만 모든 이벤트가 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    verify(notificationSseUseCase).sendPostFeaturedNotification(
-                            eq(userId), eq("첫 번째 인기글!"), eq(101L));
-                    verify(notificationSseUseCase).sendPostFeaturedNotification(
-                            eq(userId), eq("두 번째 인기글!"), eq(102L));
-                    verify(notificationSseUseCase).sendPostFeaturedNotification(
-                            eq(userId), eq("세 번째 인기글!"), eq(103L));
-                    
-                    // FCM 알림도 3번 호출
-                    verify(notificationFcmUseCase, times(3)).sendPostFeaturedNotification(
-                            eq(userId), 
-                            org.mockito.ArgumentMatchers.anyString(), 
-                            org.mockito.ArgumentMatchers.anyString());
-                });
-    }
-
-    @Test
-    @DisplayName("긴 메시지 내용의 인기글 이벤트 처리")
-    void postFeaturedEventWithLongMessages_ShouldProcessCorrectly() {
-        // Given - 매우 긴 메시지들
-        String longSseMessage = "축하합니다! ".repeat(50) + "회원님의 게시글이 인기글에 선정되었습니다!";
-        String longFcmTitle = "🎉 ".repeat(20) + "인기글 선정!";
-        String longFcmBody = "정말 대단하신 글이었어요! ".repeat(30) + "축하드립니다!";
-        
-        PostFeaturedEvent event = new PostFeaturedEvent(1L, longSseMessage, 100L, longFcmTitle, longFcmBody);
+    @DisplayName("비동기 이벤트 리스너 정상 작동 검증")
+    void postFeaturedEventAsync_ShouldTriggerListenerCorrectly() {
+        // Given
+        PostFeaturedEvent event = new PostFeaturedEvent(
+                99L, "비동기 테스트 메시지", 9999L, "비동기 제목", "비동기 내용");
 
         // When
         eventPublisher.publishEvent(event);
 
-        // Then - 긴 메시지도 정상적으로 처리되어야 함
+        // Then - 비동기 처리가 정상 완료되어야 함
         Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
+                .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
                     verify(notificationSseUseCase).sendPostFeaturedNotification(
-                            eq(1L), eq(longSseMessage), eq(100L));
+                            eq(99L), eq("비동기 테스트 메시지"), eq(9999L));
                     verify(notificationFcmUseCase).sendPostFeaturedNotification(
-                            eq(1L), eq(longFcmTitle), eq(longFcmBody));
+                            eq(99L), eq("비동기 제목"), eq("비동기 내용"));
+                    verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
                 });
     }
 }

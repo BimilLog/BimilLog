@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
 
     // ==== 데이터베이스 관련 ====
     runtimeOnly 'com.mysql:mysql-connector-j' // MySQL JDBC 드라이버
