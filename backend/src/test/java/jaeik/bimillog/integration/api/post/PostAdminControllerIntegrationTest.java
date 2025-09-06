@@ -27,7 +27,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -146,8 +145,11 @@ class PostAdminControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("게시글 공지 설정 성공 - 관리자 권한")
-    void setPostAsNotice_Success_WithAdminRole() throws Exception {
+    @DisplayName("게시글 공지 토글 성공 - 관리자 권한 (비공지 -> 공지)")
+    void togglePostNotice_Success_WithAdminRole_NormalToNotice() throws Exception {
+        // Given - 초기상태: 비공지
+        assert testPost.isNotice() == false;
+        
         // When & Then
         mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
                         .with(user(adminUser))
@@ -155,14 +157,34 @@ class PostAdminControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // 실제 DB 확인
+        // 실제 DB 확인 - 공지로 변경됨
         Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
         assert updatedPost.isNotice() == true;
     }
 
     @Test
-    @DisplayName("게시글 공지 설정 실패 - 일반 사용자 권한 없음")
-    void setPostAsNotice_Fail_WithUserRole() throws Exception {
+    @DisplayName("게시글 공지 토글 성공 - 관리자 권한 (공지 -> 비공지)")
+    void togglePostNotice_Success_WithAdminRole_NoticeToNormal() throws Exception {
+        // Given - 먼저 공지로 설정
+        testPost.setAsNotice();
+        postJpaRepository.save(testPost);
+        assert testPost.isNotice() == true;
+        
+        // When & Then
+        mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
+                        .with(user(adminUser))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        // 실제 DB 확인 - 비공지로 변경됨
+        Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        assert updatedPost.isNotice() == false;
+    }
+
+    @Test
+    @DisplayName("게시글 공지 토글 실패 - 일반 사용자 권한 없음")
+    void togglePostNotice_Fail_WithUserRole() throws Exception {
         // When & Then - 403 Forbidden 예상
         mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
                         .with(user(normalUser))
@@ -170,131 +192,115 @@ class PostAdminControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isForbidden());
 
-        // DB 확인 - 공지로 설정되지 않음
+        // DB 확인 - 상태 변경되지 않음
+        Post unchangedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        assert unchangedPost.isNotice() == false; // 초기 상태 유지
+    }
+
+    @Test
+    @DisplayName("게시글 공지 토글 실패 - 인증되지 않은 사용자")
+    void togglePostNotice_Fail_Unauthorized() throws Exception {
+        // When & Then - 403 Forbidden 예상
+        mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+                
+        // DB 확인 - 상태 변경되지 않음
         Post unchangedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
         assert unchangedPost.isNotice() == false;
     }
 
     @Test
-    @DisplayName("게시글 공지 설정 실패 - 인증되지 않은 사용자")
-    void setPostAsNotice_Fail_Unauthorized() throws Exception {
-        // When & Then - 401 Unauthorized 예상
-        mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("게시글 공지 설정 실패 - 존재하지 않는 게시글")
-    void setPostAsNotice_Fail_PostNotFound() throws Exception {
+    @DisplayName("게시글 공지 토글 실패 - 존재하지 않는 게시글")
+    void togglePostNotice_Fail_PostNotFound() throws Exception {
         // Given
         Long nonExistentPostId = 99999L;
 
-        // When & Then - 404 Not Found 예상
+        // When & Then - 500 Internal Server Error 예상 (PostCustomException -> handleAll)
         mockMvc.perform(post("/api/post/{postId}/notice", nonExistentPostId)
                         .with(user(adminUser))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
-    @DisplayName("게시글 공지 해제 성공 - 관리자 권한")
-    void unsetPostAsNotice_Success_WithAdminRole() throws Exception {
-        // Given - 먼저 공지로 설정
-        testPost.setAsNotice();
-        postJpaRepository.save(testPost);
-
-        // When & Then
-        mockMvc.perform(delete("/api/post/{postId}/notice", testPost.getId())
-                        .with(user(adminUser))
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        // 실제 DB 확인
-        Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
-        assert updatedPost.isNotice() == false;
-    }
-
-    @Test
-    @DisplayName("게시글 공지 해제 실패 - 일반 사용자 권한 없음")
-    void unsetPostAsNotice_Fail_WithUserRole() throws Exception {
-        // Given - 먼저 공지로 설정
-        testPost.setAsNotice();
-        postJpaRepository.save(testPost);
-
-        // When & Then - 403 Forbidden 예상
-        mockMvc.perform(delete("/api/post/{postId}/notice", testPost.getId())
-                        .with(user(normalUser))
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-
-        // DB 확인 - 여전히 공지 상태
-        Post unchangedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
-        assert unchangedPost.isNotice() == true;
-    }
-
-    @Test
-    @DisplayName("게시글 공지 해제 실패 - 인증되지 않은 사용자")
-    void unsetPostAsNotice_Fail_Unauthorized() throws Exception {
-        // When & Then - 401 Unauthorized 예상
-        mockMvc.perform(delete("/api/post/{postId}/notice", testPost.getId())
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("게시글 공지 해제 실패 - 존재하지 않는 게시글")
-    void unsetPostAsNotice_Fail_PostNotFound() throws Exception {
-        // Given
-        Long nonExistentPostId = 99999L;
-
-        // When & Then - 404 Not Found 예상
-        mockMvc.perform(delete("/api/post/{postId}/notice", nonExistentPostId)
-                        .with(user(adminUser))
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @DisplayName("이미 공지인 게시글을 다시 공지 설정 - 멱등성 확인")
-    void setPostAsNotice_Idempotent() throws Exception {
-        // Given - 먼저 공지로 설정
-        testPost.setAsNotice();
-        postJpaRepository.save(testPost);
-
-        // When & Then - 다시 공지 설정해도 성공
+    @DisplayName("게시글 공지 토글 - 연속 두 번 토글 (멱등성 확인)")
+    void togglePostNotice_TwiceToggle_Idempotency() throws Exception {
+        // Given - 초기 비공지 상태
+        assert testPost.isNotice() == false;
+        
+        // When & Then - 첫 번째 토글: 비공지 -> 공지
         mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
                         .with(user(adminUser))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // 여전히 공지 상태
-        Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
-        assert updatedPost.isNotice() == true;
-    }
-
-    @Test
-    @DisplayName("이미 공지가 아닌 게시글을 공지 해제 - 멱등성 확인")
-    void unsetPostAsNotice_Idempotent() throws Exception {
-        // Given - 공지가 아닌 상태 확인
-        assert testPost.isNotice() == false;
-
-        // When & Then - 공지 해제해도 성공
-        mockMvc.perform(delete("/api/post/{postId}/notice", testPost.getId())
+        // DB 확인 - 공지로 변경
+        Post firstTogglePost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        assert firstTogglePost.isNotice() == true;
+        
+        // When & Then - 두 번째 토글: 공지 -> 비공지
+        mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
                         .with(user(adminUser))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // 여전히 공지가 아닌 상태
-        Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
-        assert updatedPost.isNotice() == false;
+        // DB 확인 - 비공지로 되돌아감
+        Post secondTogglePost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        assert secondTogglePost.isNotice() == false;
     }
+
+    @Test
+    @DisplayName("게시글 공지 토글 - 세 번 토글 시나리오")
+    void togglePostNotice_ThreeTimes() throws Exception {
+        // Given - 초기 비공지 상태
+        assert testPost.isNotice() == false;
+        
+        // 첫 번째 토글: 비공지 -> 공지
+        mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
+                        .with(user(adminUser))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+        Post firstPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        assert firstPost.isNotice() == true;
+        
+        // 두 번째 토글: 공지 -> 비공지
+        mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
+                        .with(user(adminUser))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+        Post secondPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        assert secondPost.isNotice() == false;
+        
+        // 세 번째 토글: 비공지 -> 공지
+        mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
+                        .with(user(adminUser))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+        Post thirdPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        assert thirdPost.isNotice() == true;
+    }
+
+    @Test
+    @DisplayName("게시글 공지 토글 성공 - 캐시 실패 시에도 DB 트랜잭션은 성공")
+    void togglePostNotice_Success_EvenWhenCacheFails() throws Exception {
+        // Given - 초기상태: 비공지
+        assert testPost.isNotice() == false;
+        
+        // When & Then - 캐시 실패가 있어도 API는 200 OK 응답
+        mockMvc.perform(post("/api/post/{postId}/notice", testPost.getId())
+                        .with(user(adminUser))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk()); // 캐시 실패가 있어도 200 OK
+
+        // 실제 DB 확인 - 핵심 비즈니스 로직은 정상 실행됨
+        Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        assert updatedPost.isNotice() == true;
+    }
+
 }

@@ -30,4 +30,16 @@ public interface PostCacheUseCase {
      * @since 2.0.0
      */
     void removeNoticeFromCache(Long postId);
+
+    /**
+     * <h3>공지사항 캐시 동기화</h3>
+     * <p>게시글의 공지 상태에 따라 캐시를 동기화합니다.</p>
+     * <p>공지 설정 시 캐시에 추가, 공지 해제 시 캐시에서 제거합니다.</p>
+     *
+     * @param postId 동기화할 게시글 ID
+     * @param isNotice 현재 공지 상태 (true: 공지, false: 일반)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void syncNoticeCache(Long postId, boolean isNotice);
 }

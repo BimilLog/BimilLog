@@ -65,4 +65,21 @@ public class PostCacheService implements PostCacheUseCase {
         
         log.info("공지사항 캐시 제거 완료: postId={}", postId);
     }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>게시글의 공지 상태에 따라 캐시를 동기화합니다.</p>
+     * <p>공지 설정 시 캐시에 추가, 공지 해제 시 캐시에서 제거하여 상태를 일치시킵니다.</p>
+     */
+    @Override
+    public void syncNoticeCache(Long postId, boolean isNotice) {
+        if (isNotice) {
+            log.info("공지사항 캐시 추가 동기화 시작: postId={}", postId);
+            addNoticeToCache(postId);
+        } else {
+            log.info("공지사항 캐시 제거 동기화 시작: postId={}", postId);
+            removeNoticeFromCache(postId);
+        }
+    }
 }

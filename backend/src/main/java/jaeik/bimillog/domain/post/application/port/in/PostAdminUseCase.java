@@ -13,26 +13,27 @@ import jaeik.bimillog.domain.post.exception.PostCustomException;
 public interface PostAdminUseCase {
 
     /**
-     * <h3>게시글 공지 설정</h3>
-     * <p>특정 게시글을 공지로 설정합니다.</p>
-     * <p>관리자 권한이 필요하며, 설정 후 공지사항 캐시를 무효화합니다.</p>
+     * <h3>게시글 공지 토글</h3>
+     * <p>게시글의 공지 설정을 토글합니다. 현재 공지이면 해제하고, 공지가 아니면 설정합니다.</p>
+     * <p>관리자 권한이 필요하며, 순수한 DB 업데이트만 담당합니다.</p>
      *
-     * @param postId 공지로 설정할 게시글 ID
+     * @param postId 공지 토글할 게시글 ID
      * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
-    void setPostAsNotice(Long postId);
+    void togglePostNotice(Long postId);
 
     /**
-     * <h3>게시글 공지 해제</h3>
-     * <p>게시글의 공지 설정을 해제합니다.</p>
-     * <p>관리자 권한이 필요하며, 해제 후 공지사항 캐시를 무효화합니다.</p>
+     * <h3>게시글 공지 상태 확인</h3>
+     * <p>게시글의 현재 공지 상태를 확인합니다.</p>
+     * <p>캐시 동기화를 위해 현재 상태를 조회할 때 사용됩니다.</p>
      *
-     * @param postId 공지 설정을 해제할 게시글 ID
+     * @param postId 확인할 게시글 ID
+     * @return 공지 상태 (true: 공지, false: 일반)
      * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
-    void unsetPostAsNotice(Long postId);
+    boolean isPostNotice(Long postId);
 }
