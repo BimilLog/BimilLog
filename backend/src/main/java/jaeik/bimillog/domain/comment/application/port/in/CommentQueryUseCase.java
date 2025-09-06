@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * <h2>댓글 조회 요구사항</h2>
@@ -54,7 +53,7 @@ public interface CommentQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<Comment> findById(Long commentId);
+    Comment findById(Long commentId);
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>

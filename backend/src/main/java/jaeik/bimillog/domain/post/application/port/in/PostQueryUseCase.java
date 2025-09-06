@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * <h2>PostQueryUseCase</h2>
@@ -106,7 +105,7 @@ public interface PostQueryUseCase {
      * @since 2.0.0
      * @author jaeik
      */
-    Optional<Post> findById(Long postId);
+    Post findById(Long postId);
 
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>

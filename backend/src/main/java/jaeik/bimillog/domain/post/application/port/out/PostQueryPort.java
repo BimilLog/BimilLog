@@ -27,7 +27,7 @@ public interface PostQueryPort {
      * @param id 조회할 게시글 ID
      * @return Optional<Post>
      */
-    Optional<Post> findById(Long id);
+    Post findById(Long id);
 
     /**
      * <h3>게시판 목록 조회</h3>

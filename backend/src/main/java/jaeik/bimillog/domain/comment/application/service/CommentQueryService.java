@@ -83,7 +83,7 @@ public class CommentQueryService implements CommentQueryUseCase {
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<Comment> findById(Long commentId) {
+    public Comment findById(Long commentId) {
         return commentQueryPort.findById(commentId);
     }
 

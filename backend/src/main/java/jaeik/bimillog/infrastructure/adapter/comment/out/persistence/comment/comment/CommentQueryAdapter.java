@@ -4,6 +4,8 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.entity.*;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -51,8 +53,8 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Optional<Comment> findById(Long commentId) {
-        return commentRepository.findById(commentId);
+    public Comment findById(Long commentId) {
+        return commentRepository.findById(commentId).orElseThrow(() -> new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
     }
 
 

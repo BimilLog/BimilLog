@@ -60,8 +60,9 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Optional<Post> findById(Long id) {
-        return postJpaRepository.findById(id);
+    public Post findById(Long id) {
+        return postJpaRepository.findById(id)
+                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
     }
 
     /**

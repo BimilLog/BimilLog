@@ -170,7 +170,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Optional<Post> findById(Long postId) {
+    public Post findById(Long postId) {
         return postQueryPort.findById(postId);
     }
 

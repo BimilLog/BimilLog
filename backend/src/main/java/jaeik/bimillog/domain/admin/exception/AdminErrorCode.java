@@ -18,17 +18,7 @@ public enum AdminErrorCode {
     /**
      * <h3>신고 관련 에러 코드</h3>
      */
-    INVALID_REPORT_TARGET(HttpStatus.BAD_REQUEST, "신고 대상이 유효하지 않습니다.", ErrorCode.LogLevel.WARN),
-    REPORT_TARGET_REQUIRED(HttpStatus.BAD_REQUEST, "게시글/댓글 신고 시에는 대상 ID가 필요합니다.", ErrorCode.LogLevel.WARN),
-    REPORT_TARGET_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "오류/개선 신고 시에는 대상 ID를 입력할 수 없습니다.", ErrorCode.LogLevel.WARN),
-
-    
-    /**
-     * <h3>관리자 도메인에서 필요한 외부 도메인 에러 코드 (임시)</h3>
-     * <p>추후 리팩토링 예정</p>
-     */
-    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", ErrorCode.LogLevel.INFO),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", ErrorCode.LogLevel.INFO);
+    INVALID_REPORT_TARGET(HttpStatus.BAD_REQUEST, "신고 대상이 유효하지 않습니다.", ErrorCode.LogLevel.WARN);
 
     private final HttpStatus status;
     private final String message;
