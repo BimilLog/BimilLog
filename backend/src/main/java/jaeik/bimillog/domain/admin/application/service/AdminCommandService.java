@@ -107,10 +107,11 @@ public class AdminCommandService implements AdminCommandUseCase {
         if (targetId == null && (reportType == ReportType.POST || reportType == ReportType.COMMENT)) {
             throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         }
+        // 나머지 검증은 DTO에서 검증함
     }
 
     /**
-     * <h3>신고 대상 사용자 해결</h3>
+     * <h3>신고 대상 사용자 조회</h3>
      * <p>신고 유형과 대상 ID를 기반으로 해당 사용자를 찾아 반환합니다.</p>
      *
      * @param reportType 신고 유형
@@ -124,14 +125,19 @@ public class AdminCommandService implements AdminCommandUseCase {
             throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         }
 
-        return Optional.of(reportType)
-                .map(rt -> switch (rt) {
-                    case POST -> postQueryUseCase.findById(targetId).getUser();
-                    case COMMENT -> commentQueryUseCase.findById(targetId).getUser();
-                    default -> null; // IMPROVEMENT와 ERROR는 도달 불가로 null이 일어나지 않음
-                })
-                .orElseThrow(() -> new AdminCustomException(AdminErrorCode.USER_NOT_FOUND));
+        User user = switch (reportType) {
+            case POST -> postQueryUseCase.findById(targetId).getUser();
+            case COMMENT -> commentQueryUseCase.findById(targetId).getUser();
+            default -> null;
+        };
 
-        // 글이나 댓글이 있어도 비로그인자나 탈퇴한 회원의 경우 유저가 null일 수 있기에 방어조치
+        if (user == null) {
+            throw new AdminCustomException(AdminErrorCode.USER_NOT_FOUND);
+        }
+
+        return user;
+
+        // IMPROVEMENT와 ERROR는 도달 불가로 null이 일어나지 않음
+        // 글이나 댓글이 있어도 비로그인자나 탈퇴한 회원의 경우 유저가 null일 수 있음.
     }
 }
