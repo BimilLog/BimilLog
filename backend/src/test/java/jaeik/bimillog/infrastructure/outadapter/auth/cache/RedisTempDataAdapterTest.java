@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.outadapter.auth.cache;
 
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -65,7 +65,7 @@ class RedisTempDataAdapterTest {
     @MockitoBean
     private AuthCookieManager authCookieManager;
 
-    private SocialLoginPort.SocialUserProfile testUserProfile;
+    private SocialUserProfile testUserProfile;
     private Token testToken;
     private String testUuid;
 
@@ -82,7 +82,7 @@ class RedisTempDataAdapterTest {
         
         // 테스트 데이터 준비
         testUuid = "test-uuid-12345";
-        testUserProfile = new SocialLoginPort.SocialUserProfile(
+        testUserProfile = new SocialUserProfile(
             "123456789", 
             "test@example.com", 
             SocialProvider.KAKAO, 
@@ -244,7 +244,7 @@ class RedisTempDataAdapterTest {
         redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
         
         // 새로운 데이터
-        SocialLoginPort.SocialUserProfile newUserProfile = new SocialLoginPort.SocialUserProfile(
+        SocialUserProfile newUserProfile = new SocialUserProfile(
             "987654321", 
             "new@example.com", 
             SocialProvider.KAKAO, 
@@ -296,7 +296,7 @@ class RedisTempDataAdapterTest {
         // When: 대량 데이터 저장
         for (int i = 0; i < dataCount; i++) {
             String uuid = "load-test-uuid-" + i;
-            SocialLoginPort.SocialUserProfile userProfile = new SocialLoginPort.SocialUserProfile(
+            SocialUserProfile userProfile = new SocialUserProfile(
                 "id-" + i, 
                 "user" + i + "@example.com", 
                 SocialProvider.KAKAO, 

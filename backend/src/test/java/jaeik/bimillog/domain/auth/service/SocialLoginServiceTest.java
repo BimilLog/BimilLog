@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
@@ -54,19 +55,19 @@ class SocialLoginServiceTest {
     private SocialLoginService socialLoginService;
 
     private SocialLoginUserData testUserData;
-    private SocialLoginPort.SocialUserProfile testUserProfile;
+    private SocialUserProfile testUserProfile;
     private Token testToken;
-    private SocialLoginPort.LoginResult existingUserResult;
-    private SocialLoginPort.LoginResult newUserResult;
+    private LoginResult.SocialLoginData existingUserResult;
+    private LoginResult.SocialLoginData newUserResult;
 
     @BeforeEach
     void setUp() {
         testUserData = new SocialLoginUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "fcm-token");
-        testUserProfile = new SocialLoginPort.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
+        testUserProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
         testToken = Token.createTemporaryToken("access-token", "refresh-token");
 
-        existingUserResult = new SocialLoginPort.LoginResult(testUserProfile, testToken, false); // 기존 사용자
-        newUserResult = new SocialLoginPort.LoginResult(testUserProfile, testToken, true); // 신규 사용자
+        existingUserResult = new LoginResult.SocialLoginData(testUserProfile, testToken, false); // 기존 사용자
+        newUserResult = new LoginResult.SocialLoginData(testUserProfile, testToken, true); // 신규 사용자
     }
 
     @Test

@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.social.dto;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.entity.Token;
 import lombok.Getter;
 
@@ -46,7 +46,7 @@ public class TemporaryUserDataDTO {
      * @since 2.0.0
      * @author Jaeik
      */
-    public static TemporaryUserDataDTO fromDomainProfile(SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken) {
+    public static TemporaryUserDataDTO fromDomainProfile(SocialUserProfile userProfile, Token token, String fcmToken) {
         SocialLoginUserData socialLoginUserData = SocialLoginUserData.builder()
                 .socialId(userProfile.socialId())
                 .email(userProfile.email())
@@ -67,8 +67,8 @@ public class TemporaryUserDataDTO {
      * @since 2.0.0
      * @author Jaeik
      */
-    public SocialLoginPort.SocialUserProfile toDomainProfile() {
-        return new SocialLoginPort.SocialUserProfile(
+    public SocialUserProfile toDomainProfile() {
+        return new SocialUserProfile(
                 socialLoginUserData.socialId(),
                 socialLoginUserData.email(),
                 socialLoginUserData.provider(),

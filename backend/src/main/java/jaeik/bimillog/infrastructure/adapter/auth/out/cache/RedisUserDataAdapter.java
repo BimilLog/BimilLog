@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.cache;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -68,7 +68,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @author Jaeik
      */
     @Override
-    public void saveTempData(String uuid, SocialLoginPort.SocialUserProfile userProfile, Token token, String fcmToken) {
+    public void saveTempData(String uuid, SocialUserProfile userProfile, Token token, String fcmToken) {
         validateTempDataInputs(uuid, userProfile, token);
 
         executeRedisOperation(() -> {
@@ -176,7 +176,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }
     }
 
-    private void validateTempDataInputs(String uuid, SocialLoginPort.SocialUserProfile userProfile, Token token) {
+    private void validateTempDataInputs(String uuid, SocialUserProfile userProfile, Token token) {
         if (isInvalidUuid(uuid)) {
             log.warn(NULL_UUID_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_UUID);

@@ -1,6 +1,8 @@
 package jaeik.bimillog.infrastructure.outadapter.auth.persistence.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
@@ -42,7 +44,7 @@ class SocialLoginAdapterTest {
     private SocialLoginAdapter socialLoginAdapter;
 
     private SocialLoginUserData testUserData;
-    private SocialLoginPort.SocialUserProfile testUserProfile;
+    private SocialUserProfile testUserProfile;
     private Token testToken;
     private SocialLoginStrategy.StrategyLoginResult testStrategyResult;
 
@@ -58,7 +60,7 @@ class SocialLoginAdapterTest {
         // 테스트 데이터 설정
         testUserData = new SocialLoginUserData("123456789", "test@example.com", 
                 SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url", "fcm-token");
-        testUserProfile = new SocialLoginPort.SocialUserProfile("123456789", "test@example.com", 
+        testUserProfile = new SocialUserProfile("123456789", "test@example.com", 
                 SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url");
         
         testToken = Token.createTemporaryToken("access-token", "refresh-token");
@@ -77,7 +79,7 @@ class SocialLoginAdapterTest {
                 .willReturn(Optional.empty());
 
         // When: 소셜 로그인 실행
-        SocialLoginPort.LoginResult result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
+        LoginResult.SocialLoginData result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
 
         // Then: 신규 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isTrue();
@@ -108,7 +110,7 @@ class SocialLoginAdapterTest {
                 .willReturn(Optional.of(existingUser));
 
         // When: 소셜 로그인 실행
-        SocialLoginPort.LoginResult result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
+        LoginResult.SocialLoginData result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
 
         // Then: 기존 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isFalse();

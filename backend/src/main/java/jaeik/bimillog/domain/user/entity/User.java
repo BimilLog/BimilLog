@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.entity;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.common.entity.BaseEntity;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
@@ -182,7 +182,7 @@ public class User extends BaseEntity {
      * @param setting 사용자 설정
      * @return 생성된 사용자 엔티티
      */
-    public static User createUser(SocialLoginPort.SocialUserProfile userProfile, String userName, Setting setting) {
+    public static User createUser(SocialUserProfile userProfile, String userName, Setting setting) {
         return User.builder()
                 .socialId(userProfile.socialId())
                 .provider(userProfile.provider())

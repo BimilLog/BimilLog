@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -55,8 +56,8 @@ public class SocialLoginService implements SocialLoginUseCase {
     public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
-        SocialLoginPort.LoginResult loginResult = socialLoginPort.login(provider, code);
-        SocialLoginPort.SocialUserProfile userProfile = loginResult.userProfile();
+        LoginResult.SocialLoginData loginResult = socialLoginPort.login(provider, code);
+        SocialUserProfile userProfile = loginResult.userProfile();
 
         if (blacklistPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
@@ -79,7 +80,7 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.ExistingUser handleExistingUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
+    private LoginResult.ExistingUser handleExistingUser(LoginResult.SocialLoginData loginResult, String fcmToken) {
         List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(
                 loginResult.userProfile(), loginResult.token(), fcmToken
         );
@@ -96,7 +97,7 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.NewUser handleNewUser(SocialLoginPort.LoginResult loginResult, String fcmToken) {
+    private LoginResult.NewUser handleNewUser(LoginResult.SocialLoginData loginResult, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
         redisUserDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token(), fcmToken);
         ResponseCookie tempCookie = redisUserDataPort.createTempCookie(uuid);

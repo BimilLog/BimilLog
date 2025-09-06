@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.application.service.SignUpService;
 import jaeik.bimillog.domain.auth.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
@@ -51,7 +51,7 @@ class SignUpServiceTest {
 
     private String testUserName;
     private String testUuid;
-    private SocialLoginPort.SocialUserProfile testSocialProfile;
+    private SocialUserProfile testSocialProfile;
     private Token testToken;
     private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
@@ -61,7 +61,7 @@ class SignUpServiceTest {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
         
-        testSocialProfile = new SocialLoginPort.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
+        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
         testToken = Token.createTemporaryToken("access-token", "refresh-token");
         
         testTempData = TempUserData.of(testSocialProfile, testToken, "fcm-token");
@@ -167,7 +167,7 @@ class SignUpServiceTest {
             String uniqueFcmToken = uniqueFcmTokens[i];
             
             // 각 사용자별로 고유한 임시 데이터 생성
-            SocialLoginPort.SocialUserProfile uniqueProfile = new SocialLoginPort.SocialUserProfile(
+            SocialUserProfile uniqueProfile = new SocialUserProfile(
                     "kakao" + (i + 1),
                     "test" + (i + 1) + "@example.com", 
                     testSocialProfile.provider(),
