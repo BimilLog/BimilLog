@@ -75,7 +75,7 @@ class SocialLoginAdapterTest {
         String code = "auth-code";
         given(kakaoStrategy.login(code)).willReturn(Mono.just(testStrategyResult));
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
-                .willReturn(Optional.empty());
+                .willThrow(new jaeik.bimillog.domain.user.exception.UserCustomException(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND));
 
         // When: 소셜 로그인 실행
         LoginResult.SocialLoginData result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
@@ -106,7 +106,7 @@ class SocialLoginAdapterTest {
         
         given(kakaoStrategy.login(code)).willReturn(Mono.just(testStrategyResult));
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
-                .willReturn(Optional.of(existingUser));
+                .willReturn(existingUser);
 
         // When: 소셜 로그인 실행
         LoginResult.SocialLoginData result = socialLoginAdapter.login(SocialProvider.KAKAO, code);

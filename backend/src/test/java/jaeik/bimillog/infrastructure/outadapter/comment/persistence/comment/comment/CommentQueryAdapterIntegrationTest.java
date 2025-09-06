@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * <h2>CommentQueryAdapter 통합 테스트</h2>
@@ -177,27 +179,25 @@ class CommentQueryAdapterIntegrationTest {
         savedComment = commentRepository.save(savedComment);
 
         // When: ID로 댓글 조회
-        Optional<Comment> foundComment = commentQueryAdapter.findById(savedComment.getId());
+        Comment foundComment = commentQueryAdapter.findById(savedComment.getId());
 
         // Then: 올바른 댓글이 조회되는지 검증
-        assertThat(foundComment).isPresent();
-        assertThat(foundComment.get().getId()).isEqualTo(savedComment.getId());
-        assertThat(foundComment.get().getContent()).isEqualTo("테스트 댓글");
-        assertThat(foundComment.get().getUser()).isEqualTo(testUser1);
-        assertThat(foundComment.get().getPost()).isEqualTo(testPost);
+        assertThat(foundComment).isNotNull();
+        assertThat(foundComment.getId()).isEqualTo(savedComment.getId());
+        assertThat(foundComment.getContent()).isEqualTo("테스트 댓글");
+        assertThat(foundComment.getUser()).isEqualTo(testUser1);
+        assertThat(foundComment.getPost()).isEqualTo(testPost);
     }
 
     @Test
     @DisplayName("경계값 - 존재하지 않는 ID로 댓글 조회")
-    void shouldReturnEmpty_WhenNonExistentIdProvided() {
+    void shouldThrowException_WhenNonExistentIdProvided() {
         // Given: 존재하지 않는 댓글 ID
         Long nonExistentId = 999L;
 
-        // When: 존재하지 않는 ID로 댓글 조회
-        Optional<Comment> foundComment = commentQueryAdapter.findById(nonExistentId);
-
-        // Then: 빈 Optional 반환
-        assertThat(foundComment).isEmpty();
+        // When & Then: 존재하지 않는 ID로 댓글 조회 시 예외 발생
+        assertThatThrownBy(() -> commentQueryAdapter.findById(nonExistentId))
+                .isInstanceOf(CommentCustomException.class);
     }
 
 
@@ -417,13 +417,13 @@ class CommentQueryAdapterIntegrationTest {
         // When & Then: 여러 쿼리 연속 실행
         
         // 1. ID로 댓글 조회
-        Optional<Comment> foundComment1 = commentQueryAdapter.findById(comment1.getId());
-        assertThat(foundComment1).isPresent();
-        assertThat(foundComment1.get().getContent()).isEqualTo("복합쿼리 댓글1");
+        Comment foundComment1 = commentQueryAdapter.findById(comment1.getId());
+        assertThat(foundComment1).isNotNull();
+        assertThat(foundComment1.getContent()).isEqualTo("복합쿼리 댓글1");
 
 
         // 2. 존재하지 않는 댓글 조회
-        Optional<Comment> nonExistentComment = commentQueryAdapter.findById(999L);
-        assertThat(nonExistentComment).isEmpty();
+        assertThatThrownBy(() -> commentQueryAdapter.findById(999L))
+                .isInstanceOf(CommentCustomException.class);
     }
 }

@@ -71,9 +71,8 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public void updatePost(Long userId, Long postId, PostReqVO postReqVO) {
-        Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-        
+        Post post = postQueryPort.findById(postId);
+
         if (!post.isAuthor(userId)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }
@@ -98,9 +97,8 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public void deletePost(Long userId, Long postId) {
-        Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-        
+        Post post = postQueryPort.findById(postId);
+
         if (!post.isAuthor(userId)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }

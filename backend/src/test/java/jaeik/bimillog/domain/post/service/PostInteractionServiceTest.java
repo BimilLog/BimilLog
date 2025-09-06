@@ -72,7 +72,7 @@ class PostInteractionServiceTest {
         Long postId = 123L;
 
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
         // When
@@ -101,7 +101,7 @@ class PostInteractionServiceTest {
         Long postId = 123L;
 
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
         // When
@@ -123,7 +123,7 @@ class PostInteractionServiceTest {
         Long postId = 999L;
 
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postInteractionService.likePost(userId, postId))
@@ -175,7 +175,7 @@ class PostInteractionServiceTest {
         AtomicInteger successCount = new AtomicInteger(0);
 
         // 각 스레드마다 다른 사용자 ID
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
 
         try {
             // When - 여러 스레드가 동시에 추천 작업 수행
@@ -231,7 +231,7 @@ class PostInteractionServiceTest {
                 final Long postId = (long) (i + 100);
                 final Post threadPost = mock(Post.class);
                 
-                given(postQueryPort.findById(postId)).willReturn(Optional.of(threadPost));
+                given(postQueryPort.findById(postId)).willReturn(threadPost);
                 given(postLikeQueryPort.existsByUserAndPost(user, threadPost)).willReturn(false);
                 
                 executor.submit(() -> {

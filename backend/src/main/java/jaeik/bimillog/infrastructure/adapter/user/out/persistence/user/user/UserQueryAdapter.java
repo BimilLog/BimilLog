@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.setting.SettingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -60,13 +62,15 @@ public class UserQueryAdapter implements UserQueryPort {
      *
      * @param provider 소셜 제공자
      * @param socialId 소셜 ID
-     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
+     * @return User 조회된 사용자 객체
+     * @throws UserCustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-        return userRepository.findByProviderAndSocialId(provider, socialId);
+    public User findByProviderAndSocialId(SocialProvider provider, String socialId) {
+        return userRepository.findByProviderAndSocialId(provider, socialId)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
     }
 
     /**

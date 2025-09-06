@@ -47,8 +47,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             return;
         }
 
-        User user = notificationToUserPort.findById(userId)
-                .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
+        User user = notificationToUserPort.findById(userId);
 
         fcmPort.save(FcmToken.create(user, fcmToken));
     }

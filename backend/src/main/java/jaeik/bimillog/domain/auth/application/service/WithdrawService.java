@@ -55,8 +55,7 @@ public class WithdrawService implements WithdrawUseCase {
                 .map(CustomUserDetails::getUserId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT));
 
-        User user = loadUserPort.findById(userId)
-                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.USER_NOT_FOUND));
+        User user = loadUserPort.findById(userId);
 
         // 핵심 탈퇴 로직을 수행합니다.
         performCoreWithdrawal(user);
@@ -77,8 +76,7 @@ public class WithdrawService implements WithdrawUseCase {
     @Override
     @Transactional
     public void forceWithdraw(Long userId) {
-        User user = loadUserPort.findById(userId)
-                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.USER_NOT_FOUND));
+        User user = loadUserPort.findById(userId);
 
         // 핵심 탈퇴 로직을 수행합니다.
         performCoreWithdrawal(user);

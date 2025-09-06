@@ -46,7 +46,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
     @Override
     public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateVO updateCommand) {
         if (userDetails == null || userDetails.getUserId() == null) {
-            throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
+            throw new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT);
         }
 
         if (updateCommand == null) {

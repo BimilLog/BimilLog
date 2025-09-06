@@ -60,11 +60,10 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     @Override
     public void writeComment(Long userId, Comment.Request commentRequest) {
-        Post post = commentToPostPort.findById(commentRequest.postId())
-                .orElseThrow(() -> new CommentCustomException(CommentErrorCode.POST_NOT_FOUND));
+        Post post = commentToPostPort.findById(commentRequest.postId());
 
         User user = Optional.ofNullable(userId)
-                .flatMap(commentToUserPort::findById)
+                .flatMap(commentToUserPort::findByIdOptional)
                 .orElse(null);
 
         String userName = (user != null) ? user.getUserName() : "익명";
@@ -146,8 +145,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     private Comment validateComment(Comment.Request commentRequest, Long userId) {
-        Comment comment = commentQueryPort.findById(commentRequest.id())
-                .orElseThrow(() -> new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
+        Comment comment = commentQueryPort.findById(commentRequest.id());
 
         // 비밀 댓글인 경우 비밀번호 확인
         if (commentRequest.password() != null) {

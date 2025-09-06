@@ -3,10 +3,10 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 import jaeik.bimillog.domain.auth.application.port.out.LoadUserPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * <h2>사용자 조회 어댑터</h2>
@@ -24,17 +24,13 @@ public class LoadUserAdapter implements LoadUserPort {
     private final UserQueryUseCase userQueryUseCase;
 
     /**
-     * <h3>ID로 사용자 조회</h3>
-     * <p>User 도메인의 UserQueryUseCase를 통해 사용자 정보를 조회합니다.</p>
-     * <p>헥사고날 아키텍처 원칙에 따라 Auth 서비스는 아웃바운드 포트를 의존하고, 아웃바운드 어댑터에서 다른 도메인의 유스케이스를 의존합니다.</p>
-     *
-     * @param id 사용자의 고유 ID
-     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
+     * {@inheritDoc}
+     * 
+     * <p>User 도메인의 예외(UserErrorCode.USER_NOT_FOUND)를 위임하여 Auth 서비스는 순수한 User 엔티티만 받음</p>
      */
     @Override
-    public Optional<User> findById(Long id) {
-        return userQueryUseCase.findById(id);
+    public User findById(Long id) {
+        return userQueryUseCase.findById(id)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
     }
 }

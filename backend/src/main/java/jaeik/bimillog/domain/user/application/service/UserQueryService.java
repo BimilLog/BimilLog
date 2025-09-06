@@ -34,12 +34,13 @@ public class UserQueryService implements UserQueryUseCase {
      *
      * @param provider 소셜 로그인 제공자
      * @param socialId 사용자의 소셜 ID
-     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
+     * @return User 조회된 사용자 객체
+     * @throws UserCustomException 사용자가 존재하지 않는 경우
      * @author jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+    public User findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return userQueryPort.findByProviderAndSocialId(provider, socialId);
     }
 

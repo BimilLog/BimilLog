@@ -44,11 +44,12 @@ public interface UserQueryPort {
      *
      * @param provider 소셜 제공자
      * @param socialId 소셜 ID
-     * @return Optional<User> 조회된 사용자 객체
+     * @return User 조회된 사용자 객체
+     * @throws UserCustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
+    User findByProviderAndSocialId(SocialProvider provider, String socialId);
 
     /**
      * <h3>닉네임 존재 여부 확인</h3>

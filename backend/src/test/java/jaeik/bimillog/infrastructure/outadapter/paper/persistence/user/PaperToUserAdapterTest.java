@@ -7,6 +7,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.paper.out.persistence.user.PaperToUserAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jakarta.persistence.EntityManager;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * <h2>Paper 도메인의 NotificationToPaperToUserAdapter 통합 테스트</h2>
  *
@@ -48,74 +51,61 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jaeik
  * @version 2.0.0
  */
-@DataJpaTest(
-        excludeFilters = @ComponentScan.Filter(
-                type = FilterType.ASSIGNABLE_TYPE,
-                classes = BimilLogApplication.class
-        )
-)
+@DataJpaTest(excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = BimilLogApplication.class))
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({PaperToUserAdapter.class, PaperToUserAdapterTest.TestUserQueryUseCase.class, TestContainersConfiguration.class})
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
-})
+@TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=create"})
 class PaperToUserAdapterTest {
 
     // TestUserQueryUseCase: UserQueryUseCase 실제 구현체 테스트용 버전
     @Component
     static class TestUserQueryUseCase implements UserQueryUseCase {
-        
+
         @Autowired
         private EntityManager entityManager;
-        
+
         @Override
         public Optional<User> findByUserName(String userName) {
             if (userName == null || userName.trim().isEmpty()) {
                 return Optional.empty();
             }
-            
+
             try {
-                User user = entityManager.createQuery(
-                    "SELECT u FROM User u WHERE u.userName = :userName", User.class)
-                    .setParameter("userName", userName)
-                    .getSingleResult();
+                User user = entityManager.createQuery("SELECT u FROM User u WHERE u.userName = :userName", User.class).setParameter("userName", userName).getSingleResult();
                 return Optional.of(user);
             } catch (jakarta.persistence.NoResultException e) {
                 return Optional.empty();
             }
         }
-        
+
         @Override
         public boolean existsByUserName(String userName) {
             if (userName == null || userName.trim().isEmpty()) {
                 return false;
             }
-            
-            Long count = entityManager.createQuery(
-                "SELECT COUNT(u) FROM User u WHERE u.userName = :userName", Long.class)
-                .setParameter("userName", userName)
-                .getSingleResult();
+
+            Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.userName = :userName", Long.class).setParameter("userName", userName).getSingleResult();
             return count > 0;
         }
-        
+
         // 다른 메소드들은 기본 구현
         @Override
         public User getReferenceById(Long userId) {
             return entityManager.getReference(User.class, userId);
         }
-        
+
         @Override
         public Optional<User> findById(Long userId) {
             return Optional.ofNullable(entityManager.find(User.class, userId));
         }
-        
+
         @Override
-        public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-            return Optional.empty();
+        public User findByProviderAndSocialId(SocialProvider provider, String socialId) {
+            throw new UserCustomException(UserErrorCode.USER_NOT_FOUND);
         }
-        
-        
+
+
         @Override
         public Optional<Token> findTokenById(Long tokenId) {
             return Optional.empty();
@@ -131,43 +121,14 @@ class PaperToUserAdapterTest {
     @BeforeEach
     void setUp() {
         // 테스트 사용자들 생성 및 저장
-        User testUser = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
+        User testUser = User.builder().userName("testUser").socialId("123456").provider(SocialProvider.KAKAO).socialNickname("테스트유저").role(UserRole.USER).setting(Setting.builder().messageNotification(true).commentNotification(true).postFeaturedNotification(true).build()).build();
         entityManager.persistAndFlush(testUser);
 
-        User otherUser = User.builder()
-                .userName("otherUser")
-                .socialId("789012")
-                .provider(SocialProvider.NAVER)
-                .socialNickname("다른유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder().build())
-                .build();
+        User otherUser = User.builder().userName("otherUser").socialId("789012").provider(SocialProvider.NAVER).socialNickname("다른유저").role(UserRole.USER).setting(Setting.builder().build()).build();
         entityManager.persistAndFlush(otherUser);
 
         // 연관데이터가 있는 사용자 (지연 로딩 테스트용)
-        User duplicateNameUser = User.builder()
-                .userName("duplicateTest")
-                .socialId("999999")
-                .provider(SocialProvider.GOOGLE)
-                .socialNickname("중복테스트")
-                .role(UserRole.ADMIN)
-                .setting(Setting.builder()
-                        .messageNotification(false)
-                        .commentNotification(false)
-                        .postFeaturedNotification(false)
-                        .build())
-                .build();
+        User duplicateNameUser = User.builder().userName("duplicateTest").socialId("999999").provider(SocialProvider.GOOGLE).socialNickname("중복테스트").role(UserRole.ADMIN).setting(Setting.builder().messageNotification(false).commentNotification(false).postFeaturedNotification(false).build()).build();
         entityManager.persistAndFlush(duplicateNameUser);
 
         entityManager.clear(); // 영속성 컨텍스트 초기화
@@ -268,7 +229,7 @@ class PaperToUserAdapterTest {
         // When & Then: 존재하는 사용자
         Optional<User> foundUser = paperToUserAdapter.findByUserName("testUser");
         boolean exists = paperToUserAdapter.existsByUserName("testUser");
-        
+
         assertThat(foundUser).isPresent();
         assertThat(foundUser.get().getUserName()).isEqualTo("testUser");
         assertThat(exists).isTrue();
@@ -279,7 +240,7 @@ class PaperToUserAdapterTest {
 
         assertThat(notFoundUser).isEmpty();
         assertThat(notExists).isFalse();
-        
+
         // 일관성 검증: 존재하는 경우 find = present, exists = true
         // 존재하지 않는 경우 find = empty, exists = false
         assertThat(foundUser.isPresent()).isEqualTo(exists);
@@ -291,21 +252,21 @@ class PaperToUserAdapterTest {
     void shouldConnectDomains_WhenPaperDomainAccessesUserDomain() {
         // Given: Paper 도메인에서 User 도메인 정보가 필요한 상황
         String targetUserName = "testUser";
-        
+
         // When: PaperToUserAdapter를 통해 Paper -> User 도메인 연결
         Optional<User> userFromAdapter = paperToUserAdapter.findByUserName(targetUserName);
         boolean userExistsFromAdapter = paperToUserAdapter.existsByUserName(targetUserName);
-        
+
         // Then: 도메인 간 결합도 확인
         // 1. User 도메인의 UseCase를 통한 간접 연결
         assertThat(userFromAdapter).isPresent();
         assertThat(userExistsFromAdapter).isTrue();
-        
+
         // 2. Paper 도메인에서 필요한 User 정보 접근 가능
         User user = userFromAdapter.get();
         assertThat(user.getUserName()).isEqualTo(targetUserName);
         assertThat(user.getProvider()).isEqualTo(SocialProvider.KAKAO);
-        
+
         // 3. 도메인 경계 유지 확인 (직접 DB 접근 없이 UseCase 인터페이스 활용)
     }
 
@@ -314,15 +275,15 @@ class PaperToUserAdapterTest {
     void shouldLoadAssociatedData_WhenAccessingUserRelations() {
         // When: 연관데이터가 있는 사용자 조회
         Optional<User> result = paperToUserAdapter.findByUserName("duplicateTest");
-        
+
         // Then: 주 데이터와 연관데이터 모두 접근 가능
         assertThat(result).isPresent();
         User user = result.get();
-        
+
         // 기본 사용자 정보
         assertThat(user.getUserName()).isEqualTo("duplicateTest");
         assertThat(user.getRole()).isEqualTo(UserRole.ADMIN);
-        
+
         // 연관된 Setting 데이터 (Lazy Loading)
         Setting setting = user.getSetting();
         assertThat(setting).isNotNull();
@@ -335,20 +296,11 @@ class PaperToUserAdapterTest {
     @DisplayName("성능 - 대용량 데이터에서 사용자 조회")
     void shouldPerformWell_WhenQueryingLargeDataSet() {
         // Given: 대용량 사용자 데이터 생성
-        List<User> bulkUsers = IntStream.range(0, 100)
-                .mapToObj(i -> {
-                    User user = User.builder()
-                            .userName("bulkUser" + i)
-                            .socialId("bulk" + i)
-                            .provider(SocialProvider.KAKAO)
-                            .socialNickname("벌크유저" + i)
-                            .role(UserRole.USER)
-                            .setting(Setting.builder().build())
-                            .build();
-                    entityManager.persistAndFlush(user);
-                    return user;
-                })
-                .toList();
+        List<User> bulkUsers = IntStream.range(0, 100).mapToObj(i -> {
+            User user = User.builder().userName("bulkUser" + i).socialId("bulk" + i).provider(SocialProvider.KAKAO).socialNickname("벌크유저" + i).role(UserRole.USER).setting(Setting.builder().build()).build();
+            entityManager.persistAndFlush(user);
+            return user;
+        }).toList();
         entityManager.clear();
 
         // When: 특정 사용자 조회
@@ -365,41 +317,35 @@ class PaperToUserAdapterTest {
     }
 
     @Test
-    @DisplayName("동시성 시뮬레이션 - 순차적 다중 조회로 일관성 확인")  
+    @DisplayName("동시성 시뮬레이션 - 순차적 다중 조회로 일관성 확인")
     void shouldMaintainConsistency_WhenMultipleSequentialQueries() {
         // Given: 기존 testUser 활용 (동시성 대신 순차적 다중 조회로 일관성 검증)
         String targetUserName = "testUser";
-        
+
         // When: 순차적으로 여러 번 조회 (실제 동시성은 아니지만 일관성 검증)
-        List<Optional<User>> findResults = IntStream.range(0, 5)
-                .mapToObj(i -> paperToUserAdapter.findByUserName(targetUserName))
-                .collect(Collectors.toList());
-        
-        List<Boolean> existsResults = IntStream.range(0, 5)
-                .mapToObj(i -> paperToUserAdapter.existsByUserName(targetUserName))
-                .collect(Collectors.toList());
-        
+        List<Optional<User>> findResults = IntStream.range(0, 5).mapToObj(i -> paperToUserAdapter.findByUserName(targetUserName)).collect(Collectors.toList());
+
+        List<Boolean> existsResults = IntStream.range(0, 5).mapToObj(i -> paperToUserAdapter.existsByUserName(targetUserName)).collect(Collectors.toList());
+
         // Then: 모든 결과가 일관됨을 확인
         findResults.forEach(result -> {
             assertThat(result).isPresent();
             assertThat(result.get().getUserName()).isEqualTo(targetUserName);
         });
-        
+
         existsResults.forEach(result -> assertThat(result).isTrue());
-        
+
         // 데이터 일관성 확인
         assertThat(findResults).hasSize(5);
         assertThat(existsResults).hasSize(5);
-        
+
         // 모든 결과가 동일한 사용자 데이터 반환 확인
         User firstResult = findResults.get(0).get();
-        findResults.stream()
-                .map(Optional::get)
-                .forEach(user -> {
-                    assertThat(user.getUserName()).isEqualTo(firstResult.getUserName());
-                    assertThat(user.getSocialNickname()).isEqualTo(firstResult.getSocialNickname());
-                    assertThat(user.getProvider()).isEqualTo(firstResult.getProvider());
-                });
+        findResults.stream().map(Optional::get).forEach(user -> {
+            assertThat(user.getUserName()).isEqualTo(firstResult.getUserName());
+            assertThat(user.getSocialNickname()).isEqualTo(firstResult.getSocialNickname());
+            assertThat(user.getProvider()).isEqualTo(firstResult.getProvider());
+        });
     }
 
     @Test
@@ -407,20 +353,20 @@ class PaperToUserAdapterTest {
     void shouldFollowAdapterPattern_InHexagonalArchitecture() {
         // Given: Hexagonal Architecture에서의 어댑터 역할
         String userName = "testUser";
-        
+
         // When: 어댑터를 통한 도메인 간 통신
         Optional<User> findResult = paperToUserAdapter.findByUserName(userName);
         boolean existsResult = paperToUserAdapter.existsByUserName(userName);
-        
+
         // Then: 어댑터 패턴 준수 확인
         // 1. 어댑터는 UseCase 인터페이스를 단순 위임
         assertThat(findResult).isPresent();
         assertThat(existsResult).isTrue();
-        
+
         // 2. 비즈니스 로직 노출 없이 데이터 전달만 담당
         User user = findResult.get();
         assertThat(user.getUserName()).isEqualTo(userName);
-        
+
         // 3. 도메인 경계 보존 (Paper 도메인이 User 도메인 구현에 의존하지 않음)
     }
 
@@ -430,17 +376,17 @@ class PaperToUserAdapterTest {
     void shouldAvoidCircularDependency_BetweenDomains() {
         // Given: 도메인 간 의존성 검증 시나리오
         String userName = "testUser";
-        
+
         // When: Paper 도메인에서 User 도메인 접근
         Optional<User> result = paperToUserAdapter.findByUserName(userName);
-        
+
         // Then: 단방향 의존성 확인
         // 1. Paper 도메인 -> User 도메인 (O)
         assertThat(result).isPresent();
-        
+
         // 2. User 도메인 -> Paper 도메인 의존성 없음
         // (이는 PaperToUserAdapter의 구현체에서 확인 가능 - Paper 엔티티 참조 없음)
-        
+
         // 3. UseCase 인터페이스를 통한 느슨한 결합
         assertThat(result.get().getUserName()).isEqualTo(userName);
     }

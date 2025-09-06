@@ -3,10 +3,10 @@ package jaeik.bimillog.infrastructure.adapter.notification.out.persistence.user;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationToUserPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * <h2>사용자 어댑터</h2>
@@ -27,12 +27,14 @@ public class NotificationToUserAdapter implements NotificationToUserPort {
      * <p>사용자 ID를 사용하여 사용자를 조회합니다.</p>
      *
      * @param userId 사용자 ID
-     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
+     * @return User 조회된 사용자 객체
+     * @throws UserCustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<User> findById(Long userId) {
-        return userQueryUseCase.findById(userId);
+    public User findById(Long userId) {
+        return userQueryUseCase.findById(userId)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
     }
 }

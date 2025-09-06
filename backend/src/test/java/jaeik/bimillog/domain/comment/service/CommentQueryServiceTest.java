@@ -5,6 +5,8 @@ import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -222,15 +225,14 @@ class CommentQueryServiceTest {
     void shouldFindById_WhenCommentExists() {
         // Given
         Long commentId = 200L;
-        given(commentQueryPort.findById(commentId)).willReturn(Optional.of(testComment));
+        given(commentQueryPort.findById(commentId)).willReturn(testComment);
 
         // When
-        Optional<Comment> result = commentQueryService.findById(commentId);
+        Comment result = commentQueryService.findById(commentId);
 
         // Then
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(200L);
-        assertThat(result.get().getContent()).isEqualTo("테스트 댓글");
+        assertThat(result.getId()).isEqualTo(200L);
+        assertThat(result.getContent()).isEqualTo("테스트 댓글");
 
         verify(commentQueryPort).findById(commentId);
     }
@@ -240,13 +242,12 @@ class CommentQueryServiceTest {
     void shouldReturnEmpty_WhenCommentNotExists() {
         // Given
         Long commentId = 999L;
-        given(commentQueryPort.findById(commentId)).willReturn(Optional.empty());
+        given(commentQueryPort.findById(commentId)).willThrow(new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
 
-        // When
-        Optional<Comment> result = commentQueryService.findById(commentId);
-
-        // Then
-        assertThat(result).isEmpty();
+        // When & Then
+        assertThatThrownBy(() -> commentQueryService.findById(commentId))
+                .isInstanceOf(CommentCustomException.class)
+                .hasMessage(CommentErrorCode.COMMENT_NOT_FOUND.getMessage());
 
         verify(commentQueryPort).findById(commentId);
     }

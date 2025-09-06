@@ -2,8 +2,6 @@ package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.user.entity.User;
 
-import java.util.Optional;
-
 /**
  * <h2>사용자 조회 포트</h2>
  * <p>Auth 도메인에서 User 도메인의 정보를 조회하기 위한 아웃바운드 포트</p>
@@ -19,9 +17,9 @@ public interface LoadUserPort {
      * <p>사용자 ID를 사용하여 사용자를 조회합니다.</p>
      *
      * @param id 사용자의 고유 ID
-     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
+     * @return User 조회된 사용자 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<User> findById(Long id);
+    User findById(Long id);
 }

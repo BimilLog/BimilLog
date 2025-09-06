@@ -33,6 +33,11 @@ public enum AuthErrorCode {
     LOGOUT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "로그아웃 실패", ErrorCode.LogLevel.ERROR),
     
     /**
+     * <h3>토큰 관련 에러 코드</h3>
+     */
+    NOT_FIND_TOKEN(HttpStatus.FORBIDDEN, "토큰을 찾을 수 없습니다. 다시 로그인 해주세요 ", ErrorCode.LogLevel.WARN),
+    
+    /**
      * <h3>임시 데이터 관련 에러 코드</h3>
      */
     INVALID_TEMP_DATA(HttpStatus.BAD_REQUEST, "시간이 초과 되었습니다. 다시 카카오 로그인을 진행해주세요.", ErrorCode.LogLevel.WARN),
@@ -43,13 +48,7 @@ public enum AuthErrorCode {
     /**
      * <h3>입력값 관련 에러 코드</h3>
      */
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", ErrorCode.LogLevel.WARN),
-    
-    /**
-     * <h3>Auth 도메인에서 필요한 외부 도메인 에러 코드 (임시)</h3>
-     * <p>추후 리팩토링 예정</p>
-     */
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", ErrorCode.LogLevel.INFO);
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", ErrorCode.LogLevel.WARN);
 
     private final HttpStatus status;
     private final String message;

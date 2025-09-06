@@ -86,7 +86,7 @@ class CommentCommandServiceTest {
     void shouldUpdateComment_WhenAuthenticatedUserOwnsComment() {
         // Given
         Long userId = 100L;
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
+        given(commentQueryPort.findById(200L)).willReturn(testComment);
 
         // When
         commentCommandService.updateComment(userId, commentRequest);
@@ -115,7 +115,7 @@ class CommentCommandServiceTest {
                 .password(1234)
                 .build();
 
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(anonymousComment));
+        given(commentQueryPort.findById(200L)).willReturn(anonymousComment);
 
         // When
         commentCommandService.updateComment(null, anonymousCommentRequest);
@@ -129,7 +129,7 @@ class CommentCommandServiceTest {
     @DisplayName("존재하지 않는 댓글 수정 시 COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenCommentNotFound() {
         // Given
-        given(commentQueryPort.findById(200L)).willReturn(Optional.empty());
+        given(commentQueryPort.findById(200L)).willThrow(new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(100L, commentRequest))
@@ -158,7 +158,7 @@ class CommentCommandServiceTest {
                 .password(9999)
                 .build();
 
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(passwordComment));
+        given(commentQueryPort.findById(200L)).willReturn(passwordComment);
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(null, wrongPasswordRequest))
@@ -187,7 +187,7 @@ class CommentCommandServiceTest {
                 .deleted(false)
                 .build();
 
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(anotherUserComment));
+        given(commentQueryPort.findById(200L)).willReturn(anotherUserComment);
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(userId, commentRequest))
@@ -203,7 +203,7 @@ class CommentCommandServiceTest {
     void shouldDeleteComment_WhenNoDescendants() {
         // Given
         Long userId = 100L;
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
+        given(commentQueryPort.findById(200L)).willReturn(testComment);
         given(commentCommandPort.conditionalSoftDelete(200L)).willReturn(0); // 자손이 없어서 소프트 삭제 안됨
         given(commentCommandPort.deleteClosuresByDescendantId(200L)).willReturn(1);
         given(commentCommandPort.hardDeleteComment(200L)).willReturn(1);
@@ -224,7 +224,7 @@ class CommentCommandServiceTest {
     void shouldSoftDeleteComment_WhenHasDescendants() {
         // Given
         Long userId = 100L;
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
+        given(commentQueryPort.findById(200L)).willReturn(testComment);
         given(commentCommandPort.conditionalSoftDelete(200L)).willReturn(1); // 자손이 있어서 소프트 삭제됨
 
         // When
@@ -244,7 +244,7 @@ class CommentCommandServiceTest {
     @DisplayName("인증 정보가 null인 상태에서 패스워드 없는 댓글 수정 시 예외 발생")
     void shouldThrowException_WhenNullUserDetailsWithoutPassword() {
         // Given
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(testComment));
+        given(commentQueryPort.findById(200L)).willReturn(testComment);
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(null, commentRequest))
@@ -268,7 +268,7 @@ class CommentCommandServiceTest {
                 .deleted(true)
                 .build();
 
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(deletedComment));
+        given(commentQueryPort.findById(200L)).willReturn(deletedComment);
 
         // When
         commentCommandService.updateComment(userId, commentRequest);
@@ -296,7 +296,7 @@ class CommentCommandServiceTest {
                 .password(null)
                 .build();
 
-        given(commentQueryPort.findById(200L)).willReturn(Optional.of(emptyPasswordComment));
+        given(commentQueryPort.findById(200L)).willReturn(emptyPasswordComment);
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(null, emptyPasswordRequest))
@@ -326,7 +326,7 @@ class CommentCommandServiceTest {
                 .password(1234)
                 .build();
 
-        given(commentQueryPort.findById(300L)).willReturn(Optional.of(anonymousComment));
+        given(commentQueryPort.findById(300L)).willReturn(anonymousComment);
         given(commentCommandPort.conditionalSoftDelete(300L)).willReturn(0); // 자손이 없어서 소프트 삭제 안됨
         given(commentCommandPort.deleteClosuresByDescendantId(300L)).willReturn(1);
         given(commentCommandPort.hardDeleteComment(300L)).willReturn(1);
@@ -358,7 +358,7 @@ class CommentCommandServiceTest {
                 .password(9999)
                 .build();
 
-        given(commentQueryPort.findById(300L)).willReturn(Optional.of(anonymousComment));
+        given(commentQueryPort.findById(300L)).willReturn(anonymousComment);
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(null, deleteRequest))
@@ -387,7 +387,7 @@ class CommentCommandServiceTest {
                 .id(400L)
                 .build();
 
-        given(commentQueryPort.findById(400L)).willReturn(Optional.of(parentComment));
+        given(commentQueryPort.findById(400L)).willReturn(parentComment);
         given(commentCommandPort.conditionalSoftDelete(400L)).willReturn(1); // 자손이 있어서 소프트 삭제됨
 
         // When
@@ -419,7 +419,7 @@ class CommentCommandServiceTest {
                 .password(5678)
                 .build();
 
-        given(commentQueryPort.findById(500L)).willReturn(Optional.of(anonymousParentComment));
+        given(commentQueryPort.findById(500L)).willReturn(anonymousParentComment);
         given(commentCommandPort.conditionalSoftDelete(500L)).willReturn(1); // 자손이 있어서 소프트 삭제됨
 
         // When
@@ -456,7 +456,7 @@ class CommentCommandServiceTest {
                 .id(600L)
                 .build();
 
-        given(commentQueryPort.findById(600L)).willReturn(Optional.of(anotherUserComment));
+        given(commentQueryPort.findById(600L)).willReturn(anotherUserComment);
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(requestUserId, deleteRequest))

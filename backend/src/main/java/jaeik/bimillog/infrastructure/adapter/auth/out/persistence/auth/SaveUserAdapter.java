@@ -12,8 +12,6 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -53,8 +51,7 @@ public class SaveUserAdapter implements SaveUserPort {
     @Override
     @Transactional
     public List<ResponseCookie> handleExistingUserLogin(LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
-        User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId())
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId());
 
         user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 

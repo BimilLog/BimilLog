@@ -1,10 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.social;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.auth.KakaoKeyVO;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -64,7 +64,7 @@ public class KakaoSocialAdapter implements SocialAdapter {
                 .retrieve()
                 .onStatus(httpStatus -> httpStatus.is4xxClientError() || httpStatus.is5xxServerError(),
                         clientResponse -> clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> Mono.error(new CustomException(ErrorCode.KAKAO_API_ERROR, new RuntimeException(errorBody)))))
+                                .flatMap(errorBody -> Mono.error(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR, new RuntimeException(errorBody)))))
                 .bodyToMono(KakaoFriendsDTO.class)
                 .timeout(java.time.Duration.ofSeconds(10));
     }

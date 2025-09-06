@@ -40,8 +40,7 @@ public class PostAdminService implements PostAdminUseCase {
      */
     @Override
     public void togglePostNotice(Long postId) {
-        Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        Post post = postQueryPort.findById(postId);
         
         if (post.isNotice()) {
             post.unsetAsNotice();
@@ -63,8 +62,7 @@ public class PostAdminService implements PostAdminUseCase {
      */
     @Override
     public boolean isPostNotice(Long postId) {
-        Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        Post post = postQueryPort.findById(postId);
         
         boolean isNotice = post.isNotice();
         log.debug("게시글 공지 상태 조회: postId={}, isNotice={}", postId, isNotice);

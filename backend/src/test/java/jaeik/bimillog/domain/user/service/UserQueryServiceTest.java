@@ -7,6 +7,8 @@ import jaeik.bimillog.domain.user.application.service.UserQueryService;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -58,17 +61,16 @@ class UserQueryServiceTest {
                 .build();
 
         given(userQueryPort.findByProviderAndSocialId(provider, socialId))
-                .willReturn(Optional.of(expectedUser));
+                .willReturn(expectedUser);
 
         // When
-        Optional<User> result = userQueryService.findByProviderAndSocialId(provider, socialId);
+        User result = userQueryService.findByProviderAndSocialId(provider, socialId);
 
         // Then
         verify(userQueryPort).findByProviderAndSocialId(provider, socialId);
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(expectedUser);
-        assertThat(result.get().getProvider()).isEqualTo(provider);
-        assertThat(result.get().getSocialId()).isEqualTo(socialId);
+        assertThat(result).isEqualTo(expectedUser);
+        assertThat(result.getProvider()).isEqualTo(provider);
+        assertThat(result.getSocialId()).isEqualTo(socialId);
     }
 
     @Test
@@ -79,14 +81,14 @@ class UserQueryServiceTest {
         String socialId = "nonexistent";
 
         given(userQueryPort.findByProviderAndSocialId(provider, socialId))
-                .willReturn(Optional.empty());
+                .willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
-        // When
-        Optional<User> result = userQueryService.findByProviderAndSocialId(provider, socialId);
-
-        // Then
+        // When & Then
+        assertThatThrownBy(() -> userQueryService.findByProviderAndSocialId(provider, socialId))
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
+        
         verify(userQueryPort).findByProviderAndSocialId(provider, socialId);
-        assertThat(result).isEmpty();
     }
 
     @Test
@@ -260,13 +262,12 @@ class UserQueryServiceTest {
                     .build();
 
             given(userQueryPort.findByProviderAndSocialId(provider, socialId))
-                    .willReturn(Optional.of(expectedUser));
+                    .willReturn(expectedUser);
 
-            Optional<User> result = userQueryService.findByProviderAndSocialId(provider, socialId);
+            User result = userQueryService.findByProviderAndSocialId(provider, socialId);
 
-            assertThat(result).isPresent();
-            assertThat(result.get().getProvider()).isEqualTo(provider);
-            assertThat(result.get().getSocialId()).isEqualTo(socialId);
+            assertThat(result.getProvider()).isEqualTo(provider);
+            assertThat(result.getSocialId()).isEqualTo(socialId);
         }
     }
 
@@ -274,16 +275,17 @@ class UserQueryServiceTest {
     @DisplayName("null 값들로 조회 시도")
     void shouldHandleNullValues_Gracefully() {
         // Given
-        given(userQueryPort.findByProviderAndSocialId(null, null)).willReturn(Optional.empty());
+        given(userQueryPort.findByProviderAndSocialId(null, null))
+                .willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
         given(userQueryPort.findByUserName(null)).willReturn(Optional.empty());
         given(userQueryPort.existsByUserName(null)).willReturn(false);
 
         // When & Then
-        Optional<User> result1 = userQueryService.findByProviderAndSocialId(null, null);
+        assertThatThrownBy(() -> userQueryService.findByProviderAndSocialId(null, null))
+                .isInstanceOf(UserCustomException.class);
         Optional<User> result2 = userQueryService.findByUserName(null);
         boolean result3 = userQueryService.existsByUserName(null);
 
-        assertThat(result1).isEmpty();
         assertThat(result2).isEmpty();
         assertThat(result3).isFalse();
     }

@@ -6,8 +6,6 @@ import jaeik.bimillog.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 /**
  * <h2>게시글 어댑터</h2>
  * <p>
@@ -24,17 +22,12 @@ public class CommentCommentToPostAdapter implements CommentToPostPort {
     private final PostQueryUseCase postQueryUseCase;
 
     /**
-     * <h3>게시글 ID로 게시글 조회</h3>
-     * <p>주어진 ID로 게시글을 조회합니다.</p>
-     * <p>Post 도메인의 PostQuery 요구사항을 위임하여 사용합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @return Optional<Post> 조회된 게시글 엔티티. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
+     * {@inheritDoc}
+     * 
+     * <p>Post 도메인의 예외를 위임하여 Comment 서비스는 순수한 Post 엔티티를 받음</p>
      */
     @Override
-    public Optional<Post> findById(Long postId) {
+    public Post findById(Long postId) {
         return postQueryUseCase.findById(postId);
     }
 }

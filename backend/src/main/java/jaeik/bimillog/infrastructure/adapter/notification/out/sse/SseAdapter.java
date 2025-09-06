@@ -73,7 +73,7 @@ public class SseAdapter implements SsePort {
             String url = event.url();
 
             User user = userQueryUseCase.findById(userId)
-                    .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
+                    .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
             notificationCommandPort.save(user, type, data, url);
             Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
 

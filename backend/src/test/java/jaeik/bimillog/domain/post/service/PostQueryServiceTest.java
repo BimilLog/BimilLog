@@ -466,14 +466,13 @@ class PostQueryServiceTest {
         // Given
         Long postId = 1L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
 
         // When
-        Optional<Post> result = postQueryService.findById(postId);
+        Post result = postQueryService.findById(postId);
 
         // Then
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(post);
+        assertThat(result).isEqualTo(post);
         
         verify(postQueryPort).findById(postId);
     }
@@ -484,13 +483,12 @@ class PostQueryServiceTest {
         // Given
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
-        // When
-        Optional<Post> result = postQueryService.findById(postId);
-
-        // Then
-        assertThat(result).isEmpty();
+        // When & Then
+        assertThatThrownBy(() -> postQueryService.findById(postId))
+                .isInstanceOf(PostCustomException.class)
+                .hasMessage(PostErrorCode.POST_NOT_FOUND.getMessage());
         
         verify(postQueryPort).findById(postId);
     }

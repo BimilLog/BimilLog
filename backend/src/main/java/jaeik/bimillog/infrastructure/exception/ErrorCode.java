@@ -16,22 +16,9 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
     /**
-     * <h3>인증 관련 에러 코드 (임시 호환성)</h3>
-     * <p>추후 AuthErrorCode로 완전 이전 예정</p>
+     * <h3>인증 관련 에러 코드</h3>
      */
-    REPEAT_LOGIN(HttpStatus.FORBIDDEN, "다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요", LogLevel.INFO),
-    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", LogLevel.WARN),
-    KAKAO_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 API 호출 실패", LogLevel.ERROR),
-
-    /**
-     * <h3>유저 관련 에러 코드</h3>
-     * <p>
-     * 유저 정보 조회, 수정, 삭제 등과 관련된 에러 코드
-     * </p>
-     */
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", LogLevel.INFO),
-    SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다.", LogLevel.INFO);
-
+    REPEAT_LOGIN(HttpStatus.FORBIDDEN, "다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요", LogLevel.INFO);
 
     private final HttpStatus status;
     private final String message;

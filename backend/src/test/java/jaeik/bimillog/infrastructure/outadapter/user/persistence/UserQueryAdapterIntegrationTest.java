@@ -188,16 +188,15 @@ class UserQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 소셜 제공자와 소셜 ID로 사용자 조회")
     void shouldFindUserByProviderAndSocialId_WhenValidParametersProvided() {
         // When: 소셜 정보로 사용자 조회
-        Optional<User> result = userQueryAdapter.findByProviderAndSocialId(
+        User result = userQueryAdapter.findByProviderAndSocialId(
                 SocialProvider.KAKAO, "kakao123"
         );
 
         // Then: 올바른 소셜 사용자가 조회되는지 검증
-        assertThat(result).isPresent();
-        User foundUser = result.get();
-        assertThat(foundUser.getSocialId()).isEqualTo("kakao123");
-        assertThat(foundUser.getProvider()).isEqualTo(SocialProvider.KAKAO);
-        assertThat(foundUser.getUserName()).isEqualTo("testUser1");
+        assertThat(result).isNotNull();
+        assertThat(result.getSocialId()).isEqualTo("kakao123");
+        assertThat(result.getProvider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(result.getUserName()).isEqualTo("testUser1");
     }
 
     @Test
@@ -335,18 +334,18 @@ class UserQueryAdapterIntegrationTest {
         // When: 동일한 사용자를 여러 방법으로 조회
         Optional<User> userById = userQueryAdapter.findById(testUser1.getId());
         Optional<User> userByName = userQueryAdapter.findByUserName(testUser1.getUserName());
-        Optional<User> userBySocial = userQueryAdapter.findByProviderAndSocialId(
+        User userBySocial = userQueryAdapter.findByProviderAndSocialId(
                 testUser1.getProvider(), testUser1.getSocialId()
         );
 
         // Then: 모든 조회 결과가 동일한 사용자를 가리키는지 검증
         assertThat(userById).isPresent();
         assertThat(userByName).isPresent();
-        assertThat(userBySocial).isPresent();
+        assertThat(userBySocial).isNotNull();
 
         User user1 = userById.get();
         User user2 = userByName.get();
-        User user3 = userBySocial.get();
+        User user3 = userBySocial;
 
         assertThat(user1.getId()).isEqualTo(user2.getId()).isEqualTo(user3.getId());
         assertThat(user1.getUserName()).isEqualTo(user2.getUserName()).isEqualTo(user3.getUserName());

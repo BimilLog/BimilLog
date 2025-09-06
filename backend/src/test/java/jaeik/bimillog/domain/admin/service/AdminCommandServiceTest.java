@@ -13,6 +13,8 @@ import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,7 +96,7 @@ class AdminCommandServiceTest {
                 .id(200L)
                 .user(testUser)
                 .build();
-        given(postQueryUseCase.findById(200L)).willReturn(Optional.of(testPost));
+        given(postQueryUseCase.findById(200L)).willReturn(testPost);
 
         // When
         adminCommandService.banUser(testReportType, testTargetId);
@@ -128,7 +130,7 @@ class AdminCommandServiceTest {
     @DisplayName("게시글이 존재하지 않는 경우 POST_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenPostNotFound() {
         // Given
-        given(postQueryUseCase.findById(200L)).willReturn(Optional.empty());
+        given(postQueryUseCase.findById(200L)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))
@@ -149,7 +151,7 @@ class AdminCommandServiceTest {
                 .id(300L)
                 .user(testUser)
                 .build();
-        given(commentQueryUseCase.findById(300L)).willReturn(Optional.of(testComment));
+        given(commentQueryUseCase.findById(300L)).willReturn(testComment);
 
         // When
         adminCommandService.banUser(commentReportType, commentTargetId);
@@ -182,7 +184,7 @@ class AdminCommandServiceTest {
                 .user(mockUser)
                 .build();
         
-        given(commentQueryUseCase.findById(commentId)).willReturn(Optional.of(mockComment));
+        given(commentQueryUseCase.findById(commentId)).willReturn(mockComment);
 
         // When
         adminCommandService.forceWithdrawUser(reportType, commentId);
@@ -268,7 +270,7 @@ class AdminCommandServiceTest {
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(reporter));
-        given(commentQueryUseCase.findById(123L)).willReturn(Optional.of(testComment));
+        given(commentQueryUseCase.findById(123L)).willReturn(testComment);
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
@@ -299,7 +301,7 @@ class AdminCommandServiceTest {
                 .build();
         
         Report expectedReport = Report.createReport(reportType, targetId, content, null);
-        given(postQueryUseCase.findById(456L)).willReturn(Optional.of(testPost));
+        given(postQueryUseCase.findById(456L)).willReturn(testPost);
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
@@ -360,7 +362,7 @@ class AdminCommandServiceTest {
                 .build();
         
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
-        given(commentQueryUseCase.findById(targetId)).willReturn(Optional.of(testComment));
+        given(commentQueryUseCase.findById(targetId)).willReturn(testComment);
 
         // When & Then - 예외가 발생하지 않고 정상적으로 처리되어야 함
         assertThatCode(() -> adminCommandService.createReport(userId, reportType, targetId, content))
@@ -397,8 +399,8 @@ class AdminCommandServiceTest {
 
         given(userQueryPort.findById(userId1)).willReturn(Optional.of(user1));
         given(userQueryPort.findById(userId3)).willReturn(Optional.of(user3));
-        given(commentQueryUseCase.findById(100L)).willReturn(Optional.of(testComment));
-        given(postQueryUseCase.findById(200L)).willReturn(Optional.of(testPost));
+        given(commentQueryUseCase.findById(100L)).willReturn(testComment);
+        given(postQueryUseCase.findById(200L)).willReturn(testPost);
         given(adminCommandPort.save(any(Report.class))).willReturn(mock(Report.class));
 
         // When

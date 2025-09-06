@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.post.application.port.out.*;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,8 +45,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     @Override
     public void likePost(Long userId, Long postId) {
         User user = loadUserInfoPort.getReferenceById(userId);
-        Post post = postQueryPort.findById(postId)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        Post post = postQueryPort.findById(postId);
 
         if (postLikeQueryPort.existsByUserAndPost(user, post)) {
             postLikeCommandPort.deleteByUserAndPost(user, post);

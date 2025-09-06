@@ -6,8 +6,6 @@ import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.application.port.out.CommentToUserPort;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
-import jaeik.bimillog.domain.comment.exception.CommentCustomException;
-import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -52,26 +50,12 @@ public class CommentLikeService implements CommentLikeUseCase {
      */
     @Override
     public void likeComment(Long userId, Long commentId) {
-        if (userId == null) {
-            throw new CommentCustomException(CommentErrorCode.USER_NOT_FOUND);
-        }
-
-        boolean commentExists = commentQueryPort.findById(commentId).isPresent();
-        if (!commentExists) {
-            throw new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND);
-        }
-
-        boolean userExists = commentToUserPort.findById(userId).isPresent();
-        if (!userExists) {
-            throw new CommentCustomException(CommentErrorCode.USER_NOT_FOUND);
-        }
+        Comment comment = commentQueryPort.findById(commentId);
+        User user = commentToUserPort.findById(userId);
 
         if (commentLikePort.isLikedByUser(commentId, userId)) {
             commentLikePort.deleteLikeByIds(commentId, userId);
         } else {
-            Comment comment = commentQueryPort.findById(commentId).get();
-            User user = commentToUserPort.findById(userId).get();
-            
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)
                     .user(user)

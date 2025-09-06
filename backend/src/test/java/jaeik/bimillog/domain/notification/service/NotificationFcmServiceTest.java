@@ -58,7 +58,7 @@ class NotificationFcmServiceTest {
         Long userId = 1L;
         String fcmToken = "valid-fcm-token";
         
-        given(notificationToUserPort.findById(userId)).willReturn(Optional.of(user));
+        given(notificationToUserPort.findById(userId)).willReturn(user);
 
         // When
         notificationFcmService.registerFcmToken(userId, fcmToken);
@@ -76,7 +76,7 @@ class NotificationFcmServiceTest {
         Long userId = 999L;
         String fcmToken = "valid-fcm-token";
         
-        given(notificationToUserPort.findById(userId)).willReturn(Optional.empty());
+        given(notificationToUserPort.findById(userId)).willThrow(new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
@@ -296,7 +296,7 @@ class NotificationFcmServiceTest {
         // Given
         Long userId = null;
         String fcmToken = "valid-fcm-token";
-        given(notificationToUserPort.findById(userId)).willReturn(Optional.empty());
+        given(notificationToUserPort.findById(userId)).willThrow(new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
@@ -314,7 +314,7 @@ class NotificationFcmServiceTest {
         Long userId = -1L;
         String fcmToken = "valid-fcm-token";
         
-        given(notificationToUserPort.findById(userId)).willReturn(Optional.empty());
+        given(notificationToUserPort.findById(userId)).willThrow(new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
@@ -332,7 +332,7 @@ class NotificationFcmServiceTest {
         Long userId = 1L;
         String veryLongToken = "A".repeat(1000); // 매우 긴 토큰
         
-        given(notificationToUserPort.findById(userId)).willReturn(Optional.of(user));
+        given(notificationToUserPort.findById(userId)).willReturn(user);
 
         // When
         notificationFcmService.registerFcmToken(userId, veryLongToken);

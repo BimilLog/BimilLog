@@ -51,7 +51,7 @@ class PostAdminServiceTest {
         Long postId = 123L;
         String postTitle = "중요한 공지사항";
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false); // 현재 공지 아님
 
@@ -71,7 +71,7 @@ class PostAdminServiceTest {
         // Given
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
@@ -108,7 +108,7 @@ class PostAdminServiceTest {
         Long postId = 123L;
         String postTitle = "공지 해제될 게시글";
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(true); // 현재 공지임
 
@@ -129,7 +129,7 @@ class PostAdminServiceTest {
         Long postId = 123L;
         String postTitle = "두 번 토글 테스트";
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false, true); // 첫 번째: 비공지, 두 번째: 공지
 
@@ -152,7 +152,7 @@ class PostAdminServiceTest {
         Long postId = 123L;
         String postTitle = "연속 토글 테스트";
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false, true, true, false, false, true); // 각 토글마다 2회 호출 고려
 
@@ -176,7 +176,7 @@ class PostAdminServiceTest {
         Long postId = 123L;
         String postTitle = "이미 공지인 게시글";
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(true); // 이미 공지임
 
@@ -198,7 +198,7 @@ class PostAdminServiceTest {
         Long postId = 123L;
         String postTitle = "이미 비공지인 게시글";
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false); // 이미 비공지임
 
@@ -219,7 +219,7 @@ class PostAdminServiceTest {
         // Given
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isNotice()).willReturn(false);
         doThrow(new RuntimeException("Mock error")).when(post).setAsNotice();
 
@@ -243,7 +243,7 @@ class PostAdminServiceTest {
         Long postId2 = 124L;
         String postTitle = "트랜잭션 테스트 게시글";
 
-        given(postQueryPort.findById(any())).willReturn(Optional.of(post));
+        given(postQueryPort.findById(any())).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false, true); // 첫 번째: 비공지, 두 번째: 공지
 
@@ -266,7 +266,7 @@ class PostAdminServiceTest {
         Long postId = 123L;
         String postTitle = "순서 검증 테스트";
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false); // 비공지 상태
 
@@ -289,7 +289,7 @@ class PostAdminServiceTest {
         int operationCount = 10;
         String postTitle = "대량 토글 테스트";
 
-        given(postQueryPort.findById(any())).willReturn(Optional.of(post));
+        given(postQueryPort.findById(any())).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         // 10번 토글: false->true->false->true->...
         given(post.isNotice()).willReturn(false, true, false, true, false, true, false, true, false, true);
@@ -313,7 +313,7 @@ class PostAdminServiceTest {
         // Given
         Long postId = 123L;
         
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isNotice()).willReturn(true);
 
         // When
@@ -331,7 +331,7 @@ class PostAdminServiceTest {
         // Given
         Long postId = 123L;
         
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isNotice()).willReturn(false);
 
         // When
@@ -349,7 +349,7 @@ class PostAdminServiceTest {
         // Given
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.isPostNotice(postId))

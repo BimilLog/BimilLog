@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,8 +77,8 @@ class CommentLikeServiceTest {
     @DisplayName("댓글 좋아요 추가 성공")
     void shouldAddLike_WhenUserHasNotLikedComment() {
         // Given
-        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
@@ -97,8 +99,8 @@ class CommentLikeServiceTest {
     @DisplayName("댓글 좋아요 취소 성공")
     void shouldRemoveLike_WhenUserHasAlreadyLikedComment() {
         // Given
-        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
 
         // When
@@ -113,7 +115,7 @@ class CommentLikeServiceTest {
     @DisplayName("존재하지 않는 댓글에 좋아요 시 COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenCommentNotFound() {
         // Given
-        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.empty());
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willThrow(new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
@@ -131,13 +133,13 @@ class CommentLikeServiceTest {
     @DisplayName("존재하지 않는 사용자가 좋아요 시 USER_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenUserNotFound() {
         // Given
-        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.empty());
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentToUserPort.findById(TEST_USER_ID)).willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> commentLikeService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
         verify(commentToUserPort).findById(TEST_USER_ID);
@@ -151,8 +153,8 @@ class CommentLikeServiceTest {
     void shouldThrowException_WhenUserIdIsNull() {
         // When & Then
         assertThatThrownBy(() -> commentLikeService.likeComment(null, TEST_COMMENT_ID))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
 
         verify(commentQueryPort, never()).findById(any());
         verify(commentToUserPort, never()).findById(any());
@@ -172,8 +174,8 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(ownComment));
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(ownComment);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
@@ -192,8 +194,8 @@ class CommentLikeServiceTest {
     @DisplayName("여러 번 연속으로 좋아요 토글")
     void shouldToggleLikeMultipleTimes() {
         // Given
-        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
 
         // 첫 번째: 좋아요 추가
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
@@ -231,8 +233,8 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        given(commentQueryPort.findById(201L)).willReturn(Optional.of(anotherComment));
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentQueryPort.findById(201L)).willReturn(anotherComment);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
         given(commentLikePort.isLikedByUser(201L, TEST_USER_ID)).willReturn(false);
 
         // When
@@ -259,8 +261,8 @@ class CommentLikeServiceTest {
                 .deleted(false)
                 .build();
 
-        given(commentQueryPort.findById(202L)).willReturn(Optional.of(anonymousComment));
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentQueryPort.findById(202L)).willReturn(anonymousComment);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
         given(commentLikePort.isLikedByUser(202L, TEST_USER_ID)).willReturn(false);
 
         // When
@@ -279,8 +281,8 @@ class CommentLikeServiceTest {
     @DisplayName("좋아요 상태 확인 실패 시 예외 처리")
     void shouldHandleException_WhenCheckingLikeStatusFails() {
         // Given
-        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID))
                 .willThrow(new RuntimeException("좋아요 상태 확인 실패"));
 

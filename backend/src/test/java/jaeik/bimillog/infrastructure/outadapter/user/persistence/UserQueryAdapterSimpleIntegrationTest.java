@@ -167,16 +167,15 @@ class UserQueryAdapterSimpleIntegrationTest {
     @DisplayName("정상 케이스 - 소셜 제공자와 소셜 ID로 사용자 조회")
     void shouldFindUserByProviderAndSocialId_WhenValidParametersProvided() {
         // When: 소셜 정보로 사용자 조회
-        Optional<User> result = userQueryAdapter.findByProviderAndSocialId(
+        User result = userQueryAdapter.findByProviderAndSocialId(
                 SocialProvider.KAKAO, "kakao123"
         );
 
         // Then: 올바른 소셜 사용자가 조회되는지 검증
-        assertThat(result).isPresent();
-        User foundUser = result.get();
-        assertThat(foundUser.getSocialId()).isEqualTo("kakao123");
-        assertThat(foundUser.getProvider()).isEqualTo(SocialProvider.KAKAO);
-        assertThat(foundUser.getUserName()).isEqualTo("testUser1");
+        assertThat(result).isNotNull();
+        assertThat(result.getSocialId()).isEqualTo("kakao123");
+        assertThat(result.getProvider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(result.getUserName()).isEqualTo("testUser1");
     }
 
     @Test

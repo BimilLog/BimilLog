@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
 import org.springframework.stereotype.Component;
@@ -62,10 +63,8 @@ public class SocialLoginAdapter implements SocialLoginPort {
         );
 
         // 기존 사용자 확인
-        Optional<User> existingUser = userQueryUseCase.findByProviderAndSocialId(provider, rawData.socialId());
-
-        if (existingUser.isPresent()) {
-            User user = existingUser.get();
+        try {
+            User user = userQueryUseCase.findByProviderAndSocialId(provider, rawData.socialId());
             
             // 조건부 사용자 정보 업데이트: 변경된 정보가 있을 때만 업데이트
             boolean needsUpdate = !Objects.equals(user.getSocialNickname(), rawData.nickname());
@@ -77,7 +76,8 @@ public class SocialLoginAdapter implements SocialLoginPort {
                 user.updateUserInfo(rawData.nickname(), rawData.profileImageUrl());
             }
             return new LoginResult.SocialLoginData(userProfile, token, false); // 기존 사용자
-        } else {
+        } catch (UserCustomException e) {
+            // 사용자가 존재하지 않는 경우
             return new LoginResult.SocialLoginData(userProfile, token, true); // 신규 사용자
         }
     }

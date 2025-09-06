@@ -28,12 +28,10 @@ public enum UserErrorCode {
     EXISTED_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다.", ErrorCode.LogLevel.INFO),
     
     /**
-     * <h3>User 도메인에서 필요한 외부 도메인 에러 코드 (임시)</h3>
-     * <p>추후 리팩토링 예정</p>
+     * <h3>카카오 친구 API 관련 에러 코드</h3>
      */
-    NOT_FIND_TOKEN(HttpStatus.FORBIDDEN, "토큰을 찾을 수 없습니다. 다시 로그인 해주세요 ", ErrorCode.LogLevel.WARN),
     KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의을 해야 합니다.", ErrorCode.LogLevel.INFO),
-    KAKAO_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 API 호출 실패", ErrorCode.LogLevel.ERROR);
+    KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", ErrorCode.LogLevel.ERROR);
 
     private final HttpStatus status;
     private final String message;

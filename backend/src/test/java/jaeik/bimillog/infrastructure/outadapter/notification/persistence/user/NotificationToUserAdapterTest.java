@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.user.N
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -68,16 +70,16 @@ class NotificationToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
 
         // When: 사용자 조회
-        Optional<User> result = notificationToUserAdapter.findById(userId);
+        User result = notificationToUserAdapter.findById(userId);
 
         // Then: 조회 결과 검증
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(testUser);
-        assertThat(result.get().getId()).isEqualTo(1L);
-        assertThat(result.get().getUserName()).isEqualTo("테스트유저");
-        assertThat(result.get().getSocialId()).isEqualTo("12345");
-        assertThat(result.get().getProvider()).isEqualTo(SocialProvider.KAKAO);
-        assertThat(result.get().getRole()).isEqualTo(UserRole.USER);
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(testUser);
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getUserName()).isEqualTo("테스트유저");
+        assertThat(result.getSocialId()).isEqualTo("12345");
+        assertThat(result.getProvider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(result.getRole()).isEqualTo(UserRole.USER);
 
         // Verify: UseCase 호출 확인
         verify(userQueryUseCase).findById(userId);
@@ -91,11 +93,9 @@ class NotificationToUserAdapterTest {
         Long userId = 999L;
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
-        // When: 존재하지 않는 사용자 조회
-        Optional<User> result = notificationToUserAdapter.findById(userId);
-
-        // Then: 빈 Optional 반환 검증
-        assertThat(result).isEmpty();
+        // When & Then: 존재하지 않는 사용자 조회 시 예외 발생
+        assertThatThrownBy(() -> notificationToUserAdapter.findById(userId))
+                .isInstanceOf(UserCustomException.class);
 
         // Verify: UseCase 호출 확인
         verify(userQueryUseCase).findById(userId);
@@ -109,11 +109,9 @@ class NotificationToUserAdapterTest {
         Long userId = null;
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
-        // When: null ID로 사용자 조회
-        Optional<User> result = notificationToUserAdapter.findById(userId);
-
-        // Then: 빈 Optional 반환 검증
-        assertThat(result).isEmpty();
+        // When & Then: null ID로 사용자 조회 시 예외 발생
+        assertThatThrownBy(() -> notificationToUserAdapter.findById(userId))
+                .isInstanceOf(UserCustomException.class);
 
         // Verify: UseCase 호출 확인
         verify(userQueryUseCase).findById(userId);
@@ -127,11 +125,9 @@ class NotificationToUserAdapterTest {
         Long userId = 0L;
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
-        // When: 0 ID로 사용자 조회
-        Optional<User> result = notificationToUserAdapter.findById(userId);
-
-        // Then: 빈 Optional 반환 검증
-        assertThat(result).isEmpty();
+        // When & Then: 0 ID로 사용자 조회 시 예외 발생
+        assertThatThrownBy(() -> notificationToUserAdapter.findById(userId))
+                .isInstanceOf(UserCustomException.class);
 
         // Verify: UseCase 호출 확인
         verify(userQueryUseCase).findById(userId);
@@ -145,11 +141,9 @@ class NotificationToUserAdapterTest {
         Long userId = -1L;
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
-        // When: 음수 ID로 사용자 조회
-        Optional<User> result = notificationToUserAdapter.findById(userId);
-
-        // Then: 빈 Optional 반환 검증
-        assertThat(result).isEmpty();
+        // When & Then: 음수 ID로 사용자 조회 시 예외 발생
+        assertThatThrownBy(() -> notificationToUserAdapter.findById(userId))
+                .isInstanceOf(UserCustomException.class);
 
         // Verify: UseCase 호출 확인
         verify(userQueryUseCase).findById(userId);
@@ -163,11 +157,9 @@ class NotificationToUserAdapterTest {
         Long userId = Long.MAX_VALUE;
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
-        // When: 매우 큰 ID로 사용자 조회
-        Optional<User> result = notificationToUserAdapter.findById(userId);
-
-        // Then: 빈 Optional 반환 검증
-        assertThat(result).isEmpty();
+        // When & Then: 매우 큰 ID로 사용자 조회 시 예외 발생
+        assertThatThrownBy(() -> notificationToUserAdapter.findById(userId))
+                .isInstanceOf(UserCustomException.class);
 
         // Verify: UseCase 호출 확인
         verify(userQueryUseCase).findById(userId);
@@ -197,17 +189,16 @@ class NotificationToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(userWithCustomSetting));
 
         // When: 사용자 조회
-        Optional<User> result = notificationToUserAdapter.findById(userId);
+        User result = notificationToUserAdapter.findById(userId);
 
         // Then: 사용자와 설정 정보 검증
-        assertThat(result).isPresent();
-        User foundUser = result.get();
-        assertThat(foundUser.getId()).isEqualTo(2L);
-        assertThat(foundUser.getUserName()).isEqualTo("설정테스트유저");
-        assertThat(foundUser.getSetting()).isNotNull();
-        assertThat(foundUser.getSetting().isMessageNotification()).isFalse();
-        assertThat(foundUser.getSetting().isCommentNotification()).isTrue();
-        assertThat(foundUser.getSetting().isPostFeaturedNotification()).isFalse();
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(2L);
+        assertThat(result.getUserName()).isEqualTo("설정테스트유저");
+        assertThat(result.getSetting()).isNotNull();
+        assertThat(result.getSetting().isMessageNotification()).isFalse();
+        assertThat(result.getSetting().isCommentNotification()).isTrue();
+        assertThat(result.getSetting().isPostFeaturedNotification()).isFalse();
 
         // Verify: UseCase 호출 확인
         verify(userQueryUseCase).findById(userId);
@@ -231,14 +222,13 @@ class NotificationToUserAdapterTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(adminUser));
 
         // When: 관리자 사용자 조회
-        Optional<User> result = notificationToUserAdapter.findById(userId);
+        User result = notificationToUserAdapter.findById(userId);
 
         // Then: 관리자 사용자 검증
-        assertThat(result).isPresent();
-        User foundUser = result.get();
-        assertThat(foundUser.getId()).isEqualTo(3L);
-        assertThat(foundUser.getUserName()).isEqualTo("관리자");
-        assertThat(foundUser.getRole()).isEqualTo(UserRole.ADMIN);
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(3L);
+        assertThat(result.getUserName()).isEqualTo("관리자");
+        assertThat(result.getRole()).isEqualTo(UserRole.ADMIN);
 
         // Verify: UseCase 호출 확인
         verify(userQueryUseCase).findById(userId);

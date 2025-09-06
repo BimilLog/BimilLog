@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.user.LoadUserInfoAdapter;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
@@ -140,8 +142,8 @@ class NotificationToPaperToUserAdapterLoadTest {
         }
 
         @Override
-        public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-            return Optional.empty();
+        public User findByProviderAndSocialId(SocialProvider provider, String socialId) {
+            throw new UserCustomException(UserErrorCode.USER_NOT_FOUND);
         }
 
         @Override

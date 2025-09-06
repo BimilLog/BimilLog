@@ -86,7 +86,7 @@ class SaveDataAdapterTest {
         );
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
-                .willReturn(Optional.of(existingUser));
+                .willReturn(existingUser);
         given(tokenRepository.save(any(Token.class))).willReturn(existingToken);
         given(authCookieManager.generateJwtCookie(any(UserDTO.class))).willReturn(expectedCookies);
 
@@ -122,12 +122,12 @@ class SaveDataAdapterTest {
                 
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "nonexistent"))
-                .willReturn(Optional.empty());
+                .willThrow(new jaeik.bimillog.domain.user.exception.UserCustomException(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND));
 
         // When & Then: 예외 발생 검증
         assertThatThrownBy(() -> saveDataAdapter.handleExistingUserLogin(userProfile, tokenDTO, null))
                 .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.NOT_FOUND_USER.getMessage());
+                .hasMessage(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND.getMessage());
 
         // 후속 작업이 실행되지 않았는지 검증
         verify(tokenRepository, never()).save(any());
@@ -155,7 +155,7 @@ class SaveDataAdapterTest {
                 
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
-                .willReturn(Optional.of(existingUser));
+                .willReturn(existingUser);
         given(tokenRepository.save(any(Token.class))).willReturn(savedToken);
         given(authCookieManager.generateJwtCookie(any(UserDTO.class))).willReturn(List.of());
 

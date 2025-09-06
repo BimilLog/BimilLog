@@ -10,6 +10,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,7 +93,7 @@ class WithdrawServiceTest {
     void shouldWithdraw_WhenValidUserDetails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
+        given(loadUserPort.findById(100L)).willReturn(testUser);
         given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         // When
@@ -134,12 +136,12 @@ class WithdrawServiceTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(Optional.empty());
+        given(loadUserPort.findById(100L)).willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(AuthCustomException.class)
-                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
 
         verify(loadUserPort).findById(100L);
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
@@ -150,7 +152,7 @@ class WithdrawServiceTest {
     void shouldRollbackWithdraw_WhenSocialUnlinkFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
+        given(loadUserPort.findById(100L)).willReturn(testUser);
         doThrow(new RuntimeException("소셜 연결 해제 실패"))
                 .when(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
 
@@ -176,7 +178,7 @@ class WithdrawServiceTest {
                 .userName("targetUser")
                 .build();
 
-        given(loadUserPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
+        given(loadUserPort.findById(targetUserId)).willReturn(targetUser);
 
         // When
         withdrawService.forceWithdraw(targetUserId);
@@ -202,12 +204,12 @@ class WithdrawServiceTest {
     void shouldThrowException_WhenForceWithdrawUserNotFound() {
         // Given
         Long nonExistentUserId = 999L;
-        given(loadUserPort.findById(nonExistentUserId)).willReturn(Optional.empty());
+        given(loadUserPort.findById(nonExistentUserId)).willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.forceWithdraw(nonExistentUserId))
-                .isInstanceOf(AuthCustomException.class)
-                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(UserCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
 
         verify(loadUserPort).findById(nonExistentUserId);
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
@@ -218,7 +220,7 @@ class WithdrawServiceTest {
     void shouldThrow_WhenSocialUnlinkFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
+        given(loadUserPort.findById(100L)).willReturn(testUser);
         doThrow(new RuntimeException("소셜 연결 해제 실패"))
                 .when(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
 
@@ -245,7 +247,7 @@ class WithdrawServiceTest {
                     .build();
 
             given(userDetails.getUserId()).willReturn(100L);
-            given(loadUserPort.findById(100L)).willReturn(Optional.of(user));
+            given(loadUserPort.findById(100L)).willReturn(user);
             given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
             // When
@@ -262,7 +264,7 @@ class WithdrawServiceTest {
     void shouldCompleteWithdraw_WhenEventPublishingFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(Optional.of(testUser));
+        given(loadUserPort.findById(100L)).willReturn(testUser);
         doThrow(new RuntimeException("이벤트 발행 실패"))
                 .when(eventPublisher).publishEvent(new UserWithdrawnEvent(100L));
 
@@ -288,7 +290,7 @@ class WithdrawServiceTest {
                 .userName("targetUser")
                 .build();
 
-        given(loadUserPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
+        given(loadUserPort.findById(targetUserId)).willReturn(targetUser);
         doThrow(new RuntimeException("데이터 처리 실패"))
                 .when(deleteUserPort).performWithdrawProcess(targetUserId);
 

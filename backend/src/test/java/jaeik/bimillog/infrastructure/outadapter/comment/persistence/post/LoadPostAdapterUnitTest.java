@@ -3,6 +3,8 @@ package jaeik.bimillog.infrastructure.outadapter.comment.persistence.post;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -18,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -81,19 +84,19 @@ class LoadPostAdapterUnitTest {
     void shouldReturnPost_WhenPostExists() {
         // Given: PostQueryUseCase가 게시글을 반환하도록 설정
         Long postId = 1L;
-        given(postQueryUseCase.findById(postId)).willReturn(Optional.of(testPost));
+        given(postQueryUseCase.findById(postId)).willReturn(testPost);
 
         // When: 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(postId);
+        Post result = commentLoadPostAdapter.findById(postId);
 
         // Then: 올바른 게시글이 반환되었는지 검증
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(testPost);
-        assertThat(result.get().getTitle()).isEqualTo("테스트 게시글");
-        assertThat(result.get().getContent()).isEqualTo("테스트 게시글 내용입니다.");
-        assertThat(result.get().isNotice()).isFalse();
-        assertThat(result.get().getViews()).isEqualTo(0);
-        assertThat(result.get().getUser()).isEqualTo(testUser);
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(testPost);
+        assertThat(result.getTitle()).isEqualTo("테스트 게시글");
+        assertThat(result.getContent()).isEqualTo("테스트 게시글 내용입니다.");
+        assertThat(result.isNotice()).isFalse();
+        assertThat(result.getViews()).isEqualTo(0);
+        assertThat(result.getUser()).isEqualTo(testUser);
 
         // PostQueryUseCase의 메서드가 정확히 호출되었는지 검증
         then(postQueryUseCase).should().findById(postId);
@@ -101,16 +104,14 @@ class LoadPostAdapterUnitTest {
 
     @Test
     @DisplayName("정상 케이스 - 존재하지 않는 게시글 ID로 게시글 조회")
-    void shouldReturnEmpty_WhenPostNotExists() {
-        // Given: PostQueryUseCase가 빈 Optional을 반환하도록 설정
+    void shouldThrowException_WhenPostNotExists() {
+        // Given: PostQueryUseCase가 예외를 던지도록 설정
         Long nonExistentPostId = 999L;
-        given(postQueryUseCase.findById(nonExistentPostId)).willReturn(Optional.empty());
+        given(postQueryUseCase.findById(nonExistentPostId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
-        // When: 존재하지 않는 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(nonExistentPostId);
-
-        // Then: 빈 Optional이 반환되었는지 검증
-        assertThat(result).isEmpty();
+        // When & Then: 존재하지 않는 게시글 조회 시 예외 발생
+        assertThatThrownBy(() -> commentLoadPostAdapter.findById(nonExistentPostId))
+                .isInstanceOf(PostCustomException.class);
 
         // PostQueryUseCase의 메서드가 정확히 호출되었는지 검증
         then(postQueryUseCase).should().findById(nonExistentPostId);
@@ -121,18 +122,18 @@ class LoadPostAdapterUnitTest {
     void shouldReturnNoticePost_WhenNoticePostExists() {
         // Given: PostQueryUseCase가 공지사항 게시글을 반환하도록 설정
         Long noticePostId = 2L;
-        given(postQueryUseCase.findById(noticePostId)).willReturn(Optional.of(noticePost));
+        given(postQueryUseCase.findById(noticePostId)).willReturn(noticePost);
 
         // When: 공지사항 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(noticePostId);
+        Post result = commentLoadPostAdapter.findById(noticePostId);
 
         // Then: 공지사항 게시글이 올바르게 반환되었는지 검증
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(noticePost);
-        assertThat(result.get().getTitle()).isEqualTo("공지사항");
-        assertThat(result.get().getContent()).isEqualTo("중요한 공지사항입니다.");
-        assertThat(result.get().isNotice()).isTrue();
-        assertThat(result.get().getViews()).isEqualTo(100);
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(noticePost);
+        assertThat(result.getTitle()).isEqualTo("공지사항");
+        assertThat(result.getContent()).isEqualTo("중요한 공지사항입니다.");
+        assertThat(result.isNotice()).isTrue();
+        assertThat(result.getViews()).isEqualTo(100);
 
         // PostQueryUseCase의 메서드가 정확히 호출되었는지 검증
         then(postQueryUseCase).should().findById(noticePostId);
@@ -143,13 +144,11 @@ class LoadPostAdapterUnitTest {
     void shouldHandleNullPostId_WhenNullProvided() {
         // Given: null 게시글 ID
         Long nullPostId = null;
-        given(postQueryUseCase.findById(nullPostId)).willReturn(Optional.empty());
+        given(postQueryUseCase.findById(nullPostId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
-        // When: null ID로 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(nullPostId);
-
-        // Then: 빈 Optional이 반환되었는지 검증
-        assertThat(result).isEmpty();
+        // When & Then: null ID로 게시글 조회 시 예외 발생
+        assertThatThrownBy(() -> commentLoadPostAdapter.findById(nullPostId))
+                .isInstanceOf(PostCustomException.class);
 
         // PostQueryUseCase의 메서드가 호출되었는지 검증
         then(postQueryUseCase).should().findById(nullPostId);
@@ -160,13 +159,11 @@ class LoadPostAdapterUnitTest {
     void shouldHandleNegativePostId_WhenNegativeIdProvided() {
         // Given: 음수 게시글 ID
         Long negativePostId = -1L;
-        given(postQueryUseCase.findById(negativePostId)).willReturn(Optional.empty());
+        given(postQueryUseCase.findById(negativePostId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When: 음수 ID로 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(negativePostId);
-
-        // Then: 빈 Optional이 반환되었는지 검증
-        assertThat(result).isEmpty();
+        assertThatThrownBy(() -> commentLoadPostAdapter.findById(negativePostId))
+                .isInstanceOf(PostCustomException.class);
 
         // PostQueryUseCase의 메서드가 호출되었는지 검증
         then(postQueryUseCase).should().findById(negativePostId);
@@ -185,15 +182,15 @@ class LoadPostAdapterUnitTest {
                 .build();
 
         Long postId = 3L;
-        given(postQueryUseCase.findById(postId)).willReturn(Optional.of(highViewPost));
+        given(postQueryUseCase.findById(postId)).willReturn(highViewPost);
 
         // When: 높은 조회수 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(postId);
+        Post result = commentLoadPostAdapter.findById(postId);
 
         // Then: 높은 조회수 게시글이 올바르게 반환되었는지 검증
-        assertThat(result).isPresent();
-        assertThat(result.get().getViews()).isEqualTo(10000);
-        assertThat(result.get().getTitle()).isEqualTo("인기 게시글");
+        assertThat(result).isNotNull();
+        assertThat(result.getViews()).isEqualTo(10000);
+        assertThat(result.getTitle()).isEqualTo("인기 게시글");
 
         // PostQueryUseCase의 메서드가 호출되었는지 검증
         then(postQueryUseCase).should().findById(postId);
@@ -221,16 +218,16 @@ class LoadPostAdapterUnitTest {
                 .build();
 
         Long postId = 4L;
-        given(postQueryUseCase.findById(postId)).willReturn(Optional.of(anotherUserPost));
+        given(postQueryUseCase.findById(postId)).willReturn(anotherUserPost);
 
         // When: 다른 사용자 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(postId);
+        Post result = commentLoadPostAdapter.findById(postId);
 
         // Then: 다른 사용자 게시글이 올바르게 반환되었는지 검증
-        assertThat(result).isPresent();
-        assertThat(result.get().getUser()).isEqualTo(anotherUser);
-        assertThat(result.get().getUser().getSocialNickname()).isEqualTo("다른유저");
-        assertThat(result.get().getTitle()).isEqualTo("다른 사용자 게시글");
+        assertThat(result).isNotNull();
+        assertThat(result.getUser()).isEqualTo(anotherUser);
+        assertThat(result.getUser().getSocialNickname()).isEqualTo("다른유저");
+        assertThat(result.getTitle()).isEqualTo("다른 사용자 게시글");
 
         // PostQueryUseCase의 메서드가 호출되었는지 검증
         then(postQueryUseCase).should().findById(postId);
@@ -241,13 +238,11 @@ class LoadPostAdapterUnitTest {
     void shouldHandleMaxPostId_WhenMaxLongValueProvided() {
         // Given: Long 최대값을 게시글 ID로 사용
         Long maxPostId = Long.MAX_VALUE;
-        given(postQueryUseCase.findById(maxPostId)).willReturn(Optional.empty());
+        given(postQueryUseCase.findById(maxPostId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
-        // When: 최대값 ID로 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(maxPostId);
-
-        // Then: 빈 Optional이 반환되었는지 검증
-        assertThat(result).isEmpty();
+        // When & Then: 최대값 ID로 게시글 조회 시 예외 발생
+        assertThatThrownBy(() -> commentLoadPostAdapter.findById(maxPostId))
+                .isInstanceOf(PostCustomException.class);
 
         // PostQueryUseCase의 메서드가 호출되었는지 검증
         then(postQueryUseCase).should().findById(maxPostId);
@@ -278,21 +273,17 @@ class LoadPostAdapterUnitTest {
     void shouldBehaveConsistently_WhenCalledMultipleTimes() {
         // Given: 동일한 게시글 ID에 대해 일관된 응답 설정
         Long postId = 1L;
-        given(postQueryUseCase.findById(postId)).willReturn(Optional.of(testPost));
+        given(postQueryUseCase.findById(postId)).willReturn(testPost);
 
         // When: 동일한 ID로 여러 번 조회
-        Optional<Post> result1 = commentLoadPostAdapter.findById(postId);
-        Optional<Post> result2 = commentLoadPostAdapter.findById(postId);
-        Optional<Post> result3 = commentLoadPostAdapter.findById(postId);
+        Post result1 = commentLoadPostAdapter.findById(postId);
+        Post result2 = commentLoadPostAdapter.findById(postId);
+        Post result3 = commentLoadPostAdapter.findById(postId);
 
         // Then: 모든 결과가 일관되게 동일한 게시글을 반환해야 함
-        assertThat(result1).isPresent();
-        assertThat(result2).isPresent();
-        assertThat(result3).isPresent();
-        
-        assertThat(result1.get()).isEqualTo(testPost);
-        assertThat(result2.get()).isEqualTo(testPost);
-        assertThat(result3.get()).isEqualTo(testPost);
+        assertThat(result1).isEqualTo(testPost);
+        assertThat(result2).isEqualTo(testPost);
+        assertThat(result3).isEqualTo(testPost);
 
         // PostQueryUseCase의 메서드가 3번 호출되었는지 검증
         then(postQueryUseCase).should(times(3)).findById(postId);
@@ -303,16 +294,16 @@ class LoadPostAdapterUnitTest {
     void shouldImplementLoadPostPortContract_WhenAdapterUsed() {
         // Given: 표준 게시글과 ID
         Long postId = 1L;
-        given(postQueryUseCase.findById(anyLong())).willReturn(Optional.of(testPost));
+        given(postQueryUseCase.findById(anyLong())).willReturn(testPost);
 
         // When: 포트 인터페이스 메서드 호출
-        Optional<Post> result = commentLoadPostAdapter.findById(postId);
+        Post result = commentLoadPostAdapter.findById(postId);
 
         // Then: 포트 계약에 따른 정확한 결과 반환 확인
         assertThat(result).isNotNull(); // Optional이 null이면 안됨
         
-        if (result.isPresent()) {
-            Post post = result.get();
+        if (result != null) {
+            Post post = result;
             // Post 엔티티의 필수 필드들이 모두 존재하는지 확인
             assertThat(post.getTitle()).isNotNull();
             assertThat(post.getContent()).isNotNull();
@@ -339,16 +330,16 @@ class LoadPostAdapterUnitTest {
                 .build();
 
         Long postId = 5L;
-        given(postQueryUseCase.findById(postId)).willReturn(Optional.of(emptyContentPost));
+        given(postQueryUseCase.findById(postId)).willReturn(emptyContentPost);
 
         // When: 빈 내용 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(postId);
+        Post result = commentLoadPostAdapter.findById(postId);
 
         // Then: 빈 내용 게시글이 올바르게 반환되었는지 검증
-        assertThat(result).isPresent();
-        assertThat(result.get().getTitle()).isEmpty();
-        assertThat(result.get().getContent()).isEmpty();
-        assertThat(result.get().getViews()).isEqualTo(0);
+        assertThat(result).isNotNull();
+        assertThat(result.getTitle()).isEmpty();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getViews()).isEqualTo(0);
 
         // PostQueryUseCase의 메서드가 호출되었는지 검증
         then(postQueryUseCase).should().findById(postId);
@@ -370,19 +361,19 @@ class LoadPostAdapterUnitTest {
                 .build();
 
         Long postId = 6L;
-        given(postQueryUseCase.findById(postId)).willReturn(Optional.of(complexPost));
+        given(postQueryUseCase.findById(postId)).willReturn(complexPost);
 
         // When: 복잡한 게시글 조회
-        Optional<Post> result = commentLoadPostAdapter.findById(postId);
+        Post result = commentLoadPostAdapter.findById(postId);
 
         // Then: 복잡한 게시글이 올바르게 반환되었는지 검증
-        assertThat(result).isPresent();
-        assertThat(result.get().getTitle()).isEqualTo(complexTitle);
-        assertThat(result.get().getContent()).isEqualTo(complexContent);
-        assertThat(result.get().getTitle()).contains("특수문자");
-        assertThat(result.get().getContent()).hasSize(complexContent.length());
-        assertThat(result.get().isNotice()).isTrue();
-        assertThat(result.get().getViews()).isEqualTo(9999);
+        assertThat(result).isNotNull();
+        assertThat(result.getTitle()).isEqualTo(complexTitle);
+        assertThat(result.getContent()).isEqualTo(complexContent);
+        assertThat(result.getTitle()).contains("특수문자");
+        assertThat(result.getContent()).hasSize(complexContent.length());
+        assertThat(result.isNotice()).isTrue();
+        assertThat(result.getViews()).isEqualTo(9999);
 
         // PostQueryUseCase의 메서드가 호출되었는지 검증
         then(postQueryUseCase).should().findById(postId);

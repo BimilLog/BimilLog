@@ -66,7 +66,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
 
         // When: 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(userId);
+        Optional<User> result = loadUserAdapter.findByIdOptional(userId);
 
         // Then: 올바른 사용자가 반환되었는지 검증
         assertThat(result).isPresent();
@@ -89,7 +89,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(nonExistentUserId)).willReturn(Optional.empty());
 
         // When: 존재하지 않는 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(nonExistentUserId);
+        Optional<User> result = loadUserAdapter.findByIdOptional(nonExistentUserId);
 
         // Then: 빈 Optional이 반환되었는지 검증
         assertThat(result).isEmpty();
@@ -115,7 +115,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(adminUserId)).willReturn(Optional.of(adminUser));
 
         // When: 관리자 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(adminUserId);
+        Optional<User> result = loadUserAdapter.findByIdOptional(adminUserId);
 
         // Then: 관리자 사용자가 올바르게 반환되었는지 검증
         assertThat(result).isPresent();
@@ -134,7 +134,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(nullUserId)).willReturn(Optional.empty());
 
         // When: null ID로 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(nullUserId);
+        Optional<User> result = loadUserAdapter.findByIdOptional(nullUserId);
 
         // Then: 빈 Optional이 반환되었는지 검증
         assertThat(result).isEmpty();
@@ -151,7 +151,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(negativeUserId)).willReturn(Optional.empty());
 
         // When: 음수 ID로 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(negativeUserId);
+        Optional<User> result = loadUserAdapter.findByIdOptional(negativeUserId);
 
         // Then: 빈 Optional이 반환되었는지 검증
         assertThat(result).isEmpty();
@@ -179,7 +179,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(userWithSettings));
 
         // When: 설정이 있는 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(userId);
+        Optional<User> result = loadUserAdapter.findByIdOptional(userId);
 
         // Then: 사용자와 설정이 모두 올바르게 반환되었는지 검증
         assertThat(result).isPresent();
@@ -198,7 +198,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(maxUserId)).willReturn(Optional.empty());
 
         // When: 최대값 ID로 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(maxUserId);
+        Optional<User> result = loadUserAdapter.findByIdOptional(maxUserId);
 
         // Then: 빈 Optional이 반환되었는지 검증
         assertThat(result).isEmpty();
@@ -217,7 +217,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
 
         // When & Then: 예외가 전파되는지 검증
         try {
-            loadUserAdapter.findById(userId);
+            loadUserAdapter.findByIdOptional(userId);
         } catch (RuntimeException actualException) {
             assertThat(actualException).isEqualTo(expectedException);
             assertThat(actualException.getMessage()).isEqualTo("User service error");
@@ -235,9 +235,9 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
 
         // When: 동일한 ID로 여러 번 조회
-        Optional<User> result1 = loadUserAdapter.findById(userId);
-        Optional<User> result2 = loadUserAdapter.findById(userId);
-        Optional<User> result3 = loadUserAdapter.findById(userId);
+        Optional<User> result1 = loadUserAdapter.findByIdOptional(userId);
+        Optional<User> result2 = loadUserAdapter.findByIdOptional(userId);
+        Optional<User> result3 = loadUserAdapter.findByIdOptional(userId);
 
         // Then: 모든 결과가 일관되게 동일한 사용자를 반환해야 함
         assertThat(result1).isPresent();
@@ -260,7 +260,7 @@ class LoadNotificationToPaperToUserAdapterUnitTest {
         given(userQueryUseCase.findById(anyLong())).willReturn(Optional.of(testUser));
 
         // When: 포트 인터페이스 메서드 호출
-        Optional<User> result = loadUserAdapter.findById(userId);
+        Optional<User> result = loadUserAdapter.findByIdOptional(userId);
 
         // Then: 포트 계약에 따른 정확한 결과 반환 확인
         assertThat(result).isNotNull(); // Optional이 null이면 안됨

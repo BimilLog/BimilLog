@@ -166,10 +166,9 @@ class CommentDeletePerformanceTest {
         assertThat(queryCount).isLessThanOrEqualTo(4);
         
         // 소프트 삭제 확인
-        Optional<Comment> deletedComment = commentQueryPort.findById(parentComment.getId());
-        assertThat(deletedComment).isPresent();
-        assertThat(deletedComment.get().isDeleted()).isTrue();
-        assertThat(deletedComment.get().getContent()).isEqualTo("삭제된 댓글 입니다.");
+        Comment deletedComment = commentQueryPort.findById(parentComment.getId());
+        assertThat(deletedComment.isDeleted()).isTrue();
+        assertThat(deletedComment.getContent()).isEqualTo("삭제된 댓글 입니다.");
     }
 
     @Test

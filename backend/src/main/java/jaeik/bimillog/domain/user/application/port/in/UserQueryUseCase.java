@@ -21,11 +21,11 @@ public interface UserQueryUseCase {
      *
      * @param provider 소셜 로그인 제공자
      * @param socialId 사용자의 소셜 ID
-     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
+     * @return User 조회된 사용자 객체
      * @author jaeik
      * @since 2.0.0
      */
-    Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
+    User findByProviderAndSocialId(SocialProvider provider, String socialId);
 
     /**
      * <h3>ID로 사용자 조회</h3>

@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.application.port.out.PostCommentQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -152,13 +153,13 @@ class PostQueryAdapterTest {
         Long postId = testPost1.getId();
 
         // When: ID로 게시글 조회
-        Optional<Post> foundPost = postQueryAdapter.findById(postId);
+        Post foundPost = postQueryAdapter.findById(postId);
 
         // Then: 게시글이 정상 조회됨
-        assertThat(foundPost).isPresent();
-        assertThat(foundPost.get().getId()).isEqualTo(postId);
-        assertThat(foundPost.get().getTitle()).isEqualTo("첫 번째 게시글");
-        assertThat(foundPost.get().getContent()).isEqualTo("첫 번째 게시글 내용");
+        assertThat(foundPost).isNotNull();
+        assertThat(foundPost.getId()).isEqualTo(postId);
+        assertThat(foundPost.getTitle()).isEqualTo("첫 번째 게시글");
+        assertThat(foundPost.getContent()).isEqualTo("첫 번째 게시글 내용");
     }
 
     @Test
@@ -167,11 +168,9 @@ class PostQueryAdapterTest {
         // Given: 존재하지 않는 게시글 ID
         Long nonExistentId = 99999L;
 
-        // When: 존재하지 않는 ID로 조회
-        Optional<Post> foundPost = postQueryAdapter.findById(nonExistentId);
-
-        // Then: 빈 Optional 반환
-        assertThat(foundPost).isEmpty();
+        // When & Then: 존재하지 않는 ID로 조회 시 예외 발생
+        assertThatThrownBy(() -> postQueryAdapter.findById(nonExistentId))
+                .isInstanceOf(PostCustomException.class);
     }
 
     @Test

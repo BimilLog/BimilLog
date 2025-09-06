@@ -116,12 +116,12 @@ class UserQueryAdapterTest {
                 .willReturn(Optional.of(expectedUser));
 
         // When: 소셜 정보로 사용자 조회 실행
-        Optional<User> result = userQueryAdapter.findByProviderAndSocialId(provider, socialId);
+        User result = userQueryAdapter.findByProviderAndSocialId(provider, socialId);
 
         // Then: 올바른 소셜 사용자가 조회되는지 검증
-        assertThat(result).isPresent();
-        assertThat(result.get().getSocialId()).isEqualTo(socialId);
-        assertThat(result.get().getProvider()).isEqualTo(provider);
+        assertThat(result).isNotNull();
+        assertThat(result.getSocialId()).isEqualTo(socialId);
+        assertThat(result.getProvider()).isEqualTo(provider);
         verify(userRepository).findByProviderAndSocialId(eq(provider), eq(socialId));
     }
 

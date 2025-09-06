@@ -1,18 +1,14 @@
 package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserIntegrationService;
-import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -153,8 +149,8 @@ class UserIntegrationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.NOT_FIND_TOKEN.getMessage());
+                .isInstanceOf(AuthCustomException.class)
+                .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
         
         verify(userQueryPort).findById(userId);
         verify(tokenPort).findById(tokenId);
@@ -179,8 +175,8 @@ class UserIntegrationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.NOT_FIND_TOKEN.getMessage());
+                .isInstanceOf(AuthCustomException.class)
+                .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
     }
 
     @Test
@@ -202,8 +198,8 @@ class UserIntegrationServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 1L, 0, 10).block())
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.NOT_FIND_TOKEN.getMessage());
+                .isInstanceOf(AuthCustomException.class)
+                .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
     }
 
     @Test
@@ -285,7 +281,7 @@ class UserIntegrationServiceTest {
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 10))
-                .willReturn(Mono.error(new CustomException(ErrorCode.KAKAO_API_ERROR)));
+                .willReturn(Mono.error(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR)));
 
         // When & Then
         assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
@@ -315,7 +311,7 @@ class UserIntegrationServiceTest {
         // When & Then
         assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
                 .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.KAKAO_API_ERROR.getMessage());
+                .hasMessage(UserErrorCode.KAKAO_FRIEND_API_ERROR.getMessage());
     }
 
     @Test

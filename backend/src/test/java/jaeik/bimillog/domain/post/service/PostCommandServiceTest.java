@@ -96,7 +96,7 @@ class PostCommandServiceTest {
                 .content("수정된 내용")
                 .build();
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(true);
 
         // When
@@ -122,7 +122,7 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
@@ -145,7 +145,7 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
@@ -168,7 +168,7 @@ class PostCommandServiceTest {
         Long postId = 123L;
         String postTitle = "삭제될 게시글";
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(true);
         given(post.getTitle()).willReturn(postTitle);
 
@@ -190,7 +190,7 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
@@ -209,7 +209,7 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
@@ -249,7 +249,7 @@ class PostCommandServiceTest {
         Long postId = 123L;
         PostReqVO postReqDTO = null;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(true);
         
         // Mock이 실제 예외를 발생시키도록 설정
@@ -350,7 +350,7 @@ class PostCommandServiceTest {
                 .content("수정된 내용")
                 .build();
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
@@ -375,7 +375,7 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
@@ -393,7 +393,7 @@ class PostCommandServiceTest {
         Long userId = null;
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
@@ -413,7 +413,7 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = null;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
@@ -456,7 +456,7 @@ class PostCommandServiceTest {
                 .content("테스트 내용")
                 .build();
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
@@ -474,7 +474,7 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = -1L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.empty());
+        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
@@ -521,7 +521,7 @@ class PostCommandServiceTest {
                 .content("수정된 내용")
                 .build();
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
@@ -544,7 +544,7 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
@@ -602,7 +602,7 @@ class PostCommandServiceTest {
                 .content("수정된 내용")
                 .build();
 
-        given(postQueryPort.findById(postId)).willReturn(Optional.of(post));
+        given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(true);
         doThrow(new RuntimeException("Cache delete failed")).when(postCacheCommandPort).deleteCache(null, postId, new PostCacheFlag[0]);
 
