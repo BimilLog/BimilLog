@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -57,7 +56,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         validateLogin();
 
         LoginResult.SocialLoginData loginResult = socialLoginPort.login(provider, code);
-        SocialUserProfile userProfile = loginResult.userProfile();
+        LoginResult.SocialUserProfile userProfile = loginResult.userProfile();
 
         if (blacklistPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.application.service;
 import jaeik.bimillog.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.entity.TempUserData;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -45,13 +45,13 @@ public class SignUpService implements SignUpUseCase {
     public List<ResponseCookie> signUp(String userName, String uuid) {
         validateSignUpInput(userName, uuid);
 
-        Optional<TempUserData> tempUserData = redisUserDataPort.getTempData(uuid);
+        Optional<LoginResult.TempUserData> tempUserData = redisUserDataPort.getTempData(uuid);
 
         if (tempUserData.isEmpty()) {
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
         
-        TempUserData userData = tempUserData.get();
+        LoginResult.TempUserData userData = tempUserData.get();
         return saveUserPort.saveNewUser(userName.trim(), uuid, userData.userProfile(), userData.token(), userData.fcmToken());
     }
 

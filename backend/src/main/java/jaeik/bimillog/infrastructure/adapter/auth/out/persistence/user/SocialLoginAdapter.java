@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
@@ -54,7 +53,7 @@ public class SocialLoginAdapter implements SocialLoginPort {
         Token token = initialResult.token();
 
         // 인프라 DTO → 도메인 모델 변환 (의존성 역전 원칙 준수)
-        SocialUserProfile userProfile = new SocialUserProfile(
+        LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile(
                 rawData.socialId(),
                 rawData.email(),
                 rawData.provider(),

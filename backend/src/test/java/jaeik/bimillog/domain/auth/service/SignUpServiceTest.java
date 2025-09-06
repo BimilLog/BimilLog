@@ -2,10 +2,10 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.application.service.SignUpService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.TempUserData;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -51,9 +51,9 @@ class SignUpServiceTest {
 
     private String testUserName;
     private String testUuid;
-    private SocialUserProfile testSocialProfile;
+    private LoginResult.SocialUserProfile testSocialProfile;
     private Token testToken;
-    private TempUserData testTempData;
+    private LoginResult.TempUserData testTempData;
     private List<ResponseCookie> testCookies;
 
     @BeforeEach
@@ -61,10 +61,10 @@ class SignUpServiceTest {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
         
-        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
+        testSocialProfile = new LoginResult.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
         testToken = Token.createTemporaryToken("access-token", "refresh-token");
         
-        testTempData = TempUserData.of(testSocialProfile, testToken, "fcm-token");
+        testTempData = LoginResult.TempUserData.of(testSocialProfile, testToken, "fcm-token");
         
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-token").build(),
@@ -128,7 +128,7 @@ class SignUpServiceTest {
     @DisplayName("FCM 토큰이 없는 임시 데이터로 회원 가입")
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
-        TempUserData tempDataWithoutFcm = TempUserData.of(testSocialProfile, testToken, null);
+        LoginResult.TempUserData tempDataWithoutFcm = LoginResult.TempUserData.of(testSocialProfile, testToken, null);
         
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
@@ -167,14 +167,14 @@ class SignUpServiceTest {
             String uniqueFcmToken = uniqueFcmTokens[i];
             
             // 각 사용자별로 고유한 임시 데이터 생성
-            SocialUserProfile uniqueProfile = new SocialUserProfile(
+            LoginResult.SocialUserProfile uniqueProfile = new LoginResult.SocialUserProfile(
                     "kakao" + (i + 1),
                     "test" + (i + 1) + "@example.com", 
                     testSocialProfile.provider(),
                     "testUser" + (i + 1),
                     "profile" + (i + 1) + ".jpg"
             );
-            TempUserData uniqueTempData = TempUserData.of(uniqueProfile, testToken, uniqueFcmToken);
+            LoginResult.TempUserData uniqueTempData = LoginResult.TempUserData.of(uniqueProfile, testToken, uniqueFcmToken);
             
             given(redisUserDataPort.getTempData(uniqueUuid)).willReturn(Optional.of(uniqueTempData));
             given(saveUserPort.saveNewUser(

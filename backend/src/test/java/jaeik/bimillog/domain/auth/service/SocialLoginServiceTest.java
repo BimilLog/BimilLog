@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -55,7 +55,7 @@ class SocialLoginServiceTest {
     private SocialLoginService socialLoginService;
 
     private SocialLoginUserData testUserData;
-    private SocialUserProfile testUserProfile;
+    private LoginResult.SocialUserProfile testUserProfile;
     private Token testToken;
     private LoginResult.SocialLoginData existingUserResult;
     private LoginResult.SocialLoginData newUserResult;
@@ -63,7 +63,7 @@ class SocialLoginServiceTest {
     @BeforeEach
     void setUp() {
         testUserData = new SocialLoginUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "fcm-token");
-        testUserProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
+        testUserProfile = new LoginResult.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
         testToken = Token.createTemporaryToken("access-token", "refresh-token");
 
         existingUserResult = new LoginResult.SocialLoginData(testUserProfile, testToken, false); // 기존 사용자

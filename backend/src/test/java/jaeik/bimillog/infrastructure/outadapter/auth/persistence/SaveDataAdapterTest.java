@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.outadapter.auth.persistence;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
@@ -58,7 +58,7 @@ class SaveDataAdapterTest {
     @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 이벤트 발행")
     void shouldHandleExistingUserLogin_WhenValidUserDataProvided() {
         // Given: 기존 사용자와 토큰 정보
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg");
+        LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -116,7 +116,7 @@ class SaveDataAdapterTest {
     @DisplayName("기존 사용자 로그인 - 사용자 미존재 시 예외 발생")
     void shouldThrowException_WhenUserNotFoundInExistingLogin() {
         // Given: 존재하지 않는 사용자 정보
-        SocialUserProfile userProfile = new SocialUserProfile("nonexistent", "nonexistent@example.com", SocialProvider.KAKAO, "존재안함", "https://example.jpg");
+        LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("nonexistent", "nonexistent@example.com", SocialProvider.KAKAO, "존재안함", "https://example.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -138,7 +138,7 @@ class SaveDataAdapterTest {
     @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 등록 미호출")  
     void shouldNotPublishFcmEvent_WhenExistingUserHasNoFcmToken() {
         // Given: FCM 토큰이 없는 기존 사용자 로그인
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg");
+        LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -178,7 +178,7 @@ class SaveDataAdapterTest {
         String uuid = "temp-uuid-12345";
         String fcmToken = "new-fcm-token";
         
-        SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg");
+        LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -238,7 +238,7 @@ class SaveDataAdapterTest {
         String uuid = "temp-uuid-67890";
         String fcmToken = null; // FCM 토큰 없음
         
-        SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg");
+        LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
                 

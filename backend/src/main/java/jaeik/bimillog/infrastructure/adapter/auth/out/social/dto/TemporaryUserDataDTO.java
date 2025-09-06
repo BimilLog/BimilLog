@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.social.dto;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.Token;
 import lombok.Getter;
 
@@ -18,6 +18,16 @@ public class TemporaryUserDataDTO {
     public SocialLoginUserData socialLoginUserData;
     public Token token;
     public String fcmToken;
+
+    /**
+     * <h3>기본 생성자</h3>
+     * <p>Jackson 역직렬화를 위한 기본 생성자</p>
+     *
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    public TemporaryUserDataDTO() {
+    }
 
     /**
      * <h3>전체 매개변수 생성자</h3>
@@ -46,7 +56,7 @@ public class TemporaryUserDataDTO {
      * @since 2.0.0
      * @author Jaeik
      */
-    public static TemporaryUserDataDTO fromDomainProfile(SocialUserProfile userProfile, Token token, String fcmToken) {
+    public static TemporaryUserDataDTO fromDomainProfile(LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) {
         SocialLoginUserData socialLoginUserData = SocialLoginUserData.builder()
                 .socialId(userProfile.socialId())
                 .email(userProfile.email())
@@ -67,8 +77,8 @@ public class TemporaryUserDataDTO {
      * @since 2.0.0
      * @author Jaeik
      */
-    public SocialUserProfile toDomainProfile() {
-        return new SocialUserProfile(
+    public LoginResult.SocialUserProfile toDomainProfile() {
+        return new LoginResult.SocialUserProfile(
                 socialLoginUserData.socialId(),
                 socialLoginUserData.email(),
                 socialLoginUserData.provider(),

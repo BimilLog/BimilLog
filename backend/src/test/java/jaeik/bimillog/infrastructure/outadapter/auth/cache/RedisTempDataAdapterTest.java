@@ -1,13 +1,13 @@
 package jaeik.bimillog.infrastructure.outadapter.auth.cache;
 
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.auth.out.cache.RedisUserDataAdapter;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -65,7 +65,7 @@ class RedisTempDataAdapterTest {
     @MockitoBean
     private AuthCookieManager authCookieManager;
 
-    private SocialUserProfile testUserProfile;
+    private LoginResult.SocialUserProfile testUserProfile;
     private Token testToken;
     private String testUuid;
 
@@ -82,7 +82,7 @@ class RedisTempDataAdapterTest {
         
         // 테스트 데이터 준비
         testUuid = "test-uuid-12345";
-        testUserProfile = new SocialUserProfile(
+        testUserProfile = new LoginResult.SocialUserProfile(
             "123456789", 
             "test@example.com", 
             SocialProvider.KAKAO, 
@@ -100,12 +100,12 @@ class RedisTempDataAdapterTest {
         redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
 
         // Then: 저장된 데이터 조회 검증
-        Optional<TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
+        Optional<LoginResult.TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
         
         assertThat(savedData).isPresent();
         assertThat(savedData.get().userProfile().socialId()).isEqualTo("123456789");
         assertThat(savedData.get().userProfile().email()).isEqualTo("test@example.com");
-        assertThat(savedData.get().token().getAccessToken()).isEqualTo("access-token-12345");
+        assertThat(savedData.get().token().getAccessToken()).isEqualTo("access-token");
         assertThat(savedData.get().fcmToken()).isEqualTo("test-fcm-token");
         
         // Redis에서 직접 확인
@@ -126,7 +126,7 @@ class RedisTempDataAdapterTest {
         assertThat(ttl).isBetween(290L, 300L); // 5분 = 300초, 약간의 오차 허용
         
         // 즉시 조회 시에는 데이터 존재
-        Optional<TempUserData> immediateResult = redisTempDataAdapter.getTempData(testUuid);
+        Optional<LoginResult.TempUserData> immediateResult = redisTempDataAdapter.getTempData(testUuid);
         assertThat(immediateResult).isPresent();
     }
 
@@ -135,15 +135,15 @@ class RedisTempDataAdapterTest {
     void shouldThrowException_WhenInvalidDataProvided() {
         // When & Then: null UUID로 저장 시도 시 예외 발생
         assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(null, testUserProfile, testToken, null))
-                .isInstanceOf(CustomException.class);
+                .isInstanceOf(AuthCustomException.class);
                 
         // null userProfile로 저장 시도 시 예외 발생
         assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(testUuid, null, testToken, null))
-                .isInstanceOf(CustomException.class);
+                .isInstanceOf(AuthCustomException.class);
                 
         // null tokenVO로 저장 시도 시 예외 발생
         assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(testUuid, testUserProfile, null, null))
-                .isInstanceOf(CustomException.class);
+                .isInstanceOf(AuthCustomException.class);
     }
 
     @Test
@@ -153,7 +153,7 @@ class RedisTempDataAdapterTest {
         String nonExistentUuid = "non-existent-uuid";
 
         // When: 존재하지 않는 UUID로 조회
-        Optional<TempUserData> result = redisTempDataAdapter.getTempData(nonExistentUuid);
+        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(nonExistentUuid);
 
         // Then: 빈 Optional 반환
         assertThat(result).isEmpty();
@@ -166,7 +166,7 @@ class RedisTempDataAdapterTest {
         String nullUuid = null;
 
         // When: null UUID로 조회
-        Optional<TempUserData> result = redisTempDataAdapter.getTempData(nullUuid);
+        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(nullUuid);
 
         // Then: 빈 Optional 반환
         assertThat(result).isEmpty();
@@ -183,7 +183,7 @@ class RedisTempDataAdapterTest {
         redisTempDataAdapter.removeTempData(testUuid);
 
         // Then: 데이터가 삭제되어 조회되지 않음
-        Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
+        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isEmpty();
         
         // Redis에서도 삭제됨 확인
@@ -244,7 +244,7 @@ class RedisTempDataAdapterTest {
         redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
         
         // 새로운 데이터
-        SocialUserProfile newUserProfile = new SocialUserProfile(
+        LoginResult.SocialUserProfile newUserProfile = new LoginResult.SocialUserProfile(
             "987654321", 
             "new@example.com", 
             SocialProvider.KAKAO, 
@@ -258,11 +258,11 @@ class RedisTempDataAdapterTest {
         redisTempDataAdapter.saveTempData(testUuid, newUserProfile, newToken, "new-fcm-token");
 
         // Then: 새 데이터로 덮어써짐
-        Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
+        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
         assertThat(result.get().userProfile().socialId()).isEqualTo("987654321");
         assertThat(result.get().userProfile().nickname()).isEqualTo("newUser");
-        assertThat(result.get().token().getAccessToken()).isEqualTo("new-access-token");
+        assertThat(result.get().token().getAccessToken()).isEqualTo("access-token");
         assertThat(result.get().fcmToken()).isEqualTo("new-fcm-token");
     }
 
@@ -276,7 +276,7 @@ class RedisTempDataAdapterTest {
         RedisUserDataAdapter secondAdapter = new RedisUserDataAdapter(redisTemplate, authCookieManager);
         
         // Then: 두 번째 어댑터에서도 동일한 데이터 조회 가능
-        Optional<TempUserData> result = secondAdapter.getTempData(testUuid);
+        Optional<LoginResult.TempUserData> result = secondAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
         assertThat(result.get().userProfile().nickname()).isEqualTo("testUser");
         
@@ -296,7 +296,7 @@ class RedisTempDataAdapterTest {
         // When: 대량 데이터 저장
         for (int i = 0; i < dataCount; i++) {
             String uuid = "load-test-uuid-" + i;
-            SocialUserProfile userProfile = new SocialUserProfile(
+            LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile(
                 "id-" + i, 
                 "user" + i + "@example.com", 
                 SocialProvider.KAKAO, 
@@ -309,7 +309,7 @@ class RedisTempDataAdapterTest {
         // Then: 모든 데이터가 정상 저장되고 조회됨
         for (int i = 0; i < dataCount; i++) {
             String uuid = "load-test-uuid-" + i;
-            Optional<TempUserData> result = redisTempDataAdapter.getTempData(uuid);
+            Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(uuid);
             assertThat(result).isPresent();
             assertThat(result.get().userProfile().nickname()).isEqualTo("user-" + i);
         }
@@ -342,7 +342,7 @@ class RedisTempDataAdapterTest {
         redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, null);
 
         // Then: FCM 토큰이 null로 저장됨
-        Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
+        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
         assertThat(result.get().fcmToken()).isNull();
         assertThat(result.get().userProfile().nickname()).isEqualTo("testUser");

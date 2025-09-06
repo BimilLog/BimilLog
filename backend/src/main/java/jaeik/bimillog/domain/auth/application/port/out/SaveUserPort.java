@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.Token;
 import org.springframework.http.ResponseCookie;
 
@@ -27,7 +27,7 @@ public interface SaveUserPort {
      * @since 2.0.0
      * @author Jaeik
      */
-    List<ResponseCookie> handleExistingUserLogin(SocialUserProfile userProfile, Token token, String fcmToken);
+    List<ResponseCookie> handleExistingUserLogin(LoginResult.SocialUserProfile userProfile, Token token, String fcmToken);
 
     /**
      * <h3>신규 사용자 정보 저장</h3>
@@ -41,7 +41,7 @@ public interface SaveUserPort {
      * @since 2.0.0
      * @author Jaeik
      */
-    List<ResponseCookie> saveNewUser(String userName, String uuid, SocialUserProfile userProfile, Token token, String fcmToken);
+    List<ResponseCookie> saveNewUser(String userName, String uuid, LoginResult.SocialUserProfile userProfile, Token token, String fcmToken);
 
 
 

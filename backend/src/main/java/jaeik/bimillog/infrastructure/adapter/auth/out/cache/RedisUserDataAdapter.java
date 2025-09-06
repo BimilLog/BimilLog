@@ -1,9 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.cache;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.TempUserData;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -68,7 +67,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @author Jaeik
      */
     @Override
-    public void saveTempData(String uuid, SocialUserProfile userProfile, Token token, String fcmToken) {
+    public void saveTempData(String uuid, LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) {
         validateTempDataInputs(uuid, userProfile, token);
 
         executeRedisOperation(() -> {
@@ -95,7 +94,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @author Jaeik
      */
     @Override
-    public Optional<TempUserData> getTempData(String uuid) {
+    public Optional<LoginResult.TempUserData> getTempData(String uuid) {
         if (uuid == null) {
             log.debug("임시 데이터 조회에 null UUID 제공됨, 빈 결과 반환");
             return Optional.empty();
@@ -176,7 +175,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }
     }
 
-    private void validateTempDataInputs(String uuid, SocialUserProfile userProfile, Token token) {
+    private void validateTempDataInputs(String uuid, LoginResult.SocialUserProfile userProfile, Token token) {
         if (isInvalidUuid(uuid)) {
             log.warn(NULL_UUID_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_UUID);
@@ -195,7 +194,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         return uuid == null || uuid.trim().isEmpty();
     }
 
-    private Optional<TempUserData> convertRedisDataToDomain(String uuid, Object data) {
+    private Optional<LoginResult.TempUserData> convertRedisDataToDomain(String uuid, Object data) {
         if (data == null) {
             log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견되지 않음", uuid);
             return Optional.empty();
@@ -203,7 +202,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
         try {
             TemporaryUserDataDTO dto = convertToDTO(uuid, data);
-            return Optional.of(TempUserData.of(dto.toDomainProfile(), dto.getToken(), dto.getFcmToken()));
+            return Optional.of(LoginResult.TempUserData.of(dto.toDomainProfile(), dto.getToken(), dto.getFcmToken()));
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 변환 실패: {}", uuid, e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
@@ -227,7 +226,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     @SuppressWarnings("unchecked")
     private TemporaryUserDataDTO convertMapToDTO(Map<?, ?> map) {
         try {
-            Token token = extractTokenFromMap((Map<String, Object>) map.get("tokenVO"));
+            Token token = extractTokenFromMap((Map<String, Object>) map.get("token"));
             SocialLoginUserData socialData = extractSocialDataFromMap((Map<String, Object>) map.get("socialLoginUserData"));
             String fcmToken = (String) map.get("fcmToken");
 

@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.outadapter.auth.persistence.user;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
@@ -43,7 +43,7 @@ class SocialLoginAdapterTest {
     private SocialLoginAdapter socialLoginAdapter;
 
     private SocialLoginUserData testUserData;
-    private SocialUserProfile testUserProfile;
+    private LoginResult.SocialUserProfile testUserProfile;
     private Token testToken;
     private SocialLoginStrategy.StrategyLoginResult testStrategyResult;
 
@@ -59,7 +59,7 @@ class SocialLoginAdapterTest {
         // 테스트 데이터 설정
         testUserData = new SocialLoginUserData("123456789", "test@example.com", 
                 SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url", "fcm-token");
-        testUserProfile = new SocialUserProfile("123456789", "test@example.com", 
+        testUserProfile = new LoginResult.SocialUserProfile("123456789", "test@example.com", 
                 SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url");
         
         testToken = Token.createTemporaryToken("access-token", "refresh-token");

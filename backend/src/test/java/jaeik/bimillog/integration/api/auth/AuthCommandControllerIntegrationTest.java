@@ -2,6 +2,7 @@ package jaeik.bimillog.integration.api.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import java.util.Map;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -115,22 +116,42 @@ class AuthCommandControllerIntegrationTest {
 
     @Test
     @DisplayName("회원가입 통합 테스트 - 성공")
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     void signUp_IntegrationTest_Success() throws Exception {
-        // Given
+        // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
+        String provider = "KAKAO";
+        String code = "new_user_code";
+        String fcmToken = "integration-test-fcm-token";
+        
+        // 1. 소셜 로그인으로 임시 데이터 생성
+        var loginResult = mockMvc.perform(post("/api/auth/login")
+                        .param("provider", provider)
+                        .param("code", code)
+                        .param("fcmToken", fcmToken)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isOk())
+                .andReturn();
+        
+        // 2. 응답에서 UUID 추출
+        String responseBody = loginResult.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        var responseMap = mapper.readValue(responseBody, Map.class);
+        String uuid = (String) responseMap.get("uuid");
+        
         String userName = "통합테스트사용자";
-        String uuid = "integration-test-uuid-12345";
 
-        // When & Then
+        // 3. 회원가입 수행
         mockMvc.perform(post("/api/auth/signup")
                         .param("userName", userName)
-                        .cookie(new jakarta.servlet.http.Cookie("uuid", uuid))
+                        .cookie(new jakarta.servlet.http.Cookie("temp_user_id", uuid))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("SIGNUP_SUCCESS"));
+                .andExpect(jsonPath("$.data.message").value("회원 가입 성공"));
     }
 
     @Test
@@ -151,7 +172,7 @@ class AuthCommandControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("LOGOUT_SUCCESS"));
+                .andExpect(jsonPath("$.data.message").value("로그아웃 성공"));
     }
 
     @Test
@@ -171,7 +192,7 @@ class AuthCommandControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("WITHDRAW_SUCCESS"));
+                .andExpect(jsonPath("$.data.message").value("회원탈퇴 성공"));
     }
 
     @Test
