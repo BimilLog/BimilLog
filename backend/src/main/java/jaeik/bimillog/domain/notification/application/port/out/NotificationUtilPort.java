@@ -36,7 +36,7 @@ public interface NotificationUtilPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    boolean isEligibleForNotification(Long userId, NotificationType type);
+    boolean SseEligibleForNotification(Long userId, NotificationType type);
 
     /**
      * <h3>알림 수신 자격이 있는 FCM 토큰 조회</h3>
@@ -48,5 +48,5 @@ public interface NotificationUtilPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<FcmToken> findEligibleFcmTokens(Long userId, NotificationType type);
+    List<FcmToken> FcmEligibleFcmTokens(Long userId, NotificationType type);
 }

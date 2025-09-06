@@ -69,7 +69,7 @@ public class SseAdapter implements SsePort {
     public void send(SseMessage sseMessage) {
         try {
             // 알림 설정 확인
-            if (!notificationUtilPort.isEligibleForNotification(sseMessage.userId(), sseMessage.type())) {
+            if (!notificationUtilPort.SseEligibleForNotification(sseMessage.userId(), sseMessage.type())) {
                 return; // 알림 수신이 비활성화된 경우 전송하지 않음
             }
             

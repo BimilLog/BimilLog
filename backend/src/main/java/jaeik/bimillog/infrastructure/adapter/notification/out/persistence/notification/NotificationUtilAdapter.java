@@ -53,7 +53,7 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
      * @since 2.0.0
      */
     @Override
-    public boolean isEligibleForNotification(Long userId, NotificationType type) {
+    public boolean SseEligibleForNotification(Long userId, NotificationType type) {
         QUser qUser = QUser.user;
         QSetting qSetting = QSetting.setting;
         
@@ -79,7 +79,7 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
      * @since 2.0.0
      */
     @Override
-    public List<FcmToken> findEligibleFcmTokens(Long userId, NotificationType type) {
+    public List<FcmToken> FcmEligibleFcmTokens(Long userId, NotificationType type) {
         QUser qUser = QUser.user;
         QSetting qSetting = QSetting.setting;
         QFcmToken qFcmToken = QFcmToken.fcmToken;

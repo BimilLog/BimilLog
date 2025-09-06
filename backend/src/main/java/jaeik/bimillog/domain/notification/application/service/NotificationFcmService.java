@@ -7,8 +7,6 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilP
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +76,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendCommentNotification(Long postUserId, String commenterName) {
         try {
-            List<FcmToken> tokens = notificationUtilPort.findEligibleFcmTokens(postUserId, NotificationType.COMMENT);
+            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT);
             String title = commenterName + "님이 댓글을 남겼습니다!";
             String body = "지금 확인해보세요!";
             sendNotifications(tokens, title, body);
@@ -96,7 +94,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendPaperPlantNotification(Long farmOwnerId) {
         try {
-            List<FcmToken> tokens = notificationUtilPort.findEligibleFcmTokens(farmOwnerId, NotificationType.PAPER);
+            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(farmOwnerId, NotificationType.PAPER);
             String title = "롤링페이퍼에 메시지가 작성되었어요!";
             String body = "지금 확인해보세요!";
             sendNotifications(tokens, title, body);
@@ -116,7 +114,7 @@ public class NotificationFcmService implements NotificationFcmUseCase {
     @Override
     public void sendPostFeaturedNotification(Long userId, String title, String body) {
         try {
-            List<FcmToken> tokens = notificationUtilPort.findEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
+            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
             sendNotifications(tokens, title, body);
             log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", userId, tokens.size());
         } catch (Exception e) {
