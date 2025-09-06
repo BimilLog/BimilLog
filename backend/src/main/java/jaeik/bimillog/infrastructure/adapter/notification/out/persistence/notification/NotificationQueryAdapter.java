@@ -1,9 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification;
 
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationQueryPort;
-import jaeik.bimillog.domain.notification.entity.NotificationInfo;
+import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.QNotification;
 import jaeik.bimillog.domain.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
@@ -33,24 +32,17 @@ public class NotificationQueryAdapter implements NotificationQueryPort {
      * <p>지정된 사용자의 알림 목록을 최신순으로 조회합니다.</p>
      *
      * @param userId 사용자 ID
-     * @return 알림 DTO 목록
+     * @return 알림 엔티티 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationInfo> getNotificationList(Long userId) {
+    public List<Notification> getNotificationList(Long userId) {
 
         return jpaQueryFactory
-                .select(Projections.constructor(NotificationInfo.class,
-                        notification.id,
-                        notification.content,
-                        notification.url,
-                        notification.notificationType,
-                        notification.isRead,
-                        notification.createdAt))
-                .from(notification)
-                .innerJoin(notification.users, user)
+                .selectFrom(notification)
+                .innerJoin(notification.users, user).fetchJoin()
                 .where(notification.users.id.eq(userId))
                 .orderBy(notification.createdAt.desc())
                 .fetch();

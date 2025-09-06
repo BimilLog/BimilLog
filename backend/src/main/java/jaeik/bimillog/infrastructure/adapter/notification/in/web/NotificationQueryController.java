@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.notification.in.web;
 
 import jaeik.bimillog.domain.notification.application.port.in.NotificationQueryUseCase;
-import jaeik.bimillog.domain.notification.entity.NotificationInfo;
+import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.infrastructure.adapter.notification.in.web.dto.NotificationDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -44,30 +44,30 @@ public class NotificationQueryController {
     @GetMapping("/list")
     public ResponseEntity<List<NotificationDTO>> getNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<NotificationInfo> notificationInfos = notificationQueryUseCase.getNotificationList(userDetails);
-        List<NotificationDTO> notificationDTOS = notificationInfos.stream()
+        List<Notification> notifications = notificationQueryUseCase.getNotificationList(userDetails);
+        List<NotificationDTO> notificationDTOS = notifications.stream()
                 .map(this::toDto)
                 .toList();
         return ResponseEntity.ok(notificationDTOS);
     }
 
     /**
-     * <h3>도메인 값 객체를 DTO로 변환</h3>
-     * <p>NotificationInfo를 NotificationDTO로 변환합니다.</p>
+     * <h3>도메인 엔티티를 DTO로 변환</h3>
+     * <p>Notification을 NotificationDTO로 변환합니다.</p>
      *
-     * @param notificationInfo 도메인 알림 정보
+     * @param notification 도메인 알림 엔티티
      * @return NotificationDTO
      * @author Jaeik
      * @since 2.0.0
      */
-    private NotificationDTO toDto(NotificationInfo notificationInfo) {
+    private NotificationDTO toDto(Notification notification) {
         return NotificationDTO.builder()
-                .id(notificationInfo.id())
-                .content(notificationInfo.content())
-                .url(notificationInfo.url())
-                .notificationType(notificationInfo.notificationType())
-                .isRead(notificationInfo.isRead())
-                .createdAt(notificationInfo.createdAt())
+                .id(notification.getId())
+                .content(notification.getContent())
+                .url(notification.getUrl())
+                .notificationType(notification.getNotificationType())
+                .isRead(notification.isRead())
+                .createdAt(notification.getCreatedAt())
                 .build();
     }
 }

@@ -12,7 +12,7 @@ import java.time.Instant;
  * <h2>알림 응답 DTO</h2>
  * <p>
  * 알림 조회 API 응답에 사용되는 데이터 전송 객체입니다.
- * 도메인의 NotificationInfo를 웹 계층의 형태로 변환합니다.
+ * 도메인의 Notification 엔티티를 웹 계층의 형태로 변환합니다.
  * </p>
  *
  * @author Jaeik

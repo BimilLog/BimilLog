@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
-import jaeik.bimillog.domain.notification.entity.NotificationInfo;
+import jaeik.bimillog.domain.notification.entity.Notification;
 
 import java.util.List;
 
@@ -22,5 +22,5 @@ public interface NotificationQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<NotificationInfo> getNotificationList(Long userId);
+    List<Notification> getNotificationList(Long userId);
 }

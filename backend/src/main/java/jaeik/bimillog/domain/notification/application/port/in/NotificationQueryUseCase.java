@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.port.in;
 
-import jaeik.bimillog.domain.notification.entity.NotificationInfo;
+import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 
 import java.util.List;
@@ -23,5 +23,5 @@ public interface NotificationQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<NotificationInfo> getNotificationList(CustomUserDetails userDetails);
+    List<Notification> getNotificationList(CustomUserDetails userDetails);
 }
