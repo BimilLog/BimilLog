@@ -1,6 +1,9 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
+import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+
+import java.util.List;
 
 /**
  * <h2>알림 유틸리티 포트</h2>
@@ -34,4 +37,16 @@ public interface NotificationUtilPort {
      * @since 2.0.0
      */
     boolean isEligibleForNotification(Long userId, NotificationType type);
+
+    /**
+     * <h3>알림 수신 자격이 있는 FCM 토큰 조회</h3>
+     * <p>사용자가 특정 타입의 알림을 받을 수 있는 경우 해당 사용자의 모든 FCM 토큰을 조회합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param type   알림 타입
+     * @return 알림 수신 자격이 있는 경우 FCM 토큰 목록, 없는 경우 빈 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    List<FcmToken> findEligibleFcmTokens(Long userId, NotificationType type);
 }

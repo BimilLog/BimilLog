@@ -6,9 +6,6 @@ import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto.FcmMessageDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto.FcmSendDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.FcmTokenRepository;
@@ -19,7 +16,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestTemplate;
 
@@ -69,29 +65,6 @@ public class FcmAdapter implements FcmPort {
         restTemplate.exchange(API_URL, HttpMethod.POST, entity, String.class);
     }
 
-    /**
-     * <h3>FCM 알림 전송</h3>
-     * <p>지정된 사용자에게 FCM 알림을 비동기적으로 전송합니다.</p>
-     *
-     * @param userId  알림을 받을 사용자의 ID
-     * @param type    알림 유형
-     * @param message 알림 메시지
-     * @param url     알림 URL
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Async("fcmNotificationExecutor")
-    public void send(Long userId, NotificationType type, String message, String url) {
-        try {
-            List<FcmToken> fcmTokens = findValidFcmTokensByNotificationType(userId, type);
-            if (hasNoValidTokens(fcmTokens)) return;
-
-            sendNotificationsToTokens(fcmTokens, type, message, url);
-        } catch (Exception e) {
-            throw new NotificationCustomException(NotificationErrorCode.FCM_SEND_ERROR, e);
-        }
-    }
 
     /**
      * <h3>FCM 토큰 저장</h3>
@@ -108,20 +81,7 @@ public class FcmAdapter implements FcmPort {
     }
 
 
-    /* ===================== FCM Token Query Methods ===================== */
-
-    /**
-     * <h3>알림 타입별 유효한 FCM 토큰 조회</h3>
-     * <p>특정 알림 타입이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
-     *
-     * @param userId 조회할 사용자의 ID
-     * @param notificationType 알림 타입 (PAPER, COMMENT, POST_FEATURED)
-     * @return FCM 토큰 엔티티 목록
-     */
-    @Override
-    public List<FcmToken> findValidFcmTokensByNotificationType(Long userId, NotificationType notificationType) {
-        return fcmTokenRepository.findValidFcmTokensByNotificationType(userId, notificationType);
-    }
+    /* ===================== FCM Token Management Methods ===================== */
 
     /**
      * <h3>사용자 ID로 FCM 토큰 삭제</h3>
@@ -206,22 +166,4 @@ public class FcmAdapter implements FcmPort {
         return new HttpEntity<>(message, headers);
     }
 
-    private boolean hasNoValidTokens(List<FcmToken> fcmTokens) {
-        return fcmTokens == null || fcmTokens.isEmpty();
-    }
-
-    private void sendNotificationsToTokens(List<FcmToken> fcmTokens, NotificationType type, String message, String url) throws IOException {
-        for (FcmToken fcmToken : fcmTokens) {
-            FcmMessage fcmMessage = createFcmMessage(fcmToken, message);
-            sendMessageTo(fcmMessage);
-        }
-    }
-
-    private FcmMessage createFcmMessage(FcmToken fcmToken, String message) {
-        return FcmMessage.of(
-                fcmToken.getFcmRegistrationToken(),
-                message,
-                DEFAULT_NOTIFICATION_BODY
-        );
-    }
 }

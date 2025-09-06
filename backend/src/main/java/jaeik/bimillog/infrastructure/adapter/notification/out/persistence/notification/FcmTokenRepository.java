@@ -1,13 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification;
 
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * <h2>FCM 토큰 저장소</h2>
@@ -19,33 +14,6 @@ import java.util.List;
 @Repository
 public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
 
-    /**
-     * <h3>알림 타입별 유효한 FCM 토큰 조회</h3>
-     * <p>
-     * 특정 알림 타입이 활성화된 사용자의 FCM 토큰만 조회합니다.
-     * 알림 타입에 따라 해당하는 설정 필드를 동적으로 확인합니다.
-     * </p>
-     *
-     * @param userId 사용자 ID
-     * @param notificationType 알림 타입 (PAPER, COMMENT, POST_FEATURED)
-     * @return 유효한 FCM 토큰 리스트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Query("""
-        SELECT f FROM FcmToken f
-        JOIN f.user u
-        JOIN u.setting s
-        WHERE u.id = :userId
-        AND (
-            (:notificationType = 'PAPER' AND s.messageNotification = true) OR
-            (:notificationType = 'COMMENT' AND s.commentNotification = true) OR
-            (:notificationType = 'POST_FEATURED' AND s.postFeaturedNotification = true)
-        )
-        """)
-    List<FcmToken> findValidFcmTokensByNotificationType(
-            @Param("userId") Long userId, 
-            @Param("notificationType") NotificationType notificationType);
 
 
     /**

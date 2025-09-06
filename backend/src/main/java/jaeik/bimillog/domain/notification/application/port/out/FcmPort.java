@@ -2,10 +2,8 @@ package jaeik.bimillog.domain.notification.application.port.out;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * <h2>FCM 포트</h2>
@@ -48,30 +46,5 @@ public interface FcmPort {
      */
     void sendMessageTo(FcmMessage fcmMessage) throws IOException;
 
-    /**
-     * <h3>알림 타입별 유효한 FCM 토큰 조회</h3>
-     * <p>특정 알림 타입이 활성화된 사용자의 FCM 토큰 목록을 조회합니다.</p>
-     *
-     * @param userId 조회할 사용자의 ID
-     * @param notificationType 알림 타입 (PAPER, COMMENT, POST_FEATURED)
-     * @return FCM 토큰 엔티티 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<FcmToken> findValidFcmTokensByNotificationType(Long userId, NotificationType notificationType);
 
-    /**
-     * <h3>알림 전송</h3>
-     * <p>
-     * 사용자에게 알림을 전송합니다.
-     * </p>
-     *
-     * @param userId 사용자 ID
-     * @param type   알림 유형
-     * @param message 알림 메시지
-     * @param url    알림 URL
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void send(Long userId, NotificationType type, String message, String url);
 }

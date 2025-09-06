@@ -68,6 +68,11 @@ public class SseAdapter implements SsePort {
     @Override
     public void send(SseMessage sseMessage) {
         try {
+            // 알림 설정 확인
+            if (!notificationUtilPort.isEligibleForNotification(sseMessage.userId(), sseMessage.type())) {
+                return; // 알림 수신이 비활성화된 경우 전송하지 않음
+            }
+            
             User user = userQueryUseCase.findById(sseMessage.userId())
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
             notificationCommandPort.save(user, sseMessage.type(), sseMessage.message(), sseMessage.url());
@@ -77,6 +82,8 @@ public class SseAdapter implements SsePort {
                     (emitterId, emitter) -> {
                         sendNotification(emitter, emitterId, sseMessage);
                     });
+        } catch (NotificationCustomException e) {
+            throw e; // 비즈니스 예외는 그대로 전파
         } catch (Exception e) {
             throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_SEND_ERROR, e);
         }

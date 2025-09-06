@@ -1,14 +1,18 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
+import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.notification.entity.QFcmToken;
+import jaeik.bimillog.domain.user.entity.QSetting;
+import jaeik.bimillog.domain.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
  * <h2>알림 유틸리티 어댑터</h2>
@@ -21,8 +25,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NotificationUtilAdapter implements NotificationUtilPort {
 
-    private final UserQueryUseCase userQueryUseCase;
-
+    private final JPAQueryFactory queryFactory;
 
     /**
      * <h3>시간 포함 Emitter ID 생성</h3>
@@ -51,21 +54,68 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
      */
     @Override
     public boolean isEligibleForNotification(Long userId, NotificationType type) {
+        QUser qUser = QUser.user;
+        QSetting qSetting = QSetting.setting;
+        
+        return queryFactory
+            .select(qUser)
+            .from(qUser)
+            .join(qUser.setting, qSetting)
+            .where(
+                qUser.id.eq(userId),
+                notificationTypeCondition(type, qSetting)
+            )
+            .fetchFirst() != null;
+    }
+
+    /**
+     * <h3>알림 수신 자격이 있는 FCM 토큰 조회</h3>
+     * <p>사용자가 특정 타입의 알림을 받을 수 있는 경우 해당 사용자의 모든 FCM 토큰을 조회합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param type   알림 타입
+     * @return 알림 수신 자격이 있는 경우 FCM 토큰 목록, 없는 경우 빈 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<FcmToken> findEligibleFcmTokens(Long userId, NotificationType type) {
+        QUser qUser = QUser.user;
+        QSetting qSetting = QSetting.setting;
+        QFcmToken qFcmToken = QFcmToken.fcmToken;
+        
+        return queryFactory
+            .selectFrom(qFcmToken)
+            .join(qFcmToken.user, qUser)
+            .join(qUser.setting, qSetting)
+            .where(
+                qUser.id.eq(userId),
+                notificationTypeCondition(type, qSetting)
+            )
+            .fetch();
+    }
+
+    /**
+     * <h3>알림 타입별 조건 생성</h3>
+     * <p>알림 타입에 따라 적절한 BooleanExpression을 생성합니다.</p>
+     *
+     * @param type 알림 타입
+     * @param qSetting 설정 엔티티 Q클래스
+     * @return 알림 타입에 해당하는 조건 표현식
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private BooleanExpression notificationTypeCondition(NotificationType type, QSetting qSetting) {
+        // ADMIN, INITIATE는 항상 true
         if (type == NotificationType.ADMIN || type == NotificationType.INITIATE) {
-            return true;
+            return Expressions.TRUE;
         }
-
-        Optional<User> userOptional = userQueryUseCase.findById(userId);
-        if (userOptional.isEmpty()) {
-            return false;
-        }
-
-        Setting setting = userOptional.get().getSetting();
+        
         return switch (type) {
-            case PAPER -> setting.isMessageNotification();
-            case COMMENT -> setting.isCommentNotification();
-            case POST_FEATURED -> setting.isPostFeaturedNotification();
-            default -> false; // ADMIN, INITIATE는 위에서 처리했으므로 사실상 도달하지 않음
+            case PAPER -> qSetting.messageNotification.isTrue();
+            case COMMENT -> qSetting.commentNotification.isTrue();
+            case POST_FEATURED -> qSetting.postFeaturedNotification.isTrue();
+            default -> Expressions.FALSE;
         };
     }
 }

@@ -98,6 +98,7 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 성공")
     void shouldSend_WhenValidInput() {
         // Given
+        given(notificationUtilPort.isEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
         given(emitterRepository.findAllEmitterByUserId(userId))
                 .willReturn(Map.of(emitterId, mockEmitter));
@@ -107,6 +108,7 @@ class SseAdapterTest {
         sseAdapter.send(sseMessage);
 
         // Then
+        verify(notificationUtilPort).isEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(mockUser, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         verify(emitterRepository).findAllEmitterByUserId(userId);
@@ -116,14 +118,16 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 사용자 없음 예외")
     void shouldThrowException_WhenUserNotFound() {
         // Given
+        given(notificationUtilPort.isEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
         given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         assertThatThrownBy(() -> sseAdapter.send(sseMessage))
                 .isInstanceOf(NotificationCustomException.class)
-                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.INVALID_USER_CONTEXT);
 
+        verify(notificationUtilPort).isEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort, never()).save(any(), any(), any(), any());
         verify(emitterRepository, never()).findAllEmitterByUserId(any());
@@ -133,7 +137,7 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - 알림 저장 실패 시 예외")
     void shouldThrowException_WhenNotificationSaveFails() {
         // Given
-        
+        given(notificationUtilPort.isEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
         doThrow(new RuntimeException("DB 저장 실패"))
                 .when(notificationCommandPort).save(any(), any(), any(), any());
@@ -144,6 +148,7 @@ class SseAdapterTest {
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
 
+        verify(notificationUtilPort).isEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(mockUser, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         verify(emitterRepository, never()).findAllEmitterByUserId(any());
@@ -153,7 +158,7 @@ class SseAdapterTest {
     @DisplayName("SSE 알림 전송 - Emitter가 없는 경우")
     void shouldHandleEmptyEmitters_WhenNoEmittersExist() {
         // Given
-        
+        given(notificationUtilPort.isEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
         given(emitterRepository.findAllEmitterByUserId(userId)).willReturn(Map.of());
 
@@ -162,6 +167,7 @@ class SseAdapterTest {
         sseAdapter.send(sseMessage);
 
         // Then
+        verify(notificationUtilPort).isEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(mockUser, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         verify(emitterRepository).findAllEmitterByUserId(userId);
@@ -184,7 +190,7 @@ class SseAdapterTest {
     @DisplayName("다양한 알림 타입 전송 테스트")
     void shouldSendDifferentNotificationTypes() {
         // Given
-        
+        given(notificationUtilPort.isEligibleForNotification(userId, NotificationType.PAPER)).willReturn(true);
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
         given(emitterRepository.findAllEmitterByUserId(userId))
                 .willReturn(Map.of(emitterId, mockEmitter));
@@ -194,6 +200,7 @@ class SseAdapterTest {
         sseAdapter.send(sseMessage);
 
         // Then
+        verify(notificationUtilPort).isEligibleForNotification(userId, NotificationType.PAPER);
         verify(notificationCommandPort).save(mockUser, NotificationType.PAPER, "롤링페이퍼 메시지", "/paper/url");
     }
 
@@ -201,7 +208,7 @@ class SseAdapterTest {
     @DisplayName("여러 Emitter에 동시 전송 테스트")
     void shouldSendToMultipleEmitters() {
         // Given
-        
+        given(notificationUtilPort.isEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
         SseEmitter emitter1 = mock(SseEmitter.class);
         SseEmitter emitter2 = mock(SseEmitter.class);
         
@@ -217,10 +224,28 @@ class SseAdapterTest {
         sseAdapter.send(sseMessage);
 
         // Then
+        verify(notificationUtilPort).isEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(mockUser, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         verify(emitterRepository).findAllEmitterByUserId(userId);
         
         // 두 개의 Emitter 모두에 전송되어야 함 (실제 sendNotification은 private 메서드이므로 직접 검증은 어려움)
+    }
+
+    @Test
+    @DisplayName("SSE 알림 전송 - 알림 설정 비활성화된 경우 조기 리턴")
+    void shouldNotSend_WhenNotificationDisabled() {
+        // Given
+        given(notificationUtilPort.isEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(false);
+
+        // When
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        sseAdapter.send(sseMessage);
+
+        // Then: 알림 설정 확인만 하고 나머지는 호출되지 않아야 함
+        verify(notificationUtilPort).isEligibleForNotification(userId, NotificationType.COMMENT);
+        verify(userQueryUseCase, never()).findById(any());
+        verify(notificationCommandPort, never()).save(any(), any(), any(), any());
+        verify(emitterRepository, never()).findAllEmitterByUserId(any());
     }
 }

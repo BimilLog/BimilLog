@@ -2,9 +2,6 @@ package jaeik.bimillog.infrastructure.outadapter.notification.fcm;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -17,14 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -43,9 +33,6 @@ class FcmAdapterTest {
 
     @Mock
     private FcmTokenRepository fcmTokenRepository;
-
-    @Mock
-    private RestTemplate restTemplate;
 
     @InjectMocks
     private FcmAdapter fcmAdapter;
@@ -100,62 +87,8 @@ class FcmAdapterTest {
         verify(fcmTokenRepository).save(any(FcmToken.class));
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 메시지 알림용 유효한 FCM 토큰 조회")
-    void shouldFindValidFcmTokensForMessageNotification_WhenUserExists() {
-        // Given: 메시지 알림용 FCM 토큰 목록
-        List<FcmToken> expectedTokens = Arrays.asList(testFcmToken);
-        given(fcmTokenRepository.findValidFcmTokensByNotificationType(1L, NotificationType.PAPER))
-                .willReturn(expectedTokens);
 
-        // When: 메시지 알림용 FCM 토큰 조회
-        List<FcmToken> result = fcmAdapter.findValidFcmTokensByNotificationType(1L, NotificationType.PAPER);
 
-        // Then: 조회 결과 검증
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(testFcmToken);
-
-        verify(fcmTokenRepository).findValidFcmTokensByNotificationType(1L, NotificationType.PAPER);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 댓글 알림용 유효한 FCM 토큰 조회")
-    void shouldFindValidFcmTokensForCommentNotification_WhenUserExists() {
-        // Given: 댓글 알림용 FCM 토큰 목록
-        List<FcmToken> expectedTokens = Arrays.asList(testFcmToken);
-        given(fcmTokenRepository.findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT))
-                .willReturn(expectedTokens);
-
-        // When: 댓글 알림용 FCM 토큰 조회
-        List<FcmToken> result = fcmAdapter.findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT);
-
-        // Then: 조회 결과 검증
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(testFcmToken);
-
-        verify(fcmTokenRepository).findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 인기글 알림용 유효한 FCM 토큰 조회")
-    void shouldFindValidFcmTokensForPostFeaturedNotification_WhenUserExists() {
-        // Given: 인기글 알림용 FCM 토큰 목록
-        List<FcmToken> expectedTokens = Arrays.asList(testFcmToken);
-        given(fcmTokenRepository.findValidFcmTokensByNotificationType(1L, NotificationType.POST_FEATURED))
-                .willReturn(expectedTokens);
-
-        // When: 인기글 알림용 FCM 토큰 조회
-        List<FcmToken> result = fcmAdapter.findValidFcmTokensByNotificationType(1L, NotificationType.POST_FEATURED);
-
-        // Then: 조회 결과 검증
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(testFcmToken);
-
-        verify(fcmTokenRepository).findValidFcmTokensByNotificationType(1L, NotificationType.POST_FEATURED);
-    }
 
     @Test
     @DisplayName("정상 케이스 - 사용자 ID로 FCM 토큰 삭제")
@@ -171,72 +104,7 @@ class FcmAdapterTest {
         verify(fcmTokenRepository).deleteByUser_Id(userId);
     }
 
-    @Test
-    @DisplayName("경계 케이스 - 빈 FCM 토큰 목록 조회")
-    void shouldReturnEmptyList_WhenNoValidFcmTokensFound() {
-        // Given: 빈 토큰 목록
-        given(fcmTokenRepository.findValidFcmTokensByNotificationType(1L, NotificationType.PAPER))
-                .willReturn(Collections.emptyList());
 
-        // When: 메시지 알림용 FCM 토큰 조회
-        List<FcmToken> result = fcmAdapter.findValidFcmTokensByNotificationType(1L, NotificationType.PAPER);
 
-        // Then: 빈 목록 반환 검증
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
 
-        verify(fcmTokenRepository).findValidFcmTokensByNotificationType(1L, NotificationType.PAPER);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - FCM 알림 전송 (토큰이 없는 경우 조기 리턴)")
-    void shouldReturnEarly_WhenNoFcmTokensAvailable() {
-        // Given: 빈 FCM 토큰 목록
-        given(fcmTokenRepository.findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT))
-                .willReturn(Collections.emptyList());
-
-        // When: FCM 알림 전송 시도
-        fcmAdapter.send(1L, NotificationType.COMMENT, "테스트 알림 메시지", "/test/url");
-
-        // Then: FCM 토큰 조회만 수행되고 실제 전송은 수행되지 않음
-        verify(fcmTokenRepository).findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT);
-        // RestTemplate 호출이 없어야 함 (조기 리턴으로 인해)
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - FCM 알림 전송 중 예외 발생")
-    void shouldThrowCustomException_WhenFcmSendFails() {
-        // TODO: 테스트 실패 - 메인 로직 Firebase 연동 검증 필요
-        // 기존: 단순 예외 발생만 확인
-        // 수정: 실제 Firebase FCM API 호출 실패에 대한 적절한 예외 처리 검증
-        
-        // Given: FCM 토큰은 존재하지만 Firebase API 호출 실패 상황
-        List<FcmToken> tokens = Arrays.asList(testFcmToken);
-        given(fcmTokenRepository.findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT))
-                .willReturn(tokens);
-
-        // Firebase Admin SDK가 초기화되지 않은 상황에서는 예외 발생
-        // When & Then: FCM 전송 중 Firebase 연결 실패 시 적절한 예외 발생 검증
-        assertThatThrownBy(() -> fcmAdapter.send(1L, NotificationType.COMMENT, "테스트 알림 메시지", "/test/url"))
-                .isInstanceOf(NotificationCustomException.class)
-                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.FCM_SEND_ERROR);
-
-        verify(fcmTokenRepository).findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT);
-        // 실제 구현에서는 Firebase Admin SDK 초기화 상태도 확인해야 함
-    }
-
-    @Test
-    @DisplayName("경계 케이스 - null FCM 토큰 목록 처리")
-    void shouldReturnEarly_WhenFcmTokensIsNull() {
-        // Given: null FCM 토큰 목록
-        given(fcmTokenRepository.findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT))
-                .willReturn(null);
-
-        // When: FCM 알림 전송 시도
-        fcmAdapter.send(1L, NotificationType.COMMENT, "테스트 알림 메시지", "/test/url");
-
-        // Then: 조기 리턴으로 실제 전송 수행되지 않음
-        verify(fcmTokenRepository).findValidFcmTokensByNotificationType(1L, NotificationType.COMMENT);
-        // RestTemplate 호출이 없어야 함
-    }
 }

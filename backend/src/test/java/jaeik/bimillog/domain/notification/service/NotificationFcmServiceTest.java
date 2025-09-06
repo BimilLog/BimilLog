@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationToUserPort;
+import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.application.service.NotificationFcmService;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
@@ -45,6 +46,9 @@ class NotificationFcmServiceTest {
 
     @Mock
     private NotificationToUserPort notificationToUserPort;
+
+    @Mock
+    private NotificationUtilPort notificationUtilPort;
 
     @Mock
     private User user;
@@ -144,13 +148,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token2")
         );
         
-        given(fcmPort.findValidFcmTokensByNotificationType(postUserId, NotificationType.COMMENT)).willReturn(fcmTokens);
+        given(notificationUtilPort.findEligibleFcmTokens(postUserId, NotificationType.COMMENT)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendCommentNotification(postUserId, commenterName);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(postUserId, NotificationType.COMMENT);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(postUserId, NotificationType.COMMENT);
         verify(fcmPort, times(2)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -162,13 +166,13 @@ class NotificationFcmServiceTest {
         Long postUserId = 1L;
         String commenterName = "테스트사용자";
         
-        given(fcmPort.findValidFcmTokensByNotificationType(postUserId, NotificationType.COMMENT)).willReturn(Collections.emptyList());
+        given(notificationUtilPort.findEligibleFcmTokens(postUserId, NotificationType.COMMENT)).willReturn(Collections.emptyList());
 
         // When
         notificationFcmService.sendCommentNotification(postUserId, commenterName);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(postUserId, NotificationType.COMMENT);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(postUserId, NotificationType.COMMENT);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -180,14 +184,14 @@ class NotificationFcmServiceTest {
         Long postUserId = 1L;
         String commenterName = "테스트사용자";
         
-        given(fcmPort.findValidFcmTokensByNotificationType(postUserId, NotificationType.COMMENT))
+        given(notificationUtilPort.findEligibleFcmTokens(postUserId, NotificationType.COMMENT))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));
 
         // When
         notificationFcmService.sendCommentNotification(postUserId, commenterName);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(postUserId, NotificationType.COMMENT);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(postUserId, NotificationType.COMMENT);
         // 예외가 발생해도 서비스는 정상적으로 완료되어야 함
     }
 
@@ -202,13 +206,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token2")
         );
         
-        given(fcmPort.findValidFcmTokensByNotificationType(farmOwnerId, NotificationType.PAPER)).willReturn(fcmTokens);
+        given(notificationUtilPort.findEligibleFcmTokens(farmOwnerId, NotificationType.PAPER)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendPaperPlantNotification(farmOwnerId);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(farmOwnerId, NotificationType.PAPER);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(farmOwnerId, NotificationType.PAPER);
         verify(fcmPort, times(2)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -219,13 +223,13 @@ class NotificationFcmServiceTest {
         // Given
         Long farmOwnerId = 1L;
         
-        given(fcmPort.findValidFcmTokensByNotificationType(farmOwnerId, NotificationType.PAPER)).willReturn(Collections.emptyList());
+        given(notificationUtilPort.findEligibleFcmTokens(farmOwnerId, NotificationType.PAPER)).willReturn(Collections.emptyList());
 
         // When
         notificationFcmService.sendPaperPlantNotification(farmOwnerId);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(farmOwnerId, NotificationType.PAPER);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(farmOwnerId, NotificationType.PAPER);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -242,13 +246,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token1")
         );
         
-        given(fcmPort.findValidFcmTokensByNotificationType(userId, NotificationType.POST_FEATURED)).willReturn(fcmTokens);
+        given(notificationUtilPort.findEligibleFcmTokens(userId, NotificationType.POST_FEATURED)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendPostFeaturedNotification(userId, title, body);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(userId, NotificationType.POST_FEATURED);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
         verify(fcmPort, times(1)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -261,13 +265,13 @@ class NotificationFcmServiceTest {
         String title = "축하합니다!";
         String body = "게시글이 인기글로 선정되었습니다.";
         
-        given(fcmPort.findValidFcmTokensByNotificationType(userId, NotificationType.POST_FEATURED)).willReturn(Collections.emptyList());
+        given(notificationUtilPort.findEligibleFcmTokens(userId, NotificationType.POST_FEATURED)).willReturn(Collections.emptyList());
 
         // When
         notificationFcmService.sendPostFeaturedNotification(userId, title, body);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(userId, NotificationType.POST_FEATURED);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -280,14 +284,14 @@ class NotificationFcmServiceTest {
         String title = "축하합니다!";
         String body = "게시글이 인기글로 선정되었습니다.";
         
-        given(fcmPort.findValidFcmTokensByNotificationType(userId, NotificationType.POST_FEATURED))
+        given(notificationUtilPort.findEligibleFcmTokens(userId, NotificationType.POST_FEATURED))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));
 
         // When
         notificationFcmService.sendPostFeaturedNotification(userId, title, body);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(userId, NotificationType.POST_FEATURED);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
         // 예외가 발생해도 서비스는 정상적으로 완료되어야 함
     }
 
@@ -369,13 +373,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token1")
         );
         
-        given(fcmPort.findValidFcmTokensByNotificationType(postUserId, NotificationType.COMMENT)).willReturn(fcmTokens);
+        given(notificationUtilPort.findEligibleFcmTokens(postUserId, NotificationType.COMMENT)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendCommentNotification(postUserId, commenterName);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(postUserId, NotificationType.COMMENT);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(postUserId, NotificationType.COMMENT);
         verify(fcmPort, times(1)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -386,13 +390,13 @@ class NotificationFcmServiceTest {
         // Given
         Long farmOwnerId = null;
         
-        given(fcmPort.findValidFcmTokensByNotificationType(farmOwnerId, NotificationType.PAPER)).willReturn(Collections.emptyList());
+        given(notificationUtilPort.findEligibleFcmTokens(farmOwnerId, NotificationType.PAPER)).willReturn(Collections.emptyList());
 
         // When
         notificationFcmService.sendPaperPlantNotification(farmOwnerId);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(farmOwnerId, NotificationType.PAPER);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(farmOwnerId, NotificationType.PAPER);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -409,13 +413,13 @@ class NotificationFcmServiceTest {
                 createMockFcmToken("token1")
         );
         
-        given(fcmPort.findValidFcmTokensByNotificationType(userId, NotificationType.POST_FEATURED)).willReturn(fcmTokens);
+        given(notificationUtilPort.findEligibleFcmTokens(userId, NotificationType.POST_FEATURED)).willReturn(fcmTokens);
 
         // When
         notificationFcmService.sendPostFeaturedNotification(userId, title, body);
 
         // Then
-        verify(fcmPort, times(1)).findValidFcmTokensByNotificationType(userId, NotificationType.POST_FEATURED);
+        verify(notificationUtilPort, times(1)).findEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
         verify(fcmPort, times(1)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
