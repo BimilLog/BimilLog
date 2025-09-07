@@ -6,9 +6,9 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.UserCommandController;
-import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,7 +65,7 @@ class UserCommandControllerTest {
                 .content("부적절한 댓글입니다")
                 .build();
 
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(1L)
                 .userName("testuser")
                 .role(UserRole.USER)
@@ -74,7 +74,7 @@ class UserCommandControllerTest {
                 .tokenId(100L)
                 .fcmTokenId(null)
                 .build();
-        CustomUserDetails userDetails = new CustomUserDetails(userDTO);
+        CustomUserDetails userDetails = new CustomUserDetails(userDetail);
 
         // When & Then
         mockMvc.perform(post("/api/user/report")
@@ -106,7 +106,7 @@ class UserCommandControllerTest {
                 .content("스팸 게시글입니다")
                 .build();
 
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(2L)
                 .userName("reporter")
                 .role(UserRole.USER)
@@ -115,7 +115,7 @@ class UserCommandControllerTest {
                 .tokenId(101L)
                 .fcmTokenId(null)
                 .build();
-        CustomUserDetails userDetails = new CustomUserDetails(userDTO);
+        CustomUserDetails userDetails = new CustomUserDetails(userDetail);
 
         // When & Then
         mockMvc.perform(post("/api/user/report")
@@ -147,7 +147,7 @@ class UserCommandControllerTest {
                 .content("새로운 기능을 건의합니다")
                 .build();
 
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(3L)
                 .userName("suggester")
                 .role(UserRole.USER)
@@ -156,7 +156,7 @@ class UserCommandControllerTest {
                 .tokenId(102L)
                 .fcmTokenId(null)
                 .build();
-        CustomUserDetails userDetails = new CustomUserDetails(userDTO);
+        CustomUserDetails userDetails = new CustomUserDetails(userDetail);
 
         // When & Then
         mockMvc.perform(post("/api/user/report")
@@ -213,7 +213,7 @@ class UserCommandControllerTest {
         // Given - reportType이 누락된 잘못된 데이터
         String invalidJson = "{\"targetId\":123,\"content\":\"내용\"}";
         
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(1L)
                 .userName("testuser")
                 .role(UserRole.USER)
@@ -222,7 +222,7 @@ class UserCommandControllerTest {
                 .tokenId(100L)
                 .fcmTokenId(null)
                 .build();
-        CustomUserDetails userDetails = new CustomUserDetails(userDTO);
+        CustomUserDetails userDetails = new CustomUserDetails(userDetail);
 
         // When & Then
         mockMvc.perform(post("/api/user/report")
@@ -245,7 +245,7 @@ class UserCommandControllerTest {
                 .content("") // 빈 내용
                 .build();
 
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(1L)
                 .userName("testuser")
                 .role(UserRole.USER)
@@ -254,7 +254,7 @@ class UserCommandControllerTest {
                 .tokenId(100L)
                 .fcmTokenId(null)
                 .build();
-        CustomUserDetails userDetails = new CustomUserDetails(userDTO);
+        CustomUserDetails userDetails = new CustomUserDetails(userDetail);
 
         // When & Then
         mockMvc.perform(post("/api/user/report")

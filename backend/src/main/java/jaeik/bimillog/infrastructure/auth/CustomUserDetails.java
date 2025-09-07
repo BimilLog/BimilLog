@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.auth;
 
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,7 +27,7 @@ import java.util.List;
 @Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final UserDTO userDTO;
+    private final UserDetail userDetail;
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
@@ -39,11 +39,11 @@ public class CustomUserDetails implements UserDetails {
      * 
      * @since 2.0.0
      * @author Jaeik
-     * @param userDTO 사용자 정보 DTO
+     * @param userDetail 사용자 정보 DTO
      */
-    public CustomUserDetails(UserDTO userDTO) {
-        this.userDTO = userDTO;
-        this.authorities = createAuthorities(userDTO.getRole());
+    public CustomUserDetails(UserDetail userDetail) {
+        this.userDetail = userDetail;
+        this.authorities = createAuthorities(userDetail.getRole());
     }
 
     /**
@@ -76,7 +76,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 유저 ID
      */
     public Long getUserId() {
-        return userDTO.getUserId();
+        return userDetail.getUserId();
     }
 
     /**
@@ -88,7 +88,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 토큰 ID
      */
     public Long getTokenId() {
-        return userDTO.getTokenId();
+        return userDetail.getTokenId();
     }
 
     /**
@@ -101,7 +101,7 @@ public class CustomUserDetails implements UserDetails {
      * @return FCM 토큰 ID
      */
     public Long getFcmTokenId() {
-        return userDTO.getFcmTokenId();
+        return userDetail.getFcmTokenId();
     }
 
     /**
@@ -114,7 +114,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 설정 ID
      */
     public Long getSettingId() {
-        return userDTO.getSettingId();
+        return userDetail.getSettingId();
     }
 
     /**
@@ -128,7 +128,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return userDTO.getUserName();
+        return userDetail.getUserName();
     }
 
     /**

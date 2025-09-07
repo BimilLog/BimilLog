@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.auth;
 
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -52,13 +52,13 @@ public class AuthCookieManager {
      *
      * <p>Access 토큰과 Refresh 토큰이 담긴 쿠키 리스트를 생성한다</p>
      *
-     * @param userDTO 클라이언트용 DTO
+     * @param userDetail 클라이언트용 DTO
      * @return 응답 쿠키 리스트
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<ResponseCookie> generateJwtCookie(UserDTO userDTO) {
-        return List.of(generateJwtAccessCookie(userDTO), generateJwtRefreshCookie(userDTO));
+    public List<ResponseCookie> generateJwtCookie(UserDetail userDetail) {
+        return List.of(generateJwtAccessCookie(userDetail), generateJwtRefreshCookie(userDetail));
     }
 
     /**
@@ -94,13 +94,13 @@ public class AuthCookieManager {
      * <h3>JWT 액세스 토큰 쿠키 생성</h3>
      * <p>주어진 UserDTO를 기반으로 JWT 액세스 토큰 쿠키를 생성합니다.</p>
      *
-     * @param userDTO 사용자 정보 DTO
+     * @param userDetail 사용자 정보 DTO
      * @return 생성된 액세스 토큰 ResponseCookie
      * @author Jaeik
      * @since 2.0.0
      */
-    public ResponseCookie generateJwtAccessCookie(UserDTO userDTO) {
-        String accessToken = jwtHandler.generateAccessToken(userDTO);
+    public ResponseCookie generateJwtAccessCookie(UserDetail userDetail) {
+        String accessToken = jwtHandler.generateAccessToken(userDetail);
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
                 .path("/")
                 .maxAge(MAX_AGE)
@@ -114,13 +114,13 @@ public class AuthCookieManager {
      * <h3>JWT 리프레시 토큰 쿠키 생성</h3>
      * <p>주어진 UserDTO를 기반으로 JWT 리프레시 토큰 쿠키를 생성합니다.</p>
      *
-     * @param userDTO 사용자 정보 DTO
+     * @param userDetail 사용자 정보 DTO
      * @return 생성된 리프레시 토큰 ResponseCookie
      * @author Jaeik
      * @since 2.0.0
      */
-    public ResponseCookie generateJwtRefreshCookie(UserDTO userDTO) {
-        String refreshToken = jwtHandler.generateRefreshToken(userDTO);
+    public ResponseCookie generateJwtRefreshCookie(UserDetail userDetail) {
+        String refreshToken = jwtHandler.generateRefreshToken(userDetail);
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .path("/")
                 .maxAge(MAX_AGE * 720L)

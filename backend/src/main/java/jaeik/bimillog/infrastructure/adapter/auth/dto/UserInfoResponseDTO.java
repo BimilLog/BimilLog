@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.dto;
 
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import lombok.Builder;
 
 /**
@@ -20,19 +20,19 @@ public record UserInfoResponseDTO(Long userId, Long settingId, String socialNick
      * <h3>ClientDTO에서 UserInfoResponseDTO로 변환</h3>
      * <p>내부용 DTO인 ClientDTO에서 클라이언트 응답용 DTO를 생성합니다.</p>
      *
-     * @param userDTO 원본 ClientDTO 객체
+     * @param userDetail 원본 ClientDTO 객체
      * @return 변환된 UserInfoResponseDTO 객체
      * @since 2.0.0
      * @author Jaeik
      */
-    public static UserInfoResponseDTO from(UserDTO userDTO) {
+    public static UserInfoResponseDTO from(UserDetail userDetail) {
         return UserInfoResponseDTO.builder()
-                .userId(userDTO.getUserId())
-                .settingId(userDTO.getSettingId())
-                .socialNickname(userDTO.getSocialNickname())
-                .thumbnailImage(userDTO.getThumbnailImage())
-                .userName(userDTO.getUserName())
-                .role(userDTO.getRole())
+                .userId(userDetail.getUserId())
+                .settingId(userDetail.getSettingId())
+                .socialNickname(userDetail.getSocialNickname())
+                .thumbnailImage(userDetail.getThumbnailImage())
+                .userName(userDetail.getUserName())
+                .role(userDetail.getRole())
                 .build();
     }
 }

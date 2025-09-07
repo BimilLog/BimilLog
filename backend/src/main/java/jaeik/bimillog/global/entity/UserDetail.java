@@ -1,4 +1,4 @@
-package jaeik.bimillog.global.dto;
+package jaeik.bimillog.global.entity;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 
 /**
- * <h2>클라이언트 인증 정보 DTO</h2>
- * <p>인증 시스템에서 사용하는 완전한 사용자 정보를 담는 내부용 DTO입니다.</p>
+ * <h2>유저 정보</h2>
+ * <p>인증 시스템에서 사용하는 완전한 사용자 정보를 담는 내부용 엔티티입니다.</p>
  * <p>JWT 토큰, 보안 필터, 인증 처리에서 사용되며 민감한 정보를 포함합니다.</p>
  * <p>클라이언트 응답용으로는 {@link UserInfoResponseDTO}를 사용해야 합니다.</p>
  *
@@ -24,7 +24,7 @@ import org.springframework.lang.Nullable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDTO {
+public class UserDetail {
 
     // 사용자 기본 정보
     private Long userId;
@@ -43,10 +43,10 @@ public class UserDTO {
     private Long fcmTokenId;
 
 
-    public static UserDTO of(User user, Long tokenId, @Nullable Long fcmTokenId) {
+    public static UserDetail of(User user, Long tokenId, @Nullable Long fcmTokenId) {
         Long settingId = (user.getSetting() != null) ? user.getSetting().getId() : null;
         
-        return UserDTO.builder()
+        return UserDetail.builder()
                 .userId(user.getId())
                 .socialId(user.getSocialId())
                 .provider(user.getProvider())

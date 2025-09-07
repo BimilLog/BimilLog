@@ -6,10 +6,10 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -78,7 +78,7 @@ class AdminCommandControllerIntegrationTest {
      * 테스트용 관리자 CustomUserDetails 생성
      */
     private CustomUserDetails createAdminUserDetails() {
-        UserDTO adminUserDTO = UserDTO.builder()
+        UserDetail adminUserDetail = UserDetail.builder()
                 .userId(1L)
                 .socialId("admin123")
                 .provider(SocialProvider.KAKAO)
@@ -89,14 +89,14 @@ class AdminCommandControllerIntegrationTest {
                 .tokenId(1L)
                 .fcmTokenId(1L)
                 .build();
-        return new CustomUserDetails(adminUserDTO);
+        return new CustomUserDetails(adminUserDetail);
     }
     
     /**
      * 테스트용 일반 사용자 CustomUserDetails 생성
      */
     private CustomUserDetails createUserUserDetails() {
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(2L)
                 .socialId("user123")
                 .provider(SocialProvider.KAKAO)
@@ -107,7 +107,7 @@ class AdminCommandControllerIntegrationTest {
                 .tokenId(2L)
                 .fcmTokenId(2L)
                 .build();
-        return new CustomUserDetails(userDTO);
+        return new CustomUserDetails(userDetail);
     }
     
     @Test

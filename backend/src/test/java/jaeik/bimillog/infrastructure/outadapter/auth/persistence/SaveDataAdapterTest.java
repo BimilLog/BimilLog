@@ -9,9 +9,9 @@ import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.auth.SaveUserAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
-import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import org.junit.jupiter.api.DisplayName;
@@ -86,7 +86,7 @@ class SaveDataAdapterTest {
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(existingUser);
         given(tokenRepository.save(any(Token.class))).willReturn(existingToken);
-        given(authCookieManager.generateJwtCookie(any(UserDTO.class))).willReturn(expectedCookies);
+        given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
         // When: 기존 사용자 로그인 처리
         List<ResponseCookie> result = saveDataAdapter.handleExistingUserLogin(userProfile, tokenDTO, fcmToken);
@@ -155,7 +155,7 @@ class SaveDataAdapterTest {
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(existingUser);
         given(tokenRepository.save(any(Token.class))).willReturn(savedToken);
-        given(authCookieManager.generateJwtCookie(any(UserDTO.class))).willReturn(List.of());
+        given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
         saveDataAdapter.handleExistingUserLogin(userProfile, tokenDTO, null);
@@ -200,7 +200,7 @@ class SaveDataAdapterTest {
 
         given(userCommandUseCase.save(any(User.class))).willReturn(newUser);
         given(tokenRepository.save(any(Token.class))).willReturn(newToken);
-        given(authCookieManager.generateJwtCookie(any(UserDTO.class))).willReturn(expectedCookies);
+        given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
         // When: 신규 사용자 저장
         List<ResponseCookie> result = saveDataAdapter.saveNewUser(userName, uuid, userProfile, tokenDTO, fcmToken);
@@ -252,7 +252,7 @@ class SaveDataAdapterTest {
 
         given(userCommandUseCase.save(any(User.class))).willReturn(newUser);
         given(tokenRepository.save(any(Token.class))).willReturn(newToken);
-        given(authCookieManager.generateJwtCookie(any(UserDTO.class))).willReturn(List.of());
+        given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
 
         // When: FCM 토큰 없이 사용자 저장
         saveDataAdapter.saveNewUser(userName, uuid, userProfile, tokenDTO, fcmToken);

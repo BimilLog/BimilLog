@@ -7,9 +7,9 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.NotificationRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -221,7 +221,7 @@ class NotificationQueryControllerIntegrationTest {
      * 테스트용 CustomUserDetails 생성
      */
     private CustomUserDetails createUserDetails(User user) {
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(user.getId())
                 .socialId(user.getSocialId())
                 .socialNickname(user.getSocialNickname())
@@ -231,6 +231,6 @@ class NotificationQueryControllerIntegrationTest {
                 .role(user.getRole())
                 .build();
 
-        return new CustomUserDetails(userDTO);
+        return new CustomUserDetails(userDetail);
     }
 }

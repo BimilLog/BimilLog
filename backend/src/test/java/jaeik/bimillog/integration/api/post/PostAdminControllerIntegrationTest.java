@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -84,7 +84,7 @@ class PostAdminControllerIntegrationTest {
         savedAdminUser = userRepository.save(adminUserEntity);
         
         // 관리자 CustomUserDetails 생성
-        UserDTO adminDTO = UserDTO.builder()
+        UserDetail adminDTO = UserDetail.builder()
                 .userId(savedAdminUser.getId())
                 .userName(savedAdminUser.getUserName())
                 .role(savedAdminUser.getRole())
@@ -112,7 +112,7 @@ class PostAdminControllerIntegrationTest {
         savedNormalUser = userRepository.save(normalUserEntity);
         
         // 일반 사용자 CustomUserDetails 생성
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(savedNormalUser.getId())
                 .userName(savedNormalUser.getUserName())
                 .role(savedNormalUser.getRole())
@@ -125,7 +125,7 @@ class PostAdminControllerIntegrationTest {
                 .fcmTokenId(null)
                 .build();
         
-        normalUser = new CustomUserDetails(userDTO);
+        normalUser = new CustomUserDetails(userDetail);
 
         // 테스트용 게시글 생성
         createTestPost();

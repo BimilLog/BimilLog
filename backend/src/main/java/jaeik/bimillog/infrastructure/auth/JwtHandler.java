@@ -6,7 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import jaeik.bimillog.domain.auth.application.port.out.AuthPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,25 +51,25 @@ public class JwtHandler implements AuthPort {
      *
      * <p>사용자 정보를 포함한 JWT 액세스 토큰을 생성한다. 유효기간은 1시간이다</p>
      *
-     * @param userDTO 클라이언트용 DTO
+     * @param userDetail 클라이언트용 DTO
      * @return JWT 액세스 토큰
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateAccessToken(UserDTO userDTO) {
+    public String generateAccessToken(UserDetail userDetail) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + 3600000);
 
         return Jwts.builder()
-                .setSubject(String.valueOf(userDTO.getUserId()))
-                .claim("tokenId", userDTO.getTokenId())
-                .claim("socialId", userDTO.getSocialId())
-                .claim("provider", userDTO.getProvider().name())
-                .claim("settingId", userDTO.getSettingId())
-                .claim("userName", userDTO.getUserName())
-                .claim("role", userDTO.getRole().name())
-                .claim("socialNickname", userDTO.getSocialNickname())
-                .claim("thumbnailImage", userDTO.getThumbnailImage())
+                .setSubject(String.valueOf(userDetail.getUserId()))
+                .claim("tokenId", userDetail.getTokenId())
+                .claim("socialId", userDetail.getSocialId())
+                .claim("provider", userDetail.getProvider().name())
+                .claim("settingId", userDetail.getSettingId())
+                .claim("userName", userDetail.getUserName())
+                .claim("role", userDetail.getRole().name())
+                .claim("socialNickname", userDetail.getSocialNickname())
+                .claim("thumbnailImage", userDetail.getThumbnailImage())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -81,17 +81,17 @@ public class JwtHandler implements AuthPort {
      *
      * <p>사용자 ID와 토큰 ID를 포함한 JWT 리프레시 토큰을 생성한다. 유효기간은 30일이다.</p>
      *
-     * @param userDTO 클라이언트용 DTO
+     * @param userDetail 클라이언트용 DTO
      * @return JWT 리프레시 토큰
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateRefreshToken(UserDTO userDTO) {
+    public String generateRefreshToken(UserDetail userDetail) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + (3600000L * 720));
 
         return Jwts.builder()
-                .setSubject(String.valueOf(userDTO.getTokenId()))
+                .setSubject(String.valueOf(userDetail.getTokenId()))
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -131,10 +131,10 @@ public class JwtHandler implements AuthPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public UserDTO getUserInfoFromToken(String jwtAccessToken) {
+    public UserDetail getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
-        return UserDTO.builder()
+        return UserDetail.builder()
                 .userId(Long.parseLong(claims.getSubject()))
                 .socialId(claims.get("socialId", String.class))
                 .provider(SocialProvider.valueOf(claims.get("provider", String.class)))

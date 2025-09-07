@@ -6,9 +6,9 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -340,7 +340,7 @@ class UserQueryControllerIntegrationTest {
      * 테스트용 CustomUserDetails 생성
      */
     private CustomUserDetails createCustomUserDetails(User user) {
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(user.getId())
                 .settingId(user.getSetting().getId())
                 .socialId(user.getSocialId())
@@ -352,14 +352,14 @@ class UserQueryControllerIntegrationTest {
                 .tokenId(12345L) // 카카오 친구 목록 API용
                 .build();
 
-        return new CustomUserDetails(userDTO);
+        return new CustomUserDetails(userDetail);
     }
 
     /**
      * 테스트용 CustomUserDetails 생성 (토큰 ID 지정)
      */
     private CustomUserDetails createCustomUserDetailsWithToken(User user, Long tokenId) {
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(user.getId())
                 .settingId(user.getSetting().getId())
                 .socialId(user.getSocialId())
@@ -371,6 +371,6 @@ class UserQueryControllerIntegrationTest {
                 .tokenId(tokenId)
                 .build();
 
-        return new CustomUserDetails(userDTO);
+        return new CustomUserDetails(userDetail);
     }
 }

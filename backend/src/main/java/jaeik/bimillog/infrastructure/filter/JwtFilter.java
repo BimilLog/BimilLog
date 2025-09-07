@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.auth.JwtHandler;
@@ -115,15 +115,15 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     // 유저 정보 조회 (Setting 포함)
                     User user = userQueryPort.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
-                    UserDTO userDTO = UserDTO.of(user, tokenId, null); // fcmTokenId는 null로 설정
+                    UserDetail userDetail = UserDetail.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급
-                    ResponseCookie accessCookie = authCookieManager.generateJwtAccessCookie(userDTO);
+                    ResponseCookie accessCookie = authCookieManager.generateJwtAccessCookie(userDetail);
                     response.addHeader("Set-Cookie", accessCookie.toString());
 
                     // 리프레시 토큰이 15일 이하로 남았으면 새로운 리프레시 토큰도 발급
                     if (jwtHandler.shouldRefreshToken(refreshToken, 15)) {
-                        ResponseCookie refreshCookie = authCookieManager.generateJwtRefreshCookie(userDTO);
+                        ResponseCookie refreshCookie = authCookieManager.generateJwtRefreshCookie(userDetail);
                         response.addHeader("Set-Cookie", refreshCookie.toString());
                     }
 
@@ -144,8 +144,8 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        UserDTO userDTO = jwtHandler.getUserInfoFromToken(jwtAccessToken);
-        CustomUserDetails customUserDetails = new CustomUserDetails(userDTO);
+        UserDetail userDetail = jwtHandler.getUserInfoFromToken(jwtAccessToken);
+        CustomUserDetails customUserDetails = new CustomUserDetails(userDetail);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails,
                 null,

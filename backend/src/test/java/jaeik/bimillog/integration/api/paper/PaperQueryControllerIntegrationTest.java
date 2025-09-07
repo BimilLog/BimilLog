@@ -6,9 +6,9 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.paper.out.persistence.paper.MessageRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -85,7 +85,7 @@ class PaperQueryControllerIntegrationTest {
      * 테스트용 CustomUserDetails 생성
      */
     private CustomUserDetails createUserDetails(User user) {
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(user.getId())
                 .socialId(user.getSocialId())
                 .provider(user.getProvider())
@@ -96,7 +96,7 @@ class PaperQueryControllerIntegrationTest {
                 .tokenId(1L)
                 .fcmTokenId(1L)
                 .build();
-        return new CustomUserDetails(userDTO);
+        return new CustomUserDetails(userDetail);
     }
     
     /**

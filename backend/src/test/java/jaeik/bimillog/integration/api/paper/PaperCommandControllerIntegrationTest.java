@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.paper.out.persistence.paper.MessageRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -77,7 +77,7 @@ class PaperCommandControllerIntegrationTest {
      * 테스트용 사용자 CustomUserDetails 생성
      */
     private CustomUserDetails createUserDetails() {
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(1L)
                 .socialId("user123")
                 .provider(SocialProvider.KAKAO)
@@ -88,7 +88,7 @@ class PaperCommandControllerIntegrationTest {
                 .tokenId(1L)
                 .fcmTokenId(1L)
                 .build();
-        return new CustomUserDetails(userDTO);
+        return new CustomUserDetails(userDetail);
     }
     
     /**
@@ -244,7 +244,7 @@ class PaperCommandControllerIntegrationTest {
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         
         // savedUser로 로그인
-        UserDTO ownerUserDTO = UserDTO.builder()
+        UserDetail ownerUserDetail = UserDetail.builder()
                 .userId(savedUser.getId())
                 .socialId(savedUser.getSocialId())
                 .provider(savedUser.getProvider())
@@ -255,7 +255,7 @@ class PaperCommandControllerIntegrationTest {
                 .tokenId(1L)
                 .fcmTokenId(1L)
                 .build();
-        CustomUserDetails ownerDetails = new CustomUserDetails(ownerUserDTO);
+        CustomUserDetails ownerDetails = new CustomUserDetails(ownerUserDetail);
         
         // When & Then
         mockMvc.perform(post("/api/paper/delete")

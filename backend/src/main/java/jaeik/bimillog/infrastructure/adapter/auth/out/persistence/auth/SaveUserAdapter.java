@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -63,7 +63,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         registerFcmTokenIfPresent(user.getId(), fcmToken);
 
-        return authCookieManager.generateJwtCookie(UserDTO.of(user,
+        return authCookieManager.generateJwtCookie(UserDetail.of(user,
                 tokenPort.save(newToken).getId(),
                 null));
     }
@@ -91,7 +91,7 @@ public class SaveUserAdapter implements SaveUserPort {
         registerFcmTokenIfPresent(user.getId(), fcmToken);
 
         redisUserDataPort.removeTempData(uuid);
-        return authCookieManager.generateJwtCookie(UserDTO.of(user,
+        return authCookieManager.generateJwtCookie(UserDetail.of(user,
                 tokenPort.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
                 null));
     }

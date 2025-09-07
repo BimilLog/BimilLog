@@ -10,7 +10,7 @@ import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.global.dto.UserDTO;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -410,7 +410,7 @@ class UserCommandControllerIntegrationTest {
      * 테스트용 CustomUserDetails 생성
      */
     private CustomUserDetails createCustomUserDetails(User user) {
-        UserDTO userDTO = UserDTO.builder()
+        UserDetail userDetail = UserDetail.builder()
                 .userId(user.getId())
                 .settingId(user.getSetting().getId())
                 .socialId(user.getSocialId())
@@ -421,6 +421,6 @@ class UserCommandControllerIntegrationTest {
                 .role(user.getRole())
                 .build();
 
-        return new CustomUserDetails(userDTO);
+        return new CustomUserDetails(userDetail);
     }
 }

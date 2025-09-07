@@ -6,10 +6,10 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostReqDTO;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -90,8 +90,8 @@ class PostCommandControllerIntegrationTest {
         
         savedUser = userRepository.save(user);
         
-        // UserDTO 생성하여 CustomUserDetails 생성
-        UserDTO userDTO = UserDTO.builder()
+        // UserDetail 생성하여 CustomUserDetails 생성
+        UserDetail userDetail = UserDetail.builder()
                 .userId(savedUser.getId())
                 .userName(savedUser.getUserName())
                 .role(savedUser.getRole())
@@ -104,7 +104,7 @@ class PostCommandControllerIntegrationTest {
                 .fcmTokenId(null)
                 .build();
                 
-        testUser = new CustomUserDetails(userDTO);
+        testUser = new CustomUserDetails(userDetail);
     }
 
     @Test

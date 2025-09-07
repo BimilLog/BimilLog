@@ -69,10 +69,10 @@ public class LogFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Long userId = userDetails.getUserDTO().getUserId();
-            String socialId = userDetails.getUserDTO().getSocialId();
-            String socialNickname = userDetails.getUserDTO().getSocialNickname();
-            String provider = userDetails.getUserDTO().getProvider().name();
+            Long userId = userDetails.getUserDetail().getUserId();
+            String socialId = userDetails.getUserDetail().getSocialId();
+            String socialNickname = userDetails.getUserDetail().getSocialNickname();
+            String provider = userDetails.getUserDetail().getProvider().name();
 
             if (uri.startsWith("/dto")) {
                 log.error(
