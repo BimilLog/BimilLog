@@ -4,12 +4,12 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.user.application.port.out.TokenPort;
+import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
+import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * <h2>인증 데이터 어댑터</h2>
+ * <h2>사용자 저장 어댑터</h2>
  * <p>사용자 데이터 저장, 업데이트, 삭제를 위한 어댑터</p>
  *
  * @author Jaeik
@@ -30,10 +30,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SaveUserAdapter implements SaveUserPort {
 
-    private final TokenRepository tokenRepository;
+    private final TokenPort tokenPort;
     private final AuthCookieManager authCookieManager;
-    private final UserQueryUseCase userQueryUseCase;
-    private final UserCommandUseCase userCommandUseCase;
+    private final UserQueryPort userQueryPort;
+    private final UserCommandPort UserCommandPort;
     private final RedisUserDataPort redisUserDataPort;
     private final NotificationFcmUseCase notificationFcmUseCase;
 
@@ -51,7 +51,7 @@ public class SaveUserAdapter implements SaveUserPort {
     @Override
     @Transactional
     public List<ResponseCookie> handleExistingUserLogin(LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
-        User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId());
+        User user = userQueryPort.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId());
 
         user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
@@ -64,7 +64,7 @@ public class SaveUserAdapter implements SaveUserPort {
         registerFcmTokenIfPresent(user.getId(), fcmToken);
 
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
-                tokenRepository.save(newToken).getId(),
+                tokenPort.save(newToken).getId(),
                 null));
     }
 
@@ -86,13 +86,13 @@ public class SaveUserAdapter implements SaveUserPort {
     public List<ResponseCookie> saveNewUser(String userName, String uuid, LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
         Setting setting = Setting.createSetting();
         
-        User user = userCommandUseCase.save(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
+        User user = UserCommandPort.save(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
 
         registerFcmTokenIfPresent(user.getId(), fcmToken);
 
         redisUserDataPort.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(UserDTO.of(user,
-                tokenRepository.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
+                tokenPort.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
                 null));
     }
 

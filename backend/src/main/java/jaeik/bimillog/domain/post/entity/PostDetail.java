@@ -149,16 +149,4 @@ public record PostDetail(
         return PostSearchResult.ofPostDetail(this);
     }
 
-    /**
-     * <h3>Mutable 검색 결과로 변환</h3>
-     * <p>PostDetail에서 mutable PostSearchResult로 변환합니다.</p>
-     * <p>성능 최적화를 위해 나중에 댓글수, 추천수를 수정할 수 있는 mutable 객체를 반환합니다.</p>
-     *
-     * @return PostSearchResult mutable 검색 결과
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public PostSearchResult toMutableSearchResult() {
-        return PostSearchResult.ofPostDetail(this);
-    }
 }

@@ -35,7 +35,6 @@ public class UserQueryService implements UserQueryUseCase {
      * @param provider 소셜 로그인 제공자
      * @param socialId 사용자의 소셜 ID
      * @return User 조회된 사용자 객체
-     * @throws UserCustomException 사용자가 존재하지 않는 경우
      * @author jaeik
      * @since 2.0.0
      */

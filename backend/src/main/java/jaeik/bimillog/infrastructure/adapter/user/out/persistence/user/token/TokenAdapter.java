@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.entity.Token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -51,4 +52,31 @@ public class TokenAdapter implements TokenPort {
         return tokenRepository.save(token);
     }
 
+    /**
+     * <h3>사용자 ID로 모든 토큰 조회</h3>
+     * <p>주어진 사용자 ID에 해당하는 모든 토큰을 조회합니다.</p>
+     * <p>회원 탈퇴 시 모든 토큰을 블랙리스트에 등록하기 위해 사용됩니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @return 사용자의 모든 토큰 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<Token> findByUsersId(Long userId) {
+        return tokenRepository.findByUsersId(userId);
+    };
+
+    /**
+     * <h3>사용자 ID로 모든 토큰 삭제</h3>
+     * <p>주어진 사용자 ID에 해당하는 모든 토큰을 삭제합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteAllByUserId(Long userId) {
+        tokenRepository.deleteAllByUserId(userId);
+    }
 }
