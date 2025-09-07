@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
-import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginUserData;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,30 +49,21 @@ public class SocialLoginAdapter implements SocialLoginPort {
         SocialLoginStrategy strategy = strategies.get(provider);
         SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code).block(); // 동기 변환
 
-        SocialLoginUserData rawData = initialResult.userData();
+        LoginResult.SocialUserProfile userProfile = initialResult.userProfile();
         Token token = initialResult.token();
-
-        // 인프라 DTO → 도메인 모델 변환 (의존성 역전 원칙 준수)
-        LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile(
-                rawData.socialId(),
-                rawData.email(),
-                rawData.provider(),
-                rawData.nickname(),
-                rawData.profileImageUrl()
-        );
 
         // 기존 사용자 확인
         try {
-            User user = userQueryUseCase.findByProviderAndSocialId(provider, rawData.socialId());
+            User user = userQueryUseCase.findByProviderAndSocialId(provider, userProfile.socialId());
             
             // 조건부 사용자 정보 업데이트: 변경된 정보가 있을 때만 업데이트
-            boolean needsUpdate = !Objects.equals(user.getSocialNickname(), rawData.nickname());
-            if (!Objects.equals(user.getThumbnailImage(), rawData.profileImageUrl())) {
+            boolean needsUpdate = !Objects.equals(user.getSocialNickname(), userProfile.nickname());
+            if (!Objects.equals(user.getThumbnailImage(), userProfile.profileImageUrl())) {
                 needsUpdate = true;
             }
             
             if (needsUpdate) {
-                user.updateUserInfo(rawData.nickname(), rawData.profileImageUrl());
+                user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
             }
             return new LoginResult.SocialLoginData(userProfile, token, false); // 기존 사용자
         } catch (UserCustomException e) {

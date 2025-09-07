@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.social;
 
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginUserData;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -45,7 +45,7 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     public Mono<StrategyLoginResult> login(String code) {
         return getToken(code)
                 .flatMap(token -> getUserInfo(token.getAccessToken())
-                        .map(userData -> new StrategyLoginResult(userData, token)));
+                        .map(userProfile -> new StrategyLoginResult(userProfile, token)));
     }
 
     /**
@@ -135,11 +135,11 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * <p>카카오 액세스 토큰을 사용하여 사용자 정보를 조회합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
-     * @return SocialLoginUserData 사용자 정보 DTO (비동기)
+     * @return LoginResult.SocialUserProfile 사용자 프로필 (비동기)
      * @since 2.0.0
      * @author Jaeik
      */
-    private Mono<SocialLoginUserData> getUserInfo(String accessToken) {
+    private Mono<LoginResult.SocialUserProfile> getUserInfo(String accessToken) {
         return webClient.get()
                 .uri(kakaoKeyVO.getUSER_INFO_URL())
                 .header("Authorization", "Bearer " + accessToken)
@@ -156,12 +156,13 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
                     String nickname = (String) profile.get("nickname");
                     String thumbnailImage = (String) profile.get("thumbnail_image_url");
 
-                    return SocialLoginUserData.builder()
-                            .provider(getProvider())
-                            .socialId(socialId)
-                            .nickname(nickname)
-                            .profileImageUrl(thumbnailImage)
-                            .build();
+                    return new LoginResult.SocialUserProfile(
+                            socialId,
+                            null, // 카카오는 이메일을 제공하지 않음
+                            getProvider(),
+                            nickname,
+                            thumbnailImage
+                    );
                 });
     }
 

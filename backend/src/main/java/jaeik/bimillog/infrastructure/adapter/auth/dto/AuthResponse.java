@@ -12,7 +12,6 @@ import java.util.Map;
  * @param data 추가 응답 데이터
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 public record AuthResponse(
     String status,

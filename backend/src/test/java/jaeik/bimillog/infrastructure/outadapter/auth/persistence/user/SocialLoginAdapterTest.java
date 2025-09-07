@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user.SocialLoginAdapter;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
-import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginUserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +39,6 @@ class SocialLoginAdapterTest {
 
     private SocialLoginAdapter socialLoginAdapter;
 
-    private SocialLoginUserData testUserData;
     private LoginResult.SocialUserProfile testUserProfile;
     private Token testToken;
     private SocialLoginStrategy.StrategyLoginResult testStrategyResult;
@@ -55,15 +53,13 @@ class SocialLoginAdapterTest {
         socialLoginAdapter = new SocialLoginAdapter(List.of(kakaoStrategy), userQueryUseCase);
 
         // 테스트 데이터 설정
-        testUserData = new SocialLoginUserData("123456789", "test@example.com", 
-                SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url", "fcm-token");
         testUserProfile = new LoginResult.SocialUserProfile("123456789", "test@example.com", 
                 SocialProvider.KAKAO, "테스트사용자", "http://profile.image.url");
         
         testToken = Token.createTemporaryToken("access-token", "refresh-token");
                 
 
-        testStrategyResult = new SocialLoginStrategy.StrategyLoginResult(testUserData, testToken);
+        testStrategyResult = new SocialLoginStrategy.StrategyLoginResult(testUserProfile, testToken);
     }
 
     @Test

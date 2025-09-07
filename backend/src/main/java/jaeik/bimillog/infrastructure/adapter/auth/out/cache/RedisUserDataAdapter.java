@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginUserData;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.TemporaryUserDataDTO;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -227,7 +226,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     private TemporaryUserDataDTO convertMapToDTO(Map<?, ?> map) {
         try {
             Token token = extractTokenFromMap((Map<String, Object>) map.get("token"));
-            SocialLoginUserData socialData = extractSocialDataFromMap((Map<String, Object>) map.get("socialLoginUserData"));
+            LoginResult.SocialUserProfile socialData = extractSocialDataFromMap((Map<String, Object>) map.get("socialUserProfile"));
             String fcmToken = (String) map.get("fcmToken");
 
             return new TemporaryUserDataDTO(socialData, token, fcmToken);
@@ -244,14 +243,13 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         );
     }
 
-    private SocialLoginUserData extractSocialDataFromMap(Map<String, Object> socialMap) {
-        return new SocialLoginUserData(
+    private LoginResult.SocialUserProfile extractSocialDataFromMap(Map<String, Object> socialMap) {
+        return new LoginResult.SocialUserProfile(
                 (String) socialMap.get("socialId"),
                 (String) socialMap.get("email"),
                 SocialProvider.valueOf((String) socialMap.get("provider")),
                 (String) socialMap.get("nickname"),
-                (String) socialMap.get("profileImageUrl"),
-                (String) socialMap.get("fcmToken")
+                (String) socialMap.get("profileImageUrl")
         );
     }
 }

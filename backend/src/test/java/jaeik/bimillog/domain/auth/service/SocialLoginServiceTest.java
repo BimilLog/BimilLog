@@ -10,7 +10,6 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginUserData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,7 +52,6 @@ class SocialLoginServiceTest {
     @InjectMocks
     private SocialLoginService socialLoginService;
 
-    private SocialLoginUserData testUserData;
     private LoginResult.SocialUserProfile testUserProfile;
     private Token testToken;
     private LoginResult.SocialLoginData existingUserResult;
@@ -61,7 +59,6 @@ class SocialLoginServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUserData = new SocialLoginUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "fcm-token");
         testUserProfile = new LoginResult.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
         testToken = Token.createTemporaryToken("access-token", "refresh-token");
 
