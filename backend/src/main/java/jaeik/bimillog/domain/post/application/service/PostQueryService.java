@@ -101,7 +101,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     private PostDetail getPostFromDatabaseOptimized(Long postId, Long userId) {
         return postQueryPort.findPostDetailWithCounts(postId, userId)
-                .map(PostDetailProjection::toPostDetail)
+                .map(PostDetailProjectionRecord::toPostDetail)
                 .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
     }
 

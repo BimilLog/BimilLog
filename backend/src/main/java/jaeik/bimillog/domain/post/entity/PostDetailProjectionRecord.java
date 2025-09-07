@@ -32,7 +32,7 @@ public record PostDetailProjectionRecord(
         Long likeCount,
         Integer commentCount,
         Boolean isLiked
-) implements PostDetailProjection {
+) {
 
     /**
      * <h3>QueryDSL 프로젝션 생성자</h3>
@@ -55,63 +55,27 @@ public record PostDetailProjectionRecord(
     public PostDetailProjectionRecord {
     }
 
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    @Override
-    public String getTitle() {
-        return title;
-    }
-
-    @Override
-    public String getContent() {
-        return content;
-    }
-
-    @Override
-    public Integer getViewCount() {
-        return viewCount;
-    }
-
-    @Override
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    @Override
-    public Long getUserId() {
-        return userId;
-    }
-
-    @Override
-    public String getUserName() {
-        return userName;
-    }
-
-    @Override
-    public Boolean getIsNotice() {
-        return isNotice;
-    }
-
-    @Override
-    public PostCacheFlag getPostCacheFlag() {
-        return postCacheFlag;
-    }
-
-    @Override
-    public Long getLikeCount() {
-        return likeCount;
-    }
-
-    @Override
-    public Integer getCommentCount() {
-        return commentCount;
-    }
-
-    @Override
-    public Boolean getIsLiked() {
-        return isLiked;
+    /**
+     * <h3>PostDetail 엔티티로 변환</h3>
+     * <p>프로젝션 데이터를 PostDetail 도메인 객체로 변환합니다.</p>
+     *
+     * @return PostDetail 도메인 객체
+     * @since 2.0.0
+     */
+    public PostDetail toPostDetail() {
+        return PostDetail.builder()
+                .id(id())
+                .title(title())
+                .content(content())
+                .viewCount(viewCount())
+                .createdAt(createdAt())
+                .userId(userId())
+                .userName(userName())
+                .isNotice(isNotice() != null ? isNotice() : false)
+                .postCacheFlag(postCacheFlag())
+                .likeCount(likeCount() != null ? likeCount().intValue() : 0)
+                .commentCount(commentCount() != null ? commentCount() : 0)
+                .isLiked(isLiked() != null ? isLiked() : false)
+                .build();
     }
 }

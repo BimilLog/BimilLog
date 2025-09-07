@@ -123,7 +123,7 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.getCachedPostIfExists(postId)).willReturn(null);
         
         // 최적화된 JOIN 쿼리 결과
-        PostDetailProjection mockProjection = createMockProjection(postId, userId);
+        PostDetailProjectionRecord mockProjection = createMockProjection(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockProjection));
 
@@ -180,7 +180,7 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.getCachedPostIfExists(postId)).willReturn(null);
         
         // 최적화된 JOIN 쿼리로 DB에서 조회
-        PostDetailProjection mockProjection = createMockProjection(postId, userId);
+        PostDetailProjectionRecord mockProjection = createMockProjection(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockProjection));
 
@@ -210,7 +210,7 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.getCachedPostIfExists(postId)).willReturn(null);
         
         // 최적화된 JOIN 쿼리로 DB에서 조회 (익명 사용자이므로 isLiked는 false)
-        PostDetailProjection mockProjection = createMockProjection(postId, userId);
+        PostDetailProjectionRecord mockProjection = createMockProjection(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockProjection));
 
@@ -741,23 +741,23 @@ class PostQueryServiceTest {
     }
 
     /**
-     * <h3>PostDetailProjection Mock 생성</h3>
+     * <h3>PostDetailProjectionRecord Mock 생성</h3>
      * <p>JOIN 쿼리 테스트용 Mock 객체를 생성합니다.</p>
      */
-    private PostDetailProjection createMockProjection(Long postId, Long userId) {
-        return new PostDetailProjection() {
-            @Override public Long getId() { return postId; }
-            @Override public String getTitle() { return "Test Title"; }
-            @Override public String getContent() { return "Test Content"; }
-            @Override public Integer getViewCount() { return 10; }
-            @Override public Instant getCreatedAt() { return Instant.now(); }
-            @Override public Long getUserId() { return 1L; }
-            @Override public String getUserName() { return "testUser"; }
-            @Override public Boolean getIsNotice() { return false; }
-            @Override public PostCacheFlag getPostCacheFlag() { return null; }
-            @Override public Long getLikeCount() { return 5L; }
-            @Override public Integer getCommentCount() { return 3; }
-            @Override public Boolean getIsLiked() { return userId != null; }
-        };
+    private PostDetailProjectionRecord createMockProjection(Long postId, Long userId) {
+        return new PostDetailProjectionRecord(
+            postId,
+            "Test Title",
+            "Test Content", 
+            10,
+            Instant.now(),
+            1L,
+            "testUser",
+            false,
+            null,
+            5L,
+            3,
+            userId != null
+        );
     }
 }

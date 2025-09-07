@@ -351,10 +351,10 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Optional<PostDetailProjection> findPostDetailWithCounts(Long postId, Long userId) {
+    public Optional<PostDetailProjectionRecord> findPostDetailWithCounts(Long postId, Long userId) {
         QPostLike userPostLike = new QPostLike("userPostLike");
         
-        PostDetailProjection result = jpaQueryFactory
+        PostDetailProjectionRecord result = jpaQueryFactory
                 .select(new QPostDetailProjectionRecord(
                         post.id,
                         post.title,

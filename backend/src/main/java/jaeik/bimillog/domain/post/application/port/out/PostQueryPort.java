@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostDetailProjection;
+import jaeik.bimillog.domain.post.entity.PostDetailProjectionRecord;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -86,6 +86,6 @@ public interface PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<PostDetailProjection> findPostDetailWithCounts(Long postId, Long userId);
+    Optional<PostDetailProjectionRecord> findPostDetailWithCounts(Long postId, Long userId);
 
 }
