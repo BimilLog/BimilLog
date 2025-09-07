@@ -62,21 +62,27 @@ public class Message extends BaseEntity {
     /**
      * <h3>메시지 생성 팩토리 메소드</h3>
      * <p>새로운 롤링페이퍼 메시지 엔티티를 생성합니다.</p>
+     * <p>유효성 검증은 DTO 레벨에서 수행됩니다.</p>
      *
      * @param user 사용자 엔티티
-     * @param messageCommand 메시지 명령
+     * @param decoType 데코레이션 타입
+     * @param anonymity 익명 이름
+     * @param content 메시지 내용
+     * @param width 메시지 너비
+     * @param height 메시지 높이
      * @return 생성된 메시지 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Message createMessage(User user, MessageCommand messageCommand) {
+    public static Message createMessage(User user, DecoType decoType, String anonymity, 
+                                      String content, int width, int height) {
         return Message.builder()
                 .user(user)
-                .decoType(messageCommand.decoType())
-                .anonymity(messageCommand.anonymity())
-                .content(messageCommand.content())
-                .width(messageCommand.width())
-                .height(messageCommand.height())
+                .decoType(decoType)
+                .anonymity(anonymity)
+                .content(content)
+                .width(width)
+                .height(height)
                 .build();
     }
 
@@ -90,6 +96,19 @@ public class Message extends BaseEntity {
      */
     public Long getUserId() {
         return this.user != null ? this.user.getId() : null;
+    }
+
+    /**
+     * <h3>메시지 삭제 권한 확인</h3>
+     * <p>주어진 사용자 ID가 이 메시지를 삭제할 권한이 있는지 확인합니다.</p>
+     *
+     * @param userId 삭제 요청 사용자 ID
+     * @return 삭제 권한 여부
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public boolean canBeDeletedBy(Long userId) {
+        return this.user != null && this.user.getId().equals(userId);
     }
 }
 

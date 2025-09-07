@@ -5,12 +5,11 @@ import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
 import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.entity.MessageCommand;
+import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.paper.in.web.dto.MessageDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,13 +64,11 @@ class PaperCommandServiceTest {
         // Given
         Long userId = 1L;
         Long messageId = 123L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setId(messageId);
 
         given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(userId));
 
         // When
-        paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand());
+        paperCommandService.deleteMessageInMyPaper(userId, messageId);
 
         // Then
         verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
@@ -83,14 +80,13 @@ class PaperCommandServiceTest {
     @DisplayName("내 롤링페이퍼 메시지 삭제 - 메시지 없음 예외")
     void shouldThrowException_WhenMessageNotFound() {
         // Given
+        Long userId = 999L;
         Long messageId = 999L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setId(messageId);
 
         given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(999L, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageId))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_NOT_FOUND);
 
@@ -105,13 +101,11 @@ class PaperCommandServiceTest {
         Long userId = 1L;
         Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setId(messageId);
 
         given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageId))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
@@ -125,14 +119,17 @@ class PaperCommandServiceTest {
         // Given
         String userName = "testuser";
         Long userId = 1L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent("테스트 메시지");
+        DecoType decoType = DecoType.APPLE;
+        String anonymity = "익명";
+        String content = "테스트 메시지";
+        int width = 2;
+        int height = 2;
         
         given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO.toCommand());
+        paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
 
         // Then
         verify(paperToUserPort, times(1)).findByUserName(userName);
@@ -146,13 +143,16 @@ class PaperCommandServiceTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         String userName = "nonexistentuser";
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent("테스트 메시지");
+        DecoType decoType = DecoType.APPLE;
+        String anonymity = "익명";
+        String content = "테스트 메시지";
+        int width = 2;
+        int height = 2;
 
         given(paperToUserPort.findByUserName(userName)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
@@ -166,17 +166,18 @@ class PaperCommandServiceTest {
     void shouldThrowException_WhenUserNameIsNull() {
         // Given
         String userName = null;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent("테스트 메시지");
-
-        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.empty());
+        DecoType decoType = DecoType.APPLE;
+        String anonymity = "익명";
+        String content = "테스트 메시지";
+        int width = 2;
+        int height = 2;
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height))
                 .isInstanceOf(PaperCustomException.class)
-                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(paperToUserPort, times(1)).findByUserName(userName);
+        verify(paperToUserPort, never()).findByUserName(any());
         verify(paperCommandPort, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -187,14 +188,17 @@ class PaperCommandServiceTest {
         // Given
         String userName = "testuser";
         Long userId = 1L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent("");
+        DecoType decoType = DecoType.APPLE;
+        String anonymity = "익명";
+        String content = "";
+        int width = 2;
+        int height = 2;
         
         given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO.toCommand());
+        paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
 
         // Then
         verify(paperToUserPort, times(1)).findByUserName(userName);
@@ -203,14 +207,18 @@ class PaperCommandServiceTest {
     }
 
     @Test
-    @DisplayName("메시지 작성 - null 메시지 Command")
-    void shouldThrowException_WhenNullMessageCommand() {
+    @DisplayName("메시지 작성 - null DecoType")
+    void shouldThrowException_WhenNullDecoType() {
         // Given
         String userName = "testuser";
-        MessageCommand messageCommand = null;
+        DecoType decoType = null;
+        String anonymity = "익명";
+        String content = "테스트 메시지";
+        int width = 2;
+        int height = 2;
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, messageCommand))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
@@ -225,14 +233,17 @@ class PaperCommandServiceTest {
         // Given
         String userName = "testuser";
         Long userId = 123L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent("테스트 메시지");
+        DecoType decoType = DecoType.APPLE;
+        String anonymity = "익명";
+        String content = "테스트 메시지";
+        int width = 2;
+        int height = 2;
         
         given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO.toCommand());
+        paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
 
         // Then
         verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 
@@ -242,13 +253,14 @@ class PaperCommandServiceTest {
     }
 
     @Test
-    @DisplayName("내 롤링페이퍼 메시지 삭제 - null Command")
-    void shouldThrowException_WhenMessageCommandIsNull() {
+    @DisplayName("내 롤링페이퍼 메시지 삭제 - null messageId")
+    void shouldThrowException_WhenMessageIdIsNull() {
         // Given
-        MessageCommand messageCommand = null;
+        Long userId = 1L;
+        Long messageId = null;
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(1L, messageCommand))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageId))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
     }
@@ -260,15 +272,17 @@ class PaperCommandServiceTest {
         // Given
         String userName = "testuser";
         Long userId = 1L;
+        DecoType decoType = DecoType.APPLE;
+        String anonymity = "익명";
         String longContent = "A".repeat(255); // 최대 길이
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent(longContent);
+        int width = 2;
+        int height = 2;
         
         given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO.toCommand());
+        paperCommandService.writeMessage(userName, decoType, anonymity, longContent, width, height);
 
         // Then
         verify(paperToUserPort, times(1)).findByUserName(userName);
@@ -282,15 +296,17 @@ class PaperCommandServiceTest {
         // Given
         String userName = "testuser";
         Long userId = 1L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent("테스트 메시지");
-        messageDTO.setAnonymity("익명123");
+        DecoType decoType = DecoType.APPLE;
+        String anonymity = "익명123";
+        String content = "테스트 메시지";
+        int width = 2;
+        int height = 2;
         
         given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO.toCommand());
+        paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
 
         // Then
         verify(paperToUserPort, times(1)).findByUserName(userName);
@@ -304,16 +320,17 @@ class PaperCommandServiceTest {
         // Given
         String userName = "testuser";
         Long userId = 1L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent("테스트 메시지");
-        messageDTO.setWidth(100);
-        messageDTO.setHeight(50);
+        DecoType decoType = DecoType.BANANA;
+        String anonymity = "익명";
+        String content = "테스트 메시지";
+        int width = 100;
+        int height = 50;
         
         given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO.toCommand());
+        paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
 
         // Then
         verify(paperToUserPort, times(1)).findByUserName(userName);
@@ -332,13 +349,10 @@ class PaperCommandServiceTest {
         Long[] messageIds = {100L, 200L, 300L};
         
         for (Long messageId : messageIds) {
-            MessageDTO messageDTO = new MessageDTO();
-            messageDTO.setId(messageId);
-            
             given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(userId));
             
             // When
-            paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand());
+            paperCommandService.deleteMessageInMyPaper(userId, messageId);
             
             // Then
             verify(paperCommandPort, times(1)).deleteById(messageId);
@@ -351,14 +365,17 @@ class PaperCommandServiceTest {
         // Given
         String userName = "user@test_123";
         Long userId = 1L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setContent("테스트 메시지");
+        DecoType decoType = DecoType.APPLE;
+        String anonymity = "익명";
+        String content = "테스트 메시지";
+        int width = 2;
+        int height = 2;
         
         given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, messageDTO.toCommand());
+        paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
 
         // Then
         verify(paperToUserPort, times(1)).findByUserName(userName);
@@ -373,13 +390,11 @@ class PaperCommandServiceTest {
         Long userId = 1L;
         Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setId(messageId);
 
         given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageDTO.toCommand()))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageId))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
 

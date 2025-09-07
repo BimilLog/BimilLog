@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.application.port.in;
 
-import jaeik.bimillog.domain.paper.entity.MessageCommand;
+import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 
 /**
@@ -24,12 +24,12 @@ public interface PaperCommandUseCase {
      * </p>
      *
      * @param userId 현재 로그인한 사용자 ID
-     * @param messageCommand 삭제할 메시지 정보
+     * @param messageId 삭제할 메시지 ID
      * @throws PaperCustomException 삭제 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteMessageInMyPaper(Long userId, MessageCommand messageCommand);
+    void deleteMessageInMyPaper(Long userId, Long messageId);
 
     /**
      * <h3>메시지 작성</h3>
@@ -41,10 +41,15 @@ public interface PaperCommandUseCase {
      * </p>
      *
      * @param userName 롤링페이퍼 소유자의 사용자명
-     * @param messageCommand 작성할 메시지 정보
-     * @throws PaperCustomException 사용자가 존재하지 않는 경우
+     * @param decoType 데코레이션 타입
+     * @param anonymity 익명 이름
+     * @param content 메시지 내용
+     * @param width 메시지 너비
+     * @param height 메시지 높이
+     * @throws PaperCustomException 사용자가 존재하지 않거나 유효성 검증 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
-    void writeMessage(String userName, MessageCommand messageCommand);
+    void writeMessage(String userName, DecoType decoType, String anonymity, 
+                     String content, int width, int height);
 }

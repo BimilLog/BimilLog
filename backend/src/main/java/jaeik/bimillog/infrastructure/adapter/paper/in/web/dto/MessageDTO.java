@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.paper.in.web.dto;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
-import jaeik.bimillog.domain.paper.entity.MessageCommand;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -65,23 +64,4 @@ public class MessageDTO {
         return dto;
     }
 
-    /**
-     * <h3>DTO를 도메인 Command로 변환</h3>
-     * <p>MessageDTO를 MessageCommand 도메인 값 객체로 변환합니다.</p>
-     *
-     * @return MessageCommand
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public MessageCommand toCommand() {
-        return MessageCommand.builder()
-                .id(this.id)
-                .userId(this.userId)
-                .decoType(this.decoType)
-                .anonymity(this.anonymity)
-                .content(this.content)
-                .width(this.width)
-                .height(this.height)
-                .build();
-    }
 }
