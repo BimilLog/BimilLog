@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * <h2>PostQueryService</h2>
@@ -101,7 +100,6 @@ public class PostQueryService implements PostQueryUseCase {
      */
     private PostDetail getPostFromDatabaseOptimized(Long postId, Long userId) {
         return postQueryPort.findPostDetailWithCounts(postId, userId)
-                .map(PostDetailProjectionRecord::toPostDetail)
                 .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
     }
 

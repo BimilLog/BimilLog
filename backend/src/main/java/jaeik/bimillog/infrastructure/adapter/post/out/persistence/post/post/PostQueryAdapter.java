@@ -351,24 +351,25 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Optional<PostDetailProjectionRecord> findPostDetailWithCounts(Long postId, Long userId) {
+    public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long userId) {
         QPostLike userPostLike = new QPostLike("userPostLike");
         
-        PostDetailProjectionRecord result = jpaQueryFactory
-                .select(new QPostDetailProjectionRecord(
+        PostDetail result = jpaQueryFactory
+                .select(new QPostDetail(
                         post.id,
                         post.title,
                         post.content,
                         post.views.coalesce(0),
+                        // 좋아요 개수 (COUNT) - Integer likeCount
+                        postLike.countDistinct().castToNum(Integer.class),
+                        post.postCacheFlag,
                         post.createdAt,
                         user.id,
                         user.userName,
-                        post.isNotice,
-                        post.postCacheFlag,
-                        // 좋아요 개수 (COUNT)
-                        postLike.countDistinct(),
                         // 댓글 개수 (COUNT)
                         comment.countDistinct().castToNum(Integer.class),
+                        // 공지사항 여부 (boolean isNotice)
+                        post.isNotice.coalesce(false),
                         // 사용자 좋아요 여부 (CASE WHEN)
                         new CaseBuilder()
                                 .when(userPostLike.id.isNotNull())

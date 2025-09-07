@@ -1,7 +1,9 @@
 package jaeik.bimillog.domain.post.entity;
 
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 
@@ -42,9 +44,11 @@ public record PostDetail(
         boolean isLiked
 ) implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Builder
+    @QueryProjection
     public PostDetail {
     }
 

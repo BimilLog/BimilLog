@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.application.port.out.PostCacheQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.PostCommentQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostCacheSyncService;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
-import jaeik.bimillog.domain.post.entity.*;
+import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.entity.PostDetail;
+import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +22,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -58,14 +58,8 @@ class PostQueryServiceTest {
     @Mock
     private PostCacheQueryPort postCacheQueryPort;
 
-    @Mock
-    private PostCommentQueryPort postCommentQueryPort;
 
-    @Mock
-    private User user;
 
-    @Mock
-    private Post post;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -117,15 +111,13 @@ class PostQueryServiceTest {
         Long postId = 1L;
         Long userId = 2L;
         
-        PostDetail expectedPostDetail = createPostDetail(postId, "일반 게시글", "일반 게시글 내용");
-        
         // 캐시에 없음 (인기글이 아님)
         given(postCacheQueryPort.getCachedPostIfExists(postId)).willReturn(null);
         
         // 최적화된 JOIN 쿼리 결과
-        PostDetailProjectionRecord mockProjection = createMockProjection(postId, userId);
+        PostDetail mockPostDetail = createMockPostDetail(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
-                .willReturn(Optional.of(mockProjection));
+                .willReturn(Optional.of(mockPostDetail));
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -180,9 +172,9 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.getCachedPostIfExists(postId)).willReturn(null);
         
         // 최적화된 JOIN 쿼리로 DB에서 조회
-        PostDetailProjectionRecord mockProjection = createMockProjection(postId, userId);
+        PostDetail mockPostDetail = createMockPostDetail(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
-                .willReturn(Optional.of(mockProjection));
+                .willReturn(Optional.of(mockPostDetail));
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -210,9 +202,9 @@ class PostQueryServiceTest {
         given(postCacheQueryPort.getCachedPostIfExists(postId)).willReturn(null);
         
         // 최적화된 JOIN 쿼리로 DB에서 조회 (익명 사용자이므로 isLiked는 false)
-        PostDetailProjectionRecord mockProjection = createMockProjection(postId, userId);
+        PostDetail mockPostDetail = createMockPostDetail(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
-                .willReturn(Optional.of(mockProjection));
+                .willReturn(Optional.of(mockPostDetail));
 
         // When
         PostDetail result = postQueryService.getPost(postId, userId);
@@ -466,13 +458,18 @@ class PostQueryServiceTest {
         // Given
         Long postId = 1L;
 
-        given(postQueryPort.findById(postId)).willReturn(post);
+        Post mockPost = Post.builder()
+                .id(postId)
+                .title("Test Post")
+                .build();
+        given(postQueryPort.findById(postId)).willReturn(mockPost);
 
         // When
         Post result = postQueryService.findById(postId);
 
         // Then
-        assertThat(result).isEqualTo(post);
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(postId);
         
         verify(postQueryPort).findById(postId);
     }
@@ -724,6 +721,10 @@ class PostQueryServiceTest {
     }
 
     private PostDetail createPostDetail(Long id, String title, String content) {
+        return createPostDetail(id, title, content, 1L, false);
+    }
+    
+    private PostDetail createPostDetail(Long id, String title, String content, Long userId, boolean isLiked) {
         return PostDetail.builder()
                 .id(id)
                 .title(title)
@@ -732,32 +733,19 @@ class PostQueryServiceTest {
                 .likeCount(5)
                 .postCacheFlag(null)
                 .createdAt(java.time.Instant.now())
-                .userId(1L)
+                .userId(userId)
                 .userName("testUser")
                 .commentCount(3)
                 .isNotice(false)
-                .isLiked(false)
+                .isLiked(isLiked)
                 .build();
     }
 
     /**
-     * <h3>PostDetailProjectionRecord Mock 생성</h3>
+     * <h3>PostDetail Mock 생성</h3>
      * <p>JOIN 쿼리 테스트용 Mock 객체를 생성합니다.</p>
      */
-    private PostDetailProjectionRecord createMockProjection(Long postId, Long userId) {
-        return new PostDetailProjectionRecord(
-            postId,
-            "Test Title",
-            "Test Content", 
-            10,
-            Instant.now(),
-            1L,
-            "testUser",
-            false,
-            null,
-            5L,
-            3,
-            userId != null
-        );
+    private PostDetail createMockPostDetail(Long postId, Long userId) {
+        return createPostDetail(postId, "Test Title", "Test Content", 1L, userId != null);
     }
 }
