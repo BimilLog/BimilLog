@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.infrastructure.adapter.notification.dto.FcmMessageDTO;
-import jaeik.bimillog.infrastructure.adapter.notification.dto.FcmSendDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
@@ -56,8 +55,7 @@ public class FcmAdapter implements FcmPort {
      */
     @Override
     public void sendMessageTo(FcmMessage fcmMessage) throws IOException {
-        FcmSendDTO fcmSendDto = toDto(fcmMessage);
-        String message = makeMessage(fcmSendDto);
+        String message = makeMessage(fcmMessage);
         
         RestTemplate restTemplate = createConfiguredRestTemplate();
         HttpEntity<String> entity = createHttpEntity(message);
@@ -124,14 +122,14 @@ public class FcmAdapter implements FcmPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private String makeMessage(FcmSendDTO fcmSendDto) throws JsonProcessingException {
+    private String makeMessage(FcmMessage fcmMessage) throws JsonProcessingException {
         ObjectMapper om = new ObjectMapper();
         FcmMessageDTO fcmMessageDto = FcmMessageDTO.builder()
                 .message(FcmMessageDTO.Message.builder()
-                        .token(fcmSendDto.getToken())
+                        .token(fcmMessage.token())
                         .notification(FcmMessageDTO.Notification.builder()
-                                .title(fcmSendDto.getTitle())
-                                .body(fcmSendDto.getBody())
+                                .title(fcmMessage.title())
+                                .body(fcmMessage.body())
                                 .image(null)
                                 .build())
                         .build())
@@ -139,18 +137,6 @@ public class FcmAdapter implements FcmPort {
         return om.writeValueAsString(fcmMessageDto);
     }
 
-    /**
-     * <h3>도메인 FCM 메시지를 DTO로 변환</h3>
-     * <p>FcmMessage 도메인 값 객체를 FcmSendDTO로 변환합니다.</p>
-     *
-     * @param fcmMessage 도메인 FCM 메시지
-     * @return FcmSendDTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private FcmSendDTO toDto(FcmMessage fcmMessage) {
-        return new FcmSendDTO(fcmMessage.token(), fcmMessage.title(), fcmMessage.body());
-    }
 
     private RestTemplate createConfiguredRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
