@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.comment.in.web.dto.CommentReqDTO;
-import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
+import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentReqDTO;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 
 /**

@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.comment.in.web;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.infrastructure.adapter.comment.in.web.dto.CommentDTO;
+import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.paper.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.paper.dto;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;

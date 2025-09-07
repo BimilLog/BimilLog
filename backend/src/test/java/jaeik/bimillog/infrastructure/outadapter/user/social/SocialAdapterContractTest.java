@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.outadapter.user.social;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.SocialAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

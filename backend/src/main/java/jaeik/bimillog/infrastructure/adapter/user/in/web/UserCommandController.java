@@ -2,9 +2,9 @@ package jaeik.bimillog.infrastructure.adapter.user.in.web;
 
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
-import jaeik.bimillog.infrastructure.adapter.admin.in.web.dto.ReportDTO;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.SettingDTO;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.dto.UserNameDTO;
+import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
+import jaeik.bimillog.infrastructure.adapter.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

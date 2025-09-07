@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto;
+package jaeik.bimillog.infrastructure.adapter.notification.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

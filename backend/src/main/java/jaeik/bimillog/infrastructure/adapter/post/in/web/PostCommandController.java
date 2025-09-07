@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.post.in.web;
 
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
-import jaeik.bimillog.infrastructure.adapter.post.in.web.dto.PostReqDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.PostReqDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

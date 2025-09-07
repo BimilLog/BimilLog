@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
-import jaeik.bimillog.infrastructure.adapter.auth.out.social.dto.SocialLoginUserData;
+import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginUserData;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

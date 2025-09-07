@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.notification.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.notification.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;

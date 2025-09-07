@@ -6,7 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import jaeik.bimillog.domain.auth.application.port.out.AuthPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.UserDTO;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

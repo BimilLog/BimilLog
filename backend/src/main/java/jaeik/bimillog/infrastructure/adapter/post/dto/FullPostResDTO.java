@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.post.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.post.dto;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import lombok.Builder;

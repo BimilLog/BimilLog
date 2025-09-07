@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.in.web;
 
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.infrastructure.adapter.auth.in.web.dto.UserInfoResponseDTO;
+import jaeik.bimillog.infrastructure.adapter.auth.dto.UserInfoResponseDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

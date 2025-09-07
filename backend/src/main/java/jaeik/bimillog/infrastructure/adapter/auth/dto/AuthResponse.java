@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.auth.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.auth.dto;
 
 import java.util.Map;
 

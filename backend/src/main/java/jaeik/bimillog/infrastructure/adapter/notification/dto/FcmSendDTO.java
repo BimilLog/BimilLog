@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.notification.out.fcm.dto;
+package jaeik.bimillog.infrastructure.adapter.notification.dto;
 
 import lombok.AccessLevel;
 import lombok.Getter;

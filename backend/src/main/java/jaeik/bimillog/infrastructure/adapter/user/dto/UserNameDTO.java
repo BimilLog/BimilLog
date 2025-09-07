@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.user.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.user.dto;
 
 import jakarta.validation.constraints.Size;
 import lombok.Getter;

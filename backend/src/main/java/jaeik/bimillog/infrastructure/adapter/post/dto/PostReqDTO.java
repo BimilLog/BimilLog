@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.post.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.post.dto;
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

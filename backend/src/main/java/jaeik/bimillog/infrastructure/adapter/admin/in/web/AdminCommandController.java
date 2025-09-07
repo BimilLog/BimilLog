@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.admin.in.web;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
-import jaeik.bimillog.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

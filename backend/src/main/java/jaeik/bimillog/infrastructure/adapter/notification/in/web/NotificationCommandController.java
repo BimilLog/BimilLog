@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.notification.in.web;
 
 import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.infrastructure.adapter.notification.in.web.dto.UpdateNotificationDTO;
+import jaeik.bimillog.infrastructure.adapter.notification.dto.UpdateNotificationDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

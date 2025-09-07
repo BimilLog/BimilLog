@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.auth.out.social.dto;
+package jaeik.bimillog.infrastructure.adapter.auth.dto;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import lombok.Builder;

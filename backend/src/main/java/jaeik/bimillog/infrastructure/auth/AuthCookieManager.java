@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.auth;
 
-import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;

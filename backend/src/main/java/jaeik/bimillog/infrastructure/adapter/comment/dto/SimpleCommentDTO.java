@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.comment.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.comment.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 import jakarta.validation.constraints.NotNull;

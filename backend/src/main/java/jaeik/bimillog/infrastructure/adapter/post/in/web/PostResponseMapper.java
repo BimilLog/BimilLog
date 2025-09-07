@@ -2,8 +2,8 @@ package jaeik.bimillog.infrastructure.adapter.post.in.web;
 
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.adapter.post.in.web.dto.FullPostResDTO;
-import jaeik.bimillog.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostResDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostResDTO;
 import org.springframework.stereotype.Component;
 
 /**

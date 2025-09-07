@@ -1,8 +1,8 @@
-package jaeik.bimillog.infrastructure.adapter.user.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.KakaoFriendDTO;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.KakaoFriendDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

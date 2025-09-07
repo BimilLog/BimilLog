@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.admin.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.admin.dto;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;

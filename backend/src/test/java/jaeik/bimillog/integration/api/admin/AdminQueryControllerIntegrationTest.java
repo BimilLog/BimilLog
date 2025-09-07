@@ -3,7 +3,7 @@ package jaeik.bimillog.integration.api.admin;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;

@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.post.in.web;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.adapter.post.in.web.dto.SimplePostResDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostResDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

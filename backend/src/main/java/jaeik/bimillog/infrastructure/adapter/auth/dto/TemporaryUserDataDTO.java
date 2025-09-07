@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.auth.out.social.dto;
+package jaeik.bimillog.infrastructure.adapter.auth.dto;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.Token;

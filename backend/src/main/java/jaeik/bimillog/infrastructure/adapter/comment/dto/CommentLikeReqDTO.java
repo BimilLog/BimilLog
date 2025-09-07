@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.comment.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.comment.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

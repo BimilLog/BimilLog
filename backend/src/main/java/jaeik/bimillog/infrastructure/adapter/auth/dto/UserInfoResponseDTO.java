@@ -1,7 +1,7 @@
-package jaeik.bimillog.infrastructure.adapter.auth.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.auth.dto;
 
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.user.out.social.dto.UserDTO;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.UserDTO;
 import lombok.Builder;
 
 /**

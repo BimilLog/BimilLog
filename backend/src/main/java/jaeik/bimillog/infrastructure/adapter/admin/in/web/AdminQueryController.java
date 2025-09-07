@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.admin.in.web;
 import jaeik.bimillog.domain.admin.application.port.in.AdminQueryUseCase;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.infrastructure.adapter.admin.in.web.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;

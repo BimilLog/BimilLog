@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.user.in.web.dto;
+package jaeik.bimillog.infrastructure.adapter.user.dto;
 
 import jaeik.bimillog.domain.user.entity.Setting;
 import lombok.*;
