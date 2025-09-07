@@ -93,6 +93,20 @@ public record PostDetail(
     }
 
     /**
+     * <h3>기본 댓글 수로 상세 정보 생성</h3>
+     * <p>댓글 수 0으로 기본 상세 정보를 생성합니다.</p>
+     *
+     * @param post 게시글 엔티티
+     * @param likeCount 추천수
+     * @return PostDetail 값 객체 (commentCount = 0, isLiked = false)
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    public static PostDetail of(Post post, Integer likeCount) {
+        return of(post, likeCount, 0, false);
+    }
+
+    /**
      * <h3>추천 여부를 변경한 새로운 PostDetail 생성</h3>
      * <p>캐시된 PostDetail의 isLiked 필드만 변경하여 새로운 객체를 생성합니다.</p>
      *
@@ -128,18 +142,19 @@ public record PostDetail(
      * @author Jaeik
      */
     public PostSearchResult toSearchResult() {
-        return PostSearchResult.builder()
-                .id(this.id)
-                .title(this.title)
-                .content(this.content)
-                .viewCount(this.viewCount)
-                .likeCount(this.likeCount)
-                .postCacheFlag(this.postCacheFlag)
-                .createdAt(this.createdAt)
-                .userId(this.userId)
-                .userName(this.userName)
-                .commentCount(this.commentCount)
-                .isNotice(this.isNotice)
-                .build();
+        return PostSearchResult.ofPostDetail(this);
+    }
+
+    /**
+     * <h3>Mutable 검색 결과로 변환</h3>
+     * <p>PostDetail에서 mutable PostSearchResult로 변환합니다.</p>
+     * <p>성능 최적화를 위해 나중에 댓글수, 추천수를 수정할 수 있는 mutable 객체를 반환합니다.</p>
+     *
+     * @return PostSearchResult mutable 검색 결과
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    public PostSearchResult toMutableSearchResult() {
+        return PostSearchResult.ofPostDetail(this);
     }
 }

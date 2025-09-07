@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 
@@ -27,6 +28,7 @@ import java.time.Instant;
 @NoArgsConstructor
 public class PostSearchResult implements Serializable {
     
+    @Serial
     private static final long serialVersionUID = 1L;
     
     private Long id;
@@ -44,6 +46,7 @@ public class PostSearchResult implements Serializable {
     /**
      * <h3>게시글 검색 결과 생성</h3>
      * <p>게시글 엔티티와 메타 정보로부터 검색 결과를 생성합니다.</p>
+     * <p>PostDetail을 통해 중복 코드를 제거하고 일관성을 보장합니다.</p>
      *
      * @param post 게시글 엔티티
      * @param likeCount 추천수
@@ -53,24 +56,13 @@ public class PostSearchResult implements Serializable {
      * @author Jaeik
      */
     public static PostSearchResult of(Post post, Integer likeCount, Integer commentCount) {
-        return PostSearchResult.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .viewCount(post.getViews())
-                .likeCount(likeCount)
-                .postCacheFlag(post.getPostCacheFlag())
-                .createdAt(post.getCreatedAt())
-                .userId(post.getUser().getId())
-                .userName(post.getUser().getUserName())
-                .commentCount(commentCount)
-                .isNotice(post.isNotice())
-                .build();
+        return PostDetail.of(post, likeCount, commentCount).toSearchResult();
     }
 
     /**
      * <h3>기본 댓글 수로 검색 결과 생성</h3>
      * <p>댓글 수 0으로 기본 검색 결과를 생성합니다.</p>
+     * <p>PostDetail을 통해 중복 코드를 제거하고 일관성을 보장합니다.</p>
      *
      * @param post 게시글 엔티티
      * @param likeCount 추천수
@@ -79,7 +71,33 @@ public class PostSearchResult implements Serializable {
      * @author Jaeik
      */
     public static PostSearchResult of(Post post, Integer likeCount) {
-        return of(post, likeCount, 0);
+        return PostDetail.of(post, likeCount).toSearchResult();
+    }
+
+    /**
+     * <h3>PostDetail에서 검색 결과 생성</h3>
+     * <p>PostDetail 값 객체에서 mutable PostSearchResult를 생성합니다.</p>
+     * <p>성능 최적화를 위해 나중에 댓글수, 추천수를 수정할 수 있습니다.</p>
+     *
+     * @param postDetail PostDetail 값 객체
+     * @return PostSearchResult mutable 검색 결과
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    public static PostSearchResult ofPostDetail(PostDetail postDetail) {
+        return PostSearchResult.builder()
+                .id(postDetail.id())
+                .title(postDetail.title())
+                .content(postDetail.content())
+                .viewCount(postDetail.viewCount())
+                .likeCount(postDetail.likeCount())
+                .postCacheFlag(postDetail.postCacheFlag())
+                .createdAt(postDetail.createdAt())
+                .userId(postDetail.userId())
+                .userName(postDetail.userName())
+                .commentCount(postDetail.commentCount())
+                .isNotice(postDetail.isNotice())
+                .build();
     }
     
     /**

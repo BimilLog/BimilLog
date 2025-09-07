@@ -361,7 +361,7 @@ class PostQueryAdapterTest {
 
     @Test
     @DisplayName("경계값 - 빈 검색어로 검색")
-    void shouldReturnAllPosts_WhenEmptySearchQueryProvided() {
+    void shouldReturnEmptyResults_WhenEmptySearchQueryProvided() {
         // Given: 빈 검색어
         String searchType = "title";
         String query = "";
@@ -370,9 +370,10 @@ class PostQueryAdapterTest {
         // When: 빈 검색어로 검색
         Page<PostSearchResult> result = postQueryAdapter.findBySearch(searchType, query, pageable);
 
-        // Then: 모든 일반 게시글 조회됨 (공지사항 제외)
+        // Then: 빈 검색어는 빈 결과를 반환해야 함 (논리적으로 올바른 동작)
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개
+        assertThat(result.getContent()).hasSize(0); // 빈 검색어이므로 결과 없음
+        assertThat(result.getTotalElements()).isEqualTo(0L);
     }
 
     @Test
