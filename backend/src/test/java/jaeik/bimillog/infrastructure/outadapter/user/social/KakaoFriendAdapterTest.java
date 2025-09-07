@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoFriendAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoSocialAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -243,7 +242,7 @@ class KakaoFriendAdapterTest {
         Integer largeLimit = 1000;
         
         // 1000명의 친구 목록 시뮬레이션 (실제로는 적은 수로 테스트)
-        List<KakaoFriendDTO> largeFriendList = Arrays.asList(
+        List<KakaoFriendsDTO.Friend> largeFriendList = Arrays.asList(
             createKakaoFriendDTO(1L, "uuid1", "친구1", "image1.jpg", true),
             createKakaoFriendDTO(2L, "uuid2", "친구2", "image2.jpg", false)
         );
@@ -269,8 +268,8 @@ class KakaoFriendAdapterTest {
     /**
      * <h3>KakaoFriendDTO 생성 헬퍼 메서드</h3>
      */
-    private KakaoFriendDTO createKakaoFriendDTO(Long id, String uuid, String nickname, String image, Boolean favorite) throws Exception {
-        KakaoFriendDTO friend = new KakaoFriendDTO();
+    private KakaoFriendsDTO.Friend createKakaoFriendDTO(Long id, String uuid, String nickname, String image, Boolean favorite) throws Exception {
+        KakaoFriendsDTO.Friend friend = new KakaoFriendsDTO.Friend();
         
         // Reflection을 사용하여 private 필드 설정
         setField(friend, "id", id);
@@ -285,7 +284,7 @@ class KakaoFriendAdapterTest {
     /**
      * <h3>KakaoFriendsDTO 생성 헬퍼 메서드</h3>
      */
-    private KakaoFriendsDTO createKakaoFriendsResponse(List<KakaoFriendDTO> elements, Integer totalCount,
+    private KakaoFriendsDTO createKakaoFriendsResponse(List<KakaoFriendsDTO.Friend> elements, Integer totalCount,
                                                        String beforeUrl, String afterUrl, Integer favoriteCount) throws Exception {
         KakaoFriendsDTO response = new KakaoFriendsDTO();
         
