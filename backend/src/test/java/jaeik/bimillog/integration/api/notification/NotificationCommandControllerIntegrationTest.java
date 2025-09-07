@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.notification.dto.UpdateNotificationDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.NotificationRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.UserDTO;
+import jaeik.bimillog.infrastructure.adapter.user.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;

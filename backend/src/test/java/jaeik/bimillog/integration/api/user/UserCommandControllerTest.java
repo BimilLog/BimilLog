@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
 import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.UserCommandController;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.UserDTO;
+import jaeik.bimillog.infrastructure.adapter.user.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

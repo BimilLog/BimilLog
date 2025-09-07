@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoFriendAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoSocialAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.KakaoFriendDTO;
+import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

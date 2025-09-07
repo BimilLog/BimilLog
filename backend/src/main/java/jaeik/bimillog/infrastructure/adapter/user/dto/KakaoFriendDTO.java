@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.user.in.web;
+package jaeik.bimillog.infrastructure.adapter.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
