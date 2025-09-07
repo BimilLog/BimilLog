@@ -16,7 +16,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getCommentInfoProjectionWithUserLike;

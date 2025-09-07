@@ -5,7 +5,6 @@ import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -165,12 +164,9 @@ class PostJpaRepositoryTest {
 
         // When: 게시글 수정
         Post foundPost = postJpaRepository.findById(savedPost.getId()).get();
-        PostReqVO updateDTO = PostReqVO.builder()
-                .title("수정된 제목")
-                .content("수정된 내용")
-                .password(5678)
-                .build();
-        foundPost.updatePost(updateDTO);
+        String updateTitle = "수정된 제목";
+        String updateContent = "수정된 내용";
+        foundPost.updatePost(updateTitle, updateContent);
         
         Post updatedPost = postJpaRepository.save(foundPost);
         entityManager.flush();
@@ -430,23 +426,17 @@ class PostJpaRepositoryTest {
         Post post2 = postJpaRepository.findById(savedPost.getId()).get();
 
         // 첫 번째 수정
-        PostReqVO update1 = PostReqVO.builder()
-                .title("첫 번째 수정")
-                .content("첫 번째 내용")
-                .password(1111)
-                .build();
-        post1.updatePost(update1);
+        String update1Title = "첫 번째 수정";
+        String update1Content = "첫 번째 내용";
+        post1.updatePost(update1Title, update1Content);
         postJpaRepository.save(post1);
         entityManager.flush();
 
         // 두 번째 수정 (최신 데이터를 다시 조회해서 수정)
         Post latestPost = postJpaRepository.findById(savedPost.getId()).get();
-        PostReqVO update2 = PostReqVO.builder()
-                .title("두 번째 수정")
-                .content("두 번째 내용")  
-                .password(2222)
-                .build();
-        latestPost.updatePost(update2);
+        String update2Title = "두 번째 수정";
+        String update2Content = "두 번째 내용";
+        latestPost.updatePost(update2Title, update2Content);
         postJpaRepository.save(latestPost);
         entityManager.flush();
 
@@ -472,11 +462,6 @@ class PostJpaRepositoryTest {
     }
 
     private Post createTestPost(User user, String title, String content) {
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title(title)
-                .content(content)
-                .password(1234)
-                .build();
-        return Post.createPost(user, postReqDTO);
+        return Post.createPost(user, title, content, 1234);
     }
 }

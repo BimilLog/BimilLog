@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
-import jaeik.bimillog.domain.post.entity.PostReqVO;
 
 /**
  * <h2>게시글 기본 명령 유스케이스</h2>
@@ -16,26 +15,29 @@ public interface PostCommandUseCase {
      * <p>새로운 게시글을 작성하고 저장합니다.</p>
      * <p>작성자 정보와 함께 게시글을 생성하고 데이터베이스에 저장합니다.</p>
      *
-     * @param userId     현재 로그인한 사용자 ID
-     * @param postReqVO 게시글 작성 요청 값 객체
+     * @param userId   현재 로그인한 사용자 ID
+     * @param title    게시글 제목
+     * @param content  게시글 내용
+     * @param password 게시글 비밀번호 (선택적)
      * @return 생성된 게시글의 ID
      * @since 2.0.0
      * @author Jaeik
      */
-    Long writePost(Long userId, PostReqVO postReqVO);
+    Long writePost(Long userId, String title, String content, Integer password);
 
     /**
      * <h3>게시글 수정</h3>
      * <p>게시글 작성자만 게시글을 수정할 수 있습니다.</p>
      * <p>권한 검증 후 게시글 내용을 업데이트합니다.</p>
      *
-     * @param userId     현재 로그인한 사용자 ID
-     * @param postId     수정할 게시글 ID
-     * @param postReqVO 수정할 게시글 정보 값 객체
+     * @param userId  현재 로그인한 사용자 ID
+     * @param postId  수정할 게시글 ID
+     * @param title   게시글 제목
+     * @param content 게시글 내용
      * @since 2.0.0
      * @author Jaeik
      */
-    void updatePost(Long userId, Long postId, PostReqVO postReqVO);
+    void updatePost(Long userId, Long postId, String title, String content);
 
     /**
      * <h3>게시글 삭제</h3>

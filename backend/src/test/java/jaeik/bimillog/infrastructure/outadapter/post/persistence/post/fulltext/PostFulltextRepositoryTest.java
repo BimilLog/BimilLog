@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.outadapter.post.persistence.post.fulltext;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -127,12 +126,7 @@ class PostFulltextRepositoryTest {
         mixedPost = createPost("React + Spring Boot 풀스택 개발", "React frontend와 Spring Boot backend를 연동한 full-stack web application 개발 방법을 설명합니다.");
         
         // 4. 공지사항 (검색에서 제외되어야 함)
-        PostReqVO noticeReqDTO = PostReqVO.builder()
-                .title("스프링 부트 공지사항")
-                .content("중요한 공지사항입니다.")
-                .password(1234)
-                .build();
-        noticePost = Post.createPost(testUser, noticeReqDTO);
+        noticePost = Post.createPost(testUser, "스프링 부트 공지사항", "중요한 공지사항입니다.", 1234);
         noticePost.setAsNotice(); // 공지사항으로 설정
         
         // 5. 짧은 키워드 테스트용 (MySQL ft_min_word_len 기본값 4 테스트)
@@ -147,12 +141,7 @@ class PostFulltextRepositoryTest {
     }
 
     private Post createPost(String title, String content) {
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title(title)
-                .content(content)
-                .password(1234)
-                .build();
-        return Post.createPost(testUser, postReqDTO);
+        return Post.createPost(testUser, title, content, 1234);
     }
 
     @Test

@@ -5,7 +5,6 @@ import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -106,13 +105,11 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용입니다.")
-                .password(1234)
-                .build();
+        String title = "테스트 제목";
+        String content = "테스트 내용입니다.";
+        Integer password = 1234;
 
-        Post post = Post.createPost(user, postReqDTO);
+        Post post = Post.createPost(user, title, content, password);
 
         // When: 게시글 저장
         Post savedPost = postCommandAdapter.save(post);
@@ -150,24 +147,19 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqVO originalDTO = PostReqVO.builder()
-                .title("원본 제목")
-                .content("원본 내용")
-                .password(1234)
-                .build();
+        String originalTitle = "원본 제목";
+        String originalContent = "원본 내용";
+        Integer originalPassword = 1234;
 
-        Post originalPost = Post.createPost(user, originalDTO);
+        Post originalPost = Post.createPost(user, originalTitle, originalContent, originalPassword);
         Post savedPost = postCommandAdapter.save(originalPost);
         entityManager.flush();
 
         // 수정할 내용
-        PostReqVO updateDTO = PostReqVO.builder()
-                .title("수정된 제목")
-                .content("수정된 내용입니다.")
-                .password(5678)
-                .build();
+        String updateTitle = "수정된 제목";
+        String updateContent = "수정된 내용입니다.";
 
-        savedPost.updatePost(updateDTO);
+        savedPost.updatePost(updateTitle, updateContent);
 
         // When: 수정된 게시글 저장
         Post updatedPost = postCommandAdapter.save(savedPost);
@@ -203,13 +195,11 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("삭제할 제목")
-                .content("삭제할 내용")
-                .password(1234)
-                .build();
+        String title = "삭제할 제목";
+        String content = "삭제할 내용";
+        Integer password = 1234;
 
-        Post post = Post.createPost(user, postReqDTO);
+        Post post = Post.createPost(user, title, content, password);
         Post savedPost = postCommandAdapter.save(post);
         Long postId = savedPost.getId();
         entityManager.flush();
@@ -241,13 +231,11 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("조회수 테스트")
-                .content("조회수 증가 테스트 내용")
-                .password(1234)
-                .build();
+        String title = "조회수 테스트";
+        String content = "조회수 증가 테스트 내용";
+        Integer password = 1234;
 
-        Post post = Post.createPost(user, postReqDTO);
+        Post post = Post.createPost(user, title, content, password);
         Post savedPost = postCommandAdapter.save(post);
         entityManager.flush();
         entityManager.clear();
@@ -283,13 +271,11 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("다중 조회수 테스트")
-                .content("다중 조회수 증가 테스트")
-                .password(1234)
-                .build();
+        String title = "다중 조회수 테스트";
+        String content = "다중 조회수 증가 테스트";
+        Integer password = 1234;
 
-        Post post = Post.createPost(user, postReqDTO);
+        Post post = Post.createPost(user, title, content, password);
         Post savedPost = postCommandAdapter.save(post);
         entityManager.flush();
 
@@ -309,13 +295,11 @@ class PostCommandAdapterTest {
     @DisplayName("경계값 - null 사용자로 게시글 생성")
     void shouldSavePost_WhenUserIsNull() {
         // Given: null 사용자와 게시글 (익명 게시글 시나리오)
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("익명 게시글")
-                .content("익명으로 작성한 게시글입니다.")
-                .password(1234)
-                .build();
+        String title = "익명 게시글";
+        String content = "익명으로 작성한 게시글입니다.";
+        Integer password = 1234;
 
-        Post post = Post.createPost(null, postReqDTO);
+        Post post = Post.createPost(null, title, content, password);
 
         // When: null 사용자 게시글 저장
         Post savedPost = postCommandAdapter.save(post);
@@ -349,13 +333,9 @@ class PostCommandAdapterTest {
         String longTitle = "a".repeat(30); // 30자 제목
         String longContent = "긴 내용입니다. ".repeat(100); // 매우 긴 내용
 
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title(longTitle)
-                .content(longContent)
-                .password(1234)
-                .build();
+        Integer password = 1234;
 
-        Post post = Post.createPost(user, postReqDTO);
+        Post post = Post.createPost(user, longTitle, longContent, password);
 
         // When: 긴 제목과 내용의 게시글 저장
         Post savedPost = postCommandAdapter.save(post);
@@ -386,13 +366,11 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("공지사항이 될 게시글")
-                .content("중요한 공지입니다.")
-                .password(1234)
-                .build();
+        String title = "공지사항이 될 게시글";
+        String content = "중요한 공지입니다.";
+        Integer password = 1234;
 
-        Post post = Post.createPost(user, postReqDTO);
+        Post post = Post.createPost(user, title, content, password);
         Post savedPost = postCommandAdapter.save(post);
 
         // When: 공지사항으로 설정 후 저장
@@ -424,13 +402,11 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("인기 게시글")
-                .content("많이 본 게시글입니다.")
-                .password(1234)
-                .build();
+        String title = "인기 게시글";
+        String content = "많이 본 게시글입니다.";
+        Integer password = 1234;
 
-        Post post = Post.createPost(user, postReqDTO);
+        Post post = Post.createPost(user, title, content, password);
         Post savedPost = postCommandAdapter.save(post);
 
         // When: 캐시 플래그 설정 후 저장
@@ -462,7 +438,7 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        // 직접 빌더로 null 제목 설정 (PostReqVO 검증 우회)
+        // 직접 빌더로 null 제목 설정
         Post post = Post.builder()
                 .user(user)
                 .title(null) // NULL 제목
@@ -531,13 +507,11 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("즉시 조회 테스트")
-                .content("저장 후 바로 조회되는지 확인")
-                .password(1234)
-                .build();
+        String title = "즉시 조회 테스트";
+        String content = "저장 후 바로 조회되는지 확인";
+        Integer password = 1234;
 
-        Post post = Post.createPost(user, postReqDTO);
+        Post post = Post.createPost(user, title, content, password);
 
         // When: 저장 후 즉시 조회
         Post savedPost = postCommandAdapter.save(post);
@@ -571,13 +545,11 @@ class PostCommandAdapterTest {
 
         // When: 10개 게시글 저장
         for (int i = 1; i <= 10; i++) {
-            PostReqVO postReqDTO = PostReqVO.builder()
-                    .title("대량 테스트 게시글 " + i)
-                    .content("대량 저장 테스트 내용 " + i)
-                    .password(1234)
-                    .build();
+            String title = "대량 테스트 게시글 " + i;
+            String content = "대량 저장 테스트 내용 " + i;
+            Integer password = 1234;
 
-            Post post = Post.createPost(user, postReqDTO);
+            Post post = Post.createPost(user, title, content, password);
             Post savedPost = postCommandAdapter.save(post);
 
             // Then: 각 게시글이 정상 저장되었는지 확인

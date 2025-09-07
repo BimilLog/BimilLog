@@ -74,23 +74,28 @@ public class Post extends BaseEntity {
      * </p>
      *
      * @param user       작성자 정보
-     * @param postReqVO 게시글 작성 요청 값 객체
+     * @param title      게시글 제목
+     * @param content    게시글 내용
+     * @param password   게시글 비밀번호 (선택적)
      * @return 생성된 Post 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Post createPost(User user, PostReqVO postReqVO) {
-        if (postReqVO == null) {
-            throw new IllegalArgumentException("PostReqVO cannot be null");
+    public static Post createPost(User user, String title, String content, Integer password) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("게시글 제목은 필수입니다.");
+        }
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("게시글 내용은 필수입니다.");
         }
         
         return Post.builder()
                 .user(user)
-                .title(postReqVO.title())
-                .content(postReqVO.content())
+                .title(title)
+                .content(content)
                 .views(0)
                 .isNotice(false)
-                .password(postReqVO.password())
+                .password(password)
                 .postCacheFlag(null)
                 .build();
     }
@@ -102,17 +107,21 @@ public class Post extends BaseEntity {
      * 게시글의 제목과 내용을 업데이트한다.
      * </p>
      *
-     * @param postReqVO 업데이트할 게시글 정보
+     * @param title   게시글 제목
+     * @param content 게시글 내용
      * @author Jaeik
      * @since 2.0.0
      */
-    public void updatePost(PostReqVO postReqVO) {
-        if (postReqVO == null) {
-            throw new IllegalArgumentException("PostReqVO cannot be null");
+    public void updatePost(String title, String content) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("게시글 제목은 필수입니다.");
+        }
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("게시글 내용은 필수입니다.");
         }
         
-        this.title = postReqVO.title();
-        this.content = postReqVO.content();
+        this.title = title;
+        this.content = content;
     }
 
     /**
@@ -142,7 +151,7 @@ public class Post extends BaseEntity {
     public void unsetAsNotice() {
         this.isNotice = false;
     }
-    
+
     /**
      * <h3>게시글 캐시 플래그 설정</h3>
      * <p>게시글의 캐시 플래그를 설정합니다.</p>

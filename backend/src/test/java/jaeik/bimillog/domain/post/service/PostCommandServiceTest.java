@@ -6,8 +6,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
@@ -18,11 +16,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -65,17 +62,16 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long expectedPostId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
+        String title = "테스트 제목";
+        String content = "테스트 내용";
+        Integer password = 1234;
 
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
         // When
-        Long result = postCommandService.writePost(userId, postReqDTO);
+        Long result = postCommandService.writePost(userId, title, content, password);
 
         // Then
         assertThat(result).isEqualTo(expectedPostId);
@@ -91,23 +87,19 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("수정된 제목")
-                .content("수정된 내용")
-                .build();
 
         given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(true);
 
         // When
-        postCommandService.updatePost(userId, postId, postReqDTO);
+        postCommandService.updatePost(userId, postId, "수정된 제목", "수정된 내용");
 
         // Then
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
-        verify(post, times(1)).updatePost(postReqDTO);
+        verify(post, times(1)).updatePost("수정된 제목", "수정된 내용");
         verify(postCommandPort, times(1)).save(post);
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId, new PostCacheFlag[0]);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
     }
 
@@ -117,15 +109,11 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 999L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
 
         given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
@@ -140,22 +128,18 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
 
         given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
-        verify(post, never()).updatePost(any());
+        verify(post, never()).updatePost(anyString(), anyString());
         verify(postCommandPort, never()).save(any());
         verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
@@ -179,7 +163,7 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(postCommandPort, times(1)).delete(post);
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId, new PostCacheFlag[0]);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
     }
 
@@ -228,17 +212,17 @@ class PostCommandServiceTest {
     void shouldThrowException_WhenNullDTO() {
         // Given
         Long userId = 1L;
-        PostReqVO postReqDTO = null;
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("PostReqVO cannot be null");
+        assertThatThrownBy(() -> postCommandService.writePost(userId, "title", "content", null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("Cannot invoke")
+                .hasMessageContaining("getId()");
 
-        // loadUserInfoPort는 호출되지만 Post.createPost에서 예외 발생
+        // loadUserInfoPort는 호출되고 Post.createPost로 생성되지만, save 후 getId()에서 예외 발생
         verify(loadUserInfoPort, times(1)).getReferenceById(userId);
-        verify(postCommandPort, never()).save(any());
+        verify(postCommandPort, times(1)).save(any());
     }
 
     @Test
@@ -247,23 +231,22 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqVO postReqDTO = null;
 
         given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(true);
         
         // Mock이 실제 예외를 발생시키도록 설정
-        doThrow(new IllegalArgumentException("PostReqVO cannot be null"))
-            .when(post).updatePost(postReqDTO);
+        doThrow(new IllegalArgumentException("게시글 제목은 필수입니다."))
+            .when(post).updatePost("title", "content");
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("PostReqVO cannot be null");
+                .hasMessage("게시글 제목은 필수입니다.");
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
-        verify(post, times(1)).updatePost(postReqDTO); // updatePost에서 예외 발생
+        verify(post, times(1)).updatePost("title", "content"); // updatePost에서 예외 발생
         verify(postCommandPort, never()).save(any()); // 예외로 인해 호출되지 않음
         verify(postCacheCommandPort, never()).deleteCache(any(), any()); // 예외로 인해 호출되지 않음
     }
@@ -274,17 +257,13 @@ class PostCommandServiceTest {
     void shouldThrowException_WhenNullUserId() {
         // Given
         Long userId = null;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
 
         // userId가 null이면 loadUserInfoPort 호출되지 않고 user가 null로 설정됨
         // postCommandPort.save() 기본값이 null이므로 NPE 발생
         given(postCommandPort.save(any())).willReturn(null);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.writePost(userId, "title", "content", null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Cannot invoke")
                 .hasMessageContaining("getId()");
@@ -298,15 +277,11 @@ class PostCommandServiceTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         Long userId = 999L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
 
         given(loadUserInfoPort.getReferenceById(userId)).willThrow(new RuntimeException("User not found"));
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.writePost(userId, "title", "content", null))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("User not found");
 
@@ -320,17 +295,15 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long expectedPostId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("A".repeat(255)) // 긴 제목
-                .content("B".repeat(5000)) // 긴 내용
-                .build();
+        String title = "A".repeat(255); // 긴 제목
+        String content = "B".repeat(5000); // 긴 내용
 
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
         // When
-        Long result = postCommandService.writePost(userId, postReqDTO);
+        Long result = postCommandService.writePost(userId, title, content, null);
 
         // Then
         assertThat(result).isEqualTo(expectedPostId);
@@ -345,22 +318,18 @@ class PostCommandServiceTest {
         // Given
         Long userId = null;
         Long postId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("수정된 제목")
-                .content("수정된 내용")
-                .build();
 
         given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
-        verify(post, never()).updatePost(any());
+        verify(post, never()).updatePost(anyString(), anyString());
         verify(postCommandPort, never()).save(any());
     }
 
@@ -370,15 +339,11 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = null;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
 
         given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
@@ -429,15 +394,11 @@ class PostCommandServiceTest {
     void shouldThrowException_WhenNegativeUserId() {
         // Given
         Long userId = -1L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
 
         given(loadUserInfoPort.getReferenceById(userId)).willThrow(new RuntimeException("Invalid user ID"));
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.writePost(userId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.writePost(userId, "title", "content", null))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Invalid user ID");
 
@@ -451,15 +412,11 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = -1L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
 
         given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
@@ -491,17 +448,13 @@ class PostCommandServiceTest {
         // Given
         Long userId = Long.MAX_VALUE;
         Long expectedPostId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("테스트 제목")
-                .content("테스트 내용")
-                .build();
 
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
         // When
-        Long result = postCommandService.writePost(userId, postReqDTO);
+        Long result = postCommandService.writePost(userId, "테스트 제목", "테스트 내용", null);
 
         // Then
         assertThat(result).isEqualTo(expectedPostId);
@@ -516,23 +469,19 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("수정된 제목")
-                .content("수정된 내용")
-                .build();
 
         given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         // isAuthor가 호출되었는지 확인 (권한 검증이 먼저 실행됨)
         verify(post, times(1)).isAuthor(userId);
         // 권한 검증에 실패했으므로 업데이트가 호출되지 않음
-        verify(post, never()).updatePost(any());
+        verify(post, never()).updatePost(anyString(), anyString());
         verify(postCommandPort, never()).save(any());
         verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
@@ -571,17 +520,13 @@ class PostCommandServiceTest {
         given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
         
         for (int i = 0; i < expectedPostIds.length; i++) {
-            PostReqVO postReqDTO = PostReqVO.builder()
-                    .title("제목 " + (i + 1))
-                    .content("내용 " + (i + 1))
-                    .build();
             
             Post mockPost = mock(Post.class);
             given(postCommandPort.save(any(Post.class))).willReturn(mockPost);
             given(mockPost.getId()).willReturn(expectedPostIds[i]);
             
             // When
-            Long result = postCommandService.writePost(userId, postReqDTO);
+            Long result = postCommandService.writePost(userId, "제목 " + (i + 1), "내용 " + (i + 1), null);
             
             // Then
             assertThat(result).isEqualTo(expectedPostIds[i]);
@@ -597,23 +542,19 @@ class PostCommandServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title("수정된 제목")
-                .content("수정된 내용")
-                .build();
 
         given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(true);
-        doThrow(new RuntimeException("Cache delete failed")).when(postCacheCommandPort).deleteCache(null, postId, new PostCacheFlag[0]);
+        doThrow(new RuntimeException("Cache delete failed")).when(postCacheCommandPort).deleteCache(null, postId);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, postReqDTO))
+        assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Cache delete failed");
 
         // 게시글 수정은 완료되지만 캐시 삭제에서 실패
-        verify(post, times(1)).updatePost(postReqDTO);
+        verify(post, times(1)).updatePost("title", "content");
         verify(postCommandPort, times(1)).save(post);
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId, new PostCacheFlag[0]);
+        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
     }
 }

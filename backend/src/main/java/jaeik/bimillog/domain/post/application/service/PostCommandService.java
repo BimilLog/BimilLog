@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
@@ -42,16 +41,18 @@ public class PostCommandService implements PostCommandUseCase {
      * <p>로그인 사용자 또는 비로그인 사용자(익명)가 작성한 게시글을 저장하고, 해당 게시글의 ID를 반환합니다.</p>
      * <p>비로그인 사용자의 경우 userId가 null이며, 비밀번호를 통해 익명 게시글로 저장됩니다.</p>
      *
-     * @param userId      게시글 작성자의 사용자 ID (null 허용 - 익명 작성자)
-     * @param postReqVO  게시글 요청 값 객체
+     * @param userId   게시글 작성자의 사용자 ID (null 허용 - 익명 작성자)
+     * @param title    게시글 제목
+     * @param content  게시글 내용
+     * @param password 게시글 비밀번호 (선택적)
      * @return 저장된 게시글의 ID
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public Long writePost(Long userId, PostReqVO postReqVO) {
+    public Long writePost(Long userId, String title, String content, Integer password) {
         User user = (userId != null) ? loadUserInfoPort.getReferenceById(userId) : null;
-        Post newPost = Post.createPost(user, postReqVO);
+        Post newPost = Post.createPost(user, title, content, password);
         Post savedPost = postCommandPort.save(newPost);
         return savedPost.getId();
     }
@@ -62,26 +63,27 @@ public class PostCommandService implements PostCommandUseCase {
      * <p>게시글 작성자만 게시글을 수정할 수 있습니다.</p>
      * <p>헥사고날 아키텍처 원칙에 따라 모든 외부 의존성을 Port를 통해 처리합니다.</p>
      *
-     * @param userId     현재 로그인한 사용자 ID
-     * @param postId     수정할 게시글 ID
-     * @param postReqVO 수정할 게시글 정보 값 객체
+     * @param userId  현재 로그인한 사용자 ID
+     * @param postId  수정할 게시글 ID
+     * @param title   게시글 제목
+     * @param content 게시글 내용
      * @throws PostCustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public void updatePost(Long userId, Long postId, PostReqVO postReqVO) {
+    public void updatePost(Long userId, Long postId, String title, String content) {
         Post post = postQueryPort.findById(postId);
 
         if (!post.isAuthor(userId)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }
 
-        post.updatePost(postReqVO);
+        post.updatePost(title, content);
         postCommandPort.save(post);
         postCacheCommandPort.deleteCache(null, postId);
         
-        log.info("게시글 수정 완료: postId={}, userId={}, title={}", postId, userId, postReqVO.title());
+        log.info("게시글 수정 완료: postId={}, userId={}, title={}", postId, userId, title);
     }
 
     /**

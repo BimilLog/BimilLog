@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.adapter.post.in.web;
 
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
-import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.dto.PostReqDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -45,9 +44,9 @@ public class PostCommandController {
     @PostMapping
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostReqDTO postReqDTO) {
-        PostReqVO postReqVO = convertToPostReqVO(postReqDTO);
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        Long postId = postCommandUseCase.writePost(userId, postReqVO);
+        Integer passwordInt = parsePassword(postReqDTO.getPassword());
+        Long postId = postCommandUseCase.writePost(userId, postReqDTO.getTitle(), postReqDTO.getContent(), passwordInt);
         return ResponseEntity.created(URI.create("/api/posts/" + postId)).build();
     }
 
@@ -66,8 +65,7 @@ public class PostCommandController {
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody @Valid PostReqDTO postReqDTO) {
-        PostReqVO postReqVO = convertToPostReqVO(postReqDTO);
-        postCommandUseCase.updatePost(userDetails.getUserId(), postId, postReqVO);
+        postCommandUseCase.updatePost(userDetails.getUserId(), postId, postReqDTO.getTitle(), postReqDTO.getContent());
         return ResponseEntity.ok().build();
     }
 
@@ -106,24 +104,18 @@ public class PostCommandController {
     }
 
     /**
-     * <h3>PostReqDTO를 PostReqVO로 변환</h3>
+     * <h3>비밀번호 문자열을 정수로 변환</h3>
      *
-     * @param dto 변환할 DTO 객체
-     * @return PostReqVO 도메인 value object
+     * @param password 변환할 비밀번호 문자열
+     * @return Integer 비밀번호 (null 가능)
      * @author jaeik
      * @since 2.0.0
      */
-    private PostReqVO convertToPostReqVO(PostReqDTO dto) {
-        Integer passwordInt = null;
-        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
-            passwordInt = Integer.parseInt(dto.getPassword());
+    private Integer parsePassword(String password) {
+        if (password != null && !password.trim().isEmpty()) {
+            return Integer.parseInt(password);
         }
-        
-        return PostReqVO.builder()
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .password(passwordInt)
-                .build();
+        return null;
     }
 }
 

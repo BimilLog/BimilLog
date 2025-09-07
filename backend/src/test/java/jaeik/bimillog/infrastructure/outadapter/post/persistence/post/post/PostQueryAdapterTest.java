@@ -106,39 +106,19 @@ class PostQueryAdapterTest {
 
     private void createTestPosts() {
         // 일반 게시글 1
-        PostReqVO postReqDTO1 = PostReqVO.builder()
-                .title("첫 번째 게시글")
-                .content("첫 번째 게시글 내용")
-                .password(1234)
-                .build();
-        testPost1 = Post.createPost(testUser, postReqDTO1);
+        testPost1 = Post.createPost(testUser, "첫 번째 게시글", "첫 번째 게시글 내용", 1234);
         entityManager.persistAndFlush(testPost1);
 
         // 일반 게시글 2
-        PostReqVO postReqDTO2 = PostReqVO.builder()
-                .title("두 번째 게시글")
-                .content("두 번째 게시글 내용")
-                .password(1234)
-                .build();
-        testPost2 = Post.createPost(testUser, postReqDTO2);
+        testPost2 = Post.createPost(testUser, "두 번째 게시글", "두 번째 게시글 내용", 1234);
         entityManager.persistAndFlush(testPost2);
 
         // 일반 게시글 3
-        PostReqVO postReqDTO3 = PostReqVO.builder()
-                .title("세 번째 게시글")
-                .content("세 번째 게시글 내용")
-                .password(1234)
-                .build();
-        testPost3 = Post.createPost(testUser, postReqDTO3);
+        testPost3 = Post.createPost(testUser, "세 번째 게시글", "세 번째 게시글 내용", 1234);
         entityManager.persistAndFlush(testPost3);
 
         // 공지사항 게시글
-        PostReqVO noticeReqDTO = PostReqVO.builder()
-                .title("공지사항 제목")
-                .content("중요한 공지사항입니다.")
-                .password(1234)
-                .build();
-        noticePost = Post.createPost(testUser, noticeReqDTO);
+        noticePost = Post.createPost(testUser, "공지사항 제목", "중요한 공지사항입니다.", 1234);
         noticePost.setAsNotice(); // 공지사항으로 설정
         entityManager.persistAndFlush(noticePost);
 
@@ -400,12 +380,7 @@ class PostQueryAdapterTest {
     void shouldHandlePagination_WhenMultiplePagesRequested() {
         // Given: 더 많은 게시글 생성 (총 10개)
         for (int i = 4; i <= 10; i++) {
-            PostReqVO postReqDTO = PostReqVO.builder()
-                    .title("추가 게시글 " + i)
-                    .content("추가 게시글 내용 " + i)
-                    .password(1234)
-                    .build();
-            Post post = Post.createPost(testUser, postReqDTO);
+            Post post = Post.createPost(testUser, "추가 게시글 " + i, "추가 게시글 내용 " + i, 1234);
             entityManager.persistAndFlush(post);
         }
 

@@ -5,7 +5,6 @@ import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.post.entity.PostReqVO;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -510,11 +509,6 @@ class PostLikeJpaRepositoryTest {
     }
 
     private Post createTestPost(User user, String title, String content) {
-        PostReqVO postReqDTO = PostReqVO.builder()
-                .title(title)
-                .content(content)
-                .password(1234)
-                .build();
-        return Post.createPost(user, postReqDTO);
+        return Post.createPost(user, title, content, 1234);
     }
 }
