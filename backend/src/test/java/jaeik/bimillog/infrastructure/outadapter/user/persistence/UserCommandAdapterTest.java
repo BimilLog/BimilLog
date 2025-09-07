@@ -107,18 +107,6 @@ class UserCommandAdapterTest {
         verify(settingRepository).save(eq(inputSetting));
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 사용자 ID로 삭제")
-    void shouldDeleteUser_WhenValidIdProvided() {
-        // Given: 삭제할 사용자 ID
-        Long userId = 1L;
-
-        // When: 사용자 삭제 실행
-        userCommandAdapter.deleteById(userId);
-
-        // Then: Repository의 deleteById가 올바른 ID로 호출되었는지 검증
-        verify(userRepository).deleteById(eq(userId));
-    }
 
     @Test
     @DisplayName("정상 케이스 - 블랙리스트 저장")
@@ -176,24 +164,6 @@ class UserCommandAdapterTest {
         verify(settingRepository, never()).save(any());
     }
 
-    @Test
-    @DisplayName("예외 케이스 - null ID로 사용자 삭제 시 예외 발생")
-    void shouldThrowException_WhenNullIdProvided() {
-        // TODO: 테스트 실패 - 메인 로직 버그 의심
-        // 기존: null ID 허용하는 비논리적 테스트
-        // 수정: null ID로는 삭제할 수 없으므로 적절한 예외 처리 필요
-        
-        // Given: null ID
-        Long nullId = null;
-
-        // When & Then: null ID로 삭제 시 예외 발생 확인
-        assertThatThrownBy(() -> userCommandAdapter.deleteById(nullId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("User ID cannot be null");
-
-        // 검증 실패로 repository 호출되지 않아야 함
-        verify(userRepository, never()).deleteById(any());
-    }
 
     @Test
     @DisplayName("경계값 - null 블랙리스트 저장")

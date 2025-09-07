@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -83,7 +84,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
                             return null;
                         }
                     })
-                    .filter(hash -> hash != null)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
             if (!tokenHashes.isEmpty()) {

@@ -1,9 +1,9 @@
 package jaeik.bimillog.infrastructure.outadapter.auth.persistence.auth;
 
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.DeleteUserAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +38,7 @@ class DeleteDataAdapterTest {
     @Mock private TokenRepository tokenRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private AuthCookieManager authCookieManager;
-    @Mock private UserCommandUseCase userCommandUseCase;
+    @Mock private UserRepository userRepository;
 
     @InjectMocks private DeleteUserAdapter deleteDataAdapter;
 
@@ -103,7 +103,7 @@ class DeleteDataAdapterTest {
         verify(entityManager).flush();
         verify(entityManager).clear();
         verify(tokenRepository).deleteAllByUserId(validUserId);
-        verify(userCommandUseCase).deleteById(validUserId);
+        verify(userRepository).deleteById(validUserId);
     }
 
     @Test
@@ -119,7 +119,7 @@ class DeleteDataAdapterTest {
         verify(entityManager).flush();
         verify(entityManager).clear();
         verify(tokenRepository).deleteAllByUserId(nullUserId);
-        verify(userCommandUseCase).deleteById(nullUserId);
+        verify(userRepository).deleteById(nullUserId);
     }
 
     @Test
@@ -132,11 +132,11 @@ class DeleteDataAdapterTest {
         deleteDataAdapter.performWithdrawProcess(userId);
 
         // Then: 작업 실행 순서 검증
-        var inOrder = inOrder(entityManager, tokenRepository, userCommandUseCase);
+        var inOrder = inOrder(entityManager, tokenRepository, userRepository);
         inOrder.verify(entityManager).flush();
         inOrder.verify(entityManager).clear();
         inOrder.verify(tokenRepository).deleteAllByUserId(userId);
-        inOrder.verify(userCommandUseCase).deleteById(userId);
+        inOrder.verify(userRepository).deleteById(userId);
     }
 
     @Test
@@ -231,7 +231,7 @@ class DeleteDataAdapterTest {
         // Given: UserCommandUseCase에서 예외 발생
         Long userId = 1L;
         RuntimeException expectedException = new RuntimeException("User deletion failed");
-        doThrow(expectedException).when(userCommandUseCase).deleteById(userId);
+        doThrow(expectedException).when(userRepository).deleteById(userId);
 
         // When & Then: 예외 전파 검증
         assertThatThrownBy(() -> deleteDataAdapter.performWithdrawProcess(userId))

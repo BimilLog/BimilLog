@@ -257,8 +257,8 @@ class UserCommandAdapterIntegrationTest {
         // 삭제 전 사용자 존재 확인
         assertThat(userRepository.findById(userId)).isPresent();
 
-        // When: 사용자 삭제
-        userCommandAdapter.deleteById(userId);
+        // When: 사용자 삭제 (직접 리포지토리 호출 - deleteById 메서드는 존재하지 않음)
+        userRepository.deleteById(userId);
 
         // Then: 사용자가 삭제되었는지 검증
         Optional<User> deletedUser = userRepository.findById(userId);
@@ -373,9 +373,9 @@ class UserCommandAdapterIntegrationTest {
         // Given: 존재하지 않는 사용자 ID
         Long nonExistentId = 999L;
 
-        // When & Then: 존재하지 않는 사용자 삭제 시 예외가 발생하지 않아야 함
+        // When & Then: 존재하지 않는 사용자 삭제 시 예외가 발생하지 않아야 함 (직접 리포지토리 호출)
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
-                () -> userCommandAdapter.deleteById(nonExistentId)
+                () -> userRepository.deleteById(nonExistentId)
         );
     }
 

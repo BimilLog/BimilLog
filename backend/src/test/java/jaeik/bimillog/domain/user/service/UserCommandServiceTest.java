@@ -177,18 +177,6 @@ class UserCommandServiceTest {
         verify(userCommandPort, never()).save(any(User.class));
     }
 
-    @Test
-    @DisplayName("사용자 삭제 - 정상 케이스")
-    void shouldDeleteUser_WhenValidUserId() {
-        // Given
-        Long userId = 1L;
-
-        // When
-        userCommandService.deleteById(userId);
-
-        // Then
-        verify(userCommandPort).deleteById(userId);
-    }
 
     @Test
     @DisplayName("사용자 저장 - 정상 케이스")
