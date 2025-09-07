@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentReqDTO;
-import jaeik.bimillog.infrastructure.adapter.user.dto.UserDTO;
+import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 
 /**

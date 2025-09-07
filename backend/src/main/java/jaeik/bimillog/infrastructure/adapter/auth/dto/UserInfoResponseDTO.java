@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.dto;
 
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.user.dto.UserDTO;
+import jaeik.bimillog.global.dto.UserDTO;
 import lombok.Builder;
 
 /**

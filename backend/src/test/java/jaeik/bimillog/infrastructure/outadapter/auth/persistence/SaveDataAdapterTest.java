@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.auth.SaveUserAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
-import jaeik.bimillog.infrastructure.adapter.user.dto.UserDTO;
+import jaeik.bimillog.global.dto.UserDTO;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import org.junit.jupiter.api.DisplayName;
