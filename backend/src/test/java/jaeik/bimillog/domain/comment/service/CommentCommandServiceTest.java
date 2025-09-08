@@ -18,6 +18,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,7 +85,7 @@ class CommentCommandServiceTest {
     void shouldAddLike_WhenUserHasNotLikedComment() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
@@ -105,7 +107,7 @@ class CommentCommandServiceTest {
     void shouldRemoveLike_WhenUserHasAlreadyLikedComment() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
 
         // When
@@ -139,7 +141,7 @@ class CommentCommandServiceTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
@@ -158,7 +160,7 @@ class CommentCommandServiceTest {
     void shouldThrowException_WhenUserIdIsNull() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(null)).willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+        given(commentToUserPort.findById(null)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
@@ -184,7 +186,7 @@ class CommentCommandServiceTest {
                 .build();
 
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(ownComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
@@ -204,7 +206,7 @@ class CommentCommandServiceTest {
     void shouldToggleLikeMultipleTimes() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(testUser);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
 
         // 첫 번째: 좋아요 추가
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);

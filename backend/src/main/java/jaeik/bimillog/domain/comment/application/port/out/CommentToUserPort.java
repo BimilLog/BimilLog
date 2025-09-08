@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.comment.application.port.out;
 
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.exception.UserCustomException;
 
 import java.util.Optional;
 
@@ -14,27 +13,15 @@ import java.util.Optional;
  */
 public interface CommentToUserPort {
 
-    // TODO OPTIONAL 통합 필요
     /**
      * <h3>사용자 ID로 사용자 조회</h3>
      * <p>사용자 ID를 사용하여 사용자를 조회합니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @return User 조회된 사용자 객체
-     * @throws UserCustomException 사용자가 존재하지 않는 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    User findById(Long userId);
-
-    /**
-     * <h3>사용자 ID로 사용자 조회 (Optional)</h3>
-     * <p>사용자 ID를 사용하여 사용자를 조회합니다. 익명 댓글 지원을 위해 Optional 반환</p>
+     * <p>익명 댓글 지원을 위해 Optional 반환하며, 호출자가 필요에 따라 예외 처리를 결정할 수 있습니다.</p>
      *
      * @param userId 사용자 ID
      * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<User> findByIdOptional(Long userId);
+    Optional<User> findById(Long userId);
 }

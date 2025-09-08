@@ -10,6 +10,8 @@ import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +68,7 @@ public class CommentCommandService implements CommentCommandUseCase {
         Post post = commentToPostPort.findById(commentRequest.postId());
 
         User user = Optional.ofNullable(userId)
-                .flatMap(commentToUserPort::findByIdOptional)
+                .flatMap(commentToUserPort::findById)
                 .orElse(null);
 
         String userName = (user != null) ? user.getUserName() : "익명";
@@ -134,7 +136,8 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Override
     public void likeComment(Long userId, Long commentId) {
         Comment comment = commentQueryPort.findById(commentId);
-        User user = commentToUserPort.findById(userId);
+        User user = commentToUserPort.findById(userId)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         if (commentLikePort.isLikedByUser(commentId, userId)) {
             commentLikePort.deleteLikeByIds(commentId, userId);
