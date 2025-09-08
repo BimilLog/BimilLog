@@ -110,6 +110,11 @@ class PaperToUserAdapterTest {
         public Optional<Token> findTokenById(Long tokenId) {
             return Optional.empty();
         }
+
+        @Override
+        public Setting findBySettingId(Long settingId) {
+            return entityManager.find(Setting.class, settingId);
+        }
     }
 
     @Autowired

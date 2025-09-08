@@ -265,21 +265,6 @@ class UserCommandAdapterIntegrationTest {
         assertThat(deletedUser).isEmpty();
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 블랙리스트 저장")
-    void shouldSaveBlackList_WhenValidBlackListProvided() {
-        // Given: 새로운 블랙리스트 엔티티
-        BlackList blackList = BlackList.createBlackList("kakaoBlocked123", SocialProvider.KAKAO);
-
-        // When: 블랙리스트 저장
-        userCommandAdapter.save(blackList);
-
-        // Then: 블랙리스트가 올바르게 저장되었는지 검증
-        boolean isBlackListed = blackListRepository
-                .existsByProviderAndSocialId(SocialProvider.KAKAO, "kakaoBlocked123");
-        
-        assertThat(isBlackListed).isTrue();
-    }
 
     @Test
     @DisplayName("트랜잭션 - 사용자와 설정 함께 저장")
@@ -350,22 +335,6 @@ class UserCommandAdapterIntegrationTest {
         );
     }
 
-    @Test
-    @DisplayName("경계값 - 중복 소셜 정보로 블랙리스트 저장 시 예외")
-    void shouldThrowException_WhenDuplicateBlackListProvided() {
-        // Given: 이미 존재하는 블랙리스트
-        BlackList existingBlackList = BlackList.createBlackList("kakaoBlocked456", SocialProvider.KAKAO);
-        blackListRepository.save(existingBlackList);
-
-        // 동일한 소셜 정보를 가진 블랙리스트
-        BlackList duplicateBlackList = BlackList.createBlackList("kakaoBlocked456", SocialProvider.KAKAO);
-
-        // When & Then: 중복 소셜 정보로 저장 시 예외 발생
-        org.junit.jupiter.api.Assertions.assertThrows(
-                org.springframework.dao.DataIntegrityViolationException.class,
-                () -> userCommandAdapter.save(duplicateBlackList)
-        );
-    }
 
     @Test
     @DisplayName("경계값 - 존재하지 않는 ID로 사용자 삭제")

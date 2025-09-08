@@ -2,9 +2,9 @@ package jaeik.bimillog.integration.event.admin;
 
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
+import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,10 +45,10 @@ public class UserBannedEventIntegrationTest {
     private ApplicationEventPublisher eventPublisher;
 
     @MockitoBean
-    private SocialLoginPort socialLoginPort;
+    private SocialPort socialPort;
 
     @MockitoBean
-    private UserCommandUseCase userCommandUseCase;
+    private WithdrawUseCase withdrawUseCase;
 
     @MockitoBean
     private TokenBlacklistUseCase tokenBlacklistUseCase;
@@ -70,9 +70,9 @@ public class UserBannedEventIntegrationTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     // 소셜 로그인 해제
-                    verify(socialLoginPort).unlink(eq(provider), eq(socialId));
+                    verify(socialPort).unlink(eq(provider), eq(socialId));
                     // 사용자 블랙리스트 등록
-                    verify(userCommandUseCase).addToBlacklist(eq(userId));
+                    verify(withdrawUseCase).addToBlacklist(eq(userId));
                     // JWT 토큰 무효화
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(userId), eq("사용자 제재"));
                 });
@@ -95,13 +95,13 @@ public class UserBannedEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("kakao123"));
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("kakao456"));
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("kakao789"));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("kakao123"));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("kakao456"));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("kakao789"));
                     
-                    verify(userCommandUseCase).addToBlacklist(eq(1L));
-                    verify(userCommandUseCase).addToBlacklist(eq(2L));
-                    verify(userCommandUseCase).addToBlacklist(eq(3L));
+                    verify(withdrawUseCase).addToBlacklist(eq(1L));
+                    verify(withdrawUseCase).addToBlacklist(eq(2L));
+                    verify(withdrawUseCase).addToBlacklist(eq(3L));
                     
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(1L), eq("사용자 제재"));
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(2L), eq("사용자 제재"));
@@ -126,8 +126,8 @@ public class UserBannedEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(socialLoginPort, times(3)).unlink(eq(provider), eq(socialId));
-                    verify(userCommandUseCase, times(3)).addToBlacklist(eq(userId));
+                    verify(socialPort, times(3)).unlink(eq(provider), eq(socialId));
+                    verify(withdrawUseCase, times(3)).addToBlacklist(eq(userId));
                     verify(tokenBlacklistUseCase, times(3)).blacklistAllUserTokens(eq(userId), eq("사용자 제재"));
                 });
     }
@@ -147,8 +147,8 @@ public class UserBannedEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("performanceTest"));
-                    verify(userCommandUseCase).addToBlacklist(eq(1L));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("performanceTest"));
+                    verify(withdrawUseCase).addToBlacklist(eq(1L));
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(1L), eq("사용자 제재"));
 
                     long endTime = System.currentTimeMillis();
@@ -203,8 +203,8 @@ public class UserBannedEventIntegrationTest {
                 .untilAsserted(() -> {
                     // 모든 사용자에 대해 소셜 로그인 해제 및 블랙리스트 등록 확인
                     for (int i = 1; i <= eventCount; i++) {
-                        verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("bulkTest" + i));
-                        verify(userCommandUseCase).addToBlacklist(eq((long) i));
+                        verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("bulkTest" + i));
+                        verify(withdrawUseCase).addToBlacklist(eq((long) i));
                         verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq((long) i), eq("사용자 제재"));
                     }
 
@@ -230,8 +230,8 @@ public class UserBannedEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("kakaoUser"));
-                    verify(userCommandUseCase).addToBlacklist(eq(1L));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("kakaoUser"));
+                    verify(withdrawUseCase).addToBlacklist(eq(1L));
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(1L), eq("사용자 제재"));
                 });
     }
@@ -244,7 +244,7 @@ public class UserBannedEventIntegrationTest {
         
         // 소셜 로그인 해제 실패 시뮬레이션
         doThrow(new RuntimeException("소셜 로그인 해제 실패"))
-                .when(socialLoginPort).unlink(SocialProvider.KAKAO, "errorTest");
+                .when(socialPort).unlink(SocialProvider.KAKAO, "errorTest");
 
         // When
         eventPublisher.publishEvent(event);
@@ -253,9 +253,9 @@ public class UserBannedEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("errorTest"));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("errorTest"));
                     // 소셜 해제는 실패하지만 블랙리스트 등록과 JWT 무효화는 시도되어야 함
-                    verify(userCommandUseCase).addToBlacklist(eq(1L));
+                    verify(withdrawUseCase).addToBlacklist(eq(1L));
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(1L), eq("사용자 제재"));
                 });
     }
@@ -275,11 +275,11 @@ public class UserBannedEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("first"));
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("second"));
-                    verify(socialLoginPort).unlink(eq(SocialProvider.KAKAO), eq("third"));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("first"));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("second"));
+                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("third"));
                     
-                    verify(userCommandUseCase, times(3)).addToBlacklist(eq(userId));
+                    verify(withdrawUseCase, times(3)).addToBlacklist(eq(userId));
                     verify(tokenBlacklistUseCase, times(3)).blacklistAllUserTokens(eq(userId), eq("사용자 제재"));
                 });
     }

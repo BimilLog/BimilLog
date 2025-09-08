@@ -38,7 +38,6 @@ class UserQueryServiceTest {
     @Mock
     private UserQueryPort userQueryPort;
     
-    
     @Mock
     private TokenPort tokenPort;
 
@@ -289,4 +288,5 @@ class UserQueryServiceTest {
         assertThat(result2).isEmpty();
         assertThat(result3).isFalse();
     }
+
 }

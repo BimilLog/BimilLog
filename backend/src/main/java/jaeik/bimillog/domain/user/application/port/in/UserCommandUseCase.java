@@ -45,24 +45,4 @@ public interface UserCommandUseCase {
      * @author Jaeik
      */
     User save(User user);
-
-    /**
-     * <h3>사용자 블랙리스트 추가</h3>
-     * <p>사용자 ID를 기반으로 해당 사용자를 블랙리스트에 추가하는 메서드</p>
-     *
-     * @param userId 블랙리스트에 추가할 사용자 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    void addToBlacklist(Long userId);
-
-    /**
-     * <h3>사용자 역할을 BAN으로 변경</h3>
-     * <p>사용자 제재 시 해당 사용자의 역할을 BAN으로 변경하여 일정 기간 서비스 이용을 제한합니다.</p>
-     *
-     * @param userId 제재할 사용자 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    void banUser(Long userId);
 }

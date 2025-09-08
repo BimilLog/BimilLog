@@ -1,13 +1,14 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
+import jaeik.bimillog.domain.user.entity.BlackList;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
 
 /**
- * <h2>사용자 삭제 포트</h2>
- * <p>사용자 로그아웃 및 탈퇴 처리를 위한 아웃바운드 포트</p>
- * <p>헥사고날 아키텍처에서 인프라스트럭처 계층의 사용자 삭제 기능을 추상화</p>
+ * <h2>사용자 삭제 및 제재 포트</h2>
+ * <p>사용자 로그아웃, 탈퇴, 제재 처리를 위한 아웃바운드 포트</p>
+ * <p>헥사고날 아키텍처에서 인프라스트럭처 계층의 사용자 삭제/제재 기능을 추상화</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -41,4 +42,14 @@ public interface DeleteUserPort {
      * @author Jaeik
      */
     List<ResponseCookie> getLogoutCookies();
+
+    /**
+     * <h3>블랙리스트 저장</h3>
+     * <p>블랙리스트에 사용자 정보를 저장합니다.</p>
+     *
+     * @param blackList 저장할 블랙리스트 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void saveBlackList(BlackList blackList);
 }

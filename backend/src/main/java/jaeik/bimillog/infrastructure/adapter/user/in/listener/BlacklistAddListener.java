@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.user.in.listener;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
-import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
+import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class BlacklistAddListener {
 
-    private final UserCommandUseCase userCommandUseCase;
+    private final WithdrawUseCase withdrawUseCase;
 
     /**
      * <h3>사용자 블랙리스트 이벤트 처리</h3>
@@ -59,10 +59,18 @@ public class BlacklistAddListener {
         log.info("{} 이벤트 수신 - 블랙리스트 등록 시작: userId={}", eventType, userId);
         
         try {
-            userCommandUseCase.addToBlacklist(userId);
-            log.info("{} 블랙리스트 등록 완료 - userId: {}", eventType, userId);
+            if (event instanceof UserBannedEvent) {
+                // 사용자 차단: BAN 상태로 변경 + 블랙리스트 등록
+                withdrawUseCase.banUser(userId);
+                withdrawUseCase.addToBlacklist(userId);
+                log.info("{} 처리 완료 - userId: {} (BAN 상태 변경 + 블랙리스트 등록)", eventType, userId);
+            } else {
+                // 관리자 강제 탈퇴: 블랙리스트만 등록 (탈퇴는 다른 리스너에서 처리)
+                withdrawUseCase.addToBlacklist(userId);
+                log.info("{} 블랙리스트 등록 완료 - userId: {}", eventType, userId);
+            }
         } catch (Exception e) {
-            log.error("{} 블랙리스트 등록 실패 - userId: {}, error: {}", 
+            log.error("{} 처리 실패 - userId: {}, error: {}", 
                     eventType, userId, e.getMessage(), e);
             throw e;
         }

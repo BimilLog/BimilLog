@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.adapter.user.in.web;
 
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.domain.user.application.port.in.SettingQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserIntegrationUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -39,7 +38,6 @@ public class UserQueryController {
 
     private final UserQueryUseCase userQueryUseCase;
     private final UserActivityUseCase userActivityUseCase;
-    private final SettingQueryUseCase settingQueryUseCase;
     private final UserIntegrationUseCase userIntegrationUseCase;
     private final PostResponseMapper postResponseMapper;
 
@@ -70,7 +68,7 @@ public class UserQueryController {
      */
     @GetMapping("/setting")
     public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Setting setting = settingQueryUseCase.findBySettingId(userDetails.getSettingId());
+        Setting setting = userQueryUseCase.findBySettingId(userDetails.getSettingId());
         return ResponseEntity.ok(SettingDTO.fromSetting(setting));
     }
 

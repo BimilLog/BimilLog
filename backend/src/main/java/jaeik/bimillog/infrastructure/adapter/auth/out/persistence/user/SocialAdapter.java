@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -21,12 +21,12 @@ import java.util.*;
  * @version 2.0.0
  */
 @Component
-public class SocialLoginAdapter implements SocialLoginPort {
+public class SocialAdapter implements SocialPort {
 
     private final Map<SocialProvider, SocialLoginStrategy> strategies = new EnumMap<>(SocialProvider.class);
     private final UserQueryUseCase userQueryUseCase;
 
-    public SocialLoginAdapter(List<SocialLoginStrategy> strategyList, UserQueryUseCase userQueryUseCase) {
+    public SocialAdapter(List<SocialLoginStrategy> strategyList, UserQueryUseCase userQueryUseCase) {
         strategyList.forEach(strategy -> strategies.put(strategy.getProvider(), strategy));
         this.userQueryUseCase = userQueryUseCase;
     }

@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user.SocialLoginAdapter;
+import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user.SocialAdapter;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>SocialLoginAdapter 단위 테스트</h2>
+ * <h2>SocialAdapter 단위 테스트</h2>
  * <p>소셜 로그인 어댑터의 비즈니스 로직 위주로 테스트</p>
  * <p>Strategy 패턴과 기존/신규 사용자 처리 로직 완벽 검증</p>
  *
@@ -32,12 +32,12 @@ import static org.mockito.Mockito.verify;
  * @version  2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class SocialLoginAdapterTest {
+class SocialAdapterTest {
 
     @Mock private SocialLoginStrategy kakaoStrategy;
     @Mock private UserQueryUseCase userQueryUseCase;
 
-    private SocialLoginAdapter socialLoginAdapter;
+    private SocialAdapter socialAdapter;
 
     private LoginResult.SocialUserProfile testUserProfile;
     private Token testToken;
@@ -46,11 +46,11 @@ class SocialLoginAdapterTest {
     @BeforeEach
     void setUp() {
         // 🔥 CRITICAL: Mock 설정을 생성자 호출 전에 수행
-        // NPE 방지: SocialLoginAdapter 생성자에서 fulltext.getProvider() 호출 시 null 방지
+        // NPE 방지: SocialAdapter 생성자에서 fulltext.getProvider() 호출 시 null 방지
         given(kakaoStrategy.getProvider()).willReturn(SocialProvider.KAKAO);
         
-        // SocialLoginAdapter 생성자에 전략 리스트 전달
-        socialLoginAdapter = new SocialLoginAdapter(List.of(kakaoStrategy), userQueryUseCase);
+        // SocialAdapter 생성자에 전략 리스트 전달
+        socialAdapter = new SocialAdapter(List.of(kakaoStrategy), userQueryUseCase);
 
         // 테스트 데이터 설정
         testUserProfile = new LoginResult.SocialUserProfile("123456789", "test@example.com", 
@@ -72,7 +72,7 @@ class SocialLoginAdapterTest {
                 .willThrow(new jaeik.bimillog.domain.user.exception.UserCustomException(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND));
 
         // When: 소셜 로그인 실행
-        LoginResult.SocialLoginData result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
+        LoginResult.SocialLoginData result = socialAdapter.login(SocialProvider.KAKAO, code);
 
         // Then: 신규 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isTrue();
@@ -103,7 +103,7 @@ class SocialLoginAdapterTest {
                 .willReturn(existingUser);
 
         // When: 소셜 로그인 실행
-        LoginResult.SocialLoginData result = socialLoginAdapter.login(SocialProvider.KAKAO, code);
+        LoginResult.SocialLoginData result = socialAdapter.login(SocialProvider.KAKAO, code);
 
         // Then: 기존 사용자 로그인 결과 반환
         assertThat(result.isNewUser()).isFalse();

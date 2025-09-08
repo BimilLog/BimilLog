@@ -3,10 +3,8 @@ package jaeik.bimillog.domain.user.application.service;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -97,56 +95,6 @@ public class UserCommandService implements UserCommandUseCase {
     @Override
     public User save(User user) {
         return userCommandPort.save(user);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>사용자 ID를 기반으로 사용자를 조회하고 해당 사용자의 소셜 정보로 블랙리스트에 추가합니다.</p>
-     * <p>중복 등록 방지를 위해 데이터베이스 UNIQUE 제약조건을 활용합니다.</p>
-     */
-    @Override
-    public void addToBlacklist(Long userId) {
-        if (userId == null) {
-            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
-        }
-
-        User user = userQueryPort.findById(userId)
-                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-
-        BlackList blackList = BlackList.createBlackList(user.getSocialId(), user.getProvider());
-
-        try {
-            userCommandPort.save(blackList);
-            log.info("사용자 블랙리스트 추가 완료 - userId: {}, socialId: {}, provider: {}",
-                    userId, user.getSocialId(), user.getProvider());
-        } catch (DataIntegrityViolationException e) {
-            log.warn("이미 블랙리스트에 등록된 사용자 - userId: {}, socialId: {}",
-                    userId, user.getSocialId());
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>사용자의 역할을 BAN으로 변경하여 일정 기간 서비스 이용을 제한합니다.</p>
-     * <p>JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리합니다.</p>
-     */
-    @Override
-    public void banUser(Long userId) {
-        if (userId == null) {
-            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
-        }
-
-        User user = userQueryPort.findById(userId)
-                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-
-        // 사용자 역할을 BAN으로 변경
-        user.updateRole(UserRole.BAN);
-        userCommandPort.save(user);
-
-        log.info("사용자 제재 완료 - userId: {}, userName: {}, 역할 변경: BAN",
-                userId, user.getUserName());
     }
 
 }

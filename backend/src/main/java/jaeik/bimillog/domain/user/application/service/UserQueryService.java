@@ -1,12 +1,15 @@
 
 package jaeik.bimillog.domain.user.application.service;
 
+import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,5 +116,22 @@ public class UserQueryService implements UserQueryUseCase {
     @Override
     public Optional<Token> findTokenById(Long tokenId) {
         return tokenPort.findById(tokenId);
+    }
+
+    /**
+     * <h3>설정 ID로 설정 조회</h3>
+     * <p>JWT 토큰의 settingId를 활용하여 효율적으로 설정 정보를 조회</p>
+     * <p>User 엔티티 전체 조회 없이 Setting만 직접 조회하여 성능 최적화</p>
+     *
+     * @param settingId 설정 ID
+     * @return 설정 엔티티
+     * @throws UserCustomException 설정을 찾을 수 없는 경우
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    public Setting findBySettingId(Long settingId) {
+        return userQueryPort.findSettingById(settingId)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.SETTINGS_NOT_FOUND));
     }
 }

@@ -5,13 +5,18 @@ import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
+import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +25,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <h2>회원 탈퇴 서비스</h2>
- * <p>회원 탈퇴 관련 기능을 처리하는 전용 서비스 클래스</p>
+ * <h2>회원 탈퇴 및 제재 서비스</h2>
+ * <p>회원 탈퇴 및 제재 관련 기능을 처리하는 전용 서비스 클래스</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -29,9 +34,11 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WithdrawService implements WithdrawUseCase {
 
     private final UserQueryPort userQueryPort;
+    private final UserCommandPort userCommandPort;
     private final DeleteUserPort deleteUserPort;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -79,6 +86,64 @@ public class WithdrawService implements WithdrawUseCase {
 
         // 핵심 탈퇴 로직을 수행합니다.
         performCoreWithdrawal(user);
+    }
+
+    /**
+     * <h3>사용자 블랙리스트 추가</h3>
+     * <p>사용자 ID를 기반으로 사용자를 조회하고 해당 사용자의 소셜 정보로 블랙리스트에 추가합니다.</p>
+     * <p>중복 등록 방지를 위해 데이터베이스 UNIQUE 제약조건을 활용합니다.</p>
+     *
+     * @param userId 블랙리스트에 추가할 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    @Transactional
+    public void addToBlacklist(Long userId) {
+        if (userId == null) {
+            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        User user = userQueryPort.findById(userId)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+
+        BlackList blackList = BlackList.createBlackList(user.getSocialId(), user.getProvider());
+
+        try {
+            deleteUserPort.saveBlackList(blackList);
+            log.info("사용자 블랙리스트 추가 완료 - userId: {}, socialId: {}, provider: {}",
+                    userId, user.getSocialId(), user.getProvider());
+        } catch (DataIntegrityViolationException e) {
+            log.warn("이미 블랙리스트에 등록된 사용자 - userId: {}, socialId: {}",
+                    userId, user.getSocialId());
+        }
+    }
+
+    /**
+     * <h3>사용자 역할을 BAN으로 변경</h3>
+     * <p>사용자의 역할을 BAN으로 변경하여 일정 기간 서비스 이용을 제한합니다.</p>
+     * <p>JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리합니다.</p>
+     *
+     * @param userId 제재할 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    @Transactional
+    public void banUser(Long userId) {
+        if (userId == null) {
+            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        User user = userQueryPort.findById(userId)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+
+        // 사용자 역할을 BAN으로 변경
+        user.updateRole(UserRole.BAN);
+        userCommandPort.save(user);
+
+        log.info("사용자 제재 완료 - userId: {}, userName: {}, 역할 변경: BAN",
+                userId, user.getUserName());
     }
 
     /**

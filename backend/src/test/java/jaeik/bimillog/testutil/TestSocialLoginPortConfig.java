@@ -1,6 +1,6 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
@@ -25,8 +25,8 @@ public class TestSocialLoginPortConfig {
 
     @Bean
     @Primary
-    public SocialLoginPort testSocialLoginPort() {
-        return new SocialLoginPort() {
+    public SocialPort testSocialLoginPort() {
+        return new SocialPort() {
             @Override
             public LoginResult.SocialLoginData login(SocialProvider provider, String code) {
                 // 테스트용 더미 구현

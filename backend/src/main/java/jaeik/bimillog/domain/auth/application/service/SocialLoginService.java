@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -32,7 +32,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SocialLoginService implements SocialLoginUseCase {
 
-    private final SocialLoginPort socialLoginPort;
+    private final SocialPort socialPort;
     private final SaveUserPort saveUserPort;
     private final RedisUserDataPort redisUserDataPort;
     private final BlacklistPort blacklistPort;
@@ -55,7 +55,7 @@ public class SocialLoginService implements SocialLoginUseCase {
     public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
-        LoginResult.SocialLoginData loginResult = socialLoginPort.login(provider, code);
+        LoginResult.SocialLoginData loginResult = socialPort.login(provider, code);
         LoginResult.SocialUserProfile userProfile = loginResult.userProfile();
 
         if (blacklistPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {

@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
 import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -32,7 +32,7 @@ import java.util.List;
 public class LogoutService implements LogoutUseCase {
 
     private final DeleteUserPort deleteUserPort;
-    private final SocialLoginPort socialLoginPort;
+    private final SocialPort socialPort;
     private final LoadTokenPort loadTokenPort;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -75,7 +75,7 @@ public class LogoutService implements LogoutUseCase {
             loadTokenPort.findById(userDetails.getTokenId()).ifPresent(token -> {
                 if (token.getUsers() != null) {
                     try {
-                        socialLoginPort.logout(token.getUsers().getProvider(), token.getAccessToken());
+                        socialPort.logout(token.getUsers().getProvider(), token.getAccessToken());
                         log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}", 
                                 userDetails.getUserId(), token.getUsers().getProvider());
                     } catch (Exception socialLogoutException) {

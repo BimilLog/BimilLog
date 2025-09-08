@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
+import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.infrastructure.exception.CustomException;
 
 import java.util.Optional;
 
@@ -83,4 +85,16 @@ public interface UserQueryUseCase {
      * @since 2.0.0
      */
     Optional<Token> findTokenById(Long tokenId);
+
+    /**
+     * <h3>설정 ID로 설정 조회</h3>
+     * <p>JWT 토큰의 settingId를 활용하여 효율적으로 설정 정보를 조회</p>
+     *
+     * @param settingId 설정 ID
+     * @return 설정 엔티티
+     * @throws CustomException 설정을 찾을 수 없는 경우
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    Setting findBySettingId(Long settingId);
 }

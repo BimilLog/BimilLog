@@ -38,16 +38,13 @@ class AdminWithdrawEventIntegrationTest {
     private ApplicationEventPublisher eventPublisher;
 
     @MockitoBean
-    private UserCommandUseCase userCommandUseCase;
+    private WithdrawUseCase withdrawUseCase;
 
     @MockitoBean
     private TokenBlacklistUseCase tokenBlacklistUseCase;
 
     @MockitoBean
     private CommentCommandUseCase commentCommandUseCase;
-
-    @MockitoBean
-    private WithdrawUseCase withdrawUseCase;
 
     @Test
     @DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 - 모든 후속 처리 완료")
@@ -65,7 +62,7 @@ class AdminWithdrawEventIntegrationTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     // 사용자 블랙리스트 등록
-                    verify(userCommandUseCase).addToBlacklist(eq(userId));
+                    verify(withdrawUseCase).addToBlacklist(eq(userId));
                     // JWT 토큰 무효화
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
                     // 댓글 처리
@@ -92,9 +89,9 @@ class AdminWithdrawEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(userCommandUseCase).addToBlacklist(eq(1L));
-                    verify(userCommandUseCase).addToBlacklist(eq(2L));
-                    verify(userCommandUseCase).addToBlacklist(eq(3L));
+                    verify(withdrawUseCase).addToBlacklist(eq(1L));
+                    verify(withdrawUseCase).addToBlacklist(eq(2L));
+                    verify(withdrawUseCase).addToBlacklist(eq(3L));
                     
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(1L), eq("관리자 강제 탈퇴"));
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(2L), eq("관리자 강제 탈퇴"));
@@ -128,7 +125,7 @@ class AdminWithdrawEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(userCommandUseCase, times(3)).addToBlacklist(eq(userId));
+                    verify(withdrawUseCase, times(3)).addToBlacklist(eq(userId));
                     verify(tokenBlacklistUseCase, times(3)).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
                     verify(commentCommandUseCase, times(3)).processUserCommentsOnWithdrawal(eq(userId));
                     verify(withdrawUseCase, times(3)).forceWithdraw(eq(userId));
@@ -152,7 +149,7 @@ class AdminWithdrawEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
-                    verify(userCommandUseCase).addToBlacklist(eq(userId));
+                    verify(withdrawUseCase).addToBlacklist(eq(userId));
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
                     verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
                     verify(withdrawUseCase).forceWithdraw(eq(userId));
@@ -197,7 +194,7 @@ class AdminWithdrawEventIntegrationTest {
                 .untilAsserted(() -> {
                     // 모든 사용자에 대해 후속 처리 확인
                     for (int i = 1; i <= eventCount; i++) {
-                        verify(userCommandUseCase).addToBlacklist(eq((long) i));
+                        verify(withdrawUseCase).addToBlacklist(eq((long) i));
                         verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq((long) i), eq("관리자 강제 탈퇴"));
                         verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq((long) i));
                         verify(withdrawUseCase).forceWithdraw(eq((long) i));
@@ -230,7 +227,7 @@ class AdminWithdrawEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(userCommandUseCase).addToBlacklist(eq(userId));
+                    verify(withdrawUseCase).addToBlacklist(eq(userId));
                     verify(tokenBlacklistUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
                     verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
                     verify(withdrawUseCase).forceWithdraw(eq(userId));
@@ -255,7 +252,7 @@ class AdminWithdrawEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(userCommandUseCase, times(3)).addToBlacklist(eq(userId));
+                    verify(withdrawUseCase, times(3)).addToBlacklist(eq(userId));
                     verify(tokenBlacklistUseCase, times(3)).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
                     verify(commentCommandUseCase, times(3)).processUserCommentsOnWithdrawal(eq(userId));
                     verify(withdrawUseCase, times(3)).forceWithdraw(eq(userId));

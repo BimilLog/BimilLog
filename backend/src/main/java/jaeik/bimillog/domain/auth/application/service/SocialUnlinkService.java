@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class SocialUnlinkService implements SocialUnlinkUseCase {
 
-    private final SocialLoginPort socialLoginPort;
+    private final SocialPort socialPort;
 
     /**
      * {@inheritDoc}
@@ -32,7 +32,7 @@ public class SocialUnlinkService implements SocialUnlinkUseCase {
     public void unlinkSocialAccount(SocialProvider provider, String socialId) {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
         
-        socialLoginPort.unlink(provider, socialId);
+        socialPort.unlink(provider, socialId);
         
         log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);
     }

@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface SocialLoginPort {
+public interface SocialPort {
 
     /**
      * <h3>소셜 로그인</h3>

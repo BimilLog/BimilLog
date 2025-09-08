@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
 import jaeik.bimillog.domain.auth.application.service.LogoutService;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -45,7 +45,7 @@ class LogoutServiceTest {
     private DeleteUserPort deleteUserPort;
 
     @Mock
-    private SocialLoginPort socialLoginPort;
+    private SocialPort socialPort;
 
     @Mock
     private LoadTokenPort loadTokenPort;
@@ -116,7 +116,7 @@ class LogoutServiceTest {
 
             // 포트 호출 검증
             verify(loadTokenPort).findById(200L);
-            verify(socialLoginPort).logout(SocialProvider.KAKAO, "mock-access-token");
+            verify(socialPort).logout(SocialProvider.KAKAO, "mock-access-token");
             verify(deleteUserPort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
         }
@@ -138,7 +138,7 @@ class LogoutServiceTest {
 
             // Then - 모든 의존성이 올바르게 호출되었는지 확인
             verify(loadTokenPort).findById(200L);
-            verify(socialLoginPort).logout(SocialProvider.KAKAO, "mock-access-token");
+            verify(socialPort).logout(SocialProvider.KAKAO, "mock-access-token");
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
             verify(deleteUserPort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
@@ -161,8 +161,8 @@ class LogoutServiceTest {
             // Then
             assertThat(result).isEqualTo(logoutCookies);
             verify(loadTokenPort).findById(200L);
-            // 토큰이 없으면 socialLoginPort.logout은 호출되지 않음
-            verify(socialLoginPort, never()).logout(any(SocialProvider.class), anyString());
+            // 토큰이 없으면 socialPort.logout은 호출되지 않음
+            verify(socialPort, never()).logout(any(SocialProvider.class), anyString());
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
             verify(deleteUserPort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
@@ -188,8 +188,8 @@ class LogoutServiceTest {
             // Then
             assertThat(result).isEqualTo(logoutCookies);
             verify(loadTokenPort).findById(200L);
-            // 사용자가 null이면 socialLoginPort.logout은 호출되지 않음
-            verify(socialLoginPort, never()).logout(any(SocialProvider.class), anyString());
+            // 사용자가 null이면 socialPort.logout은 호출되지 않음
+            verify(socialPort, never()).logout(any(SocialProvider.class), anyString());
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
             verify(deleteUserPort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);

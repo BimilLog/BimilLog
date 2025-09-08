@@ -1,11 +1,9 @@
 package jaeik.bimillog.infrastructure.outadapter.user.persistence;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.blacklist.BlackListRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.setting.SettingRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserCommandAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
@@ -27,7 +25,7 @@ import static org.mockito.Mockito.never;
 /**
  * <h2>UserCommandAdapter 테스트</h2>
  * <p>사용자 명령 어댑터의 persistence 동작 검증</p>
- * <p>User, Setting, BlackList 엔티티의 CRUD 작업 테스트</p>
+ * <p>User, Setting 엔티티의 CRUD 작업 테스트</p>
  * 
  * @author Jaeik
  * @version 2.0.0
@@ -41,8 +39,6 @@ class UserCommandAdapterTest {
     @Mock
     private SettingRepository settingRepository;
     
-    @Mock
-    private BlackListRepository blackListRepository;
 
     @InjectMocks
     private UserCommandAdapter userCommandAdapter;
@@ -108,23 +104,6 @@ class UserCommandAdapterTest {
     }
 
 
-    @Test
-    @DisplayName("정상 케이스 - 블랙리스트 저장")
-    void shouldSaveBlackList_WhenValidBlackListProvided() {
-        // Given: 저장할 블랙리스트
-        BlackList blackList = BlackList.builder()
-                .socialId("bannedSocialId")
-                .provider(SocialProvider.KAKAO)
-                .build();
-                
-        given(blackListRepository.save(any(BlackList.class))).willReturn(blackList);
-
-        // When: 블랙리스트 저장 실행
-        userCommandAdapter.save(blackList);
-
-        // Then: Repository의 save가 올바른 객체로 호출되었는지 검증
-        verify(blackListRepository).save(eq(blackList));
-    }
 
     @Test
     @DisplayName("예외 케이스 - null 사용자 저장 시 예외 발생")
@@ -165,17 +144,4 @@ class UserCommandAdapterTest {
     }
 
 
-    @Test
-    @DisplayName("경계값 - null 블랙리스트 저장")
-    void shouldHandleNullBlackList_WhenNullBlackListProvided() {
-        // Given: null 블랙리스트
-        BlackList nullBlackList = null;
-
-        // When: null 블랙리스트 저장 실행
-        userCommandAdapter.save(nullBlackList);
-
-        // Then: Repository에 null이 전달되는지 검증
-
-        verify(blackListRepository).save(nullBlackList);
-    }
 }
