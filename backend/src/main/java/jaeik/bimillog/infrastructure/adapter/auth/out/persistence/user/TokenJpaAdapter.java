@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.token.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

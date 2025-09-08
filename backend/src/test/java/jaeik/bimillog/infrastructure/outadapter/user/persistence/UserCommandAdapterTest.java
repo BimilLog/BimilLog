@@ -1,12 +1,11 @@
 package jaeik.bimillog.infrastructure.outadapter.user.persistence;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.setting.SettingRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserCommandAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.setting.SettingRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserCommandAdapter;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
 import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.postlike.PostLikeJpaRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.BeforeEach;

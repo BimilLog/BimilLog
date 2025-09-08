@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.blacklist.BlackListRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.blacklist.BlackListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,9 +1,9 @@
-package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user;
+package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user;
 
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.entity.BlackList;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.blacklist.BlackListRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.blacklist.BlackListRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.token.TokenRepository;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;

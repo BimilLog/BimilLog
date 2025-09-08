@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.blacklist;
+package jaeik.bimillog.infrastructure.adapter.user.out.persistence.blacklist;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.BlackList;

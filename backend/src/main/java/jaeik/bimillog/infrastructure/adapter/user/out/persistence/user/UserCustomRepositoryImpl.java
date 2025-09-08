@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user;
+package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;

@@ -3,8 +3,7 @@ package jaeik.bimillog.domain.user.application.service;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.application.port.in.UserActivityUseCase;
-import jaeik.bimillog.domain.user.application.port.out.UserToCommentPort;
-import jaeik.bimillog.domain.user.application.port.out.UserToPostPort;
+import jaeik.bimillog.domain.user.application.port.out.UserActivityPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,8 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserActivityService implements UserActivityUseCase {
 
-    private final UserToPostPort userToPostPort;
-    private final UserToCommentPort userToCommentPort;
+    private final UserActivityPort userActivityPort;
 
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>
@@ -39,7 +37,7 @@ public class UserActivityService implements UserActivityUseCase {
      */
     @Override
     public Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable) {
-        return userToPostPort.findPostsByUserId(userId, pageable);
+        return userActivityPort.findPostsByUserId(userId, pageable);
     }
 
     /**
@@ -54,7 +52,7 @@ public class UserActivityService implements UserActivityUseCase {
      */
     @Override
     public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
-        return userToPostPort.findLikedPostsByUserId(userId, pageable);
+        return userActivityPort.findLikedPostsByUserId(userId, pageable);
     }
 
     /**
@@ -70,7 +68,7 @@ public class UserActivityService implements UserActivityUseCase {
      */
     @Override
     public Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable) {
-        return userToCommentPort.findCommentsByUserId(userId, pageable);
+        return userActivityPort.findCommentsByUserId(userId, pageable);
     }
 
     /**
@@ -86,6 +84,6 @@ public class UserActivityService implements UserActivityUseCase {
      */
     @Override
     public Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable) {
-        return userToCommentPort.findLikedCommentsByUserId(userId, pageable);
+        return userActivityPort.findLikedCommentsByUserId(userId, pageable);
     }
 }

@@ -1,9 +1,9 @@
 package jaeik.bimillog.infrastructure.outadapter.auth.persistence.auth;
 
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.DeleteUserAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.DeleteUserAdapter;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.token.TokenRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;

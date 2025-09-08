@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token;
+package jaeik.bimillog.infrastructure.adapter.user.out.persistence.token;
 
 import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.entity.Token;

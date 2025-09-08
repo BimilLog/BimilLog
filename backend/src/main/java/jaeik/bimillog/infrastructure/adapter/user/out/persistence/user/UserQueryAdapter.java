@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user;
+package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.setting.SettingRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.setting.SettingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

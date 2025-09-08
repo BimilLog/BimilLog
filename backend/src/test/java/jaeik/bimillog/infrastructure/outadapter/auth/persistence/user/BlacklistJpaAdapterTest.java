@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.outadapter.auth.persistence.user;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user.BlacklistJpaAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.blacklist.BlackListRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.blacklist.BlackListRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

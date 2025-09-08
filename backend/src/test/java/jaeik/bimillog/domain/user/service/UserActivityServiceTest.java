@@ -2,8 +2,7 @@ package jaeik.bimillog.domain.user.service;
 
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.domain.user.application.port.out.UserToCommentPort;
-import jaeik.bimillog.domain.user.application.port.out.UserToPostPort;
+import jaeik.bimillog.domain.user.application.port.out.UserActivityPort;
 import jaeik.bimillog.domain.user.application.service.UserActivityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,10 +39,7 @@ import static org.mockito.Mockito.verify;
 class UserActivityServiceTest {
 
     @Mock
-    private UserToPostPort userToPostPort;
-    
-    @Mock
-    private UserToCommentPort userToCommentPort;
+    private UserActivityPort userActivityPort;
 
     @InjectMocks
     private UserActivityService userActivityService;
@@ -71,13 +68,13 @@ class UserActivityServiceTest {
         
         Page<PostSearchResult> expectedPage = new PageImpl<>(posts, pageable, posts.size());
 
-        given(userToPostPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
+        given(userActivityPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
         Page<PostSearchResult> result = userActivityService.getUserPosts(userId, pageable);
 
         // Then
-        verify(userToPostPort).findPostsByUserId(userId, pageable);
+        verify(userActivityPort).findPostsByUserId(userId, pageable);
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("게시글 1");
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("게시글 2");
@@ -101,13 +98,13 @@ class UserActivityServiceTest {
         
         Page<PostSearchResult> expectedPage = new PageImpl<>(likedPosts, pageable, likedPosts.size());
 
-        given(userToPostPort.findLikedPostsByUserId(userId, pageable)).willReturn(expectedPage);
+        given(userActivityPort.findLikedPostsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
         Page<PostSearchResult> result = userActivityService.getUserLikedPosts(userId, pageable);
 
         // Then
-        verify(userToPostPort).findLikedPostsByUserId(userId, pageable);
+        verify(userActivityPort).findLikedPostsByUserId(userId, pageable);
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("추천한 게시글 1");
     }
@@ -142,13 +139,13 @@ class UserActivityServiceTest {
         
         Page<SimpleCommentInfo> expectedPage = new PageImpl<>(comments, pageable, comments.size());
 
-        given(userToCommentPort.findCommentsByUserId(userId, pageable)).willReturn(expectedPage);
+        given(userActivityPort.findCommentsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
         Page<SimpleCommentInfo> result = userActivityService.getUserComments(userId, pageable);
 
         // Then
-        verify(userToCommentPort).findCommentsByUserId(userId, pageable);
+        verify(userActivityPort).findCommentsByUserId(userId, pageable);
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getContent()).isEqualTo("댓글 1");
         assertThat(result.getContent().get(1).getContent()).isEqualTo("댓글 2");
@@ -161,7 +158,7 @@ class UserActivityServiceTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         
-        List<SimpleCommentInfo> likedComments = Arrays.asList(
+        List<SimpleCommentInfo> likedComments = Collections.singletonList(
                 SimpleCommentInfo.builder()
                         .id(3L)
                         .postId(1L)
@@ -175,13 +172,13 @@ class UserActivityServiceTest {
         
         Page<SimpleCommentInfo> expectedPage = new PageImpl<>(likedComments, pageable, likedComments.size());
 
-        given(userToCommentPort.findLikedCommentsByUserId(userId, pageable)).willReturn(expectedPage);
+        given(userActivityPort.findLikedCommentsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
         Page<SimpleCommentInfo> result = userActivityService.getUserLikedComments(userId, pageable);
 
         // Then
-        verify(userToCommentPort).findLikedCommentsByUserId(userId, pageable);
+        verify(userActivityPort).findLikedCommentsByUserId(userId, pageable);
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getContent()).isEqualTo("추천한 댓글 1");
     }
@@ -194,13 +191,13 @@ class UserActivityServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<PostSearchResult> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
-        given(userToPostPort.findPostsByUserId(userId, pageable)).willReturn(emptyPage);
+        given(userActivityPort.findPostsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
         Page<PostSearchResult> result = userActivityService.getUserPosts(userId, pageable);
 
         // Then
-        verify(userToPostPort).findPostsByUserId(userId, pageable);
+        verify(userActivityPort).findPostsByUserId(userId, pageable);
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
@@ -213,13 +210,13 @@ class UserActivityServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
-        given(userToCommentPort.findCommentsByUserId(userId, pageable)).willReturn(emptyPage);
+        given(userActivityPort.findCommentsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
         Page<SimpleCommentInfo> result = userActivityService.getUserComments(userId, pageable);
 
         // Then
-        verify(userToCommentPort).findCommentsByUserId(userId, pageable);
+        verify(userActivityPort).findCommentsByUserId(userId, pageable);
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
@@ -232,13 +229,13 @@ class UserActivityServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<PostSearchResult> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
-        given(userToPostPort.findLikedPostsByUserId(userId, pageable)).willReturn(emptyPage);
+        given(userActivityPort.findLikedPostsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
         Page<PostSearchResult> result = userActivityService.getUserLikedPosts(userId, pageable);
 
         // Then
-        verify(userToPostPort).findLikedPostsByUserId(userId, pageable);
+        verify(userActivityPort).findLikedPostsByUserId(userId, pageable);
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
@@ -251,13 +248,13 @@ class UserActivityServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
-        given(userToCommentPort.findLikedCommentsByUserId(userId, pageable)).willReturn(emptyPage);
+        given(userActivityPort.findLikedCommentsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
         Page<SimpleCommentInfo> result = userActivityService.getUserLikedComments(userId, pageable);
 
         // Then
-        verify(userToCommentPort).findLikedCommentsByUserId(userId, pageable);
+        verify(userActivityPort).findLikedCommentsByUserId(userId, pageable);
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isEqualTo(0);
     }
@@ -284,13 +281,13 @@ class UserActivityServiceTest {
         
         Page<PostSearchResult> expectedPage = new PageImpl<>(posts, pageable, posts.size());
 
-        given(userToPostPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
+        given(userActivityPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
 
         // When
         Page<PostSearchResult> result = userActivityService.getUserPosts(userId, pageable);
 
         // Then
-        verify(userToPostPort).findPostsByUserId(userId, pageable);
+        verify(userActivityPort).findPostsByUserId(userId, pageable);
         assertThat(result.getContent()).hasSize(posts.size());
         assertThat(result.getTotalElements()).isEqualTo(posts.size());
     }
@@ -319,16 +316,16 @@ class UserActivityServiceTest {
         Page<PostSearchResult> firstPageResult = new PageImpl<>(firstPagePosts, firstPage, 7);
         Page<PostSearchResult> secondPageResult = new PageImpl<>(secondPagePosts, secondPage, 7);
 
-        given(userToPostPort.findPostsByUserId(userId, firstPage)).willReturn(firstPageResult);
-        given(userToPostPort.findPostsByUserId(userId, secondPage)).willReturn(secondPageResult);
+        given(userActivityPort.findPostsByUserId(userId, firstPage)).willReturn(firstPageResult);
+        given(userActivityPort.findPostsByUserId(userId, secondPage)).willReturn(secondPageResult);
 
         // When
         Page<PostSearchResult> page1 = userActivityService.getUserPosts(userId, firstPage);
         Page<PostSearchResult> page2 = userActivityService.getUserPosts(userId, secondPage);
 
         // Then
-        verify(userToPostPort).findPostsByUserId(userId, firstPage);
-        verify(userToPostPort).findPostsByUserId(userId, secondPage);
+        verify(userActivityPort).findPostsByUserId(userId, firstPage);
+        verify(userActivityPort).findPostsByUserId(userId, secondPage);
         
         assertThat(page1.getContent()).hasSize(5);
         assertThat(page2.getContent()).hasSize(2);

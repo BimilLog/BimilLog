@@ -2,8 +2,8 @@ package jaeik.bimillog.infrastructure.outadapter.user.persistence;
 
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.token.TokenAdapter;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.token.TokenRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

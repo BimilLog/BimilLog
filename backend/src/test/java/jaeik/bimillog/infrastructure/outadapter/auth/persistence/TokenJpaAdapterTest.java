@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user.TokenJpaAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.token.TokenRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.token.TokenRepository;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;

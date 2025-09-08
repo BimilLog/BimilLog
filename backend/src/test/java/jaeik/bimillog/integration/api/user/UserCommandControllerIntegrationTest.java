@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.UserNameDTO;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;

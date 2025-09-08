@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.notification.dto.UpdateNotificationDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.NotificationRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;

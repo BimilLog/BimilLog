@@ -1,8 +1,10 @@
-package jaeik.bimillog.infrastructure.adapter.user.out.persistence.comment;
+package jaeik.bimillog.infrastructure.adapter.user.out.persistence;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
-import jaeik.bimillog.domain.user.application.port.out.UserToCommentPort;
+import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.user.application.port.out.UserActivityPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,9 +20,40 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class UserToCommentAdapter implements UserToCommentPort {
+public class UserActivityAdapter implements UserActivityPort {
 
+    private final PostQueryUseCase postQueryUseCase;
     private final CommentQueryUseCase commentQueryUseCase;
+
+    /**
+     * <h3>사용자 작성 게시글 목록 조회</h3>
+     * <p>특정 사용자가 작성한 게시글 목록을 게시글 도메인을 통해 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return Page<PostSearchResult> 작성한 게시글 목록 페이지
+     * @author jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable) {
+        return postQueryUseCase.getUserPosts(userId, pageable);
+    }
+
+    /**
+     * <h3>사용자 추천한 게시글 목록 조회</h3>
+     * <p>특정 사용자가 추천한 게시글 목록을 게시글 도메인을 통해 조회합니다.</p>
+     *
+     * @param userId   사용자 ID
+     * @param pageable 페이지 정보
+     * @return Page<PostSearchResult> 추천한 게시글 목록 페이지
+     * @author jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<PostSearchResult> findLikedPostsByUserId(Long userId, Pageable pageable) {
+        return postQueryUseCase.getUserLikedPosts(userId, pageable);
+    }
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>

@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.setting;
+package jaeik.bimillog.infrastructure.adapter.user.out.persistence.setting;
 
 import jaeik.bimillog.domain.user.entity.Setting;
 import org.springframework.data.jpa.repository.JpaRepository;
