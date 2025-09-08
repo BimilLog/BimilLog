@@ -1,14 +1,15 @@
-package jaeik.bimillog.domain.auth.application.service;
+package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
-import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.LoadUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLogoutPort;
+import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
+import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
+import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,10 +32,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WithdrawService implements WithdrawUseCase {
 
-    private final LoadUserPort loadUserPort;
+    private final UserQueryPort userQueryPort;
     private final DeleteUserPort deleteUserPort;
-    private final SocialLoginPort socialLoginPort;
-    private final SocialLogoutPort socialLogoutPort;
+    private final SocialUnlinkUseCase socialUnlinkUseCase;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -55,7 +55,7 @@ public class WithdrawService implements WithdrawUseCase {
                 .map(CustomUserDetails::getUserId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT));
 
-        User user = loadUserPort.findById(userId);
+        User user = userQueryPort.findById(userId).orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         // 핵심 탈퇴 로직을 수행합니다.
         performCoreWithdrawal(user);
@@ -76,7 +76,8 @@ public class WithdrawService implements WithdrawUseCase {
     @Override
     @Transactional
     public void forceWithdraw(Long userId) {
-        User user = loadUserPort.findById(userId);
+        User user = userQueryPort.findById(userId).orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+
 
         // 핵심 탈퇴 로직을 수행합니다.
         performCoreWithdrawal(user);
@@ -91,16 +92,11 @@ public class WithdrawService implements WithdrawUseCase {
      * @since 2.0.0
      */
     private void performCoreWithdrawal(User user) {
-        try {
-            socialLoginPort.unlink(user.getProvider(), user.getSocialId());
-        } catch (Exception e) {
-            throw new AuthCustomException(AuthErrorCode.SOCIAL_UNLINK_FAILED, e);
-        }
 
         // DB에서 사용자 정보 삭제
         deleteUserPort.performWithdrawProcess(user.getId());
 
         // 탈퇴 이벤트 발행 (JWT 토큰 무효화, 데이터 정리 등은 이벤트 리스너가 처리)
-        eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId()));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId(), user.getSocialId(), user.getProvider()));
     }
 }

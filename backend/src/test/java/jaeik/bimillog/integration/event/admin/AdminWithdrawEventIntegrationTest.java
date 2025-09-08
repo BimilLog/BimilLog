@@ -2,7 +2,7 @@ package jaeik.bimillog.integration.event.admin;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
+import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.testutil.TestContainersConfiguration;

@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.adapter.auth.in.web;
 import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponseDTO;
@@ -28,7 +27,6 @@ public class AuthCommandController {
     private final SocialLoginUseCase socialLoginUseCase;
     private final SignUpUseCase signUpUseCase;
     private final LogoutUseCase logoutUseCase;
-    private final WithdrawUseCase withdrawUseCase;
 
     /**
      * <h3>소셜 로그인 API</h3>
@@ -91,22 +89,5 @@ public class AuthCommandController {
                 .headers(headers -> logoutUseCase.logout(userDetails).forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
                 .body(AuthResponseDTO.success("로그아웃 성공"));
-    }
-
-    /**
-     * <h3>회원 탈퇴 API</h3>
-     * <p>사용자가 회원 탈퇴를 요청할 때 호출</p>
-     *
-     * @param userDetails 인증된 사용자 정보
-     * @return 회원 탈퇴 성공 응답
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @DeleteMapping("/withdraw")
-    public ResponseEntity<AuthResponseDTO> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok()
-                .headers(headers -> withdrawUseCase.withdraw(userDetails).forEach(cookie ->
-                        headers.add("Set-Cookie", cookie.toString())))
-                .body(AuthResponseDTO.success("회원탈퇴 성공"));
     }
 }

@@ -1,8 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.user.in.web;
 
+import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
 import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -11,10 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <h2>사용자 명령 컨트롤러</h2>
@@ -30,6 +29,8 @@ public class UserCommandController {
 
     private final UserCommandUseCase userCommandUseCase;
     private final ApplicationEventPublisher eventPublisher;
+    private final WithdrawUseCase withdrawUseCase;
+
 
     /**
      * <h3>닉네임 변경 API</h3>
@@ -100,5 +101,22 @@ public class UserCommandController {
         eventPublisher.publishEvent(event);
         
         return ResponseEntity.ok("신고/건의사항이 접수되었습니다.");
+    }
+
+    /**
+     * <h3>회원 탈퇴 API</h3>
+     * <p>사용자가 회원 탈퇴를 요청할 때 호출</p>
+     *
+     * @param userDetails 인증된 사용자 정보
+     * @return 회원 탈퇴 성공 응답
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<AuthResponseDTO> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok()
+                .headers(headers -> withdrawUseCase.withdraw(userDetails).forEach(cookie ->
+                        headers.add("Set-Cookie", cookie.toString())))
+                .body(AuthResponseDTO.success("회원탈퇴 성공"));
     }
 }
