@@ -25,6 +25,7 @@ public interface CommentLikePort {
      */
     CommentLike save(CommentLike commentLike);
 
+    //TODO 중복 메서드 리팩토링 필요
     /**
      * <h3>댓글 추천 삭제</h3>
      * <p>주어진 댓글과 사용자의 추천 관계를 삭제합니다.</p>

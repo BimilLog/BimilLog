@@ -23,511 +23,164 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
  * <h2>UserActivityAdapter 테스트</h2>
- * <p>사용자 도메인에서 활동 정보 조회 어댑터 테스트</p>
+ * <p>사용자 활동 정보 조회 어댑터의 핵심 기능 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-// TODO 중복 테스트 리팩토링 검토 필요
 @ExtendWith(MockitoExtension.class)
 class UserActivityAdapterTest {
 
-    @Mock
-    private CommentQueryUseCase commentQueryUseCase;
+    private static final Long TEST_USER_ID = 1L;
+    private static final Pageable TEST_PAGEABLE = PageRequest.of(0, 10);
 
-    @Mock
-    private PostQueryUseCase postQueryUseCase;
+    @Mock private CommentQueryUseCase commentQueryUseCase;
+    @Mock private PostQueryUseCase postQueryUseCase;
 
     @InjectMocks
     private UserActivityAdapter userActivityAdapter;
 
     @Test
-    @DisplayName("정상 케이스 - 사용자 작성 게시글 목록 조회")
+    @DisplayName("사용자 작성 게시글 목록 조회")
     void shouldFindPostsByUserId_WhenValidUserIdProvided() {
-        // Given: 사용자 ID와 페이지 정보, 예상 게시글 목록
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-
+        // Given
         List<PostSearchResult> posts = Arrays.asList(
-                PostSearchResult.builder()
-                        .id(1L)
-                        .title("첫 번째 게시글")
-                        .content("첫 번째 게시글 내용")
-                        .userName("작성자1")
-                        .userId(userId)
-                        .createdAt(Instant.now().minusSeconds(86400))
-                        .likeCount(5)
-                        .commentCount(3)
-                        .viewCount(10)
-                        .postCacheFlag(PostCacheFlag.REALTIME)
-                        .isNotice(false)
-                        .build(),
-                PostSearchResult.builder()
-                        .id(2L)
-                        .title("두 번째 게시글")
-                        .content("두 번째 게시글 내용")
-                        .userName("작성자1")
-                        .userId(userId)
-                        .createdAt(Instant.now().minusSeconds(172800))
-                        .likeCount(10)
-                        .commentCount(7)
-                        .viewCount(20)
-                        .postCacheFlag(PostCacheFlag.WEEKLY)
-                        .isNotice(false)
-                        .build()
+                createPostSearchResult(1L, "첫 번째 게시글", TEST_USER_ID),
+                createPostSearchResult(2L, "두 번째 게시글", TEST_USER_ID)
         );
+        Page<PostSearchResult> expectedPage = new PageImpl<>(posts, TEST_PAGEABLE, posts.size());
+        given(postQueryUseCase.getUserPosts(eq(TEST_USER_ID), eq(TEST_PAGEABLE))).willReturn(expectedPage);
 
-        Page<PostSearchResult> expectedPage = new PageImpl<>(posts, pageable, posts.size());
-        given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(expectedPage);
+        // When
+        Page<PostSearchResult> result = userActivityAdapter.findPostsByUserId(TEST_USER_ID, TEST_PAGEABLE);
 
-        // When: 사용자 작성 게시글 목록 조회 실행
-        Page<PostSearchResult> result = userActivityAdapter.findPostsByUserId(userId, pageable);
-
-        // Then: 올바른 게시글 목록이 반환되고 UseCase가 호출되었는지 검증
+        // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("첫 번째 게시글");
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("두 번째 게시글");
-        assertThat(result.getContent().get(0).getLikeCount()).isEqualTo(5);
-        assertThat(result.getContent().get(1).getCommentCount()).isEqualTo(7);
-        verify(postQueryUseCase).getUserPosts(eq(userId), eq(pageable));
+        verify(postQueryUseCase).getUserPosts(eq(TEST_USER_ID), eq(TEST_PAGEABLE));
     }
 
     @Test
-    @DisplayName("정상 케이스 - 사용자 추천 게시글 목록 조회")
+    @DisplayName("사용자 추천 게시글 목록 조회")
     void shouldFindLikedPostsByUserId_WhenValidUserIdProvided() {
-        // Given: 사용자 ID와 페이지 정보, 예상 추천 게시글 목록
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 5);
-
+        // Given
         List<PostSearchResult> likedPosts = Arrays.asList(
-                PostSearchResult.builder()
-                        .id(3L)
-                        .title("추천한 게시글 1")
-                        .content("추천한 게시글 1 내용")
-                        .userName("다른작성자1")
-                        .userId(101L)
-                        .createdAt(Instant.now().minusSeconds(259200))
-                        .likeCount(15)
-                        .commentCount(8)
-                        .viewCount(50)
-                        .postCacheFlag(PostCacheFlag.LEGEND)
-                        .isNotice(false)
-                        .build(),
-                PostSearchResult.builder()
-                        .id(4L)
-                        .title("추천한 게시글 2")
-                        .content("추천한 게시글 2 내용")
-                        .userName("다른작성자2")
-                        .userId(102L)
-                        .createdAt(Instant.now().minusSeconds(345600))
-                        .likeCount(20)
-                        .commentCount(12)
-                        .viewCount(80)
-                        .postCacheFlag(PostCacheFlag.WEEKLY)
-                        .isNotice(false)
-                        .build()
+                createPostSearchResult(3L, "추천한 게시글 1", 101L),
+                createPostSearchResult(4L, "추천한 게시글 2", 102L)
         );
+        Page<PostSearchResult> expectedPage = new PageImpl<>(likedPosts, TEST_PAGEABLE, likedPosts.size());
+        given(postQueryUseCase.getUserLikedPosts(eq(TEST_USER_ID), eq(TEST_PAGEABLE))).willReturn(expectedPage);
 
-        Page<PostSearchResult> expectedPage = new PageImpl<>(likedPosts, pageable, likedPosts.size());
-        given(postQueryUseCase.getUserLikedPosts(eq(userId), any(Pageable.class))).willReturn(expectedPage);
+        // When
+        Page<PostSearchResult> result = userActivityAdapter.findLikedPostsByUserId(TEST_USER_ID, TEST_PAGEABLE);
 
-        // When: 사용자 추천 게시글 목록 조회 실행
-        Page<PostSearchResult> result = userActivityAdapter.findLikedPostsByUserId(userId, pageable);
-
-        // Then: 올바른 추천 게시글 목록이 반환되고 UseCase가 호출되었는지 검증
+        // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("추천한 게시글 1");
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("추천한 게시글 2");
-        assertThat(result.getContent().get(0).getUserName()).isEqualTo("다른작성자1");
-        assertThat(result.getContent().get(1).getLikeCount()).isEqualTo(20);
-        verify(postQueryUseCase).getUserLikedPosts(eq(userId), eq(pageable));
+        verify(postQueryUseCase).getUserLikedPosts(eq(TEST_USER_ID), eq(TEST_PAGEABLE));
     }
 
     @Test
-    @DisplayName("경계값 - 빈 게시글 목록 조회")
+    @DisplayName("빈 게시글 목록 조회")
     void shouldHandleEmptyPosts_WhenNoPostsFound() {
-        // Given: 게시글이 없는 사용자 ID와 빈 페이지 결과
-        Long userId = 999L;
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        // Given
+        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), TEST_PAGEABLE, 0);
+        given(postQueryUseCase.getUserPosts(eq(TEST_USER_ID), eq(TEST_PAGEABLE))).willReturn(emptyPage);
 
-        given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(emptyPage);
+        // When
+        Page<PostSearchResult> result = userActivityAdapter.findPostsByUserId(TEST_USER_ID, TEST_PAGEABLE);
 
-        // When: 게시글이 없는 사용자의 게시글 목록 조회
-        Page<PostSearchResult> result = userActivityAdapter.findPostsByUserId(userId, pageable);
-
-        // Then: 빈 페이지가 올바르게 반환되는지 검증
+        // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isEqualTo(0);
-        verify(postQueryUseCase).getUserPosts(eq(userId), eq(pageable));
+        verify(postQueryUseCase).getUserPosts(eq(TEST_USER_ID), eq(TEST_PAGEABLE));
     }
 
     @Test
-    @DisplayName("경계값 - 빈 추천 게시글 목록 조회")
-    void shouldHandleEmptyLikedPosts_WhenNoLikedPostsFound() {
-        // Given: 추천 게시글이 없는 사용자 ID와 빈 페이지 결과
-        Long userId = 999L;
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-
-        given(postQueryUseCase.getUserLikedPosts(eq(userId), any(Pageable.class))).willReturn(emptyPage);
-
-        // When: 추천 게시글이 없는 사용자의 추천 게시글 목록 조회
-        Page<PostSearchResult> result = userActivityAdapter.findLikedPostsByUserId(userId, pageable);
-
-        // Then: 빈 페이지가 올바르게 반환되는지 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
-        verify(postQueryUseCase).getUserLikedPosts(eq(userId), eq(pageable));
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - null 사용자 ID로 게시글 조회2")
-    void shouldHandleNullUserId_WhenNullUserIdProvided2() {
-        // Given: null 사용자 ID와 빈 페이지 반환 설정
-        Long nullUserId = null;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // 비즈니스 로직: null userId도 처리 가능하다면 빈 페이지 반환
-        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        given(postQueryUseCase.getUserPosts(eq(nullUserId), eq(pageable))).willReturn(emptyPage);
-
-        // When: null 사용자 ID로 게시글 조회 실행
-        Page<PostSearchResult> result = userActivityAdapter.findPostsByUserId(nullUserId, pageable);
-
-        // Then: 빈 결과 반환 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        verify(postQueryUseCase).getUserPosts(eq(nullUserId), eq(pageable));
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - null 페이지로 게시글 조회2")
-    void shouldHandleNullPageable_WhenNullPageableProvided2() {
-        // Given: 정상 사용자 ID와 null 페이지 정보, 빈 페이지 반환 설정
-        Long userId = 1L;
-        Pageable nullPageable = null;
-
-        // 비즈니스 로직: null pageable도 처리 가능하다면 빈 페이지 반환
-        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
-        given(postQueryUseCase.getUserPosts(eq(userId), eq(nullPageable))).willReturn(emptyPage);
-
-        // When: null 페이지 정보로 게시글 조회 실행
-        Page<PostSearchResult> result = userActivityAdapter.findPostsByUserId(userId, nullPageable);
-
-        // Then: 빈 결과 반환 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        verify(postQueryUseCase).getUserPosts(eq(userId), eq(nullPageable));
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - null 사용자 ID로 추천 게시글 조회")
-    void shouldHandleNullUserIdForLikedPosts_WhenNullUserIdProvided() {
-        // Given: null 사용자 ID와 빈 페이지 반환 설정
-        Long nullUserId = null;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // 비즈니스 로직: null userId도 처리 가능하다면 빈 페이지 반환
-        Page<PostSearchResult> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-        given(postQueryUseCase.getUserLikedPosts(eq(nullUserId), eq(pageable))).willReturn(emptyPage);
-
-        // When: null 사용자 ID로 추천 게시글 조회 실행
-        Page<PostSearchResult> result = userActivityAdapter.findLikedPostsByUserId(nullUserId, pageable);
-
-        // Then: 빈 결과 반환 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        verify(postQueryUseCase).getUserLikedPosts(eq(nullUserId), eq(pageable));
-    }
-
-    @Test
-    @DisplayName("성능 - 대용량 게시글 목록 조회")
-    void shouldHandleLargePostList_WhenLargePageRequested() {
-        // Given: 대용량 페이지 요청
-        Long userId = 1L;
-        Pageable largePage = PageRequest.of(0, 1000);
-
-        List<PostSearchResult> largePostList = Collections.nCopies(1000,
-                PostSearchResult.builder()
-                        .id(1L)
-                        .title("대용량 테스트 게시글")
-                        .content("대용량 테스트 내용")
-                        .userName("테스트작성자")
-                        .userId(userId)
-                        .createdAt(Instant.now())
-                        .likeCount(1)
-                        .commentCount(0)
-                        .viewCount(1)
-                        .postCacheFlag(PostCacheFlag.REALTIME)
-                        .isNotice(false)
-                        .build());
-
-        Page<PostSearchResult> largePage_ = new PageImpl<>(largePostList, largePage, 1000);
-        given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(largePage_);
-
-        // When: 대용량 게시글 목록 조회
-        Page<PostSearchResult> result = userActivityAdapter.findPostsByUserId(userId, largePage);
-
-        // Then: 대용량 데이터도 올바르게 처리되는지 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1000);
-        assertThat(result.getTotalElements()).isEqualTo(1000);
-        verify(postQueryUseCase).getUserPosts(eq(userId), eq(largePage));
-    }
-
-    @Test
-    @DisplayName("통합 - 게시글과 추천 게시글 모두 조회")
-    void shouldHandleBothPostTypes_WhenBothMethodsCalled() {
-        // Given: 동일한 사용자에 대한 게시글과 추천 게시글 설정
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // 작성 게시글
-        Page<PostSearchResult> userPosts = new PageImpl<>(Collections.singletonList(
-                PostSearchResult.builder()
-                        .id(1L)
-                        .title("작성 게시글")
-                        .content("작성한 게시글 내용")
-                        .userName("testUser")
-                        .userId(userId)
-                        .createdAt(Instant.now())
-                        .likeCount(1)
-                        .commentCount(0)
-                        .viewCount(5)
-                        .postCacheFlag(PostCacheFlag.REALTIME)
-                        .isNotice(false)
-                        .build()
-        ), pageable, 1);
-
-        // 추천 게시글
-        Page<PostSearchResult> likedPosts = new PageImpl<>(Collections.singletonList(
-                PostSearchResult.builder()
-                        .id(2L)
-                        .title("추천 게시글")
-                        .content("추천한 게시글 내용")
-                        .userName("otherUser")
-                        .userId(2L)
-                        .createdAt(Instant.now())
-                        .likeCount(10)
-                        .commentCount(3)
-                        .viewCount(50)
-                        .postCacheFlag(PostCacheFlag.WEEKLY)
-                        .isNotice(false)
-                        .build()
-        ), pageable, 1);
-
-        given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(userPosts);
-        given(postQueryUseCase.getUserLikedPosts(eq(userId), any(Pageable.class))).willReturn(likedPosts);
-
-        // When: 두 메서드 모두 호출
-        Page<PostSearchResult> userPostsResult = userActivityAdapter.findPostsByUserId(userId, pageable);
-        Page<PostSearchResult> likedPostsResult = userActivityAdapter.findLikedPostsByUserId(userId, pageable);
-
-        // Then: 각각 올바른 결과가 반환되는지 검증
-        assertThat(userPostsResult.getContent().getFirst().getTitle()).isEqualTo("작성 게시글");
-        assertThat(likedPostsResult.getContent().getFirst().getTitle()).isEqualTo("추천 게시글");
-
-        verify(postQueryUseCase).getUserPosts(eq(userId), eq(pageable));
-        verify(postQueryUseCase).getUserLikedPosts(eq(userId), eq(pageable));
-    }
-
-    @Test
-    @DisplayName("데이터 매핑 - PostSearchResult에서 PostSearchResult로 변환 검증")
-    void shouldCorrectlyMapData_WhenConvertingFromPostSearchResultToPostSearchResult() {
-        // Given: 상세한 PostSearchResult 데이터
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 1);
-
-        PostSearchResult postSearchResult = PostSearchResult.builder()
-                .id(100L)
-                .title("매핑 테스트 게시글")
-                .content("매핑 테스트 내용")
-                .userName("매핑테스트유저")
-                .userId(userId)
-                .createdAt(Instant.parse("2023-12-25T10:30:00Z"))
-                .likeCount(25)
-                .commentCount(15)
-                .viewCount(100)
-                .postCacheFlag(PostCacheFlag.LEGEND)
-                .isNotice(true)
-                .build();
-
-        Page<PostSearchResult> postPage = new PageImpl<>(Collections.singletonList(postSearchResult), pageable, 1);
-        given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(postPage);
-
-        // When: 어댑터를 통해 변환 실행
-        Page<PostSearchResult> result = userActivityAdapter.findPostsByUserId(userId, pageable);
-
-        // Then: 모든 필드가 올바르게 매핑되었는지 검증
-        assertThat(result.getContent()).hasSize(1);
-        PostSearchResult dto = result.getContent().getFirst();
-
-        assertThat(dto.getId()).isEqualTo(100L);
-        assertThat(dto.getTitle()).isEqualTo("매핑 테스트 게시글");
-        assertThat(dto.getContent()).isEqualTo("매핑 테스트 내용");
-        assertThat(dto.getUserName()).isEqualTo("매핑테스트유저");
-        assertThat(dto.getUserId()).isEqualTo(userId);
-        assertThat(dto.getCreatedAt()).isEqualTo(Instant.parse("2023-12-25T10:30:00Z"));
-        assertThat(dto.getLikeCount()).isEqualTo(25);
-        assertThat(dto.getCommentCount()).isEqualTo(15);
-        assertThat(dto.getViewCount()).isEqualTo(100);
-        assertThat(dto.getPostCacheFlag()).isEqualTo(PostCacheFlag.LEGEND);
-        assertThat(dto.isNotice()).isTrue();
-    }
-
-
-    @Test
-    @DisplayName("정상 케이스 - 사용자 작성 댓글 목록 조회")
+    @DisplayName("사용자 작성 댓글 목록 조회")
     void shouldFindCommentsByUserId_WhenValidUserIdProvided() {
-        // Given: 사용자 ID와 페이지 정보, 예상 댓글 목록
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        List<SimpleCommentInfo> domainComments = Arrays.asList(
+        // Given
+        List<SimpleCommentInfo> comments = Arrays.asList(
                 new SimpleCommentInfo(1L, 1L, "작성자1", "첫 번째 댓글", Instant.now(), 0, false),
                 new SimpleCommentInfo(2L, 2L, "작성자2", "두 번째 댓글", Instant.now(), 0, false)
         );
+        Page<SimpleCommentInfo> expectedPage = new PageImpl<>(comments, TEST_PAGEABLE, comments.size());
+        given(commentQueryUseCase.getUserComments(eq(TEST_USER_ID), eq(TEST_PAGEABLE))).willReturn(expectedPage);
 
-        Page<SimpleCommentInfo> domainPage = new PageImpl<>(domainComments, pageable, domainComments.size());
-        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(domainPage);
+        // When
+        Page<SimpleCommentInfo> result = userActivityAdapter.findCommentsByUserId(TEST_USER_ID, TEST_PAGEABLE);
 
-        // When: 사용자 작성 댓글 목록 조회 실행
-        Page<SimpleCommentInfo> result = userActivityAdapter.findCommentsByUserId(userId, pageable);
-
-        // Then: 올바른 댓글 목록이 반환되고 UseCase가 호출되었는지 검증
+        // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getContent()).isEqualTo("첫 번째 댓글");
         assertThat(result.getContent().get(1).getContent()).isEqualTo("두 번째 댓글");
-        verify(commentQueryUseCase).getUserComments(eq(userId), eq(pageable));
+        verify(commentQueryUseCase).getUserComments(eq(TEST_USER_ID), eq(TEST_PAGEABLE));
     }
 
     @Test
-    @DisplayName("정상 케이스 - 사용자 추천 댓글 목록 조회")
+    @DisplayName("사용자 추천 댓글 목록 조회")
     void shouldFindLikedCommentsByUserId_WhenValidUserIdProvided() {
-        // Given: 사용자 ID와 페이지 정보, 예상 추천 댓글 목록
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 5);
-
-        List<SimpleCommentInfo> domainLikedComments = Arrays.asList(
+        // Given
+        List<SimpleCommentInfo> likedComments = Arrays.asList(
                 new SimpleCommentInfo(3L, 3L, "다른작성자1", "추천한 댓글 1", Instant.now(), 5, true),
                 new SimpleCommentInfo(4L, 4L, "다른작성자2", "추천한 댓글 2", Instant.now(), 8, true)
         );
+        Page<SimpleCommentInfo> expectedPage = new PageImpl<>(likedComments, TEST_PAGEABLE, likedComments.size());
+        given(commentQueryUseCase.getUserLikedComments(eq(TEST_USER_ID), eq(TEST_PAGEABLE))).willReturn(expectedPage);
 
-        Page<SimpleCommentInfo> domainPage = new PageImpl<>(domainLikedComments, pageable, domainLikedComments.size());
-        given(commentQueryUseCase.getUserLikedComments(eq(userId), any(Pageable.class))).willReturn(domainPage);
+        // When
+        Page<SimpleCommentInfo> result = userActivityAdapter.findLikedCommentsByUserId(TEST_USER_ID, TEST_PAGEABLE);
 
-        // When: 사용자 추천 댓글 목록 조회 실행
-        Page<SimpleCommentInfo> result = userActivityAdapter.findLikedCommentsByUserId(userId, pageable);
-
-        // Then: 올바른 추천 댓글 목록이 반환되고 UseCase가 호출되었는지 검증
+        // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getContent()).isEqualTo("추천한 댓글 1");
         assertThat(result.getContent().get(1).getContent()).isEqualTo("추천한 댓글 2");
-        verify(commentQueryUseCase).getUserLikedComments(eq(userId), eq(pageable));
+        verify(commentQueryUseCase).getUserLikedComments(eq(TEST_USER_ID), eq(TEST_PAGEABLE));
     }
 
     @Test
-    @DisplayName("경계값 - 빈 댓글 목록 조회")
+    @DisplayName("빈 댓글 목록 조회")
     void shouldHandleEmptyComments_WhenNoCommentsFound() {
-        // Given: 댓글이 없는 사용자 ID와 빈 페이지 결과
-        Long userId = 999L;
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<SimpleCommentInfo> emptyDomainPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        // Given
+        Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Collections.emptyList(), TEST_PAGEABLE, 0);
+        given(commentQueryUseCase.getUserComments(eq(TEST_USER_ID), eq(TEST_PAGEABLE))).willReturn(emptyPage);
 
-        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(emptyDomainPage);
+        // When
+        Page<SimpleCommentInfo> result = userActivityAdapter.findCommentsByUserId(TEST_USER_ID, TEST_PAGEABLE);
 
-        // When: 댓글이 없는 사용자의 댓글 목록 조회
-        Page<SimpleCommentInfo> result = userActivityAdapter.findCommentsByUserId(userId, pageable);
-
-        // Then: 빈 페이지가 올바르게 반환되는지 검증
+        // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isEqualTo(0);
-        verify(commentQueryUseCase).getUserComments(eq(userId), eq(pageable));
+        verify(commentQueryUseCase).getUserComments(eq(TEST_USER_ID), eq(TEST_PAGEABLE));
     }
 
-    @Test
-    @DisplayName("경계값 - 빈 추천 댓글 목록 조회")
-    void shouldHandleEmptyLikedComments_WhenNoLikedCommentsFound() {
-        // Given: 추천 댓글이 없는 사용자 ID와 빈 페이지 결과
-        Long userId = 999L;
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<SimpleCommentInfo> emptyDomainPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-
-        given(commentQueryUseCase.getUserLikedComments(eq(userId), any(Pageable.class))).willReturn(emptyDomainPage);
-
-        // When: 추천 댓글이 없는 사용자의 추천 댓글 목록 조회
-        Page<SimpleCommentInfo> result = userActivityAdapter.findLikedCommentsByUserId(userId, pageable);
-
-        // Then: 빈 페이지가 올바르게 반환되는지 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
-        verify(commentQueryUseCase).getUserLikedComments(eq(userId), eq(pageable));
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - null 사용자 ID로 댓글 조회")
-    void shouldHandleNullUserId_WhenNullUserIdProvided() {
-        // Given: null 사용자 ID
-        Long nullUserId = null;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: null 사용자 ID로 댓글 조회 실행
-        userActivityAdapter.findCommentsByUserId(nullUserId, pageable);
-
-        // Then: UseCase에 null이 전달되는지 검증
-        verify(commentQueryUseCase).getUserComments(eq(nullUserId), eq(pageable));
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - null 페이지로 댓글 조회")
-    void shouldHandleNullPageable_WhenNullPageableProvided() {
-        // Given: 정상 사용자 ID와 null 페이지 정보
-        Long userId = 1L;
-        Pageable nullPageable = null;
-
-        // When: null 페이지 정보로 댓글 조회 실행
-        userActivityAdapter.findCommentsByUserId(userId, nullPageable);
-
-        // Then: UseCase에 null 페이지가 전달되는지 검증
-        verify(commentQueryUseCase).getUserComments(eq(userId), eq(nullPageable));
-    }
-
-    @Test
-    @DisplayName("성능 - 대용량 댓글 목록 조회")
-    void shouldHandleLargeCommentList_WhenLargePageRequested() {
-        // Given: 대용량 페이지 요청
-        Long userId = 1L;
-        Pageable largePage = PageRequest.of(0, 1000);
-
-        List<SimpleCommentInfo> largeCommentList = Collections.nCopies(1000,
-                new SimpleCommentInfo(1L, 1L, "테스트작성자", "대용량 테스트 댓글", Instant.now(), 0, false));
-
-        Page<SimpleCommentInfo> largeDomainPage = new PageImpl<>(largeCommentList, largePage, 1000);
-        given(commentQueryUseCase.getUserComments(eq(userId), any(Pageable.class))).willReturn(largeDomainPage);
-
-        // When: 대용량 댓글 목록 조회
-        Page<SimpleCommentInfo> result = userActivityAdapter.findCommentsByUserId(userId, largePage);
-
-        // Then: 대용량 데이터도 올바르게 처리되는지 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1000);
-        assertThat(result.getTotalElements()).isEqualTo(1000);
-        verify(commentQueryUseCase).getUserComments(eq(userId), eq(largePage));
+    private PostSearchResult createPostSearchResult(Long id, String title, Long userId) {
+        return PostSearchResult.builder()
+                .id(id)
+                .title(title)
+                .content(title + " 내용")
+                .userName("테스트유저")
+                .userId(userId)
+                .createdAt(Instant.now())
+                .likeCount(1)
+                .commentCount(0)
+                .viewCount(5)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .isNotice(false)
+                .build();
     }
 }

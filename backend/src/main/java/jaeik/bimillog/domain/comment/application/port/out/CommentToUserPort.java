@@ -13,6 +13,8 @@ import java.util.Optional;
  * @version 2.0.0
  */
 public interface CommentToUserPort {
+
+    // TODO OPTIONAL 통합 필요
     /**
      * <h3>사용자 ID로 사용자 조회</h3>
      * <p>사용자 ID를 사용하여 사용자를 조회합니다.</p>
