@@ -47,12 +47,6 @@ class CommentCommandServiceTest {
     private CommentClosureQueryPort commentClosureQueryPort;
 
     @Mock
-    private CommentClosureCommandPort commentClosureCommandPort;
-
-    @Mock
-    private CommentToPostPort commentToPostPort;
-
-    @Mock
     private CommentLikePort commentLikePort;
 
     @Mock
