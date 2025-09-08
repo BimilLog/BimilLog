@@ -98,15 +98,9 @@ class CommentDeleteQueryAnalysisTest {
     void shouldAnalyzeHasDescendantsQuery() {
         System.out.println("=== hasDescendants 쿼리 분석 ===");
         
-        // 임의의 댓글 ID로 hasDescendants 체크
+        // hasDescendants 메서드가 제거되어 이 테스트 코드도 제거됨
         try {
-            boolean hasDesc1 = commentClosureRepository.hasDescendants(1L);
-            boolean hasDesc2 = commentClosureRepository.hasDescendants(2L);
-            boolean hasDesc999 = commentClosureRepository.hasDescendants(999L);
-            
-            System.out.println("댓글 1L hasDescendants: " + hasDesc1);
-            System.out.println("댓글 2L hasDescendants: " + hasDesc2);
-            System.out.println("댓글 999L hasDescendants: " + hasDesc999);
+            System.out.println("hasDescendants 메서드는 더 이상 사용되지 않습니다.");
             
         } catch (Exception e) {
             System.out.println("hasDescendants 조회 실패: " + e.getMessage());

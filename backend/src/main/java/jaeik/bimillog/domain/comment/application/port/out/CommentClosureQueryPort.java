@@ -26,15 +26,5 @@ public interface CommentClosureQueryPort {
      */
     Optional<List<CommentClosure>> findByDescendantId(Long descendantId);
 
-    /**
-     * <h3>댓글의 자손 존재 여부 확인</h3>
-     * <p>주어진 댓글 ID를 조상으로 하는 자손 댓글이 존재하는지 확인합니다.</p>
-     *
-     * @param commentId 확인할 댓글 ID
-     * @return boolean 자손 댓글이 존재하면 true, 아니면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    boolean hasDescendants(Long commentId);
 
 }

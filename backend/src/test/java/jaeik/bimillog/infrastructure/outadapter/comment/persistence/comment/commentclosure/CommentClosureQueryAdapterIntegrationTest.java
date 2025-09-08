@@ -220,66 +220,6 @@ class CommentClosureQueryAdapterIntegrationTest {
         assertThat(closure.getDepth()).isEqualTo(0);
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 자손이 있는 댓글의 자손 존재 여부 확인")
-    void shouldReturnTrue_WhenCommentHasDescendants() {
-        // Given: 자손이 있는 계층 구조 클로저들 저장
-        // 부모가 자식과 손자를 자손으로 가지는 구조
-        CommentClosure closure1 = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
-        CommentClosure closure2 = CommentClosure.createCommentClosure(parentComment, childComment, 1);
-        CommentClosure closure3 = CommentClosure.createCommentClosure(parentComment, grandChildComment, 2);
-        CommentClosure closure4 = CommentClosure.createCommentClosure(childComment, childComment, 0);
-        CommentClosure closure5 = CommentClosure.createCommentClosure(childComment, grandChildComment, 1);
-        CommentClosure closure6 = CommentClosure.createCommentClosure(grandChildComment, grandChildComment, 0);
-
-        commentClosureRepository.save(closure1);
-        commentClosureRepository.save(closure2);
-        commentClosureRepository.save(closure3);
-        commentClosureRepository.save(closure4);
-        commentClosureRepository.save(closure5);
-        commentClosureRepository.save(closure6);
-
-        // When: 부모 댓글의 자손 존재 여부 확인
-        boolean hasDescendants = commentClosureQueryAdapter.hasDescendants(parentComment.getId());
-
-        // Then: 자손이 존재하므로 true 반환
-        assertThat(hasDescendants).isTrue();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 중간 노드의 자손 존재 여부 확인")
-    void shouldReturnTrue_WhenMiddleNodeHasDescendants() {
-        // Given: 중간 노드가 자손을 가지는 구조
-        CommentClosure closure1 = CommentClosure.createCommentClosure(parentComment, childComment, 1);
-        CommentClosure closure2 = CommentClosure.createCommentClosure(childComment, childComment, 0);
-        CommentClosure closure3 = CommentClosure.createCommentClosure(childComment, grandChildComment, 1);
-        CommentClosure closure4 = CommentClosure.createCommentClosure(grandChildComment, grandChildComment, 0);
-
-        commentClosureRepository.save(closure1);
-        commentClosureRepository.save(closure2);
-        commentClosureRepository.save(closure3);
-        commentClosureRepository.save(closure4);
-
-        // When: 중간 노드(자식 댓글)의 자손 존재 여부 확인
-        boolean hasDescendants = commentClosureQueryAdapter.hasDescendants(childComment.getId());
-
-        // Then: 자손이 존재하므로 true 반환
-        assertThat(hasDescendants).isTrue();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 말단 노드의 자손 존재 여부 확인")
-    void shouldReturnFalse_WhenLeafNodeHasNoDescendants() {
-        // Given: 말단 노드(자기 자신만 참조)
-        CommentClosure selfClosure = CommentClosure.createCommentClosure(grandChildComment, grandChildComment, 0);
-        commentClosureRepository.save(selfClosure);
-
-        // When: 말단 노드(손자 댓글)의 자손 존재 여부 확인
-        boolean hasDescendants = commentClosureQueryAdapter.hasDescendants(grandChildComment.getId());
-
-        // Then: 자손이 없으므로 false 반환
-        assertThat(hasDescendants).isFalse();
-    }
 
     @Test
     @DisplayName("경계값 - 존재하지 않는 자손 ID로 클로저 조회")
@@ -302,33 +242,6 @@ class CommentClosureQueryAdapterIntegrationTest {
         }
     }
 
-    @Test
-    @DisplayName("경계값 - 존재하지 않는 댓글 ID의 자손 존재 여부 확인")
-    void shouldReturnFalse_WhenCommentIdNotExists() {
-        // Given: 기존 클로저와 존재하지 않는 댓글 ID
-        CommentClosure existingClosure = CommentClosure.createCommentClosure(parentComment, childComment, 1);
-        commentClosureRepository.save(existingClosure);
-
-        Long nonExistentCommentId = 999L;
-
-        // When: 존재하지 않는 댓글 ID의 자손 존재 여부 확인
-        boolean hasDescendants = commentClosureQueryAdapter.hasDescendants(nonExistentCommentId);
-
-        // Then: 자손이 없으므로 false 반환
-        assertThat(hasDescendants).isFalse();
-    }
-
-    @Test
-    @DisplayName("경계값 - 빈 데이터베이스에서 자손 존재 여부 확인")
-    void shouldReturnFalse_WhenDatabaseIsEmpty() {
-        // Given: 빈 데이터베이스 (setUp에서 이미 deleteAll() 실행됨)
-
-        // When: 빈 데이터베이스에서 자손 존재 여부 확인
-        boolean hasDescendants = commentClosureQueryAdapter.hasDescendants(parentComment.getId());
-
-        // Then: 자손이 없으므로 false 반환
-        assertThat(hasDescendants).isFalse();
-    }
 
     @Test
     @DisplayName("경계값 - 빈 데이터베이스에서 클로저 조회")
@@ -375,19 +288,7 @@ class CommentClosureQueryAdapterIntegrationTest {
             commentClosureRepository.save(closure);
         }
 
-        // When: 각 노드의 자손 존재 여부 확인
-        boolean parentHasDescendants = commentClosureQueryAdapter.hasDescendants(parentComment.getId());
-        boolean child1HasDescendants = commentClosureQueryAdapter.hasDescendants(childComment.getId());
-        boolean child2HasDescendants = commentClosureQueryAdapter.hasDescendants(child2Comment.getId());
-        boolean grandChild1HasDescendants = commentClosureQueryAdapter.hasDescendants(grandChildComment.getId());
-        boolean grandChild2HasDescendants = commentClosureQueryAdapter.hasDescendants(grandChild2Comment.getId());
-
-        // Then: 계층 구조에 따른 정확한 결과 반환
-        assertThat(parentHasDescendants).isTrue(); // 4개의 자손
-        assertThat(child1HasDescendants).isTrue(); // 1개의 자손
-        assertThat(child2HasDescendants).isTrue(); // 1개의 자손
-        assertThat(grandChild1HasDescendants).isFalse(); // 자손 없음
-        assertThat(grandChild2HasDescendants).isFalse(); // 자손 없음
+        // When & Then: 복잡한 계층 구조에서의 클로저 조회 검증
 
         // 부모 노드의 모든 자손 클로저 조회 검증
         Optional<List<CommentClosure>> parentDescendants = commentClosureQueryAdapter

@@ -510,7 +510,6 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
 
         verify(commentQueryPort).findById(300L);
-        verify(commentClosureQueryPort, never()).hasDescendants(any());
         verify(commentCommandPort, never()).hardDeleteComment(any());
     }
 
@@ -608,7 +607,6 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(600L);
-        verify(commentClosureQueryPort, never()).hasDescendants(any());
         verify(commentCommandPort, never()).hardDeleteComment(any());
     }
 
