@@ -62,7 +62,6 @@ public interface UserQueryUseCase {
      */
     Optional<User> findByUserName(String userName);
 
-
     /**
      * <h3>ID로 사용자 프록시 조회</h3>
      * <p>실제 쿼리 없이 ID를 가진 사용자의 프록시(참조) 객체를 반환합니다.</p>

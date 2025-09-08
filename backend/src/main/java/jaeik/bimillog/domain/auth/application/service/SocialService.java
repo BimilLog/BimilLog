@@ -1,7 +1,7 @@
 
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,15 +23,16 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * <h2>소셜 로그인 서비스</h2>
- * <p>SocialLoginUseCase의 구현체 소셜 로그인을 처리하는 서비스 클래스</p>
+ * <h2>소셜 서비스</h2>
+ * <p>SocialUseCase의 구현체 소셜 작업을 처리하는 서비스 클래스</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Service
 @RequiredArgsConstructor
-public class SocialLoginService implements SocialLoginUseCase {
+@Slf4j
+public class SocialService implements SocialUseCase {
 
     private final SocialPort socialPort;
     private final SaveUserPort saveUserPort;
@@ -117,5 +119,20 @@ public class SocialLoginService implements SocialLoginUseCase {
         if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
             throw new AuthCustomException(AuthErrorCode.ALREADY_LOGIN);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>소셜 플랫폼 API를 호출하여 연결을 해제합니다.</p>
+     * <p>해제 실패 시에도 예외를 전파하여 로깅이 가능하도록 합니다.</p>
+     */
+    @Override
+    public void unlinkSocialAccount(SocialProvider provider, String socialId) {
+        log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
+
+        socialPort.unlink(provider, socialId);
+
+        log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);
     }
 }

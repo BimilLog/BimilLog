@@ -2,7 +2,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
-import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SocialUnlinkListener {
 
-    private final SocialUnlinkUseCase socialUnlinkUseCase;
+    private final SocialUseCase socialUseCase;
 
     @Async
     @EventListener
@@ -42,7 +42,7 @@ public class SocialUnlinkListener {
             log.info("소셜 연결 해제 시작: userId={}, provider={}, socialId={}",
                     userId, socialProvider, socialId);
 
-            socialUnlinkUseCase.unlinkSocialAccount(socialProvider, socialId);
+            socialUseCase.unlinkSocialAccount(socialProvider, socialId);
 
             log.info("소셜 연결 해제 완료: userId={}, provider={}, socialId={}",
                     userId, socialProvider, socialId);

@@ -35,6 +35,7 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
+// TODO 중복 테스트 리팩토링 검토 필요
 @ExtendWith(MockitoExtension.class)
 class UserActivityAdapterTest {
 

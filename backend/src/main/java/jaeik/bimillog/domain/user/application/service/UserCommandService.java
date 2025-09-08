@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
@@ -28,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserCommandService implements UserCommandUseCase {
 
     private final UserQueryPort userQueryPort;
-    private final UserCommandPort userCommandPort;
 
     /**
      * <h3>사용자 설정 수정</h3>
@@ -47,7 +45,6 @@ public class UserCommandService implements UserCommandUseCase {
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
-        // 엔티티 비즈니스 메서드로 업데이트 대체
         user.updateSettings(
                 newSetting.isMessageNotification(),
                 newSetting.isCommentNotification(),

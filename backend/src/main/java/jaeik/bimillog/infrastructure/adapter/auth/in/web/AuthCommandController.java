@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.in.web;
 
 import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SignUpUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponseDTO;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthCommandController {
 
-    private final SocialLoginUseCase socialLoginUseCase;
+    private final SocialUseCase socialUseCase;
     private final SignUpUseCase signUpUseCase;
     private final LogoutUseCase logoutUseCase;
 
@@ -42,7 +42,7 @@ public class AuthCommandController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> socialLogin(@RequestParam String provider, @RequestParam String code,
                                                        @RequestParam(required = false) String fcmToken) {
-        LoginResult loginResult = socialLoginUseCase.processSocialLogin(
+        LoginResult loginResult = socialUseCase.processSocialLogin(
                 SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
 
         return switch (loginResult) {

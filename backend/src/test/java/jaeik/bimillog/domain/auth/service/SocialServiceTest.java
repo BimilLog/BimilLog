@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
+import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -33,16 +33,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-
+//TODO 서비스 클래스 통합으로 테스트 코드 추가 필요성 검토 필요
 /**
- * <h2>SocialLoginService 단위 테스트</h2>
+ * <h2>SocialService 단위 테스트</h2>
  * <p>소셜 로그인 서비스의 핵심 비즈니스 로직 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class SocialLoginServiceTest {
+class SocialServiceTest {
 
     @Mock private SocialPort socialPort;
     @Mock private SaveUserPort saveUserPort;
@@ -50,7 +50,7 @@ class SocialLoginServiceTest {
     @Mock private BlacklistPort blacklistPort;
 
     @InjectMocks
-    private SocialLoginService socialLoginService;
+    private SocialService socialService;
 
     private LoginResult.SocialUserProfile testUserProfile;
     private Token testToken;
@@ -83,7 +83,7 @@ class SocialLoginServiceTest {
             given(saveUserPort.handleExistingUserLogin(testUserProfile, testToken, fcmToken)).willReturn(cookies);
 
             // When
-            LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", fcmToken);
+            LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, "auth-code", fcmToken);
 
             // Then
             assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
@@ -111,7 +111,7 @@ class SocialLoginServiceTest {
             given(redisUserDataPort.createTempCookie(anyString())).willReturn(tempCookie);
 
             // When
-            LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token");
+            LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token");
 
             // Then
             assertThat(result).isInstanceOf(LoginResult.NewUser.class);
@@ -137,7 +137,7 @@ class SocialLoginServiceTest {
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(true);
 
             // When & Then
-            assertThatThrownBy(() -> socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token"))
+            assertThatThrownBy(() -> socialService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token"))
                     .isInstanceOf(AuthCustomException.class)
                     .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.BLACKLIST_USER);
 
@@ -158,7 +158,7 @@ class SocialLoginServiceTest {
             given(securityContext.getAuthentication()).willReturn(authentication);
 
             // When & Then
-            assertThatThrownBy(() -> socialLoginService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token"))
+            assertThatThrownBy(() -> socialService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token"))
                     .isInstanceOf(AuthCustomException.class)
                     .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.ALREADY_LOGIN);
         }
