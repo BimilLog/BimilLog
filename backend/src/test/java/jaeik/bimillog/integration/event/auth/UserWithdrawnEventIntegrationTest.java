@@ -3,6 +3,7 @@ package jaeik.bimillog.integration.event.auth;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
@@ -51,7 +52,7 @@ class UserWithdrawnEventIntegrationTest {
     void userWithdrawnEventWorkflow_ShouldCompleteAllCleanupTasks() {
         // Given
         Long userId = 1L;
-        UserWithdrawnEvent event = new UserWithdrawnEvent(userId);
+        UserWithdrawnEvent event = new UserWithdrawnEvent(userId, "testSocialId", SocialProvider.KAKAO);
 
         // When
         eventPublisher.publishEvent(event);
@@ -78,9 +79,9 @@ class UserWithdrawnEventIntegrationTest {
         Long userId3 = 3L;
 
         // When - 여러 사용자 탈퇴 이벤트 발행
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId1));
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId2));
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId3));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId1, "testSocialId1", SocialProvider.KAKAO));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId2, "testSocialId2", SocialProvider.KAKAO));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId3, "testSocialId3", SocialProvider.KAKAO));
 
         // Then - 모든 사용자의 댓글 처리 및 FCM 토큰 삭제가 완료되어야 함
         Awaitility.await()
@@ -102,7 +103,7 @@ class UserWithdrawnEventIntegrationTest {
     @DisplayName("이벤트 처리 시간 검증 - 사용자 탈퇴")
     void userWithdrawnEventProcessingTime_ShouldCompleteWithinTimeout() {
         // Given
-        UserWithdrawnEvent event = new UserWithdrawnEvent(1L);
+        UserWithdrawnEvent event = new UserWithdrawnEvent(1L, "testSocialId", SocialProvider.KAKAO);
 
         long startTime = System.currentTimeMillis();
 
@@ -128,7 +129,7 @@ class UserWithdrawnEventIntegrationTest {
     @DisplayName("탈퇴 이벤트에서 리스너의 null 값 안전 처리")
     void userWithdrawnEventWithNullUserId_ShouldBeHandledSafely() {
         // Given - null userId를 포함한 탈퇴 이벤트 (리스너에서 안전하게 처리되어야 함)
-        UserWithdrawnEvent withdrawnEvent = new UserWithdrawnEvent(null);
+        UserWithdrawnEvent withdrawnEvent = new UserWithdrawnEvent(null, null, null);
 
         // When - null userId로 이벤트 발행
         eventPublisher.publishEvent(withdrawnEvent);
@@ -151,7 +152,7 @@ class UserWithdrawnEventIntegrationTest {
 
         // When - 대량 탈퇴 이벤트 발행
         for (int i = 1; i <= eventCount; i++) {
-            eventPublisher.publishEvent(new UserWithdrawnEvent((long) i));
+            eventPublisher.publishEvent(new UserWithdrawnEvent((long) i, "testSocialId" + i, SocialProvider.KAKAO));
         }
 
         // Then - 모든 이벤트가 15초 내에 처리되어야 함
@@ -175,9 +176,9 @@ class UserWithdrawnEventIntegrationTest {
         Long userId3 = 3L;
 
         // When - 순서대로 이벤트 발행
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId1));
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId2));
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId3));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId1, "testSocialId1", SocialProvider.KAKAO));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId2, "testSocialId2", SocialProvider.KAKAO));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId3, "testSocialId3", SocialProvider.KAKAO));
 
         // Then - 비동기 처리이므로 순서와 관계없이 모든 이벤트가 처리되어야 함
         Awaitility.await()
@@ -197,7 +198,7 @@ class UserWithdrawnEventIntegrationTest {
     @DisplayName("예외 상황에서의 이벤트 처리 - 댓글 처리 실패")
     void eventProcessingWithException_CommentProcessingFailure() {
         // Given
-        UserWithdrawnEvent event = new UserWithdrawnEvent(1L);
+        UserWithdrawnEvent event = new UserWithdrawnEvent(1L, "testSocialId", SocialProvider.KAKAO);
         
         // 댓글 처리 실패 시뮬레이션
         doThrow(new RuntimeException("댓글 처리 실패"))
@@ -220,7 +221,7 @@ class UserWithdrawnEventIntegrationTest {
     @DisplayName("예외 상황에서의 이벤트 처리 - FCM 토큰 삭제 실패")
     void eventProcessingWithException_FcmTokenDeletionFailure() {
         // Given
-        UserWithdrawnEvent event = new UserWithdrawnEvent(1L);
+        UserWithdrawnEvent event = new UserWithdrawnEvent(1L, "testSocialId", SocialProvider.KAKAO);
         
         // FCM 토큰 삭제 실패 시뮬레이션
         doThrow(new RuntimeException("FCM 토큰 삭제 실패"))

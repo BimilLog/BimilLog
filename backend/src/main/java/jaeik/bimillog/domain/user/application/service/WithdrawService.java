@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.SocialUnlinkUseCase;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -34,7 +33,6 @@ public class WithdrawService implements WithdrawUseCase {
 
     private final UserQueryPort userQueryPort;
     private final DeleteUserPort deleteUserPort;
-    private final SocialUnlinkUseCase socialUnlinkUseCase;
     private final ApplicationEventPublisher eventPublisher;
 
     /**

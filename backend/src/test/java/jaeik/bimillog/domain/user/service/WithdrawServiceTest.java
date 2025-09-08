@@ -1,9 +1,7 @@
-package jaeik.bimillog.domain.auth.service;
+package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLogoutPort;
+import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
@@ -25,9 +23,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -45,22 +45,13 @@ import static org.mockito.Mockito.verify;
 class WithdrawServiceTest {
 
     @Mock
-    private LoadUserPort loadUserPort;
+    private UserQueryPort userQueryPort;
 
     @Mock
     private DeleteUserPort deleteUserPort;
 
     @Mock
-    private SocialLoginPort socialLoginPort;
-
-    @Mock
-    private SocialLogoutPort socialLogoutPort;
-
-    @Mock
     private ApplicationEventPublisher eventPublisher;
-
-    @Mock
-    private TokenBlacklistUseCase tokenBlacklistUseCase;
 
     @Mock
     private CustomUserDetails userDetails;
@@ -91,7 +82,7 @@ class WithdrawServiceTest {
     void shouldWithdraw_WhenValidUserDetails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(testUser);
+        given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
         given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         // When
@@ -100,9 +91,8 @@ class WithdrawServiceTest {
         // Then
         assertThat(result).isEqualTo(logoutCookies);
 
-
-        // 소셜 로그인 연결 해제 검증
-        verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
+        // 사용자 조회 검증
+        verify(userQueryPort).findById(100L);
 
         // 탈퇴 프로세스 수행 검증
         verify(deleteUserPort).performWithdrawProcess(100L);
@@ -113,6 +103,8 @@ class WithdrawServiceTest {
         
         UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(100L);
+        assertThat(capturedEvent.socialId()).isEqualTo("kakao123");
+        assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
 
         // 로그아웃 쿠키 생성 검증
         verify(deleteUserPort).getLogoutCookies();
@@ -134,34 +126,35 @@ class WithdrawServiceTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+        given(userQueryPort.findById(100L)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
                 .isInstanceOf(UserCustomException.class)
                 .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
 
-        verify(loadUserPort).findById(100L);
+        verify(userQueryPort).findById(100L);
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
     }
 
     @Test
-    @DisplayName("소셜 로그인 연결 해제 실패 시 전체 탈퇴 프로세스 롤백")
-    void shouldRollbackWithdraw_WhenSocialUnlinkFails() {
+    @DisplayName("탈퇴 프로세스 실패 시 전체 탈퇴 프로세스 롤백")
+    void shouldRollbackWithdraw_WhenWithdrawProcessFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(testUser);
-        doThrow(new RuntimeException("소셜 연결 해제 실패"))
-                .when(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
+        given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
+        doThrow(new RuntimeException("탈퇴 프로세스 실패"))
+                .when(deleteUserPort).performWithdrawProcess(100L);
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(AuthCustomException.class)
-                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.SOCIAL_UNLINK_FAILED);
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("탈퇴 프로세스 실패");
 
-        // 소셜 연결 해제 실패로 인해 트랜잭션 롤백, 후속 작업들은 실행되지 않음
-        verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
-        // DB 삭제 및 이벤트 발행은 롤백으로 인해 실행되지 않음
+        // 탈퇴 프로세스 실패로 인해 트랜잭션 롤백
+        verify(userQueryPort).findById(100L);
+        verify(deleteUserPort).performWithdrawProcess(100L);
+        // 이벤트 발행은 롤백으로 인해 실행되지 않음
     }
 
     @Test
@@ -176,15 +169,15 @@ class WithdrawServiceTest {
                 .userName("targetUser")
                 .build();
 
-        given(loadUserPort.findById(targetUserId)).willReturn(targetUser);
+        given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
 
         // When
         withdrawService.forceWithdraw(targetUserId);
 
         // Then
-
-        // 소셜 로그인 연결 해제 검증
-        verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao456");
+        
+        // 사용자 조회 검증
+        verify(userQueryPort).findById(targetUserId);
 
         // 탈퇴 프로세스 수행 검증
         verify(deleteUserPort).performWithdrawProcess(targetUserId);
@@ -195,6 +188,8 @@ class WithdrawServiceTest {
         
         UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(targetUserId);
+        assertThat(capturedEvent.socialId()).isEqualTo("kakao456");
+        assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
     }
 
     @Test
@@ -202,32 +197,33 @@ class WithdrawServiceTest {
     void shouldThrowException_WhenForceWithdrawUserNotFound() {
         // Given
         Long nonExistentUserId = 999L;
-        given(loadUserPort.findById(nonExistentUserId)).willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+        given(userQueryPort.findById(nonExistentUserId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.forceWithdraw(nonExistentUserId))
                 .isInstanceOf(UserCustomException.class)
                 .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
 
-        verify(loadUserPort).findById(nonExistentUserId);
+        verify(userQueryPort).findById(nonExistentUserId);
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
     }
 
     @Test
-    @DisplayName("소셜 계정 연결 해제 실패 시 예외 발생")
-    void shouldThrow_WhenSocialUnlinkFails() {
+    @DisplayName("탈퇴 프로세스 실패 시 예외 발생")
+    void shouldThrow_WhenWithdrawProcessFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(testUser);
-        doThrow(new RuntimeException("소셜 연결 해제 실패"))
-                .when(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
+        given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
+        doThrow(new RuntimeException("탈퇴 프로세스 실패"))
+                .when(deleteUserPort).performWithdrawProcess(100L);
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(AuthCustomException.class)
-                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.SOCIAL_UNLINK_FAILED);
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("탈퇴 프로세스 실패");
 
-        verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
+        verify(userQueryPort).findById(100L);
+        verify(deleteUserPort).performWithdrawProcess(100L);
     }
 
     @Test
@@ -245,7 +241,7 @@ class WithdrawServiceTest {
                     .build();
 
             given(userDetails.getUserId()).willReturn(100L);
-            given(loadUserPort.findById(100L)).willReturn(user);
+            given(userQueryPort.findById(100L)).willReturn(Optional.of(user));
             given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
             // When
@@ -253,7 +249,15 @@ class WithdrawServiceTest {
 
             // Then
             assertThat(result).isEqualTo(logoutCookies);
-            verify(socialLoginPort).unlink(provider, "social123");
+            
+            // 탈퇴 이벤트 발행 검증
+            ArgumentCaptor<UserWithdrawnEvent> eventCaptor = ArgumentCaptor.forClass(UserWithdrawnEvent.class);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
+            
+            UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
+            assertThat(capturedEvent.userId()).isEqualTo(100L);
+            assertThat(capturedEvent.socialId()).isEqualTo("social123");
+            assertThat(capturedEvent.provider()).isEqualTo(provider);
         }
     }
 
@@ -262,9 +266,9 @@ class WithdrawServiceTest {
     void shouldCompleteWithdraw_WhenEventPublishingFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(loadUserPort.findById(100L)).willReturn(testUser);
+        given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
         doThrow(new RuntimeException("이벤트 발행 실패"))
-                .when(eventPublisher).publishEvent(new UserWithdrawnEvent(100L));
+                .when(eventPublisher).publishEvent(any(UserWithdrawnEvent.class));
 
         // When & Then
         assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
@@ -272,7 +276,7 @@ class WithdrawServiceTest {
                 .hasMessage("이벤트 발행 실패");
 
         // 이벤트 발행 전까지의 모든 작업은 완료되어야 함
-        verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao123");
+        verify(userQueryPort).findById(100L);
         verify(deleteUserPort).performWithdrawProcess(100L);
     }
 
@@ -288,7 +292,7 @@ class WithdrawServiceTest {
                 .userName("targetUser")
                 .build();
 
-        given(loadUserPort.findById(targetUserId)).willReturn(targetUser);
+        given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
         doThrow(new RuntimeException("데이터 처리 실패"))
                 .when(deleteUserPort).performWithdrawProcess(targetUserId);
 
@@ -297,7 +301,7 @@ class WithdrawServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("데이터 처리 실패");
 
-        verify(socialLoginPort).unlink(SocialProvider.KAKAO, "kakao456");
+        verify(userQueryPort).findById(targetUserId);
         verify(deleteUserPort).performWithdrawProcess(targetUserId);
     }
 }
