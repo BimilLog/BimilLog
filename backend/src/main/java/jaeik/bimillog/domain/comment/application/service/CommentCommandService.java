@@ -45,10 +45,9 @@ public class CommentCommandService implements CommentCommandUseCase {
     private final ApplicationEventPublisher eventPublisher;
     private final CommentToPostPort commentToPostPort;
     private final CommentToUserPort commentToUserPort;
-    private final CommentCommandPort commentCommandPort;
+    private final CommentSavePort commentSavePort;
+    private final CommentDeletePort commentDeletePort;
     private final CommentQueryPort commentQueryPort;
-    private final CommentClosureQueryPort commentClosureQueryPort;
-    private final CommentClosureCommandPort commentClosureCommandPort;
     private final CommentLikePort commentLikePort;
 
 
@@ -103,7 +102,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     public void updateComment(Long userId, Comment.Request commentRequest) {
         Comment comment = validateComment(commentRequest, userId);
         comment.updateComment(commentRequest.content());
-        commentCommandPort.save(comment);
+        commentSavePort.save(comment);
     }
 
     /**
@@ -161,7 +160,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     public void processUserCommentsOnWithdrawal(Long userId) {
-        List<Long> commentIds = commentCommandPort.findCommentIdsByUserId(userId);
+        List<Long> commentIds = commentDeletePort.findCommentIdsByUserId(userId);
         commentIds.forEach(this::handleCommentDeletion);
     }
 
@@ -210,13 +209,13 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     private void saveCommentWithClosure(Post post, User user, String content, Integer password, Long parentId) {
         try {
-            Comment comment = commentCommandPort.save(Comment.createComment(post, user, content, password));
+            Comment comment = commentSavePort.save(Comment.createComment(post, user, content, password));
 
             List<CommentClosure> closuresToSave = new ArrayList<>();
             closuresToSave.add(CommentClosure.createCommentClosure(comment, comment, 0));
 
             if (parentId != null) {
-                List<CommentClosure> parentClosures = commentClosureQueryPort.findByDescendantId(parentId)
+                List<CommentClosure> parentClosures = commentDeletePort.findByDescendantId(parentId)
                         .orElseThrow(() -> new CommentCustomException(CommentErrorCode.PARENT_COMMENT_NOT_FOUND));
 
                 for (CommentClosure parentClosure : parentClosures) {
@@ -226,7 +225,7 @@ public class CommentCommandService implements CommentCommandUseCase {
                             parentClosure.getDepth() + 1));
                 }
             }
-            commentClosureCommandPort.saveAll(closuresToSave);
+            commentSavePort.saveAll(closuresToSave);
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
@@ -245,15 +244,10 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     private void handleCommentDeletion(Long commentId) {
-        int softDeleteCount = commentCommandPort.conditionalSoftDelete(commentId);
+        int softDeleteCount = commentDeletePort.conditionalSoftDelete(commentId);
         if (softDeleteCount == 0) {
-            commentCommandPort.deleteClosuresByDescendantId(commentId);
-            commentCommandPort.hardDeleteComment(commentId);
+            commentDeletePort.deleteClosuresByDescendantId(commentId);
+            commentDeletePort.hardDeleteComment(commentId);
         }
     }
-
-
-
-
-
 }

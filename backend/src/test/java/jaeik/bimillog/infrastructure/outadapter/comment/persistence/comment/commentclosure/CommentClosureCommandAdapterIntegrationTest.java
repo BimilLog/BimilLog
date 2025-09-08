@@ -9,7 +9,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureCommandAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentSaveAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentDeleteAdapter;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +62,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnableJpaRepositories(basePackages = {
         "jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure"
 })
-@Import(CommentClosureCommandAdapter.class)
+@Import({CommentSaveAdapter.class, CommentDeleteAdapter.class})
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
@@ -95,7 +96,10 @@ class CommentClosureCommandAdapterIntegrationTest {
     private CommentClosureRepository commentClosureRepository;
 
     @Autowired
-    private CommentClosureCommandAdapter commentClosureCommandAdapter;
+    private CommentSaveAdapter commentSaveAdapter;
+    
+    @Autowired
+    private CommentDeleteAdapter commentDeleteAdapter;
 
     private User testUser;
     private Post testPost;
@@ -161,7 +165,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         );
 
         // When: 댓글 클로저 저장
-        commentClosureCommandAdapter.save(commentClosure);
+        commentSaveAdapter.save(commentClosure);
 
         // Then: 댓글 클로저가 올바르게 저장되었는지 검증
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
@@ -185,7 +189,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         );
 
         // When: 자기 참조 클로저 저장
-        commentClosureCommandAdapter.save(selfClosure);
+        commentSaveAdapter.save(selfClosure);
 
         // Then: 자기 참조 클로저가 올바르게 저장되었는지 검증
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
@@ -218,12 +222,12 @@ class CommentClosureCommandAdapterIntegrationTest {
         CommentClosure closure6 = CommentClosure.createCommentClosure(grandChildComment, grandChildComment, 0);
 
         // When: 모든 클로저 저장
-        commentClosureCommandAdapter.save(closure1);
-        commentClosureCommandAdapter.save(closure2);
-        commentClosureCommandAdapter.save(closure3);
-        commentClosureCommandAdapter.save(closure4);
-        commentClosureCommandAdapter.save(closure5);
-        commentClosureCommandAdapter.save(closure6);
+        commentSaveAdapter.save(closure1);
+        commentSaveAdapter.save(closure2);
+        commentSaveAdapter.save(closure3);
+        commentSaveAdapter.save(closure4);
+        commentSaveAdapter.save(closure5);
+        commentSaveAdapter.save(closure6);
 
         // Then: 모든 클로저가 올바르게 저장되었는지 검증
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
@@ -255,7 +259,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         assertThat(beforeDeletion).hasSize(1);
 
         // When: 댓글 클로저 삭제
-        commentClosureCommandAdapter.delete(commentClosure);
+        commentDeleteAdapter.delete(commentClosure);
 
         // Then: 댓글 클로저가 삭제되었는지 검증
         List<CommentClosure> afterDeletion = commentClosureRepository.findAll();
@@ -283,7 +287,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         assertThat(beforeDeletion).hasSize(3);
 
         // When: 특정 자손 ID로 클로저 삭제
-        commentClosureCommandAdapter.deleteByDescendantId(childComment.getId());
+        commentDeleteAdapter.deleteByDescendantId(childComment.getId());
 
         // Then: 해당 자손을 가진 클로저만 삭제되었는지 검증
         List<CommentClosure> afterDeletion = commentClosureRepository.findAll();
@@ -303,7 +307,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         );
 
         // When: 최대 깊이 클로저 저장
-        commentClosureCommandAdapter.save(maxDepthClosure);
+        commentSaveAdapter.save(maxDepthClosure);
 
         // Then: 최대 깊이 클로저가 올바르게 저장되었는지 검증
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
@@ -325,7 +329,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         Long nonExistentDescendantId = 999L;
 
         // When: 존재하지 않는 자손 ID로 삭제 시도
-        commentClosureCommandAdapter.deleteByDescendantId(nonExistentDescendantId);
+        commentDeleteAdapter.deleteByDescendantId(nonExistentDescendantId);
 
         // Then: 기존 클로저는 삭제되지 않아야 함
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
@@ -344,7 +348,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         );
 
         // When: 복잡한 클로저 저장
-        commentClosureCommandAdapter.save(complexClosure);
+        commentSaveAdapter.save(complexClosure);
 
         // Then: 모든 필드가 올바르게 저장되었는지 검증
         Optional<CommentClosure> foundClosure = commentClosureRepository.findById(complexClosure.getId());
@@ -380,7 +384,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         assertThat(commentClosureRepository.findAll()).hasSize(3);
 
         // When: 특정 자손의 모든 클로저 삭제
-        commentClosureCommandAdapter.deleteByDescendantId(childComment.getId());
+        commentDeleteAdapter.deleteByDescendantId(childComment.getId());
 
         // Then: 해당 자손의 모든 클로저가 삭제되었는지 검증
         List<CommentClosure> remainingClosures = commentClosureRepository.findAll();

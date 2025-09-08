@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureQueryAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentDeleteAdapter;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 //})
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({ TestContainersConfiguration.class, CommentClosureQueryAdapter.class})
+@Import({ TestContainersConfiguration.class, CommentDeleteAdapter.class})
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
@@ -81,7 +81,7 @@ class CommentClosureQueryAdapterIntegrationTest {
     private CommentClosureRepository commentClosureRepository;
 
     @Autowired
-    private CommentClosureQueryAdapter commentClosureQueryAdapter;
+    private CommentDeleteAdapter commentDeleteAdapter;
 
     private User testUser;
     private Post testPost;
@@ -149,7 +149,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         commentClosureRepository.save(closure6);
 
         // When: 손자 댓글을 자손으로 하는 클로저들 조회
-        Optional<List<CommentClosure>> result = commentClosureQueryAdapter
+        Optional<List<CommentClosure>> result = commentDeleteAdapter
                 .findByDescendantId(grandChildComment.getId());
 
         // Then: 손자 댓글과 관련된 모든 클로저 반환
@@ -180,7 +180,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         commentClosureRepository.save(closure3);
 
         // When: 중간 노드(자식 댓글)를 자손으로 하는 클로저들 조회
-        Optional<List<CommentClosure>> result = commentClosureQueryAdapter
+        Optional<List<CommentClosure>> result = commentDeleteAdapter
                 .findByDescendantId(childComment.getId());
 
         // Then: 자식 댓글과 관련된 클로저들 반환
@@ -206,7 +206,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         commentClosureRepository.save(selfClosure);
 
         // When: 루트 노드(부모 댓글)를 자손으로 하는 클로저들 조회
-        Optional<List<CommentClosure>> result = commentClosureQueryAdapter
+        Optional<List<CommentClosure>> result = commentDeleteAdapter
                 .findByDescendantId(parentComment.getId());
 
         // Then: 자기 참조 클로저만 반환
@@ -231,7 +231,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         Long nonExistentDescendantId = 999L;
 
         // When: 존재하지 않는 자손 ID로 클로저 조회
-        Optional<List<CommentClosure>> result = commentClosureQueryAdapter
+        Optional<List<CommentClosure>> result = commentDeleteAdapter
                 .findByDescendantId(nonExistentDescendantId);
 
         // Then: 빈 Optional 또는 빈 리스트 반환
@@ -249,7 +249,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         // Given: 빈 데이터베이스
 
         // When: 빈 데이터베이스에서 클로저 조회
-        Optional<List<CommentClosure>> result = commentClosureQueryAdapter
+        Optional<List<CommentClosure>> result = commentDeleteAdapter
                 .findByDescendantId(childComment.getId());
 
         // Then: 빈 결과 반환
@@ -291,7 +291,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         // When & Then: 복잡한 계층 구조에서의 클로저 조회 검증
 
         // 부모 노드의 모든 자손 클로저 조회 검증
-        Optional<List<CommentClosure>> parentDescendants = commentClosureQueryAdapter
+        Optional<List<CommentClosure>> parentDescendants = commentDeleteAdapter
                 .findByDescendantId(parentComment.getId());
         assertThat(parentDescendants).isPresent();
         assertThat(parentDescendants.get()).hasSize(1); // 자기 자신만
@@ -316,7 +316,7 @@ class CommentClosureQueryAdapterIntegrationTest {
         commentClosureRepository.save(depth3);
 
         // When: 최하위 레벨 댓글의 조상들 조회
-        Optional<List<CommentClosure>> ancestors = commentClosureQueryAdapter
+        Optional<List<CommentClosure>> ancestors = commentDeleteAdapter
                 .findByDescendantId(level4Comment.getId());
 
         // Then: 모든 조상이 올바른 깊이로 조회됨
