@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.auth.out.cache;
+package jaeik.bimillog.infrastructure.adapter.auth.out.persistence;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;

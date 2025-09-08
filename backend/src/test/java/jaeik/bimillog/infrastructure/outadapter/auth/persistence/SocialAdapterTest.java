@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.outadapter.auth.persistence.user;
+package jaeik.bimillog.infrastructure.outadapter.auth.persistence;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user.SocialAdapter;
+import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.SocialAdapter;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.SocialLoginStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

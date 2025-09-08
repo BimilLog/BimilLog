@@ -7,7 +7,7 @@ import org.springframework.http.ResponseCookie;
 import java.util.Optional;
 
 /**
- * <h2>임시 데이터 관리 포트</h2>
+ * <h2>Redis 사용자 데이터 관리 포트</h2>
  * <p>신규 사용자의 임시 데이터 관리를 위한 포트</p>
  *
  * @author Jaeik

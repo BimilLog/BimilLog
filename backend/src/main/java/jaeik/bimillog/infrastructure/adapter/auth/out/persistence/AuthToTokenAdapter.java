@@ -1,6 +1,6 @@
-package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
+package jaeik.bimillog.infrastructure.adapter.auth.out.persistence;
 
-import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.token.TokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 @Repository
 @RequiredArgsConstructor
-public class TokenJpaAdapter implements LoadTokenPort {
+public class AuthToTokenAdapter implements AuthToTokenPort {
 
     private final TokenRepository tokenRepository;
 

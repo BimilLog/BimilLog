@@ -1,10 +1,8 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthPort;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.port.out.JwtInvalidatePort;
-import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
-import jaeik.bimillog.domain.auth.application.service.TokenBlacklistService;
+import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
+import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +23,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>TokenBlacklistService 단위 테스트</h2>
+ * <h2>UserBanService 단위 테스트</h2>
  * <p>토큰 블랙리스트 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  *
@@ -33,23 +31,17 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("TokenBlacklistService 단위 테스트")
-class TokenBlacklistServiceTest {
+@DisplayName("UserBanService 단위 테스트")
+class UserBanServiceTest {
 
     @Mock
-    private JwtInvalidatePort jwtInvalidatePort;
+    private UserBanPort userBanPort;
 
     @Mock
-    private BlacklistPort blacklistPort;
-
-    @Mock
-    private LoadTokenPort loadTokenPort;
-
-    @Mock
-    private AuthPort authPort;
+    private AuthToTokenPort authToTokenPort;
 
     @InjectMocks
-    private TokenBlacklistService tokenBlacklistService;
+    private UserBanService userBanService;
 
     private String testToken;
     private String testTokenHash;
@@ -79,32 +71,32 @@ class TokenBlacklistServiceTest {
     @DisplayName("토큰이 블랙리스트에 있는 경우 true 반환")
     void shouldReturnTrue_WhenTokenIsBlacklisted() {
         // Given
-        given(authPort.generateTokenHash(testToken)).willReturn(testTokenHash);
-        given(jwtInvalidatePort.isBlacklisted(testTokenHash)).willReturn(true);
+        given(userBanPort.generateTokenHash(testToken)).willReturn(testTokenHash);
+        given(userBanPort.isBlacklisted(testTokenHash)).willReturn(true);
 
         // When
-        boolean result = tokenBlacklistService.isBlacklisted(testToken);
+        boolean result = userBanService.isBlacklisted(testToken);
 
         // Then
         assertThat(result).isTrue();
-        verify(authPort).generateTokenHash(testToken);
-        verify(jwtInvalidatePort).isBlacklisted(testTokenHash);
+        verify(userBanPort).generateTokenHash(testToken);
+        verify(userBanPort).isBlacklisted(testTokenHash);
     }
 
     @Test
     @DisplayName("토큰이 블랙리스트에 없는 경우 false 반환")
     void shouldReturnFalse_WhenTokenIsNotBlacklisted() {
         // Given
-        given(authPort.generateTokenHash(testToken)).willReturn(testTokenHash);
-        given(jwtInvalidatePort.isBlacklisted(testTokenHash)).willReturn(false);
+        given(userBanPort.generateTokenHash(testToken)).willReturn(testTokenHash);
+        given(userBanPort.isBlacklisted(testTokenHash)).willReturn(false);
 
         // When
-        boolean result = tokenBlacklistService.isBlacklisted(testToken);
+        boolean result = userBanService.isBlacklisted(testToken);
 
         // Then
         assertThat(result).isFalse();
-        verify(authPort).generateTokenHash(testToken);
-        verify(jwtInvalidatePort).isBlacklisted(testTokenHash);
+        verify(userBanPort).generateTokenHash(testToken);
+        verify(userBanPort).isBlacklisted(testTokenHash);
     }
 
     @Test
@@ -112,32 +104,32 @@ class TokenBlacklistServiceTest {
     void shouldReturnTrue_WhenTokenHashGenerationFails() {
         // Given
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(authPort).generateTokenHash(testToken);
+                .when(userBanPort).generateTokenHash(testToken);
 
         // When
-        boolean result = tokenBlacklistService.isBlacklisted(testToken);
+        boolean result = userBanService.isBlacklisted(testToken);
 
         // Then
         assertThat(result).isTrue();
-        verify(authPort).generateTokenHash(testToken);
-        verify(jwtInvalidatePort, never()).isBlacklisted(anyString());
+        verify(userBanPort).generateTokenHash(testToken);
+        verify(userBanPort, never()).isBlacklisted(anyString());
     }
 
     @Test
     @DisplayName("블랙리스트 확인 실패 시 안전하게 true 반환")
     void shouldReturnTrue_WhenBlacklistCheckFails() {
         // Given
-        given(authPort.generateTokenHash(testToken)).willReturn(testTokenHash);
+        given(userBanPort.generateTokenHash(testToken)).willReturn(testTokenHash);
         doThrow(new RuntimeException("Cache check failed"))
-                .when(jwtInvalidatePort).isBlacklisted(testTokenHash);
+                .when(userBanPort).isBlacklisted(testTokenHash);
 
         // When
-        boolean result = tokenBlacklistService.isBlacklisted(testToken);
+        boolean result = userBanService.isBlacklisted(testToken);
 
         // Then
         assertThat(result).isTrue();
-        verify(authPort).generateTokenHash(testToken);
-        verify(jwtInvalidatePort).isBlacklisted(testTokenHash);
+        verify(userBanPort).generateTokenHash(testToken);
+        verify(userBanPort).isBlacklisted(testTokenHash);
     }
 
     @Test
@@ -148,22 +140,22 @@ class TokenBlacklistServiceTest {
         String reason = "Security violation";
         List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(loadTokenPort.findAllByUserId(userId)).willReturn(userTokens);
-        given(authPort.generateTokenHash("access-token-1")).willReturn("hash1");
-        given(authPort.generateTokenHash("access-token-2")).willReturn("hash2");
+        given(authToTokenPort.findAllByUserId(userId)).willReturn(userTokens);
+        given(userBanPort.generateTokenHash("access-token-1")).willReturn("hash1");
+        given(userBanPort.generateTokenHash("access-token-2")).willReturn("hash2");
 
         // When
-        tokenBlacklistService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
-        verify(loadTokenPort).findAllByUserId(userId);
-        verify(authPort).generateTokenHash("access-token-1");
-        verify(authPort).generateTokenHash("access-token-2");
+        verify(authToTokenPort).findAllByUserId(userId);
+        verify(userBanPort).generateTokenHash("access-token-1");
+        verify(userBanPort).generateTokenHash("access-token-2");
         
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
         
-        verify(jwtInvalidatePort).blacklistTokenHashes(
+        verify(userBanPort).blacklistTokenHashes(
                 hashesCaptor.capture(), 
                 eq(reason), 
                 durationCaptor.capture()
@@ -180,15 +172,15 @@ class TokenBlacklistServiceTest {
         // Given
         Long userId = 100L;
         String reason = "Security violation";
-        given(loadTokenPort.findAllByUserId(userId)).willReturn(List.of());
+        given(authToTokenPort.findAllByUserId(userId)).willReturn(List.of());
 
         // When
-        tokenBlacklistService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
-        verify(loadTokenPort).findAllByUserId(userId);
-        verify(authPort, never()).generateTokenHash(anyString());
-        verify(jwtInvalidatePort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(authToTokenPort).findAllByUserId(userId);
+        verify(userBanPort, never()).generateTokenHash(anyString());
+        verify(userBanPort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 
     @Test
@@ -199,17 +191,17 @@ class TokenBlacklistServiceTest {
         String reason = "Partial failure test";
         List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(loadTokenPort.findAllByUserId(userId)).willReturn(userTokens);
-        given(authPort.generateTokenHash("access-token-1")).willReturn("hash1");
+        given(authToTokenPort.findAllByUserId(userId)).willReturn(userTokens);
+        given(userBanPort.generateTokenHash("access-token-1")).willReturn("hash1");
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(authPort).generateTokenHash("access-token-2");
+                .when(userBanPort).generateTokenHash("access-token-2");
 
         // When
-        tokenBlacklistService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
-        verify(jwtInvalidatePort).blacklistTokenHashes(
+        verify(userBanPort).blacklistTokenHashes(
                 hashesCaptor.capture(), 
                 eq(reason), 
                 any(Duration.class)
@@ -227,18 +219,18 @@ class TokenBlacklistServiceTest {
         String reason = "Complete failure test";
         List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(loadTokenPort.findAllByUserId(userId)).willReturn(userTokens);
+        given(authToTokenPort.findAllByUserId(userId)).willReturn(userTokens);
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(authPort).generateTokenHash(anyString());
+                .when(userBanPort).generateTokenHash(anyString());
 
         // When
-        tokenBlacklistService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
-        verify(loadTokenPort).findAllByUserId(userId);
-        verify(authPort).generateTokenHash("access-token-1");
-        verify(authPort).generateTokenHash("access-token-2");
-        verify(jwtInvalidatePort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(authToTokenPort).findAllByUserId(userId);
+        verify(userBanPort).generateTokenHash("access-token-1");
+        verify(userBanPort).generateTokenHash("access-token-2");
+        verify(userBanPort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 
     @Test
@@ -248,15 +240,15 @@ class TokenBlacklistServiceTest {
         Long userId = 100L;
         String reason = "Load failure test";
         doThrow(new RuntimeException("Token loading failed"))
-                .when(loadTokenPort).findAllByUserId(userId);
+                .when(authToTokenPort).findAllByUserId(userId);
 
         // When
-        tokenBlacklistService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
-        verify(loadTokenPort).findAllByUserId(userId);
-        verify(authPort, never()).generateTokenHash(anyString());
-        verify(jwtInvalidatePort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(authToTokenPort).findAllByUserId(userId);
+        verify(userBanPort, never()).generateTokenHash(anyString());
+        verify(userBanPort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 
     @Test
@@ -267,15 +259,15 @@ class TokenBlacklistServiceTest {
         Long userId = 100L;
         List<Token> userTokens = List.of(testToken1);
         
-        given(loadTokenPort.findAllByUserId(userId)).willReturn(userTokens);
-        given(authPort.generateTokenHash("access-token-1")).willReturn("hash1");
+        given(authToTokenPort.findAllByUserId(userId)).willReturn(userTokens);
+        given(userBanPort.generateTokenHash("access-token-1")).willReturn("hash1");
 
         for (String reason : reasons) {
             // When
-            tokenBlacklistService.blacklistAllUserTokens(userId, reason);
+            userBanService.blacklistAllUserTokens(userId, reason);
 
             // Then
-            verify(jwtInvalidatePort).blacklistTokenHashes(
+            verify(userBanPort).blacklistTokenHashes(
                     eq(List.of("hash1")), 
                     eq(reason), 
                     any(Duration.class)
@@ -288,16 +280,16 @@ class TokenBlacklistServiceTest {
     void shouldHandleEmptyToken() {
         // Given
         String emptyToken = "";
-        given(authPort.generateTokenHash(emptyToken)).willReturn("");
-        given(jwtInvalidatePort.isBlacklisted("")).willReturn(false);
+        given(userBanPort.generateTokenHash(emptyToken)).willReturn("");
+        given(userBanPort.isBlacklisted("")).willReturn(false);
 
         // When
-        boolean result = tokenBlacklistService.isBlacklisted(emptyToken);
+        boolean result = userBanService.isBlacklisted(emptyToken);
 
         // Then
         assertThat(result).isFalse();
-        verify(authPort).generateTokenHash(emptyToken);
-        verify(jwtInvalidatePort).isBlacklisted("");
+        verify(userBanPort).generateTokenHash(emptyToken);
+        verify(userBanPort).isBlacklisted("");
     }
 
     @Test
@@ -306,13 +298,21 @@ class TokenBlacklistServiceTest {
         // Given
         String nullToken = null;
         doThrow(new RuntimeException("Null token"))
-                .when(authPort).generateTokenHash(nullToken);
+                .when(userBanPort).generateTokenHash(nullToken);
 
         // When
-        boolean result = tokenBlacklistService.isBlacklisted(nullToken);
+        boolean result = userBanService.isBlacklisted(nullToken);
 
         // Then
         assertThat(result).isTrue();
-        verify(authPort).generateTokenHash(nullToken);
+        verify(userBanPort).generateTokenHash(nullToken);
+    }
+
+    public User getTestUser() {
+        return testUser;
+    }
+
+    public void setTestUser(User testUser) {
+        this.testUser = testUser;
     }
 }

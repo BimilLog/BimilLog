@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user;
+package jaeik.bimillog.infrastructure.adapter.auth.out.persistence;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;

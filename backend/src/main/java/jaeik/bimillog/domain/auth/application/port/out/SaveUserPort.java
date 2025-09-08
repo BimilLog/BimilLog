@@ -7,9 +7,8 @@ import org.springframework.http.ResponseCookie;
 import java.util.List;
 
 /**
- * <h2>인증 데이터 관리 포트</h2>
- * <p>사용자 데이터 저장, 업데이트, 삭제를 위한 포트</p>
- * <p>CQRS 패턴에 따른 명령 전용 포트</p>
+ * <h2>사용자 정보 저장 포트</h2>
+ * <p>사용자 데이터 저장 담당 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0

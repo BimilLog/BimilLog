@@ -1,12 +1,11 @@
-package jaeik.bimillog.infrastructure.outadapter.auth.cache;
+package jaeik.bimillog.infrastructure.outadapter.auth.persistence;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.auth.out.cache.RedisUserDataAdapter;
+import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.RedisUserDataAdapter;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;

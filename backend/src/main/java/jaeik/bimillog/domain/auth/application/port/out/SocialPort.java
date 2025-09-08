@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 
 /**
- * <h2>소셜 로그인 포트</h2>
- * <p>소셜 로그인 처리를 위한 포트</p>
+ * <h2>소셜 포트</h2>
+ * <p>소셜 작업을 처리하는 포트</p>
  *
  * @author Jaeik
  * @version 2.0.0

@@ -6,8 +6,8 @@ import org.springframework.http.ResponseCookie;
 import java.util.List;
 
 /**
- * <h2>회원가입 유스케이스</h2>
- * <p>회원가입을 처리하는 인터페이스</p>
+ * <h2>자체 서비스 회원가입 유스케이스</h2>
+ * <p>자체 서비스 회원가입을 처리하는 인터페이스</p>
  *
  * @author Jaeik
  * @version 2.0.0

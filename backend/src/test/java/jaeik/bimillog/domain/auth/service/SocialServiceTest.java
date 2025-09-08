@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
+import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -47,7 +47,7 @@ class SocialServiceTest {
     @Mock private SocialPort socialPort;
     @Mock private SaveUserPort saveUserPort;
     @Mock private RedisUserDataPort redisUserDataPort;
-    @Mock private BlacklistPort blacklistPort;
+    @Mock private UserBanPort userBanPort;
 
     @InjectMocks
     private SocialService socialService;
@@ -79,7 +79,7 @@ class SocialServiceTest {
             given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
 
             given(socialPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(existingUserResult);
-            given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
+            given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
             given(saveUserPort.handleExistingUserLogin(testUserProfile, testToken, fcmToken)).willReturn(cookies);
 
             // When
@@ -107,7 +107,7 @@ class SocialServiceTest {
             given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
 
             given(socialPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(newUserResult);
-            given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
+            given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(false);
             given(redisUserDataPort.createTempCookie(anyString())).willReturn(tempCookie);
 
             // When
@@ -134,7 +134,7 @@ class SocialServiceTest {
             given(securityContext.getAuthentication()).willReturn(new AnonymousAuthenticationToken("key", "anonymous", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
 
             given(socialPort.login(SocialProvider.KAKAO, "auth-code")).willReturn(existingUserResult);
-            given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(true);
+            given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123")).willReturn(true);
 
             // When & Then
             assertThatThrownBy(() -> socialService.processSocialLogin(SocialProvider.KAKAO, "auth-code", "fcm-token"))
@@ -142,7 +142,7 @@ class SocialServiceTest {
                     .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.BLACKLIST_USER);
 
             verify(socialPort).login(SocialProvider.KAKAO, "auth-code");
-            verify(blacklistPort).existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123");
+            verify(userBanPort).existsByProviderAndSocialId(SocialProvider.KAKAO, "kakao123");
         }
     }
 

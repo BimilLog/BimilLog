@@ -2,10 +2,10 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
+import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -37,7 +37,7 @@ public class SocialService implements SocialUseCase {
     private final SocialPort socialPort;
     private final SaveUserPort saveUserPort;
     private final RedisUserDataPort redisUserDataPort;
-    private final BlacklistPort blacklistPort;
+    private final UserBanPort userBanPort;
 
     /**
      * <h3>소셜 로그인 처리</h3>
@@ -60,7 +60,7 @@ public class SocialService implements SocialUseCase {
         LoginResult.SocialLoginData loginResult = socialPort.login(provider, code);
         LoginResult.SocialUserProfile userProfile = loginResult.userProfile();
 
-        if (blacklistPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
+        if (userBanPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 

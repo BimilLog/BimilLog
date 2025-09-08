@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.user.TokenJpaAdapter;
+import jaeik.bimillog.infrastructure.adapter.auth.out.persistence.AuthToTokenAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.token.TokenRepository;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
@@ -35,7 +35,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>TokenJpaAdapter 통합 테스트</h2>
+ * <h2>AuthToTokenAdapter 통합 테스트</h2>
  * <p>MySQL TestContainer를 사용한 토큰 어댑터의 데이터베이스 통합 테스트</p>
  * <p>데이터 매핑, JPA 관계, 영속성 레이어를 실제 환경에서 검증</p>
  * 
@@ -58,11 +58,11 @@ import static org.assertj.core.api.Assertions.assertThat;
         "jaeik.bimillog.domain.notification.entity",
         "jaeik.bimillog.domain.global.entity"
 })
-@Import(TokenJpaAdapter.class)
+@Import(AuthToTokenAdapter.class)
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
-class TokenJpaAdapterTest {
+class AuthToTokenAdapterTest {
 
     @Container
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
@@ -98,7 +98,7 @@ class TokenJpaAdapterTest {
     private TokenRepository tokenRepository;
 
     @Autowired
-    private TokenJpaAdapter tokenJpaAdapter;
+    private AuthToTokenAdapter authToTokenAdapter;
 
     @Test
     @DisplayName("토큰 ID로 조회 - 정상적인 매핑 검증")
@@ -113,7 +113,7 @@ class TokenJpaAdapterTest {
         entityManager.clear(); // 1차 캐시 클리어
 
         // When: 어댑터를 통한 토큰 조회
-        Optional<Token> result = tokenJpaAdapter.findById(savedToken.getId());
+        Optional<Token> result = authToTokenAdapter.findById(savedToken.getId());
 
         // Then: 정확한 매핑과 관계 검증
         assertThat(result).isPresent();
@@ -132,7 +132,7 @@ class TokenJpaAdapterTest {
         Long nonExistentId = 999L;
 
         // When: 존재하지 않는 토큰 조회
-        Optional<Token> result = tokenJpaAdapter.findById(nonExistentId);
+        Optional<Token> result = authToTokenAdapter.findById(nonExistentId);
 
         // Then: Optional.empty() 반환 검증
         assertThat(result).isEmpty();
@@ -155,7 +155,7 @@ class TokenJpaAdapterTest {
         entityManager.clear();
 
         // When: 사용자 ID로 모든 토큰 조회
-        List<Token> result = tokenJpaAdapter.findAllByUserId(user.getId());
+        List<Token> result = authToTokenAdapter.findAllByUserId(user.getId());
 
         // Then: 모든 토큰과 올바른 관계 검증
         assertThat(result).hasSize(2);
@@ -180,7 +180,7 @@ class TokenJpaAdapterTest {
         entityManager.clear();
 
         // When: 토큰이 없는 사용자의 토큰 조회
-        List<Token> result = tokenJpaAdapter.findAllByUserId(user.getId());
+        List<Token> result = authToTokenAdapter.findAllByUserId(user.getId());
 
         // Then: 빈 리스트 반환 검증
         assertThat(result).isEmpty();
@@ -199,7 +199,7 @@ class TokenJpaAdapterTest {
         entityManager.clear(); // 캐시 클리어로 실제 DB 조회 강제
 
         // When: 어댑터를 통한 조회
-        Optional<Token> foundToken = tokenJpaAdapter.findById(savedToken.getId());
+        Optional<Token> foundToken = authToTokenAdapter.findById(savedToken.getId());
 
         // Then: 양방향 관계 일관성 검증
         assertThat(foundToken).isPresent();

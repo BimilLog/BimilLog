@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
-import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class JwtBlacklistListener {
 
-    private final TokenBlacklistUseCase tokenBlacklistUseCase;
+    private final UserBanUseCase userBanUseCase;
 
     /**
      * <h3>JWT 블랙리스트 이벤트 처리</h3>
@@ -59,7 +59,7 @@ public class JwtBlacklistListener {
         log.info("{} 이벤트 수신 - JWT 토큰 무효화 시작: userId={}", reason, userId);
         
         try {
-            tokenBlacklistUseCase.blacklistAllUserTokens(userId, reason);
+            userBanUseCase.blacklistAllUserTokens(userId, reason);
             log.info("{} JWT 토큰 무효화 완료 - userId: {}", reason, userId);
         } catch (Exception e) {
             log.error("{} JWT 토큰 무효화 실패 - userId: {}, error: {}", 

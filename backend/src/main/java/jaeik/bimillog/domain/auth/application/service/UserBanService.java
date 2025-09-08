@@ -1,9 +1,8 @@
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.TokenBlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthPort;
-import jaeik.bimillog.domain.auth.application.port.out.JwtInvalidatePort;
-import jaeik.bimillog.domain.auth.application.port.out.LoadTokenPort;
+import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
+import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
 import jaeik.bimillog.domain.user.entity.Token;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +24,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TokenBlacklistService implements TokenBlacklistUseCase {
+public class UserBanService implements UserBanUseCase {
 
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
-    private final JwtInvalidatePort jwtInvalidatePort;
-    private final LoadTokenPort loadTokenPort;
-    private final AuthPort authPort;
+    private final UserBanPort userBanPort;
+    private final AuthToTokenPort authToTokenPort;
 
     /**
      * <h3>토큰 블랙리스트 여부 확인</h3>
@@ -43,8 +41,8 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     @Override
     public boolean isBlacklisted(String token) {
         try {
-            String tokenHash = authPort.generateTokenHash(token);
-            boolean isBlacklisted = jwtInvalidatePort.isBlacklisted(tokenHash);
+            String tokenHash = userBanPort.generateTokenHash(token);
+            boolean isBlacklisted = userBanPort.isBlacklisted(tokenHash);
 
             if (isBlacklisted) {
                 log.debug("토큰이 블랙리스트에서 발견됨: hash={}", tokenHash.substring(0, 8) + "...");
@@ -68,7 +66,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
     @Override
     public void blacklistAllUserTokens(Long userId, String reason) {
         try {
-            List<Token> userTokens = loadTokenPort.findAllByUserId(userId);
+            List<Token> userTokens = authToTokenPort.findAllByUserId(userId);
 
             if (userTokens.isEmpty()) {
                 log.info("사용자 {}의 활성 토큰을 찾을 수 없음", userId);
@@ -78,7 +76,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
             List<String> tokenHashes = userTokens.stream()
                     .map(token -> {
                         try {
-                            return authPort.generateTokenHash(token.getAccessToken());
+                            return userBanPort.generateTokenHash(token.getAccessToken());
                         } catch (Exception e) {
                             log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;
@@ -88,7 +86,7 @@ public class TokenBlacklistService implements TokenBlacklistUseCase {
                     .collect(Collectors.toList());
 
             if (!tokenHashes.isEmpty()) {
-                jwtInvalidatePort.blacklistTokenHashes(tokenHashes, reason, DEFAULT_TTL);
+                userBanPort.blacklistTokenHashes(tokenHashes, reason, DEFAULT_TTL);
                 log.info("사용자 {}의 토큰 {}개가 블랙리스트에 추가됨: 사유={}", userId, tokenHashes.size(), reason);
             } else {
                 log.warn("사용자 {}에 대해 블랙리스트에 추가할 유효한 토큰 해시가 없음", userId);

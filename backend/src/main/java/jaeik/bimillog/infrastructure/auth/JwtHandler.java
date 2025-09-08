@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.auth;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jaeik.bimillog.domain.auth.application.port.out.AuthPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.entity.UserDetail;
@@ -13,8 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 /**
@@ -27,7 +24,7 @@ import java.util.Date;
  */
 @Component
 @RequiredArgsConstructor
-public class JwtHandler implements AuthPort {
+public class JwtHandler {
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -208,35 +205,6 @@ public class JwtHandler implements AuthPort {
                 .getBody();
     }
 
-    /**
-     * <h3>JWT 토큰 해시값 생성</h3>
-     *
-     * <p>JWT 토큰을 SHA-256으로 해시하여 블랙리스트 키로 사용할 해시값을 생성합니다.</p>
-     * <p>전체 토큰을 저장하지 않고 해시값만 저장하여 보안성을 향상시킵니다.</p>
-     *
-     * @param token JWT 토큰
-     * @return SHA-256 해시값 (Hex 문자열)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public String generateTokenHash(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(token.getBytes());
-            
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hashBytes) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not available", e);
-        }
-    }
+
 }
 

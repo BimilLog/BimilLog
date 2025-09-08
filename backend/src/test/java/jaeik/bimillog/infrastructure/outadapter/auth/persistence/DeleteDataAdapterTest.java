@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.outadapter.auth.persistence.auth;
+package jaeik.bimillog.infrastructure.outadapter.auth.persistence;
 
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.DeleteUserAdapter;

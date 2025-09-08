@@ -12,7 +12,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface LoadTokenPort {
+public interface AuthToTokenPort {
 
     /**
      * <h3>토큰 ID로 토큰 조회</h3>
