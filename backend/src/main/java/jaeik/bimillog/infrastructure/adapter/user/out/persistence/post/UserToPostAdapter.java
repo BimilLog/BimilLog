@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.user.out.persistence.post;
 
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.domain.user.application.port.out.LoadPostPort;
+import jaeik.bimillog.domain.user.application.port.out.UserToPostPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class LoadPostAdapter implements LoadPostPort {
+public class UserToPostAdapter implements UserToPostPort {
 
     private final PostQueryUseCase postQueryUseCase;
 

@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface UserIntegrationUseCase {
+public interface UserFriendUseCase {
 
     /**
      * <h3>카카오 친구 목록 조회</h3>

@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
  * @author jaeik
  * @version 2.0.0
  */
-public interface LoadPostPort {
+public interface UserToPostPort {
 
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>

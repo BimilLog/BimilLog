@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.application.service.UserIntegrationService;
+import jaeik.bimillog.domain.user.application.service.UserFriendService;
 import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>UserIntegrationService 테스트</h2>
+ * <h2>UserFriendService 테스트</h2>
  * <p>사용자 통합 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>카카오 친구 목록 조회 및 비밀로그 가입 여부 확인 기능을 테스트</p>
  *
@@ -38,8 +38,8 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("UserIntegrationService 테스트")
-class UserIntegrationServiceTest {
+@DisplayName("UserFriendService 테스트")
+class UserFriendServiceTest {
 
     @Mock
     private KakaoFriendPort kakaoFriendPort;
@@ -51,7 +51,7 @@ class UserIntegrationServiceTest {
     private TokenPort tokenPort;
 
     @InjectMocks
-    private UserIntegrationService userIntegrationService;
+    private UserFriendService userFriendService;
 
     @Test
     @DisplayName("카카오 친구 목록 조회 - 정상 케이스 (실제 API 응답 구조)")
@@ -97,7 +97,7 @@ class UserIntegrationServiceTest {
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
 
         // When
-        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, offset, limit).block();
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, offset, limit).block();
 
         // Then
         assertThat(result).isNotNull();
@@ -126,7 +126,7 @@ class UserIntegrationServiceTest {
         given(userQueryPort.findById(nonexistentUserId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(nonexistentUserId, 1L, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(nonexistentUserId, 1L, 0, 10).block())
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
         
@@ -148,7 +148,7 @@ class UserIntegrationServiceTest {
         given(tokenPort.findById(tokenId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
                 .isInstanceOf(AuthCustomException.class)
                 .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
         
@@ -174,7 +174,7 @@ class UserIntegrationServiceTest {
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
                 .isInstanceOf(AuthCustomException.class)
                 .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
     }
@@ -197,7 +197,7 @@ class UserIntegrationServiceTest {
         given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, 1L, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, 1L, 0, 10).block())
                 .isInstanceOf(AuthCustomException.class)
                 .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
     }
@@ -225,7 +225,7 @@ class UserIntegrationServiceTest {
         given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(Mono.just(kakaoResponseVO));
 
         // When
-        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, null, null).block();
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, null, null).block();
 
         // Then
         assertThat(result).isEqualTo(kakaoResponseVO);
@@ -256,7 +256,7 @@ class UserIntegrationServiceTest {
         given(kakaoFriendPort.getFriendList("access-token", 0, 100)).willReturn(Mono.just(kakaoResponseVO));
 
         // When
-        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 200).block(); // 200을 요청하지만 100으로 제한
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 200).block(); // 200을 요청하지만 100으로 제한
 
         // Then
         assertThat(result).isEqualTo(kakaoResponseVO);
@@ -284,7 +284,7 @@ class UserIntegrationServiceTest {
                 .willReturn(Mono.error(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR)));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage());
     }
@@ -309,7 +309,7 @@ class UserIntegrationServiceTest {
                 .willReturn(Mono.error(new RuntimeException("일반적인 API 에러")));
 
         // When & Then
-        assertThatThrownBy(() -> userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.KAKAO_FRIEND_API_ERROR.getMessage());
     }
@@ -338,7 +338,7 @@ class UserIntegrationServiceTest {
         given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(Mono.just(emptyResponseVO));
 
         // When
-        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block();
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block();
 
         // Then
         assertThat(result).isNotNull();
@@ -383,7 +383,7 @@ class UserIntegrationServiceTest {
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);
 
         // When
-        KakaoFriendsResponseVO result = userIntegrationService.getKakaoFriendList(userId, tokenId, 0, 10).block();
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block();
 
         // Then
         assertThat(result).isNotNull();

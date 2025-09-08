@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.user.out.persistence.comment;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
-import jaeik.bimillog.domain.user.application.port.out.LoadCommentPort;
+import jaeik.bimillog.domain.user.application.port.out.UserToCommentPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class LoadCommentAdapter implements LoadCommentPort {
+public class UserToCommentAdapter implements UserToCommentPort {
 
     private final CommentQueryUseCase commentQueryUseCase;
 

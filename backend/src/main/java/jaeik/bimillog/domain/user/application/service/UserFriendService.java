@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.user.application.port.in.UserIntegrationUseCase;
+import jaeik.bimillog.domain.user.application.port.in.UserFriendUseCase;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Slf4j
-public class UserIntegrationService implements UserIntegrationUseCase {
+public class UserFriendService implements UserFriendUseCase {
 
     private final KakaoFriendPort kakaoFriendPort;
     private final UserQueryPort userQueryPort;

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.user.application.port.in.TokenCleanupUseCase;
+import jaeik.bimillog.domain.user.application.port.in.UserLogoutUseCase;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class TokenCleanupService implements TokenCleanupUseCase {
+public class UserLogoutService implements UserLogoutUseCase {
 
     private final DeleteUserPort deleteUserPort;
 

@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
  * @author Jaeik  
  * @version 2.0.0
  */
-public interface LoadCommentPort {
+public interface UserToCommentPort {
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>

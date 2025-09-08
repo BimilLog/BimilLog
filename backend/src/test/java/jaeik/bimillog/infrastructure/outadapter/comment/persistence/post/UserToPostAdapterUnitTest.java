@@ -27,7 +27,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 
 /**
- * <h2>LoadPostAdapter 단위 테스트</h2>
+ * <h2>UserToPostAdapter 단위 테스트</h2>
  * <p>Comment 도메인에서 Post 도메인에 접근하는 LoadPostAdapter의 단위 테스트</p>
  * <p>다른 도메인 UseCase를 호출하는 어댑터이므로 Mock을 사용한 단위 테스트로 작성</p>
  * 
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.times;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class LoadPostAdapterUnitTest {
+class UserToPostAdapterUnitTest {
 
     @Mock
     private PostQueryUseCase postQueryUseCase;

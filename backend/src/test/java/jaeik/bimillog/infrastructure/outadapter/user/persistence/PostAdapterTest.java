@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.outadapter.user.persistence;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.post.LoadPostAdapter;
+import jaeik.bimillog.infrastructure.adapter.user.out.persistence.post.UserToPostAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +41,7 @@ class PostAdapterTest {
     private PostQueryUseCase postQueryUseCase;
 
     @InjectMocks
-    private LoadPostAdapter loadPostAdapter;
+    private UserToPostAdapter userToPostAdapter;
 
     @Test
     @DisplayName("정상 케이스 - 사용자 작성 게시글 목록 조회")
@@ -83,7 +83,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(expectedPage);
 
         // When: 사용자 작성 게시글 목록 조회 실행
-        Page<PostSearchResult> result = loadPostAdapter.findPostsByUserId(userId, pageable);
+        Page<PostSearchResult> result = userToPostAdapter.findPostsByUserId(userId, pageable);
 
         // Then: 올바른 게시글 목록이 반환되고 UseCase가 호출되었는지 검증
         assertThat(result).isNotNull();
@@ -135,7 +135,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserLikedPosts(eq(userId), any(Pageable.class))).willReturn(expectedPage);
 
         // When: 사용자 추천 게시글 목록 조회 실행
-        Page<PostSearchResult> result = loadPostAdapter.findLikedPostsByUserId(userId, pageable);
+        Page<PostSearchResult> result = userToPostAdapter.findLikedPostsByUserId(userId, pageable);
 
         // Then: 올바른 추천 게시글 목록이 반환되고 UseCase가 호출되었는지 검증
         assertThat(result).isNotNull();
@@ -158,7 +158,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(emptyPage);
 
         // When: 게시글이 없는 사용자의 게시글 목록 조회
-        Page<PostSearchResult> result = loadPostAdapter.findPostsByUserId(userId, pageable);
+        Page<PostSearchResult> result = userToPostAdapter.findPostsByUserId(userId, pageable);
 
         // Then: 빈 페이지가 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
@@ -178,7 +178,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserLikedPosts(eq(userId), any(Pageable.class))).willReturn(emptyPage);
 
         // When: 추천 게시글이 없는 사용자의 추천 게시글 목록 조회
-        Page<PostSearchResult> result = loadPostAdapter.findLikedPostsByUserId(userId, pageable);
+        Page<PostSearchResult> result = userToPostAdapter.findLikedPostsByUserId(userId, pageable);
 
         // Then: 빈 페이지가 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
@@ -199,7 +199,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserPosts(eq(nullUserId), eq(pageable))).willReturn(emptyPage);
 
         // When: null 사용자 ID로 게시글 조회 실행
-        Page<PostSearchResult> result = loadPostAdapter.findPostsByUserId(nullUserId, pageable);
+        Page<PostSearchResult> result = userToPostAdapter.findPostsByUserId(nullUserId, pageable);
 
         // Then: 빈 결과 반환 검증
         assertThat(result).isNotNull();
@@ -219,7 +219,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserPosts(eq(userId), eq(nullPageable))).willReturn(emptyPage);
 
         // When: null 페이지 정보로 게시글 조회 실행
-        Page<PostSearchResult> result = loadPostAdapter.findPostsByUserId(userId, nullPageable);
+        Page<PostSearchResult> result = userToPostAdapter.findPostsByUserId(userId, nullPageable);
 
         // Then: 빈 결과 반환 검증
         assertThat(result).isNotNull();
@@ -239,7 +239,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserLikedPosts(eq(nullUserId), eq(pageable))).willReturn(emptyPage);
 
         // When: null 사용자 ID로 추천 게시글 조회 실행
-        Page<PostSearchResult> result = loadPostAdapter.findLikedPostsByUserId(nullUserId, pageable);
+        Page<PostSearchResult> result = userToPostAdapter.findLikedPostsByUserId(nullUserId, pageable);
 
         // Then: 빈 결과 반환 검증
         assertThat(result).isNotNull();
@@ -273,7 +273,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(largePage_);
 
         // When: 대용량 게시글 목록 조회
-        Page<PostSearchResult> result = loadPostAdapter.findPostsByUserId(userId, largePage);
+        Page<PostSearchResult> result = userToPostAdapter.findPostsByUserId(userId, largePage);
 
         // Then: 대용량 데이터도 올바르게 처리되는지 검증
         assertThat(result).isNotNull();
@@ -327,8 +327,8 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserLikedPosts(eq(userId), any(Pageable.class))).willReturn(likedPosts);
 
         // When: 두 메서드 모두 호출
-        Page<PostSearchResult> userPostsResult = loadPostAdapter.findPostsByUserId(userId, pageable);
-        Page<PostSearchResult> likedPostsResult = loadPostAdapter.findLikedPostsByUserId(userId, pageable);
+        Page<PostSearchResult> userPostsResult = userToPostAdapter.findPostsByUserId(userId, pageable);
+        Page<PostSearchResult> likedPostsResult = userToPostAdapter.findLikedPostsByUserId(userId, pageable);
 
         // Then: 각각 올바른 결과가 반환되는지 검증
         assertThat(userPostsResult.getContent().get(0).getTitle()).isEqualTo("작성 게시글");
@@ -363,7 +363,7 @@ class PostAdapterTest {
         given(postQueryUseCase.getUserPosts(eq(userId), any(Pageable.class))).willReturn(postPage);
 
         // When: 어댑터를 통해 변환 실행
-        Page<PostSearchResult> result = loadPostAdapter.findPostsByUserId(userId, pageable);
+        Page<PostSearchResult> result = userToPostAdapter.findPostsByUserId(userId, pageable);
 
         // Then: 모든 필드가 올바르게 매핑되었는지 검증
         assertThat(result.getContent()).hasSize(1);

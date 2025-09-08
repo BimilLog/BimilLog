@@ -1,6 +1,6 @@
 package jaeik.bimillog.integration.event.auth;
 
-import jaeik.bimillog.domain.user.application.port.in.TokenCleanupUseCase;
+import jaeik.bimillog.domain.user.application.port.in.UserLogoutUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
@@ -43,7 +43,7 @@ public class UserLoggedOutEventIntegrationTest {
     private ApplicationEventPublisher eventPublisher;
 
     @MockitoBean
-    private TokenCleanupUseCase tokenCleanupUseCase;
+    private UserLogoutUseCase userLogoutUseCase;
 
     @MockitoBean
     private NotificationSseUseCase notificationSseUseCase;
@@ -68,7 +68,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     // 특정 토큰 정리
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
                     // 특정 기기의 SSE 연결 정리
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                     // FCM 토큰 삭제
@@ -91,7 +91,7 @@ public class UserLoggedOutEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                     verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
                 });
@@ -114,9 +114,9 @@ public class UserLoggedOutEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(1L), eq(101L));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(2L), eq(102L));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(3L), eq(103L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(1L), eq(101L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(2L), eq(102L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(3L), eq(103L));
                     
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(101L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(2L), eq(102L));
@@ -146,9 +146,9 @@ public class UserLoggedOutEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(101L));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(102L));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(103L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(101L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(102L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(103L));
                     
                     // SSE는 기기별로 3번 호출됨
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(101L));
@@ -177,7 +177,7 @@ public class UserLoggedOutEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                     verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
 
@@ -207,9 +207,9 @@ public class UserLoggedOutEventIntegrationTest {
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
                     // null userId로 호출될 수 있지만 리스너에서 안전하게 처리
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(null), eq(100L));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(1L), eq(null));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(1L), eq(100L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(null), eq(100L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(1L), eq(null));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(1L), eq(100L));
                     
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(null), eq(100L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(null));
@@ -239,7 +239,7 @@ public class UserLoggedOutEventIntegrationTest {
                 .atMost(Duration.ofSeconds(15))
                 .untilAsserted(() -> {
                     for (int i = 1; i <= userCount; i++) {
-                        verify(tokenCleanupUseCase).cleanupSpecificToken(eq((long) i), eq((long) (i + 1000)));
+                        verify(userLogoutUseCase).cleanupSpecificToken(eq((long) i), eq((long) (i + 1000)));
                         verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq((long) i), eq((long) (i + 1000)));
                         verify(notificationFcmUseCase).deleteFcmTokens(eq((long) i));
                     }
@@ -269,8 +269,8 @@ public class UserLoggedOutEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId1), eq(101L));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId2), eq(102L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId1), eq(101L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId2), eq(102L));
                     
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId1), eq(101L));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId2), eq(102L));
@@ -296,7 +296,7 @@ public class UserLoggedOutEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
                     verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
                 });
@@ -317,9 +317,9 @@ public class UserLoggedOutEventIntegrationTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> {
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(101L));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(102L));
-                    verify(tokenCleanupUseCase).cleanupSpecificToken(eq(userId), eq(103L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(101L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(102L));
+                    verify(userLogoutUseCase).cleanupSpecificToken(eq(userId), eq(103L));
                     
                     // SSE 정리는 기기별로 3번 호출
                     verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(101L));

@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.user.in.web;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.application.port.in.UserActivityUseCase;
-import jaeik.bimillog.domain.user.application.port.in.UserIntegrationUseCase;
+import jaeik.bimillog.domain.user.application.port.in.UserFriendUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.SimpleCommentDTO;
@@ -38,7 +38,7 @@ public class UserQueryController {
 
     private final UserQueryUseCase userQueryUseCase;
     private final UserActivityUseCase userActivityUseCase;
-    private final UserIntegrationUseCase userIntegrationUseCase;
+    private final UserFriendUseCase userFriendUseCase;
     private final PostResponseMapper postResponseMapper;
 
     /**
@@ -171,7 +171,7 @@ public class UserQueryController {
     public Mono<ResponseEntity<KakaoFriendsDTO>> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
                                                                     @RequestParam(defaultValue = "10") Integer limit,
                                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return userIntegrationUseCase.getKakaoFriendList(
+        return userFriendUseCase.getKakaoFriendList(
                 userDetails.getUserId(),
                 userDetails.getTokenId(), // JWT에서 파싱된 현재 기기의 토큰 ID
                 offset,

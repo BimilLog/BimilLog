@@ -8,7 +8,7 @@ package jaeik.bimillog.domain.user.application.port.in;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface TokenCleanupUseCase {
+public interface UserLogoutUseCase {
 
     /**
      * <h3>특정 토큰 정리</h3>
