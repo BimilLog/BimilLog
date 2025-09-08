@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.User;
 
 /**
  * <h2>사용자 명령 유스케이스</h2>
@@ -33,16 +32,4 @@ public interface UserCommandUseCase {
      * @author Jaeik
      */
     void updateUserName(Long userId, String newUserName);
-
-
-    /**
-     * <h3>사용자 저장</h3>
-     * <p>사용자 정보를 저장하거나 업데이트하는 메서드</p>
-     *
-     * @param user 저장할 사용자 엔티티
-     * @return User 저장된 사용자 엔티티
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    User save(User user);
 }

@@ -171,35 +171,7 @@ class UserCommandServiceTest {
     }
 
 
-    @Test
-    @DisplayName("사용자 저장 - 정상 케이스")
-    void shouldSaveUser_WhenValidUser() {
-        // Given
-        User user = User.builder()
-                .userName("testUser")
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456")
-                .role(UserRole.USER)
-                .build();
-        
-        User savedUser = User.builder()
-                .id(1L)
-                .userName("testUser")
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456")
-                .role(UserRole.USER)
-                .build();
-
-        given(userCommandPort.save(user)).willReturn(savedUser);
-
-        // When
-        User result = userCommandService.save(user);
-
-        // Then
-        verify(userCommandPort).save(user);
-        assertThat(result).isEqualTo(savedUser);
-        assertThat(result.getId()).isEqualTo(1L);
-    }
+    // save 메서드가 제거되었으므로 해당 테스트도 제거
 
 
     @Test

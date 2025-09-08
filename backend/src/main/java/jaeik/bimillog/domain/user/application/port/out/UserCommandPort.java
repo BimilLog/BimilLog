@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
-import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 
 /**
@@ -23,15 +22,4 @@ public interface UserCommandPort {
      * @since 2.0.0
      */
     User save(User user);
-
-    /**
-     * <h3>설정 정보 저장</h3>
-     * <p>설정 정보를 저장하거나 업데이트합니다.</p>
-     *
-     * @param setting 저장할 설정 엔티티
-     * @return Setting 저장된 설정 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Setting save(Setting setting);
 }

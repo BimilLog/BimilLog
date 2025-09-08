@@ -406,14 +406,14 @@ class WithdrawServiceTest {
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(userCommandPort.save(user)).willReturn(user);
+        // JPA 변경 감지로 자동 저장되므로 userCommandPort 스터빙 불필요
 
         // When
         withdrawService.banUser(userId);
 
         // Then
         verify(userQueryPort).findById(userId);
-        verify(userCommandPort).save(user);
+        // JPA 변경 감지로 자동 저장되므로 명시적 save 호출 없음
         assertThat(user.getRole()).isEqualTo(UserRole.BAN);
     }
 
@@ -462,14 +462,14 @@ class WithdrawServiceTest {
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(userCommandPort.save(user)).willReturn(user);
+        // JPA 변경 감지로 자동 저장되므로 userCommandPort 스터빙 불필요
 
         // When
         withdrawService.banUser(userId);
 
         // Then
         verify(userQueryPort).findById(userId);
-        verify(userCommandPort).save(user);
+        // JPA 변경 감지로 자동 저장되므로 명시적 save 호출 없음
         assertThat(user.getRole()).isEqualTo(UserRole.BAN);
     }
 }

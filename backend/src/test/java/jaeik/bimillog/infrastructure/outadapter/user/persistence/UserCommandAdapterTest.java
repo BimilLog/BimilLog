@@ -75,33 +75,6 @@ class UserCommandAdapterTest {
         verify(userRepository).save(eq(inputUser));
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 설정 저장")
-    void shouldSaveSetting_WhenValidSettingProvided() {
-        // Given: 저장할 설정과 예상 결과
-        Setting inputSetting = Setting.builder()
-                .commentNotification(true)
-                .messageNotification(false)
-                .build();
-                
-        Setting savedSetting = Setting.builder()
-                .id(1L)
-                .commentNotification(true)
-                .messageNotification(false)
-                .build();
-                
-        given(settingRepository.save(any(Setting.class))).willReturn(savedSetting);
-
-        // When: 설정 저장 실행
-        Setting result = userCommandAdapter.save(inputSetting);
-
-        // Then: 저장이 올바르게 수행되고 결과가 반환되는지 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.isCommentNotification()).isTrue();
-        assertThat(result.isMessageNotification()).isFalse();
-        verify(settingRepository).save(eq(inputSetting));
-    }
 
 
 
@@ -124,24 +97,7 @@ class UserCommandAdapterTest {
         verify(userRepository, never()).save(any());
     }
 
-    @Test
-    @DisplayName("예외 케이스 - null 설정 저장 시 예외 발생")
-    void shouldThrowException_WhenNullSettingProvided() {
-        // TODO: 테스트 실패 - 메인 로직 버그 의심
-        // 기존: null 설정 허용하는 비논리적 테스트
-        // 수정: null 설정은 저장될 수 없으므로 적절한 예외 처리 필요
-        
-        // Given: null 설정
-        Setting nullSetting = null;
-
-        // When & Then: null 설정 저장 시 예외 발생 확인
-        assertThatThrownBy(() -> userCommandAdapter.save(nullSetting))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Setting cannot be null");
-
-        // 검증 실패로 repository 호출되지 않아야 함
-        verify(settingRepository, never()).save(any());
-    }
+    // Setting save 메서드가 제거되었으므로 해당 테스트도 제거
 
 
 }

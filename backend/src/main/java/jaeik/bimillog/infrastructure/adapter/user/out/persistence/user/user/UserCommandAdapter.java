@@ -1,9 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.user;
 
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
-import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.setting.SettingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Component;
 public class UserCommandAdapter implements UserCommandPort {
 
     private final UserRepository userRepository;
-    private final SettingRepository settingRepository;
 
     /**
      * <h3>사용자 정보 저장</h3>
@@ -28,25 +25,15 @@ public class UserCommandAdapter implements UserCommandPort {
      *
      * @param user 저장할 사용자 엔티티
      * @return User 저장된 사용자 엔티티
+     * @throws IllegalArgumentException 사용자가 null인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     public User save(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
         return userRepository.save(user);
-    }
-
-    /**
-     * <h3>설정 정보 저장</h3>
-     * <p>설정 정보를 저장하거나 업데이트합니다.</p>
-     *
-     * @param setting 저장할 설정 엔티티
-     * @return Setting 저장된 설정 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Setting save(Setting setting) {
-        return settingRepository.save(setting);
     }
 }

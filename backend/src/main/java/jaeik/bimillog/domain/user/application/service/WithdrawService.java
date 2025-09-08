@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.User;
@@ -26,7 +25,7 @@ import java.util.Optional;
 
 /**
  * <h2>회원 탈퇴 및 제재 서비스</h2>
- * <p>회원 탈퇴 및 제재 관련 기능을 처리하는 전용 서비스 클래스</p>
+ * <p>회원 탈퇴, 제재, 로그아웃 관련 기능을 통합 관리하는 서비스 클래스</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -38,7 +37,6 @@ import java.util.Optional;
 public class WithdrawService implements WithdrawUseCase {
 
     private final UserQueryPort userQueryPort;
-    private final UserCommandPort userCommandPort;
     private final DeleteUserPort deleteUserPort;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -138,9 +136,8 @@ public class WithdrawService implements WithdrawUseCase {
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
-        // 사용자 역할을 BAN으로 변경
+        // 사용자 역할을 BAN으로 변경 (JPA 변경 감지로 자동 저장)
         user.updateRole(UserRole.BAN);
-        userCommandPort.save(user);
 
         log.info("사용자 제재 완료 - userId: {}, userName: {}, 역할 변경: BAN",
                 userId, user.getUserName());
@@ -161,5 +158,26 @@ public class WithdrawService implements WithdrawUseCase {
 
         // 탈퇴 이벤트 발행 (JWT 토큰 무효화, 데이터 정리 등은 이벤트 리스너가 처리)
         eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId(), user.getSocialId(), user.getProvider()));
+    }
+
+    /**
+     * <h3>특정 토큰 정리</h3>
+     * <p>사용자 로그아웃 시 특정 토큰만 정리합니다.</p>
+     * <p>다중 기기 로그인 지원을 위해 특정 토큰만 삭제하고 다른 기기의 로그인 상태는 유지합니다.</p>
+     *
+     * @param userId  사용자 ID
+     * @param tokenId 정리할 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional
+    public void cleanupSpecificToken(Long userId, Long tokenId) {
+        log.info("특정 토큰 정리 시작 - 사용자 ID: {}, 토큰 ID: {}", userId, tokenId);
+        
+        // 다중 로그인 지원: 특정 토큰만 삭제 (다른 기기의 로그인 상태 유지)
+        deleteUserPort.logoutUser(userId, tokenId);
+        
+        log.info("특정 토큰 정리 완료 - 사용자 ID: {}, 토큰 ID: {}", userId, tokenId);
     }
 }

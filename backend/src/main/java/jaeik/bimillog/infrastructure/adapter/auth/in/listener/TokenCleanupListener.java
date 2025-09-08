@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.in.listener;
 
-import jaeik.bimillog.domain.user.application.port.in.UserLogoutUseCase;
+import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TokenCleanupListener {
 
-    private final UserLogoutUseCase userLogoutUseCase;
+    private final WithdrawUseCase withdrawUseCase;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리 - 토큰 정리</h3>
@@ -40,7 +40,7 @@ public class TokenCleanupListener {
             // 특정 토큰 정리
             // TODO : 로그아웃시에는 FCM토큰도 삭제해야함 하지만 사용자 일괄 FCM토큰 삭제 기능은 있지만 특정 기기의 FCM토큰 삭제 기능이없음
             //  회원탈퇴시에는 사용자 일괄 FCM토큰 삭제가 가능하지만 로그아웃시에는 특정 기기의 FCM토큰 기능 구현 필요
-            userLogoutUseCase.cleanupSpecificToken(event.userId(), event.tokenId());
+            withdrawUseCase.cleanupSpecificToken(event.userId(), event.tokenId());
             
             log.info("토큰 정리 완료 - 사용자 ID: {}, 토큰 ID: {}", 
                      event.userId(), event.tokenId());

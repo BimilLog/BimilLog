@@ -181,61 +181,6 @@ class UserCommandAdapterIntegrationTest {
         assertThat(foundUser.get().getSocialNickname()).isEqualTo("new nickname");
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 설정 저장")
-    void shouldSaveSetting_WhenValidSettingProvided() {
-        // Given: 새로운 설정 엔티티
-        Setting newSetting = Setting.builder()
-                .messageNotification(false)
-                .commentNotification(true)
-                .postFeaturedNotification(false)
-                .build();
-
-        // When: 설정 저장
-        Setting savedSetting = userCommandAdapter.save(newSetting);
-
-        // Then: 설정이 올바르게 저장되었는지 검증
-        assertThat(savedSetting).isNotNull();
-        assertThat(savedSetting.getId()).isNotNull();
-        assertThat(savedSetting.isMessageNotification()).isFalse();
-        assertThat(savedSetting.isCommentNotification()).isTrue();
-        assertThat(savedSetting.isPostFeaturedNotification()).isFalse();
-        
-        // DB에 실제로 저장되었는지 확인
-        Optional<Setting> foundSetting = settingRepository.findById(savedSetting.getId());
-        assertThat(foundSetting).isPresent();
-        assertThat(foundSetting.get().isCommentNotification()).isTrue();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 기존 설정 업데이트")
-    void shouldUpdateExistingSetting_WhenSettingModified() {
-        // Given: 기존 설정 생성 및 저장
-        Setting existingSetting = Setting.createSetting();  // 기본값: 모두 true
-        existingSetting = settingRepository.save(existingSetting);
-
-        // 설정 수정
-        Setting modifiedSetting = Setting.builder()
-                .id(existingSetting.getId())
-                .messageNotification(false)
-                .commentNotification(false)
-                .postFeaturedNotification(true)
-                .build();
-
-        // When: 수정된 설정 저장
-        Setting updatedSetting = userCommandAdapter.save(modifiedSetting);
-
-        // Then: 설정이 올바르게 업데이트되었는지 검증
-        assertThat(updatedSetting.getId()).isEqualTo(existingSetting.getId());
-        assertThat(updatedSetting.isMessageNotification()).isFalse();
-        assertThat(updatedSetting.isCommentNotification()).isFalse();
-        assertThat(updatedSetting.isPostFeaturedNotification()).isTrue();
-        
-        // DB에서 다시 조회하여 확인
-        Optional<Setting> foundSetting = settingRepository.findById(updatedSetting.getId());
-        assertThat(foundSetting).isPresent();
-        assertThat(foundSetting.get().isMessageNotification()).isFalse();
-    }
 
     @Test
     @DisplayName("정상 케이스 - 사용자 삭제")
