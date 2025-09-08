@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.comment.in.web;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
-import jaeik.bimillog.domain.comment.application.port.in.CommentLikeUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentReqDTO;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommentCommandController {
 
     private final CommentCommandUseCase commentCommandUseCase;
-    private final CommentLikeUseCase commentLikeUseCase;
 
     /**
      * <h3>댓글 작성 API</h3>
@@ -120,7 +118,7 @@ public class CommentCommandController {
             @RequestBody @Valid CommentLikeReqDTO commentLikeReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        commentLikeUseCase.likeComment(userId, commentLikeReqDto.getCommentId());
+        commentCommandUseCase.likeComment(userId, commentLikeReqDto.getCommentId());
         return ResponseEntity.ok("추천 처리 완료");
     }
 

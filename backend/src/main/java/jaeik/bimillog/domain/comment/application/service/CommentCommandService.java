@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.out.*;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
+import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
@@ -46,6 +47,8 @@ public class CommentCommandService implements CommentCommandUseCase {
     private final CommentQueryPort commentQueryPort;
     private final CommentClosureQueryPort commentClosureQueryPort;
     private final CommentClosureCommandPort commentClosureCommandPort;
+    private final CommentLikePort commentLikePort;
+
 
     /**
      * <h3>댓글 작성</h3>
@@ -115,6 +118,33 @@ public class CommentCommandService implements CommentCommandUseCase {
     public void deleteComment(Long userId, Comment.Request commentRequest) {
         Comment comment = validateComment(commentRequest, userId);
         handleCommentDeletion(comment.getId());
+    }
+
+    /**
+     * <h3>댓글 추천/취소</h3>
+     * <p>사용자가 댓글에 추천을 누르거나 취소합니다.</p>
+     * <p>이미 추천한 댓글이면 취소하고, 추천하지 않은 댓글이면 추천을 추가합니다.</p>
+     *
+     * @param userId 사용자 ID (로그인한 경우), null인 경우 예외 발생
+     * @param commentId 추천/취소할 댓글 ID
+     * @throws CustomException 사용자나 댓글이 존재하지 않는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void likeComment(Long userId, Long commentId) {
+        Comment comment = commentQueryPort.findById(commentId);
+        User user = commentToUserPort.findById(userId);
+
+        if (commentLikePort.isLikedByUser(commentId, userId)) {
+            commentLikePort.deleteLikeByIds(commentId, userId);
+        } else {
+            CommentLike commentLike = CommentLike.builder()
+                    .comment(comment)
+                    .user(user)
+                    .build();
+            commentLikePort.save(commentLike);
+        }
     }
 
     /**
@@ -218,4 +248,9 @@ public class CommentCommandService implements CommentCommandUseCase {
             commentCommandPort.hardDeleteComment(commentId);
         }
     }
+
+
+
+
+
 }
