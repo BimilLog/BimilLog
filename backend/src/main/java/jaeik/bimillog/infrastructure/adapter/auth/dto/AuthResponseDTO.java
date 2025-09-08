@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Jaeik
  * @version 2.0.0
  */
-public record AuthResponse(
+public record AuthResponseDTO(
     String status,
     String uuid,
     Map<String, Object> data
@@ -25,8 +25,8 @@ public record AuthResponse(
      * @param uuid 임시 사용자 UUID
      * @return 신규 사용자 응답
      */
-    public static AuthResponse newUser(String uuid) {
-        return new AuthResponse("NEW_USER", uuid, Map.of("uuid", uuid));
+    public static AuthResponseDTO newUser(String uuid) {
+        return new AuthResponseDTO("NEW_USER", uuid, Map.of("uuid", uuid));
     }
     
     /**
@@ -35,8 +35,8 @@ public record AuthResponse(
      *
      * @return 기존 사용자 응답
      */
-    public static AuthResponse existingUser() {
-        return new AuthResponse("EXISTING_USER", null, Map.of("message", "LOGIN_SUCCESS"));
+    public static AuthResponseDTO existingUser() {
+        return new AuthResponseDTO("EXISTING_USER", null, Map.of("message", "LOGIN_SUCCESS"));
     }
     
     /**
@@ -46,7 +46,7 @@ public record AuthResponse(
      * @param message 성공 메시지
      * @return 성공 응답
      */
-    public static AuthResponse success(String message) {
-        return new AuthResponse("SUCCESS", null, Map.of("message", message));
+    public static AuthResponseDTO success(String message) {
+        return new AuthResponseDTO("SUCCESS", null, Map.of("message", message));
     }
 }

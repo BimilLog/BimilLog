@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponse;
+import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -42,19 +42,19 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> socialLogin(@RequestParam String provider, @RequestParam String code,
-                                                    @RequestParam(required = false) String fcmToken) {
+    public ResponseEntity<AuthResponseDTO> socialLogin(@RequestParam String provider, @RequestParam String code,
+                                                       @RequestParam(required = false) String fcmToken) {
         LoginResult loginResult = socialLoginUseCase.processSocialLogin(
                 SocialProvider.valueOf(provider.toUpperCase()), code, fcmToken);
 
         return switch (loginResult) {
             case LoginResult.NewUser(var uuid, var tempCookie) -> ResponseEntity.ok()
                     .header("Set-Cookie", tempCookie.toString())
-                    .body(AuthResponse.newUser(uuid));
+                    .body(AuthResponseDTO.newUser(uuid));
             case LoginResult.ExistingUser(var cookies) -> ResponseEntity.ok()
                     .headers(headers -> cookies.forEach(cookie ->
                             headers.add("Set-Cookie", cookie.toString())))
-                    .body(AuthResponse.existingUser());
+                    .body(AuthResponseDTO.existingUser());
         };
     }
 
@@ -69,11 +69,11 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> signUp(@RequestParam String userName, @CookieValue("temp_user_id") String uuid) {
+    public ResponseEntity<AuthResponseDTO> signUp(@RequestParam String userName, @CookieValue("temp_user_id") String uuid) {
         return ResponseEntity.ok()
                 .headers(headers -> signUpUseCase.signUp(userName, uuid).forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
-                .body(AuthResponse.success("회원 가입 성공"));
+                .body(AuthResponseDTO.success("회원 가입 성공"));
     }
 
     /**
@@ -86,11 +86,11 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/logout")
-    public ResponseEntity<AuthResponse> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<AuthResponseDTO> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok()
                 .headers(headers -> logoutUseCase.logout(userDetails).forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
-                .body(AuthResponse.success("로그아웃 성공"));
+                .body(AuthResponseDTO.success("로그아웃 성공"));
     }
 
     /**
@@ -103,10 +103,10 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @DeleteMapping("/withdraw")
-    public ResponseEntity<AuthResponse> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<AuthResponseDTO> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok()
                 .headers(headers -> withdrawUseCase.withdraw(userDetails).forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
-                .body(AuthResponse.success("회원탈퇴 성공"));
+                .body(AuthResponseDTO.success("회원탈퇴 성공"));
     }
 }
