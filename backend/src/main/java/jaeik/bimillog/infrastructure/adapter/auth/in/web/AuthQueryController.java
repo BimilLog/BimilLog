@@ -41,16 +41,4 @@ public class AuthQueryController {
         UserInfoResponseDTO response = UserInfoResponseDTO.from(userDetails.getUserDetail());
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * <h3>서버 상태 검사 API</h3>
-     *
-     * @return 상태 검사 완료 메시지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("OK");
-    }
 }
