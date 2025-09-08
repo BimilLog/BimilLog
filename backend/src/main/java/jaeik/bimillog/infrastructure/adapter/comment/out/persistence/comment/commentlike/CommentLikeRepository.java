@@ -1,8 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentlike;
 
-import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
-import jaeik.bimillog.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -22,16 +20,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
 
-    /**
-     * <h3>댓글과 사용자로 추천 삭제</h3>
-     * <p>주어진 댓글과 사용자에 해당하는 추천를 삭제합니다.</p>
-     *
-     * @param comment 추천를 삭제할 댓글 엔티티
-     * @param user    추천를 삭제할 사용자 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void deleteByCommentAndUser(Comment comment, User user);
 
     /**
      * <h3>댓글 ID와 사용자 ID로 추천 존재 여부 확인</h3>

@@ -314,7 +314,7 @@ class CommentLikeAdapterIntegrationTest {
         assertThat(afterAdd).isTrue();
 
         // When: 추천 삭제
-        commentLikeRepository.deleteByCommentAndUser(testComment1, testUser2);
+        commentLikeRepository.deleteByCommentIdAndUserId(testComment1.getId(), testUser2.getId());
 
         // Then: 삭제 후 즉시 반영 확인
         boolean afterDelete = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
@@ -430,7 +430,9 @@ class CommentLikeAdapterIntegrationTest {
         assertThat(existsBefore).isTrue();
 
         // When: 댓글 추천 삭제
-        commentLikeAdapter.deleteLike(testComment1, testUser2);
+        commentLikeAdapter.deleteLikeByIds(testComment1.getId(), testUser2.getId());
+        entityManager.flush();
+        entityManager.clear();
 
         // Then: 댓글 추천이 삭제되었는지 검증
         boolean existsAfter = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
@@ -476,7 +478,7 @@ class CommentLikeAdapterIntegrationTest {
         // testUser2가 testComment1을 추천하지 않은 상태
 
         // When: 존재하지 않는 댓글 추천 삭제
-        commentLikeAdapter.deleteLike(testComment1, testUser2);
+        commentLikeAdapter.deleteLikeByIds(testComment1.getId(), testUser2.getId());
 
         // Then: 예외가 발생하지 않고 정상적으로 완료되어야 함
         boolean exists = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
@@ -574,7 +576,7 @@ class CommentLikeAdapterIntegrationTest {
         assertThat(afterSave).isTrue();
 
         // When: 댓글 추천 삭제
-        commentLikeAdapter.deleteLike(testComment1, testUser2);
+        commentLikeAdapter.deleteLikeByIds(testComment1.getId(), testUser2.getId());
 
         // Then: 삭제 확인
         boolean afterDelete = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
@@ -621,7 +623,7 @@ class CommentLikeAdapterIntegrationTest {
         assertThat(totalLikes).isEqualTo(3);  // testUser2 2개 + testUser1 1개
 
         // When: 일부 추천 삭제
-        commentLikeAdapter.deleteLike(comment3, testUser2);
+        commentLikeAdapter.deleteLikeByIds(comment3.getId(), testUser2.getId());
 
         // Then: 삭제 후 상태 확인
         long totalLikesAfterDelete = commentLikeRepository.count();

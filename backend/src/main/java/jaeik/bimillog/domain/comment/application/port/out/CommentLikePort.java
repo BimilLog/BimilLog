@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.comment.application.port.out;
 
-import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
-import jaeik.bimillog.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -25,18 +23,6 @@ public interface CommentLikePort {
      */
     CommentLike save(CommentLike commentLike);
 
-    //TODO 중복 메서드 리팩토링 필요
-    /**
-     * <h3>댓글 추천 삭제</h3>
-     * <p>주어진 댓글과 사용자의 추천 관계를 삭제합니다.</p>
-     *
-     * @param comment 추천를 삭제할 댓글 엔티티
-     * @param user    추천를 삭제할 사용자 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Transactional
-    void deleteLike(Comment comment, User user);
 
     /**
      * <h3>댓글 추천 삭제</h3>

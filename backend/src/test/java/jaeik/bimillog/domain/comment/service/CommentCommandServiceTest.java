@@ -97,7 +97,7 @@ class CommentCommandServiceTest {
         assertThat(capturedLike.getComment()).isEqualTo(testComment);
         assertThat(capturedLike.getUser()).isEqualTo(testUser);
 
-        verify(commentLikePort, never()).deleteLike(any(), any());
+        verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
@@ -131,7 +131,7 @@ class CommentCommandServiceTest {
         verify(commentToUserPort, never()).findById(any());
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
-        verify(commentLikePort, never()).deleteLike(any(), any());
+        verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
@@ -150,7 +150,7 @@ class CommentCommandServiceTest {
         verify(commentToUserPort).findById(TEST_USER_ID);
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
-        verify(commentLikePort, never()).deleteLike(any(), any());
+        verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
@@ -169,7 +169,7 @@ class CommentCommandServiceTest {
         verify(commentToUserPort).findById(null);
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
-        verify(commentLikePort, never()).deleteLike(any(), any());
+        verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test

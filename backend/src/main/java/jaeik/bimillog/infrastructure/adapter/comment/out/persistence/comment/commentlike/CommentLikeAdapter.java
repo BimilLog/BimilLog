@@ -1,9 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentlike;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
-import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
-import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,20 +34,6 @@ public class CommentLikeAdapter implements CommentLikePort {
         return commentLikeRepository.save(commentLike);
     }
 
-    /**
-     * <h3>댓글 추천 삭제</h3>
-     * <p>주어진 댓글과 사용자의 추천 관계를 삭제합니다.</p>
-     *
-     * @param comment 추천를 삭제할 댓글 엔티티
-     * @param user    추천를 삭제할 사용자 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Transactional
-    @Override
-    public void deleteLike(Comment comment, User user) {
-        commentLikeRepository.deleteByCommentAndUser(comment, user);
-    }
 
     /**
      * <h3>댓글 추천 삭제 (ID 기반 최적화)</h3>
