@@ -215,7 +215,7 @@ public class CommentCommandService implements CommentCommandUseCase {
             closuresToSave.add(CommentClosure.createCommentClosure(comment, comment, 0));
 
             if (parentId != null) {
-                List<CommentClosure> parentClosures = commentDeletePort.findByDescendantId(parentId)
+                List<CommentClosure> parentClosures = commentSavePort.getParentClosures(parentId)
                         .orElseThrow(() -> new CommentCustomException(CommentErrorCode.PARENT_COMMENT_NOT_FOUND));
 
                 for (CommentClosure parentClosure : parentClosures) {
@@ -244,10 +244,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     private void handleCommentDeletion(Long commentId) {
-        int softDeleteCount = commentDeletePort.conditionalSoftDelete(commentId);
-        if (softDeleteCount == 0) {
-            commentDeletePort.deleteClosuresByDescendantId(commentId);
-            commentDeletePort.hardDeleteComment(commentId);
-        }
+        commentDeletePort.deleteComment(commentId);
     }
 }

@@ -74,26 +74,24 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      * <p>자손이 없는 댓글의 모든 클로저 관계를 삭제합니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @return int 삭제된 클로저 관계 수
      * @author Jaeik
      * @since 2.0.0
      */
     @Modifying
     @Query(value = "DELETE FROM comment_closure WHERE descendant_id = :commentId", nativeQuery = true)
-    int deleteClosuresByDescendantId(@Param("commentId") Long commentId);
+    void deleteClosuresByDescendantId(@Param("commentId") Long commentId);
 
     /**
      * <h3>댓글 하드 삭제</h3>
      * <p>자손이 없는 댓글을 완전히 삭제합니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @return int 삭제된 댓글 수
      * @author Jaeik
      * @since 2.0.0
      */
     @Modifying
     @Query(value = "DELETE FROM comment WHERE comment_id = :commentId", nativeQuery = true)
-    int hardDeleteComment(@Param("commentId") Long commentId);
+    void hardDeleteComment(@Param("commentId") Long commentId);
 
     /**
      * <h3>사용자 댓글 ID 목록 조회</h3>

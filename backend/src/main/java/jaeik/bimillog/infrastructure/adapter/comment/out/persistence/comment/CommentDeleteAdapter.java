@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>댓글 삭제 어댑터</h2>
@@ -76,8 +75,7 @@ public class CommentDeleteAdapter implements CommentDeletePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public int conditionalSoftDelete(Long commentId) {
+    private int conditionalSoftDelete(Long commentId) {
         return commentRepository.conditionalSoftDelete(commentId);
     }
 
@@ -86,13 +84,11 @@ public class CommentDeleteAdapter implements CommentDeletePort {
      * <p>자손이 없는 댓글의 모든 클로저 관계를 삭제합니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @return int 삭제된 클로저 관계 수
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public int deleteClosuresByDescendantId(Long commentId) {
-        return commentRepository.deleteClosuresByDescendantId(commentId);
+    private void deleteClosuresByDescendantId(Long commentId) {
+        commentRepository.deleteClosuresByDescendantId(commentId);
     }
 
     /**
@@ -100,13 +96,11 @@ public class CommentDeleteAdapter implements CommentDeletePort {
      * <p>자손이 없는 댓글을 완전히 삭제합니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @return int 삭제된 댓글 수
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public int hardDeleteComment(Long commentId) {
-        return commentRepository.hardDeleteComment(commentId);
+    private void hardDeleteComment(Long commentId) {
+        commentRepository.hardDeleteComment(commentId);
     }
 
     /**
@@ -136,17 +130,21 @@ public class CommentDeleteAdapter implements CommentDeletePort {
     }
 
     /**
-     * <h3>자손 ID로 댓글 클로저 목록 조회</h3>
-     * <p>주어진 자손 댓글 ID에 해당하는 모든 댓글 클로저 엔티티 목록을 조회합니다.</p>
-     * <p>삭제 로직에서 활용하기 위해 삭제 포트에 포함</p>
+     * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
+     * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
+     * <p>자손이 없으면 하드 삭제를, 있으면 소프트 삭제를 수행합니다.</p>
+     * <p>성능 최적화: 3개의 메서드 호출을 1개의 통합 메서드로 처리</p>
      *
-     * @param descendantId 자손 댓글 ID
-     * @return Optional<List<CommentClosure>> 조회된 댓글 클로저 엔티티 목록. 존재하지 않으면 Optional.empty()
+     * @param commentId 삭제할 댓글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<List<CommentClosure>> findByDescendantId(Long descendantId) {
-        return commentClosureRepository.findByDescendantId(descendantId);
+    public void deleteComment(Long commentId) {
+        int softDeleteCount = conditionalSoftDelete(commentId);
+        if (softDeleteCount == 0) {
+            deleteClosuresByDescendantId(commentId);
+            hardDeleteComment(commentId);
+        }
     }
 }

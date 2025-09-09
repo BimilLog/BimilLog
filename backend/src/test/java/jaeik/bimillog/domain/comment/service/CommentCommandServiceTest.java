@@ -348,18 +348,13 @@ class CommentCommandServiceTest {
         // Given
         Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(testComment);
-        given(commentDeletePort.conditionalSoftDelete(200L)).willReturn(0); // 자손이 없어서 소프트 삭제 안됨
-        given(commentDeletePort.deleteClosuresByDescendantId(200L)).willReturn(1);
-        given(commentDeletePort.hardDeleteComment(200L)).willReturn(1);
 
         // When
         commentCommandService.deleteComment(userId, commentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
-        verify(commentDeletePort).conditionalSoftDelete(200L);
-        verify(commentDeletePort).deleteClosuresByDescendantId(200L);
-        verify(commentDeletePort).hardDeleteComment(200L);
+        verify(commentDeletePort).deleteComment(200L);
         verify(commentSavePort, never()).save(any(Comment.class));
     }
 
@@ -369,17 +364,13 @@ class CommentCommandServiceTest {
         // Given
         Long userId = 100L;
         given(commentQueryPort.findById(200L)).willReturn(testComment);
-        given(commentDeletePort.conditionalSoftDelete(200L)).willReturn(1); // 자손이 있어서 소프트 삭제됨
 
         // When
         commentCommandService.deleteComment(userId, commentRequest);
 
         // Then
         verify(commentQueryPort).findById(200L);
-        verify(commentDeletePort).conditionalSoftDelete(200L);
-        // 소프트 삭제되면 하드 삭제 관련 메서드들은 호출되지 않음
-        verify(commentDeletePort, never()).deleteClosuresByDescendantId(any());
-        verify(commentDeletePort, never()).hardDeleteComment(any());
+        verify(commentDeletePort).deleteComment(200L);
         verify(commentSavePort, never()).save(any(Comment.class));
     }
 
@@ -471,18 +462,13 @@ class CommentCommandServiceTest {
                 .build();
 
         given(commentQueryPort.findById(300L)).willReturn(anonymousComment);
-        given(commentDeletePort.conditionalSoftDelete(300L)).willReturn(0); // 자손이 없어서 소프트 삭제 안됨
-        given(commentDeletePort.deleteClosuresByDescendantId(300L)).willReturn(1);
-        given(commentDeletePort.hardDeleteComment(300L)).willReturn(1);
 
         // When
         commentCommandService.deleteComment(null, deleteRequest);
 
         // Then
         verify(commentQueryPort).findById(300L);
-        verify(commentDeletePort).conditionalSoftDelete(300L);
-        verify(commentDeletePort).deleteClosuresByDescendantId(300L);
-        verify(commentDeletePort).hardDeleteComment(300L);
+        verify(commentDeletePort).deleteComment(300L);
     }
 
     @Test
@@ -510,7 +496,7 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
 
         verify(commentQueryPort).findById(300L);
-        verify(commentDeletePort, never()).hardDeleteComment(any());
+        verify(commentDeletePort, never()).deleteComment(any());
     }
 
     @Test
@@ -531,17 +517,13 @@ class CommentCommandServiceTest {
                 .build();
 
         given(commentQueryPort.findById(400L)).willReturn(parentComment);
-        given(commentDeletePort.conditionalSoftDelete(400L)).willReturn(1); // 자손이 있어서 소프트 삭제됨
 
         // When
         commentCommandService.deleteComment(userId, deleteRequest);
 
         // Then
         verify(commentQueryPort).findById(400L);
-        verify(commentDeletePort).conditionalSoftDelete(400L);
-        // 소프트 삭제되면 하드 삭제 관련 메서드들은 호출되지 않음
-        verify(commentDeletePort, never()).deleteClosuresByDescendantId(any());
-        verify(commentDeletePort, never()).hardDeleteComment(any());
+        verify(commentDeletePort).deleteComment(400L);
         verify(commentSavePort, never()).save(any(Comment.class));
     }
 
@@ -563,17 +545,13 @@ class CommentCommandServiceTest {
                 .build();
 
         given(commentQueryPort.findById(500L)).willReturn(anonymousParentComment);
-        given(commentDeletePort.conditionalSoftDelete(500L)).willReturn(1); // 자손이 있어서 소프트 삭제됨
 
         // When
         commentCommandService.deleteComment(null, deleteRequest);
 
         // Then
         verify(commentQueryPort).findById(500L);
-        verify(commentDeletePort).conditionalSoftDelete(500L);
-        // 소프트 삭제되면 하드 삭제 관련 메서드들은 호출되지 않음
-        verify(commentDeletePort, never()).deleteClosuresByDescendantId(any());
-        verify(commentDeletePort, never()).hardDeleteComment(any());
+        verify(commentDeletePort).deleteComment(500L);
         verify(commentSavePort, never()).save(any(Comment.class));
     }
 
@@ -607,7 +585,7 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(600L);
-        verify(commentDeletePort, never()).hardDeleteComment(any());
+        verify(commentDeletePort, never()).deleteComment(any());
     }
 
 }

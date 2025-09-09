@@ -134,10 +134,10 @@ class CommentDeleteAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 댓글 하드 삭제")
+    @DisplayName("정상 케이스 - 댓글 삭제 (자손 없는 경우 하드 삭제)")
     @Commit  // 트랜잭션 롤백 방지로 @Modifying 쿼리 결과 확인
     void shouldHardDeleteComment_WhenValidCommentProvided() {
-        // Given: 기존 댓글 생성 및 저장
+        // Given: 기존 댓글 생성 및 저장 (자손이 없는 댓글)
         Comment existingComment = Comment.createComment(
                 testPost, 
                 testUser, 
@@ -150,15 +150,14 @@ class CommentDeleteAdapterIntegrationTest {
         // 삭제 전 댓글 존재 확인
         assertThat(commentRepository.findById(commentId)).isPresent();
 
-        // When: 댓글 하드 삭제 (자손이 없는 경우)
-        int deleteCount = commentDeleteAdapter.hardDeleteComment(commentId);
+        // When: 댓글 삭제 (내부적으로 자손이 없어 하드 삭제 수행)
+        commentDeleteAdapter.deleteComment(commentId);
 
         // EntityManager 초기화로 변경사항 반영
         entityManager.flush();
         entityManager.clear();
 
-        // Then: 댓글이 삭제되었는지 검증
-        assertThat(deleteCount).isEqualTo(1);
+        // Then: 댓글이 완전히 삭제되었는지 검증
         Optional<Comment> deletedComment = commentRepository.findById(commentId);
         assertThat(deletedComment).isEmpty();
     }
@@ -245,24 +244,27 @@ class CommentDeleteAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 조건부 소프트 삭제")
+    @DisplayName("정상 케이스 - 댓글 삭제 통합 메서드")
     @Commit  // 트랜잭션 롤백 방지로 @Modifying 쿼리 결과 확인
-    void shouldConditionalSoftDelete_WhenCommentHasChildren() {
+    void shouldDeleteComment_WhenValidCommentProvided() {
         // Given: 댓글 생성 및 저장
-        Comment comment = Comment.createComment(testPost, testUser, "부모 댓글", null);
+        Comment comment = Comment.createComment(testPost, testUser, "테스트 댓글", null);
         comment = commentRepository.save(comment);
         Long commentId = comment.getId();
 
-        // When: 조건부 소프트 삭제 (실제로는 자손이 있는지 확인하는 로직이 필요하지만, 테스트에서는 단순화)
-        int softDeleteCount = commentDeleteAdapter.conditionalSoftDelete(commentId);
+        // 삭제 전 댓글 존재 확인
+        assertThat(commentRepository.findById(commentId)).isPresent();
+
+        // When: 댓글 삭제 (통합 메서드로 내부 로직 확인)
+        commentDeleteAdapter.deleteComment(commentId);
 
         // EntityManager 초기화로 변경사항 반영
         entityManager.flush();
         entityManager.clear();
 
-        // Then: 소프트 삭제 결과 검증
-        // 자손이 없는 경우 0이 반환되어야 함 (실제 구현에 따라 달라질 수 있음)
-        assertThat(softDeleteCount).isGreaterThanOrEqualTo(0);
+        // Then: 댓글 삭제 결과 검증 (자손이 없으므로 하드 삭제)
+        Optional<Comment> deletedComment = commentRepository.findById(commentId);
+        assertThat(deletedComment).isEmpty(); // 하드 삭제로 완전히 제거
     }
 
     @Test
@@ -322,16 +324,19 @@ class CommentDeleteAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("경계값 - 존재하지 않는 댓글 ID로 하드 삭제")
+    @DisplayName("경계값 - 존재하지 않는 댓글 ID로 삭제")
     @Commit  // 트랜잭션 롤백 방지로 @Modifying 쿼리 결과 확인
-    void shouldReturnZero_WhenHardDeletingNonExistentComment() {
+    void shouldDoNothing_WhenDeletingNonExistentComment() {
         // Given: 존재하지 않는 댓글 ID
         Long nonExistentCommentId = 999L;
 
-        // When: 존재하지 않는 댓글 하드 삭제
-        int deleteCount = commentDeleteAdapter.hardDeleteComment(nonExistentCommentId);
+        // When: 존재하지 않는 댓글 삭제 (예외가 발생하지 않아야 함)
+        commentDeleteAdapter.deleteComment(nonExistentCommentId);
 
-        // Then: 삭제된 댓글 수가 0이어야 함
-        assertThat(deleteCount).isEqualTo(0);
+        // Then: 예외가 발생하지 않고 정상적으로 완료되어야 함
+        // 통합 테스트에서는 예외 발생 여부만 확인
+        List<Comment> allComments = commentRepository.findAll();
+        // 기존 댓글들에 영향을 주지 않아야 함
+        assertThat(allComments).isEmpty(); // setUp에서 초기화되므로 빈 상태
     }
 }
