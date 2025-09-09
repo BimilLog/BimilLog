@@ -1,11 +1,11 @@
-package jaeik.bimillog.infrastructure.outadapter.comment.persistence.user;
+package jaeik.bimillog.infrastructure.outadapter.comment.user;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.user.CommentToUserAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.user.CommentToUserAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

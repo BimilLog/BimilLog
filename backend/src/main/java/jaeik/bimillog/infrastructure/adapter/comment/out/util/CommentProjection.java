@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.util;
+package jaeik.bimillog.infrastructure.adapter.comment.out.util;
 
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;

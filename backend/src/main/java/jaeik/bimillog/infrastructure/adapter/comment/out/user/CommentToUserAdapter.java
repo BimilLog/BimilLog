@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.user;
+package jaeik.bimillog.infrastructure.adapter.comment.out.user;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentToUserPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;

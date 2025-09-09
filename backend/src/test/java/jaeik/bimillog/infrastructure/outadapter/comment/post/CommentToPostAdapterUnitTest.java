@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.outadapter.comment.persistence.post;
+package jaeik.bimillog.infrastructure.outadapter.comment.post;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.post.CommentToPostAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.post.CommentToPostAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.post;
+package jaeik.bimillog.infrastructure.adapter.comment.out.post;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentToPostPort;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
