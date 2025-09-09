@@ -410,7 +410,7 @@ class PostCommandAdapterTest {
         Post savedPost = postCommandAdapter.save(post);
 
         // When: 캐시 플래그 설정 후 저장
-        savedPost.setPostCacheFlag(PostCacheFlag.REALTIME);
+        savedPost.updatePostCacheFlag(PostCacheFlag.REALTIME);
         Post updatedPost = postCommandAdapter.save(savedPost);
         entityManager.flush();
         entityManager.clear();

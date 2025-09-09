@@ -31,20 +31,6 @@ public class CommentDeleteAdapter implements CommentDeletePort {
     private final CommentRepository commentRepository;
 
     /**
-     * <h3>게시글 ID로 모든 댓글 삭제</h3>
-     * <p>주어진 게시글 ID에 해당하는 모든 댓글을 JPA로 삭제합니다.</p>
-     * <p>PostDeleteAdapter가 게시글 삭제 시 호출하여 관련 댓글들을 함께 정리합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteAllByPostId(Long postId) {
-        commentRepository.deleteAllByPostId(postId);
-    }
-
-    /**
      * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
      * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
      * <p>자손이 없으면 하드 삭제를, 있으면 소프트 삭제를 JPA로 수행합니다.</p>

@@ -163,7 +163,7 @@ public class Post extends BaseEntity {
      * @author Jaeik
      * @since 2.0.0
      */
-    public void setPostCacheFlag(PostCacheFlag postCacheFlag) {
+    public void updatePostCacheFlag(PostCacheFlag postCacheFlag) {
         this.postCacheFlag = postCacheFlag;
     }
 

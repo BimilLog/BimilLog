@@ -517,7 +517,7 @@ class PostQueryAdapterTest {
     @DisplayName("데이터 매핑 - 모든 필드 정확히 매핑")
     void shouldMapAllFields_WhenCreatingPostSearchResult() {
         // Given: 캐시 플래그가 설정된 게시글 (가장 최신)
-        testPost3.setPostCacheFlag(PostCacheFlag.REALTIME);
+        testPost3.updatePostCacheFlag(PostCacheFlag.REALTIME);
         entityManager.merge(testPost3);
         entityManager.flush();
 

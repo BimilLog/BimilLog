@@ -108,7 +108,7 @@ public class Comment extends BaseEntity {
      * @since 2.0.0
      */
     private boolean isOwner(Long userId) {
-        return this.user != null && userId != null && this.user.getId().equals(userId);
+        return this.user != null && this.user.getId().equals(userId);
     }
 
     /**
@@ -122,7 +122,7 @@ public class Comment extends BaseEntity {
      * @since 2.0.0
      */
     private boolean isPasswordMatch(Integer password) {
-        return this.password != null && password != null && this.password.equals(password);
+        return this.password != null && this.password.equals(password);
     }
 
     /**

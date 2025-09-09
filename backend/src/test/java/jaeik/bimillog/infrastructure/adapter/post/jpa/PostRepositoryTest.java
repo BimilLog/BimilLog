@@ -342,7 +342,7 @@ class PostRepositoryTest {
         entityManager.persistAndFlush(user);
 
         Post post = createTestPost(user, "실시간 캐시 게시글", "인기 게시글입니다");
-        post.setPostCacheFlag(PostCacheFlag.REALTIME);
+        post.updatePostCacheFlag(PostCacheFlag.REALTIME);
 
         // When: 캐시 플래그 게시글 저장
         Post savedPost = postRepository.save(post);

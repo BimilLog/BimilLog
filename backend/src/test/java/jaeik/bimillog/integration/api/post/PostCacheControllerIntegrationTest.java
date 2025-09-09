@@ -126,7 +126,7 @@ class PostCacheControllerIntegrationTest {
                     .views(100 * i)
                     .isNotice(false)
                     .build();
-            realtimePost.setPostCacheFlag(PostCacheFlag.REALTIME);
+            realtimePost.updatePostCacheFlag(PostCacheFlag.REALTIME);
             testPosts.add(realtimePost);
         }
 
@@ -140,7 +140,7 @@ class PostCacheControllerIntegrationTest {
                     .views(200 * i)
                     .isNotice(false)
                     .build();
-            weeklyPost.setPostCacheFlag(PostCacheFlag.WEEKLY);
+            weeklyPost.updatePostCacheFlag(PostCacheFlag.WEEKLY);
             testPosts.add(weeklyPost);
         }
 
@@ -154,7 +154,7 @@ class PostCacheControllerIntegrationTest {
                     .views(500 * i)
                     .isNotice(false)
                     .build();
-            legendPost.setPostCacheFlag(PostCacheFlag.LEGEND);
+            legendPost.updatePostCacheFlag(PostCacheFlag.LEGEND);
             testPosts.add(legendPost);
         }
 
@@ -234,7 +234,7 @@ class PostCacheControllerIntegrationTest {
     void getPopularBoard_EmptyResult() throws Exception {
         // Given - 모든 캐시 플래그 제거
         for (Post post : testPosts) {
-            post.setPostCacheFlag(null);
+            post.updatePostCacheFlag(null);
         }
         postRepository.saveAll(testPosts);
 

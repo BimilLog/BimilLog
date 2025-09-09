@@ -179,6 +179,7 @@ class CommentDeleteAdapterIntegrationTest {
         assertThat(commentsBefore).hasSize(3);
 
         // When: 게시글 ID로 모든 댓글 삭제
+        // 비즈니스 로직에서 해당 메서드는 삭제되었음 Cascade로 글 삭제시 댓글 자동 삭제됨
         commentDeleteAdapter.deleteAllByPostId(testPost.getId());
 
         // EntityManager 초기화로 변경사항 반영
