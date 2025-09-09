@@ -32,19 +32,6 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      * @since 2.0.0
      */
     Optional<List<CommentClosure>> findByDescendantId(Long descendantId);
-
-
-    /**
-     * <h3>자손 ID로 댓글 클로저 삭제</h3>
-     * <p>주어진 자손 댓글 ID와 관련된 모든 댓글 클로저 엔티티를 삭제합니다.</p>
-     *
-     * @param commentId 자손 댓글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Modifying
-    @Query("DELETE FROM CommentClosure WHERE descendant.id = :commentId")
-    void deleteByDescendantId(@Param("commentId") Long commentId);
 }
 
 

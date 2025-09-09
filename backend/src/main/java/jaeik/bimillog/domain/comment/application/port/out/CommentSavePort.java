@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>댓글 저장 어댑터</h2>
@@ -49,15 +48,16 @@ public interface CommentSavePort {
     void saveAll(List<CommentClosure> commentClosures);
 
     /**
-     * <h3>부모 댓글의 클로저 계층 조회</h3>
-     * <p>댓글 저장 시 부모 댓글의 클로저 계층 구조를 조회합니다.</p>
-     * <p>saveCommentWithClosure 메서드에서 대댓글 생성 시 사용</p>
+     * <h3>댓글과 클로저 함께 저장</h3>
+     * <p>댓글과 해당 댓글의 클로저 엔티티들을 함께 저장합니다.</p>
+     * <p>부모 댓글이 있는 경우 부모 클로저 구조를 참조하여 새로운 클로저 엔티티들을 생성하고 저장합니다.</p>
      *
-     * @param parentId 부모 댓글 ID
-     * @return Optional<List<CommentClosure>> 부모 댓글의 클로저 목록
+     * @param comment  저장할 댓글 엔티티
+     * @param parentId 부모 댓글 ID (대댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<List<CommentClosure>> getParentClosures(Long parentId);
+    void saveCommentWithClosure(Comment comment, Long parentId);
+
 
 }

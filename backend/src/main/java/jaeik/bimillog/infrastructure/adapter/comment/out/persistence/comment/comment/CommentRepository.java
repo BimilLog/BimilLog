@@ -104,5 +104,50 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      */
     @Query("SELECT c.id FROM Comment c WHERE c.user.id = :userId AND c.deleted = false")
     List<Long> findCommentIdsByUserId(@Param("userId") Long userId);
+
+    /**
+     * <h3>사용자 탈퇴 시 자손이 있는 댓글들 소프트 삭제</h3>
+     * <p>특정 사용자가 작성한 댓글 중 자손이 있는 댓글들을 한 번에 소프트 삭제합니다.</p>
+     *
+     * @param userId 탈퇴하는 사용자 ID
+     * @return int 소프트 삭제된 댓글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Modifying
+    @Query(value = """
+        UPDATE comment c 
+        SET c.deleted = true,
+            c.content = '삭제된 댓글입니다.',
+            c.modified_at = NOW()
+        WHERE c.user_id = :userId 
+          AND c.comment_id IN (
+              SELECT cc.ancestor_id FROM comment_closure cc 
+              WHERE cc.depth > 0
+          )
+        """, nativeQuery = true)
+    int batchSoftDeleteUserCommentsWithDescendants(@Param("userId") Long userId);
+
+    /**
+     * <h3>사용자 탈퇴 시 자손이 없는 댓글들 하드 삭제</h3>
+     * <p>특정 사용자가 작성한 댓글 중 자손이 없는 댓글들을 한 번에 하드 삭제합니다.</p>
+     * <p>클로저 테이블 정리도 함께 수행됩니다.</p>
+     *
+     * @param userId 탈퇴하는 사용자 ID
+     * @return int 하드 삭제된 댓글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Modifying
+    @Query(value = """
+        DELETE c, cc FROM comment c
+        LEFT JOIN comment_closure cc ON c.comment_id = cc.descendant_id
+        WHERE c.user_id = :userId 
+          AND c.comment_id NOT IN (
+              SELECT ancestor_id FROM comment_closure 
+              WHERE depth > 0
+          )
+        """, nativeQuery = true)
+    int batchHardDeleteUserCommentsWithoutDescendants(@Param("userId") Long userId);
 }
 

@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.comment.application.port.out;
 
-import java.util.List;
-
 /**
  * <h2>댓글 삭제 어댑터</h2>
  * <p>댓글 및 댓글 클로저 엔티티의 삭제/익명화를 위한 아웃바운드 어댑터</p>
@@ -34,19 +32,6 @@ public interface CommentDeletePort {
     void anonymizeUserComments(Long userId);
 
     /**
-     * <h3>사용자 댓글 ID 목록 조회</h3>
-     * <p>특정 사용자가 작성한 모든 댓글 ID 목록을 조회합니다.</p>
-     * <p>삭제 로직에서 활용하기 위해 삭제 포트에 포함</p>
-     *
-     * @param userId 사용자 ID
-     * @return List<Long> 사용자가 작성한 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    List<Long> findCommentIdsByUserId(Long userId);
-
-
-    /**
      * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
      * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
      * <p>자손이 없으면 하드 삭제를, 있으면 소프트 삭제를 수행합니다.</p>
@@ -57,4 +42,16 @@ public interface CommentDeletePort {
      * @since 2.0.0
      */
     void deleteComment(Long commentId);
+
+    /**
+     * <h3>사용자 탈퇴 시 댓글 처리</h3>
+     * <p>사용자 탈퇴 시 해당 사용자의 모든 댓글에 대해 적절한 처리를 수행합니다.</p>
+     * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
+     * <p>자손이 없는 댓글: 하드 삭제</p>
+     *
+     * @param userId 탈퇴하는 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void processUserCommentsOnWithdrawal(Long userId);
 }

@@ -234,8 +234,8 @@ class CommentDeleteAdapterIntegrationTest {
         comment2 = commentRepository.save(comment2);
         commentRepository.save(comment3);
 
-        // When: 사용자 댓글 ID 목록 조회
-        List<Long> commentIds = commentDeleteAdapter.findCommentIdsByUserId(testUser.getId());
+        // When: 사용자 댓글 ID 목록 조회 (Repository를 직접 호출)
+        List<Long> commentIds = commentRepository.findCommentIdsByUserId(testUser.getId());
 
         // Then: 해당 사용자의 댓글 ID만 조회되었는지 검증
         assertThat(commentIds).hasSize(2);
@@ -317,7 +317,7 @@ class CommentDeleteAdapterIntegrationTest {
         Long nonExistentUserId = 999L;
 
         // When: 존재하지 않는 사용자 ID로 댓글 ID 목록 조회
-        List<Long> commentIds = commentDeleteAdapter.findCommentIdsByUserId(nonExistentUserId);
+        List<Long> commentIds = commentRepository.findCommentIdsByUserId(nonExistentUserId);
 
         // Then: 빈 목록이 반환되어야 함
         assertThat(commentIds).isEmpty();

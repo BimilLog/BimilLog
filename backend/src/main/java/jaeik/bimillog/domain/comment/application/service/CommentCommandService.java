@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.comment.application.service;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.out.*;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
@@ -19,8 +18,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -161,8 +158,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     @Override
     public void processUserCommentsOnWithdrawal(Long userId) {
-        List<Long> commentIds = commentDeletePort.findCommentIdsByUserId(userId);
-        commentIds.forEach(this::handleCommentDeletion);
+        commentDeletePort.processUserCommentsOnWithdrawal(userId);
     }
 
     /**
@@ -210,23 +206,8 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     private void saveCommentWithClosure(Post post, User user, String content, Integer password, Long parentId) {
         try {
-            Comment comment = commentSavePort.save(Comment.createComment(post, user, content, password));
-
-            List<CommentClosure> closuresToSave = new ArrayList<>();
-            closuresToSave.add(CommentClosure.createCommentClosure(comment, comment, 0));
-
-            if (parentId != null) {
-                List<CommentClosure> parentClosures = commentSavePort.getParentClosures(parentId)
-                        .orElseThrow(() -> new CommentCustomException(CommentErrorCode.PARENT_COMMENT_NOT_FOUND));
-
-                for (CommentClosure parentClosure : parentClosures) {
-                    closuresToSave.add(CommentClosure.createCommentClosure(
-                            parentClosure.getAncestor(),
-                            comment,
-                            parentClosure.getDepth() + 1));
-                }
-            }
-            commentSavePort.saveAll(closuresToSave);
+            Comment comment = Comment.createComment(post, user, content, password);
+            commentSavePort.saveCommentWithClosure(comment, parentId);
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {

@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentSaveAdapter;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentDeleteAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +61,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "jaeik.bimillog.domain.global.entity"
 })
 @EnableJpaRepositories(basePackages = {
-        "jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure"
+        "jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment"
 })
 @Import({CommentSaveAdapter.class, CommentDeleteAdapter.class})
 @TestPropertySource(properties = {
@@ -94,6 +95,9 @@ class CommentClosureCommandAdapterIntegrationTest {
     
     @Autowired
     private CommentClosureRepository commentClosureRepository;
+    
+    @Autowired
+    private CommentRepository commentRepository;
 
     @Autowired
     private CommentSaveAdapter commentSaveAdapter;
@@ -287,7 +291,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         assertThat(beforeDeletion).hasSize(3);
 
         // When: 특정 자손 ID로 클로저 삭제
-        commentClosureRepository.deleteByDescendantId(childComment.getId());
+        commentRepository.deleteClosuresByDescendantId(childComment.getId());
 
         // Then: 해당 자손을 가진 클로저만 삭제되었는지 검증
         List<CommentClosure> afterDeletion = commentClosureRepository.findAll();
@@ -329,7 +333,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         Long nonExistentDescendantId = 999L;
 
         // When: 존재하지 않는 자손 ID로 삭제 시도
-        commentClosureRepository.deleteByDescendantId(nonExistentDescendantId);
+        commentRepository.deleteClosuresByDescendantId(nonExistentDescendantId);
 
         // Then: 기존 클로저는 삭제되지 않아야 함
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
@@ -384,7 +388,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         assertThat(commentClosureRepository.findAll()).hasSize(3);
 
         // When: 특정 자손의 모든 클로저 삭제
-        commentClosureRepository.deleteByDescendantId(childComment.getId());
+        commentRepository.deleteClosuresByDescendantId(childComment.getId());
 
         // Then: 해당 자손의 모든 클로저가 삭제되었는지 검증
         List<CommentClosure> remainingClosures = commentClosureRepository.findAll();

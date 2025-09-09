@@ -8,6 +8,7 @@ import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.com
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,6 +69,37 @@ public class CommentSaveAdapter implements CommentSavePort {
     }
 
     /**
+     * <h3>댓글과 클로저 함께 저장</h3>
+     * <p>댓글과 해당 댓글의 클로저 엔티티들을 함께 저장합니다.</p>
+     * <p>부모 댓글이 있는 경우 부모 클로저 구조를 참조하여 새로운 클로저 엔티티들을 생성하고 저장합니다.</p>
+     *
+     * @param comment  저장할 댓글 엔티티
+     * @param parentId 부모 댓글 ID (대댓글인 경우)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void saveCommentWithClosure(Comment comment, Long parentId) {
+        Comment savedComment = commentRepository.save(comment);
+
+        List<CommentClosure> closuresToSave = new ArrayList<>();
+        closuresToSave.add(CommentClosure.createCommentClosure(savedComment, savedComment, 0));
+
+        if (parentId != null) {
+            List<CommentClosure> parentClosures = getParentClosures(parentId)
+                    .orElseThrow(() -> new RuntimeException("부모 댓글을 찾을 수 없습니다."));
+
+            for (CommentClosure parentClosure : parentClosures) {
+                closuresToSave.add(CommentClosure.createCommentClosure(
+                        parentClosure.getAncestor(),
+                        savedComment,
+                        parentClosure.getDepth() + 1));
+            }
+        }
+        commentClosureRepository.saveAll(closuresToSave);
+    }
+
+    /**
      * <h3>부모 댓글의 클로저 계층 조회</h3>
      * <p>댓글 저장 시 부모 댓글의 클로저 계층 구조를 조회합니다.</p>
      * <p>saveCommentWithClosure 메서드에서 대댓글 생성 시 사용</p>
@@ -77,8 +109,7 @@ public class CommentSaveAdapter implements CommentSavePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public Optional<List<CommentClosure>> getParentClosures(Long parentId) {
+    private Optional<List<CommentClosure>> getParentClosures(Long parentId) {
         return findByDescendantId(parentId);
     }
 

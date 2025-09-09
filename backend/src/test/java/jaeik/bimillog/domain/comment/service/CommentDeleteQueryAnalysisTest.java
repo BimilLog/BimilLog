@@ -114,8 +114,8 @@ class CommentDeleteQueryAnalysisTest {
         System.out.println("=== 클로저 삭제 쿼리 분석 ===");
         
         try {
-            // 존재하지 않는 댓글 ID로도 삭제 쿼리 확인 가능
-            commentClosureRepository.deleteByDescendantId(999L);
+            // 클로저 삭제는 이제 CommentRepository의 네이티브 쿼리로 통합됨
+            commentRepository.deleteClosuresByDescendantId(999L);
             System.out.println("클로저 삭제 쿼리 실행 완료");
             
         } catch (Exception e) {
