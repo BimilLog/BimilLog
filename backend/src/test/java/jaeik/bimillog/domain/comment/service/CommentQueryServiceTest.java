@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -352,5 +353,97 @@ class CommentQueryServiceTest {
         assertThat(anonymousComment.getUserName()).isEqualTo("익명");
         assertThat(anonymousComment.getContent()).isEqualTo("익명 댓글");
         assertThat(anonymousComment.getId()).isEqualTo(203L);
+    }
+
+    // === 누락된 배치 조회 테스트 케이스 ===
+
+    @Test
+    @DisplayName("게시글 목록의 댓글 수 조회 성공")
+    void shouldFindCommentCountsByPostIds_WhenMultiplePostsExist() {
+        // Given
+        List<Long> postIds = List.of(100L, 200L, 300L);
+        Map<Long, Integer> expectedCommentCounts = Map.of(
+                100L, 5,
+                200L, 3,
+                300L, 0
+        );
+
+        given(commentQueryPort.findCommentCountsByPostIds(postIds)).willReturn(expectedCommentCounts);
+
+        // When
+        Map<Long, Integer> result = commentQueryService.findCommentCountsByPostIds(postIds);
+
+        // Then
+        assertThat(result).hasSize(3);
+        assertThat(result.get(100L)).isEqualTo(5);
+        assertThat(result.get(200L)).isEqualTo(3);
+        assertThat(result.get(300L)).isEqualTo(0);
+
+        verify(commentQueryPort).findCommentCountsByPostIds(postIds);
+    }
+
+    @Test
+    @DisplayName("게시글 목록이 비어있는 경우 빈 Map 반환")
+    void shouldReturnEmptyMap_WhenPostIdsListIsEmpty() {
+        // Given
+        List<Long> emptyPostIds = Collections.emptyList();
+        Map<Long, Integer> emptyCommentCounts = Collections.emptyMap();
+
+        given(commentQueryPort.findCommentCountsByPostIds(emptyPostIds)).willReturn(emptyCommentCounts);
+
+        // When
+        Map<Long, Integer> result = commentQueryService.findCommentCountsByPostIds(emptyPostIds);
+
+        // Then
+        assertThat(result).isEmpty();
+
+        verify(commentQueryPort).findCommentCountsByPostIds(emptyPostIds);
+    }
+
+    @Test
+    @DisplayName("댓글이 없는 게시글들의 댓글 수 조회")
+    void shouldReturnZeroCount_WhenPostsHaveNoComments() {
+        // Given
+        List<Long> postIds = List.of(400L, 500L);
+        Map<Long, Integer> commentCounts = Map.of(
+                400L, 0,
+                500L, 0
+        );
+
+        given(commentQueryPort.findCommentCountsByPostIds(postIds)).willReturn(commentCounts);
+
+        // When
+        Map<Long, Integer> result = commentQueryService.findCommentCountsByPostIds(postIds);
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(400L)).isEqualTo(0);
+        assertThat(result.get(500L)).isEqualTo(0);
+
+        verify(commentQueryPort).findCommentCountsByPostIds(postIds);
+    }
+
+    @Test
+    @DisplayName("대용량 게시글 목록의 댓글 수 조회")
+    void shouldFindCommentCountsByPostIds_WhenLargePostIdsList() {
+        // Given
+        List<Long> largePostIds = List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 
+                                          11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 19L, 20L);
+        Map<Long, Integer> commentCounts = Map.of(
+                1L, 10, 2L, 5, 3L, 3, 4L, 0, 5L, 2,
+                6L, 7, 7L, 1, 8L, 0, 9L, 4, 10L, 6
+        );
+
+        given(commentQueryPort.findCommentCountsByPostIds(largePostIds)).willReturn(commentCounts);
+
+        // When
+        Map<Long, Integer> result = commentQueryService.findCommentCountsByPostIds(largePostIds);
+
+        // Then
+        assertThat(result).hasSize(10); // 실제 댓글이 있는 게시글만 반환
+        assertThat(result.get(1L)).isEqualTo(10);
+        assertThat(result.get(4L)).isEqualTo(0);
+
+        verify(commentQueryPort).findCommentCountsByPostIds(largePostIds);
     }
 }

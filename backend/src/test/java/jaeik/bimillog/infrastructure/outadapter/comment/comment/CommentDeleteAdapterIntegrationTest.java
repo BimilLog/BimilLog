@@ -201,8 +201,8 @@ class CommentDeleteAdapterIntegrationTest {
         comment1 = commentRepository.save(comment1);
         comment2 = commentRepository.save(comment2);
 
-        // When: 사용자 댓글 익명화
-        commentDeleteAdapter.anonymizeUserComments(testUser.getId());
+        // When: 사용자 댓글 익명화 (processUserCommentsOnWithdrawal를 통해 간접 호출)
+        commentDeleteAdapter.processUserCommentsOnWithdrawal(testUser.getId());
         
         // EntityManager 초기화로 변경사항 반영
         entityManager.flush();
@@ -296,8 +296,8 @@ class CommentDeleteAdapterIntegrationTest {
         
         Long nonExistentUserId = 999L;
 
-        // When: 존재하지 않는 사용자 ID로 익명화
-        commentDeleteAdapter.anonymizeUserComments(nonExistentUserId);
+        // When: 존재하지 않는 사용자 ID로 익명화 (processUserCommentsOnWithdrawal를 통해 간접 호출)
+        commentDeleteAdapter.processUserCommentsOnWithdrawal(nonExistentUserId);
 
         // Then: 기존 댓글은 변경되지 않아야 함
         Optional<Comment> foundComment = commentRepository.findById(comment.getId());

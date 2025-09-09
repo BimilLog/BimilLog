@@ -3,9 +3,11 @@ package jaeik.bimillog.domain.comment.service;
 import jaeik.bimillog.domain.comment.application.port.out.*;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
@@ -17,7 +19,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +55,8 @@ class CommentCommandServiceTest {
     @Mock private CommentQueryPort commentQueryPort;
     @Mock private CommentLikePort commentLikePort;
     @Mock private CommentToUserPort commentToUserPort;
+    @Mock private CommentToPostPort commentToPostPort;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private CommentCommandService commentCommandService;
@@ -57,6 +64,7 @@ class CommentCommandServiceTest {
     private User testUser;
     private Comment testComment;
     private Comment.Request commentRequest;
+    private Post testPost;
 
     @BeforeEach
     void setUp() {
@@ -64,6 +72,13 @@ class CommentCommandServiceTest {
                 .id(TEST_USER_ID)
                 .userName(TEST_USER_NAME)
                 .socialId(TEST_SOCIAL_ID)
+                .build();
+
+        testPost = Post.builder()
+                .id(300L)
+                .title("테스트 게시글")
+                .content("게시글 내용")
+                .user(testUser)
                 .build();
 
         testComment = Comment.builder()
@@ -574,6 +589,214 @@ class CommentCommandServiceTest {
 
         verify(commentQueryPort).findById(600L);
         verify(commentDeletePort, never()).deleteComment(any());
+    }
+
+    // === 누락된 댓글 작성 테스트 케이스들 ===
+
+    @Test
+    @DisplayName("인증 사용자의 일반 댓글 작성 성공")
+    void shouldWriteComment_WhenAuthenticatedUser() {
+        // Given
+        Long postId = 300L;
+        String content = "인증 사용자 댓글";
+        Comment.Request writeRequest = Comment.Request.builder()
+                .postId(postId)
+                .content(content)
+                .build();
+
+        Comment savedComment = Comment.builder()
+                .id(TEST_COMMENT_ID)
+                .post(testPost)
+                .content(content)
+                .user(testUser)
+                .deleted(false)
+                .build();
+
+        given(commentToPostPort.findById(postId)).willReturn(testPost);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSavePort.getParentClosures(null)).willReturn(Optional.empty());
+
+        // When
+        commentCommandService.writeComment(TEST_USER_ID, writeRequest);
+
+        // Then
+        ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
+        verify(commentSavePort).save(commentCaptor.capture());
+
+        Comment capturedComment = commentCaptor.getValue();
+        assertThat(capturedComment.getContent()).isEqualTo(content);
+        assertThat(capturedComment.getUser()).isEqualTo(testUser);
+        assertThat(capturedComment.getPost()).isEqualTo(testPost);
+        assertThat(capturedComment.isDeleted()).isFalse();
+
+        verify(commentSavePort).saveAll(any());
+        verify(eventPublisher).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("익명 사용자의 비밀번호 댓글 작성 성공")
+    void shouldWriteComment_WhenAnonymousUserWithPassword() {
+        // Given
+        Long postId = 300L;
+        String content = "익명 댓글";
+        Integer password = 1234;
+        Comment.Request writeRequest = Comment.Request.builder()
+                .postId(postId)
+                .content(content)
+                .password(password)
+                .build();
+
+        Comment savedComment = Comment.builder()
+                .id(TEST_COMMENT_ID)
+                .post(testPost)
+                .content(content)
+                .password(password)
+                .deleted(false)
+                .build();
+
+        given(commentToPostPort.findById(postId)).willReturn(testPost);
+        given(commentToUserPort.findById(null)).willReturn(Optional.empty());
+        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSavePort.getParentClosures(null)).willReturn(Optional.empty());
+
+        // When
+        commentCommandService.writeComment(null, writeRequest);
+
+        // Then
+        ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
+        verify(commentSavePort).save(commentCaptor.capture());
+
+        Comment capturedComment = commentCaptor.getValue();
+        assertThat(capturedComment.getContent()).isEqualTo(content);
+        assertThat(capturedComment.getPassword()).isEqualTo(password);
+        assertThat(capturedComment.getUser()).isNull();
+        assertThat(capturedComment.getPost()).isEqualTo(testPost);
+        assertThat(capturedComment.isDeleted()).isFalse();
+
+        verify(commentSavePort).saveAll(any());
+        // testPost에 user가 있으므로 이벤트가 발행되어야 함
+        verify(eventPublisher).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("대댓글 작성 성공 - 계층 구조 생성")
+    void shouldWriteReplyComment_WhenParentCommentExists() {
+        // Given
+        Long postId = 300L;
+        Long parentId = 100L;
+        String content = "대댓글";
+        Comment.Request writeRequest = Comment.Request.builder()
+                .postId(postId)
+                .parentId(parentId)
+                .content(content)
+                .build();
+
+        Comment savedComment = Comment.builder()
+                .id(TEST_COMMENT_ID)
+                .post(testPost)
+                .content(content)
+                .user(testUser)
+                .deleted(false)
+                .build();
+
+        Comment parentComment = Comment.builder()
+                .id(parentId)
+                .content("부모 댓글")
+                .build();
+
+        CommentClosure parentClosure = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
+        List<CommentClosure> parentClosures = Collections.singletonList(parentClosure);
+
+        given(commentToPostPort.findById(postId)).willReturn(testPost);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
+
+        // When
+        commentCommandService.writeComment(TEST_USER_ID, writeRequest);
+
+        // Then
+        ArgumentCaptor<List<CommentClosure>> closureCaptor = ArgumentCaptor.forClass(List.class);
+        verify(commentSavePort).saveAll(closureCaptor.capture());
+
+        List<CommentClosure> capturedClosures = closureCaptor.getValue();
+        assertThat(capturedClosures).hasSize(2); // 자기 자신 + 부모와의 관계
+
+        verify(eventPublisher).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글에 댓글 작성 시 예외 발생")
+    void shouldThrowException_WhenPostNotFound() {
+        // Given
+        Long postId = 999L;
+        Comment.Request writeRequest = Comment.Request.builder()
+                .postId(postId)
+                .content("댓글")
+                .build();
+
+        given(commentToPostPort.findById(postId)).willThrow(new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        // When & Then
+        assertThatThrownBy(() -> commentCommandService.writeComment(TEST_USER_ID, writeRequest))
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
+
+        verify(commentToPostPort).findById(postId);
+        verify(commentSavePort, never()).save(any(Comment.class));
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 부모 댓글에 대댓글 작성 시 예외 발생")
+    void shouldThrowException_WhenParentCommentNotFound() {
+        // Given
+        Long postId = 300L;
+        Long parentId = 999L;
+        Comment.Request writeRequest = Comment.Request.builder()
+                .postId(postId)
+                .parentId(parentId)
+                .content("대댓글")
+                .build();
+
+        Comment savedComment = Comment.builder()
+                .id(TEST_COMMENT_ID)
+                .post(testPost)
+                .content("대댓글")
+                .user(testUser)
+                .deleted(false)
+                .build();
+
+        given(commentToPostPort.findById(postId)).willReturn(testPost);
+        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> commentCommandService.writeComment(TEST_USER_ID, writeRequest))
+                .isInstanceOf(CommentCustomException.class)
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
+
+        verify(commentToPostPort).findById(postId);
+        verify(commentSavePort).save(any(Comment.class));
+        verify(commentSavePort).getParentClosures(parentId);
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    // === 사용자 탈퇴 시 댓글 처리 테스트 ===
+
+    @Test
+    @DisplayName("사용자 탈퇴 시 댓글 처리 성공")
+    void shouldProcessUserComments_WhenUserWithdrawal() {
+        // Given
+        Long withdrawalUserId = TEST_USER_ID;
+
+        // When
+        commentCommandService.processUserCommentsOnWithdrawal(withdrawalUserId);
+
+        // Then
+        verify(commentDeletePort).processUserCommentsOnWithdrawal(withdrawalUserId);
     }
 
 }

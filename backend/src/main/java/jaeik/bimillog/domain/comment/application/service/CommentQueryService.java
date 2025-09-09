@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * <h2>CommentQueryService</h2>
@@ -88,7 +87,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      *
      * @param commentId 댓글 ID (Primary Key)
      * @return Comment 조회된 댓글 엔티티
-     * @throws CommentNotFoundException 댓글이 존재하지 않을 경우
      * @author Jaeik
      * @since 2.0.0
      */
