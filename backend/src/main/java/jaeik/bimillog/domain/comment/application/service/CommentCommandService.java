@@ -21,8 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * <h2>CommentCommandService</h2>
@@ -76,11 +74,8 @@ public class CommentCommandService implements CommentCommandUseCase {
         try {
             Post post = commentToPostPort.findById(postId);
 
-            User user = Optional.ofNullable(userId)
-                    .flatMap(commentToUserPort::findById)
-                    .orElse(null);
-
-            String userName = (user != null) ? user.getUserName() : "익명";
+            User user = userId != null ? commentToUserPort.findById(userId).orElse(null) : null;
+            String userName = user != null ? user.getUserName() : "익명";
 
             saveCommentWithClosure(post, user, content, password, parentId);
 
@@ -197,10 +192,7 @@ public class CommentCommandService implements CommentCommandUseCase {
         Comment comment = commentQueryPort.findById(commentId);
 
         if (!comment.canModify(userId, password)) {
-            throw new CommentCustomException(
-                    password != null ? 
-                    CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH : 
-                    CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+            throw new CommentCustomException(CommentErrorCode.COMMENT_UNAUTHORIZED);
         }
         
         return comment;

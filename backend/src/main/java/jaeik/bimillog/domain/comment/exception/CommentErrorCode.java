@@ -30,8 +30,7 @@ public enum CommentErrorCode {
     /**
      * <h3>댓글 수정/삭제 관련 에러 코드</h3>
      */
-    COMMENT_PASSWORD_NOT_MATCH(HttpStatus.FORBIDDEN, "댓글 비밀번호가 일치하지 않습니다.", ErrorCode.LogLevel.WARN),
-    ONLY_COMMENT_OWNER_UPDATE(HttpStatus.FORBIDDEN, "댓글 작성자만 수정할 수 있습니다.", ErrorCode.LogLevel.INFO);
+    COMMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "댓글 수정/삭제 권한이 없습니다.", ErrorCode.LogLevel.INFO);
 
     private final HttpStatus status;
     private final String message;

@@ -53,9 +53,9 @@ public class CommentCommandController {
     public ResponseEntity<String> writeComment(
             @Valid @RequestBody CommentReqDTO commentReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        commentReqDto.setUserId(userDetails != null ? userDetails.getUserId() : null);
         commentCommandUseCase.writeComment(
-                userId, 
+                commentReqDto.getUserId(),
                 commentReqDto.getPostId(),
                 commentReqDto.getParentId(),
                 commentReqDto.getContent(),
@@ -81,10 +81,10 @@ public class CommentCommandController {
     public ResponseEntity<String> updateComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        commentReqDto.setUserId(userDetails != null ? userDetails.getUserId() : null);
         commentCommandUseCase.updateComment(
                 commentReqDto.getId(),
-                userId,
+                commentReqDto.getUserId(),
                 commentReqDto.getContent(),
                 commentReqDto.getPassword()
         );
@@ -108,10 +108,10 @@ public class CommentCommandController {
     public ResponseEntity<String> deleteComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        commentReqDto.setUserId(userDetails != null ? userDetails.getUserId() : null);
         commentCommandUseCase.deleteComment(
                 commentReqDto.getId(),
-                userId,
+                commentReqDto.getUserId(),
                 commentReqDto.getPassword()
         );
         return ResponseEntity.ok("댓글 삭제 완료");

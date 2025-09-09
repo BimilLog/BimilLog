@@ -137,7 +137,14 @@ public class Comment extends BaseEntity {
      * @since 2.0.0
      */
     public boolean canModify(Long userId, Integer password) {
-        return password != null ? isPasswordMatch(password) : isOwner(userId);
+        // 댓글이 원래 익명 댓글인지 회원 댓글인지 먼저 확인
+        if (this.user == null) {
+            // 익명 댓글: 비밀번호 검증
+            return isPasswordMatch(password);
+        } else {
+            // 회원 댓글: 소유자 검증
+            return isOwner(userId);
+        }
     }
 }
 

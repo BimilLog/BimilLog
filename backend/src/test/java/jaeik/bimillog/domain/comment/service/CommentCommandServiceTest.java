@@ -286,7 +286,7 @@ class CommentCommandServiceTest {
     }
 
     @Test
-    @DisplayName("잘못된 패스워드로 댓글 수정 시 COMMENT_PASSWORD_NOT_MATCH 예외 발생")
+    @DisplayName("잘못된 패스워드로 댓글 수정 시 COMMENT_UNAUTHORIZED 예외 발생")
     void shouldThrowException_WhenPasswordNotMatch() {
         // Given
         Comment passwordComment = Comment.builder()
@@ -302,7 +302,7 @@ class CommentCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(TEST_COMMENT_ID, null, TEST_UPDATED_CONTENT, 9999))
                 .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
     }
@@ -330,7 +330,7 @@ class CommentCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, userId, TEST_UPDATED_CONTENT, null))
                 .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(commentQueryPort).findById(200L);
     }
@@ -375,7 +375,7 @@ class CommentCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, null, TEST_UPDATED_CONTENT, null))
                 .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(commentQueryPort).findById(200L);
     }
@@ -419,7 +419,7 @@ class CommentCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, null, "수정된 댓글", null))
                 .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(commentQueryPort).findById(200L);
     }
@@ -465,7 +465,7 @@ class CommentCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(300L, null, 9999))
                 .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(commentQueryPort).findById(300L);
         verify(commentDeletePort, never()).deleteComment(any());
@@ -539,7 +539,7 @@ class CommentCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(600L, requestUserId, null))
                 .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(commentQueryPort).findById(600L);
         verify(commentDeletePort, never()).deleteComment(any());
