@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.comment.entity.*;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.QUser;
-import jaeik.bimillog.infrastructure.adapter.comment.out.comment.jpa.CommentRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.jpa.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

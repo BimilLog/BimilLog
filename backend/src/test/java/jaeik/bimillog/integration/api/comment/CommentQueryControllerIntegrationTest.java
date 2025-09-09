@@ -8,9 +8,9 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.entity.UserDetail;
-import jaeik.bimillog.infrastructure.adapter.comment.out.comment.jpa.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.jpa.CommentRepository;
+import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -61,7 +61,7 @@ class CommentQueryControllerIntegrationTest {
     private UserRepository userRepository;
     
     @Autowired
-    private PostJpaRepository postRepository;
+    private PostRepository postRepository;
     
     @Autowired
     private CommentRepository commentRepository;

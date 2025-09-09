@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
-import jaeik.bimillog.domain.post.application.port.out.LoadUserInfoPort;
+import jaeik.bimillog.domain.post.application.port.out.PostToUserPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
@@ -32,7 +32,7 @@ public class PostCommandService implements PostCommandUseCase {
 
     private final PostCommandPort postCommandPort;
     private final PostQueryPort postQueryPort;
-    private final LoadUserInfoPort loadUserInfoPort;
+    private final PostToUserPort postToUserPort;
     private final PostCacheCommandPort postCacheCommandPort;
 
 
@@ -51,7 +51,7 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     public Long writePost(Long userId, String title, String content, Integer password) {
-        User user = (userId != null) ? loadUserInfoPort.getReferenceById(userId) : null;
+        User user = (userId != null) ? postToUserPort.getReferenceById(userId) : null;
         Post newPost = Post.createPost(user, title, content, password);
         Post savedPost = postCommandPort.save(newPost);
         return savedPost.getId();

@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.infrastructure.adapter.notification.dto.FcmMessageDTO;
-import jaeik.bimillog.infrastructure.adapter.notification.out.persistence.notification.FcmTokenRepository;
+import jaeik.bimillog.infrastructure.adapter.notification.out.jpa.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;

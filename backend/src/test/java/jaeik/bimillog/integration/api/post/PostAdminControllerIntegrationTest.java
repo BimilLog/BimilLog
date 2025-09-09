@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
@@ -52,7 +52,7 @@ class PostAdminControllerIntegrationTest {
     private WebApplicationContext context;
 
     @Autowired
-    private PostJpaRepository postJpaRepository;
+    private PostRepository postRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -141,7 +141,7 @@ class PostAdminControllerIntegrationTest {
                 .isNotice(false)
                 .build();
 
-        testPost = postJpaRepository.save(testPost);
+        testPost = postRepository.save(testPost);
     }
 
     @Test
@@ -158,7 +158,7 @@ class PostAdminControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         // 실제 DB 확인 - 공지로 변경됨
-        Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert updatedPost.isNotice() == true;
     }
 
@@ -167,7 +167,7 @@ class PostAdminControllerIntegrationTest {
     void togglePostNotice_Success_WithAdminRole_NoticeToNormal() throws Exception {
         // Given - 먼저 공지로 설정
         testPost.setAsNotice();
-        postJpaRepository.save(testPost);
+        postRepository.save(testPost);
         assert testPost.isNotice() == true;
         
         // When & Then
@@ -178,7 +178,7 @@ class PostAdminControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         // 실제 DB 확인 - 비공지로 변경됨
-        Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert updatedPost.isNotice() == false;
     }
 
@@ -193,7 +193,7 @@ class PostAdminControllerIntegrationTest {
                 .andExpect(status().isForbidden());
 
         // DB 확인 - 상태 변경되지 않음
-        Post unchangedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post unchangedPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert unchangedPost.isNotice() == false; // 초기 상태 유지
     }
 
@@ -207,7 +207,7 @@ class PostAdminControllerIntegrationTest {
                 .andExpect(status().isForbidden());
                 
         // DB 확인 - 상태 변경되지 않음
-        Post unchangedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post unchangedPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert unchangedPost.isNotice() == false;
     }
 
@@ -239,7 +239,7 @@ class PostAdminControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         // DB 확인 - 공지로 변경
-        Post firstTogglePost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post firstTogglePost = postRepository.findById(testPost.getId()).orElseThrow();
         assert firstTogglePost.isNotice() == true;
         
         // When & Then - 두 번째 토글: 공지 -> 비공지
@@ -250,7 +250,7 @@ class PostAdminControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         // DB 확인 - 비공지로 되돌아감
-        Post secondTogglePost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post secondTogglePost = postRepository.findById(testPost.getId()).orElseThrow();
         assert secondTogglePost.isNotice() == false;
     }
 
@@ -265,7 +265,7 @@ class PostAdminControllerIntegrationTest {
                         .with(user(adminUser))
                         .with(csrf()))
                 .andExpect(status().isOk());
-        Post firstPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post firstPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert firstPost.isNotice() == true;
         
         // 두 번째 토글: 공지 -> 비공지
@@ -273,7 +273,7 @@ class PostAdminControllerIntegrationTest {
                         .with(user(adminUser))
                         .with(csrf()))
                 .andExpect(status().isOk());
-        Post secondPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post secondPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert secondPost.isNotice() == false;
         
         // 세 번째 토글: 비공지 -> 공지
@@ -281,7 +281,7 @@ class PostAdminControllerIntegrationTest {
                         .with(user(adminUser))
                         .with(csrf()))
                 .andExpect(status().isOk());
-        Post thirdPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post thirdPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert thirdPost.isNotice() == true;
     }
 
@@ -299,7 +299,7 @@ class PostAdminControllerIntegrationTest {
                 .andExpect(status().isOk()); // 캐시 실패가 있어도 200 OK
 
         // 실제 DB 확인 - 핵심 비즈니스 로직은 정상 실행됨
-        Post updatedPost = postJpaRepository.findById(testPost.getId()).orElseThrow();
+        Post updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert updatedPost.isNotice() == true;
     }
 

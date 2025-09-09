@@ -29,7 +29,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     private final PostQueryPort postQueryPort;
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostLikeQueryPort postLikeQueryPort;
-    private final LoadUserInfoPort loadUserInfoPort;
+    private final PostToUserPort postToUserPort;
 
     /**
      * <h3>게시글 추천</h3>
@@ -44,7 +44,7 @@ public class PostInteractionService implements PostInteractionUseCase {
      */
     @Override
     public void likePost(Long userId, Long postId) {
-        User user = loadUserInfoPort.getReferenceById(userId);
+        User user = postToUserPort.getReferenceById(userId);
         Post post = postQueryPort.findById(postId);
 
         if (postLikeQueryPort.existsByUserAndPost(user, post)) {

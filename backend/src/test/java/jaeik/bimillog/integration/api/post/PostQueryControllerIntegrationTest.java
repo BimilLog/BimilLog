@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.entity.UserDetail;
-import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -55,7 +55,7 @@ class PostQueryControllerIntegrationTest {
     private WebApplicationContext context;
 
     @Autowired
-    private PostJpaRepository postJpaRepository;
+    private PostRepository postRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -134,7 +134,7 @@ class PostQueryControllerIntegrationTest {
                 .isNotice(false)
                 .build();
 
-        postJpaRepository.saveAll(Arrays.asList(testPost1, testPost2, testPost3));
+        postRepository.saveAll(Arrays.asList(testPost1, testPost2, testPost3));
     }
 
     @Test
@@ -321,7 +321,7 @@ class PostQueryControllerIntegrationTest {
     @DisplayName("게시판 목록 조회 성공 - 빈 결과")
     void getBoard_Success_EmptyResult() throws Exception {
         // Given - 모든 게시글 삭제
-        postJpaRepository.deleteAll();
+        postRepository.deleteAll();
 
         // When & Then
         mockMvc.perform(get("/api/post")

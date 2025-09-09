@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -53,7 +52,7 @@ class PostInteractionServiceTest {
     private PostLikeQueryPort postLikeQueryPort;
 
     @Mock
-    private LoadUserInfoPort loadUserInfoPort;
+    private PostToUserPort postToUserPort;
 
     @Mock
     private User user;
@@ -71,7 +70,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
+        given(postToUserPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(post);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
@@ -79,7 +78,7 @@ class PostInteractionServiceTest {
         postInteractionService.likePost(userId, postId);
 
         // Then
-        verify(loadUserInfoPort).getReferenceById(userId);
+        verify(postToUserPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         
@@ -100,7 +99,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
+        given(postToUserPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(post);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
@@ -108,7 +107,7 @@ class PostInteractionServiceTest {
         postInteractionService.likePost(userId, postId);
 
         // Then
-        verify(loadUserInfoPort).getReferenceById(userId);
+        verify(postToUserPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         verify(postLikeCommandPort).deleteByUserAndPost(user, post);
@@ -122,7 +121,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 999L;
 
-        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
+        given(postToUserPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
@@ -130,7 +129,7 @@ class PostInteractionServiceTest {
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(loadUserInfoPort).getReferenceById(userId);
+        verify(postToUserPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort, never()).existsByUserAndPost(any(), any());
         verify(postLikeCommandPort, never()).save(any());
@@ -183,7 +182,7 @@ class PostInteractionServiceTest {
                 final Long userId = (long) (i + 1);
                 final User threadUser = mock(User.class);
                 
-                given(loadUserInfoPort.getReferenceById(userId)).willReturn(threadUser);
+                given(postToUserPort.getReferenceById(userId)).willReturn(threadUser);
                 given(postLikeQueryPort.existsByUserAndPost(threadUser, post)).willReturn(false);
                 
                 executor.submit(() -> {
@@ -223,7 +222,7 @@ class PostInteractionServiceTest {
         ExecutorService executor = Executors.newFixedThreadPool(postCount);
         AtomicInteger successCount = new AtomicInteger(0);
 
-        given(loadUserInfoPort.getReferenceById(userId)).willReturn(user);
+        given(postToUserPort.getReferenceById(userId)).willReturn(user);
 
         try {
             // When - 여러 스레드가 동시에 다른 게시글에 추천 작업 수행
@@ -252,7 +251,7 @@ class PostInteractionServiceTest {
 
             // Then - 모든 작업이 성공적으로 완료되어야 함
             assertThat(successCount.get()).isEqualTo(postCount);
-            verify(loadUserInfoPort, times(postCount)).getReferenceById(userId);
+            verify(postToUserPort, times(postCount)).getReferenceById(userId);
             verify(postLikeCommandPort, times(postCount)).save(any(PostLike.class));
             
         } finally {

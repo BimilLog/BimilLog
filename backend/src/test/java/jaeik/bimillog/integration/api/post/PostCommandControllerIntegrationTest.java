@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostReqDTO;
-import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -59,7 +59,7 @@ class PostCommandControllerIntegrationTest {
     private WebApplicationContext context;
 
     @Autowired
-    private PostJpaRepository postJpaRepository;
+    private PostRepository postRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -128,7 +128,7 @@ class PostCommandControllerIntegrationTest {
                 .andExpect(header().exists("Location"));
 
         // DB에 실제로 저장되었는지 확인
-        Optional<Post> savedPost = postJpaRepository.findAll().stream()
+        Optional<Post> savedPost = postRepository.findAll().stream()
                 .filter(post -> "통합 테스트 게시글".equals(post.getTitle()))
                 .findFirst();
         
@@ -188,7 +188,7 @@ class PostCommandControllerIntegrationTest {
                 .isNotice(false)
                 .build();
         
-        Post savedPost = postJpaRepository.save(existingPost);
+        Post savedPost = postRepository.save(existingPost);
 
         PostReqDTO updateReqDTO = PostReqDTO.builder()
                 .title("수정된 제목")
@@ -206,7 +206,7 @@ class PostCommandControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         // DB에서 수정된 내용 확인
-        Optional<Post> updatedPost = postJpaRepository.findById(savedPost.getId());
+        Optional<Post> updatedPost = postRepository.findById(savedPost.getId());
         assertThat(updatedPost).isPresent();
         assertThat(updatedPost.get().getTitle()).isEqualTo("수정된 제목");
         assertThat(updatedPost.get().getContent()).isEqualTo("수정된 내용입니다.");
@@ -236,7 +236,7 @@ class PostCommandControllerIntegrationTest {
                 .isNotice(false)
                 .build();
         
-        Post savedPost = postJpaRepository.save(anotherPost);
+        Post savedPost = postRepository.save(anotherPost);
 
         PostReqDTO updateReqDTO = PostReqDTO.builder()
                 .title("수정 시도")
@@ -266,7 +266,7 @@ class PostCommandControllerIntegrationTest {
                 .isNotice(false)
                 .build();
         
-        Post savedPost = postJpaRepository.save(existingPost);
+        Post savedPost = postRepository.save(existingPost);
 
         // When & Then
         mockMvc.perform(delete("/api/post/{postId}", savedPost.getId())
@@ -276,7 +276,7 @@ class PostCommandControllerIntegrationTest {
                 .andExpect(status().isNoContent());
 
         // DB에서 삭제되었는지 확인
-        Optional<Post> deletedPost = postJpaRepository.findById(savedPost.getId());
+        Optional<Post> deletedPost = postRepository.findById(savedPost.getId());
         assertThat(deletedPost).isEmpty();
     }
 
@@ -307,7 +307,7 @@ class PostCommandControllerIntegrationTest {
                 .isNotice(false)
                 .build();
         
-        Post savedPost = postJpaRepository.save(existingPost);
+        Post savedPost = postRepository.save(existingPost);
 
         // When & Then
         mockMvc.perform(post("/api/post/{postId}/like", savedPost.getId())
@@ -344,7 +344,7 @@ class PostCommandControllerIntegrationTest {
                 .isNotice(false)
                 .build();
         
-        Post savedPost = postJpaRepository.save(existingPost);
+        Post savedPost = postRepository.save(existingPost);
 
         // When & Then - 인증되지 않은 사용자는 500 에러 (NullPointerException)가 발생
         mockMvc.perform(post("/api/post/{postId}/like", savedPost.getId())
@@ -376,7 +376,7 @@ class PostCommandControllerIntegrationTest {
                 .andExpect(status().isCreated());
 
         // DB에 저장된 내용 확인
-        Optional<Post> savedPost = postJpaRepository.findAll().stream()
+        Optional<Post> savedPost = postRepository.findAll().stream()
                 .filter(post -> title.equals(post.getTitle()))
                 .findFirst();
         

@@ -7,9 +7,9 @@ import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post.PostJpaRepository;
-import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.postlike.PostLikeJpaRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.persistence.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostRepository;
+import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostLikeRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,10 +56,10 @@ class PostCacheControllerIntegrationTest {
     private WebApplicationContext context;
 
     @Autowired
-    private PostJpaRepository postJpaRepository;
+    private PostRepository postRepository;
 
     @Autowired
-    private PostLikeJpaRepository postLikeJpaRepository;
+    private PostLikeRepository postLikeRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -172,7 +172,7 @@ class PostCacheControllerIntegrationTest {
         }
 
         // 모든 게시글 저장
-        testPosts = postJpaRepository.saveAll(testPosts);
+        testPosts = postRepository.saveAll(testPosts);
 
         // 좋아요 추가
         int likeUserIndex = 0;
@@ -186,7 +186,7 @@ class PostCacheControllerIntegrationTest {
                         .user(likeUsers.get(likeUserIndex++))
                         .post(post)
                         .build();
-                postLikeJpaRepository.save(postLike);
+                postLikeRepository.save(postLike);
             }
         }
 
@@ -199,7 +199,7 @@ class PostCacheControllerIntegrationTest {
                         .user(likeUsers.get(likeUserIndex++))
                         .post(post)
                         .build();
-                postLikeJpaRepository.save(postLike);
+                postLikeRepository.save(postLike);
             }
         }
         
@@ -212,7 +212,7 @@ class PostCacheControllerIntegrationTest {
                         .user(likeUsers.get(likeUserIndex++))
                         .post(post)
                         .build();
-                postLikeJpaRepository.save(postLike);
+                postLikeRepository.save(postLike);
             }
         }
     }
@@ -236,7 +236,7 @@ class PostCacheControllerIntegrationTest {
         for (Post post : testPosts) {
             post.setPostCacheFlag(null);
         }
-        postJpaRepository.saveAll(testPosts);
+        postRepository.saveAll(testPosts);
 
         // When & Then
         mockMvc.perform(get("/api/post/popular"))
@@ -320,7 +320,7 @@ class PostCacheControllerIntegrationTest {
                 post.unsetAsNotice();
             }
         }
-        postJpaRepository.saveAll(testPosts);
+        postRepository.saveAll(testPosts);
 
         // When & Then
         mockMvc.perform(get("/api/post/notice"))
