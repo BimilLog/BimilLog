@@ -16,7 +16,17 @@ import java.util.Map;
 
 /**
  * <h2>카카오 로그인 전략</h2>
- * <p>카카오 소셜 로그인을 처리하는 클래스입니다.</p>
+ * <p>
+ * Strategy 패턴을 적용한 카카오 소셜 로그인 처리 전략 구현체입니다.
+ * </p>
+ * <p>
+ * SocialLoginStrategy 인터페이스를 구현하여 카카오 API와의 통신을 담당합니다.
+ * WebClient를 사용한 비동기 HTTP 통신으로 카카오 OAuth 2.0 플로우를 처리하고, 인증 코드로 토큰을 발급받아 사용자 정보를 조회합니다.
+ * </p>
+ * <p>
+ * 이 전략이 존재하는 이유: 다양한 소셜 로그인 제공자(카카오, 네이버 등)에 대한 확장 가능한 아키텍처를 위해
+ * Strategy 패턴을 적용하여 각 제공자별 세부 처리 로직을 캁싐화하고 새로운 제공자 추가 시 유연하게 대응하기 위해서입니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -33,13 +43,15 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     }
 
     /**
-     * <h3>카카오 로그인 처리</h3>
-     * <p>카카오 소셜 로그인 코드를 받아 사용자 정보를 조회하고 로그인 결과를 반환합니다.</p>
+     * <h3>카카오 소셜 로그인 전체 처리</h3>
+     * <p>카카오 OAuth 2.0 인증 코드를 받아 토큰 발급부터 사용자 정보 조회까지 전체 로그인 플로우를 처리합니다.</p>
+     * <p>소셜 로그인 요청 시 카카오 인증 서버로부터 받은 인증 코드를 처리하기 위해 소셜 로그인 플로우에서 호출합니다.</p>
+     * <p>내부적으로 getToken()과 getUserInfo() 메서드를 순차적으로 호출하여 리액티브 스트림 체인으로 처리합니다.</p>
      *
-     * @param code 카카오 소셜 로그인 코드
-     * @return 로그인 결과 (비동기)
-     * @since 2.0.0
+     * @param code 카카오 OAuth 2.0 인증 코드
+     * @return Mono<StrategyLoginResult> 로그인 결과 (비동기 스트림)
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public Mono<StrategyLoginResult> login(String code) {
@@ -50,11 +62,14 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
 
     /**
      * <h3>카카오 계정 연결 해제</h3>
-     * <p>주어진 소셜 ID에 해당하는 카카오 계정의 연결을 해제합니다.</p>
+     * <p>카카오 관리자 API를 사용하여 특정 사용자의 카카오 계정 연결을 완전히 해제합니다.</p>
+     * <p>회원 탈퇴 처리 시 소셜 계정과의 연결을 완전히 끊기 위해 회원 탈퇴 플로우에서 호출합니다.</p>
+     * <p>카카오 관리자 키(Admin Key)를 사용하여 서버 측에서 강제로 연결을 해제하므로 사용자가 다시 로그인하려면 새로 인증 과정을 거쳐야 합니다.</p>
      *
-     * @param socialId 카카오 소셜 ID
-     * @since 2.0.0
+     * @param socialId 연결 해제할 카카오 사용자 ID
+     * @return Mono<Void> 연결 해제 결과 (비동기 스트림)
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public Mono<Void> unlink(String socialId) {
@@ -75,12 +90,14 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     }
 
     /**
-     * <h3>카카오 로그아웃</h3>
-     * <p>주어진 액세스 토큰으로 카카오 로그아웃을 수행합니다.</p>
+     * <h3>카카오 로그아웃 처리</h3>
+     * <p>사용자의 카카오 액세스 토큰을 사용하여 카카오 서버에서 로그아웃 처리를 수행합니다.</p>
+     * <p>사용자 로그아웃 시 카카오 세션도 종료시켜 완전한 로그아웃을 위해 로그아웃 플로우에서 호출합니다.</p>
+     * <p>비동기 방식으로 처리되며, 카카오 서버 오류 시에도 로그아웃 플로우를 방해하지 않도록 subscribe()로 안전하게 처리합니다.</p>
      *
-     * @param accessToken 카카오 액세스 토큰
-     * @since 2.0.0
+     * @param accessToken 사용자의 카카오 액세스 토큰
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void logout(String accessToken) {
@@ -97,13 +114,16 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     }
 
     /**
-     * <h3>카카오 토큰 요청</h3>
-     * <p>카카오 로그인 코드를 사용하여 액세스 토큰과 리프레시 토큰을 요청합니다.</p>
+     * <h3>카카오 액세스 토큰 발급</h3>
+     * <p>카카오 OAuth 2.0 인증 코드를 사용하여 카카오 인증 서버로부터 액세스 토큰과 리프레시 토큰을 발급받습니다.</p>
+     * <p>카카오 소셜 로그인 처리 내부에서 사용자 정보 조회를 위한 선행 단계로 
+login() 메서드에서 내부적으로 호출합니다.</p>
+     * <p>Authorization Code Grant 플로우를 사용하여 카카오 인증 서버에 token exchange 요청을 전송합니다.</p>
      *
-     * @param code 카카오 로그인 코드
-     * @return TokenValue 액세스 토큰과 리프레시 토큰을 포함하는 값 객체 (비동기)
-     * @since 2.0.0
+     * @param code 카카오 OAuth 2.0 인증 코드
+     * @return Mono<Token> 도메인 Token 엔티티 (비동기 스트림)
      * @author Jaeik
+     * @since 2.0.0
      */
     private Mono<Token> getToken(String code) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
@@ -132,12 +152,14 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
 
     /**
      * <h3>카카오 사용자 정보 조회</h3>
-     * <p>카카오 액세스 토큰을 사용하여 사용자 정보를 조회합니다.</p>
+     * <p>내부적으로 발급받은 액세스 토큰으로 카카오 사용자 정보 API에서 프로필 데이터를 조회합니다.</p>
+     * <p>카카오 소셜 로그인 처리 내부에서 토큰 발급 후 사용자 정보를 획득하기 위해 login() 메서드에서 내부적으로 호출합니다.</p>
+     * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 도메인 SocialUserProfile 로 변환합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
-     * @return LoginResult.SocialUserProfile 사용자 프로필 (비동기)
-     * @since 2.0.0
+     * @return Mono<LoginResult.SocialUserProfile> 도메인 소셜 사용자 프로필 (비동기 스트림)
      * @author Jaeik
+     * @since 2.0.0
      */
     private Mono<LoginResult.SocialUserProfile> getUserInfo(String accessToken) {
         return webClient.get()
@@ -167,12 +189,14 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
     }
 
     /**
-     * <h3>소셜 제공자 정보 조회</h3>
-     * <p>현재 소셜 로그인 전략의 제공자를 반환합니다.</p>
+     * <h3>소셜 로그인 제공자 식별자 반환</h3>
+     * <p>현재 전략 구현체가 처리하는 소셜 로그인 제공자 타입을 반환합니다.</p>
+     * <p>Strategy 패턴 구현에서 각 전략을 구별하고 적절한 전략 구현체를 선택하기 위해 SocialAdapter에서 호출합니다.</p>
+     * <p>이 메서드를 통해 반환되는 값으로 SocialAdapter는 Map<SocialProvider, SocialLoginStrategy>에서 적절한 전략을 매핑합니다.</p>
      *
-     * @return SocialProvider 현재 소셜 로그인 전략의 제공자
-     * @since 2.0.0
+     * @return SocialProvider.KAKAO 카카오 소셜 로그인 제공자 식별자
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public SocialProvider getProvider() {

@@ -28,10 +28,18 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * <h2>게시글 쿼리 영속성 어댑터</h2>
- * <p>게시글 조회와 관련된 데이터베이스 작업을 처리합니다.</p>
- * <p>PostQueryPort 인터페이스를 구현하여 게시글 조회 기능을 제공합니다.</p>
- * <p>단순화된 검색 로직: Strategy Pattern 제거하고 직접 구현</p>
+ * <h2>PostQueryAdapter</h2>
+ * <p>
+ * Post 도메인의 조회 포트를 JPA와 QueryDSL 기술로 구현하는 아웃바운드 어댑터입니다.
+ * </p>
+ * <p>
+ * 헥사고날 아키텍처에서 도메인과 영속성 기술을 분리하여 도메인의 순수성을 보장하고,
+ * PostQueryPort 인터페이스를 통해 복잡한 게시글 조회 및 검색 기능을 제공합니다.
+ * </p>
+ * <p>
+ * PostQueryService에서 게시글 목록 조회, 상세 조회, 검색, 사용자별 게시글 조회 시 호출되며,
+ * MySQL 전문 검색과 QueryDSL을 조합하여 성능 최적화된 쿼리를 실행하고 N+1 문제를 해결합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0

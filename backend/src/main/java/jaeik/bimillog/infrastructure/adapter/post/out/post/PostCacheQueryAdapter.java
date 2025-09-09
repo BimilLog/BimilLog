@@ -17,9 +17,18 @@ import java.time.Duration;
 import java.util.*;
 
 /**
- * <h2>Redis 캐시 조회 어댑터</h2>
- * <p>Redis를 사용하여 게시글 캐시 데이터를 관리하는 영속성 어댑터입니다.</p>
- * <p>PostCacheQueryPort 인터페이스를 구현합니다.</p>
+ * <h2>PostCacheQueryAdapter</h2>
+ * <p>
+ * Post 도메인의 캐시 조회 포트를 Redis 기술로 구현하는 아웃바운드 어댑터입니다.
+ * </p>
+ * <p>
+ * 헥사고날 아키텍처에서 도메인과 캐시 기술을 분리하여 도메인의 순수성을 보장하고,
+ * PostCacheQueryPort 인터페이스를 통해 인기글 캐시 조회 기능을 제공합니다.
+ * </p>
+ * <p>
+ * PostQueryService에서 실시간, 주간, 레전드, 공지사항 게시글 조회 시 호출되어 캐시된 데이터를 빠르게 제공하고,
+ * Redis Sorted Set과 개별 상세 캐시를 활용하여 성능 최적화된 인기글 서비스를 구현합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0

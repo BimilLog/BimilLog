@@ -19,7 +19,15 @@ import java.util.stream.Collectors;
 
 /**
  * <h2>알림 명령 서비스</h2>
- * <p>알림 상태 변경 관련 비즈니스 로직을 처리하는 사용 사례 구현</p>
+ * <p>
+ * 헥사고날 아키텍처에서 NotificationCommandUseCase를 구현하는 Application Service입니다.
+ * 알림의 상태 변경과 삭제에 관한 비즈니스 로직을 처리하며, CQRS 패턴의 명령 부분을 담당합니다.
+ * </p>
+ * <p>
+ * 사용자의 알림 관리 요청(읽음 처리, 삭제)을 처리하고, 입력값 검증과 비즈니스 규칙 적용을 수행합니다.
+ * 중복 ID 제거, 유효성 검사, 트랜잭션 관리 등을 통해 데이터 무결성을 보장합니다.
+ * </p>
+ * <p>NotificationCommandController에서 호출되며, NotificationCommandPort를 통해 데이터 저장소에 접근합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -33,13 +41,18 @@ public class NotificationCommandService implements NotificationCommandUseCase {
     private final NotificationCommandPort notificationCommandPort;
 
     /**
-     * <h3>알림 일괄 업데이트</h3>
-     * <p>사용자의 알림 상태를 일괄적으로 업데이트합니다.</p>
-     * <p>입력값 검증 및 중복 ID 처리를 수행합니다.</p>
+     * <h3>사용자 알림 관리 화면에서 일괄 처리 요청 시 알림 상태 업데이트</h3>
+     * <p>사용자가 알림 목록 화면에서 여러 알림을 선택한 후 '읽음 처리' 또는 '삭제' 버튼을 클릭하는 상황에서 
+     * NotificationCommandController가 해당 요청을 받아 이 메서드를 호출하여 
+     * 선택된 알림들의 상태를 일괄 업데이트합니다.</p>
+     * <p>알림 설정 화면에서 '모든 알림 읽음' 기능을 사용하거나, 알림 목록에서 개별 알림을 체크박스로 선택한 후 
+     * 일괄 처리 버튼을 누르는 사용자 액션에 대응하여 NotificationCommandPort를 통해 DB 업데이트를 수행합니다.</p>
+     * <p>동일 알림에 대해 읽음과 삭제가 동시 요청된 경우 삭제가 우선되며, 중복 ID 제거와 입력값 검증을 통해 
+     * 데이터 무결성을 보장하고 불필요한 DB 쿼리를 방지합니다.</p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @param updateCommand 업데이트할 알림 정보 명령
-     * @throws NotificationCustomException 잘못된 입력값인 경우
+     * @param userDetails 현재 로그인한 사용자 정보 (알림 소유권 검증용)
+     * @param updateCommand 일괄 처리할 알림 ID 목록 (읽음 처리/삭제 구분)
+     * @throws NotificationCustomException 사용자 정보가 유효하지 않은 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -83,11 +96,13 @@ public class NotificationCommandService implements NotificationCommandUseCase {
 
     /**
      * <h3>ID 목록 검증 및 필터링</h3>
-     * <p>유효하지 않은 ID를 제거하고 중복을 제거합니다.</p>
+     * <p>알림 ID 목록의 유횤성을 검사하고 비즈니스 규칙에 맞게 정제합니다.</p>
+     * <p>비즈니스 규칙: null 또는 0 이하의 ID는 제거, 중복 ID는 하나만 유지</p>
+     * <p>데이터 무결성을 위해 모든 부적절한 데이터를 사전에 제거하여 예외를 방지합니다.</p>
      *
-     * @param ids 검증할 ID 목록
-     * @param operation 작업 이름 (로깅용)
-     * @return 검증된 ID 목록
+     * @param ids 검증할 알림 ID 목록 (null 가능)
+     * @param operation 작업 이름 (로깅 및 디버깅용)
+     * @return 검증되고 중복이 제거된 유효한 ID 목록
      */
     private List<Long> validateAndFilterIds(List<Long> ids, String operation) {
         if (ids == null) {

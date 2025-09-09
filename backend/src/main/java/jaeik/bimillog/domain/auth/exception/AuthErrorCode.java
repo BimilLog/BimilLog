@@ -5,9 +5,12 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * <h2>인증 도메인 전용 에러 코드</h2>
- * <p>인증(Auth) 도메인에서 발생할 수 있는 전용 에러 코드를 정의하는 열거형</p>
- * <p>로그인, 로그아웃, 소셜 인증, 토큰 관리 등 인증과 관련된 에러 처리</p>
+ * <h2>인증 도메인 에러 코드</h2>
+ * <p>
+ * Auth 도메인에서 발생할 수 있는 모든 비즈니스 예외 상황을 정의한 열거형입니다.
+ * </p>
+ * <p>로그인, 로그아웃, 소셜 인증, 토큰 관리, 회원가입 등 인증 관련 모든 에러를 체계적으로 분류합니다.</p>
+ * <p>HTTP 상태 코드와 로그 레벨을 포함하여 일관된 에러 처리와 적절한 로깅 수준을 보장합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -25,8 +28,7 @@ public enum AuthErrorCode {
      * <h3>소셜 로그인 관련 에러 코드</h3>
      */
     BLACKLIST_USER(HttpStatus.FORBIDDEN, "차단된 회원은 회원가입이 불가능합니다", ErrorCode.LogLevel.INFO),
-    SOCIAL_UNLINK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 연결 해제에 실패했습니다.", ErrorCode.LogLevel.ERROR),
-    
+
     /**
      * <h3>로그아웃 관련 에러 코드</h3>
      */
@@ -55,12 +57,14 @@ public enum AuthErrorCode {
     private final ErrorCode.LogLevel logLevel;
 
     /**
-     * <h3>AuthErrorCode 생성자</h3>
-     * <p>HTTP 상태, 메시지, 로그 레벨을 받아 인증 전용 에러 코드를 생성합니다.</p>
+     * <h3>인증 에러 코드 생성</h3>
+     * <p>HTTP 상태 코드, 사용자 메시지, 로깅 레벨을 조합하여 에러 코드를 정의합니다.</p>
+     * <p>각 비즈니스 예외 상황에 맞는 적절한 HTTP 응답과 로깅 수준을 설정합니다.</p>
+     * <p>시스템 전반의 일관된 에러 응답 체계를 구축하기 위한 기본 구조입니다.</p>
      *
-     * @param status HTTP 상태 코드
-     * @param message 에러 메시지
-     * @param logLevel 에러 로그 레벨
+     * @param status 클라이언트에 반환할 HTTP 상태 코드
+     * @param message 사용자에게 표시될 에러 메시지
+     * @param logLevel 시스템 로깅 시 적용할 로그 레벨
      * @author Jaeik
      * @since 2.0.0
      */

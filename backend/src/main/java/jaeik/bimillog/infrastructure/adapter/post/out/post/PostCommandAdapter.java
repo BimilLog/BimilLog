@@ -7,9 +7,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 /**
- * <h2>게시글 커맨드 영속성 어댑터</h2>
- * <p>게시글 생성, 수정, 삭제와 관련된 데이터베이스 작업을 처리합니다.</p>
- * <p>PostCommandPort 인터페이스를 구현하여 게시글 명령 처리 기능을 제공합니다.</p>
+ * <h2>PostCommandAdapter</h2>
+ * <p>
+ * Post 도메인의 명령 포트를 JPA 기술로 구현하는 아웃바운드 어댑터입니다.
+ * </p>
+ * <p>
+ * 헥사고날 아키텍처에서 도메인과 영속성 기술을 분리하여 도메인의 순수성을 보장하고,
+ * PostCommandPort 인터페이스를 통해 비즈니스 로직에서 필요한 게시글 저장 및 삭제 기능을 제공합니다.
+ * </p>
+ * <p>
+ * PostCommandService에서 게시글 생성, 수정, 삭제 처리 시 호출되어 데이터베이스 영속성을 담당하고,
+ * 조회수 증가 시에는 최적화된 UPDATE 쿼리를 직접 실행하여 성능을 개선합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0

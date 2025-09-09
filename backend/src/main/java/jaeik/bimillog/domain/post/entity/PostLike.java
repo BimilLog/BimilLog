@@ -10,17 +10,17 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 /**
- * <h2>글 추천 엔티티</h2>
+ * <h2>게시글 추천 엔티티</h2>
  * <p>
- * 글에 대한 추천 정보를 저장하는 엔티티
+ * 사용자와 게시글 간의 추천 관계를 나타내는 연결 엔티티
  * </p>
- * <p>
- * 사용자와 글 간의 관계를 나타내며, JPA를 통해 자동으로 ID가 생성됩니다.
- * 기본 생성자와 모든 필드를 포함하는 생성자는 Lombok에 의해 자동 생성됩니다.
- * </p>
+ * <p>게시글 추천/추천 취소 시 PostLikeCommandController에서 생성/삭제됩니다.</p>
+ * <p>PostQueryService에서 사용자의 게시글 추천 상태 확인 시 조회됩니다.</p>
+ * <p>중복 추천 방지를 위해 user_id + post_id 묶음 인덱스를 사용합니다.</p>
+ * <p>CASCADE 옵션으로 사용자나 게시글 삭제 시 자동 삭제됩니다.</p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Getter
 @Entity

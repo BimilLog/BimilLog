@@ -35,9 +35,10 @@ public class NotificationQueryController {
     /**
      * <h3>알림 리스트 조회</h3>
      * <p>현재 로그인한 유저의 알림 리스트를 조회합니다.</p>
+     * <p>프론트엔드의 알림 목록 페이지와 헤더 알림 뱃지에서 호출됩니다.</p>
      * 
      * @param userDetails 현재 로그인한 유저 정보
-     * @return ResponseEntity<List<NotificationDTO>> 알림 리스트
+     * @return ResponseEntity<List<NotificationDTO>> 알림 리스트 (최신순 정렬)
      * @author Jaeik
      * @since 2.0.0
      */

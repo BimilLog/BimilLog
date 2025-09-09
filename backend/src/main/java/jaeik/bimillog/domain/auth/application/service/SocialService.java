@@ -23,8 +23,12 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * <h2>소셜 서비스</h2>
- * <p>SocialUseCase의 구현체 소셜 작업을 처리하는 서비스 클래스</p>
+ * <h2>소셜 로그인 서비스</h2>
+ * <p>
+ * 소셜 플랫폼을 통한 로그인 및 계정 연동 해제를 처리하는 서비스입니다.
+ * </p>
+ * <p>카카오, 구글 등 외부 소셜 플랫폼과의 인증 플로우를 관리합니다.</p>
+ * <p>기존 사용자 로그인 처리와 신규 사용자 임시 데이터 저장을 오케스트레이션합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -40,15 +44,18 @@ public class SocialService implements SocialUseCase {
     private final UserBanPort userBanPort;
 
     /**
-     * <h3>소셜 로그인 처리</h3>
-     * <p>소셜 로그인 요청을 처리하고 로그인 결과를 반환합니다.</p>
-     * <p>기존 사용자는 쿠키를 생성하고, 신규 사용자는 임시 데이터를 저장한 후 UUID를 반환합니다.</p>
+     * <h3>소셜 플랫폼 로그인 처리</h3>
+     * <p>외부 소셜 플랫폼을 통한 사용자 인증 및 로그인을 처리합니다.</p>
+     * <p>기존 사용자는 즉시 로그인 처리하고, 신규 사용자는 회원가입을 위한 임시 데이터를 저장합니다.</p>
+     * <p>사용자가 소셜 로그인 버튼 클릭 후 인가 코드 받기 완료 시 AuthCommandController에서 호출됩니다.</p>
+     * <p>카카오/구글 OAuth 인증 플로우에서 authorization code를 받은 후 호출됩니다.</p>
      *
-     * @param provider 소셜 제공자
-     * @param code     인가 코드
-     * @param fcmToken Firebase Cloud Messaging 토큰
-     * @return 타입 안전성이 보장된 로그인 결과
+     * @param provider 소셜 플랫폼 제공자 (KAKAO, GOOGLE 등)
+     * @param code OAuth 인가 코드
+     * @param fcmToken 푸시 알림용 Firebase Cloud Messaging 토큰 (선택사항)
+     * @return LoginResult 기존 사용자(쿠키) 또는 신규 사용자(UUID) 정보
      * @throws AuthCustomException 블랙리스트 사용자인 경우
+     * @throws AuthCustomException 이미 로그인 상태인 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -72,12 +79,14 @@ public class SocialService implements SocialUseCase {
     }
 
     /**
-     * <h3>기존 사용자 로그인 처리</h3>
-     * <p>기존 사용자의 로그인 결과를 처리하고 쿠키를 생성합니다.</p>
+     * <h3>기존 사용자 로그인 후처리</h3>
+     * <p>이미 회원가입된 사용자의 소셜 로그인을 완료 처리합니다.</p>
+     * <p>JWT 토큰 생성 및 쿠키 설정을 통해 인증 상태를 확립합니다.</p>
+     * <p>processSocialLogin에서 기존 사용자 판별 후 호출됩니다.</p>
      *
-     * @param loginResult 로그인 결과
-     * @param fcmToken    Firebase Cloud Messaging 토큰
-     * @return 기존 사용자 로그인 응답
+     * @param loginResult 소셜 플랫폼에서 받은 로그인 결과
+     * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
+     * @return ExistingUser JWT 토큰이 포함된 쿠키 정보
      * @author Jaeik
      * @since 2.0.0
      */
@@ -89,12 +98,14 @@ public class SocialService implements SocialUseCase {
     }
 
     /**
-     * <h3>신규 사용자 로그인 처리</h3>
-     * <p>신규 사용자의 로그인 결과를 처리하고 임시 데이터를 저장합니다.</p>
+     * <h3>신규 사용자 임시 데이터 저장</h3>
+     * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
+     * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
+     * <p>processSocialLogin에서 신규 사용자 판별 후 호출됩니다.</p>
      *
-     * @param loginResult 로그인 결과
-     * @param fcmToken Firebase Cloud Messaging 토큰
-     * @return 신규 사용자 로그인 응답
+     * @param loginResult 소셜 플랫폼에서 받은 로그인 결과
+     * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
+     * @return NewUser 회원가입용 UUID와 임시 쿠키 정보
      * @author Jaeik
      * @since 2.0.0
      */
@@ -106,9 +117,10 @@ public class SocialService implements SocialUseCase {
     }
 
     /**
-     * <h3>로그인 유효성 검사</h3>
-     * <p>현재 사용자가 로그인 상태인지 확인합니다.</p>
-     * <p>로그인 상태라면 예외를 발생시킵니다.</p>
+     * <h3>중복 로그인 방지 검증</h3>
+     * <p>현재 사용자의 인증 상태를 확인하여 중복 로그인을 방지합니다.</p>
+     * <p>이미 인증된 사용자가 다시 소셜 로그인을 시도하는 것을 차단합니다.</p>
+     * <p>processSocialLogin 메서드 시작 시점에서 보안 검증을 위해 호출됩니다.</p>
      *
      * @throws AuthCustomException 이미 로그인 상태인 경우
      * @author Jaeik
@@ -122,10 +134,16 @@ public class SocialService implements SocialUseCase {
     }
 
     /**
-     * {@inheritDoc}
+     * <h3>소셜 계정 연동 해제</h3>
+     * <p>사용자의 소셜 플랫폼 계정 연동을 해제합니다.</p>
+     * <p>소셜 플랫폼 API를 호출하여 앱 연동을 완전히 차단합니다.</p>
+     * <p>회원 탈퇴 시 UserWithdrawalService에서 소셜 계정 정리를 위해 호출됩니다.</p>
+     * <p>사용자 계정 비활성화 시 관련 소셜 연동을 정리하기 위해 호출됩니다.</p>
      *
-     * <p>소셜 플랫폼 API를 호출하여 연결을 해제합니다.</p>
-     * <p>해제 실패 시에도 예외를 전파하여 로깅이 가능하도록 합니다.</p>
+     * @param provider 연동 해제할 소셜 플랫폼 제공자
+     * @param socialId 소셜 플랫폼에서의 사용자 고유 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void unlinkSocialAccount(SocialProvider provider, String socialId) {

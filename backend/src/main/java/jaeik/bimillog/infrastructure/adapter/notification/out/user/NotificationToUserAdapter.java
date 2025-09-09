@@ -9,9 +9,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * <h2>사용자 어댑터</h2>
- * <p>Notification 도메인에서 User 도메인의 In-Port를 통해 접근하는 어댑터</p>
- * <p>헥사고날 아키텍처를 준수하여 UseCase를 통한 도메인간 통신</p>
+ * <h2>알림-사용자 도메인 연결 어댑터</h2>
+ * <p>
+ * Notification 도메인에서 User 도메인으로 접근하는 아웃바운드 어댑터입니다.
+ * NotificationToUserPort를 구현하여 크로스 도메인 통신을 담당합니다.
+ * </p>
+ * <p>헥사고날 아키텍처 원칙에 따라 User 도메인의 UseCase를 통해 사용자 정보를 조회합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

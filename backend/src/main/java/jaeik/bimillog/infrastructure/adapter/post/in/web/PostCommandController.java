@@ -13,11 +13,18 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 /**
- * <h2>게시글 명령 컨트롤러</h2>
- * <p>게시글 명령(Command) 관련 REST API를 제공하는 웹 어댑터입니다.</p>
- * <p>CQRS 패턴을 준수하여 명령(Command) 작업만 담당합니다.</p>
- * <p>게시글의 생성, 수정, 삭제 및 추천 기능을 제공합니다.</p>
- * <p>헥사고널 아키텍처 Primary Adapter</p>
+ * <h2>PostCommandController</h2>
+ * <p>
+ * Post 도메인의 명령(CUD) 관련 REST API 엔드포인트를 제공하는 웹 어댑터입니다.
+ * </p>
+ * <p>
+ * 헥사고날 아키텍처에서 외부 웹 요청을 도메인 비즈니스 로직으로 연결하며,
+ * CQRS 패턴에 따라 명령 전용 API를 분리하여 책임을 명확화합니다.
+ * </p>
+ * <p>
+ * 프론트엔드에서 게시글 작성, 수정, 삭제, 좋아요 토글 요청 시 호출되어 비즈니스 로직을 실행하고,
+ * 로그인 사용자와 익명 사용자 모두 게시글 작성이 가능하도록 유연한 인증 처리를 제공합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0

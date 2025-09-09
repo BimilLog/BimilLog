@@ -15,8 +15,16 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * <h2>FCM 토큰 관리 서비스</h2>
- * <p>FCM 토큰 등록 및 삭제 관련 비즈니스 로직을 처리하는 사용 사례 구현</p>
+ * <h2>FCM 푸시 알림 서비스</h2>
+ * <p>
+ * 헥사고날 아키텍처에서 NotificationFcmUseCase를 구현하는 Application Service입니다.
+ * Firebase Cloud Messaging을 통한 모바일 푸시 알림 관리와 전송에 관한 비즈니스 로직을 처리합니다.
+ * </p>
+ * <p>
+ * FCM 토큰 등록/삭제와 다양한 이벤트 기반 푸시 알림 전송을 담당하며, 비동기 이벤트 처리를 통해 실시간 알림을 제공합니다.
+ * 알림 수신 자격 검증, 토큰 유효성 관리, 예외 처리를 통해 안정적인 푸시 알림 시스템을 구축합니다.
+ * </p>
+ * <p>NotificationFcmController와 각종 이벤트 리스너에서 호출되며, FcmPort와 NotificationUtilPort를 통해 외부 시스템에 접근합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -32,10 +40,12 @@ public class NotificationFcmService implements NotificationFcmUseCase {
 
     /**
      * <h3>FCM 토큰 등록 처리</h3>
-     * <p>사용자 로그인 또는 회원가입 시 FCM 토큰을 등록합니다.</p>
+     * <p>클라이언트에서 전송한 FCM 토큰을 서버에 등록하여 푸시 알림 수신을 준비합니다.</p>
+     * <p>중복 토큰 검사, 사용자 존재성 확인, 다중 기기 지원을 통해 안정적인 토큰 관리를 수행합니다.</p>
+     * <p>NotificationFcmController에서 클라이언트의 토큰 등록 API 요청을 처리하기 위해 호출됩니다.</p>
      *
      * @param userId   사용자 ID
-     * @param fcmToken FCM 토큰 문자열
+     * @param fcmToken FCM 토큰 문자열 (Firebase SDK에서 생성)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -55,7 +65,9 @@ public class NotificationFcmService implements NotificationFcmUseCase {
 
     /**
      * <h3>FCM 토큰 삭제 처리</h3>
-     * <p>사용자 로그아웃 또는 탈퇴 시 FCM 토큰을 삭제합니다.</p>
+     * <p>사용자 탈퇴 시 개인정보 보호를 위해 해당 사용자의 모든 FCM 토큰을 삭제합니다.</p>
+     * <p>다중 기기에 등록된 모든 토큰을 일괄적으로 제거하여 더 이상 푸시 알림이 전송되지 않도록 합니다.</p>
+     * <p>NotificationRemoveListener에서 사용자 탈퇴 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId 사용자 ID
      * @author Jaeik
@@ -69,9 +81,14 @@ public class NotificationFcmService implements NotificationFcmUseCase {
 
     /**
      * <h3>댓글 알림 FCM 전송</h3>
+     * <p>댓글 작성 완료 시 게시글 작성자에게 FCM 푸시 알림을 전송합니다.</p>
+     * <p>알림 수신 자격 검증을 거쳐 유효한 FCM 토큰에만 알림을 발송하며, 전송 실패 시에도 예외를 발생시키지 않습니다.</p>
+     * <p>CommentNotificationListener에서 댓글 작성 이벤트 발생 시 호출됩니다.</p>
      *
      * @param postUserId    게시글 작성자 ID
      * @param commenterName 댓글 작성자 이름
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void sendCommentNotification(Long postUserId, String commenterName) {
@@ -88,8 +105,13 @@ public class NotificationFcmService implements NotificationFcmUseCase {
 
     /**
      * <h3>롤링페이퍼 메시지 알림 FCM 전송</h3>
+     * <p>롤링페이퍼에 새 메시지 작성 완료 시 롤링페이퍼 소유자에게 FCM 푸시 알림을 전송합니다.</p>
+     * <p>알림 수신 자격 검증을 거쳐 유효한 FCM 토큰에만 알림을 발송하며, 전송 실패 시에도 예외를 발생시키지 않습니다.</p>
+     * <p>PaperNotificationListener에서 롤링페이퍼 메시지 작성 이벤트 발생 시 호출됩니다.</p>
      *
      * @param farmOwnerId 롤링페이퍼 주인 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void sendPaperPlantNotification(Long farmOwnerId) {
@@ -106,10 +128,15 @@ public class NotificationFcmService implements NotificationFcmUseCase {
 
     /**
      * <h3>인기글 등극 알림 FCM 전송</h3>
+     * <p>게시글이 인기글로 선정되었을 때 게시글 작성자에게 FCM 푸시 알림을 전송합니다.</p>
+     * <p>알림 수신 자격 검증을 거쳐 유효한 FCM 토큰에만 알림을 발송하며, 전송 실패 시에도 예외를 발생시키지 않습니다.</p>
+     * <p>PostFeaturedListener에서 인기글 등극 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId 사용자 ID
      * @param title  알림 제목
      * @param body   알림 내용
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void sendPostFeaturedNotification(Long userId, String title, String body) {
@@ -124,7 +151,9 @@ public class NotificationFcmService implements NotificationFcmUseCase {
 
     /**
      * <h3>FCM 알림 전송 도우미 메서드</h3>
-     * <p>토큰 목록을 받아 FCM 메시지를 전송하는 공통 로직을 처리합니다.</p>
+     * <p>FCM 토큰 목록을 순회하며 개별 푸시 메시지를 전솨하는 내부 유틸리티 메서드입니다.</p>
+     * <p>개별 메시지 전송 실패 시에도 전체 전송을 중단하지 않고 계속 진행하여 가용성을 보장합니다.</p>
+     * <p>비어있은 토큰 목록에 대해서는 알림 전송을 건너뜀니다.</p>
      *
      * @param tokens 전송 대상 FCM 토큰 목록
      * @param title  메시지 제목

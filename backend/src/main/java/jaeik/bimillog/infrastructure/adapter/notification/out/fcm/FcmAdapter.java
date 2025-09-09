@@ -46,10 +46,11 @@ public class FcmAdapter implements FcmPort {
 
     /**
      * <h3>FCM 메시지 전송</h3>
-     * <p>주어진 FCM 전송 DTO를 사용하여 메시지를 특정 기기로 전송합니다.</p>
+     * <p>Firebase Cloud Messaging API를 통해 모바일 기기로 푸시 알림을 전송합니다.</p>
+     * <p>NotificationGenerateListener에서 도메인 이벤트 처리 시 호출되어 실시간 알림을 제공합니다.</p>
      *
-     * @param fcmMessage 전송할 FCM 메시지 정보
-     * @throws IOException 메시지 전송 중 발생할 수 있는 IO 예외
+     * @param fcmMessage 전송할 FCM 메시지 정보 (토큰, 제목, 내용 포함)
+     * @throws IOException Firebase API 호출 중 발생할 수 있는 IO 예외
      * @author Jaeik
      * @since 2.0.0
      */
@@ -83,7 +84,8 @@ public class FcmAdapter implements FcmPort {
 
     /**
      * <h3>사용자 ID로 FCM 토큰 삭제</h3>
-     * <p>주어진 사용자 ID에 해당하는 모든 FCM 토큰을 삭제합니다.</p>
+     * <p>사용자 탈퇴나 로그아웃 시 해당 사용자의 모든 FCM 토큰을 삭제합니다.</p>
+     * <p>FcmTokenRemoveListener에서 Auth 도메인 이벤트 처리 시 호출되어 개인정보를 보호합니다.</p>
      *
      * @param userId 삭제할 사용자 ID
      * @author Jaeik
@@ -116,7 +118,7 @@ public class FcmAdapter implements FcmPort {
      * <h3>FCM 메시지 구성</h3>
      * <p>FCM 전송 DTO를 기반으로 FCM API에 전송할 메시지 JSON 문자열을 생성합니다.</p>
      *
-     * @param fcmSendDto FCM 전송 DTO
+     * @param fcmMessage FCM 객체
      * @return FCM API로 전송할 JSON 형식의 메시지 문자열
      * @throws JsonProcessingException JSON 변환 중 발생할 수 있는 예외
      * @author Jaeik

@@ -10,8 +10,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
- * <h2>알림 구독 서비스</h2>
- * <p>SSE 실시간 알림 구독 관련 비즈니스 로직을 처리하는 사용 사례 구현</p>
+ * <h2>SSE 실시간 알림 서비스</h2>
+ * <p>
+ * 헥사고날 아키텍처에서 NotificationSseUseCase를 구현하는 Application Service입니다.
+ * Server-Sent Events(SSE)를 통한 실시간 알림 구독 관리와 메시지 전송에 관한 비즈니스 로직을 처리합니다.
+ * </p>
+ * <p>
+ * 웹 브라우저에서의 실시간 알림 구독, 연결 관리, 다양한 이벤트 기반 알림 전송을 담당하며,
+ * 비동기 이벤트 처리를 통해 즉시성 있는 실시간 알림 서비스를 제공합니다.
+ * </p>
+ * <p>NotificationSseController와 각종 이벤트 리스너에서 호출되며, SsePort와 NotificationUrlPort를 통해 외부 시스템에 접근합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -24,12 +32,14 @@ public class NotificationSseService implements NotificationSseUseCase {
     private final NotificationUrlPort notificationUrlPort;
 
     /**
-     * <h3>알림 구독</h3>
-     * <p>주어진 사용자 ID와 토큰 ID로 SSE 알림을 구독합니다.</p>
+     * <h3>SSE 구독</h3>
+     * <p>클라이언트의 SSE 구독 요청을 처리하여 실시간 알림 수신을 위한 SseEmitter를 생성합니다.</p>
+     * <p>다중 기기 지원을 위해 사용자 ID와 토큰 ID 조합으로 고유한 연결 식별자를 관리합니다.</p>
+     * <p>NotificationSseController에서 클라이언트의 SSE 구독 API 요청을 처리하기 위해 호출됩니다.</p>
      *
-     * @param userId 구독할 사용자의 ID
-     * @param tokenId 구독 토큰 ID
-     * @return SseEmitter 객체
+     * @param userId 구독할 사용자 ID
+     * @param tokenId 구독 토큰 ID (다중 기기 구분용)
+     * @return SseEmitter 객체 (30분 타임아웃)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -40,7 +50,9 @@ public class NotificationSseService implements NotificationSseUseCase {
 
     /**
      * <h3>사용자 SSE 연결 정리</h3>
-     * <p>사용자와 관련된 모든 SSE Emitter 연결을 정리합니다.</p>
+     * <p>사용자 탈퇴 시 개인정보 보호를 위해 해당 사용자와 관련된 모든 SSE 연결을 정리합니다.</p>
+     * <p>다중 기기에서 연결된 모든 SSE Emitter를 일괄적으로 해제하여 메모리 누수를 방지합니다.</p>
+     * <p>NotificationRemoveListener에서 사용자 탈퇴 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId 사용자 ID
      * @author Jaeik
@@ -53,10 +65,12 @@ public class NotificationSseService implements NotificationSseUseCase {
 
     /**
      * <h3>특정 기기 SSE 연결 정리</h3>
-     * <p>사용자의 특정 기기(토큰)에 해당하는 SSE Emitter 연결을 정리합니다.</p>
+     * <p>다중 기기 로그인 환경에서 개별 기기 로그아웃 시 해당 기기의 SSE 연결만을 선택적으로 정리합니다.</p>
+     * <p>다른 기기의 연결은 유지하면서 해당 기기만 연결 해제하는 선택적 연결 관리를 지원합니다.</p>
+     * <p>AuthLogoutListener에서 특정 기기 로그아웃 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId 사용자 ID
-     * @param tokenId 토큰 ID
+     * @param tokenId 정리할 토큰 ID
      * @author Jaeik
      * @since 2.0.0
      */
@@ -67,10 +81,15 @@ public class NotificationSseService implements NotificationSseUseCase {
 
     /**
      * <h3>댓글 알림 SSE 전송</h3>
+     * <p>댓글 작성 완료 시 게시글 작성자에게 SSE 실시간 알림을 전송합니다.</p>
+     * <p>알림 메시지와 이동할 URL을 생성하여 SseMessage를 구성하고, 활성 SSE 연결에 브로드캐스트합니다.</p>
+     * <p>CommentNotificationListener에서 댓글 작성 이벤트 발생 시 호출됩니다.</p>
      *
      * @param postUserId    게시글 작성자 ID
      * @param commenterName 댓글 작성자 이름
      * @param postId        게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
@@ -82,9 +101,14 @@ public class NotificationSseService implements NotificationSseUseCase {
 
     /**
      * <h3>롤링페이퍼 메시지 알림 SSE 전송</h3>
+     * <p>롤링페이퍼에 새 메시지 작성 완료 시 롤링페이퍼 소유자에게 SSE 실시간 알림을 전송합니다.</p>
+     * <p>알림 메시지와 롤링페이퍼 페이지 URL을 생성하여 SseMessage를 구성하고, 활성 SSE 연결에 브로드캐스트합니다.</p>
+     * <p>PaperNotificationListener에서 롤링페이퍼 메시지 작성 이벤트 발생 시 호출됩니다.</p>
      *
      * @param farmOwnerId 롤링페이퍼 주인 ID
      * @param userName    사용자 이름
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
@@ -96,10 +120,15 @@ public class NotificationSseService implements NotificationSseUseCase {
 
     /**
      * <h3>인기글 등극 알림 SSE 전송</h3>
+     * <p>게시글이 인기글로 선정되었을 때 게시글 작성자에게 SSE 실시간 알림을 전송합니다.</p>
+     * <p>전달받은 알림 메시지와 게시글 페이지 URL을 사용하여 SseMessage를 구성하고, 활성 SSE 연결에 브로드캐스트합니다.</p>
+     * <p>PostFeaturedListener에서 인기글 등극 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId  사용자 ID
      * @param message 알림 메시지
      * @param postId  게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void sendPostFeaturedNotification(Long userId, String message, Long postId) {

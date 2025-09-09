@@ -6,8 +6,10 @@ import org.springframework.http.HttpStatus;
 
 /**
  * <h2>게시글 도메인 전용 에러 코드</h2>
- * <p>게시글(Post) 도메인에서 발생할 수 있는 전용 에러 코드를 정의하는 열거형</p>
- * <p>게시글 작성, 수정, 삭제, 조회, 좋아요, 검색 등 게시글과 관련된 에러 처리</p>
+ * <p>게시글(Post) 도메인에서 발생할 수 있는 비즈니스 예외 상황을 정의하는 열거형</p>
+ * <p>PostCustomException과 함께 사용되어 게시글 관련 오류를 명확하게 분류하고 처리합니다.</p>
+ * <p>PostExceptionHandler에서 각 에러 코드에 맞는 HTTP 상태와 메시지, 로그 레벨로 변환됩니다.</p>
+ * <p>게시글 작성, 수정, 삭제, 조회, 추천, 검색, 캐시 등 게시글 전 범위의 오류를 포괄합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -45,10 +47,12 @@ public enum PostErrorCode {
     /**
      * <h3>PostErrorCode 생성자</h3>
      * <p>HTTP 상태, 메시지, 로그 레벨을 받아 게시글 전용 에러 코드를 생성합니다.</p>
+     * <p>각 에러 상황에 적합한 HTTP 상태와 사용자 친화적 메시지를 설정합니다.</p>
+     * <p>로그 레벨에 따라 PostExceptionHandler에서 적절한 로깅 처리가 이뤄집니다.</p>
      *
-     * @param status HTTP 상태 코드
-     * @param message 에러 메시지
-     * @param logLevel 에러 로그 레벨
+     * @param status HTTP 상태 코드 (400, 403, 404, 500 등)
+     * @param message 사용자에게 노출될 에러 메시지
+     * @param logLevel 에러 심각도 (INFO, WARN, ERROR, FATAL)
      * @author Jaeik
      * @since 2.0.0
      */

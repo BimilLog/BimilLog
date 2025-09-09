@@ -35,9 +35,10 @@ public class NotificationCommandController {
     /**
      * <h3>알림 읽음/삭제 처리</h3>
      * <p>현재 로그인한 유저의 알림을 읽음 처리하거나 삭제합니다.</p>
+     * <p>프론트엔드의 알림 목록 페이지에서 일괄 처리 버튼 클릭 시 호출됩니다.</p>
      * 
      * @param userDetails           현재 로그인한 유저 정보
-     * @param updateNotificationDTO 알림 업데이트 정보
+     * @param updateNotificationDTO 알림 업데이트 정보 (읽음/삭제할 ID 목록)
      * @return ResponseEntity<Void> HTTP 응답
      * @author Jaeik
      * @since 2.0.0

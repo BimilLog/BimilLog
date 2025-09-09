@@ -16,9 +16,18 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
- * <h2>인기 게시글 영속성 어댑터</h2>
- * <p>인기 게시글 및 공지사항 조회, 인기 플래그 관리 기능을 제공하는 영속성 어댑터입니다.</p>
- * <p>LoadPopularPostPort 인터페이스를 구현하며, QueryDSL을 사용하여 데이터베이스와 상호작용합니다.</p>
+ * <h2>PostCacheSyncAdapter</h2>
+ * <p>
+ * Post 도메인의 캐시 동기화 포트를 QueryDSL 기술로 구현하는 아웃바운드 어댑터입니다.
+ * </p>
+ * <p>
+ * 헥사고날 아키텍처에서 도메인과 영속성 기술을 분리하여 도메인의 순수성을 보장하고,
+ * PostCacheSyncPort 인터페이스를 통해 인기글 집계 및 캐시 데이터 준비 기능을 제공합니다.
+ * </p>
+ * <p>
+ * PostCacheService에서 실시간, 주간, 레전드 인기글 캐싱을 위한 데이터 조회 시 호출되며,
+ * 복잡한 집계 쿼리와 JOIN 연산을 통해 캐시할 게시글 목록을 효율적으로 준비합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0

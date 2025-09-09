@@ -17,8 +17,12 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * <h2>SSE Emitter 어댑터</h2>
- * <p>SSE 연결 관리를 위한 인프라 구현</p>
+ * <h2>SSE 어댑터</h2>
+ * <p>
+ * Server-Sent Events(SSE) 실시간 알림 전송을 처리하는 아웃바운드 어댑터입니다.
+ * SsePort를 구현하여 도메인과 Spring SSE 기술 간의 연결을 담당합니다.
+ * </p>
+ * <p>브라우저 클라이언트와의 실시간 연결을 관리하고 즉시성이 필요한 알림을 전송합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

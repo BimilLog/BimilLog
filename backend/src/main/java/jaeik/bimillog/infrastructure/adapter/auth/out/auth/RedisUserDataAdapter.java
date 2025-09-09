@@ -20,14 +20,21 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * <h2>Redis 임시 데이터 어댑터</h2>
- * <p>Redis를 사용하여 신규 사용자의 임시 데이터 관리를 위한 어댑터</p>
- * <p>소셜 로그인 프로세스에서 임시 데이터를 안전하게 저장/조회/삭제</p>
- * <p>기존 인메모리 방식 대비 멀티 인스턴스 환경 지원 및 메모리 안정성 향상</p>
+ * <h2>Redis 사용자 데이터 어댑터</h2>
+ * <p>
+ * 헥사고날 아키텍처의 Secondary Adapter로서 RedisUserDataPort 인터페이스를 구현합니다.
+ * </p>
+ * <p>
+ * Redis를 사용하여 소셜 로그인 과정에서의 임시 사용자 데이터 관리를 담당합니다.
+ * TTL(Time To Live) 기반으로 5분간 임시 데이터를 안전하게 보관하며, 멀티 인스턴스 환경에서의 일관성을 보장합니다.
+ * </p>
+ * <p>
+ * 이 어댑터가 존재하는 이유: 소셜 로그인은 2단계 프로세스(인증 → 회원가입)로 구성되며,
+ * 첫 단계에서 획득한 소셜 사용자 정보를 두 번째 단계까지 안전하게 보관해야 하는 비즈니스 요구사항을 해결합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Slf4j
 @Component
@@ -46,7 +53,8 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
     /**
      * <h3>임시 사용자 데이터 저장</h3>
-     * <p>소셜 사용자 프로필 정보를 Redis에 임시 저장합니다.</p>
+     * <p>소셜 로그인 첫 단계에서 획득한 사용자 프로필 정보를 Redis에 임시 저장합니다.</p>
+     * <p>소셜 로그인 인증 완료 후 회원가입 페이지로 리다이렉트되기 전에 사용자 데이터를 보관하기 위해 소셜 로그인 플로우에서 호출합니다.</p>
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>UUID는 필수 (null, 빈 문자열 불허)</li>
@@ -57,13 +65,13 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      *   <li>Redis TTL로 자동 만료 (5분)</li>
      * </ul>
      *
-     * @param uuid UUID 키
+     * @param uuid 임시 사용자 식별 UUID 키
      * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
-     * @param token 토큰 정보
+     * @param token 소셜 로그인에서 획득한 토큰 정보
      * @param fcmToken FCM 토큰 (선택적)
      * @throws CustomException UUID, userProfile, token이 유효하지 않은 경우
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void saveTempData(String uuid, LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) {
@@ -80,6 +88,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     /**
      * <h3>임시 사용자 데이터 조회</h3>
      * <p>UUID를 사용하여 Redis에서 임시 사용자 데이터를 조회합니다.</p>
+     * <p>소셜 로그인 두 번째 단계(회원가입 페이지)에서 사용자가 입력한 닉네임과 함께 저장된 소셜 사용자 정보를 조회하기 위해 회원가입 플로우에서 호출합니다.</p>
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>null UUID는 빈 결과 반환 (예외 아님)</li>
@@ -87,10 +96,10 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      *   <li>만료된 데이터는 Redis에서 자동 정리됨</li>
      * </ul>
      *
-     * @param uuid UUID 키
-     * @return Optional로 감싼 임시 사용자 데이터
-     * @since 2.0.0
+     * @param uuid 임시 사용자 식별 UUID 키
+     * @return Optional<LoginResult.TempUserData> Optional로 감싼 임시 사용자 데이터
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public Optional<LoginResult.TempUserData> getTempData(String uuid) {
@@ -112,6 +121,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     /**
      * <h3>임시 사용자 데이터 삭제</h3>
      * <p>UUID를 사용하여 Redis에서 임시 사용자 데이터를 삭제합니다.</p>
+     * <p>소셜 로그인 회원가입 완료 후 임시 데이터를 정리하기 위해 회원가입 성공 플로우에서 호출합니다.</p>
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>null UUID는 무시 (정상 동작)</li>
@@ -119,9 +129,9 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      *   <li>삭제 실패 시 로그 기록</li>
      * </ul>
      *
-     * @param uuid UUID 키
-     * @since 2.0.0
+     * @param uuid 삭제할 임시 사용자 식별 UUID 키
      * @author Jaeik
+     * @since 2.0.0
      */
     public void removeTempData(String uuid) {
         if (uuid == null) {
@@ -139,12 +149,13 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
     /**
      * <h3>임시 사용자 ID 쿠키 생성</h3>
-     * <p>신규 회원가입 시 사용자의 임시 UUID를 담는 쿠키를 생성</p>
+     * <p>소셜 로그인 첫 단계 완료 후 사용자를 회원가입 페이지로 리다이렉트할 때 임시 UUID를 담는 쿠키를 생성합니다.</p>
+     * <p>소셜 로그인 인증 성공 후 임시 데이터 연결을 위해 소셜 로그인 플로우에서 호출합니다.</p>
      *
-     * @param uuid 임시 사용자 ID
-     * @return 임시 사용자 ID 쿠키
-     * @since 2.0.0
+     * @param uuid 임시 사용자 식별 UUID
+     * @return ResponseCookie 임시 사용자 ID 쿠키
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public ResponseCookie createTempCookie(String uuid) {

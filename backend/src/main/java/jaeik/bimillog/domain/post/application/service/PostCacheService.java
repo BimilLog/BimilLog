@@ -13,9 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * <h2>게시글 캐시 서비스</h2>
- * <p>PostCacheUseCase의 구현체로, 게시글 캐시 관리 비즈니스 로직을 처리합니다.</p>
- * <p>공지사항 설정/해제 시 캐시 동기화를 담당합니다.</p>
+ * <h2>PostCacheService</h2>
+ * <p>
+ * 게시글 캐시 관리 관련 UseCase 인터페이스의 구체적 구현체로서 캐시 동기화 비즈니스 로직을 오케스트레이션합니다.
+ * </p>
+ * <p>
+ * 헥사고날 아키텍처에서 게시글 도메인의 캐시 일관성 관리를 담당하며, 공지사항 상태 변경에 따른
+ * Redis 캐시 동기화와 데이터 무결성 보장을 위한 비즈니스 규칙을 관리합니다.
+ * </p>
+ * <p>
+ * 트랜잭션 경계를 설정하여 캐시 작업의 원자성을 보장하고, DB와 캐시 간의 일관성을 유지하여
+ * 사용자에게 정확한 공지사항 목록을 제공합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -31,11 +40,14 @@ public class PostCacheService implements PostCacheUseCase {
 
 
     /**
-     * <h3>공지사항 캐시 동기화</h3>
-     * 
-     * <p>게시글의 공지 상태에 따라 캐시를 동기화합니다.</p>
-     * <p>공지 설정 시 캐시에 추가, 공지 해제 시 캐시에서 제거하여 상태를 일치시킵니다.</p>
-     * @param postId 글 id
+     * <h3>공지사항 캐시 동기화 비즈니스 로직 실행</h3>
+     * <p>PostCacheUseCase 인터페이스의 캐시 동기화 기능을 구현하며, 공지사항 상태 변경에 따른 캐시 일관성 유지 규칙을 적용합니다.</p>
+     * <p>공지사항 설정 시 Redis 캐시에 게시글을 추가하고, 공지사항 해제 시 캐시에서 제거하여 DB와 캐시 간 동기화를 보장합니다.</p>
+     * <p>캐시 무효화와 재생성을 통해 사용자에게 정확한 공지사항 목록을 실시간으로 제공합니다.</p>
+     * <p>PostAdminController에서 공지사항 토글 완료 후 호출됩니다.</p>
+     *
+     * @param postId 동기화할 게시글 ID
+     * @param isNotice 공지사항 여부 (true: 캐시 추가, false: 캐시 제거)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -51,8 +63,12 @@ public class PostCacheService implements PostCacheUseCase {
     }
 
     /**
-     * <h3>DB에서 글 조회 후 캐시 추가</h3>
-     * @param postId 글 id
+     * <h3>공지사항 캐시 추가 로직</h3>
+     * <p>DB에서 게시글 상세 정보를 조회하여 Redis 공지사항 캐시에 추가합니다.</p>
+     * <p>PostCacheSyncPort를 통해 완전한 게시글 정보를 조회한 후 캐시에 저장하여 빠른 조회를 지원합니다.</p>
+     * <p>syncNoticeCache 메서드에서 공지사항 설정 시 호출됩니다.</p>
+     *
+     * @param postId 캐시에 추가할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
@@ -71,9 +87,12 @@ public class PostCacheService implements PostCacheUseCase {
     }
 
     /**
-     * <h3>캐시에서 공지사항 제거</h3>
-     * <p>성능 최적화를 위해 공지사항 캐시에서만 삭제합니다.</p>
-     * @param postId 글 id
+     * <h3>공지사항 캐시 제거 로직</h3>
+     * <p>Redis 공지사항 캐시에서 지정된 게시글을 제거합니다.</p>
+     * <p>성능 최적화를 위해 공지사항 캐시에서만 선별적으로 삭제하여 불필요한 캐시 작업을 방지합니다.</p>
+     * <p>syncNoticeCache 메서드에서 공지사항 해제 시 호출됩니다.</p>
+     *
+     * @param postId 캐시에서 제거할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */

@@ -21,7 +21,17 @@ import java.util.List;
 
 /**
  * <h2>사용자 저장 어댑터</h2>
- * <p>사용자 데이터 저장, 업데이트, 삭제를 위한 어댑터</p>
+ * <p>
+ * 헥사고날 아키텍처의 Secondary Adapter로서 SaveUserPort 인터페이스를 구현합니다.
+ * </p>
+ * <p>
+ * 소셜 로그인 완료 후 사용자 데이터의 저장, 업데이트 작업을 담당합니다.
+ * User 도메인의 엔티티 조작과 인증 관련 비즈니스 로직을 연결하는 트랜잭션 경계 역할을 수행합니다.
+ * </p>
+ * <p>
+ * 이 어댑터가 존재하는 이유: Auth 도메인에서 User 도메인의 복잡한 비즈니스 로직(회원가입, 로그인 처리)에
+ * 접근해야 하는 크로스 도메인 연동 요구사항을 이 어댑터에서 집중 처리하기 위해 분리되었습니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -39,14 +49,16 @@ public class SaveUserAdapter implements SaveUserPort {
 
     /**
      * <h3>기존 사용자 로그인 처리</h3>
-     * <p>소셜 사용자 프로필 정보를 업데이트하고, FCM 토큰을 등록합니다.</p>
+     * <p>기존 회원의 소셜 로그인 시 사용자 정보 업데이트와 JWT 쿠키 발급을 처리합니다.</p>
+     * <p>소셜 로그인 인증 성공 후 기존 회원 확인 시 로그인 처리 플로우에서 호출합니다.</p>
+     * <p>프로필 이미지와 닉네임을 소셜 계정 최신 정보로 업데이트하고, FCM 토큰이 있으면 알림 서비스에 등록합니다.</p>
      *
-     * @param userProfile  소셜 사용자 프로필 (순수 도메인 모델)
-     * @param token  토큰 정보
-     * @param fcmToken  FCM 토큰 (선택적)
-     * @return ResponseCookie 리스트
-     * @since 2.0.0
+     * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
+     * @param token 소셜 로그인에서 획득한 토큰 정보
+     * @param fcmToken FCM 토큰 (선택적)
+     * @return List<ResponseCookie> JWT 인증 쿠키 목록
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     @Transactional
@@ -69,17 +81,19 @@ public class SaveUserAdapter implements SaveUserPort {
     }
 
     /**
-     * <h3>신규 사용자 정보 저장</h3>
-     * <p>임시 UUID를 사용하여 새로운 사용자를 등록하고, FCM 토큰이 존재하면 이벤트를 발행합니다.</p>
+     * <h3>신규 사용자 등록 및 저장</h3>
+     * <p>소셜 로그인 회원가입 두 번째 단계에서 입력받은 닉네임과 임시 데이터를 사용하여 신규 회원을 등록합니다.</p>
+     * <p>회원가입 완료 후 임시 데이터 정리와 JWT 쿠키 발급을 위해 회원가입 성공 플로우에서 호출합니다.</p>
+     * <p>사용자 엔티티 생성과 동시에 기본 설정, FCM 토큰 등록, 임시 데이터 정리를 전빈 처리합니다.</p>
      *
-     * @param userName  사용자의 이름
-     * @param uuid      임시 UUID
-     * @param userProfile  소셜 사용자 프로필 (순수 도메인 모델)
-     * @param token  토큰 정보
-     * @param fcmToken  FCM 토큰 (선택적)
-     * @return ResponseCookie 리스트
-     * @since 2.0.0
+     * @param userName 사용자가 입력한 닉네임
+     * @param uuid 임시 사용자 식별 UUID
+     * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
+     * @param token 소셜 로그인에서 획득한 토큰 정보
+     * @param fcmToken FCM 토큰 (선택적)
+     * @return List<ResponseCookie> JWT 인증 쿠키 목록
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     @Transactional
@@ -97,13 +111,14 @@ public class SaveUserAdapter implements SaveUserPort {
     }
 
     /**
-     * <h3>FCM 토큰 등록</h3>
-     * <p>FCM 토큰이 존재할 경우에만 등록합니다.</p>
+     * <h3>FCM 토큰 등록 처리</h3>
+     * <p>FCM 토큰이 존재할 경우에만 알림 서비스에 등록합니다.</p>
+     * <p>소셜 로그인 과정에서 FCM 토큰이 포함된 경우 푸시 알림 수신을 위해 내부에서 호출합니다.</p>
      *
      * @param userId 사용자 ID
-     * @param fcmToken FCM 토큰 (null 또는 빈 문자열 가능)
-     * @since 2.0.0
+     * @param fcmToken FCM 토큰 (빈 문자열이나 null인 경우 무시)
      * @author Jaeik
+     * @since 2.0.0
      */
     private void registerFcmTokenIfPresent(Long userId, String fcmToken) {
         if (fcmToken != null && !fcmToken.isEmpty()) {

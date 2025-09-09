@@ -13,8 +13,18 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 
 /**
- * <h2>토큰 블랙리스트 Redis 캐시 어댑터</h2>
- * <p>Redis를 사용한 토큰 블랙리스트 캐시 구현체</p>
+ * <h2>사용자 차단 어댑터</h2>
+ * <p>
+ * 헥사고날 아키텍처의 Secondary Adapter로서 UserBanPort 인터페이스를 구현합니다.
+ * </p>
+ * <p>
+ * Redis와 JPA를 활용한 토큰 블랙리스트 관리와 사용자 차단 처리를 담당합니다.
+ * SHA-256 해시 알고리즘으로 JWT 토큰을 안전하게 해시하여 블랙리스트에 저장하고, TTL 기반으로 자동 정리됩니다.
+ * </p>
+ * <p>
+ * 이 어댑터가 존재하는 이유: 회원 탈퇴, 계정 정지, 강제 로그아웃 등의 보안 상황에서
+ * 발급된 모든 JWT 토큰을 즉시 무효화시키기 위한 빠른 블랙리스트 처리가 필수적이기 때문입니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -33,10 +43,14 @@ public class UserBanAdapter implements UserBanPort {
 
     /**
      * <h3>토큰 해시 블랙리스트 여부 확인</h3>
-     * <p>Redis에서 토큰 해시값이 존재하는지 확인합니다.</p>
+     * <p>Redis에서 JWT 토큰 해시값이 블랙리스트에 등록되어 있는지 확인합니다.</p>
+     * <p>JWT 토큰 검증 과정에서 해당 토큰이 무효화된 토큰인지 확인하기 위해 인증 미들웨어에서 호출합니다.</p>
+     * <p>회원 탈퇴, 계정 정지, 강제 로그아웃으로 블랙리스트에 등록된 토큰의 접근 차단을 위해 인증 검증 플로우에서 호출합니다.</p>
      *
-     * @param tokenHash 토큰 해시값
-     * @return 블랙리스트에 존재하면 true, 아니면 false
+     * @param tokenHash SHA-256으로 해시된 JWT 토큰 값
+     * @return boolean 블랙리스트에 등록된 경우 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public boolean isBlacklisted(String tokenHash) {
@@ -54,12 +68,16 @@ public class UserBanAdapter implements UserBanPort {
     }
 
     /**
-     * <h3>사용자의 모든 토큰을 블랙리스트에 등록</h3>
-     * <p>특정 사용자의 모든 토큰을 블랙리스트에 등록합니다.</p>
-     * <p>사용자별 패턴을 사용하여 일괄 처리합니다.</p>
+     * <h3>토큰 해시 리스트를 블랙리스트에 등록</h3>
+     * <p>제공된 JWT 토큰 해시 목록을 Redis 블랙리스트에 등록하여 즉시 무효화시킵니다.</p>
+     * <p>회원 탈퇴 처리 시 해당 사용자의 모든 토큰을 무효화하기 위해 회원 탈퇴 플로우에서 호출합니다.</p>
+     * <p>계정 정지나 보안 사고로 인한 강제 로그아웃 시 사용자 보안 강화를 위해 관리자 기능에서 호출합니다.</p>
      *
-     * @param reason 블랙리스트 등록 사유
-     * @param ttl 만료 시간
+     * @param tokenHashes 블랙리스트에 등록할 JWT 토큰 해시 목록
+     * @param reason 블랙리스트 등록 사유 (로그용)
+     * @param ttl Redis 에서의 만료 시간 (TTL)
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void blacklistTokenHashes(java.util.List<String> tokenHashes, String reason, Duration ttl) {
@@ -89,12 +107,12 @@ public class UserBanAdapter implements UserBanPort {
 
     /**
      * <h3>JWT 토큰 해시값 생성</h3>
+     * <p>JWT 토큰을 SHA-256 알고리즘으로 해시하여 블랙리스트 키로 사용할 해시값을 생성합니다.</p>
+     * <p>토큰 블랙리스트 등록 전에 원본 JWT 토큰을 안전한 해시값으로 변환하기 위해 블랙리스트 등록 플로우에서 호출합니다.</p>
+     * <p>전체 토큰을 Redis에 저장하지 않고 해시값만 저장하여 보안성과 메모리 효율성을 향상시킵니다.</p>
      *
-     * <p>JWT 토큰을 SHA-256으로 해시하여 블랙리스트 키로 사용할 해시값을 생성합니다.</p>
-     * <p>전체 토큰을 저장하지 않고 해시값만 저장하여 보안성을 향상시킵니다.</p>
-     *
-     * @param token JWT 토큰
-     * @return SHA-256 해시값 (Hex 문자열)
+     * @param token 해시할 JWT 토큰 문자열
+     * @return String SHA-256 해시값 (16진수 문자열)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -120,13 +138,16 @@ public class UserBanAdapter implements UserBanPort {
 
 
     /**
-     * <h3>소셜 제공자와 소셜 ID로 블랙리스트 확인</h3>
+     * <h3>소셜 계정 영구 차단 여부 확인</h3>
+     * <p>소셜 로그인 시 해당 소셜 계정이 영구 차단된 사용자인지 JPA로 확인합니다.</p>
+     * <p>소셜 로그인 인증 단계에서 차단된 사용자의 로그인 시도를 방지하기 위해 소셜 로그인 검증 플로우에서 호출합니다.</p>
+     * <p>회원 탈퇴나 계정 정지로 인해 BlackList 테이블에 등록된 소셜 계정의 재가입 방지를 위해 사용됩니다.</p>
      *
-     * @param provider 소셜 제공자
-     * @param socialId 소셜 ID
-     * @return 블랙리스트에 존재하면 true, 아니면 false
-     * @since 2.0.0
+     * @param provider 소셜 로그인 제공자 (KAKAO, NAVER 등)
+     * @param socialId 소셜 로그인 사용자 식별자
+     * @return boolean 블랙리스트에 등록된 경우 true, 아니면 false
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {

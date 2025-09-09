@@ -13,6 +13,7 @@ import org.hibernate.annotations.OnDeleteAction;
 /**
  * <h2>알림 엔티티</h2>
  * <p>사용자에게 전송되는 알림 정보를 저장하는 엔티티</p>
+ * <p>롤링페이퍼 메시지 등록, 댓글 작성, 관리자 공지 등의 이벤트 발생 시 NotificationService에서 생성되어 알림 내역을 관리하는 엔티티</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -50,6 +51,8 @@ public class Notification extends BaseEntity {
     /**
      * <h3>알림 생성 팩토리 메소드</h3>
      * <p>새로운 알림 엔티티를 생성합니다.</p>
+     * <p>롤링페이퍼 메시지 등록, 댓글 작성, 게시글 인기글 선정 등의 이벤트 발생 시 NotificationService에서 알림 발송을 위해 호출되는 메서드</p>
+     * <p>생성된 알림은 데이터베이스에 저장되어 사용자 알림 목록에서 조회 가능하며, 읽음/삭제 처리를 통해 관리됩니다</p>
      *
      * @param user 알림을 받을 사용자 엔티티
      * @param notificationType 알림 유형

@@ -10,14 +10,14 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
- * <h3>게시글 검색 결과 값 객체</h3>
+ * <h2>게시글 검색 결과 값 객체</h2>
  * <p>
- * 게시글 검색/목록 조회 결과를 담는 도메인 전용 객체
- * SimplePostResDTO의 도메인 전용 대체
+ * 게시글 목록 조회와 검색 결과를 담는 mutable 도메인 객체
  * </p>
- * <p>
- * 성능 최적화를 위해 mutable로 변경 - 댓글수, 추천수를 나중에 설정 가능
- * </p>
+ * <p>PostQueryController에서 게시글 목록, 검색, 인기글 조회 시 반환되는 핵심 객체입니다.</p>
+ * <p>PostDetail과 다르게 mutable로 설계되어 대량 데이터 조회 시 댓글수, 추천수 업데이트가 가능합니다.</p>
+ * <p>QueryDSL Projection과 레디스 캐시를 통해 성능 최적화된 목록 조회를 지원합니다.</p>
+ * <p>SimplePostResDTO의 도메인 전용 대체 객체로 사용됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -46,7 +46,8 @@ public class PostSearchResult implements Serializable {
     /**
      * <h3>게시글 검색 결과 생성</h3>
      * <p>게시글 엔티티와 메타 정보로부터 검색 결과를 생성합니다.</p>
-     * <p>PostDetail을 통해 중복 코드를 제거하고 일관성을 보장합니다.</p>
+     * <p>PostQueryService에서 게시글 목록 조회 시 호출됩니다.</p>
+     * <p>PostDetail을 경유하여 생성로직의 일관성과 코드 재사용성을 보장합니다.</p>
      *
      * @param post 게시글 엔티티
      * @param likeCount 추천수
@@ -62,11 +63,12 @@ public class PostSearchResult implements Serializable {
     /**
      * <h3>기본 댓글 수로 검색 결과 생성</h3>
      * <p>댓글 수 0으로 기본 검색 결과를 생성합니다.</p>
-     * <p>PostDetail을 통해 중복 코드를 제거하고 일관성을 보장합니다.</p>
+     * <p>캐시된 데이터나 댓글 수 업데이트 전 게시글에 사용됩니다.</p>
+     * <p>PostDetail을 경유하여 일관된 객체 생성 로직을 유지합니다.</p>
      *
      * @param post 게시글 엔티티
      * @param likeCount 추천수
-     * @return PostSearchResult 값 객체
+     * @return PostSearchResult 값 객체 (commentCount = 0)
      * @since 2.0.0
      * @author Jaeik
      */
@@ -77,7 +79,9 @@ public class PostSearchResult implements Serializable {
     /**
      * <h3>PostDetail에서 검색 결과 생성</h3>
      * <p>PostDetail 값 객체에서 mutable PostSearchResult를 생성합니다.</p>
-     * <p>성능 최적화를 위해 나중에 댓글수, 추천수를 수정할 수 있습니다.</p>
+     * <p>PostDetail.toSearchResult()에서 내부적으로 호출되어 목록용 객체로 변환합니다.</p>
+     * <p>isLiked 정보는 상세 조회에만 필요하므로 목록용에서는 제외됩니다.</p>
+     * <p>mutable 객체로 설계되어 대량 조회 시 메타데이터 업데이트가 효율적입니다.</p>
      *
      * @param postDetail PostDetail 값 객체
      * @return PostSearchResult mutable 검색 결과
@@ -102,7 +106,9 @@ public class PostSearchResult implements Serializable {
     
     /**
      * <h3>생성자 - QueryDSL Projection용</h3>
-     * <p>QueryDSL Projections.constructor를 위한 생성자</p>
+     * <p>QueryDSL Projections.constructor를 위한 전용 생성자입니다.</p>
+     * <p>PostQueryRepository에서 게시글 목록 조회 시 QueryDSL을 통해 호출됩니다.</p>
+     * <p>DB에서 직접 PostSearchResult 객체로 조회하여 N+1 문제를 방지하고 성능을 최적화합니다.</p>
      *
      * @since 2.0.0
      * @author Jaeik

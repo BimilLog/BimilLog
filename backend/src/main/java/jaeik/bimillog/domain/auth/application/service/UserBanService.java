@@ -14,9 +14,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * <h2>토큰 블랙리스트 서비스</h2>
- * <p>JWT 토큰 블랙리스트 관리를 위한 애플리케이션 서비스</p>
- * <p>Redis를 사용하여 고성능 토큰 블랙리스트 기능을 제공</p>
+ * <h2>사용자 계정 차단 서비스</h2>
+ * <p>
+ * 사용자 계정 및 JWT 토큰의 블랙리스트 관리를 담당하는 서비스입니다.
+ * </p>
+ * <p>보안 위반, 강제 로그아웃, 계정 정지 시 토큰 무효화 처리를 수행합니다.</p>
+ * <p>Redis를 활용한 고속 토큰 블랙리스트 조회 및 관리 기능을 제공합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -32,11 +35,16 @@ public class UserBanService implements UserBanUseCase {
     private final AuthToTokenPort authToTokenPort;
 
     /**
-     * <h3>토큰 블랙리스트 여부 확인</h3>
-     * <p>JWT 토큰이 블랙리스트에 등록되어 있는지 확인합니다.</p>
+     * <h3>JWT 토큰 블랙리스트 검증</h3>
+     * <p>제공된 JWT 토큰이 블랙리스트에 등록되어 있는지 확인합니다.</p>
+     * <p>토큰 해시를 생성하여 Redis에서 블랙리스트 등록 여부를 조회합니다.</p>
+     * <p>JWT 필터에서 모든 인증 요청 시 토큰 유효성 검증을 위해 호출됩니다.</p>
+     * <p>보안 위반 토큰이나 강제 로그아웃된 토큰의 접근을 차단하기 위해 사용됩니다.</p>
      *
-     * @param token JWT 토큰
-     * @return 블랙리스트에 등록되어 있으면 true, 아니면 false
+     * @param token 검증할 JWT 토큰 문자열
+     * @return 블랙리스트에 등록된 토큰이면 true, 정상 토큰이면 false
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public boolean isBlacklisted(String token) {
@@ -56,12 +64,16 @@ public class UserBanService implements UserBanUseCase {
     }
 
     /**
-     * <h3>사용자의 모든 토큰을 블랙리스트에 등록</h3>
-     * <p>특정 사용자의 모든 활성 토큰을 블랙리스트에 등록합니다.</p>
-     * <p>보안 위반이나 강제 로그아웃 시 사용됩니다.</p>
+     * <h3>사용자 전체 토큰 블랙리스트 등록</h3>
+     * <p>특정 사용자가 보유한 모든 활성 JWT 토큰을 블랙리스트에 등록합니다.</p>
+     * <p>사용자 계정 정지, 보안 위반, 강제 로그아웃 처리 시 모든 세션을 무효화합니다.</p>
+     * <p>관리자가 사용자 계정을 정지할 때 AdminCommandService에서 호출됩니다.</p>
+     * <p>사용자 회원탈퇴 시 모든 토큰을 무효화하기 위해 UserWithdrawalService에서 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
-     * @param reason 블랙리스트 등록 사유
+     * @param userId 토큰을 차단할 사용자 ID
+     * @param reason 블랙리스트 등록 사유 (로깅용)
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public void blacklistAllUserTokens(Long userId, String reason) {

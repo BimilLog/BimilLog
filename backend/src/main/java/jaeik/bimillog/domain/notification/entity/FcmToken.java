@@ -13,6 +13,7 @@ import org.hibernate.annotations.OnDeleteAction;
 /**
  * <h2>FCM 토큰 엔티티</h2>
  * <p>Firebase Cloud Messaging(FCM) 토큰 정보를 저장하는 엔티티</p>
+ * <p>사용자 로그인 시 FCM 토큰을 등록하거나 푸시 알림 발송 시 사용자별 토큰을 조회하기 위한 엔티티</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -41,6 +42,8 @@ public class FcmToken extends BaseEntity {
     /**
      * <h3>FCM 토큰 생성 팩토리 메소드</h3>
      * <p>새로운 FCM 토큰 엔티티를 생성합니다.</p>
+     * <p>사용자 로그인 시 AuthService에서 요청되어 사용자의 FCM 토큰을 등록하는 메서드</p>
+     * <p>기존 토큰이 있는 경우 업데이트하고, 없는 경우 새로운 토큰을 저장하여 푸시 알림 발송을 가능하게 합니다</p>
      *
      * @param user 토큰을 소유할 사용자 엔티티
      * @param token FCM 등록 토큰 문자열

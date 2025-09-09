@@ -5,9 +5,11 @@ import lombok.Getter;
 /**
  * <h2>알림 유형</h2>
  * <p>알림의 유형을 정의하는 열거형</p>
+ * <p>롤링페이퍼 메시지, 댓글, 인기글 선정, 관리자 공지 등 다양한 비즈니스 이벤트별로 알림을 분류하여 관리하기 위한 열거형</p>
+ * <p>각 알림 유형은 사용자 설정의 특정 필드와 연결되어 알림 수신 여부를 제어합니다</p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Getter
 public enum NotificationType {

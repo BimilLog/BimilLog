@@ -10,9 +10,24 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * <h2>신고 이벤트 리스너</h2>
- * <p>사용자 도메인에서 발행한 신고 이벤트를 리스닝하여 관리자 도메인에서 처리하는 Secondary Adapter</p>
- * <p>비동기로 처리되어 사용자의 요청 응답 시간에 영향을 주지 않습니다.</p>
+ * <h2>ReportSaveListener</h2>
+ * <p>
+ * 이벤트 기반 아키텍처에서 도메인 간 통신을 담당하는 Secondary Adapter입니다.
+ * </p>
+ * <p>
+ * User 도메인에서 발행하는 ReportSubmittedEvent를 구독하여 Admin 도메인으로 신고 접수 처리를 전달합니다.
+ * </p>
+ * <p>
+ * 사용자가 프론트엔드에서 신고를 제출할 때 User 도메인이 이벤트를 발행하면,
+ * 이 리스너가 비동기적으로 Admin 도메인의 신고 접수 로직을 실행합니다.
+ * </p>
+ * <p>
+ * 비동기 처리를 통해 사용자의 요청 응답 시간에 영향을 주지 않으면서도
+ * 도메인 간 결합도를 낮추는 이벤트 기반 설계를 구현합니다.
+ * </p>
+ * <p>
+ * 에러 처리와 로깅을 통해 신고 접수 과정의 투명성과 디버깅 용이성을 제공합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -25,12 +40,15 @@ public class ReportSaveListener {
     private final AdminCommandUseCase adminCommandUseCase;
 
     /**
-     * <h3>신고 제출 이벤트 처리</h3>
-     * <p>사용자가 제출한 신고/건의사항을 관리자 도메인에서 처리합니다.</p>
-     * <p>비동기로 실행되어 사용자 요청의 응답 시간을 단축합니다.</p>
-     * <p>비즈니스 검증 실패와 시스템 오류를 구분하여 처리합니다.</p>
+     * <h3>신고 제출 이벤트 비동기 처리</h3>
+     * <p>User 도메인에서 발행된 ReportSubmittedEvent를 구독하여 Admin 도메인의 신고 접수 로직을 실행합니다.</p>
+     * <p>사용자가 프론트엔드에서 신고 폼을 제출할 때 User 도메인의 서비스에서 이벤트를 발행하면 이 메서드가 호출됩니다.</p>
+     * <p>@Async 어노테이션을 통해 별도 스레드에서 비동기적으로 실행되어 사용자의 요청 응답 시간을 단축합니다.</p>
+     * <p>AdminCommandUseCase를 호출하여 실제 신고 데이터를 생성하고 저장하는 비즈니스 로직을 수행합니다.</p>
+     * <p>비즈니스 검증 실패(CustomException)와 시스템 오류를 구분하여 적절한 로그 레벨로 기록합니다.</p>
+     * <p>이벤트 기반 설계를 통해 User 도메인과 Admin 도메인 간의 직접적인 의존성을 제거합니다.</p>
      *
-     * @param event 신고 제출 이벤트
+     * @param event 사용자 신고 제출 이벤트 (신고자 정보, 신고 유형, 대상 ID, 신고 내용 포함)
      * @author Jaeik
      * @since 2.0.0
      */

@@ -6,7 +6,10 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 
 /**
  * <h2>소셜 유스케이스</h2>
- * <p>소셜 관련 작업을 처리하는 유즈케이스</p>
+ * <p>
+ * 소셜 플랫폼과의 인증 및 연동 작업을 처리하는 비즈니스 로직의 진입점입니다.
+ * </p>
+ * <p>AuthController에서 카카오 등 소셜 로그인 요청과 관련 작업 처리 시 호출됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -15,24 +18,27 @@ public interface SocialUseCase {
 
     /**
      * <h3>소셜 로그인 처리</h3>
-     * <p>소셜 로그인 요청을 처리하고 로그인 결과를 반환합니다.</p>
+     * <p>소셜 플랫폼의 인가 코드를 사용하여 로그인 처리를 수행합니다.</p>
+     * <p>기존 회원은 즉시 로그인 처리하고, 신규 회원은 임시 데이터를 생성하여 회원가입 단계로 안내합니다.</p>
+     * <p>AuthController에서 GET /api/auth/social/{provider}/callback 요청 처리 시 호출됩니다.</p>
      *
-     * @param provider  소셜 제공자
-     * @param code      인가 코드
-     * @param fcmToken  Firebase Cloud Messaging 토큰
-     * @return 타입 안전성이 보장된 로그인 결과
-     * @since 2.0.0
+     * @param provider 소셜 로그인 제공자 (KAKAO 등)
+     * @param code 소셜 플랫폼에서 발급한 인가 코드
+     * @param fcmToken Firebase Cloud Messaging 토큰 (푸시 알림용, 선택적)
+     * @return 로그인 결과 (기존 회원: 쿠키 포함, 신규 회원: 임시 UUID 포함)
      * @author Jaeik
+     * @since 2.0.0
      */
     LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken);
 
     /**
      * <h3>소셜 로그인 연결 해제</h3>
-     * <p>사용자 차단 시 소셜 플랫폼과의 연결을 해제합니다.</p>
-     * <p>해제 실패 시에도 사용자 차단 프로세스는 계속 진행됩니다.</p>
+     * <p>사용자 차단이나 회원 탈퇴 시 소셜 플랫폼과의 연결을 해제합니다.</p>
+     * <p>해제 실패 시에도 사용자 차단/탈퇴 프로세스는 계속 진행됩니다.</p>
+     * <p>AdminService에서 사용자 차단 처리 시 호출되거나 UserService에서 회원 탈퇴 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 제공자 (KAKAO 등)
-     * @param socialId 소셜 플랫폼에서의 사용자 ID
+     * @param socialId 소셜 플랫폼에서의 사용자 고유 ID
      * @author Jaeik
      * @since 2.0.0
      */

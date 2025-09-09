@@ -12,10 +12,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 /**
- * <h2>관리자 명령 컨트롤러</h2>
+ * <h2>AdminCommandController</h2>
  * <p>
- * 헥사고날 아키텍처의 Primary Adapter (Driving Adapter)
- * 사용자 차단, 강제 탈퇴 등 관리자 권한의 상태 변경 요청을 처리하는 웹 컨트롤러
+ * 헥사고날 아키텍처에서 관리자 도메인의 명령 처리를 위한 Primary Adapter입니다.
+ * </p>
+ * <p>
+ * CQRS 패턴에 따른 명령(Command) 측면의 관리자 API를 제공하며, 시스템 상태를 변경하는 관리자 작업을 처리합니다.
+ * </p>
+ * <p>
+ * 관리자 대시보드에서 신고 검토 후 사용자 제재나 강제 탈퇴 결정을 내릴 때 호출되는 REST API를 제공합니다.
+ * </p>
+ * <p>
+ * Spring Security의 @PreAuthorize를 통해 ADMIN 권한을 가진 사용자만 접근할 수 있도록 보안을 강화합니다.
+ * </p>
+ * <p>
+ * AdminCommandUseCase를 호출하여 실제 비즈니스 로직 실행을 도메인 계층에 위임하고,
+ * HTTP 응답 처리와 같은 웹 계층의 책임만 담당합니다.
  * </p>
  *
  * @author Jaeik
@@ -29,11 +41,15 @@ public class AdminCommandController {
     private final AdminCommandUseCase adminCommandUseCase;
 
     /**
-     * <h3>사용자 제재 API</h3>
-     * <p>신고 정보를 바탕으로 사용자를 제재 처리합니다.</p>
+     * <h3>사용자 제재 처리 API</h3>
+     * <p>관리자 대시보드에서 신고를 검토한 후 해당 사용자에게 제재를 가하는 REST API입니다.</p>
+     * <p>프론트엔드의 관리자 패널에서 제재 버튼을 클릭하면 POST /api/admin/ban 엔드포인트로 요청됩니다.</p>
+     * <p>ADMIN 권한이 있는 관리자만 접근할 수 있으며, 신고 유형과 대상 ID를 기반으로 사용자를 식별합니다.</p>
+     * <p>AdminCommandUseCase.banUser를 호출하여 도메인 계층에서 제재 로직을 실행하고 UserBannedEvent를 발행합니다.</p>
+     * <p>성공적으로 제재 처리되면 200 OK와 함께 완료 메시지를 반환합니다.</p>
      *
-     * @param reportDTO 신고 정보 DTO
-     * @return ResponseEntity<String> 차단 완료 메시지
+     * @param reportDTO 신고 정보 DTO (신고 유형, 대상 ID 포함)
+     * @return ResponseEntity<String> 제재 완료 응답 메시지
      * @author Jaeik
      * @since 2.0.0
      */
@@ -45,11 +61,15 @@ public class AdminCommandController {
     }
 
     /**
-     * <h3>사용자 강제 탈퇴 API</h3>
-     * <p>신고 정보를 바탕으로 사용자를 강제 탈퇴 처리합니다.</p>
+     * <h3>사용자 강제 탈퇴 처리 API</h3>
+     * <p>관리자 대시보드에서 심각한 위반으로 판단하여 사용자를 영구적으로 시스템에서 제거하는 REST API입니다.</p>
+     * <p>프론트엔드의 관리자 패널에서 강제 탈퇴 버튼을 클릭하면 POST /api/admin/withdraw 엔드포인트로 요청됩니다.</p>
+     * <p>ADMIN 권한이 있는 관리자만 접근할 수 있으며, 단순 제재보다 강력한 최종 조치입니다.</p>
+     * <p>AdminCommandUseCase.forceWithdrawUser를 호출하여 AdminWithdrawEvent를 발행하고 Auth 도메인에 탈퇴 처리를 위임합니다.</p>
+     * <p>사용자의 모든 데이터 정리와 재가입 차단 등 종합적인 탈퇴 처리가 이벤트 기반으로 실행됩니다.</p>
      *
-     * @param reportDTO 신고 정보 DTO
-     * @return ResponseEntity<String> 탈퇴 완료 메시지
+     * @param reportDTO 신고 정보 DTO (신고 유형, 대상 ID 포함)
+     * @return ResponseEntity<String> 강제 탈퇴 완료 응답 메시지
      * @author Jaeik
      * @since 2.0.0
      */

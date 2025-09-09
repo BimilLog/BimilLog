@@ -15,9 +15,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * <h2>게시글 추천 쿼리 영속성 어댑터</h2>
- * <p>게시글 추천의 조회와 관련된 데이터베이스 작업을 처리합니다.</p>
- * <p>PostLikeQueryPort 인터페이스를 구현하여 게시글 추천 조회 기능을 제공합니다.</p>
+ * <h2>PostLikeQueryAdapter</h2>
+ * <p>
+ * PostLike 도메인의 조회 포트를 JPA와 QueryDSL 기술로 구현하는 아웃바운드 어댑터입니다.
+ * </p>
+ * <p>
+ * 헥사고날 아키텍처에서 도메인과 영속성 기술을 분리하여 도메인의 순수성을 보장하고,
+ * PostLikeQueryPort 인터페이스를 통해 게시글 좋아요 조회 및 통계 기능을 제공합니다.
+ * </p>
+ * <p>
+ * PostQueryService에서 게시글 상세 조회 시 사용자 좋아요 여부 확인을 위해 호출되고,
+ * 게시글 목록 조회 시 N+1 문제 해결을 위한 배치 조회 기능을 제공합니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
