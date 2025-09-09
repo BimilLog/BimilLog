@@ -46,7 +46,6 @@ public interface CommentDeletePort {
     List<Long> findCommentIdsByUserId(Long userId);
 
 
-
     /**
      * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
      * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
