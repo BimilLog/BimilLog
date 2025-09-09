@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.comment.application.service;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.out.*;
 import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
@@ -18,6 +19,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -53,7 +56,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>새로운 댓글을 작성합니다.</p>
      * <p>부모 댓글이 있는 경우 대댓글로 처리하고, 댓글 생성 이벤트를 발행합니다.</p>
      *
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param userId         사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param commentRequest 댓글 요청 (비밀번호 포함)
      * @throws CustomException 게시글이나 사용자가 존재하지 않는 경우
      * @author Jaeik
@@ -89,7 +92,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>기존 댓글의 내용을 수정합니다.</p>
      * <p>댓글의 권한을 확인한 후 내용을 업데이트합니다.</p>
      *
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param userId         사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param commentRequest 수정할 댓글 요청 (비밀번호 포함)
      * @throws CustomException 댓글이 존재하지 않거나 권한이 없는 경우
      * @author Jaeik
@@ -106,7 +109,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <h3>댓글 삭제</h3>
      * <p>댓글을 삭제합니다. 자손 댓글이 있는 경우 소프트 삭제, 없는 경우 하드 삭제를 수행합니다.</p>
      *
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param userId         사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param commentRequest 삭제할 댓글 요청 (비밀번호 포함)
      * @throws CustomException 댓글이 존재하지 않거나 권한이 없는 경우
      * @author Jaeik
@@ -123,7 +126,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>사용자가 댓글에 추천을 누르거나 취소합니다.</p>
      * <p>이미 추천한 댓글이면 취소하고, 추천하지 않은 댓글이면 추천을 추가합니다.</p>
      *
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 예외 발생
+     * @param userId    사용자 ID (로그인한 경우), null인 경우 예외 발생
      * @param commentId 추천/취소할 댓글 ID
      * @throws CustomException 사용자나 댓글이 존재하지 않는 경우
      * @author Jaeik
@@ -207,7 +210,23 @@ public class CommentCommandService implements CommentCommandUseCase {
     private void saveCommentWithClosure(Post post, User user, String content, Integer password, Long parentId) {
         try {
             Comment comment = Comment.createComment(post, user, content, password);
-            commentSavePort.saveCommentWithClosure(comment, parentId);
+            Comment savedComment = commentSavePort.save(comment);
+
+            List<CommentClosure> closuresToSave = new ArrayList<>();
+            closuresToSave.add(CommentClosure.createCommentClosure(savedComment, savedComment, 0));
+
+            if (parentId != null) {
+                List<CommentClosure> parentClosures = commentSavePort.getParentClosures(parentId)
+                        .orElseThrow(() -> new RuntimeException("부모 댓글을 찾을 수 없습니다."));
+
+                for (CommentClosure parentClosure : parentClosures) {
+                    closuresToSave.add(CommentClosure.createCommentClosure(
+                            parentClosure.getAncestor(),
+                            savedComment,
+                            parentClosure.getDepth() + 1));
+                }
+            }
+            commentSavePort.saveAll(closuresToSave);
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {

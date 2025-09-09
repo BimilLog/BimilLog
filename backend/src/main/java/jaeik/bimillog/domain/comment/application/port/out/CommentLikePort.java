@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.comment.application.port.out;
 
 import jaeik.bimillog.domain.comment.entity.CommentLike;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>댓글 추천 어댑터</h2>
@@ -33,7 +32,6 @@ public interface CommentLikePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Transactional
     void deleteLikeByIds(Long commentId, Long userId);
 
     /**

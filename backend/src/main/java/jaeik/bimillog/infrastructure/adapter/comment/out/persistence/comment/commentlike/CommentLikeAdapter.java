@@ -46,8 +46,8 @@ public class CommentLikeAdapter implements CommentLikePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Transactional
     @Override
+    @Transactional
     public void deleteLikeByIds(Long commentId, Long userId) {
         commentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
     }
