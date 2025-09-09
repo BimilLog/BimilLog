@@ -238,7 +238,6 @@ class CommentCommandServiceTest {
 
         // Then
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
-        verify(commentSavePort).save(testComment);
     }
 
     @Test
@@ -266,7 +265,6 @@ class CommentCommandServiceTest {
 
         // Then
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
-        verify(commentSavePort).save(anonymousComment);
     }
 
     @Test
@@ -281,7 +279,6 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_NOT_FOUND);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
     @Test
@@ -310,7 +307,6 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
     @Test
@@ -339,7 +335,6 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(200L);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
     @Test
@@ -355,7 +350,6 @@ class CommentCommandServiceTest {
         // Then
         verify(commentQueryPort).findById(200L);
         verify(commentDeletePort).deleteComment(200L);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
     @Test
@@ -371,7 +365,6 @@ class CommentCommandServiceTest {
         // Then
         verify(commentQueryPort).findById(200L);
         verify(commentDeletePort).deleteComment(200L);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
 
@@ -387,7 +380,6 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(200L);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
     @Test
@@ -410,7 +402,6 @@ class CommentCommandServiceTest {
 
         // Then
         verify(commentQueryPort).findById(200L);
-        verify(commentSavePort).save(deletedComment);
     }
 
     @Test
@@ -439,7 +430,6 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
 
         verify(commentQueryPort).findById(200L);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
     // === 누락된 댓글 삭제 테스트 케이스들 ===
@@ -524,7 +514,6 @@ class CommentCommandServiceTest {
         // Then
         verify(commentQueryPort).findById(400L);
         verify(commentDeletePort).deleteComment(400L);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
     @Test
@@ -552,7 +541,6 @@ class CommentCommandServiceTest {
         // Then
         verify(commentQueryPort).findById(500L);
         verify(commentDeletePort).deleteComment(500L);
-        verify(commentSavePort, never()).save(any(Comment.class));
     }
 
     @Test

@@ -142,7 +142,7 @@ class CommentSaveAdapterIntegrationTest {
         );
 
         // When: 댓글 저장
-        Comment savedComment = commentSaveAdapter.save(newComment);
+        Comment savedComment = commentRepository.save(newComment);
 
         // Then: 댓글이 올바르게 저장되었는지 검증
         assertThat(savedComment).isNotNull();
@@ -171,7 +171,7 @@ class CommentSaveAdapterIntegrationTest {
         );
 
         // When: 댓글 저장
-        Comment savedComment = commentSaveAdapter.save(commentWithPassword);
+        Comment savedComment = commentRepository.save(commentWithPassword);
 
         // Then: 비밀번호 댓글이 올바르게 저장되었는지 검증
         assertThat(savedComment).isNotNull();
@@ -202,7 +202,7 @@ class CommentSaveAdapterIntegrationTest {
         existingComment.updateComment("수정된 댓글 내용");
 
         // When: 수정된 댓글 저장
-        Comment updatedComment = commentSaveAdapter.save(existingComment);
+        Comment updatedComment = commentRepository.save(existingComment);
 
         // Then: 댓글 내용이 올바르게 업데이트되었는지 검증
         assertThat(updatedComment.getId()).isEqualTo(existingComment.getId());
@@ -222,7 +222,7 @@ class CommentSaveAdapterIntegrationTest {
         Comment longComment = Comment.createComment(testPost, testUser, longContent, null);
 
         // When: 긴 댓글 저장
-        Comment savedComment = commentSaveAdapter.save(longComment);
+        Comment savedComment = commentRepository.save(longComment);
 
         // Then: 긴 댓글이 올바르게 저장되었는지 검증
         assertThat(savedComment).isNotNull();
@@ -247,7 +247,7 @@ class CommentSaveAdapterIntegrationTest {
         );
 
         // When: 복잡한 댓글 저장
-        Comment savedComplexComment = commentSaveAdapter.save(complexComment);
+        Comment savedComplexComment = commentRepository.save(complexComment);
 
         // Then: 모든 필드가 올바르게 저장되었는지 검증
         assertThat(savedComplexComment.getId()).isNotNull();

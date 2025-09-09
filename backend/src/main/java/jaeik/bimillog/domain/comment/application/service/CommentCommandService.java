@@ -96,10 +96,10 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void updateComment(Long userId, Comment.Request commentRequest) {
         Comment comment = validateComment(commentRequest, userId);
         comment.updateComment(commentRequest.content());
-        commentSavePort.save(comment);
     }
 
     /**

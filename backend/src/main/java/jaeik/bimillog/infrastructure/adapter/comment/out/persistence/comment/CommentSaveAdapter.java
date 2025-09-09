@@ -27,19 +27,6 @@ public class CommentSaveAdapter implements CommentSavePort {
     private final CommentRepository commentRepository;
     private final CommentClosureRepository commentClosureRepository;
 
-    /**
-     * <h3>댓글 저장</h3>
-     * <p>주어진 댓글 엔티티를 저장합니다.</p>
-     *
-     * @param comment 저장할 댓글 엔티티
-     * @return Comment 저장된 댓글 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Comment save(Comment comment) {
-        return commentRepository.save(comment);
-    }
 
     /**
      * <h3>댓글 클로저 저장</h3>
