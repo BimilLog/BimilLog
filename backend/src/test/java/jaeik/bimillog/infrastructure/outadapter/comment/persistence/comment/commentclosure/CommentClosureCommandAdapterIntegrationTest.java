@@ -259,7 +259,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         assertThat(beforeDeletion).hasSize(1);
 
         // When: 댓글 클로저 삭제
-        commentDeleteAdapter.delete(commentClosure);
+        commentClosureRepository.delete(commentClosure);
 
         // Then: 댓글 클로저가 삭제되었는지 검증
         List<CommentClosure> afterDeletion = commentClosureRepository.findAll();
@@ -287,7 +287,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         assertThat(beforeDeletion).hasSize(3);
 
         // When: 특정 자손 ID로 클로저 삭제
-        commentDeleteAdapter.deleteByDescendantId(childComment.getId());
+        commentClosureRepository.deleteByDescendantId(childComment.getId());
 
         // Then: 해당 자손을 가진 클로저만 삭제되었는지 검증
         List<CommentClosure> afterDeletion = commentClosureRepository.findAll();
@@ -329,7 +329,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         Long nonExistentDescendantId = 999L;
 
         // When: 존재하지 않는 자손 ID로 삭제 시도
-        commentDeleteAdapter.deleteByDescendantId(nonExistentDescendantId);
+        commentClosureRepository.deleteByDescendantId(nonExistentDescendantId);
 
         // Then: 기존 클로저는 삭제되지 않아야 함
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
@@ -384,7 +384,7 @@ class CommentClosureCommandAdapterIntegrationTest {
         assertThat(commentClosureRepository.findAll()).hasSize(3);
 
         // When: 특정 자손의 모든 클로저 삭제
-        commentDeleteAdapter.deleteByDescendantId(childComment.getId());
+        commentClosureRepository.deleteByDescendantId(childComment.getId());
 
         // Then: 해당 자손의 모든 클로저가 삭제되었는지 검증
         List<CommentClosure> remainingClosures = commentClosureRepository.findAll();

@@ -159,6 +159,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public void processUserCommentsOnWithdrawal(Long userId) {
         List<Long> commentIds = commentDeletePort.findCommentIdsByUserId(userId);
         commentIds.forEach(this::handleCommentDeletion);

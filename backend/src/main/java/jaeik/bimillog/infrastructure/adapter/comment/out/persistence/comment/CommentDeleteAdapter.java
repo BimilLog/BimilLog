@@ -1,9 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;
-import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,7 +20,6 @@ import java.util.List;
 public class CommentDeleteAdapter implements CommentDeletePort {
 
     private final CommentRepository commentRepository;
-    private final CommentClosureRepository commentClosureRepository;
 
     /**
      * <h3>게시글 ID로 모든 댓글 삭제</h3>
@@ -103,31 +100,6 @@ public class CommentDeleteAdapter implements CommentDeletePort {
         commentRepository.hardDeleteComment(commentId);
     }
 
-    /**
-     * <h3>댓글 클로저 삭제</h3>
-     * <p>주어진 댓글 클로저 엔티티를 삭제합니다.</p>
-     *
-     * @param commentClosure 삭제할 댓글 클로저 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void delete(CommentClosure commentClosure) {
-        commentClosureRepository.delete(commentClosure);
-    }
-
-    /**
-     * <h3>자손 ID로 댓글 클로저 삭제</h3>
-     * <p>주어진 자손 댓글 ID와 관련된 모든 댓글 클로저 엔티티를 삭제합니다.</p>
-     *
-     * @param commentId 자손 댓글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteByDescendantId(Long commentId) {
-        commentClosureRepository.deleteByDescendantId(commentId);
-    }
 
     /**
      * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>

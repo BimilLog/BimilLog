@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.comment.application.port.out;
 
-import jaeik.bimillog.domain.comment.entity.CommentClosure;
-
 import java.util.List;
 
 /**
@@ -48,25 +46,6 @@ public interface CommentDeletePort {
     List<Long> findCommentIdsByUserId(Long userId);
 
 
-    /**
-     * <h3>댓글 클로저 삭제</h3>
-     * <p>주어진 댓글 클로저 엔티티를 삭제합니다.</p>
-     *
-     * @param commentClosure 삭제할 댓글 클로저 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void delete(CommentClosure commentClosure);
-
-    /**
-     * <h3>자손 ID로 댓글 클로저 삭제</h3>
-     * <p>주어진 자손 댓글 ID와 관련된 모든 댓글 클로저 엔티티를 삭제합니다.</p>
-     *
-     * @param commentId 자손 댓글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void deleteByDescendantId(Long commentId);
 
     /**
      * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
