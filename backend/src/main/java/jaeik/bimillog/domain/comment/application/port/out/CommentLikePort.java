@@ -22,7 +22,6 @@ public interface CommentLikePort {
      */
     CommentLike save(CommentLike commentLike);
 
-
     /**
      * <h3>댓글 추천 삭제</h3>
      * <p>주어진 댓글 ID와 사용자 ID로 추천 관계를 삭제합니다.</p>

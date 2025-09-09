@@ -27,7 +27,6 @@ public interface CommentSavePort {
      */
     Comment save(Comment comment);
 
-
     /**
      * <h3>댓글 클로저 저장</h3>
      * <p>주어진 댓글 클로저 엔티티를 저장합니다.</p>

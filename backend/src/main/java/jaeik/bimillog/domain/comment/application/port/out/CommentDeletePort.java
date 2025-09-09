@@ -21,21 +21,9 @@ public interface CommentDeletePort {
     void deleteAllByPostId(Long postId);
 
     /**
-     * <h3>사용자 댓글 익명화</h3>
-     * <p>특정 사용자가 작성한 모든 댓글을 익명화 처리합니다. (사용자 탈퇴 시 호출)</p>
-     * <p>일종의 소프트 삭제로 간주하여 삭제 관련 포트에 포함</p>
-     *
-     * @param userId 익명화할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void anonymizeUserComments(Long userId);
-
-    /**
      * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
      * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
      * <p>자손이 없으면 하드 삭제를, 있으면 소프트 삭제를 수행합니다.</p>
-     * <p>성능 최적화: 3개의 메서드 호출을 1개의 통합 메서드로 처리</p>
      *
      * @param commentId 삭제할 댓글 ID
      * @author Jaeik

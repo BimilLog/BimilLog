@@ -83,8 +83,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // userLike는 서브쿼리로 이미 계산되어 후처리 불필요
-
         Long total = jpaQueryFactory
                 .select(comment.count())
                 .from(comment)

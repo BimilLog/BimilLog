@@ -20,6 +20,17 @@ import java.util.Map;
 public interface CommentQueryPort {
 
     /**
+     * <h3>ID로 댓글 조회</h3>
+     * <p>주어진 ID로 댓글을 조회합니다.</p>
+     *
+     * @param id 댓글 ID
+     * @return Optional<Comment> 조회된 댓글 엔티티. 존재하지 않으면 Optional.empty()
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Comment findById(Long id);
+
+    /**
      * <h3>인기 댓글 목록 조회</h3>
      * <p>주어진 게시글 ID에 대한 인기 댓글 목록을 조회합니다.</p>
      *
@@ -32,8 +43,8 @@ public interface CommentQueryPort {
     List<CommentInfo> findPopularComments(Long postId, Long userId);
 
     /**
-     * <h3>게시글 ID 목록에 대한 댓글 수 조회 (배치)</h3>
-     * <p>여러 게시글의 댓글 수를 배치로 조회하여 N+1 문제를 해결합니다.</p>
+     * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
+     * <p>여러 게시글의 댓글 수를 배치로 조회합니다</p>
      *
      * @param postIds 게시글 ID 목록
      * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
@@ -54,17 +65,6 @@ public interface CommentQueryPort {
      * @since 2.0.0
      */
     Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long userId);
-
-    /**
-     * <h3>ID로 댓글 조회</h3>
-     * <p>주어진 ID로 댓글을 조회합니다.</p>
-     *
-     * @param id 댓글 ID
-     * @return Optional<Comment> 조회된 댓글 엔티티. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Comment findById(Long id);
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>

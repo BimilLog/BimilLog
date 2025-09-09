@@ -35,31 +35,24 @@ public class CommentDeleteAdapter implements CommentDeletePort {
     }
 
     /**
-     * <h3>사용자 댓글 익명화</h3>
-     * <p>특정 사용자가 작성한 모든 댓글을 익명화 처리합니다. (사용자 탈퇴 시 호출)</p>
-     * <p>일종의 소프트 삭제로 간주하여 삭제 관련 포트에 포함</p>
+     * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
+     * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
+     * <p>자손이 없으면 하드 삭제를, 있으면 소프트 삭제를 수행합니다.</p>
      *
-     * @param userId 익명화할 사용자 ID
+     * @param commentId 삭제할 댓글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void anonymizeUserComments(Long userId) {
-        commentRepository.anonymizeUserComments(userId);
-    }
+    public void deleteComment(Long commentId) {
+        // 먼저 조건부 소프트 삭제 시도
+        int softDeleteCount = conditionalSoftDelete(commentId);
 
-    /**
-     * <h3>사용자 댓글 ID 목록 조회</h3>
-     * <p>특정 사용자가 작성한 모든 댓글 ID 목록을 조회합니다.</p>
-     * <p>삭제 로직에서 활용하기 위해 삭제 포트에 포함</p>
-     *
-     * @param userId 사용자 ID
-     * @return List<Long> 사용자가 작성한 댓글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private List<Long> findCommentIdsByUserId(Long userId) {
-        return commentRepository.findCommentIdsByUserId(userId);
+        // 소프트 삭제가 되지 않았다면 (자손이 없는 경우) 하드 삭제 수행
+        if (softDeleteCount == 0) {
+            deleteClosuresByDescendantId(commentId);
+            hardDeleteComment(commentId);
+        }
     }
 
     /**
@@ -77,15 +70,44 @@ public class CommentDeleteAdapter implements CommentDeletePort {
     public void processUserCommentsOnWithdrawal(Long userId) {
         // 1. 자손이 있는 댓글들을 소프트 삭제
         int softDeletedCount = batchSoftDeleteUserCommentsWithDescendants(userId);
-        
+
         // 2. 자손이 없는 댓글들을 하드 삭제 (클로저도 함께 삭제)
-        int hardDeletedCount = batchHardDeleteUserCommentsWithoutDescendants(userId);
-        
+        batchHardDeleteUserCommentsWithoutDescendants(userId);
+
         // 3. 소프트 삭제된 댓글들은 익명화 처리
         if (softDeletedCount > 0) {
             anonymizeUserComments(userId);
         }
     }
+
+    /**
+     * <h3>사용자 댓글 ID 목록 조회</h3>
+     * <p>특정 사용자가 작성한 모든 댓글 ID 목록을 조회합니다.</p>
+     * <p>삭제 로직에서 활용하기 위해 삭제 포트에 포함</p>
+     *
+     * @param userId 사용자 ID
+     * @return List<Long> 사용자가 작성한 댓글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private List<Long> findCommentIdsByUserId(Long userId) {
+        return commentRepository.findCommentIdsByUserId(userId);
+    }
+
+    /**
+     * <h3>사용자 댓글 익명화</h3>
+     * <p>특정 사용자가 작성한 모든 댓글을 익명화 처리합니다. (사용자 탈퇴 시 호출)</p>
+     * <p>일종의 소프트 삭제로 간주하여 삭제 관련 포트에 포함</p>
+     *
+     * @param userId 익명화할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void anonymizeUserComments(Long userId) {
+        commentRepository.anonymizeUserComments(userId);
+    }
+
+
 
     /**
      * <h3>사용자 댓글 배치 소프트 삭제</h3>
@@ -105,12 +127,11 @@ public class CommentDeleteAdapter implements CommentDeletePort {
      * <p>자손이 없는 사용자 댓글들을 배치로 하드 삭제합니다.</p>
      *
      * @param userId 사용자 ID
-     * @return int 하드 삭제된 댓글 수
      * @author Jaeik
      * @since 2.0.0
      */
-    private int batchHardDeleteUserCommentsWithoutDescendants(Long userId) {
-        return commentRepository.batchHardDeleteUserCommentsWithoutDescendants(userId);
+    private void batchHardDeleteUserCommentsWithoutDescendants(Long userId) {
+        commentRepository.batchHardDeleteUserCommentsWithoutDescendants(userId);
     }
 
     /**
@@ -148,28 +169,5 @@ public class CommentDeleteAdapter implements CommentDeletePort {
      */
     private void hardDeleteComment(Long commentId) {
         commentRepository.hardDeleteComment(commentId);
-    }
-
-
-    /**
-     * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
-     * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
-     * <p>자손이 없으면 하드 삭제를, 있으면 소프트 삭제를 수행합니다.</p>
-     * <p>성능 최적화: 하나의 쿼리로 조건부 처리</p>
-     *
-     * @param commentId 삭제할 댓글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteComment(Long commentId) {
-        // 먼저 조건부 소프트 삭제 시도
-        int softDeleteCount = conditionalSoftDelete(commentId);
-        
-        // 소프트 삭제가 되지 않았다면 (자손이 없는 경우) 하드 삭제 수행
-        if (softDeleteCount == 0) {
-            deleteClosuresByDescendantId(commentId);
-            hardDeleteComment(commentId);
-        }
     }
 }
