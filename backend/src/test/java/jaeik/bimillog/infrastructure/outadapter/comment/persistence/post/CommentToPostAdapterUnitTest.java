@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.post.CommentCommentToPostAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.post.CommentToPostAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,8 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,21 +25,21 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 
 /**
- * <h2>UserToPostAdapter 단위 테스트</h2>
- * <p>Comment 도메인에서 Post 도메인에 접근하는 LoadPostAdapter의 단위 테스트</p>
+ * <h2>CommentToPostAdapterUnitTest 단위 테스트</h2>
+ * <p>Comment 도메인에서 Post 도메인에 접근하는 CommentToPostAdapterUnitTest 단위 테스트</p>
  * <p>다른 도메인 UseCase를 호출하는 어댑터이므로 Mock을 사용한 단위 테스트로 작성</p>
  * 
  * @author Jaeik
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class UserToPostAdapterUnitTest {
+class CommentToPostAdapterUnitTest {
 
     @Mock
     private PostQueryUseCase postQueryUseCase;
 
     @InjectMocks
-    private CommentCommentToPostAdapter commentLoadPostAdapter;
+    private CommentToPostAdapter commentLoadPostAdapter;
 
     private User testUser;
     private Post testPost;

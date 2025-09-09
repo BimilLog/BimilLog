@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.outadapter.comment.persistence.comment.comment;
+package jaeik.bimillog.infrastructure.outadapter.comment.persistence.comment;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
@@ -12,9 +12,9 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentQueryAdapter;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentlike.CommentLikeRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentQueryAdapter;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa.CommentRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

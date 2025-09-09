@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <h2>Post 도메인용 Comment 조회 ㅍ트</h2>
+ * <h2>Post 도메인용 Comment 조회 포트</h2>
  * <p>Post 도메인에서 Comment 도메인의 데이터가 필요할 때 사용하는 인터페이스입니다.</p>
  *
  * @author Jaeik

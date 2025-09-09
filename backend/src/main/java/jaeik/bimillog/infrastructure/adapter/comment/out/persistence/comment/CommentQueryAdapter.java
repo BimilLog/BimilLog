@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment;
+package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.comment.entity.*;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.QUser;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,8 +19,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getCommentInfoProjectionWithUserLike;
-import static jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.CommentDtoProjection.getSimpleCommentInfoProjection;
+import static jaeik.bimillog.infrastructure.adapter.comment.out.persistence.util.CommentProjection.getCommentInfoProjectionWithUserLike;
+import static jaeik.bimillog.infrastructure.adapter.comment.out.persistence.util.CommentProjection.getSimpleCommentInfoProjection;
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>

@@ -1,7 +1,8 @@
-package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentlike;
+package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa.CommentLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment;
 import jaeik.bimillog.domain.comment.application.port.out.CommentSavePort;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa.CommentClosureRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

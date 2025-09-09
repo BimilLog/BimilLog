@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment;
+package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.util;
 
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
@@ -10,17 +10,17 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * <h2>댓글 DTO 프로젝션</h2>
- * <p>댓글 관련 데이터 전송 객체(DTO) 프로젝션 클래스</p>
+ * <h2>댓글 프로젝션</h2>
+ * <p>댓글 관련 데이터 전송 객체 프로젝션 클래스</p>
  * <p>반환데이터를 프로젝션하는 클래스를 선언합니다.</p>
- * <p>comment 도메인의 DTO를 담당하며 CommentDTO SimpleCommentDTO를 담당합니다</p>
+ * <p>comment 도메인을 담당합니다</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Getter
 @RequiredArgsConstructor
-public class CommentDtoProjection {
+public class CommentProjection {
 
     private static final QComment comment = QComment.comment;
     private static final QCommentLike commentLike = QCommentLike.commentLike;

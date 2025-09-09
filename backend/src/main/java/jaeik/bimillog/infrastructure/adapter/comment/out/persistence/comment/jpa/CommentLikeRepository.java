@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentlike;
+package jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa;
 
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import org.springframework.data.jpa.repository.JpaRepository;

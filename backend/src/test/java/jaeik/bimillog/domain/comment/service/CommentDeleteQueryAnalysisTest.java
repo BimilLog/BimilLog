@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.comment.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.commentclosure.CommentClosureRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa.CommentRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.persistence.comment.jpa.CommentClosureRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
