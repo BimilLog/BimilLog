@@ -62,34 +62,39 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>트랜잭션 내에서 댓글과 클로저 엔티티를 원자적으로 저장하고, 게시글 작성자에게 알림을 위한 이벤트를 발행합니다.</p>
      * <p>CommentCreatedEvent를 통해 notification 도메인과 비동기 통신하여 실시간 알림을 제공합니다.</p>
      *
-     * @param userId         로그인한 사용자 ID (null이면 익명 댓글로 처리)
-     * @param commentRequest 댓글 생성 요청 정보 (내용, 게시글 ID, 부모 댓글 ID, 비밀번호 포함)
+     * @param userId 로그인한 사용자 ID (null이면 익명 댓글로 처리)
+     * @param postId 게시글 ID
+     * @param parentId 부모 댓글 ID (대댓글인 경우)
+     * @param content 댓글 내용
+     * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @throws CustomException 게시글이 존재하지 않거나 부모 댓글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void writeComment(Long userId, Comment.Request commentRequest) {
-        Post post = commentToPostPort.findById(commentRequest.postId());
+    public void writeComment(Long userId, Long postId, Long parentId, String content, Integer password) {
+        try {
+            Post post = commentToPostPort.findById(postId);
 
-        User user = Optional.ofNullable(userId)
-                .flatMap(commentToUserPort::findById)
-                .orElse(null);
+            User user = Optional.ofNullable(userId)
+                    .flatMap(commentToUserPort::findById)
+                    .orElse(null);
 
-        String userName = (user != null) ? user.getUserName() : "익명";
+            String userName = (user != null) ? user.getUserName() : "익명";
 
-        saveCommentWithClosure(
-                post,
-                user,
-                commentRequest.content(),
-                commentRequest.password(),
-                commentRequest.parentId());
+            saveCommentWithClosure(post, user, content, password, parentId);
 
-        if (post.getUser() != null) {
-            eventPublisher.publishEvent(new CommentCreatedEvent(
-                    post.getUser().getId(),
-                    userName,
-                    commentRequest.postId()));
+            if (post.getUser() != null) {
+                eventPublisher.publishEvent(new CommentCreatedEvent(
+                        post.getUser().getId(),
+                        userName,
+                        postId));
+            }
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("댓글 작성 중 예상치 못한 오류 발생", e);
+            throw new CommentCustomException(CommentErrorCode.COMMENT_WRITE_FAILED, e);
         }
     }
 
@@ -100,32 +105,35 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>트랜잭션 내에서 댓글 엔티티의 내용만 업데이트하며, 계층 구조나 메타데이터는 변경하지 않습니다.</p>
      * <p>권한 검증 실패 시 적절한 도메인 예외를 발생시켜 보안을 보장합니다.</p>
      *
-     * @param userId         로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
-     * @param commentRequest 댓글 수정 요청 정보 (댓글 ID, 새 내용, 비밀번호 포함)
+     * @param commentId 수정할 댓글 ID
+     * @param userId 로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
+     * @param content 새로운 댓글 내용
+     * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @throws CustomException 댓글을 찾을 수 없거나 권한 검증에 실패한 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void updateComment(Long userId, Comment.Request commentRequest) {
-        Comment comment = validateComment(commentRequest, userId);
-        comment.updateComment(commentRequest.content());
+    public void updateComment(Long commentId, Long userId, String content, Integer password) {
+        Comment comment = validateComment(commentId, userId, password);
+        comment.updateComment(content);
     }
 
     /**
      * <h3>댓글 삭제</h3>
      * <p>댓글을 삭제합니다. 자손 댓글이 있는 경우 소프트 삭제, 없는 경우 하드 삭제를 수행합니다.</p>
      *
-     * @param userId         사용자 ID (로그인한 경우), null인 경우 익명 댓글
-     * @param commentRequest 삭제할 댓글 요청 (비밀번호 포함)
+     * @param commentId 삭제할 댓글 ID
+     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @throws CustomException 댓글이 존재하지 않거나 권한이 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteComment(Long userId, Comment.Request commentRequest) {
-        Comment comment = validateComment(commentRequest, userId);
+    public void deleteComment(Long commentId, Long userId, Integer password) {
+        Comment comment = validateComment(commentId, userId, password);
         handleCommentDeletion(comment.getId());
     }
 
@@ -174,30 +182,27 @@ public class CommentCommandService implements CommentCommandUseCase {
 
     /**
      * <h3>댓글 유효성 검사 및 조회</h3>
-     * <p>댓글 요청과 사용자 ID를 기반으로 댓글의 유효성을 검사하고 댓글 엔티티를 조회합니다.</p>
-     * <p>비밀번호가 일치하지 않거나, 사용자 본인이 아닌 경우 예외를 발생시킵니다.</p>
+     * <p>댓글 ID와 사용자 정보를 기반으로 댓글의 유효성을 검사하고 댓글 엔티티를 조회합니다.</p>
+     * <p>Comment 엔티티의 canModify 메서드를 활용하여 권한을 검증합니다.</p>
      *
-     * @param commentRequest 댓글 요청 (비밀번호 포함)
-     * @param userId         사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param commentId 댓글 ID
+     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @return Comment 유효성 검사를 통과한 댓글 엔티티
-     * @throws CustomException 댓글을 찾을 수 없거나, 비밀번호가 일치하지 않거나, 사용자 권한이 없는 경우
+     * @throws CustomException 댓글을 찾을 수 없거나, 권한이 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    private Comment validateComment(Comment.Request commentRequest, Long userId) {
-        Comment comment = commentQueryPort.findById(commentRequest.id());
+    private Comment validateComment(Long commentId, Long userId, Integer password) {
+        Comment comment = commentQueryPort.findById(commentId);
 
-        // 비밀 댓글인 경우 비밀번호 확인
-        if (commentRequest.password() != null) {
-            if (!Objects.equals(comment.getPassword(), commentRequest.password())) {
-                throw new CommentCustomException(CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH);
-            }
-        } else {
-            // 로그인 사용자이고 소유자인지 확인
-            if (userId == null || comment.getUser() == null || !Objects.equals(comment.getUser().getId(), userId)) {
-                throw new CommentCustomException(CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
-            }
+        if (!comment.canModify(userId, password)) {
+            throw new CommentCustomException(
+                    password != null ? 
+                    CommentErrorCode.COMMENT_PASSWORD_NOT_MATCH : 
+                    CommentErrorCode.ONLY_COMMENT_OWNER_UPDATE);
         }
+        
         return comment;
     }
 
@@ -215,31 +220,24 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     private void saveCommentWithClosure(Post post, User user, String content, Integer password, Long parentId) {
-        try {
-            Comment comment = Comment.createComment(post, user, content, password);
-            Comment savedComment = commentSavePort.save(comment);
+        Comment comment = Comment.createComment(post, user, content, password);
+        Comment savedComment = commentSavePort.save(comment);
 
-            List<CommentClosure> closuresToSave = new ArrayList<>();
-            closuresToSave.add(CommentClosure.createCommentClosure(savedComment, savedComment, 0));
+        List<CommentClosure> closuresToSave = new ArrayList<>();
+        closuresToSave.add(CommentClosure.createCommentClosure(savedComment, savedComment, 0));
 
-            if (parentId != null) {
-                List<CommentClosure> parentClosures = commentSavePort.getParentClosures(parentId)
-                        .orElseThrow(() -> new RuntimeException("부모 댓글을 찾을 수 없습니다."));
+        if (parentId != null) {
+            List<CommentClosure> parentClosures = commentSavePort.getParentClosures(parentId)
+                    .orElseThrow(() -> new RuntimeException("부모 댓글을 찾을 수 없습니다."));
 
-                for (CommentClosure parentClosure : parentClosures) {
-                    closuresToSave.add(CommentClosure.createCommentClosure(
-                            parentClosure.getAncestor(),
-                            savedComment,
-                            parentClosure.getDepth() + 1));
-                }
+            for (CommentClosure parentClosure : parentClosures) {
+                closuresToSave.add(CommentClosure.createCommentClosure(
+                        parentClosure.getAncestor(),
+                        savedComment,
+                        parentClosure.getDepth() + 1));
             }
-            commentSavePort.saveAll(closuresToSave);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("댓글 작성 중 예상치 못한 오류 발생", e);
-            throw new CommentCustomException(CommentErrorCode.COMMENT_WRITE_FAILED, e);
         }
+        commentSavePort.saveAll(closuresToSave);
     }
 
     /**

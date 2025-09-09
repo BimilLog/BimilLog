@@ -26,11 +26,14 @@ public interface CommentCommandUseCase {
      * <p>CommentCommandController에서 API 요청을 처리하기 위해 호출합니다.</p>
      *
      * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
-     * @param commentRequest  댓글 요청 (비밀번호 포함)
+     * @param postId 게시글 ID
+     * @param parentId 부모 댓글 ID (대댓글인 경우)
+     * @param content 댓글 내용
+     * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
-    void writeComment(Long userId, Comment.Request commentRequest);
+    void writeComment(Long userId, Long postId, Long parentId, String content, Integer password);
 
     /**
      * <h3>댓글 수정</h3>
@@ -39,12 +42,14 @@ public interface CommentCommandUseCase {
      * <p>삭제된 댓글이나 타인의 댓글 수정 시도 시 예외를 발생시킵니다.</p>
      * <p>CommentCommandController에서 API 요청을 처리하기 위해 호출합니다.</p>
      *
+     * @param commentId 수정할 댓글 ID
      * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
-     * @param commentRequest  수정할 댓글 요청 (비밀번호 포함)
+     * @param content 새로운 댓글 내용
+     * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
-    void updateComment(Long userId, Comment.Request commentRequest);
+    void updateComment(Long commentId, Long userId, String content, Integer password);
 
     /**
      * <h3>댓글 삭제</h3>
@@ -53,12 +58,13 @@ public interface CommentCommandUseCase {
      * <p>댓글 작성자만 삭제가 가능하며, 익명 댓글의 경우 비밀번호 검증을 통해 본인 확인을 수행합니다.</p>
      * <p>CommentCommandController에서 API 요청을 처리하기 위해 호출합니다.</p>
      *
+     * @param commentId 삭제할 댓글 ID
      * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
-     * @param commentRequest  삭제할 댓글 요청 (비밀번호 포함)
+     * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteComment(Long userId, Comment.Request commentRequest);
+    void deleteComment(Long commentId, Long userId, Integer password);
 
     /**
      * <h3>사용자 탈퇴 시 댓글 처리</h3>

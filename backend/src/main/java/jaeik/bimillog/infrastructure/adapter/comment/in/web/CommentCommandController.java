@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.comment.in.web;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
-import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -41,7 +40,7 @@ public class CommentCommandController {
      * <h3>댓글 작성 API</h3>
      * <p>클라이언트에서 전송한 댓글 작성 POST 요청을 처리합니다.</p>
      * <p>익명/로그인 사용자 모두 댓글 작성이 가능하며, 계층형 댓글 구조를 지원합니다.</p>
-     * <p>검증된 요청 데이터를 도메인 객체로 변환하여 CommentCommandUseCase에 전달합니다.</p>
+     * <p>검증된 요청 데이터를 직접 CommentCommandUseCase에 전달합니다.</p>
      * <p>프론트엔드의 댓글 작성 폼에서 호출되며, 작성 완료 후 UI 갱신을 위한 응답을 반환합니다.</p>
      *
      * @param commentReqDto  댓글 요청 DTO (내용, 게시글 ID, 부모 댓글 ID, 비밀번호 등)
@@ -54,9 +53,14 @@ public class CommentCommandController {
     public ResponseEntity<String> writeComment(
             @Valid @RequestBody CommentReqDTO commentReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Comment.Request commentRequest = convertToCommentRequest(commentReqDto);
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        commentCommandUseCase.writeComment(userId, commentRequest);
+        commentCommandUseCase.writeComment(
+                userId, 
+                commentReqDto.getPostId(),
+                commentReqDto.getParentId(),
+                commentReqDto.getContent(),
+                commentReqDto.getPassword()
+        );
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
@@ -64,7 +68,7 @@ public class CommentCommandController {
      * <h3>댓글 수정 API</h3>
      * <p>클라이언트에서 전송한 댓글 수정 POST 요청을 처리합니다.</p>
      * <p>작성자 본인 확인 로직을 통해 권한을 검증하며, 익명 댓글의 경우 비밀번호를 확인합니다.</p>
-     * <p>검증된 수정 데이터를 도메인 계층으로 전달하여 댓글 내용을 업데이트합니다.</p>
+     * <p>검증된 수정 데이터를 직접 도메인 계층으로 전달하여 댓글 내용을 업데이트합니다.</p>
      * <p>프론트엔드의 댓글 수정 모달에서 호출되며, 수정 완료 후 UI 새로고침을 위한 응답을 반환합니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보 (권한 확인용)
@@ -77,9 +81,13 @@ public class CommentCommandController {
     public ResponseEntity<String> updateComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        Comment.Request commentRequest = convertToCommentRequest(commentReqDto);
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        commentCommandUseCase.updateComment(userId, commentRequest);
+        commentCommandUseCase.updateComment(
+                commentReqDto.getId(),
+                userId,
+                commentReqDto.getContent(),
+                commentReqDto.getPassword()
+        );
         return ResponseEntity.ok("댓글 수정 완료");
     }
 
@@ -100,9 +108,12 @@ public class CommentCommandController {
     public ResponseEntity<String> deleteComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        Comment.Request commentRequest = convertToCommentRequest(commentReqDto);
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        commentCommandUseCase.deleteComment(userId, commentRequest);
+        commentCommandUseCase.deleteComment(
+                commentReqDto.getId(),
+                userId,
+                commentReqDto.getPassword()
+        );
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 
@@ -128,25 +139,4 @@ public class CommentCommandController {
         return ResponseEntity.ok("추천 처리 완료");
     }
 
-    /**
-     * <h3>DTO를 도메인 객체로 변환</h3>
-     * <p>웹 계층의 CommentReqDTO를 도메인 계층의 Comment.Request로 변환합니다.</p>
-     * <p>헥사고날 아키텍처에서 인프라스트럭처와 도메인 간 의존성을 분리하기 위한 변환 로직입니다.</p>
-     * <p>모든 댓글 Command 작업에서 공통적으로 사용되는 내부 유틸리티 메서드입니다.</p>
-     *
-     * @param commentReqDto 웹 계층 댓글 요청 DTO
-     * @return Comment.Request 도메인 계층 댓글 요청 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Comment.Request convertToCommentRequest(CommentReqDTO commentReqDto) {
-        return Comment.Request.builder()
-                .id(commentReqDto.getId())
-                .parentId(commentReqDto.getParentId())
-                .postId(commentReqDto.getPostId())
-                .userId(commentReqDto.getUserId())
-                .content(commentReqDto.getContent())
-                .password(commentReqDto.getPassword())
-                .build();
-    }
 }

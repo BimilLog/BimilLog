@@ -175,37 +175,6 @@ public class CommentTestDataBuilder {
         return requestDto;
     }
 
-    /**
-     * <h3>테스트용 댓글 요청 엔티티 생성</h3>
-     * <p>비즈니스 로직 호출에 사용할 댓글 요청 엔티티를 생성합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param content 댓글 내용
-     * @return Comment.Request 테스트용 댓글 요청 엔티티
-     */
-    public static Comment.Request createCommentRequest(Long postId, String content) {
-        return Comment.Request.builder()
-                .postId(postId)
-                .content(content)
-                .build();
-    }
-
-    /**
-     * <h3>테스트용 익명 댓글 요청 엔티티 생성</h3>
-     * <p>비밀번호가 포함된 익명 댓글 요청 엔티티를 생성합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param content 댓글 내용
-     * @param password 댓글 비밀번호
-     * @return Comment.Request 테스트용 익명 댓글 요청 엔티티
-     */
-    public static Comment.Request createAnonymousCommentRequest(Long postId, String content, Integer password) {
-        return Comment.Request.builder()
-                .postId(postId)
-                .content(content)
-                .password(password)
-                .build();
-    }
 
     /**
      * <h3>테스트용 CustomUserDetails 생성</h3>

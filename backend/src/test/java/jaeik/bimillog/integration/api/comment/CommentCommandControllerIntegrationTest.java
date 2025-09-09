@@ -151,9 +151,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("대댓글 작성 통합 테스트")
     void writeReplyComment_IntegrationTest() throws Exception {
         // Given - 부모 댓글 생성 (비즈니스 로직 사용하여 클로저 테이블 보장)
-        Comment.Request parentRequest = CommentTestDataBuilder.createCommentRequest(
-                testPost.getId(), "부모 댓글입니다.");
-        commentCommandUseCase.writeComment(testUser.getId(), parentRequest);
+        commentCommandUseCase.writeComment(testUser.getId(), testPost.getId(), null, "부모 댓글입니다.", null);
         
         // 생성된 부모 댓글 조회
         Comment parentComment = commentRepository.findAll()
@@ -235,9 +233,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("댓글 삭제 통합 테스트")
     void deleteComment_IntegrationTest() throws Exception {
         // Given - 비즈니스 로직으로 댓글 생성 (클로저 포함)
-        Comment.Request commentRequest = CommentTestDataBuilder.createCommentRequest(
-                testPost.getId(), "테스트 댓글입니다.");
-        commentCommandUseCase.writeComment(testUser.getId(), commentRequest);
+        commentCommandUseCase.writeComment(testUser.getId(), testPost.getId(), null, "테스트 댓글입니다.", null);
         
         // 생성된 댓글 조회
         Comment existingComment = commentRepository.findAll()
@@ -315,9 +311,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("익명 댓글 삭제 통합 테스트 - 패스워드 인증")
     void deleteAnonymousComment_IntegrationTest() throws Exception {
         // Given: 비즈니스 로직으로 익명 댓글 생성 (클로저 포함)
-        Comment.Request commentRequest = CommentTestDataBuilder.createAnonymousCommentRequest(
-                testPost.getId(), "익명 댓글입니다", 1234);
-        commentCommandUseCase.writeComment(null, commentRequest);
+        commentCommandUseCase.writeComment(null, testPost.getId(), null, "익명 댓글입니다", 1234);
         
         // 생성된 익명 댓글 조회
         Comment anonymousComment = commentRepository.findAll()
@@ -347,9 +341,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("익명 댓글 삭제 실패 - 잘못된 패스워드")
     void deleteAnonymousComment_WrongPassword_IntegrationTest() throws Exception {
         // Given: 비즈니스 로직으로 익명 댓글 생성
-        Comment.Request commentRequest = CommentTestDataBuilder.createAnonymousCommentRequest(
-                testPost.getId(), "익명 댓글입니다", 1234);
-        commentCommandUseCase.writeComment(null, commentRequest);
+        commentCommandUseCase.writeComment(null, testPost.getId(), null, "익명 댓글입니다", 1234);
         
         // 생성된 익명 댓글 조회
         Comment anonymousComment = commentRepository.findAll()
