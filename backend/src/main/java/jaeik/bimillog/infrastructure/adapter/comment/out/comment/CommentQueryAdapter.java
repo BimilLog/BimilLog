@@ -24,9 +24,17 @@ import static jaeik.bimillog.infrastructure.adapter.comment.out.util.CommentProj
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>
- * <p>댓글 엔티티의 조회 작업을 처리하는 아웃바운드 어댑터 구현체</p>
- * <p>CQRS 패턴에 따른 쿼리 전용 어댑터</p>
- * <p>QueryDSL을 사용하여 복잡한 조회 쿼리를 처리합니다</p>
+ * <p>
+ * 헥사고날 아키텍처의 Secondary Adapter로서 CommentQueryPort 인터페이스를 구현합니다.
+ * </p>
+ * <p>
+ * JPA Repository와 QueryDSL을 사용하여 댓글 엔티티의 조회 작업을 수행합니다.
+ * 복잡한 JOIN 쿼리와 페이지네이션, 집계 연산을 QueryDSL로 처리합니다.
+ * </p>
+ * <p>
+ * 이 어댑터가 존재하는 이유: 댓글 조회는 댓글-사용자-추천-클로저 테이블간의
+ * 복잡한 조인 연산이 필요하여, 단순한 CRUD 이상의 복잡성을 가지므로 별도 어댑터로 분리하였습니다.
+ * </p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -45,10 +53,13 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>ID로 댓글 조회</h3>
-     * <p>주어진 ID로 댓글을 조회합니다.</p>
+     * <p>주어진 ID로 댓글을 JPA로 조회합니다.</p>
+     * <p>CommentQueryUseCase가 단일 댓글 조회 시 호출합니다.</p>
+     * <p>CommentDeleteUseCase가 댓글 삭제 전 존재 여부 확인을 위해 호출합니다.</p>
      *
      * @param commentId 댓글 ID
-     * @return Optional<Comment> 조회된 댓글 엔티티. 존재하지 않으면 Optional.empty()
+     * @return Comment 조회된 댓글 엔티티 (미존재 시 예외 발생)
+     * @throws CommentCustomException 댓글이 존재하지 않을 때
      * @author Jaeik
      * @since 2.0.0
      */
@@ -60,7 +71,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
-     * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다. 추천 수와 사용자 추천 여부도 포함됩니다.</p>
+     * <p>특정 사용자가 작성한 댓글 목록을 QueryDSL로 페이지네이션 조회합니다.</p>
+     * <p>추천 수와 사용자 추천 여부도 한 번의 쿼리로 함께 조회합니다.</p>
+     * <p>UserQueryUseCase가 마이페이지에서 사용자의 댓글 목록을 보여줄 때 호출합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -94,7 +107,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
-     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다. 추천 수와 사용자 추천 여부도 포함됩니다.</p>
+     * <p>특정 사용자가 추천한 댓글 목록을 QueryDSL로 페이지네이션 조회합니다.</p>
+     * <p>추천 수와 사용자 추천 여부도 한 번의 쿼리로 함께 조회합니다.</p>
+     * <p>UserQueryUseCase가 마이페이지에서 사용자가 추천한 댓글 목록을 보여줄 때 호출합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -129,7 +144,10 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>인기 댓글 조회</h3>
-     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다. 사용자 추천 여부를 한 번의 쿼리로 조회합니다.</p>
+     * <p>주어진 게시글의 인기 댓글 목록을 QueryDSL로 조회합니다.</p>
+     * <p>추천 수 3개 이상인 댓글을 추천 수 내림차순으로 정렬하여 조회합니다.</p>
+     * <p>사용자 추천 여부도 한 번의 쿼리로 함께 조회합니다.</p>
+     * <p>PostQueryUseCase가 게시글 상세보기에서 인기 댓글을 보여줄 때 호출합니다.</p>
      *
      * @param postId 게시글 ID
      * @param userId 사용자 ID (추천 여부 확인용, null 가능)
@@ -159,7 +177,8 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>여러 게시글 ID에 대한 댓글 수 조회</h3>
-     * <p>주어진 여러 게시글 ID에 해당하는 각 게시글의 댓글 수를 조회합니다.</p>
+     * <p>주어진 여러 게시글 ID에 해당하는 각 게시글의 댓글 수를 QueryDSL로 조회합니다.</p>
+     * <p>PostQueryUseCase가 게시글 목록에서 각 게시글의 댓글 수를 보여줄 때 호출합니다.</p>
      *
      * @param postIds 게시글 ID 목록
      * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
@@ -186,7 +205,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>과거순 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다. 사용자 추천 여부를 한 번의 쿼리로 조회합니다.</p>
+     * <p>주어진 게시글의 댓글을 QueryDSL로 과거순 페이지네이션 조회합니다.</p>
+     * <p>사용자 추천 여부도 한 번의 쿼리로 함께 조회합니다.</p>
+     * <p>CommentQueryUseCase가 댓글 목록을 시간순으로 보여줄 때 호출합니다.</p>
      *
      * @param postId   게시글 ID
      * @param pageable 페이지 정보
@@ -216,11 +237,11 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>게시글 ID로 루트 댓글 수 조회 (페이징용)</h3>
-     * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
+     * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 QueryDSL로 조회합니다.</p>
      *
      * <p><strong>사용 목적</strong>: 댓글 목록 페이징 시 total count 계산</p>
      * <p><strong>현재 사용</strong>: findCommentsWithOldestOrder 메서드에서 PageImpl total 값 설정에 사용</p>
-     * <p><strong>구현 세부</strong>: QueryDSL로 구현, depth=0인 댓글(루트 댓글)만 카운트</p>
+     * <p><strong>구현 세부</strong>: depth=0인 댓글(루트 댓글)만 카운트</p>
      * <p><strong>내부 메서드</strong>: Infrastructure layer 내부에서만 사용</p>
      *
      * @param postId 게시글 ID

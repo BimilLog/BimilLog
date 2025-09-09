@@ -25,12 +25,16 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * <h2>댓글 명령 서비스</h2>
+ * <h2>CommentCommandService</h2>
  * <p>
- * 댓글 생성, 수정, 삭제 등 명령 관련 기능을 구현하는 서비스 클래스
+ * 댓글 명령 관련 UseCase 인터페이스의 구체적 구현체로서 비즈니스 로직을 오케스트레이션합니다.
  * </p>
  * <p>
- * 헥사고날 아키텍처에서 댓글 명령 처리를 담당하는 비즈니스 로직 구현
+ * 헥사고날 아키텍처에서 댓글 도메인의 명령 처리를 담당하며, 계층형 댓글 구조(Closure Table)와 
+ * 익명/회원 댓글 시스템의 복잡한 비즈니스 규칙을 관리합니다.
+ * </p>
+ * <p>
+ * 트랜잭션 경계를 설정하고 이벤트 기반 도메인 간 통신을 통해 알림 발송 등 부수 효과를 처리합니다.
  * </p>
  *
  * @author Jaeik
@@ -52,13 +56,15 @@ public class CommentCommandService implements CommentCommandUseCase {
 
 
     /**
-     * <h3>댓글 작성</h3>
-     * <p>새로운 댓글을 작성합니다.</p>
-     * <p>부모 댓글이 있는 경우 대댓글로 처리하고, 댓글 생성 이벤트를 발행합니다.</p>
+     * <h3>댓글 작성 비즈니스 로직 실행</h3>
+     * <p>CommentCommandUseCase 인터페이스의 댓글 작성 기능을 구현하며, 계층형 댓글 시스템의 핵심 비즈니스 규칙을 적용합니다.</p>
+     * <p>익명 사용자와 로그인 사용자를 구분하여 처리하고, Closure Table 패턴으로 대댓글 계층 구조를 생성합니다.</p>
+     * <p>트랜잭션 내에서 댓글과 클로저 엔티티를 원자적으로 저장하고, 게시글 작성자에게 알림을 위한 이벤트를 발행합니다.</p>
+     * <p>CommentCreatedEvent를 통해 notification 도메인과 비동기 통신하여 실시간 알림을 제공합니다.</p>
      *
-     * @param userId         사용자 ID (로그인한 경우), null인 경우 익명 댓글
-     * @param commentRequest 댓글 요청 (비밀번호 포함)
-     * @throws CustomException 게시글이나 사용자가 존재하지 않는 경우
+     * @param userId         로그인한 사용자 ID (null이면 익명 댓글로 처리)
+     * @param commentRequest 댓글 생성 요청 정보 (내용, 게시글 ID, 부모 댓글 ID, 비밀번호 포함)
+     * @throws CustomException 게시글이 존재하지 않거나 부모 댓글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -88,13 +94,15 @@ public class CommentCommandService implements CommentCommandUseCase {
     }
 
     /**
-     * <h3>댓글 수정</h3>
-     * <p>기존 댓글의 내용을 수정합니다.</p>
-     * <p>댓글의 권한을 확인한 후 내용을 업데이트합니다.</p>
+     * <h3>댓글 수정 권한 검증 및 업데이트</h3>
+     * <p>CommentCommandUseCase 인터페이스의 댓글 수정 기능을 구현하며, 익명/회원 댓글의 서로 다른 권한 검증 로직을 적용합니다.</p>
+     * <p>익명 댓글의 경우 비밀번호 일치 여부를, 회원 댓글의 경우 소유자 일치 여부를 검증합니다.</p>
+     * <p>트랜잭션 내에서 댓글 엔티티의 내용만 업데이트하며, 계층 구조나 메타데이터는 변경하지 않습니다.</p>
+     * <p>권한 검증 실패 시 적절한 도메인 예외를 발생시켜 보안을 보장합니다.</p>
      *
-     * @param userId         사용자 ID (로그인한 경우), null인 경우 익명 댓글
-     * @param commentRequest 수정할 댓글 요청 (비밀번호 포함)
-     * @throws CustomException 댓글이 존재하지 않거나 권한이 없는 경우
+     * @param userId         로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
+     * @param commentRequest 댓글 수정 요청 정보 (댓글 ID, 새 내용, 비밀번호 포함)
+     * @throws CustomException 댓글을 찾을 수 없거나 권한 검증에 실패한 경우
      * @author Jaeik
      * @since 2.0.0
      */
