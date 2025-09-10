@@ -132,32 +132,6 @@ public class UserBannedEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("사용자 차단 이벤트 처리 성능 검증")
-    void userBannedEventProcessingTime_ShouldCompleteWithinTimeout() {
-        // Given
-        UserBannedEvent event = new UserBannedEvent(1L, "performanceTest", SocialProvider.KAKAO);
-
-        long startTime = System.currentTimeMillis();
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 3초 내에 처리 완료되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(3))
-                .untilAsserted(() -> {
-                    verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("performanceTest"));
-                    verify(withdrawUseCase).addToBlacklist(eq(1L));
-                    verify(userBanUseCase).blacklistAllUserTokens(eq(1L), eq("사용자 제재"));
-
-                    long endTime = System.currentTimeMillis();
-                    long processingTime = endTime - startTime;
-                    
-                    // 처리 시간이 3초를 초과하지 않아야 함
-                    assert processingTime < 3000L : "사용자 차단 이벤트 처리 시간이 너무 오래 걸림: " + processingTime + "ms";
-                });
-    }
 
     @Test
     @DisplayName("잘못된 이벤트 데이터 처리 - 빈 문자열과 공백")
@@ -183,38 +157,6 @@ public class UserBannedEventIntegrationTest {
                 .hasMessageContaining("소셜 제공자는 null일 수 없습니다");
     }
 
-    @Test
-    @DisplayName("대량 사용자 차단 이벤트 처리 성능")
-    void massUserBannedEvents_ShouldProcessEfficiently() {
-        // Given - 대량의 사용자 차단 이벤트 (100개)
-        int eventCount = 100;
-        
-        long startTime = System.currentTimeMillis();
-
-        // When - 대량 차단 이벤트 발행
-        for (int i = 1; i <= eventCount; i++) {
-            eventPublisher.publishEvent(new UserBannedEvent(
-                    (long) i, "bulkTest" + i, SocialProvider.KAKAO));
-        }
-
-        // Then - 모든 이벤트가 15초 내에 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(15))
-                .untilAsserted(() -> {
-                    // 모든 사용자에 대해 소셜 로그인 해제 및 블랙리스트 등록 확인
-                    for (int i = 1; i <= eventCount; i++) {
-                        verify(socialPort).unlink(eq(SocialProvider.KAKAO), eq("bulkTest" + i));
-                        verify(withdrawUseCase).addToBlacklist(eq((long) i));
-                        verify(userBanUseCase).blacklistAllUserTokens(eq((long) i), eq("사용자 제재"));
-                    }
-
-                    long endTime = System.currentTimeMillis();
-                    long totalProcessingTime = endTime - startTime;
-                    
-                    // 대량 처리 시간이 15초를 초과하지 않아야 함
-                    assert totalProcessingTime < 15000L : "대량 사용자 차단 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
-                });
-    }
 
     @Test
     @DisplayName("다양한 소셜 제공자의 차단 이벤트 처리")

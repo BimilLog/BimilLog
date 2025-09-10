@@ -374,45 +374,37 @@ class AdminCommandServiceTest {
     }
 
     @Test
-    @DisplayName("여러 신고 연속 생성 - 성공")
-    void createMultipleReports_Success() {
+    @DisplayName("POST/COMMENT 타입인데 targetId null인 경우 예외 발생")
+    void createReport_PostTypeWithNullTargetId_ThrowsException() {
         // Given
-        Long userId1 = 1L;
-        Long userId2 = null; // 익명
-        Long userId3 = 3L;
+        Long userId = 1L;
+        ReportType reportType = ReportType.POST;
+        Long targetId = null; // POST 타입인데 targetId가 null
+        String content = "신고 내용";
 
-        ReportType reportType1 = ReportType.COMMENT;
-        ReportType reportType2 = ReportType.POST;
-        ReportType reportType3 = ReportType.IMPROVEMENT;
-        Long targetId1 = 100L;
-        Long targetId2 = 200L;
-        Long targetId3 = null;
-        String content1 = "신고 내용 1";
-        String content2 = "신고 내용 2";
-        String content3 = "건의 내용";
+        // When & Then
+        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportType, targetId, content))
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
 
-        User user1 = User.builder().id(userId1).userName("user1").build();
-        User user3 = User.builder().id(userId3).userName("user3").build();
+        verify(adminCommandPort, never()).save(any(Report.class));
+    }
 
-        Comment testComment = Comment.builder().id(100L).user(user1).build();
-        Post testPost = Post.builder().id(200L).user(user1).build();
+    @Test
+    @DisplayName("COMMENT 타입인데 targetId null인 경우 예외 발생")
+    void createReport_CommentTypeWithNullTargetId_ThrowsException() {
+        // Given
+        Long userId = 1L;
+        ReportType reportType = ReportType.COMMENT;
+        Long targetId = null; // COMMENT 타입인데 targetId가 null
+        String content = "신고 내용";
 
-        given(userQueryPort.findById(userId1)).willReturn(Optional.of(user1));
-        given(userQueryPort.findById(userId3)).willReturn(Optional.of(user3));
-        given(commentQueryUseCase.findById(100L)).willReturn(testComment);
-        given(postQueryUseCase.findById(200L)).willReturn(testPost);
-        given(adminCommandPort.save(any(Report.class))).willReturn(mock(Report.class));
+        // When & Then
+        assertThatThrownBy(() -> adminCommandService.createReport(userId, reportType, targetId, content))
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
 
-        // When
-        adminCommandService.createReport(userId1, reportType1, targetId1, content1);
-        adminCommandService.createReport(userId2, reportType2, targetId2, content2); // 익명
-        adminCommandService.createReport(userId3, reportType3, targetId3, content3);
-
-        // Then
-        verify(userQueryPort, times(1)).findById(userId1);
-        verify(userQueryPort, never()).findById(userId2); // 익명은 조회하지 않음
-        verify(userQueryPort, times(1)).findById(userId3);
-        verify(adminCommandPort, times(3)).save(any(Report.class));
+        verify(adminCommandPort, never()).save(any(Report.class));
     }
 
 }

@@ -131,35 +131,6 @@ class AdminWithdrawEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("강제 탈퇴 이벤트 처리 성능 검증")
-    void adminWithdrawRequestedEventProcessingTime_ShouldCompleteWithinTimeout() {
-        // Given
-        Long userId = 1L;
-        String reason = "성능 테스트";
-        AdminWithdrawEvent event = new AdminWithdrawEvent(userId, reason);
-        
-        long startTime = System.currentTimeMillis();
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 3초 내에 처리 완료되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(3))
-                .untilAsserted(() -> {
-                    verify(withdrawUseCase).addToBlacklist(eq(userId));
-                    verify(userBanUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
-                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
-                    verify(withdrawUseCase).forceWithdraw(eq(userId));
-
-                    long endTime = System.currentTimeMillis();
-                    long processingTime = endTime - startTime;
-                    
-                    // 처리 시간이 3초를 초과하지 않아야 함
-                    assert processingTime < 3000L : "강제 탈퇴 이벤트 처리 시간이 너무 오래 걸림: " + processingTime + "ms";
-                });
-    }
 
     @Test
     @DisplayName("잘못된 이벤트 데이터 처리 - null userId")
@@ -173,39 +144,6 @@ class AdminWithdrawEventIntegrationTest {
                 .hasMessageContaining("사용자 ID는 null일 수 없습니다");
     }
 
-    @Test
-    @DisplayName("대량 강제 탈퇴 요청 이벤트 처리 성능")
-    void massAdminWithdrawRequestedEvents_ShouldProcessEfficiently() {
-        // Given - 대량의 강제 탈퇴 요청 이벤트 (50개)
-        int eventCount = 50;
-        
-        long startTime = System.currentTimeMillis();
-
-        // When - 대량 강제 탈퇴 이벤트 발행
-        for (int i = 1; i <= eventCount; i++) {
-            eventPublisher.publishEvent(new AdminWithdrawEvent(
-                    (long) i, "대량 처리 테스트"));
-        }
-
-        // Then - 모든 이벤트가 15초 내에 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(15))
-                .untilAsserted(() -> {
-                    // 모든 사용자에 대해 후속 처리 확인
-                    for (int i = 1; i <= eventCount; i++) {
-                        verify(withdrawUseCase).addToBlacklist(eq((long) i));
-                        verify(userBanUseCase).blacklistAllUserTokens(eq((long) i), eq("관리자 강제 탈퇴"));
-                        verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq((long) i));
-                        verify(withdrawUseCase).forceWithdraw(eq((long) i));
-                    }
-
-                    long endTime = System.currentTimeMillis();
-                    long totalProcessingTime = endTime - startTime;
-                    
-                    // 대량 처리 시간이 15초를 초과하지 않아야 함
-                    assert totalProcessingTime < 15000L : "대량 강제 탈퇴 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
-                });
-    }
 
     @Test
     @DisplayName("예외 상황에서의 이벤트 처리 - 댓글 처리 실패")

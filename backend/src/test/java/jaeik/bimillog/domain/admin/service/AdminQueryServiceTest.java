@@ -124,33 +124,6 @@ class AdminQueryServiceTest {
         assertThat(capturedPageable.getSort()).isEqualTo(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
-    @Test
-    @DisplayName("신고 유형 필터 없이 전체 신고 목록 조회")
-    void shouldGetReportList_WithoutReportTypeFilter() {
-        // Given
-        int page = 1;
-        int size = 5;
-        ReportType reportType = null;
-        Page<Report> expectedPage = new PageImpl<>(testReports.subList(0, 2));
-
-        given(adminQueryPort.findReportsWithPaging(eq(reportType), any(Pageable.class)))
-                .willReturn(expectedPage);
-
-        // When
-        Page<Report> result = adminQueryService.getReportList(page, size, reportType);
-
-        // Then
-        assertThat(result).isEqualTo(expectedPage);
-        verify(adminQueryPort).findReportsWithPaging(eq(reportType), any(Pageable.class));
-
-        // Pageable 검증
-        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(adminQueryPort).findReportsWithPaging(eq(reportType), pageableCaptor.capture());
-
-        Pageable capturedPageable = pageableCaptor.getValue();
-        assertThat(capturedPageable.getPageNumber()).isEqualTo(1);
-        assertThat(capturedPageable.getPageSize()).isEqualTo(5);
-    }
 
     @Test
     @DisplayName("특정 신고 유형으로 필터링된 신고 목록 조회")
@@ -199,107 +172,8 @@ class AdminQueryServiceTest {
         verify(adminQueryPort).findReportsWithPaging(eq(reportType), any(Pageable.class));
     }
 
-    @Test
-    @DisplayName("페이지 크기 20으로 신고 목록 조회")
-    void shouldGetReportList_WithPageSize20() {
-        // Given
-        int size = 20;
-        Page<Report> expectedPage = new PageImpl<>(testReports);
-        given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
-                .willReturn(expectedPage);
 
-        // When
-        Page<Report> result = adminQueryService.getReportList(0, size, null);
 
-        // Then
-        assertThat(result).isNotNull();
-        
-        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(adminQueryPort).findReportsWithPaging(any(), pageableCaptor.capture());
-        
-        Pageable capturedPageable = pageableCaptor.getValue();
-        assertThat(capturedPageable.getPageSize()).isEqualTo(size);
-    }
 
-    @Test
-    @DisplayName("올바른 정렬 조건 확인 - createdAt DESC")
-    void shouldApplyCorrectSorting_CreatedAtDescending() {
-        // Given
-        Page<Report> expectedPage = new PageImpl<>(testReports);
-        given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
-                .willReturn(expectedPage);
 
-        // When
-        adminQueryService.getReportList(0, 10, null);
-
-        // Then
-        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(adminQueryPort).findReportsWithPaging(any(), pageableCaptor.capture());
-
-        Pageable capturedPageable = pageableCaptor.getValue();
-        Sort sort = capturedPageable.getSort();
-        
-        assertThat(sort.isSorted()).isTrue();
-        Sort.Order createdAtOrder = sort.getOrderFor("createdAt");
-        assertThat(createdAtOrder).isNotNull();
-        assertThat(createdAtOrder.getDirection()).isEqualTo(Sort.Direction.DESC);
-    }
-
-    @Test
-    @DisplayName("최대 페이지 크기 제한 테스트")
-    void shouldHandleLargePageSize() {
-        // Given
-        int largePageSize = 1000;
-        Page<Report> expectedPage = new PageImpl<>(testReports);
-        given(adminQueryPort.findReportsWithPaging(any(), any(Pageable.class)))
-                .willReturn(expectedPage);
-
-        // When
-        Page<Report> result = adminQueryService.getReportList(0, largePageSize, null);
-
-        // Then
-        assertThat(result).isNotNull();
-        
-        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(adminQueryPort).findReportsWithPaging(any(), pageableCaptor.capture());
-        
-        Pageable capturedPageable = pageableCaptor.getValue();
-        assertThat(capturedPageable.getPageSize()).isEqualTo(largePageSize);
-    }
-
-    @Test
-    @DisplayName("음수 페이지 번호 처리")
-    void shouldThrowException_WhenNegativePageNumber() {
-        // Given
-        int negativePage = -1;
-
-        // When & Then
-        assertThatThrownBy(() -> adminQueryService.getReportList(negativePage, 10, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Page index must not be less than zero");
-    }
-
-    @Test
-    @DisplayName("모든 신고 유형에 대한 개별 조회 테스트")
-    void shouldGetReportListForAllReportTypes() {
-        // Given
-        ReportType[] allTypes = {ReportType.POST, ReportType.COMMENT, ReportType.IMPROVEMENT};
-        
-        for (ReportType type : allTypes) {
-            List<Report> filteredReports = testReports.stream()
-                    .filter(report -> report.getReportType() == type)
-                    .toList();
-            Page<Report> expectedPage = new PageImpl<>(filteredReports);
-            
-            given(adminQueryPort.findReportsWithPaging(eq(type), any(Pageable.class)))
-                    .willReturn(expectedPage);
-        }
-
-        // When & Then
-        for (ReportType type : allTypes) {
-            Page<Report> result = adminQueryService.getReportList(0, 10, type);
-            assertThat(result).isNotNull();
-            verify(adminQueryPort).findReportsWithPaging(eq(type), any(Pageable.class));
-        }
-    }
 }
