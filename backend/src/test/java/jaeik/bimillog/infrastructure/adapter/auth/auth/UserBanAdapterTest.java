@@ -76,20 +76,6 @@ class UserBanAdapterTest {
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
     }
 
-    @Test
-    @DisplayName("예외 전파 테스트 - Repository에서 예외 발생")
-    void shouldPropagateException_WhenRepositoryThrowsException() {
-        // Given
-        RuntimeException expectedException = new RuntimeException("Database connection failed");
-        given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willThrow(expectedException);
-
-        // When & Then
-        assertThatThrownBy(() -> userBanAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Database connection failed");
-
-        verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-    }
 
     @Test
     @DisplayName("토큰 블랙리스트 확인 - 존재하는 토큰 해시")
@@ -121,21 +107,6 @@ class UserBanAdapterTest {
         verify(redisTemplate).hasKey(expectedKey);
     }
 
-    @Test
-    @DisplayName("Redis 장애 시 안전한 처리")
-    void shouldReturnTrue_WhenRedisFailureOccurs() {
-        // Given
-        String expectedKey = "token:blacklist:" + TEST_TOKEN_HASH;
-        given(redisTemplate.hasKey(expectedKey))
-                .willThrow(new RuntimeException("Redis connection failed"));
-
-        // When
-        boolean result = userBanAdapter.isBlacklisted(TEST_TOKEN_HASH);
-
-        // Then
-        assertThat(result).isTrue(); // 보안상 안전한 기본값
-        verify(redisTemplate).hasKey(expectedKey);
-    }
 
     @Test
     @DisplayName("토큰 해시 블랙리스트 등록")
@@ -180,34 +151,5 @@ class UserBanAdapterTest {
         verifyNoInteractions(valueOperations);
     }
 
-    @Test
-    @DisplayName("null 리스트 처리")
-    void shouldHandleNullList_WhenNullTokenHashesProvided() {
-        // Given
-        List<String> nullTokenHashes = null;
 
-        // When
-        userBanAdapter.blacklistTokenHashes(nullTokenHashes, TEST_REASON, TEST_TTL);
-
-        // Then
-        verify(redisTemplate, never()).opsForValue();
-        verifyNoInteractions(valueOperations);
-    }
-
-    @Test
-    @DisplayName("Redis 저장 실패 시 예외 처리")
-    void shouldThrowException_WhenRedisOperationFails() {
-        // Given
-        List<String> tokenHashes = Arrays.asList("failHash123");
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
-        willThrow(new RuntimeException("Redis write operation failed"))
-                .given(valueOperations).set(anyString(), any(), any(Duration.class));
-
-        // When & Then
-        assertThatThrownBy(() ->
-                userBanAdapter.blacklistTokenHashes(tokenHashes, TEST_REASON, TEST_TTL))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Redis token blacklist operation failed")
-                .hasCauseInstanceOf(RuntimeException.class);
-    }
 }

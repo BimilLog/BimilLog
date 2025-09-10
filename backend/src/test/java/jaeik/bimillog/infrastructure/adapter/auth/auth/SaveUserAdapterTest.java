@@ -58,13 +58,9 @@ class SaveUserAdapterTest {
         LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
         String fcmToken = "fcm-token-12345";
 
-        // TODO: 옵션 2 설계 적용 - 이벤트 기반 Setting 생성
-        // 기존 사용자는 이미 회원가입 완료 상태이므로 Setting이 존재해야 함
-        // 데이터베이스에서 조회되는 기존 사용자는 항상 완전한 상태
         User existingUser = User.builder()
                 .id(1L)
                 .userName("existingUser")
@@ -72,11 +68,10 @@ class SaveUserAdapterTest {
                 .thumbnailImage("https://old-profile.jpg")
                 .provider(SocialProvider.KAKAO)
                 .socialId("123456789")
-                .setting(Setting.createSetting()) // 기존 사용자는 Setting 보유
+                .setting(Setting.createSetting())
                 .build();
 
         Token existingToken = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
         List<ResponseCookie> expectedCookies = List.of(
                 ResponseCookie.from("jwt", "generated-jwt").build()
@@ -94,7 +89,7 @@ class SaveUserAdapterTest {
         assertThat(existingUser.getSocialNickname()).isEqualTo("업데이트된닉네임");
         assertThat(existingUser.getThumbnailImage()).isEqualTo("https://updated-profile.jpg");
         
-        // 토큰이 저장되는지 검증 (실제 구현에서는 전달받은 토큰을 사용)
+        // 토큰이 저장되는지 검증
         ArgumentCaptor<Token> tokenCaptor = ArgumentCaptor.forClass(Token.class);
         verify(tokenPort).save(tokenCaptor.capture());
         Token savedToken = tokenCaptor.getValue();
@@ -116,7 +111,6 @@ class SaveUserAdapterTest {
         LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("nonexistent", "nonexistent@example.com", SocialProvider.KAKAO, "존재안함", "https://example.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
         given(userQueryPort.findByProviderAndSocialId(SocialProvider.KAKAO, "nonexistent"))
                 .willThrow(new jaeik.bimillog.domain.user.exception.UserCustomException(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND));
@@ -138,7 +132,6 @@ class SaveUserAdapterTest {
         LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
         User existingUser = User.builder()
                 .id(1L)
@@ -178,7 +171,6 @@ class SaveUserAdapterTest {
         LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
         User newUser = User.builder()
                 .id(2L)
@@ -187,11 +179,10 @@ class SaveUserAdapterTest {
                 .thumbnailImage(userProfile.profileImageUrl())
                 .provider(userProfile.provider())
                 .socialId(userProfile.socialId())
-                .setting(Setting.createSetting()) // 이벤트 처리 완료 상태 반영
+                .setting(Setting.createSetting())
                 .build();
 
         Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
         List<ResponseCookie> expectedCookies = List.of(
                 ResponseCookie.from("jwt", "new-user-jwt").build()
@@ -213,11 +204,8 @@ class SaveUserAdapterTest {
         assertThat(capturedUser.getProvider()).isEqualTo(SocialProvider.KAKAO);
         assertThat(capturedUser.getSocialId()).isEqualTo("987654321");
 
-
         // FCM 토큰 직접 등록 검증
         verify(notificationFcmUseCase).registerFcmToken(2L, fcmToken);
-        
-        // UserSignedUpEvent는 발행되지 않음 (이벤트 정책상 제외)
 
         // 임시 데이터 삭제 검증
         verify(redisUserDataPort).removeTempData(uuid);
@@ -238,16 +226,14 @@ class SaveUserAdapterTest {
         LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
         User newUser = User.builder()
                 .id(3L)
                 .userName(userName)
-                .setting(Setting.createSetting()) // 이벤트 처리 완료 상태
+                .setting(Setting.createSetting())
                 .build();
 
         Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
         given(userCommandPort.save(any(User.class))).willReturn(newUser);
         given(tokenPort.save(any(Token.class))).willReturn(newToken);

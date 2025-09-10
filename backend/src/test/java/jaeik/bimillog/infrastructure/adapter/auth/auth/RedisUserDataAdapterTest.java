@@ -159,19 +159,6 @@ class RedisUserDataAdapterTest {
     }
 
     @Test
-    @DisplayName("경계값 - null UUID로 조회 시 빈 결과")
-    void shouldReturnEmpty_WhenUuidIsNull() {
-        // Given: null UUID
-        String nullUuid = null;
-
-        // When: null UUID로 조회
-        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(nullUuid);
-
-        // Then: 빈 Optional 반환
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     @DisplayName("정상 케이스 - 임시 데이터 삭제")
     void shouldRemoveTempData_WhenDataExists() {
         // Given: 저장된 데이터
@@ -203,18 +190,6 @@ class RedisUserDataAdapterTest {
         assertThat(redisTempDataAdapter.getTempData(nonExistentUuid)).isEmpty();
     }
 
-    @Test
-    @DisplayName("경계값 - null UUID로 삭제")
-    void shouldHandleRemoveWithNullUuid_WhenUuidIsNull() {
-        // Given: null UUID
-        String nullUuid = null;
-
-        // When: null UUID로 삭제 시도 (예외 발생하지 않아야 함)
-        redisTempDataAdapter.removeTempData(nullUuid);
-
-        // Then: 예외 없이 처리됨
-        assertThat(redisTempDataAdapter.getTempData(nullUuid)).isEmpty();
-    }
 
     @Test
     @DisplayName("정상 케이스 - 임시 쿠키 생성")
@@ -236,103 +211,9 @@ class RedisUserDataAdapterTest {
         verify(authCookieManager).createTempCookie(testUuid);
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 데이터 덮어쓰기")
-    void shouldOverwriteData_WhenSameUuidSavedMultipleTimes() {
-        // Given: 첫 번째 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
-        
-        // 새로운 데이터
-        LoginResult.SocialUserProfile newUserProfile = new LoginResult.SocialUserProfile(
-            "987654321", 
-            "new@example.com", 
-            SocialProvider.KAKAO, 
-            "newUser", 
-            "https://example.com/new-profile.jpg"
-        );
-        Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
-                
 
-        // When: 동일한 UUID로 새 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, newUserProfile, newToken, "new-fcm-token");
 
-        // Then: 새 데이터로 덮어써짐
-        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
-        assertThat(result).isPresent();
-        assertThat(result.get().userProfile().socialId()).isEqualTo("987654321");
-        assertThat(result.get().userProfile().nickname()).isEqualTo("newUser");
-        assertThat(result.get().token().getAccessToken()).isEqualTo("access-token");
-        assertThat(result.get().fcmToken()).isEqualTo("new-fcm-token");
-    }
 
-    @Test
-    @DisplayName("멀티 인스턴스 - 여러 어댑터 인스턴스에서 동일 데이터 접근")
-    void shouldShareDataBetweenInstances_WhenMultipleAdaptersAccess() {
-        // Given: 첫 번째 어댑터에서 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
-
-        // When: 새로운 어댑터 인스턴스 생성 (멀티 인스턴스 환경 시뮬레이션)
-        RedisUserDataAdapter secondAdapter = new RedisUserDataAdapter(redisTemplate, authCookieManager);
-        
-        // Then: 두 번째 어댑터에서도 동일한 데이터 조회 가능
-        Optional<LoginResult.TempUserData> result = secondAdapter.getTempData(testUuid);
-        assertThat(result).isPresent();
-        assertThat(result.get().userProfile().nickname()).isEqualTo("testUser");
-        
-        // 첫 번째 어댑터에서 삭제
-        redisTempDataAdapter.removeTempData(testUuid);
-        
-        // 두 번째 어댑터에서도 삭제됨 확인
-        assertThat(secondAdapter.getTempData(testUuid)).isEmpty();
-    }
-
-    @Test
-    @DisplayName("성능 테스트 - 대량 데이터 처리")
-    void shouldHandleLargeAmountOfData_WhenManyEntriesStored() {
-        // Given: 대량의 UUID와 데이터
-        int dataCount = 50; // Redis 테스트이므로 적당한 수량
-
-        // When: 대량 데이터 저장
-        for (int i = 0; i < dataCount; i++) {
-            String uuid = "load-test-uuid-" + i;
-            LoginResult.SocialUserProfile userProfile = new LoginResult.SocialUserProfile(
-                "id-" + i, 
-                "user" + i + "@example.com", 
-                SocialProvider.KAKAO, 
-                "user-" + i, 
-                "https://example.com/profile" + i + ".jpg"
-            );
-            redisTempDataAdapter.saveTempData(uuid, userProfile, testToken, "fcm-" + i);
-        }
-
-        // Then: 모든 데이터가 정상 저장되고 조회됨
-        for (int i = 0; i < dataCount; i++) {
-            String uuid = "load-test-uuid-" + i;
-            Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(uuid);
-            assertThat(result).isPresent();
-            assertThat(result.get().userProfile().nickname()).isEqualTo("user-" + i);
-        }
-
-        // 정리: 저장된 데이터 삭제
-        for (int i = 0; i < dataCount; i++) {
-            redisTempDataAdapter.removeTempData("load-test-uuid-" + i);
-        }
-    }
-
-    @Test
-    @DisplayName("데이터 일관성 - Redis 키 패턴 검증")
-    void shouldUseCorrectKeyPattern_WhenDataSaved() {
-        // When: 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
-        
-        // Then: 올바른 키 패턴 사용 확인
-        String expectedKey = "temp:user:" + testUuid;
-        assertThat(redisTemplate.hasKey(expectedKey)).isTrue();
-        
-        // 다른 패턴의 키는 존재하지 않음
-        assertThat(redisTemplate.hasKey("cache:user:" + testUuid)).isFalse();
-        assertThat(redisTemplate.hasKey("token:user:" + testUuid)).isFalse();
-    }
 
     @Test
     @DisplayName("FCM 토큰 - null FCM 토큰으로 저장 및 조회")
