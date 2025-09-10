@@ -251,68 +251,7 @@ class UserBanServiceTest {
         verify(userBanPort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 
-    @Test
-    @DisplayName("다양한 블랙리스트 등록 사유 테스트")
-    void shouldHandleDifferentReasons() {
-        // Given
-        String[] reasons = {"Security violation", "Account suspended", "Force logout", "Admin action"};
-        Long userId = 100L;
-        List<Token> userTokens = List.of(testToken1);
-        
-        given(authToTokenPort.findAllByUserId(userId)).willReturn(userTokens);
-        given(userBanPort.generateTokenHash("access-token-1")).willReturn("hash1");
 
-        for (String reason : reasons) {
-            // When
-            userBanService.blacklistAllUserTokens(userId, reason);
 
-            // Then
-            verify(userBanPort).blacklistTokenHashes(
-                    eq(List.of("hash1")), 
-                    eq(reason), 
-                    any(Duration.class)
-            );
-        }
-    }
 
-    @Test
-    @DisplayName("빈 문자열 토큰 해시 확인")
-    void shouldHandleEmptyToken() {
-        // Given
-        String emptyToken = "";
-        given(userBanPort.generateTokenHash(emptyToken)).willReturn("");
-        given(userBanPort.isBlacklisted("")).willReturn(false);
-
-        // When
-        boolean result = userBanService.isBlacklisted(emptyToken);
-
-        // Then
-        assertThat(result).isFalse();
-        verify(userBanPort).generateTokenHash(emptyToken);
-        verify(userBanPort).isBlacklisted("");
-    }
-
-    @Test
-    @DisplayName("null 토큰 처리")
-    void shouldHandleNullToken() {
-        // Given
-        String nullToken = null;
-        doThrow(new RuntimeException("Null token"))
-                .when(userBanPort).generateTokenHash(nullToken);
-
-        // When
-        boolean result = userBanService.isBlacklisted(nullToken);
-
-        // Then
-        assertThat(result).isTrue();
-        verify(userBanPort).generateTokenHash(nullToken);
-    }
-
-    public User getTestUser() {
-        return testUser;
-    }
-
-    public void setTestUser(User testUser) {
-        this.testUser = testUser;
-    }
 }

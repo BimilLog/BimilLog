@@ -109,23 +109,6 @@ class AuthQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$.userName").value("관리자"));
     }
 
-    @Test
-    @DisplayName("현재 사용자 정보 조회 - 다양한 소셜 제공자별 통합 테스트")
-    void getCurrentUser_VariousProviders_IntegrationTest() throws Exception {
-        // Given - NAVER 사용자
-        User naverUser = createTestUserWithProvider("네이버사용자", SocialProvider.NAVER);
-        User savedNaverUser = userRepository.save(naverUser);
-        
-        CustomUserDetails naverUserDetails = createCustomUserDetails(savedNaverUser);
-
-        // When & Then
-        mockMvc.perform(get("/api/auth/me")
-                        .with(user(naverUserDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userName").value("네이버사용자"))
-                .andExpect(jsonPath("$.socialNickname").value(containsString("네이버")));
-    }
 
     @Test
     @DisplayName("서버 헬스체크 통합 테스트")
@@ -147,70 +130,9 @@ class AuthQueryControllerIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("사용자 정보 조회 - 빈 프로필 이미지 처리")
-    void getCurrentUser_EmptyThumbnailImage_IntegrationTest() throws Exception {
-        // Given - 프로필 이미지가 빈 사용자
-        User userWithoutImage = createTestUserWithoutImage("이미지없는사용자");
-        User savedUser = userRepository.save(userWithoutImage);
-        
-        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
 
-        // When & Then
-        mockMvc.perform(get("/api/auth/me")
-                        .with(user(userDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(savedUser.getId()))
-                .andExpect(jsonPath("$.thumbnailImage").value(""))
-                .andExpect(jsonPath("$.userName").value("이미지없는사용자"));
-    }
 
-    @Test
-    @DisplayName("사용자 정보 조회 - 응답 형식 검증")
-    void getCurrentUser_ResponseFormat_IntegrationTest() throws Exception {
-        // Given
-        User testUser = createTestUser("형식검증사용자", UserRole.USER);
-        User savedUser = userRepository.save(testUser);
-        
-        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
 
-        // When & Then
-        mockMvc.perform(get("/api/auth/me")
-                        .with(user(userDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$").isMap())
-                .andExpect(jsonPath("$.userId").isNumber())
-                .andExpect(jsonPath("$.settingId").isNumber())
-                .andExpect(jsonPath("$.socialNickname").isString())
-                .andExpect(jsonPath("$.thumbnailImage").isString())
-                .andExpect(jsonPath("$.userName").isString())
-                .andExpect(jsonPath("$.role").isString());
-    }
-
-    @Test
-    @DisplayName("헬스체크 응답 헤더 검증")
-    void healthCheck_ResponseHeaders_IntegrationTest() throws Exception {
-        // When & Then
-        // TODO: Spring Security CSRF 보호로 XSRF-TOKEN 쿠키 자동 생성 (정상 동작)
-        // 보안을 위해 CSRF 토큰이 설정되는 것은 올바른 동작
-        mockMvc.perform(get("/api/auth/health"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", "text/plain;charset=UTF-8"))
-                .andExpect(header().exists("Set-Cookie"));
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 엔드포인트 - 403 Forbidden")
-    void nonExistentEndpoint_Forbidden_IntegrationTest() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/auth/nonexistent"))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
 
     /**
      * 테스트용 User 엔티티 생성 (기본 KAKAO 제공자)

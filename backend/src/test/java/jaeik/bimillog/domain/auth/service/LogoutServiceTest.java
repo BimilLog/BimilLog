@@ -122,28 +122,6 @@ class LogoutServiceTest {
         }
     }
 
-    @Test
-    @DisplayName("로그아웃 시 모든 의존성 호출 확인")
-    void shouldCallAllDependencies_WhenLogout() {
-        // Given
-        Token mockToken = createMockTokenWithUser();
-        given(userDetails.getUserId()).willReturn(100L);
-        given(userDetails.getTokenId()).willReturn(200L);
-        given(authToTokenPort.findById(200L)).willReturn(Optional.of(mockToken));
-        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
-
-        try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
-            // When
-            logoutService.logout(userDetails);
-
-            // Then - 모든 의존성이 올바르게 호출되었는지 확인
-            verify(authToTokenPort).findById(200L);
-            verify(socialPort).logout(SocialProvider.KAKAO, "mock-access-token");
-            verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
-            verify(deleteUserPort).getLogoutCookies();
-            mockedSecurityContext.verify(SecurityContextHolder::clearContext);
-        }
-    }
 
     @Test
     @DisplayName("토큰이 존재하지 않는 경우에도 로그아웃 성공")

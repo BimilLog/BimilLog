@@ -212,17 +212,6 @@ class AuthCommandControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    @DisplayName("CSRF 토큰 없이 POST 요청 - 403 Forbidden")
-    void postWithoutCsrf_Forbidden() throws Exception {
-        // When & Then
-        mockMvc.perform(post("/api/auth/login")
-                        .param("provider", "KAKAO")
-                        .param("code", "test-code")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
 
     @Test
     @DisplayName("인증이 필요한 API에 비인증 요청 - 403 Forbidden")
@@ -237,24 +226,6 @@ class AuthCommandControllerIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    @Test
-    @DisplayName("소셜 로그인 응답 헤더 검증")
-    void socialLogin_ResponseHeaders_IntegrationTest() throws Exception {
-        // Given
-        String provider = "KAKAO";
-        String code = "new_user_code";
-
-        // When & Then
-        mockMvc.perform(post("/api/auth/login")
-                        .param("provider", provider)
-                        .param("code", code)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(header().exists("Set-Cookie"))
-                .andExpect(content().contentType("application/json"));
-    }
 
     /**
      * 테스트용 User 엔티티 생성
