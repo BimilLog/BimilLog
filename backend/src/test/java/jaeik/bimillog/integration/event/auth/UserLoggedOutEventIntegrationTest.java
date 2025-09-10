@@ -139,10 +139,4 @@ public class UserLoggedOutEventIntegrationTest {
                     verify(notificationFcmUseCase, times(3)).deleteFcmTokens(eq(userId));
                 });
     }
-
-
-
-
-
-
 }

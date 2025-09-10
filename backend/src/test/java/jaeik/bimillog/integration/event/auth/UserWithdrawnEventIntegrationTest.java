@@ -45,8 +45,6 @@ class UserWithdrawnEventIntegrationTest {
     @MockitoBean
     private NotificationFcmUseCase notificationFcmUseCase;
 
-
-
     @Test
     @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 댓글 처리 및 FCM 토큰 삭제 완료")
     void userWithdrawnEventWorkflow_ShouldCompleteAllCleanupTasks() {
@@ -58,17 +56,11 @@ class UserWithdrawnEventIntegrationTest {
         eventPublisher.publishEvent(event);
 
         // Then - 비동기 처리를 고려하여 Awaitility 사용
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
-                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
-                });
+        Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
+            verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
+        });
     }
-
-
-
-
 
     @Test
     @DisplayName("여러 사용자 탈퇴 이벤트 동시 처리")
@@ -84,47 +76,33 @@ class UserWithdrawnEventIntegrationTest {
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId3, "testSocialId3", SocialProvider.KAKAO));
 
         // Then - 모든 사용자의 댓글 처리 및 FCM 토큰 삭제가 완료되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> {
-                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId1));
-                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId2));
-                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId3));
-                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId1));
-                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId2));
-                    verify(notificationFcmUseCase).deleteFcmTokens(eq(userId3));
-                });
+        Awaitility.await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId1));
+            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId2));
+            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId3));
+            verify(notificationFcmUseCase).deleteFcmTokens(eq(userId1));
+            verify(notificationFcmUseCase).deleteFcmTokens(eq(userId2));
+            verify(notificationFcmUseCase).deleteFcmTokens(eq(userId3));
+        });
     }
-
-
-
-
-
-
-
-
-
 
     @Test
     @DisplayName("예외 상황에서의 이벤트 처리 - 리스너들이 독립적으로 처리")
     void eventProcessingWithException_ListenersProcessIndependently() {
         // Given
         UserWithdrawnEvent event = new UserWithdrawnEvent(1L, "testSocialId", SocialProvider.KAKAO);
-        
+
         // 댓글 처리 실패 시뮬레이션
-        doThrow(new RuntimeException("댓글 처리 실패"))
-                .when(commentCommandUseCase).processUserCommentsOnWithdrawal(1L);
+        doThrow(new RuntimeException("댓글 처리 실패")).when(commentCommandUseCase).processUserCommentsOnWithdrawal(1L);
 
         // When
         eventPublisher.publishEvent(event);
 
         // Then - 예외가 발생해도 리스너들이 독립적으로 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
-                    // FCM 토큰 삭제는 별도 리스너이므로 댓글 처리 실패와 관계없이 처리되어야 함
-                    verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
-                });
+        Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
+            // FCM 토큰 삭제는 별도 리스너이므로 댓글 처리 실패와 관계없이 처리되어야 함
+            verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
+        });
     }
 }
