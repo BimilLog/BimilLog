@@ -1,18 +1,18 @@
 
 package jaeik.bimillog.domain.auth.application.service;
 
+import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
-import jaeik.bimillog.domain.auth.event.AdminWithdrawEvent;
-import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
-import jaeik.bimillog.infrastructure.adapter.auth.in.web.AuthCommandController;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.infrastructure.adapter.auth.in.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
