@@ -124,7 +124,6 @@ public class AdminCommandService implements AdminCommandUseCase {
         if (targetId == null && (reportType == ReportType.POST || reportType == ReportType.COMMENT)) {
             throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         }
-        // 나머지 검증은 DTO에서 검증함
     }
 
     /**

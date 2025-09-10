@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'jacoco'
 }
 
 group = 'jaeik'
@@ -27,10 +26,11 @@ repositories {
 dependencies {
     // ==== Spring Boot 기본 스타터 ====
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient 향후 제거
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation "org.springframework.cloud:spring-cloud-starter-openfeign" // WebClient를 openfeign으로 대체
 
     // ==== 데이터베이스 관련 ====
     runtimeOnly 'com.mysql:mysql-connector-j' // MySQL JDBC 드라이버
@@ -41,6 +41,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 데이터베이스 지원
     implementation 'org.springframework.boot:spring-boot-starter-cache' // 캐시 지원
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch' // Elasticsearch 지원
+    implementation 'org.flywaydb:flyway-core' // 향후 flyway로 ddl 작성
+    implementation 'org.flywaydb:flyway-mysql' // 향후 flyway로 ddl 작성
+
+
 
     // ==== JWT (토큰 인증) 관련 ====
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // JWT API
@@ -68,7 +72,6 @@ dependencies {
     testImplementation 'org.testcontainers:mysql:1.19.3' // MySQL TestContainer
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
-
     // ==== 알림 관련 ====
     implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
 
@@ -82,6 +85,7 @@ dependencies {
 
     // ==== 네트워크 ====
     implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+
 
 
 
@@ -107,10 +111,14 @@ clean.doLast {
 
 tasks.named('test') {
     useJUnitPlatform()
-    finalizedBy 'jacocoTestReport' // test가 끝나면 jacocoTestReport 동작
 }
 
-// jacoco report 설정
-jacocoTestReport {
-    dependsOn test // 리포트 생성을 위해서는 test가 먼저 완료되어야 함
+ext {
+    set('springCloudVersion', "2024.0.0") // openfeign 호환
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" // openfeign 호환
+    }
 }
