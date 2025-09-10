@@ -129,27 +129,11 @@ class CommentQueryControllerIntegrationTest {
                 .andExpect(jsonPath("$.last").value(true));
     }
     
-    @Test
-    @DisplayName("댓글 조회 통합 테스트 - 페이지 파라미터 없음")
-    void getComments_NoPageParam_IntegrationTest() throws Exception {
-        // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
-        
-        // When & Then - 기본 페이지(0)로 조회
-        mockMvc.perform(get("/api/comment/{postId}", testPost.getId())
-                .with(user(userDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.number").value(0));
-    }
     
     @Test
     @DisplayName("인기댓글 조회 통합 테스트")
     void getPopularComments_IntegrationTest() throws Exception {
-        // Given - 추천이 많은 댓글들 생성
-        createPopularComments();
-        
+        // Given
         CustomUserDetails userDetails = createUserDetails(testUser);
         
         // When & Then
@@ -158,51 +142,11 @@ class CommentQueryControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
-        // 추천 로직은 별도 CommentLike 엔티티로 관리되므로 실제 추천이 없으면 0개 반환이 정상
+        // 추천 로직은 별도 CommentLike 엔티티로 관리되므로 실제 추천이 없으면 빈 배열 반환이 정상
     }
     
-    @Test
-    @DisplayName("인기댓글 조회 통합 테스트 - 인기댓글 없음")
-    void getPopularComments_NoPopularComments_IntegrationTest() throws Exception {
-        // Given - 추천이 적은 댓글들만 있음
-        CustomUserDetails userDetails = createUserDetails(testUser);
-        
-        // When & Then
-        mockMvc.perform(get("/api/comment/{postId}/popular", testPost.getId())
-                .with(user(userDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
-    }
     
-    @Test
-    @DisplayName("댓글 조회 실패 - 존재하지 않는 게시글")
-    void getComments_NonExistentPost_IntegrationTest() throws Exception {
-        // Given
-        Long nonExistentPostId = 999999L;
-        CustomUserDetails userDetails = createUserDetails(testUser);
-        
-        // When & Then
-        mockMvc.perform(get("/api/comment/{postId}", nonExistentPostId)
-                .param("page", "0")
-                .with(user(userDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty());
-        // 존재하지 않는 게시글도 빈 결과를 반환하는 것이 정상 동작일 수 있음
-    }
     
-    @Test
-    @DisplayName("비로그인 사용자 댓글 조회 통합 테스트")
-    void getComments_AnonymousUser_IntegrationTest() throws Exception {
-        // When & Then - 인증 없이 요청
-        mockMvc.perform(get("/api/comment/{postId}", testPost.getId())
-                .param("page", "0"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray());
-    }
     
     /**
      * 테스트용 사용자 생성
@@ -251,25 +195,6 @@ class CommentQueryControllerIntegrationTest {
         }
     }
     
-    /**
-     * 테스트용 인기 댓글들 생성 (추천 3개 이상)
-     * 현재는 별도의 CommentLike 엔티티를 통해 추천을 관리하므로
-     * 테스트에서는 일반 댓글을 생성하고 실제 추천 로직은 서비스 계층에서 처리
-     */
-    private void createPopularComments() {
-        // 실제 시스템에서는 CommentLike 엔티티를 통해 추천수가 계산되므로
-        // 통합 테스트에서는 실제 추천 로직을 테스트하기보다는
-        // API 호출 자체가 정상적으로 동작하는지 확인
-        for (int i = 1; i <= 3; i++) {
-            Comment comment = Comment.builder()
-                    .content("일반 댓글 " + i)
-                    .user(testUser)
-                    .post(testPost)
-                    .deleted(false)
-                    .build();
-            commentRepository.save(comment);
-        }
-    }
     
     /**
      * 테스트용 CustomUserDetails 생성

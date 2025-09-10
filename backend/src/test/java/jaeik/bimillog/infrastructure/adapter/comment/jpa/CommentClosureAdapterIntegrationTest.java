@@ -40,10 +40,11 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>CommentClosureCommandAdapter 통합 테스트</h2>
- * <p>실제 MySQL 데이터베이스를 사용한 CommentClosureCommandAdapter의 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 댓글 클로저 CRUD 동작 검증</p>
- * 
+ * <h2>댓글 클로저 어댑터 통합 테스트</h2>
+ * <p>실제 MySQL 데이터베이스를 사용한 CommentClosure 관련 어댑터들의 통합 테스트</p>
+ * <p>TestContainers를 사용하여 실제 MySQL 환경에서 댓글 클로저 CRUD 및 조회 동작 검증</p>
+ * <p>명령(저장/삭제) 작업과 조회 작업을 모두 포함</p>
+ *
  * @author Jaeik
  * @version 2.0.0
  */
@@ -67,7 +68,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
-class CommentClosureAdapterIntegrationTest1 {
+class CommentClosureAdapterIntegrationTest {
 
     @Container
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
@@ -109,6 +110,7 @@ class CommentClosureAdapterIntegrationTest1 {
     private Post testPost;
     private Comment parentComment;
     private Comment childComment;
+    private Comment grandChildComment;
 
     @BeforeEach
     void setUp() {
@@ -139,39 +141,31 @@ class CommentClosureAdapterIntegrationTest1 {
                 .build();
         entityManager.persistAndFlush(testPost);
 
-        // 테스트용 댓글 생성 (부모 댓글)
-        parentComment = Comment.createComment(
-                testPost, 
-                testUser, 
-                "부모 댓글", 
-                null
-        );
+        // 테스트용 댓글들 생성 (3레벨 계층구조: 부모 -> 자식 -> 손자)
+        parentComment = Comment.createComment(testPost, testUser, "부모 댓글", null);
         entityManager.persistAndFlush(parentComment);
 
-        // 테스트용 댓글 생성 (자식 댓글)
-        childComment = Comment.createComment(
-                testPost, 
-                testUser, 
-                "자식 댓글", 
-                null
-        );
+        childComment = Comment.createComment(testPost, testUser, "자식 댓글", null);
         entityManager.persistAndFlush(childComment);
+
+        grandChildComment = Comment.createComment(testPost, testUser, "손자 댓글", null);
+        entityManager.persistAndFlush(grandChildComment);
     }
+
+    // ============================================================================
+    // 명령(Command) 테스트: save, delete 기능
+    // ============================================================================
 
     @Test
     @DisplayName("정상 케이스 - 새로운 댓글 클로저 저장")
     void shouldSaveCommentClosure_WhenValidClosureProvided() {
-        // Given: 새로운 댓글 클로저 엔티티
-        CommentClosure commentClosure = CommentClosure.createCommentClosure(
-                parentComment, 
-                childComment, 
-                1
-        );
+        // Given
+        CommentClosure commentClosure = CommentClosure.createCommentClosure(parentComment, childComment, 1);
 
-        // When: 댓글 클로저 저장
+        // When
         commentSaveAdapter.save(commentClosure);
 
-        // Then: 댓글 클로저가 올바르게 저장되었는지 검증
+        // Then
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
         assertThat(allClosures).hasSize(1);
 
@@ -185,17 +179,13 @@ class CommentClosureAdapterIntegrationTest1 {
     @Test
     @DisplayName("정상 케이스 - 자기 자신을 가리키는 클로저 저장 (depth=0)")
     void shouldSaveSelfReferencingClosure_WhenSameCommentProvided() {
-        // Given: 자기 자신을 가리키는 댓글 클로저 (depth=0)
-        CommentClosure selfClosure = CommentClosure.createCommentClosure(
-                parentComment, 
-                parentComment, 
-                0
-        );
+        // Given
+        CommentClosure selfClosure = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
 
-        // When: 자기 참조 클로저 저장
+        // When
         commentSaveAdapter.save(selfClosure);
 
-        // Then: 자기 참조 클로저가 올바르게 저장되었는지 검증
+        // Then
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
         assertThat(allClosures).hasSize(1);
 
@@ -208,16 +198,7 @@ class CommentClosureAdapterIntegrationTest1 {
     @Test
     @DisplayName("정상 케이스 - 다중 레벨 클로저 저장")
     void shouldSaveMultipleLevelClosures_WhenDeepHierarchyProvided() {
-        // Given: 깊은 계층 구조를 위한 추가 댓글 생성
-        Comment grandChildComment = Comment.createComment(
-                testPost, 
-                testUser, 
-                "손자 댓글", 
-                null
-        );
-        entityManager.persistAndFlush(grandChildComment);
-
-        // 계층 구조: 부모 -> 자식 -> 손자
+        // Given: 계층 구조: 부모 -> 자식 -> 손자
         CommentClosure closure1 = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
         CommentClosure closure2 = CommentClosure.createCommentClosure(parentComment, childComment, 1);
         CommentClosure closure3 = CommentClosure.createCommentClosure(parentComment, grandChildComment, 2);
@@ -225,7 +206,7 @@ class CommentClosureAdapterIntegrationTest1 {
         CommentClosure closure5 = CommentClosure.createCommentClosure(childComment, grandChildComment, 1);
         CommentClosure closure6 = CommentClosure.createCommentClosure(grandChildComment, grandChildComment, 0);
 
-        // When: 모든 클로저 저장
+        // When
         commentSaveAdapter.save(closure1);
         commentSaveAdapter.save(closure2);
         commentSaveAdapter.save(closure3);
@@ -233,11 +214,10 @@ class CommentClosureAdapterIntegrationTest1 {
         commentSaveAdapter.save(closure5);
         commentSaveAdapter.save(closure6);
 
-        // Then: 모든 클로저가 올바르게 저장되었는지 검증
+        // Then
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
         assertThat(allClosures).hasSize(6);
 
-        // 깊이별로 클로저 검증
         long depth0Count = allClosures.stream().filter(c -> c.getDepth() == 0).count();
         long depth1Count = allClosures.stream().filter(c -> c.getDepth() == 1).count();
         long depth2Count = allClosures.stream().filter(c -> c.getDepth() == 2).count();
@@ -248,32 +228,9 @@ class CommentClosureAdapterIntegrationTest1 {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 댓글 클로저 삭제")
-    void shouldDeleteCommentClosure_WhenValidClosureProvided() {
-        // Given: 기존 댓글 클로저 생성 및 저장
-        CommentClosure commentClosure = CommentClosure.createCommentClosure(
-                parentComment, 
-                childComment, 
-                1
-        );
-        commentClosureRepository.save(commentClosure);
-        
-        // 저장 확인
-        List<CommentClosure> beforeDeletion = commentClosureRepository.findAll();
-        assertThat(beforeDeletion).hasSize(1);
-
-        // When: 댓글 클로저 삭제
-        commentClosureRepository.delete(commentClosure);
-
-        // Then: 댓글 클로저가 삭제되었는지 검증
-        List<CommentClosure> afterDeletion = commentClosureRepository.findAll();
-        assertThat(afterDeletion).isEmpty();
-    }
-
-    @Test
     @DisplayName("정상 케이스 - 자손 ID로 댓글 클로저 삭제")
     void shouldDeleteCommentClosuresByDescendantId_WhenValidDescendantIdProvided() {
-        // Given: 동일한 자손을 가진 여러 클로저 생성
+        // Given
         CommentClosure closure1 = CommentClosure.createCommentClosure(parentComment, childComment, 1);
         CommentClosure closure2 = CommentClosure.createCommentClosure(childComment, childComment, 0);
         
@@ -286,112 +243,183 @@ class CommentClosureAdapterIntegrationTest1 {
         commentClosureRepository.save(closure2);
         commentClosureRepository.save(closure3);
 
-        // 저장 확인
-        List<CommentClosure> beforeDeletion = commentClosureRepository.findAll();
-        assertThat(beforeDeletion).hasSize(3);
-
-        // When: 특정 자손 ID로 클로저 삭제
+        // When
         commentRepository.deleteClosuresByDescendantId(childComment.getId());
 
-        // Then: 해당 자손을 가진 클로저만 삭제되었는지 검증
+        // Then
         List<CommentClosure> afterDeletion = commentClosureRepository.findAll();
         assertThat(afterDeletion).hasSize(1);
         assertThat(afterDeletion.get(0).getDescendant()).isEqualTo(anotherChild);
     }
 
+    // ============================================================================
+    // 조회(Query) 테스트: findByDescendantId 기능
+    // ============================================================================
+
     @Test
-    @DisplayName("경계값 - 최대 깊이 클로저 저장")
-    void shouldSaveMaxDepthClosure_WhenMaxDepthProvided() {
-        // Given: 최대 깊이(예: 10) 클로저
-        int maxDepth = 10;
-        CommentClosure maxDepthClosure = CommentClosure.createCommentClosure(
-                parentComment, 
-                childComment, 
-                maxDepth
-        );
+    @DisplayName("정상 케이스 - 자손 ID로 클로저 목록 조회")
+    void shouldFindClosuresByDescendantId_WhenValidDescendantIdProvided() {
+        // Given: 계층 구조를 나타내는 클로저들 저장
+        CommentClosure closure1 = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
+        CommentClosure closure2 = CommentClosure.createCommentClosure(parentComment, childComment, 1);
+        CommentClosure closure3 = CommentClosure.createCommentClosure(parentComment, grandChildComment, 2);
+        CommentClosure closure4 = CommentClosure.createCommentClosure(childComment, childComment, 0);
+        CommentClosure closure5 = CommentClosure.createCommentClosure(childComment, grandChildComment, 1);
+        CommentClosure closure6 = CommentClosure.createCommentClosure(grandChildComment, grandChildComment, 0);
 
-        // When: 최대 깊이 클로저 저장
-        commentSaveAdapter.save(maxDepthClosure);
+        commentClosureRepository.save(closure1);
+        commentClosureRepository.save(closure2);
+        commentClosureRepository.save(closure3);
+        commentClosureRepository.save(closure4);
+        commentClosureRepository.save(closure5);
+        commentClosureRepository.save(closure6);
 
-        // Then: 최대 깊이 클로저가 올바르게 저장되었는지 검증
-        List<CommentClosure> allClosures = commentClosureRepository.findAll();
-        assertThat(allClosures).hasSize(1);
-        assertThat(allClosures.get(0).getDepth()).isEqualTo(maxDepth);
+        // When: 손자 댓글을 자손으로 하는 클로저들 조회
+        Optional<List<CommentClosure>> result = commentClosureRepository
+                .findByDescendantId(grandChildComment.getId());
+
+        // Then: 손자 댓글과 관련된 모든 클로저 반환
+        assertThat(result).isPresent();
+        List<CommentClosure> closures = result.get();
+        assertThat(closures).hasSize(3); // 부모->손자, 자식->손자, 손자->손자
+
+        long depth0Count = closures.stream().filter(c -> c.getDepth() == 0).count();
+        long depth1Count = closures.stream().filter(c -> c.getDepth() == 1).count();
+        long depth2Count = closures.stream().filter(c -> c.getDepth() == 2).count();
+
+        assertThat(depth0Count).isEqualTo(1); // 손자->손자
+        assertThat(depth1Count).isEqualTo(1); // 자식->손자
+        assertThat(depth2Count).isEqualTo(1); // 부모->손자
     }
 
     @Test
-    @DisplayName("경계값 - 존재하지 않는 자손 ID로 삭제 시도")
-    void shouldDoNothing_WhenDeletingByNonExistentDescendantId() {
-        // Given: 기존 클로저와 존재하지 않는 자손 ID
-        CommentClosure existingClosure = CommentClosure.createCommentClosure(
-                parentComment, 
-                childComment, 
-                1
-        );
-        commentClosureRepository.save(existingClosure);
-        
-        Long nonExistentDescendantId = 999L;
-
-        // When: 존재하지 않는 자손 ID로 삭제 시도
-        commentRepository.deleteClosuresByDescendantId(nonExistentDescendantId);
-
-        // Then: 기존 클로저는 삭제되지 않아야 함
-        List<CommentClosure> allClosures = commentClosureRepository.findAll();
-        assertThat(allClosures).hasSize(1);
-        assertThat(allClosures.get(0).getDescendant()).isEqualTo(childComment);
-    }
-
-    @Test
-    @DisplayName("트랜잭션 - 복잡한 클로저 엔티티 저장 및 조회")
-    void shouldSaveComplexClosureEntity_WhenAllFieldsProvided() {
-        // Given: 복잡한 계층 구조의 클로저들
-        CommentClosure complexClosure = CommentClosure.createCommentClosure(
-                parentComment, 
-                childComment, 
-                5
-        );
-
-        // When: 복잡한 클로저 저장
-        commentSaveAdapter.save(complexClosure);
-
-        // Then: 모든 필드가 올바르게 저장되었는지 검증
-        Optional<CommentClosure> foundClosure = commentClosureRepository.findById(complexClosure.getId());
-        assertThat(foundClosure).isPresent();
-
-        CommentClosure dbClosure = foundClosure.get();
-        assertThat(dbClosure.getAncestor()).isEqualTo(parentComment);
-        assertThat(dbClosure.getDescendant()).isEqualTo(childComment);
-        assertThat(dbClosure.getDepth()).isEqualTo(5);
-        assertThat(dbClosure.getId()).isNotNull();
-
-        // 연관된 엔티티들도 올바르게 조회되는지 확인
-        assertThat(dbClosure.getAncestor().getContent()).isEqualTo("부모 댓글");
-        assertThat(dbClosure.getDescendant().getContent()).isEqualTo("자식 댓글");
-    }
-
-    @Test
-    @DisplayName("트랜잭션 - 배치 클로저 삭제")
-    void shouldDeleteMultipleClosures_WhenBatchDeletionRequested() {
-        // Given: 동일한 자손을 가진 여러 클로저들
-        Comment grandParentComment = Comment.createComment(testPost, testUser, "할아버지 댓글", null);
-        entityManager.persistAndFlush(grandParentComment);
-
-        CommentClosure closure1 = CommentClosure.createCommentClosure(grandParentComment, childComment, 2);
+    @DisplayName("정상 케이스 - 중간 노드 자손 ID로 클로저 목록 조회")
+    void shouldFindClosuresForMiddleNode_WhenMiddleNodeDescendantIdProvided() {
+        // Given
+        CommentClosure closure1 = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
         CommentClosure closure2 = CommentClosure.createCommentClosure(parentComment, childComment, 1);
         CommentClosure closure3 = CommentClosure.createCommentClosure(childComment, childComment, 0);
-        
+
         commentClosureRepository.save(closure1);
         commentClosureRepository.save(closure2);
         commentClosureRepository.save(closure3);
 
-        // 저장 확인
-        assertThat(commentClosureRepository.findAll()).hasSize(3);
+        // When: 중간 노드(자식 댓글)를 자손으로 하는 클로저들 조회
+        Optional<List<CommentClosure>> result = commentClosureRepository
+                .findByDescendantId(childComment.getId());
 
-        // When: 특정 자손의 모든 클로저 삭제
+        // Then: 자식 댓글과 관련된 클로저들 반환
+        assertThat(result).isPresent();
+        List<CommentClosure> closures = result.get();
+        assertThat(closures).hasSize(2); // 부모->자식, 자식->자식
+
+        boolean hasParentToChild = closures.stream()
+                .anyMatch(c -> c.getAncestor().equals(parentComment) && c.getDepth() == 1);
+        boolean hasSelfReference = closures.stream()
+                .anyMatch(c -> c.getAncestor().equals(childComment) && c.getDepth() == 0);
+
+        assertThat(hasParentToChild).isTrue();
+        assertThat(hasSelfReference).isTrue();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 루트 노드 자손 ID로 클로저 조회")
+    void shouldFindClosureForRootNode_WhenRootNodeDescendantIdProvided() {
+        // Given: 루트 노드의 자기 참조 클로저만 저장
+        CommentClosure selfClosure = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
+        commentClosureRepository.save(selfClosure);
+
+        // When: 루트 노드(부모 댓글)를 자손으로 하는 클로저들 조회
+        Optional<List<CommentClosure>> result = commentClosureRepository
+                .findByDescendantId(parentComment.getId());
+
+        // Then: 자기 참조 클로저만 반환
+        assertThat(result).isPresent();
+        List<CommentClosure> closures = result.get();
+        assertThat(closures).hasSize(1);
+
+        CommentClosure closure = closures.getFirst();
+        assertThat(closure.getAncestor()).isEqualTo(parentComment);
+        assertThat(closure.getDescendant()).isEqualTo(parentComment);
+        assertThat(closure.getDepth()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("경계값 - 존재하지 않는 자손 ID로 클로저 조회")
+    void shouldReturnEmpty_WhenDescendantIdNotExists() {
+        // Given: 기존 클로저들과 존재하지 않는 자손 ID
+        CommentClosure existingClosure = CommentClosure.createCommentClosure(parentComment, childComment, 1);
+        commentClosureRepository.save(existingClosure);
+
+        Long nonExistentDescendantId = 999L;
+
+        // When: 존재하지 않는 자손 ID로 클로저 조회
+        Optional<List<CommentClosure>> result = commentClosureRepository
+                .findByDescendantId(nonExistentDescendantId);
+
+        // Then: 빈 Optional 또는 빈 리스트 반환
+        if (result.isPresent()) {
+            assertThat(result.get()).isEmpty();
+        } else {
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Test
+    @DisplayName("경계값 - 빈 데이터베이스에서 클로저 조회")
+    void shouldReturnEmpty_WhenDatabaseIsEmptyForQuery() {
+        // Given: 빈 데이터베이스
+
+        // When: 빈 데이터베이스에서 클로저 조회
+        Optional<List<CommentClosure>> result = commentClosureRepository
+                .findByDescendantId(childComment.getId());
+
+        // Then: 빈 결과 반환
+        if (result.isPresent()) {
+            assertThat(result.get()).isEmpty();
+        } else {
+            assertThat(result).isEmpty();
+        }
+    }
+
+    // ============================================================================
+    // 통합 테스트: 명령과 조회 연계
+    // ============================================================================
+
+    @Test
+    @DisplayName("통합 테스트 - 클로저 저장 후 조회")
+    void shouldSaveAndQuery_WhenIntegratedOperationPerformed() {
+        // Given: 클로저 저장
+        CommentClosure closure = CommentClosure.createCommentClosure(parentComment, childComment, 1);
+        commentSaveAdapter.save(closure);
+
+        // When: 저장된 클로저 조회
+        Optional<List<CommentClosure>> result = commentClosureRepository
+                .findByDescendantId(childComment.getId());
+
+        // Then: 저장한 클로저가 조회됨
+        assertThat(result).isPresent();
+        List<CommentClosure> closures = result.get();
+        assertThat(closures).hasSize(1);
+        assertThat(closures.get(0).getAncestor()).isEqualTo(parentComment);
+        assertThat(closures.get(0).getDescendant()).isEqualTo(childComment);
+        assertThat(closures.get(0).getDepth()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("통합 테스트 - 클로저 저장 후 삭제")
+    void shouldSaveAndDelete_WhenIntegratedOperationPerformed() {
+        // Given: 클로저 저장
+        CommentClosure closure = CommentClosure.createCommentClosure(parentComment, childComment, 1);
+        commentSaveAdapter.save(closure);
+        
+        // 저장 확인
+        assertThat(commentClosureRepository.findAll()).hasSize(1);
+
+        // When: 저장된 클로저 삭제
         commentRepository.deleteClosuresByDescendantId(childComment.getId());
 
-        // Then: 해당 자손의 모든 클로저가 삭제되었는지 검증
-        List<CommentClosure> remainingClosures = commentClosureRepository.findAll();
-        assertThat(remainingClosures).isEmpty();
+        // Then: 클로저가 삭제됨
+        assertThat(commentClosureRepository.findAll()).isEmpty();
     }
 }

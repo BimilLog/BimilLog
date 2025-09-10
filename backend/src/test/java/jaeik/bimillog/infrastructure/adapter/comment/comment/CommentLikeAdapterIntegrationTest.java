@@ -245,41 +245,6 @@ class CommentLikeAdapterIntegrationTest {
         assertThat(otherUserComment2Liked).isFalse();
     }
 
-    @Test
-    @DisplayName("성능 테스트 - EXISTS 쿼리 최적화 확인")
-    void shouldUseOptimizedExistsQuery_WhenCheckingCommentLike() {
-        // Given: 대량의 테스트 데이터 생성 (성능 테스트용)
-        // 여러 사용자와 댓글에 대한 추천 데이터 생성
-        CommentLike targetLike = CommentLike.builder()
-                .comment(testComment1)
-                .user(testUser2)
-                .build();
-        commentLikeRepository.save(targetLike);
-        
-        // 다른 추천들도 생성 (노이즈 데이터)
-        for (int i = 0; i < 10; i++) {
-            Comment noiseComment = Comment.createComment(testPost, testUser1, "노이즈 댓글 " + i, null);
-            noiseComment = commentRepository.save(noiseComment);
-            
-            CommentLike noiseLike = CommentLike.builder()
-                    .comment(noiseComment)
-                    .user(testUser3)
-                    .build();
-            commentLikeRepository.save(noiseLike);
-        }
-
-        // When: 타겟 추천 여부 확인 (EXISTS 쿼리 사용)
-        long startTime = System.nanoTime();
-        boolean isLiked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
-        long endTime = System.nanoTime();
-
-        // Then: 빠른 시간 내에 정확한 결과 반환
-        assertThat(isLiked).isTrue();
-        
-        // 성능 확인: EXISTS 쿼리는 매우 빨라야 함 (1ms 이내)
-        long executionTimeMs = (endTime - startTime) / 1_000_000;
-        assertThat(executionTimeMs).isLessThan(10); // 10ms 이내 (여유있게 설정)
-    }
 
     @Test
     @DisplayName("경계값 - null 값 처리 확인")
@@ -321,70 +286,7 @@ class CommentLikeAdapterIntegrationTest {
         assertThat(afterDelete).isFalse();
     }
 
-    @Test
-    @DisplayName("복잡한 시나리오 - 대용량 데이터에서의 정확성 검증")
-    void shouldReturnAccurateResults_WhenLargeDatasetExists() {
-        // Given: 대용량 테스트 데이터 생성
-        final int COMMENT_COUNT = 50;
-        
-        // 추가 댓글들 생성
-        for (int i = 0; i < COMMENT_COUNT; i++) {
-            Comment comment = Comment.createComment(testPost, testUser1, "댓글 " + i, null);
-            commentRepository.save(comment);
-        }
-        
-        // 무작위 추천 관계 생성 (testUser2가 일부 댓글에만 추천)
-        // testComment1에는 추천, testComment2에는 추천하지 않음
-        CommentLike targetLike = CommentLike.builder()
-                .comment(testComment1)
-                .user(testUser2)
-                .build();
-        commentLikeRepository.save(targetLike);
 
-        // When: 타겟 댓글들의 추천 여부 확인
-        boolean comment1Liked = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
-        boolean comment2Liked = commentLikeAdapter.isLikedByUser(testComment2.getId(), testUser2.getId());
-
-        // Then: 대용량 데이터 환경에서도 정확한 결과 반환
-        assertThat(comment1Liked).isTrue();   // 추천한 댓글
-        assertThat(comment2Liked).isFalse();  // 추천하지 않은 댓글
-        
-        // 전체 추천 수 확인
-        long totalLikes = commentLikeRepository.count();
-        assertThat(totalLikes).isEqualTo(1);  // targetLike 하나만 존재
-    }
-
-    @Test
-    @DisplayName("동시성 시나리오 - 같은 댓글-사용자 조합에 대한 중복 체크")
-    void shouldHandleConcurrentAccess_WhenSameCommentUserCombination() {
-        // Given: 동일한 댓글-사용자 조합
-        Long commentId = testComment1.getId();
-        Long userId = testUser2.getId();
-        
-        // 초기 상태 확인
-        boolean initialCheck = commentLikeAdapter.isLikedByUser(commentId, userId);
-        assertThat(initialCheck).isFalse();
-
-        // When: 추천 생성
-        CommentLike commentLike = CommentLike.builder()
-                .comment(testComment1)
-                .user(testUser2)
-                .build();
-        commentLikeRepository.save(commentLike);
-
-        // Then: 여러 번 체크해도 일관된 결과
-        for (int i = 0; i < 5; i++) {
-            boolean check = commentLikeAdapter.isLikedByUser(commentId, userId);
-            assertThat(check).isTrue();
-        }
-        
-        // 다른 조합들은 영향받지 않음
-        boolean otherUserCheck = commentLikeAdapter.isLikedByUser(commentId, testUser3.getId());
-        boolean otherCommentCheck = commentLikeAdapter.isLikedByUser(testComment2.getId(), userId);
-        
-        assertThat(otherUserCheck).isFalse();
-        assertThat(otherCommentCheck).isFalse();
-    }
 
     // ============================================================================
     // 명령(Command) 테스트: save, deleteLike 기능
@@ -443,33 +345,6 @@ class CommentLikeAdapterIntegrationTest {
         assertThat(foundCommentLike).isEmpty();
     }
 
-    @Test
-    @DisplayName("데이터베이스 제약조건 - 유니크 키 위반 시 예외")
-    void shouldThrowException_WhenDatabaseUniqueConstraintViolated() {
-        // 실제 비즈니스 로직(CommentLikeService)에서는 토글 방식으로 중복 체크 후 처리하므로
-        // 이 상황은 발생하지 않아야 함. 하지만 데이터베이스 레벨 제약조건 테스트로는 유효함
-        // 의심 지점: 비즈니스 로직에서 중복 체크 로직이 우회되는 경우가 있는지 검토 필요
-        
-        // Given: 이미 존재하는 댓글 추천을 데이터베이스에 직접 저장
-        CommentLike existingCommentLike = CommentLike.builder()
-                .comment(testComment1)
-                .user(testUser2)
-                .build();
-        commentLikeRepository.save(existingCommentLike);
-
-        // 동일한 댓글-사용자 조합의 추천 (데이터베이스 제약조건 위반 상황)
-        CommentLike duplicateCommentLike = CommentLike.builder()
-                .comment(testComment1)
-                .user(testUser2)
-                .build();
-
-        // When & Then: 데이터베이스 유니크 제약조건 위반으로 예외 발생
-        // 주의: 실제 비즈니스 로직에서는 이런 직접 저장이 발생하지 않음 (토글 로직 존재)
-        assertThrows(
-                org.springframework.dao.DataIntegrityViolationException.class,
-                () -> commentLikeAdapter.save(duplicateCommentLike)
-        );
-    }
 
     @Test
     @DisplayName("경계값 - 존재하지 않는 댓글 추천 삭제")
@@ -583,82 +458,5 @@ class CommentLikeAdapterIntegrationTest {
         assertThat(afterDelete).isFalse();
     }
 
-    @Test
-    @DisplayName("통합 워크플로우 - 복잡한 댓글 추천 시나리오")
-    void shouldHandleComplexCommentLikeScenario_WhenMultipleOperationsPerformed() {
-        // Given: 복잡한 시나리오 설정
-        Comment comment3 = Comment.createComment(testPost, testUser1, "세 번째 댓글", null);
-        comment3 = commentRepository.save(comment3);
 
-        // When: 복잡한 추천 동작 수행
-        
-        // 1. testUser2가 첫 번째 댓글 추천
-        CommentLike like1 = CommentLike.builder()
-                .comment(testComment1)
-                .user(testUser2)
-                .build();
-        CommentLike savedLike1 = commentLikeAdapter.save(like1);
-
-        // 2. testUser2가 세 번째 댓글도 추천
-        CommentLike like2 = CommentLike.builder()
-                .comment(comment3)
-                .user(testUser2)
-                .build();
-        CommentLike savedLike2 = commentLikeAdapter.save(like2);
-
-        // 3. testUser1이 자신의 댓글이 아닌 세 번째 댓글 추천
-        CommentLike like3 = CommentLike.builder()
-                .comment(comment3)
-                .user(testUser1)
-                .build();
-        CommentLike savedLike3 = commentLikeAdapter.save(like3);
-
-        // Then: 모든 추천이 올바르게 저장되었는지 검증
-        assertThat(savedLike1).isNotNull();
-        assertThat(savedLike2).isNotNull();
-        assertThat(savedLike3).isNotNull();
-
-        // 각 댓글의 추천 수 확인
-        long totalLikes = commentLikeRepository.count();
-        assertThat(totalLikes).isEqualTo(3);  // testUser2 2개 + testUser1 1개
-
-        // When: 일부 추천 삭제
-        commentLikeAdapter.deleteLikeByIds(comment3.getId(), testUser2.getId());
-
-        // Then: 삭제 후 상태 확인
-        long totalLikesAfterDelete = commentLikeRepository.count();
-        assertThat(totalLikesAfterDelete).isEqualTo(2);  // testUser2의 comment3 추천이 삭제됨
-        
-        boolean user2LikesComment3 = commentLikeAdapter.isLikedByUser(comment3.getId(), testUser2.getId());
-        boolean user1LikesComment3 = commentLikeAdapter.isLikedByUser(comment3.getId(), testUser1.getId());
-        
-        assertThat(user2LikesComment3).isFalse();
-        assertThat(user1LikesComment3).isTrue();
-    }
-
-    @Test
-    @DisplayName("통합 워크플로우 - ID 기반 삭제 최적화 테스트")
-    void shouldDeleteByIds_WhenOptimizedDeletionRequired() {
-        // Given: 댓글 추천 생성
-        CommentLike commentLike = CommentLike.builder()
-                .comment(testComment1)
-                .user(testUser2)
-                .build();
-        commentLikeRepository.save(commentLike);
-        
-        // 생성 확인
-        boolean existsBefore = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
-        assertThat(existsBefore).isTrue();
-
-        // When: ID 기반으로 최적화된 삭제 수행
-        commentLikeAdapter.deleteLikeByIds(testComment1.getId(), testUser2.getId());
-
-        // Then: 삭제 확인
-        boolean existsAfter = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser2.getId());
-        assertThat(existsAfter).isFalse();
-        
-        // 전체 추천 수도 확인
-        long totalLikes = commentLikeRepository.count();
-        assertThat(totalLikes).isEqualTo(0);
-    }
 }

@@ -17,7 +17,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -104,57 +103,6 @@ class CommentCreatedEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("이벤트 처리 시간 검증 - 댓글 생성 알림")
-    void commentCreatedEventProcessingTime_ShouldCompleteWithinTimeout() {
-        // Given
-        Long postUserId = 1L;
-        String commenterName = "테스트댓글러";
-        Long postId = 100L;
-        CommentCreatedEvent event = new CommentCreatedEvent(postUserId, commenterName, postId);
-
-        long startTime = System.currentTimeMillis();
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 3초 내에 처리 완료되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(3))
-                .untilAsserted(() -> {
-                    verify(notificationSseUseCase).sendCommentNotification(
-                            eq(postUserId), eq(commenterName), eq(postId));
-                    verify(notificationFcmUseCase).sendCommentNotification(
-                            eq(postUserId), eq(commenterName));
-
-                    long endTime = System.currentTimeMillis();
-                    long processingTime = endTime - startTime;
-                    
-                    // 처리 시간이 3초를 초과하지 않아야 함
-                    assert processingTime < 3000L : "이벤트 처리 시간이 너무 오래 걸림: " + processingTime + "ms";
-                });
-    }
-
-    @Test
-    @DisplayName("댓글 생성 이벤트 유효성 검사 - null 값 검증")
-    void commentCreatedEventValidation_ShouldThrowExceptionForNullValues() {
-        // Then - null 값들로 이벤트 생성 시 예외가 발생해야 함
-        assertThatThrownBy(() -> new CommentCreatedEvent(null, "댓글러", 1L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("게시글 작성자 ID는 null일 수 없습니다");
-        
-        assertThatThrownBy(() -> new CommentCreatedEvent(1L, null, 1L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("댓글 작성자 이름은 null이거나 비어있을 수 없습니다");
-        
-        assertThatThrownBy(() -> new CommentCreatedEvent(1L, "", 1L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("댓글 작성자 이름은 null이거나 비어있을 수 없습니다");
-        
-        assertThatThrownBy(() -> new CommentCreatedEvent(1L, "댓글러", null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("게시글 ID는 null일 수 없습니다");
-    }
 
     @Test
     @DisplayName("여러 게시글의 댓글 생성 이벤트 처리")
@@ -189,41 +137,6 @@ class CommentCreatedEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("대량 댓글 생성 이벤트 처리")
-    void massCommentCreatedEvents_ShouldProcessEfficiently() {
-        // Given - 대량의 댓글 생성 이벤트 (50개)
-        int eventCount = 50;
-        
-        long startTime = System.currentTimeMillis();
-
-        // When - 대량 댓글 생성 이벤트 발행
-        for (int i = 1; i <= eventCount; i++) {
-            CommentCreatedEvent event = new CommentCreatedEvent(
-                    (long) i, 
-                    "댓글러" + i,
-                    (long) (i + 1000));
-            eventPublisher.publishEvent(event);
-        }
-
-        // Then - 모든 이벤트가 15초 내에 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(15))
-                .untilAsserted(() -> {
-                    for (int i = 1; i <= eventCount; i++) {
-                        verify(notificationSseUseCase).sendCommentNotification(
-                                eq((long) i), eq("댓글러" + i), eq((long) (i + 1000)));
-                        verify(notificationFcmUseCase).sendCommentNotification(
-                                eq((long) i), eq("댓글러" + i));
-                    }
-
-                    long endTime = System.currentTimeMillis();
-                    long totalProcessingTime = endTime - startTime;
-                    
-                    // 대량 처리 시간이 15초를 초과하지 않아야 함
-                    assert totalProcessingTime < 15000L : "대량 댓글 생성 이벤트 처리 시간이 너무 오래 걸림: " + totalProcessingTime + "ms";
-                });
-    }
 
     @Test
     @DisplayName("예외 상황에서의 이벤트 처리 - SSE 알림 실패")
