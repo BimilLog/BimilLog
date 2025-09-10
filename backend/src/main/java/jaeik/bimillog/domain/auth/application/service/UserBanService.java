@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.auth.application.service;
 
+import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
-import jaeik.bimillog.domain.auth.event.AdminWithdrawEvent;
-import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
-import jaeik.bimillog.infrastructure.auth.JwtFilter;
-import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
 import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
+import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
+import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.infrastructure.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserBanService implements UserBanUseCase {
+public class
+UserBanService implements UserBanUseCase {
 
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
@@ -57,8 +58,8 @@ public class UserBanService implements UserBanUseCase {
             return isBlacklisted;
         } catch (Exception e) {
             log.error("토큰 블랙리스트 상태 확인 실패: error={}", e.getMessage(), e);
-            // 예외 발생 시 안전하게 블랙리스트로 간주하여 접근을 막습니다.
-            return true;
+            // 예외 발생 시 일반회원으로 간주합니다.
+            return false;
         }
     }
 
