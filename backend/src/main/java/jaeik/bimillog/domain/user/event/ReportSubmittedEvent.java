@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.user.event;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.infrastructure.adapter.admin.in.listener.ReportSaveListener;
 
 /**
  * <h2>신고 제출 이벤트</h2>
  * <p>사용자가 신고나 건의사항을 제출했을 때 발행되는 도메인 이벤트</p>
  * <p>관리자 도메인에서 이 이벤트를 리스닝하여 신고를 처리합니다.</p>
  *
- * @see jaeik.bimillog.infrastructure.adapter.admin.in.listener.ReportSaveListener 신고 접수 처리
  * @author Jaeik
  * @version 2.0.0
+ * {@link ReportSaveListener} 신고 접수 처리
  */
 public record ReportSubmittedEvent(
         Long reporterId,

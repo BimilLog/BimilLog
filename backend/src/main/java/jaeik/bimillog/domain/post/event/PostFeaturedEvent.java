@@ -14,9 +14,9 @@ import jaeik.bimillog.infrastructure.adapter.notification.in.listener.Notificati
  * @param postId 등극한 게시글 ID
  * @param fcmTitle FCM 푸시 알림 제목
  * @param fcmBody FCM 푸시 알림 내용
- * @see NotificationGenerateListener 인기글 등극 알림 발송
  * @author Jaeik
  * @version 2.0.0
+ * {@link NotificationGenerateListener} 인기글 등극 알림 발송
  */
 public record PostFeaturedEvent(
         Long userId,

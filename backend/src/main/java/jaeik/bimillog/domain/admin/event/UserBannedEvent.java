@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.admin.event;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.infrastructure.adapter.auth.in.listener.JwtBlacklistListener;
+import jaeik.bimillog.infrastructure.adapter.user.in.listener.BlacklistAddListener;
 
 /**
  * <h2>UserBannedEvent</h2>
@@ -29,6 +31,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
  * @param provider 소셜 로그인 제공자 (KAKAO 등)
  * @author Jaeik
  * @version 2.0.0
+ * {@link JwtBlacklistListener} JWT 토큰 무효화
+ * {@link BlacklistAddListener} 사용자 차단 및 블랙리스트 등록
  */
 public record UserBannedEvent(
         Long userId,

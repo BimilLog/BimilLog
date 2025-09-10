@@ -1,5 +1,9 @@
 package jaeik.bimillog.domain.admin.event;
 
+import jaeik.bimillog.infrastructure.adapter.auth.in.listener.JwtBlacklistListener;
+import jaeik.bimillog.infrastructure.adapter.comment.in.listener.CommentRemoveListener;
+import jaeik.bimillog.infrastructure.adapter.user.in.listener.BlacklistAddListener;
+
 /**
  * <h2>AdminWithdrawEvent</h2>
  * <p>
@@ -28,6 +32,9 @@ package jaeik.bimillog.domain.admin.event;
  * @author Jaeik
  * @version 2.0.0
  * @since 2.0.0
+ * {@link JwtBlacklistListener} JWT 토큰 무효화
+ * {@link CommentRemoveListener} 댓글 데이터 정리
+ * {@link BlacklistAddListener} 블랙리스트 등록
  */
 public record AdminWithdrawEvent(
         Long userId,

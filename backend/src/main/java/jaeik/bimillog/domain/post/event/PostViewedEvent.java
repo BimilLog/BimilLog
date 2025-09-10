@@ -11,9 +11,9 @@ import jaeik.bimillog.infrastructure.adapter.post.in.listener.PostViewIncreaseLi
  * <p>중복 조회 방지 로직은 Controller 레이어에서 처리되므로, 이벤트는 순수하게 조회수 증가만 담당합니다.</p>
  *
  * @param postId 조회된 게시글 ID
- * @see PostViewIncreaseListener 조회수 비동기 증가
  * @author Jaeik
  * @version 2.0.0
+ * {@link PostViewIncreaseListener} 조회수 비동기 증가
  */
 public record PostViewedEvent(Long postId) {
     public PostViewedEvent {

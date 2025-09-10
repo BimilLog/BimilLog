@@ -12,11 +12,9 @@ import java.time.LocalDateTime;
  * @param userId 로그아웃을 수행한 사용자의 고유 ID
  * @param tokenId 무효화할 JWT 토큰의 고유 ID
  * @param loggedOutAt 로그아웃 이벤트가 발생한 정확한 시간
- * @see jaeik.bimillog.infrastructure.adapter.notification.in.listener.FcmTokenRemoveListener FCM 토큰 제거
- * @see jaeik.bimillog.infrastructure.adapter.auth.in.listener.TokenCleanupListener JWT 토큰 정리
- * @see jaeik.bimillog.infrastructure.adapter.notification.in.listener.SseEmitterCleanupListener SSE 연결 정리
  * @author Jaeik
  * @version 2.0.0
+ * {@link jaeik.bimillog.infrastructure.adapter.notification.in.listener.FcmTokenRemoveListener} FCM 토큰 제거
  */
 public record UserLoggedOutEvent(Long userId, Long tokenId, LocalDateTime loggedOutAt) {
 

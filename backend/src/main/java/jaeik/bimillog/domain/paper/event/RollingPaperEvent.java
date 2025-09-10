@@ -13,9 +13,9 @@ import jaeik.bimillog.infrastructure.adapter.notification.in.listener.Notificati
  *
  * @param paperOwnerId 롤링페이퍼 주인 ID (알림을 받을 사용자)
  * @param userName 닉네임
- * @see NotificationGenerateListener 롤링페이퍼 메시지 알림 발송
  * @author Jaeik
  * @version 2.0.0
+ * {@link NotificationGenerateListener} 롤링페이퍼 메시지 알림 발송
  */
 public record RollingPaperEvent(
         Long paperOwnerId,

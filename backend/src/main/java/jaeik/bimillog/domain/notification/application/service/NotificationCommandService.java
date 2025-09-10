@@ -89,9 +89,10 @@ public class NotificationCommandService implements NotificationCommandUseCase {
 
     /**
      * <h3>ID 목록 검증 및 필터링</h3>
-     * <p>알림 ID 목록의 유횤성을 검사하고 비즈니스 규칙에 맞게 정제합니다.</p>
+     * <p>알림 ID 목록의 유효성을 검사하고 비즈니스 규칙에 맞게 정제합니다.</p>
      * <p>비즈니스 규칙: null 또는 0 이하의 ID는 제거, 중복 ID는 하나만 유지</p>
      * <p>데이터 무결성을 위해 모든 부적절한 데이터를 사전에 제거하여 예외를 방지합니다.</p>
+     * <p>batchUpdate 메서드에서 입력값 검증 및 정제를 위해 호출됩니다.</p>
      *
      * @param ids 검증할 알림 ID 목록 (null 가능)
      * @param operation 작업 이름 (로깅 및 디버깅용)

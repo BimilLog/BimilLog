@@ -10,9 +10,9 @@ import jaeik.bimillog.infrastructure.adapter.notification.in.listener.Notificati
  * @param postUserId 게시글 작성자 ID (알림을 받을 사용자)
  * @param commenterName 댓글 작성자 이름
  * @param postId 게시글 ID
- * @see NotificationGenerateListener SSE/FCM 알림 발송
  * @author Jaeik
  * @version 2.0.0
+ * {@link NotificationGenerateListener} SSE/FCM 알림 발송
  */
 public record CommentCreatedEvent(
         Long postUserId,
