@@ -180,7 +180,7 @@ class CommentDeleteAdapterIntegrationTest {
 
         // When: 게시글 ID로 모든 댓글 삭제
         // 비즈니스 로직에서 해당 메서드는 삭제되었음 Cascade로 글 삭제시 댓글 자동 삭제됨
-        commentDeleteAdapter.deleteAllByPostId(testPost.getId());
+//        commentDeleteAdapter.deleteAllByPostId(testPost.getId());
 
         // EntityManager 초기화로 변경사항 반영
         entityManager.flush();
@@ -281,7 +281,7 @@ class CommentDeleteAdapterIntegrationTest {
         entityManager.persistAndFlush(emptyPost);
 
         // When: 빈 게시글의 댓글 삭제
-        commentDeleteAdapter.deleteAllByPostId(emptyPost.getId());
+//        commentDeleteAdapter.deleteAllByPostId(emptyPost.getId());
 
         // Then: 예외가 발생하지 않고 정상적으로 완료되어야 함
         List<Comment> comments = commentRepository.findAll();
