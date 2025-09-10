@@ -11,9 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <h2>댓글 처리 이벤트 리스너</h2>
- * <p>사용자 탈퇴 시 댓글 익명화 및 삭제를 처리하는 리스너입니다.</p>
- * <p>Comment 도메인의 데이터 정리 책임을 담당합니다.</p>
+ * <h2>댓글 삭제 리스너</h2>
+ * <p>사용자 탈퇴 및 강제 탈퇴 이벤트를 처리하는 리스너입니다.</p>
+ * <p>댓글 삭제 이벤트 리스너 구현체입니다.</p>
+ * <p>사용자 자발적/강제 탈퇴 시 댓글 익명화 및 삭제</p>
+ * <p>이벤트 기반 비동기 처리</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -26,20 +28,13 @@ public class CommentRemoveListener {
     private final CommentCommandUseCase commentCommandUseCase;
 
     /**
-     * <h3>댓글 처리 이벤트 핸들러</h3>
-     * <p>사용자 탈퇴 또는 관리자 강제 탈퇴 이벤트를 수신하여 해당 사용자의 댓글을 처리합니다.</p>
-     * <p>처리 방식:</p>
-     * <ul>
-     *   <li>자손이 있는 댓글: 소프트 삭제 + 익명화</li>
-     *   <li>자손이 없는 댓글: 하드 삭제</li>
-     * </ul>
-     * <p>처리 대상 이벤트:</p>
-     * <ul>
-     *   <li>UserWithdrawnEvent: 사용자 자발적 탈퇴 시</li>
-     *   <li>AdminWithdrawEvent: 관리자 강제 탈퇴 시</li>
-     * </ul>
+     * <h3>탈퇴 이벤트 처리로 댓글 삭제</h3>
+     * <p>사용자 탈퇴 및 강제 탈퇴 이벤트 발생 시 해당 사용자의 댓글을 삭제합니다.</p>
+     * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
+     * <p>자손이 없는 댓글: 하드 삭제</p>
+     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생시 탈퇴로 인한 댓글 삭제 흐름에서 호출됩니다.</p>
      *
-     * @param event 사용자 탈퇴 또는 관리자 강제 탈퇴 이벤트
+     * @param event 사용자 탈퇴 또는 강제 탈퇴 이벤트
      * @author Jaeik
      * @since 2.0.0
      */

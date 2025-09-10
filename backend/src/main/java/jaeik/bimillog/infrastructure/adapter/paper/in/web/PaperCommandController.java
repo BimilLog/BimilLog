@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.paper.in.web;
 
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
+import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
 import jaeik.bimillog.infrastructure.adapter.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -10,17 +11,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * <h2>롤링페이퍼 Command 컨트롤러</h2>
- * <p>
- * 헥사고날 아키텍처에서 롤링페이퍼 도메인의 쓰기 작업을 처리하는 REST API 어댑터입니다.
- * </p>
- * <p>
- * 클라이언트로부터 롤링페이퍼 메시지 상태 변경 요청을 받아 도메인 계층의 PaperCommandUseCase로 전달하며,
- * CQRS 패턴에서 Command 책임을 담당합니다.
- * </p>
- * <p>
- * 처리하는 HTTP 요청: POST /{userName}, POST /delete
- * </p>
+ * <h2>롤링페이퍼 명령 컨트롤러</h2>
+ * <p>롤링페이퍼 도메인의 명령 작업을 처리하는 REST API 컨트롤러입니다.</p>
+ * <p>메시지 작성, 메시지 삭제</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -36,8 +29,7 @@ public class PaperCommandController {
      * <h3>롤링페이퍼 메시지 작성 API</h3>
      * <p>클라이언트에서 전송한 메시지 작성 POST 요청을 처리합니다.</p>
      * <p>익명 사용자도 메시지 작성이 가능하며, 그리드 레이아웃에 맞는 위치와 크기를 지정할 수 있습니다.</p>
-     * <p>검증된 요청 데이터를 직접 PaperCommandUseCase에 전달하여 AES-256 암호화된 메시지를 저장합니다.</p>
-     * <p>프론트엔드의 롤링페이퍼 작성 폼에서 호출되며, 작성 완료 후 UI 갱신을 위한 응답을 반환합니다.</p>
+     * <p>검증된 요청 데이터를 {@link PaperCommandService}에 전달하여 AES-256 암호화된 메시지를 저장합니다.</p>
      *
      * @param userName   방문하여 메시지를 작성할 롤링페이퍼 주인의 사용자명
      * @param messageDTO 작성할 메시지 정보 (장식 타입, 익명명, 내용, 위치, 크기)
@@ -59,8 +51,7 @@ public class PaperCommandController {
      * <h3>내 롤링페이퍼 메시지 삭제 API</h3>
      * <p>클라이언트에서 전송한 메시지 삭제 POST 요청을 처리합니다.</p>
      * <p>로그인한 사용자만 접근 가능하며, 자신의 롤링페이퍼에 있는 메시지만 삭제할 수 있습니다.</p>
-     * <p>메시지 소유권 검증을 통해 삭제 권한을 확인하고, 검증된 요청을 도메인 계층으로 전달합니다.</p>
-     * <p>프론트엔드의 내 롤링페이퍼 관리 페이지에서 호출되며, 삭제 완료 후 UI 갱신을 위한 응답을 반환합니다.</p>
+     * <p>메시지 소유권 검증을 통해 삭제 권한을 확인하고, 검증된 요청을 {@link PaperCommandService}로 전달합니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보 (롤링페이퍼 소유자 확인용)
      * @param messageDTO  삭제할 메시지 정보 (메시지 ID 포함)

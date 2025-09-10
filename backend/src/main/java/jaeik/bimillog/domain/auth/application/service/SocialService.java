@@ -2,6 +2,9 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
+import jaeik.bimillog.domain.auth.event.AdminWithdrawEvent;
+import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
+import jaeik.bimillog.infrastructure.adapter.auth.in.web.AuthCommandController;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
@@ -24,11 +27,8 @@ import java.util.UUID;
 
 /**
  * <h2>소셜 로그인 서비스</h2>
- * <p>
- * 소셜 플랫폼을 통한 로그인 및 계정 연동 해제를 처리하는 서비스입니다.
- * </p>
- * <p>카카오, 구글 등 외부 소셜 플랫폼과의 인증 플로우를 관리합니다.</p>
- * <p>기존 사용자 로그인 처리와 신규 사용자 임시 데이터 저장을 오케스트레이션합니다.</p>
+ * <p>소셜 플랫폼을 통한 로그인 및 계정 연동 해제를 처리하는 서비스입니다.</p>
+ * <p>소셜 로그인 처리, 기존/신규 사용자 구분, 소셜 계정 연동 해제</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -47,8 +47,7 @@ public class SocialService implements SocialUseCase {
      * <h3>소셜 플랫폼 로그인 처리</h3>
      * <p>외부 소셜 플랫폼을 통한 사용자 인증 및 로그인을 처리합니다.</p>
      * <p>기존 사용자는 즉시 로그인 처리하고, 신규 사용자는 회원가입을 위한 임시 데이터를 저장합니다.</p>
-     * <p>사용자가 소셜 로그인 버튼 클릭 후 인가 코드 받기 완료 시 AuthCommandController에서 호출됩니다.</p>
-     * <p>카카오/구글 OAuth 인증 플로우에서 authorization code를 받은 후 호출됩니다.</p>
+     * <p>{@link AuthCommandController}에서 소셜 로그인 요청 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 플랫폼 제공자 (KAKAO, GOOGLE 등)
      * @param code OAuth 인가 코드
@@ -82,7 +81,7 @@ public class SocialService implements SocialUseCase {
      * <h3>기존 사용자 로그인 후처리</h3>
      * <p>이미 회원가입된 사용자의 소셜 로그인을 완료 처리합니다.</p>
      * <p>JWT 토큰 생성 및 쿠키 설정을 통해 인증 상태를 확립합니다.</p>
-     * <p>processSocialLogin에서 기존 사용자 판별 후 호출됩니다.</p>
+     * <p>{@link #processSocialLogin}에서 기존 사용자 판별 후 호출됩니다.</p>
      *
      * @param loginResult 소셜 플랫폼에서 받은 로그인 결과
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
@@ -101,7 +100,7 @@ public class SocialService implements SocialUseCase {
      * <h3>신규 사용자 임시 데이터 저장</h3>
      * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
      * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
-     * <p>processSocialLogin에서 신규 사용자 판별 후 호출됩니다.</p>
+     * <p>{@link #processSocialLogin}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
      * @param loginResult 소셜 플랫폼에서 받은 로그인 결과
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
@@ -120,7 +119,7 @@ public class SocialService implements SocialUseCase {
      * <h3>중복 로그인 방지 검증</h3>
      * <p>현재 사용자의 인증 상태를 확인하여 중복 로그인을 방지합니다.</p>
      * <p>이미 인증된 사용자가 다시 소셜 로그인을 시도하는 것을 차단합니다.</p>
-     * <p>processSocialLogin 메서드 시작 시점에서 보안 검증을 위해 호출됩니다.</p>
+     * <p>{@link #processSocialLogin} 메서드 시작 시점에서 보안 검증을 위해 호출됩니다.</p>
      *
      * @throws AuthCustomException 이미 로그인 상태인 경우
      * @author Jaeik
@@ -137,8 +136,7 @@ public class SocialService implements SocialUseCase {
      * <h3>소셜 계정 연동 해제</h3>
      * <p>사용자의 소셜 플랫폼 계정 연동을 해제합니다.</p>
      * <p>소셜 플랫폼 API를 호출하여 앱 연동을 완전히 차단합니다.</p>
-     * <p>회원 탈퇴 시 UserWithdrawalService에서 소셜 계정 정리를 위해 호출됩니다.</p>
-     * <p>사용자 계정 비활성화 시 관련 소셜 연동을 정리하기 위해 호출됩니다.</p>
+     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생 시 소셜 계정 정리를 위해 호출됩니다.</p>
      *
      * @param provider 연동 해제할 소셜 플랫폼 제공자
      * @param socialId 소셜 플랫폼에서의 사용자 고유 ID

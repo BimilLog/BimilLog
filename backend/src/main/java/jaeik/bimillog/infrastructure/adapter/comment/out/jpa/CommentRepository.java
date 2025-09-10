@@ -134,7 +134,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      * <p>클로저 테이블 정리도 함께 수행됩니다.</p>
      *
      * @param userId 탈퇴하는 사용자 ID
-     * @return int 하드 삭제된 댓글 수
      * @author Jaeik
      * @since 2.0.0
      */
@@ -148,6 +147,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
               WHERE depth > 0
           )
         """, nativeQuery = true)
-    int batchHardDeleteUserCommentsWithoutDescendants(@Param("userId") Long userId);
+    void batchHardDeleteUserCommentsWithoutDescendants(@Param("userId") Long userId);
 }
 

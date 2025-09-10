@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.auth.entity;
 
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
+import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import org.springframework.http.ResponseCookie;
@@ -8,11 +10,8 @@ import java.util.List;
 
 /**
  * <h2>로그인 결과 값 객체</h2>
- * <p>
- * 소셜 로그인 처리 결과를 담는 도메인 계층의 순수 값 객체입니다.
- * </p>
- * <p>인프라스트럭처의 응답 DTO와 분리된 도메인 모델로 비즈니스 로직의 순수성을 보장합니다.</p>
- * <p>sealed interface를 활용하여 컴파일 타임에 타입 안전성을 보장하고 패턴 매칭을 지원합니다.</p>
+ * <p>소셜 로그인 처리 결과를 담는 도메인 계층의 값 객체입니다.</p>
+ * <p>신규/기존 사용자 구분, 소셜 로그인 데이터, 임시 사용자 데이터</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -43,7 +42,7 @@ public sealed interface LoginResult
      * <h3>소셜 플랫폼 로그인 원시 데이터</h3>
      * <p>외부 소셜 플랫폼에서 받아온 로그인 처리 결과를 담는 원시 데이터 구조입니다.</p>
      * <p>도메인 LoginResult로 변환되기 전의 포트 계층에서 사용하는 중간 데이터입니다.</p>
-     * <p>SocialPort에서 소셜 플랫폼 API 호출 결과를 담아 반환할 때 사용됩니다.</p>
+     * <p>{@link SocialPort}에서 소셜 플랫폼 API 호출 결과를 담아 반환할 때 사용됩니다.</p>
      *
      * @param userProfile 소셜 플랫폼에서 받은 사용자 프로필 정보
      * @param token 소셜 로그인으로 발급받은 토큰 정보
@@ -108,7 +107,7 @@ public sealed interface LoginResult
          * <h3>검증된 임시 사용자 데이터 생성</h3>
          * <p>필수 파라미터 검증을 수행한 후 임시 사용자 데이터 객체를 생성합니다.</p>
          * <p>null 값 검증을 통해 데이터 무결성을 보장하고 안전한 객체 생성을 지원합니다.</p>
-         * <p>SocialService에서 신규 사용자의 임시 데이터 저장 시 호출됩니다.</p>
+         * <p>{@link SocialService}에서 신규 사용자의 임시 데이터 저장 시 호출됩니다.</p>
          *
          * @param userProfile 소셜 플랫폼 사용자 프로필 (필수)
          * @param token 소셜 로그인 토큰 정보 (필수)  

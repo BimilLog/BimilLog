@@ -12,6 +12,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.infrastructure.adapter.comment.in.listener.CommentRemoveListener;
+import jaeik.bimillog.infrastructure.adapter.comment.in.web.CommentCommandController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,17 +25,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <h2>CommentCommandService</h2>
- * <p>
- * 댓글 명령 관련 UseCase 인터페이스의 구체적 구현체로서 비즈니스 로직을 오케스트레이션합니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 댓글 도메인의 명령 처리를 담당하며, 계층형 댓글 구조(Closure Table)와 
- * 익명/회원 댓글 시스템의 복잡한 비즈니스 규칙을 관리합니다.
- * </p>
- * <p>
- * 트랜잭션 경계를 설정하고 이벤트 기반 도메인 간 통신을 통해 알림 발송 등 부수 효과를 처리합니다.
- * </p>
+ * <h2>댓글 명령 서비스</h2>
+ * <p>댓글 명령 유스케이스의 구현체입니다.</p>
+ * <p>댓글 작성, 수정, 삭제, 추천 비즈니스 로직 처리</p>
+ * <p>계층형 댓글 구조(Closure Table) 관리</p>
+ * <p>익명/회원 댓글 시스템 권한 검증</p>
+ * <p>이벤트 발행을 통한 알림 시스템 연동</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -54,11 +51,11 @@ public class CommentCommandService implements CommentCommandUseCase {
 
 
     /**
-     * <h3>댓글 작성 비즈니스 로직 실행</h3>
-     * <p>CommentCommandUseCase 인터페이스의 댓글 작성 기능을 구현하며, 계층형 댓글 시스템의 핵심 비즈니스 규칙을 적용합니다.</p>
-     * <p>익명 사용자와 로그인 사용자를 구분하여 처리하고, Closure Table 패턴으로 대댓글 계층 구조를 생성합니다.</p>
-     * <p>트랜잭션 내에서 댓글과 클로저 엔티티를 원자적으로 저장하고, 게시글 작성자에게 알림을 위한 이벤트를 발행합니다.</p>
-     * <p>CommentCreatedEvent를 통해 notification 도메인과 비동기 통신하여 실시간 알림을 제공합니다.</p>
+     * <h3>댓글 작성</h3>
+     * <p>새로운 댓글을 작성하고 계층 구조에 맞게 저장합니다.</p>
+     * <p>익명/로그인 사용자 구분 처리, Closure Table로 대댓글 계층 구조 생성</p>
+     * <p>댓글 작성 완료 후 CommentCreatedEvent 발행으로 알림 시스템 연동</p>
+     * <p>{@link CommentCommandController}에서 댓글 작성 API 처리 시 호출됩니다.</p>
      *
      * @param userId 로그인한 사용자 ID (null이면 익명 댓글로 처리)
      * @param postId 게시글 ID
@@ -94,11 +91,10 @@ public class CommentCommandService implements CommentCommandUseCase {
     }
 
     /**
-     * <h3>댓글 수정 권한 검증 및 업데이트</h3>
-     * <p>CommentCommandUseCase 인터페이스의 댓글 수정 기능을 구현하며, 익명/회원 댓글의 서로 다른 권한 검증 로직을 적용합니다.</p>
-     * <p>익명 댓글의 경우 비밀번호 일치 여부를, 회원 댓글의 경우 소유자 일치 여부를 검증합니다.</p>
-     * <p>트랜잭션 내에서 댓글 엔티티의 내용만 업데이트하며, 계층 구조나 메타데이터는 변경하지 않습니다.</p>
-     * <p>권한 검증 실패 시 적절한 도메인 예외를 발생시켜 보안을 보장합니다.</p>
+     * <h3>댓글 수정</h3>
+     * <p>기존 댓글의 내용을 수정합니다.</p>
+     * <p>익명 댓글: 비밀번호 검증, 회원 댓글: 소유자 검증</p>
+     * <p>{@link CommentCommandController}에서 댓글 수정 API 처리 시 호출됩니다.</p>
      *
      * @param commentId 수정할 댓글 ID
      * @param userId 로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
@@ -117,7 +113,8 @@ public class CommentCommandService implements CommentCommandUseCase {
 
     /**
      * <h3>댓글 삭제</h3>
-     * <p>댓글을 삭제합니다. 자손 댓글이 있는 경우 소프트 삭제, 없는 경우 하드 삭제를 수행합니다.</p>
+     * <p>댓글을 삭제하며, 자식 댓글 존재 여부에 따라 소프트 삭제 또는 하드 삭제를 수행합니다.</p>
+     * <p>{@link CommentCommandController}에서 댓글 삭제 API 처리 시 호출됩니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
      * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
@@ -134,8 +131,9 @@ public class CommentCommandService implements CommentCommandUseCase {
 
     /**
      * <h3>댓글 추천/취소</h3>
-     * <p>사용자가 댓글에 추천을 누르거나 취소합니다.</p>
-     * <p>이미 추천한 댓글이면 취소하고, 추천하지 않은 댓글이면 추천을 추가합니다.</p>
+     * <p>댓글에 대한 추천을 토글 방식으로 처리합니다.</p>
+     * <p>이미 추천한 댓글을 다시 누르면 취소, 추천하지 않은 댓글을 누르면 추천됩니다.</p>
+     * <p>{@link CommentCommandController}에서 댓글 추천 API 처리 시 호출됩니다.</p>
      *
      * @param userId    사용자 ID (로그인한 경우), null인 경우 예외 발생
      * @param commentId 추천/취소할 댓글 ID
@@ -162,9 +160,10 @@ public class CommentCommandService implements CommentCommandUseCase {
 
     /**
      * <h3>사용자 탈퇴 시 댓글 처리</h3>
-     * <p>사용자 탈퇴 시 해당 사용자의 모든 댓글에 대해 적절한 처리를 수행합니다.</p>
+     * <p>사용자 탈퇴 시 해당 사용자의 모든 댓글을 비즈니스 규칙에 따라 처리합니다.</p>
      * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
      * <p>자손이 없는 댓글: 하드 삭제</p>
+     * <p>{@link CommentRemoveListener}에서 사용자 탈퇴 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId 탈퇴하는 사용자 ID
      * @author Jaeik
@@ -176,9 +175,10 @@ public class CommentCommandService implements CommentCommandUseCase {
     }
 
     /**
-     * <h3>댓글 유효성 검사 및 조회</h3>
-     * <p>댓글 ID와 사용자 정보를 기반으로 댓글의 유효성을 검사하고 댓글 엔티티를 조회합니다.</p>
-     * <p>Comment 엔티티의 canModify 메서드를 활용하여 권한을 검증합니다.</p>
+     * <h3>댓글 권한 검증</h3>
+     * <p>댓글 ID와 사용자 정보로 권한을 검증하고 댓글 엔티티를 반환합니다.</p>
+     * <p>Comment 엔티티의 canModify 메서드를 활용한 권한 검증</p>
+     * <p>댓글 수정, 삭제 메서드에서 공통 권한 검증용으로 사용됩니다.</p>
      *
      * @param commentId 댓글 ID
      * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
@@ -199,9 +199,10 @@ public class CommentCommandService implements CommentCommandUseCase {
     }
 
     /**
-     * <h3>댓글과 클로저 엔티티 함께 저장</h3>
-     * <p>새로운 댓글을 저장하고 댓글의 계층 구조를 관리하는 클로저 엔티티를 함께 저장합니다.</p>
-     * <p>부모 댓글이 있는 경우 해당 댓글의 모든 상위 클로저 엔티티와 새로운 댓글을 연결합니다.</p>
+     * <h3>댓글과 클로저 관계 저장</h3>
+     * <p>새 댓글을 저장하고 계층 구조 관리를 위한 클로저 관계를 함께 저장합니다.</p>
+     * <p>부모 댓글이 있는 경우 상위 클로저 관계를 복사하여 계층 구조 유지</p>
+     * <p>댓글 작성 메서드에서 호출되어 댓글과 클로저 관계를 원자적으로 생성합니다.</p>
      *
      * @param post     댓글이 속한 게시글 엔티티
      * @param user     댓글 작성 사용자 엔티티
@@ -233,9 +234,10 @@ public class CommentCommandService implements CommentCommandUseCase {
     }
 
     /**
-     * <h3>댓글 삭제 처리 (하드/소프트 삭제)</h3>
-     * <p>댓글 ID를 기반으로 자손이 있는지 확인하여 적절한 삭제 방식을 선택합니다.</p>
-     * <p>자손이 없으면 하드 삭제를, 있으면 소프트 삭제를 수행합니다.</p>
+     * <h3>댓글 삭제 위임</h3>
+     * <p>댓글 ID를 CommentDeletePort로 전달하여 삭제 처리를 위임합니다.</p>
+     * <p>자손 존재 여부에 따른 하드/소프트 삭제 결정은 포트에서 담당</p>
+     * <p>댓글 삭제 메서드에서 호출되어 실제 삭제 로직을 수행합니다.</p>
      *
      * @param commentId 삭제 대상 댓글 ID
      * @author Jaeik

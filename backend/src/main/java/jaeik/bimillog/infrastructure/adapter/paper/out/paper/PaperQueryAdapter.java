@@ -2,6 +2,8 @@ package jaeik.bimillog.infrastructure.adapter.paper.out.paper;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
+import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
+import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.QMessage;
 import lombok.RequiredArgsConstructor;
@@ -12,17 +14,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <h2>롤링페이퍼 Query 어댑터</h2>
- * <p>
- * 헥사고날 아키텍처의 아웃바운드 어댑터로서 롤링페이퍼 메시지 조회를 담당합니다.
- * </p>
- * <p>
- * 도메인 계층의 PaperQueryPort를 구현하여 QueryDSL 기반의 타입 안전한 쿼리를 제공하며,
- * 기존 PaperReadRepositoryImpl의 모든 로직을 헥사고날 아키텍처에 맞게 완전히 보존하여 이전했습니다.
- * </p>
- * <p>
- * 내 롤링페이퍼 조회와 타인 롤링페이퍼 방문 시 PaperQueryService에서 호출되어 메시지 데이터를 제공합니다.
- * </p>
+ * <h2>롤링페이퍼 조회 어댑터</h2>
+ * <p>롤링페이퍼 도메인의 조회 작업을 담당하는 어댑터입니다.</p>
+ * <p>메시지 ID로 조회, 사용자 ID로 조회, 사용자명으로 조회, 소유자 ID 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -37,7 +31,7 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * <h3>메시지 ID로 메시지 조회</h3>
      * <p>특정 ID에 해당하는 메시지 엔티티를 QueryDSL을 통해 조회합니다.</p>
      * <p>메시지 존재 여부 확인과 권한 검증에 필요한 기본 정보를 제공하며, null 체크를 통해 안전한 조회를 보장합니다.</p>
-     * <p>메시지 삭제 전 존재성 검증 시 PaperQueryService에서 호출되어 해당 메시지의 상세 정보를 반환합니다.</p>
+     * <p>{@link PaperCommandService}에서 메시지 삭제 전 존재성 검증 시 호출됩니다.</p>
      *
      * @param messageId 조회할 메시지의 고유 식별자
      * @return Optional<Message> 조회된 메시지 엔티티 (존재하지 않으면 빈 Optional)
@@ -64,7 +58,7 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * <p>특정 사용자가 소유한 롤링페이퍼의 모든 메시지를 최신순으로 조회합니다.</p>
      * <p>기존 PaperReadRepositoryImpl.findMessageDTOsByUserId() 메서드의 QueryDSL 쿼리 구조를 완전히 보존하되,
      * Message 엔티티를 반환하여 서비스 계층에서 VO 변환을 담당하도록 개선했습니다.</p>
-     * <p>내 롤링페이퍼 조회 시 PaperQueryService에서 호출되어 사용자의 모든 메시지를 최신 작성일 순으로 반환합니다.</p>
+     * <p>{@link PaperQueryService}에서 내 롤링페이퍼 조회 시 호출되어 사용자의 모든 메시지를 최신 작성일 순으로 반환합니다.</p>
      *
      * @param userId 롤링페이퍼 소유자의 사용자 ID
      * @return List<Message> 해당 사용자의 메시지 목록 (최신순 정렬, 비어있을 수 있음)
@@ -91,7 +85,7 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * <p>특정 사용자명의 롤링페이퍼에 있는 모든 메시지를 조회합니다.</p>
      * <p>기존 PaperReadRepositoryImpl.findVisitMessageDTOsByUserName() 메서드의 QueryDSL 쿼리 구조와 JOIN 조건을 완전히 보존하되,
      * Message 엔티티를 반환하여 서비스 계층에서 VisitMessageDetail VO 변환을 담당하도록 개선했습니다.</p>
-     * <p>롤링페이퍼 방문 시 PaperQueryService에서 호출되어 해당 사용자의 모든 메시지를 그리드 레이아웃 표시용으로 반환합니다.</p>
+     * <p>{@link PaperQueryService}에서 롤링페이퍼 방문 시 호출되어 해당 사용자의 모든 메시지를 그리드 레이아웃 표시용으로 반환합니다.</p>
      *
      * @param userName 방문할 롤링페이퍼 소유자의 사용자명
      * @return List<Message> 해당 사용자의 메시지 목록 (비어있을 수 있음)
@@ -116,7 +110,7 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * <h3>메시지 ID로 롤링페이퍼 소유자 ID 조회</h3>
      * <p>특정 메시지의 롤링페이퍼 소유자 ID만 효율적으로 조회합니다.</p>
      * <p>전체 Message 엔티티를 로드하지 않고 필요한 userId만 select하여 메모리 사용량과 네트워크 트래픽을 최적화합니다.</p>
-     * <p>메시지 삭제 권한 검증 시 PaperQueryService에서 호출되어 해당 메시지의 소유자 ID를 반환합니다.</p>
+     * <p>{@link PaperCommandService}에서 메시지 삭제 권한 검증 시 호출되어 해당 메시지의 소유자 ID를 반환합니다.</p>
      *
      * @param messageId 소유자를 확인할 메시지의 고유 식별자
      * @return Optional<Long> 롤링페이퍼 소유자의 사용자 ID (메시지가 존재하지 않으면 빈 Optional)

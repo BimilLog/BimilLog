@@ -1,12 +1,13 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
-import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
+import jaeik.bimillog.infrastructure.adapter.auth.in.web.AuthCommandController;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +21,8 @@ import java.util.List;
 
 /**
  * <h2>로그아웃 서비스</h2>
- * <p>
- * 사용자의 로그아웃 처리와 소셜 플랫폼 연동 해제를 담당하는 서비스입니다.
- * </p>
- * <p>인증된 사용자가 시스템에서 안전하게 로그아웃할 수 있도록 하며, 소셜 플랫폼과의 연결도 함께 해제합니다.</p>
- * <p>JWT 토큰 무효화, 소셜 플랫폼 로그아웃, 관련 이벤트 발행을 통한 후처리 작업을 오케스트레이션합니다.</p>
+ * <p>사용자의 로그아웃 처리와 소셜 플랫폼 연동 해제를 담당하는 서비스입니다.</p>
+ * <p>JWT 토큰 무효화, 소셜 플랫폼 로그아웃, 이벤트 발행</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -43,8 +41,7 @@ public class LogoutService implements LogoutUseCase {
      * <h3>사용자 로그아웃 처리</h3>
      * <p>인증된 사용자를 시스템에서 로그아웃 처리합니다.</p>
      * <p>소셜 플랫폼 로그아웃, 보안 컨텍스트 정리, 토큰 무효화 이벤트 발행을 순차적으로 실행합니다.</p>
-     * <p>사용자가 로그아웃 버튼 클릭 시 AuthCommandController에서 호출됩니다.</p>
-     * <p>JWT 토큰 만료로 인한 자동 로그아웃 시 보안 필터에서 호출됩니다.</p>
+     * <p>사용자 로그아웃 요청 시 호출됩니다.</p>
      *
      * @param userDetails 현재 인증된 사용자 정보
      * @return ResponseCookie 로그아웃용 쿠키 설정 목록 (토큰 삭제용)
@@ -68,10 +65,10 @@ public class LogoutService implements LogoutUseCase {
 
     /**
      * <h3>소셜 플랫폼 로그아웃 처리</h3>
-     * <p>연동된 소셜 플랫폼(카카오, 구글 등)에서 사용자를 로그아웃 처리합니다.</p>
+     * <p>연동된 소셜 플랫폼에서 사용자를 로그아웃 처리합니다.</p>
      * <p>사용자 토큰 정보를 조회하여 해당 소셜 플랫폼의 로그아웃 API를 호출합니다.</p>
      * <p>소셜 로그아웃 실패 시에도 전체 로그아웃 프로세스를 중단하지 않고 로그만 기록합니다.</p>
-     * <p>logout 메서드에서 메인 로그아웃 플로우의 일부로 호출됩니다.</p>
+     * <p>{@link #logout} 메서드에서 메인 로그아웃 플로우의 일부로 호출됩니다.</p>
      *
      * @param userDetails 현재 인증된 사용자 정보
      * @author Jaeik

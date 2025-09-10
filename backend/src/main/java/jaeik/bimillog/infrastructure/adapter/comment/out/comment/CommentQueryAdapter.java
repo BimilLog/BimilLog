@@ -3,6 +3,8 @@ package jaeik.bimillog.infrastructure.adapter.comment.out.comment;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.*;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
@@ -24,17 +26,10 @@ import static jaeik.bimillog.infrastructure.adapter.comment.out.util.CommentProj
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>
- * <p>
- * 헥사고날 아키텍처의 Secondary Adapter로서 CommentQueryPort 인터페이스를 구현합니다.
- * </p>
- * <p>
- * JPA Repository와 QueryDSL을 사용하여 댓글 엔티티의 조회 작업을 수행합니다.
- * 복잡한 JOIN 쿼리와 페이지네이션, 집계 연산을 QueryDSL로 처리합니다.
- * </p>
- * <p>
- * 이 어댑터가 존재하는 이유: 댓글 조회는 댓글-사용자-추천-클로저 테이블간의
- * 복잡한 조인 연산이 필요하여, 단순한 CRUD 이상의 복잡성을 가지므로 별도 어댑터로 분리하였습니다.
- * </p>
+ * <p>댓글 조회 포트의 구현체입니다.</p>
+ * <p>댓글 단건 조회, 인기 댓글 조회, 과거순 댓글 조회</p>
+ * <p>사용자별 댓글 조회, 게시글별 댓글 수 조회</p>
+ * <p>QueryDSL을 사용한 복잡한 JOIN 쿼리와 페이지네이션 처리</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -53,12 +48,12 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>ID로 댓글 조회</h3>
-     * <p>주어진 ID로 댓글을 JPA로 조회합니다.</p>
-     * <p>CommentQueryUseCase가 단일 댓글 조회 시 호출합니다.</p>
-     * <p>CommentDeleteUseCase가 댓글 삭제 전 존재 여부 확인을 위해 호출합니다.</p>
+     * <p>댓글 ID로 댓글을 조회합니다.</p>
+     * <p>존재하지 않는 댓글 ID인 경우 예외를 발생시킵니다.</p>
+     * <p>{@link CommentQueryService}에서 댓글 ID로 댓글 조회 시 호출됩니다.</p>
      *
      * @param commentId 댓글 ID
-     * @return Comment 조회된 댓글 엔티티 (미존재 시 예외 발생)
+     * @return Comment 조회된 댓글 엔티티
      * @throws CommentCustomException 댓글이 존재하지 않을 때
      * @author Jaeik
      * @since 2.0.0
@@ -71,9 +66,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
-     * <p>특정 사용자가 작성한 댓글 목록을 QueryDSL로 페이지네이션 조회합니다.</p>
-     * <p>추천 수와 사용자 추천 여부도 한 번의 쿼리로 함께 조회합니다.</p>
-     * <p>UserQueryUseCase가 마이페이지에서 사용자의 댓글 목록을 보여줄 때 호출합니다.</p>
+     * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환</p>
+     * <p>{@link CommentQueryService}에서 사용자 작성 댓글 목록 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -107,9 +102,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
-     * <p>특정 사용자가 추천한 댓글 목록을 QueryDSL로 페이지네이션 조회합니다.</p>
-     * <p>추천 수와 사용자 추천 여부도 한 번의 쿼리로 함께 조회합니다.</p>
-     * <p>UserQueryUseCase가 마이페이지에서 사용자가 추천한 댓글 목록을 보여줄 때 호출합니다.</p>
+     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환</p>
+     * <p>{@link CommentQueryService}에서 사용자 추천한 댓글 목록 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -144,10 +139,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>인기 댓글 조회</h3>
-     * <p>주어진 게시글의 인기 댓글 목록을 QueryDSL로 조회합니다.</p>
-     * <p>추천 수 3개 이상인 댓글을 추천 수 내림차순으로 정렬하여 조회합니다.</p>
-     * <p>사용자 추천 여부도 한 번의 쿼리로 함께 조회합니다.</p>
-     * <p>PostQueryUseCase가 게시글 상세보기에서 인기 댓글을 보여줄 때 호출합니다.</p>
+     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다.</p>
+     * <p>추천 수가 높은 댓글들을 우선순위로 정렬하여 반환</p>
+     * <p>{@link CommentQueryService}에서 인기 댓글 조회 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
      * @param userId 사용자 ID (추천 여부 확인용, null 가능)
@@ -176,9 +170,10 @@ public class CommentQueryAdapter implements CommentQueryPort {
     }
 
     /**
-     * <h3>여러 게시글 ID에 대한 댓글 수 조회</h3>
-     * <p>주어진 여러 게시글 ID에 해당하는 각 게시글의 댓글 수를 QueryDSL로 조회합니다.</p>
-     * <p>PostQueryUseCase가 게시글 목록에서 각 게시글의 댓글 수를 보여줄 때 호출합니다.</p>
+     * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
+     * <p>여러 게시글의 댓글 수를 배치로 조회합니다.</p>
+     * <p>게시글 ID 목록을 한 번에 처리하여 각 게시글별 댓글 수를 반환</p>
+     * <p>{@link CommentQueryService}에서 게시글 ID 목록에 대한 댓글 수 조회 시 호출됩니다.</p>
      *
      * @param postIds 게시글 ID 목록
      * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
@@ -205,9 +200,9 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>과거순 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 QueryDSL로 과거순 페이지네이션 조회합니다.</p>
-     * <p>사용자 추천 여부도 한 번의 쿼리로 함께 조회합니다.</p>
-     * <p>CommentQueryUseCase가 댓글 목록을 시간순으로 보여줄 때 호출합니다.</p>
+     * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
+     * <p>생성 시간이 오래된 댓글부터 최신 댓글까지 시간 순서대로 정렬</p>
+     * <p>{@link CommentQueryService}에서 과거순 댓글 조회 시 호출됩니다.</p>
      *
      * @param postId   게시글 ID
      * @param pageable 페이지 정보
@@ -236,13 +231,10 @@ public class CommentQueryAdapter implements CommentQueryPort {
     }
 
     /**
-     * <h3>게시글 ID로 루트 댓글 수 조회 (페이징용)</h3>
-     * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 QueryDSL로 조회합니다.</p>
-     *
-     * <p><strong>사용 목적</strong>: 댓글 목록 페이징 시 total count 계산</p>
-     * <p><strong>현재 사용</strong>: findCommentsWithOldestOrder 메서드에서 PageImpl total 값 설정에 사용</p>
-     * <p><strong>구현 세부</strong>: depth=0인 댓글(루트 댓글)만 카운트</p>
-     * <p><strong>내부 메서드</strong>: Infrastructure layer 내부에서만 사용</p>
+     * <h3>루트 댓글 수 조회</h3>
+     * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
+     * <p>depth=0인 댓글(루트 댓글)만 카운트</p>
+     * <p>과거순 댓글 조회 메서드에서 호출되어 페이지네이션 total 값 계산을 담당합니다.</p>
      *
      * @param postId 게시글 ID
      * @return Long 루트 댓글의 수

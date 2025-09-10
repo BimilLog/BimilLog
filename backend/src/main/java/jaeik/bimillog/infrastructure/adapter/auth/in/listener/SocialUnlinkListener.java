@@ -27,8 +27,7 @@ public class SocialUnlinkListener {
 
     /**
      * <h3>사용자 탈퇴 이벤트 처리 - 소셜 연결 해제</h3>
-     * <p>사용자가 자발적으로 탈퇴할 때 발생하는 UserWithdrawnEvent를 수신하여 카카오 등 소셜 로그인 연결을 해제합니다.</p>
-     * <p>Auth 도메인에서 회원 탈퇴 완료 후 발행되는 이벤트를 처리합니다.</p>
+     * <p>사용자가 자발적으로 탈퇴할 때 발생하는 UserWithdrawnEvent를 수신하여 소셜 로그인 연결을 해제합니다.</p>
      *
      * @param event 사용자 탈퇴 이벤트
      * @author Jaeik
@@ -43,7 +42,6 @@ public class SocialUnlinkListener {
     /**
      * <h3>사용자 차단 이벤트 처리 - 소셜 연결 해제</h3>
      * <p>관리자가 사용자를 강제 차단할 때 발생하는 UserBannedEvent를 수신하여 소셜 로그인 연결을 해제합니다.</p>
-     * <p>Admin 도메인에서 사용자 차단 완료 후 발행되는 이벤트를 처리합니다.</p>
      *
      * @param event 사용자 차단 이벤트
      * @author Jaeik
@@ -57,8 +55,7 @@ public class SocialUnlinkListener {
 
     /**
      * <h3>소셜 연결 해제 공통 처리</h3>
-     * <p>사용자 탈퇴나 차단 시 카카오 등 외부 소셜 서비스와의 연결을 해제하는 공통 메서드입니다.</p>
-     * <p>소셜 서비스에 연결 해제 API를 호출하여 서비스 간 연결을 완전히 차단합니다.</p>
+     * <p>사용자 탈퇴나 차단 시 외부 소셜 서비스와의 연결을 해제하는 공통 메서드입니다.</p>
      *
      * @param userId 사용자 ID
      * @param socialProvider 소셜 제공자 (KAKAO 등)
