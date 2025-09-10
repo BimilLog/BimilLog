@@ -14,15 +14,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 /**
  * <h2>SSE 실시간 알림 구독 컨트롤러</h2>
  * <p>
- * 헥사고날 아키텍처의 Primary Adapter로서 프론트엔드에서 실시간 알림 수신을 위한 SSE 구독 API를 제공합니다.
+ * 실시간 알림 수신을 위한 SSE 구독 API를 제공합니다.
  * </p>
  * <p>
- * 사용자가 웹사이트에 접속하여 메인 페이지, 게시글 상세 페이지, 알림 목록 페이지 등을 열람하는 상황에서 
- * 프론트엔드의 알림 컴포넌트가 EventSource API를 통해 이 엔드포인트에 연결하여 
+ * 프론트엔드의 알림 컴포넌트가 EventSource API를 통해 이 엔드포인트에 연결하여
  * 실시간 알림(댓글, 롤링페이퍼 메시지, 인기글 선정 등)을 즉시 받을 수 있도록 SSE 연결을 관리합니다.
  * </p>
- * <p>NotificationSseUseCase를 통해 사용자별 SSE Emitter를 생성하고 관리하며, 
- * 다른 도메인에서 발생하는 이벤트에 따른 실시간 브라우저 알림을 전송합니다.</p>
+ * <p>다른 도메인에서 발생하는 이벤트에 따른 실시간 브라우저 알림을 전송합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

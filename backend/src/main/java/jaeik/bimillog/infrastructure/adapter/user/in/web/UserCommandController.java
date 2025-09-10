@@ -35,6 +35,7 @@ public class UserCommandController {
     /**
      * <h3>닉네임 변경 API</h3>
      * <p>사용자의 닉네임을 변경하는 요청을 처리</p>
+     * <p>클라이언트에서 POST /api/user/username 요청 시 호출됩니다.</p>
      *
      * @param userDetails 사용자 인증 정보
      * @param userNameDTO 닉네임 DTO
@@ -52,6 +53,7 @@ public class UserCommandController {
     /**
      * <h3>설정 수정 API</h3>
      * <p>사용자의 설정을 수정하는 요청을 처리</p>
+     * <p>클라이언트에서 POST /api/user/setting 요청 시 호출됩니다.</p>
      *
      * @param settingDTO 설정 DTO
      * @param userDetails 사용자 인증 정보
@@ -69,6 +71,7 @@ public class UserCommandController {
     /**
      * <h3>신고/건의사항 제출 API</h3>
      * <p>인증된 사용자와 익명 사용자 모두 신고나 건의사항을 제출할 수 있는 요청을 처리</p>
+     * <p>클라이언트에서 POST /api/user/report 요청 시 호출됩니다.</p>
      * <ul>
      *   <li>POST: 게시글 신고 - targetId 필수</li>
      *   <li>COMMENT: 댓글 신고 - targetId 필수</li>
@@ -106,6 +109,7 @@ public class UserCommandController {
     /**
      * <h3>회원 탈퇴 API</h3>
      * <p>사용자가 회원 탈퇴를 요청할 때 호출</p>
+     * <p>클라이언트에서 DELETE /api/user/withdraw 요청 시 호출됩니다.</p>
      *
      * @param userDetails 인증된 사용자 정보
      * @return 회원 탈퇴 성공 응답

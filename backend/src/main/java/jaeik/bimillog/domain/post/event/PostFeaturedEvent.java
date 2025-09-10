@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.post.event;
 
+import jaeik.bimillog.infrastructure.adapter.notification.in.listener.NotificationGenerateListener;
+
 /**
  * <h2>인기글 등극 이벤트</h2>
  * <p>게시글이 주간 인기글, 전설의 게시글, 공지사항으로 등극했을 때 발생하는 비동기 이벤트</p>
@@ -12,6 +14,7 @@ package jaeik.bimillog.domain.post.event;
  * @param postId 등극한 게시글 ID
  * @param fcmTitle FCM 푸시 알림 제목
  * @param fcmBody FCM 푸시 알림 내용
+ * @see NotificationGenerateListener 인기글 등극 알림 발송
  * @author Jaeik
  * @version 2.0.0
  */

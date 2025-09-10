@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.post.event;
 
+import jaeik.bimillog.infrastructure.adapter.post.in.listener.PostViewIncreaseListener;
+
 /**
  * <h2>게시글 조회 이벤트</h2>
  * <p>게시글이 조회되었을 때 발생하는 비동기 이벤트</p>
@@ -9,6 +11,7 @@ package jaeik.bimillog.domain.post.event;
  * <p>중복 조회 방지 로직은 Controller 레이어에서 처리되므로, 이벤트는 순수하게 조회수 증가만 담당합니다.</p>
  *
  * @param postId 조회된 게시글 ID
+ * @see PostViewIncreaseListener 조회수 비동기 증가
  * @author Jaeik
  * @version 2.0.0
  */

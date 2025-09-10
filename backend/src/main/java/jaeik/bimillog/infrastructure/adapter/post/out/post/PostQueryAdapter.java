@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.post.application.port.out.PostCommentToPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
+import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
@@ -28,18 +29,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * <h2>PostQueryAdapter</h2>
- * <p>
- * Post 도메인의 조회 포트를 JPA와 QueryDSL 기술로 구현하는 아웃바운드 어댑터입니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 도메인과 영속성 기술을 분리하여 도메인의 순수성을 보장하고,
- * PostQueryPort 인터페이스를 통해 복잡한 게시글 조회 및 검색 기능을 제공합니다.
- * </p>
- * <p>
- * PostQueryService에서 게시글 목록 조회, 상세 조회, 검색, 사용자별 게시글 조회 시 호출되며,
- * MySQL 전문 검색과 QueryDSL을 조합하여 성능 최적화된 쿼리를 실행하고 N+1 문제를 해결합니다.
- * </p>
+ * <h2>게시글 조회 어댑터</h2>
+ * <p>게시글 조회 포트의 JPA/QueryDSL 구현체입니다.</p>
+ * <p>게시글 목록 조회, 상세 조회, 검색</p>
+ * <p>MySQL 전문 검색과 QueryDSL을 활용한 복잡 쿼리 처리</p>
+ * <p>배치 조회로 댓글 수와 추천 수 처리</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -62,9 +56,10 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>ID로 게시글 조회</h3>
      * <p>주어진 ID를 사용하여 게시글을 조회합니다.</p>
+     * <p>{@link PostQueryService}에서 게시글 존재성 검증 및 권한 확인 시 호출됩니다.</p>
      *
      * @param id 조회할 게시글 ID
-     * @return 조회된 게시글 (Optional)
+     * @return 조회된 게시글 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
@@ -77,6 +72,8 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>페이지별 게시글 조회</h3>
      * <p>페이지 정보에 따라 게시글 목록을 조회합니다.</p>
+     * <p>공지사항은 제외하고 일반 게시글만 조회</p>
+     * <p>{@link PostQueryService}에서 게시판 메인 목록 조회 시 호출됩니다.</p>
      *
      * @param pageable 페이지 정보
      * @return 게시글 목록 페이지
@@ -92,7 +89,8 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>검색을 통한 게시글 조회</h3>
      * <p>검색 유형과 쿼리에 따라 게시글을 검색하고 페이지네이션합니다.</p>
-     * <p>단순화된 검색 로직: 3글자 이상이고 writer가 아니면 FULLTEXT, 아니면 LIKE</p>
+     * <p>3글자 이상이고 writer가 아니면 FULLTEXT, 아니면 LIKE 검색</p>
+     * <p>{@link PostQueryService}에서 게시글 전문 검색 처리 시 호출됩니다.</p>
      *
      * @param type     검색 유형 (title, writer, title_content)
      * @param query    검색어
@@ -115,6 +113,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>
      * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>{@link PostQueryService}에서 사용자 작성 게시글 내역 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -131,7 +130,8 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
      * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p><strong>성능 최적화</strong>: N+1 문제 해결을 위해 댓글 수를 배치 조회로 처리</p>
+     * <p>배치 조회로 댓글 수와 추천 수 처리</p>
+     * <p>{@link PostQueryService}에서 사용자 추천 게시글 내역 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -156,7 +156,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .map(PostSearchResult::getId)
                 .toList();
 
-        // 3. 배치로 댓글 수와 추천 수 조회 (N+1 문제 해결)
+        // 3. 배치로 댓글 수와 추천 수 조회
         Map<Long, Integer> commentCounts = postCommentToPort.findCommentCountsByPostIds(postIds);
         Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
 
@@ -212,12 +212,12 @@ public class PostQueryAdapter implements PostQueryPort {
     }
 
     /**
-     * <h3>작성자 LIKE 검색 조건 최적화</h3>
-     * <p>글자 수에 따라 검색 패턴을 최적화합니다.</p>
-     * <p>1-3글자: %LIKE% (완전 매칭), 4글자+: LIKE% (인덱스 효율성)</p>
+     * <h3>작성자 LIKE 검색 조건</h3>
+     * <p>글자 수에 따라 검색 패턴을 조정합니다.</p>
+     * <p>1-3글자: %LIKE% (완전 매칭), 4글자+: LIKE% (인덱스 활용)</p>
      *
      * @param query 검색어
-     * @return 최적화된 작성자 검색 조건
+     * @return 작성자 검색 조건
      * @author Jaeik
      * @since 2.0.0
      */
@@ -248,7 +248,7 @@ public class PostQueryAdapter implements PostQueryPort {
             String searchTerm = query.trim() + "*";
             
             // 페이징 정보를 활용하여 필요한 만큼만 조회
-            // 최대 1000개로 제한하여 메모리 사용 최적화
+            // 최대 1000개로 제한하여 메모리 사용량 제한
             int limit = Math.min(pageable.getPageSize() * 10, 1000);
             Pageable searchPageable = Pageable.ofSize(limit);
             
@@ -278,7 +278,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>공통 게시글 조회 메서드</h3>
      * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
-     * <p><strong>성능 최적화</strong>: N+1 문제 해결을 위해 댓글 수와 추천 수를 배치 조회로 처리</p>
+     * <p>배치 조회로 댓글 수와 추천 수 처리</p>
      *
      * @param condition WHERE 조건
      * @param pageable  페이지 정보
@@ -300,7 +300,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .map(PostSearchResult::getId)
                 .toList();
 
-        // 3. 배치로 댓글 수와 추천 수 조회 (N+1 문제 해결)
+        // 3. 배치로 댓글 수와 추천 수 조회
         Map<Long, Integer> commentCounts = postCommentToPort.findCommentCountsByPostIds(postIds);
         Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
 
@@ -323,7 +323,7 @@ public class PostQueryAdapter implements PostQueryPort {
 
     /**
      * <h3>기본 게시글 쿼리 빌더 (JOIN 제외)</h3>
-     * <p>N+1 문제 해결을 위해 댓글과 추천 JOIN을 모두 제외한 쿼리를 생성합니다.</p>
+     * <p>댓글과 추천 JOIN을 제외한 기본 게시글 쿼리를 생성합니다.</p>
      * <p>댓글 수와 추천 수는 별도의 배치 조회로 처리됩니다.</p>
      *
      * @return JPAQuery<PostSearchResult>
@@ -349,9 +349,10 @@ public class PostQueryAdapter implements PostQueryPort {
     }
 
     /**
-     * <h3>게시글 상세 정보 JOIN 쿼리 (최적화)</h3>
+     * <h3>게시글 상세 정보 JOIN 쿼리</h3>
      * <p>게시글, 좋아요 수, 댓글 수, 사용자 좋아요 여부를 한 번의 JOIN 쿼리로 조회합니다.</p>
-     * <p>기존의 4개 개별 쿼리를 1개 최적화된 쿼리로 대체하여 성능을 75% 개선합니다.</p>
+     * <p>4개 개별 쿼리를 1개 JOIN 쿼리로 처리하여 데이터베이스 접근 회수 감소</p>
+     * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
      *
      * @param postId 조회할 게시글 ID
      * @param userId 현재 사용자 ID (좋아요 여부 확인용, null 가능)

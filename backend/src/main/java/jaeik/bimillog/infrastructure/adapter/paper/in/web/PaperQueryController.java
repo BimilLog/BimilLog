@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.paper.in.web;
 
 import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
-import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.infrastructure.adapter.paper.dto.MessageDTO;
@@ -35,11 +34,10 @@ public class PaperQueryController {
     /**
      * <h3>내 롤링페이퍼 조회 API</h3>
      * <p>로그인한 사용자의 롤링페이퍼에 작성된 모든 메시지를 조회합니다.</p>
-     * <p>AES-256으로 암호화된 메시지 내용을 복호화하여 반환하며, 최신 작성일 순으로 정렬됩니다.</p>
-     * <p>그리드 레이아웃 정보(위치, 크기)와 장식 정보를 포함하여 화면 구성에 필요한 모든 데이터를 제공합니다.</p>
-     * <p>{@link PaperQueryService}에 전달하여 사용자의 모든 메시지를 조회합니다.</p>
+     * <p>메시지 내용과 그리드 레이아웃 정보를 최신 작성일 순으로 반환합니다.</p>
+     * <p>클라이언트에서 내 롤링페이퍼 조회 요청 시 호출됩니다.</p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보 (롤링페이퍼 소유자 식별용)
+     * @param userDetails 현재 로그인한 사용자 정보
      * @return HTTP 응답 엔티티 (내 롤링페이퍼 메시지 목록 DTO)
      * @author Jaeik
      * @since 2.0.0
@@ -57,9 +55,9 @@ public class PaperQueryController {
     /**
      * <h3>다른 사용자 롤링페이퍼 방문 API</h3>
      * <p>특정 사용자명으로 다른 사용자의 롤링페이퍼를 방문하여 메시지 목록을 조회합니다.</p>
-     * <p>방문자에게는 메시지 내용과 익명 작성자명을 제외한 그리드 레이아웃 정보만 제공하여 프라이버시를 보호합니다.</p>
+     * <p>방문자에게는 메시지 내용과 익명 작성자명을 제외한 그리드 레이아웃 정보만 제공합니다.</p>
      * <p>익명 사용자도 접근 가능하며, 방문 기록을 통해 최대 5개 페이퍼, 30일간 기록이 유지됩니다.</p>
-     * <p>{@link PaperQueryService}에 전달하여 방문 가능한 메시지 레이아웃을 조회합니다.</p>
+     * <p>클라이언트에서 다른 사용자 롤링페이퍼 방문 요청 시 호출됩니다.</p>
      *
      * @param userName 방문할 롤링페이퍼 소유자의 사용자명
      * @return HTTP 응답 엔티티 (방문 가능한 메시지 정보 목록 DTO)

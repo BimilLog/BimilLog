@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.comment.event;
 
+import jaeik.bimillog.infrastructure.adapter.notification.in.listener.NotificationGenerateListener;
+
 /**
  * <h2>댓글 작성 이벤트</h2>
  * <p>댓글이 작성되었을 때 발생하는 이벤트</p>
@@ -8,6 +10,7 @@ package jaeik.bimillog.domain.comment.event;
  * @param postUserId 게시글 작성자 ID (알림을 받을 사용자)
  * @param commenterName 댓글 작성자 이름
  * @param postId 게시글 ID
+ * @see NotificationGenerateListener SSE/FCM 알림 발송
  * @author Jaeik
  * @version 2.0.0
  */

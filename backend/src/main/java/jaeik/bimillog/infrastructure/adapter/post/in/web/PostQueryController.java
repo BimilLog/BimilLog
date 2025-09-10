@@ -19,18 +19,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * <h2>PostQueryController</h2>
- * <p>
- * Post 도메인의 조회(Query) 관련 REST API 엔드포인트를 제공하는 웹 어댑터입니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 외부 웹 요청을 도메인 비즈니스 로직으로 연결하며,
- * CQRS 패턴에 따라 조회 전용 API를 분리하여 책임을 명확화합니다.
- * </p>
- * <p>
- * 프론트엔드에서 게시글 목록 조회, 상세 조회, 검색 요청 시 호출되어 데이터를 제공하고,
- * 조회수 증가는 이벤트 기반으로 비동기 처리하여 사용자 경험을 최적화합니다.
- * </p>
+ * <h2>게시글 조회 컨트롤러</h2>
+ * <p>Post 도메인의 조회(Query) 관련 REST API 엔드포인트를 제공하는 웹 어댑터입니다.</p>
+ * <p>게시글 목록 조회, 상세 조회, 검색 API 제공</p>
+ * <p>조회수 증가는 이벤트 기반으로 비동기 처리</p>
  *
  * @author Jaeik
  * @version 2.0.0

@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.infrastructure.adapter.user.in.web.UserQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class UserQueryService implements UserQueryUseCase {
     /**
      * <h3>소셜 정보로 사용자 조회</h3>
      * <p>제공자(Provider)와 소셜 ID를 사용하여 사용자를 조회합니다.</p>
+     * <p>{@link UserQueryUseCase}에서 소셜 로그인 사용자 조회 시 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자
      * @param socialId 사용자의 소셜 ID
@@ -49,6 +51,7 @@ public class UserQueryService implements UserQueryUseCase {
     /**
      * <h3>ID로 사용자 조회</h3>
      * <p>사용자 ID를 사용하여 사용자를 조회합니다.</p>
+     * <p>{@link UserQueryUseCase}에서 기본 사용자 조회 시 호출됩니다.</p>
      *
      * @param id 사용자의 고유 ID
      * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
@@ -63,6 +66,7 @@ public class UserQueryService implements UserQueryUseCase {
     /**
      * <h3>닉네임 중복 확인</h3>
      * <p>해당 닉네임을 가진 사용자가 존재하는지 확인합니다.</p>
+     * <p>{@link UserQueryController}에서 닉네임 중복 확인 API 시 호출됩니다.</p>
      *
      * @param userName 확인할 닉네임
      * @return boolean 존재하면 true, 아니면 false
@@ -77,6 +81,7 @@ public class UserQueryService implements UserQueryUseCase {
     /**
      * <h3>닉네임으로 사용자 조회</h3>
      * <p>닉네임을 사용하여 사용자를 조회합니다.</p>
+     * <p>{@link UserQueryUseCase}에서 닉네임 기반 사용자 조회 시 호출됩니다.</p>
      *
      * @param userName 사용자 닉네임
      * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
@@ -93,6 +98,7 @@ public class UserQueryService implements UserQueryUseCase {
      * <h3>ID로 사용자 프록시 조회</h3>
      * <p>실제 쿼리 없이 ID를 가진 사용자의 프록시(참조) 객체를 반환합니다.</p>
      * <p>JPA 연관 관계 설정 시 성능 최적화를 위해 사용됩니다.</p>
+     * <p>{@link UserQueryUseCase}에서 사용자 엔티티 참조 생성 시 호출됩니다.</p>
      *
      * @param userId 사용자 ID
      * @return User 프록시 객체
@@ -107,6 +113,7 @@ public class UserQueryService implements UserQueryUseCase {
     /**
      * <h3>토큰 ID로 토큰 조회</h3>
      * <p>다중 로그인 환경에서 JWT에서 파싱된 tokenId로 정확한 기기의 토큰을 조회합니다.</p>
+     * <p>{@link UserQueryUseCase}에서 JWT 토큰 기반 인증 시 호출됩니다.</p>
      *
      * @param tokenId 토큰 ID (UserDetails.getTokenId()에서 추출)
      * @return Optional<Token> 조회된 토큰 객체. 존재하지 않으면 Optional.empty()
@@ -122,6 +129,7 @@ public class UserQueryService implements UserQueryUseCase {
      * <h3>설정 ID로 설정 조회</h3>
      * <p>JWT 토큰의 settingId를 활용하여 효율적으로 설정 정보를 조회</p>
      * <p>User 엔티티 전체 조회 없이 Setting만 직접 조회하여 성능 최적화</p>
+     * <p>{@link UserQueryController}에서 사용자 설정 조회 API 시 호출됩니다.</p>
      *
      * @param settingId 설정 ID
      * @return 설정 엔티티

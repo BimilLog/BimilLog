@@ -15,8 +15,8 @@ public interface PaperCommandPort {
     /**
      * <h3>메시지 ID로 메시지 삭제</h3>
      * <p>특정 ID에 해당하는 롤링페이퍼 메시지를 삭제합니다.</p>
-     * <p>사용자가 자신의 롤링페이퍼에서 불필요한 메시지를 제거할 때 사용됩니다.</p>
-     * <p>{@link PaperCommandService}에서 메시지 소유권 검증 후 메시지 삭제 시 호출됩니다.</p>
+     * <p>롤링페이퍼 소유자가 자신의 메시지를 삭제할 때 사용됩니다.</p>
+     * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 소유권 검증 후 호출됩니다.</p>
      *
      * @param messageId 삭제할 메시지의 ID
      * @author Jaeik
@@ -26,9 +26,9 @@ public interface PaperCommandPort {
 
     /**
      * <h3>메시지 저장</h3>
-     * <p>새로운 롤링페이퍼 메시지를 데이터베이스에 저장합니다.</p>
-     * <p>사용자가 다른 사용자의 롤링페이퍼에 익명 메시지를 작성할 때 사용됩니다.</p>
-     * <p>{@link PaperCommandService}에서 메시지 생성과 이벤트 발행을 위해 호출됩니다.</p>
+     * <p>새로운 롤링페이퍼 메시지를 저장합니다.</p>
+     * <p>익명 메시지 작성 시 사용됩니다.</p>
+     * <p>{@link PaperCommandService#writeMessage}에서 메시지 생성 후 호출됩니다.</p>
      *
      * @param message 저장할 메시지 엔티티
      * @return Message 저장된 메시지 엔티티 (ID가 할당됨)
