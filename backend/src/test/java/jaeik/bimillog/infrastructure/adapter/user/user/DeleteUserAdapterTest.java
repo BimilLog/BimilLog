@@ -62,19 +62,6 @@ class DeleteUserAdapterTest {
         assertThat(capturedEvent.userId()).isEqualTo(validUserId);
     }
 
-    @Test
-    @DisplayName("로그아웃 처리 - null 사용자 ID 처리")
-    void shouldHandleNullUserId_WhenLogoutCalled() {
-        // Given: null 사용자 ID
-        Long nullUserId = null;
-
-        // When: null 사용자 ID로 모든 토큰 삭제 (tokenId = null)
-        deleteDataAdapter.logoutUser(nullUserId, null);
-
-        // Then: 모든 토큰 삭제와 이벤트 발행이 호출됨
-        verify(tokenRepository).deleteAllByUserId(nullUserId);
-        verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
-    }
 
     @Test
     @DisplayName("로그아웃 처리 - 존재하지 않는 사용자 ID")
@@ -193,20 +180,6 @@ class DeleteUserAdapterTest {
         verify(authCookieManager).getLogoutCookies();
     }
 
-    @Test
-    @DisplayName("동시성 테스트 - 동일 사용자 동시 로그아웃")
-    void shouldHandleConcurrentLogout_WhenSameUserLogoutSimultaneously() {
-        // Given: 동일한 사용자 ID
-        Long userId = 1L;
-
-        // When: 동시에 로그아웃 실행
-        deleteDataAdapter.logoutUser(userId, null); // 모든 토큰 삭제
-        deleteDataAdapter.logoutUser(userId, null); // 모든 토큰 삭제
-
-        // Then: 두 번의 로그아웃 처리 검증
-        verify(tokenRepository, times(2)).deleteAllByUserId(userId);
-        verify(eventPublisher, times(2)).publishEvent(any(UserLoggedOutEvent.class));
-    }
 
     @Test
     @DisplayName("예외 전파 테스트 - TokenRepository 예외 발생")

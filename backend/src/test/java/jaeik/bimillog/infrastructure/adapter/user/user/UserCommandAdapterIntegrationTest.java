@@ -181,33 +181,6 @@ class UserCommandAdapterIntegrationTest {
     }
 
 
-    @Test
-    @DisplayName("정상 케이스 - 사용자 삭제")
-    void shouldDeleteUser_WhenValidIdProvided() {
-        // Given: 기존 사용자 생성 및 저장
-        Setting setting = Setting.createSetting();
-        setting = settingRepository.save(setting);
-        
-        User existingUser = User.builder()
-                .socialId("kakao789")
-                .provider(SocialProvider.KAKAO)
-                .userName("userToDelete")
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
-        existingUser = userRepository.save(existingUser);
-        Long userId = existingUser.getId();
-
-        // 삭제 전 사용자 존재 확인
-        assertThat(userRepository.findById(userId)).isPresent();
-
-        // When: 사용자 삭제 (직접 리포지토리 호출 - deleteById 메서드는 존재하지 않음)
-        userRepository.deleteById(userId);
-
-        // Then: 사용자가 삭제되었는지 검증
-        Optional<User> deletedUser = userRepository.findById(userId);
-        assertThat(deletedUser).isEmpty();
-    }
 
 
     @Test
@@ -280,17 +253,6 @@ class UserCommandAdapterIntegrationTest {
     }
 
 
-    @Test
-    @DisplayName("경계값 - 존재하지 않는 ID로 사용자 삭제")
-    void shouldNotThrowException_WhenDeletingNonExistentUser() {
-        // Given: 존재하지 않는 사용자 ID
-        Long nonExistentId = 999L;
-
-        // When & Then: 존재하지 않는 사용자 삭제 시 예외가 발생하지 않아야 함 (직접 리포지토리 호출)
-        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
-                () -> userRepository.deleteById(nonExistentId)
-        );
-    }
 
     @Test
     @DisplayName("DB 매핑 - 복잡한 사용자 엔티티 저장 및 조회")

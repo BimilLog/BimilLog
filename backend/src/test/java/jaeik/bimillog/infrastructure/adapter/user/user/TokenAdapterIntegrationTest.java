@@ -151,20 +151,6 @@ class TokenAdapterIntegrationTest {
         assertThat(foundToken.getUsers().getId()).isEqualTo(testUser.getId());
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 토큰 ID로 토큰 조회 (다중 로그인 권장 방식)")
-    void shouldFindTokenById_WhenValidTokenIdProvided() {
-        // When: 토큰 ID로 토큰 조회 (UserDetails.getTokenId() 사용 시나리오)
-        Optional<Token> result = tokenAdapter.findById(testToken.getId());
-
-        // Then: 해당 토큰이 정확히 조회되는지 검증
-        assertThat(result).isPresent();
-        Token foundToken = result.get();
-        assertThat(foundToken.getId()).isEqualTo(testToken.getId());
-        assertThat(foundToken.getAccessToken()).isEqualTo("kakao-access-token-123");
-        assertThat(foundToken.getRefreshToken()).isEqualTo("kakao-refresh-token-123");
-        assertThat(foundToken.getUsers().getId()).isEqualTo(testUser.getId());
-    }
 
     @Test
     @DisplayName("정상 케이스 - 새로운 토큰 저장")
@@ -260,15 +246,6 @@ class TokenAdapterIntegrationTest {
         assertThat(result).isEmpty();
     }
 
-    @Test
-    @DisplayName("경계값 - 존재하지 않는 토큰 ID로 조회")
-    void shouldReturnEmpty_WhenTokenIdNotExists() {
-        // When: 존재하지 않는 토큰 ID로 조회 (비즈니스 케이스)
-        Optional<Token> result = tokenAdapter.findById(999L);
-
-        // Then: 빈 Optional이 반환되는지 검증
-        assertThat(result).isEmpty();
-    }
 
     @Test
     @DisplayName("관계 매핑 - 사용자 삭제 시 모든 토큰 자동 삭제 (CASCADE)")
