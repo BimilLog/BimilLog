@@ -1013,15 +1013,22 @@ export const decoTypeMap = {
   BUBBLE: { name: "비눗방울", color: "from-blue-100 to-white", emoji: "🫧" }
 }
 
-// 헬퍼 함수들
+// 헬퍼 함수들 - icon mapping 추가
+import { getIconMapping } from './icon-mappings';
+
 export const getDecoInfo = (decoType: DecoType | string) => {
-  return (
-    decoTypeMap[decoType as keyof typeof decoTypeMap] || {
-      name: "기본",
-      color: "from-gray-100 to-slate-100",
-      emoji: "📝",
-    }
-  )
+  const baseInfo = decoTypeMap[decoType as keyof typeof decoTypeMap] || {
+    name: "기본",
+    color: "from-gray-100 to-slate-100", 
+    emoji: "📝",
+  };
+  
+  const iconMapping = getIconMapping(decoType as DecoType);
+  
+  return {
+    ...baseInfo,
+    iconMapping
+  };
 }
 
 // CSRF 토큰 디버깅용 유틸리티

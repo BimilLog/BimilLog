@@ -10,6 +10,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
+import { DecoIcon } from "@/components";
 
 interface MessageViewProps {
   message: RollingPaperMessage | VisitMessage;
@@ -71,7 +72,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
         }}
       >
         <div className="flex items-center space-x-3 mb-4">
-          <span className="text-4xl animate-bounce">{decoInfo.emoji}</span>
+          <DecoIcon decoType={message.decoType} size="xl" showBackground={false} animate="bounce" />
           <div className="flex flex-col space-y-1">
             <Badge
               variant="secondary"

@@ -17,6 +17,7 @@ import {
 import { MessageForm } from "./MessageForm";
 import { MessageView } from "./MessageView";
 import { Button } from "@/components/ui/button";
+import { DecoIcon } from "@/components";
 
 interface RollingPaperGridProps {
   messages: (RollingPaperMessage | VisitMessage)[];
@@ -206,9 +207,12 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
                     >
                       {messageAtPosition ? (
                         <div className="relative">
-                          <span className="text-lg md:text-2xl animate-bounce">
-                            {decoInfo?.emoji}
-                          </span>
+                          <DecoIcon 
+                            decoType={messageAtPosition.decoType} 
+                            size="lg" 
+                            showBackground={false} 
+                            animate="bounce" 
+                          />
                           <div className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-300 rounded-full animate-ping"></div>
                           {isHighlighted && (
                             <div className="absolute inset-0 bg-green-300 rounded-full opacity-50 animate-ping"></div>

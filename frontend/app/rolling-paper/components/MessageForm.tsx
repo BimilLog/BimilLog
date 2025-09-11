@@ -13,6 +13,7 @@ import { Send, Snowflake, Waves, IceCream2 } from "lucide-react";
 import { getDecoInfo, decoTypeMap } from "@/lib/api";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
+import { DecoIcon } from "@/components";
 
 interface MessageFormProps {
   nickname?: string;
@@ -91,7 +92,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
           }}
         >
           <div className="flex items-center space-x-2 mb-2">
-            <span className="text-2xl">{selectedDecoInfo.emoji}</span>
+            <DecoIcon decoType={decoType} size="lg" showBackground={false} />
             <span className="text-sm font-semibold text-gray-800">
               {selectedDecoInfo.name}
             </span>
@@ -148,7 +149,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
               <SelectTrigger className="bg-white/80 border-cyan-200 font-medium">
                 <SelectValue>
                   <div className="flex items-center space-x-2">
-                    <span className="text-lg">{selectedDecoInfo.emoji}</span>
+                    <DecoIcon decoType={decoType} size="md" showBackground={false} />
                     <span className="font-semibold">
                       {selectedDecoInfo.name}
                     </span>
@@ -163,7 +164,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
                     className="font-medium"
                   >
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg">{d.info.emoji}</span>
+                      <DecoIcon decoType={d.value} size="md" showBackground={false} />
                       <span>{d.info.name}</span>
                     </div>
                   </SelectItem>

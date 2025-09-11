@@ -10,3 +10,4 @@ export { Icon } from './icon';
 export { Spinner } from './spinner';
 export { default as SafeHTML } from './SafeHTML';
 export { KakaoShareButton } from './kakao-share-button';
+export { DecoIcon, EmojiStyleDecoIcon } from './deco-icon';

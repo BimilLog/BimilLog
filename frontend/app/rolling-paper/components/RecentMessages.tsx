@@ -10,6 +10,7 @@ import {
   type RollingPaperMessage,
   type VisitMessage,
 } from "@/lib/api";
+import { DecoIcon } from "@/components";
 
 interface RecentMessagesProps {
   messages: (RollingPaperMessage | VisitMessage)[];
@@ -81,7 +82,8 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
       <CardHeader className="bg-gradient-to-r from-cyan-100 to-blue-100 rounded-t-2xl md:rounded-t-3xl p-4 pb-2">
         <CardTitle className="flex items-center space-x-2 text-cyan-800 text-sm md:text-base">
           <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
-          <span className="font-bold">최근 메시지들 🌊</span>
+          <span className="font-bold">최근 메시지들</span>
+          <Waves className="w-4 h-4 md:w-5 md:h-5" />
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 pt-3 pb-3">
@@ -99,7 +101,7 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
                 <div
                   className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r ${decoInfo.color} flex items-center justify-center shadow-lg border-2 border-white flex-shrink-0`}
                 >
-                  <span className="text-lg md:text-xl">{decoInfo.emoji}</span>
+                  <DecoIcon decoType={message.decoType} size="md" showBackground={false} />
                 </div>
                 <div className="flex-1 min-w-0">
                   {isRollingPaperMessage(message) && isOwner ? (
