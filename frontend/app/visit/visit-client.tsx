@@ -12,6 +12,9 @@ import {
   Heart,
   AlertCircle,
   CheckCircle,
+  Mail,
+  PartyPopper,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -185,8 +188,9 @@ export default function VisitClient() {
             <div className="flex items-start space-x-2">
               <Heart className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">
-                  💌 익명으로 메시지를 남겨보세요!
+                <p className="font-medium mb-1 flex items-center space-x-2">
+                  <Mail className="w-4 h-4" />
+                  <span>익명으로 메시지를 남겨보세요!</span>
                 </p>
                 <p>
                   로그인 없이도 누구나 따뜻한 메시지를 남길 수 있어요. 다양한
@@ -204,7 +208,8 @@ export default function VisitClient() {
           <DialogHeader>
             <DialogTitle className="text-center text-blue-800 font-bold flex items-center justify-center space-x-2">
               <CheckCircle className="w-5 h-5" />
-              <span>내 롤링페이퍼 발견! 🎉</span>
+              <span>내 롤링페이퍼 발견!</span>
+              <PartyPopper className="w-5 h-5" />
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 p-2">
@@ -219,7 +224,8 @@ export default function VisitClient() {
                   onClick={handleGoToMyRollingPaper}
                   className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-xl"
                 >
-                  ✨ 내 롤링페이퍼 보기
+                  <Sparkles className="w-4 h-4 mr-1" />
+                  내 롤링페이퍼 보기
                 </Button>
 
                 <Button

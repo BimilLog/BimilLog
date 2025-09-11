@@ -342,11 +342,11 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
       <div className="grid gap-6">
         {items.map((item) => {
           // 게시글인지 댓글인지 판단
-          const isPost = "title" in item && "views" in item;
+          const isPost = "title" in item && "viewCount" in item;
 
           return isPost ? (
             <PostCard
-              key={item.postId}
+              key={item.id}
               post={item as SimplePost}
               contentType={contentType}
             />

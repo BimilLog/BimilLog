@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Clock, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import {
   getDecoInfo,
   type RollingPaperMessage,

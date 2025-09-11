@@ -126,9 +126,10 @@ export function useRollingPaper({
   // 좌표 유틸리티 함수들
   const isPositionOccupied = (x: number, y: number): boolean => {
     // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
-    const backend = frontendToBackend(x, y);
+    const { x: backendX, y: backendY } = frontendToBackend(x, y);
+    // 백엔드에서 width/height 필드는 실제로는 x/y 좌표값임
     return messages.some(
-      (message) => message.width === backend.x && message.height === backend.y
+      (message) => message.width === backendX && message.height === backendY
     );
   };
 
@@ -137,9 +138,10 @@ export function useRollingPaper({
     y: number
   ): RollingPaperMessage | VisitMessage | null => {
     // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
-    const backend = frontendToBackend(x, y);
+    const { x: backendX, y: backendY } = frontendToBackend(x, y);
+    // 백엔드에서 width/height 필드는 실제로는 x/y 좌표값임
     return (
-      messages.find((message) => message.width === backend.x && message.height === backend.y) ||
+      messages.find((message) => message.width === backendX && message.height === backendY) ||
       null
     );
   };

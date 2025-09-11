@@ -39,12 +39,13 @@ export function useNotifications() {
 
     // 처리할 알림이 없으면 배치 처리 건너뛰기
     if (readIds.length === 0 && deleteIds.length === 0) {
-      console.log("배치 처리할 알림이 없음 - 건너뛰기")
       return
     }
 
     try {
-      console.log(`배치 처리 시작 - 읽음: ${readIds.length}개, 삭제: ${deleteIds.length}개`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`배치 처리 시작 - 읽음: ${readIds.length}개, 삭제: ${deleteIds.length}개`)
+      }
       
       const response = await notificationApi.updateNotifications({
         readIds: readIds.length > 0 ? readIds : undefined,
@@ -52,7 +53,9 @@ export function useNotifications() {
       })
 
       if (response.success) {
-        console.log("배치 처리 완료")
+        if (process.env.NODE_ENV === 'development') {
+          console.log("배치 처리 완료")
+        }
         // 처리 완료된 ID들 제거
         setPendingReadIds(new Set())
         setPendingDeleteIds(new Set())
@@ -112,14 +115,14 @@ export function useNotifications() {
 
     setIsLoading(true)
     try {
-      console.log("알림 목록을 조회합니다...")
       const response = await notificationApi.getNotifications()
-      console.log("알림 조회 응답:", response)
       
       if (response.success && response.data) {
         setNotifications(response.data)
         setUnreadCount(response.data.filter((n) => !n.isRead).length)  // v2: read → isRead
-        console.log(`알림 ${response.data.length}개 조회됨 (읽지 않음: ${response.data.filter((n) => !n.isRead).length}개)`)
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`알림 ${response.data.length}개 조회됨 (읽지 않음: ${response.data.filter((n) => !n.isRead).length}개)`)
+        }
       }
     } catch (error) {
       console.error("알림 조회 실패:", error)
@@ -140,13 +143,13 @@ export function useNotifications() {
       sseManager.removeEventListener("notification")
       
       // 새 알림 수신 리스너 등록
-      sseManager.addEventListener("notification", async (data) => {
+      sseManager.addEventListener("notification", (data) => {
         if (process.env.NODE_ENV === 'development') {
           console.log("새 알림 수신:", data);
         }
         
-        // SSEManager에서 이미 변환된 Notification 객체를 직접 사용
-        const tempNotification: Notification = {
+        // SSEManager에서 이미 변환된 Notification 객체를 직접 사용 (서버 재조회 불필요)
+        const newNotification: Notification = {
           id: data.id,
           content: data.content,
           url: data.url,
@@ -155,18 +158,9 @@ export function useNotifications() {
           isRead: data.isRead,
         }
 
-        setNotifications((prev) => [tempNotification, ...prev])
-        setUnreadCount((prev) => prev + 1)
-
-        // 서버에서 최신 알림 목록을 다시 조회
-        try {
-          const response = await notificationApi.getNotifications()
-          if (response.success && response.data) {
-            setNotifications(response.data)
-            setUnreadCount(response.data.filter((n) => !n.isRead).length)
-          }
-        } catch (error) {
-          console.error("SSE 알림 수신 후 알림 목록 조회 실패:", error)
+        setNotifications((prev) => [newNotification, ...prev])
+        if (!data.isRead) {
+          setUnreadCount((prev) => prev + 1)
         }
 
         // 브라우저 알림 표시
@@ -210,7 +204,9 @@ export function useNotifications() {
 
   // 개별 알림 읽음 처리 (배치에 추가)
   const markAsRead = useCallback(async (notificationId: number) => {
-    console.log(`알림 ${notificationId} 읽음 처리 - 배치에 추가`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`알림 ${notificationId} 읽음 처리 - 배치에 추가`)
+    }
     
     // UI 즉시 업데이트
     setNotifications((prev) =>
@@ -222,13 +218,13 @@ export function useNotifications() {
     
     // 배치에 추가
     setPendingReadIds((prev) => new Set([...prev, notificationId]))
-    
-    console.log(`알림 ${notificationId} 배치 추가 완료 (다음 배치 처리 시 전송)`)
   }, [])
 
   // 개별 알림 삭제 (배치에 추가)
   const deleteNotification = useCallback(async (notificationId: number) => {
-    console.log(`알림 ${notificationId} 삭제 - 배치에 추가`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`알림 ${notificationId} 삭제 - 배치에 추가`)
+    }
     
     const notification = notifications.find((n) => n.id === notificationId)
     
@@ -240,8 +236,6 @@ export function useNotifications() {
     
     // 배치에 추가
     setPendingDeleteIds((prev) => new Set([...prev, notificationId]))
-    
-    console.log(`알림 ${notificationId} 배치 추가 완료 (다음 배치 처리 시 전송)`)
   }, [notifications])
 
   // 모든 알림 읽음 처리 (즉시 실행)
@@ -250,7 +244,9 @@ export function useNotifications() {
       const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id)  // v2: read → isRead
       if (unreadIds.length === 0) return
 
-      console.log(`모든 알림 읽음 처리 - 즉시 실행 (${unreadIds.length}개)`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`모든 알림 읽음 처리 - 즉시 실행 (${unreadIds.length}개)`)
+      }
       const response = await notificationApi.updateNotifications({
         readIds: unreadIds,
       })
@@ -265,7 +261,9 @@ export function useNotifications() {
           return newSet
         })
         
-        console.log("모든 알림 읽음 처리 완료")
+        if (process.env.NODE_ENV === 'development') {
+          console.log("모든 알림 읽음 처리 완료")
+        }
       }
     } catch (error) {
       console.error("모든 알림 읽음 처리 실패:", error)
@@ -278,7 +276,9 @@ export function useNotifications() {
       const allIds = notifications.map((n) => n.id)
       if (allIds.length === 0) return
 
-      console.log(`모든 알림 삭제 - 즉시 실행 (${allIds.length}개)`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`모든 알림 삭제 - 즉시 실행 (${allIds.length}개)`)
+      }
       const response = await notificationApi.updateNotifications({
         deletedIds: allIds,
       })
@@ -293,7 +293,9 @@ export function useNotifications() {
           return newSet
         })
         
-        console.log("모든 알림 삭제 완료")
+        if (process.env.NODE_ENV === 'development') {
+          console.log("모든 알림 삭제 완료")
+        }
       }
     } catch (error) {
       console.error("모든 알림 삭제 실패:", error)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi, rollingPaperApi } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,71 @@ export default function MyPage() {
     totalLikedPosts: 0,
     totalLikedComments: 0,
   });
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  // 사용자 통계 가져오기
+  const fetchUserStats = useCallback(async () => {
+    if (!user) return;
+
+    setIsLoadingStats(true);
+    setStatsError(null);
+
+    try {
+      // API 호출을 개선하여 오류에 더 관대하게 처리
+      const [
+        postsRes,
+        commentsRes, 
+        likedPostsRes,
+        likedCommentsRes,
+        messagesRes,
+      ] = await Promise.allSettled([
+        userApi.getUserPosts(0, 1),
+        userApi.getUserComments(0, 1), 
+        userApi.getUserLikedPosts(0, 1),
+        userApi.getUserLikedComments(0, 1),
+        rollingPaperApi.getMyRollingPaper(),
+      ]);
+
+      const newStats = {
+        totalPosts: 
+          postsRes.status === 'fulfilled' && postsRes.value.success
+            ? postsRes.value.data?.totalElements || 0
+            : 0,
+        totalComments:
+          commentsRes.status === 'fulfilled' && commentsRes.value.success
+            ? commentsRes.value.data?.totalElements || 0
+            : 0,
+        totalLikedPosts:
+          likedPostsRes.status === 'fulfilled' && likedPostsRes.value.success
+            ? likedPostsRes.value.data?.totalElements || 0
+            : 0,
+        totalLikedComments:
+          likedCommentsRes.status === 'fulfilled' && likedCommentsRes.value.success
+            ? likedCommentsRes.value.data?.totalElements || 0
+            : 0,
+        totalMessages:
+          messagesRes.status === 'fulfilled' && messagesRes.value.success
+            ? messagesRes.value.data?.length || 0
+            : 0,
+      };
+
+      setUserStats(newStats);
+
+      // 모든 API가 실패한 경우에만 에러로 처리
+      const allFailed = [postsRes, commentsRes, likedPostsRes, likedCommentsRes, messagesRes]
+        .every(res => res.status === 'rejected');
+      
+      if (allFailed) {
+        setStatsError("통계 정보를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch user stats:", error);
+      setStatsError("통계 정보를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요.");
+    } finally {
+      setIsLoadingStats(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -37,39 +102,20 @@ export default function MyPage() {
       return;
     }
     if (user) {
-      // Fetch user stats
-      Promise.all([
-        userApi.getUserPosts(0, 1),
-        userApi.getUserComments(0, 1),
-        userApi.getUserLikedPosts(0, 1),
-        userApi.getUserLikedComments(0, 1),
-        rollingPaperApi.getMyRollingPaper(),
-      ])
-        .then(
-          ([
-            postsRes,
-            commentsRes,
-            likedPostsRes,
-            likedCommentsRes,
-            messagesRes,
-          ]) => {
-            setUserStats({
-              totalPosts: postsRes.data?.totalElements || 0,
-              totalComments: commentsRes.data?.totalElements || 0,
-              totalLikedPosts: likedPostsRes.data?.totalElements || 0,
-              totalLikedComments: likedCommentsRes.data?.totalElements || 0,
-              totalMessages: messagesRes.data?.length || 0,
-            });
-          }
-        )
-        .catch((err) => console.error("Failed to fetch user stats:", err));
+      fetchUserStats();
     }
-  }, [isAuthenticated, isLoading, router, user]);
+  }, [isAuthenticated, isLoading, router, user, fetchUserStats]);
 
-  const handleNicknameChange = async (newNickname: string) => {
-    await updateUserName(newNickname);
-    await refreshUser();
-  };
+  const handleNicknameChange = useCallback(async (newNickname: string) => {
+    try {
+      await updateUserName(newNickname);
+      await refreshUser();
+      // 닉네임 변경 후 통계도 다시 가져오기
+      await fetchUserStats();
+    } catch (error) {
+      console.error("Failed to update nickname:", error);
+    }
+  }, [updateUserName, refreshUser, fetchUserStats]);
 
   if (isLoading || !user) {
     return (
@@ -88,7 +134,12 @@ export default function MyPage() {
           onNicknameChange={handleNicknameChange}
           onLogout={logout}
         />
-        <UserStats stats={userStats} />
+        <UserStats 
+          stats={userStats} 
+          isLoading={isLoadingStats}
+          error={statsError}
+          onRetry={fetchUserStats}
+        />
         <ActivityTabs />
       </main>
 

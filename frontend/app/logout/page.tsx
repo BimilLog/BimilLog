@@ -34,10 +34,12 @@ export default function LogoutPage() {
 
             await unlink();
             if (process.env.NODE_ENV === 'development') {
-          console.log("카카오 연결 끊기 성공");
-        }
+              console.log("카카오 연결 끊기 성공");
+            }
           } catch (kakaoError) {
-            console.error("카카오 연결 끊기 실패:", kakaoError);
+            if (process.env.NODE_ENV === 'development') {
+              console.error("카카오 연결 끊기 실패:", kakaoError);
+            }
             showError(
               "카카오 연결 끊기 실패",
               "동의 URL을 찾을 수 없습니다. 다시 시도해주세요."
@@ -52,7 +54,9 @@ export default function LogoutPage() {
         // 홈으로 리다이렉트
         router.replace("/");
       } catch (error) {
-        console.error("Logout failed:", error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Logout failed:", error);
+        }
         // 에러가 발생해도 강제 로그아웃
         await logout();
         router.replace("/");

@@ -38,6 +38,9 @@ export const useBoardData = () => {
         }
       } catch (error) {
         console.error("Failed to fetch posts:", error);
+        setPosts([]);
+        setTotalPages(0);
+        setCurrentPage(0);
       } finally {
         setIsLoading(false);
       }
@@ -46,15 +49,15 @@ export const useBoardData = () => {
   );
 
   // 검색 핸들러
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     setCurrentPage(0);
     fetchPostsAndSearch(0);
-  };
+  }, [fetchPostsAndSearch]);
 
   // 페이지당 게시글 수 변경 시 첫 페이지로 이동
   useEffect(() => {
     fetchPostsAndSearch(0);
-  }, [postsPerPage]);
+  }, [postsPerPage, fetchPostsAndSearch]);
 
   return {
     // 검색 상태

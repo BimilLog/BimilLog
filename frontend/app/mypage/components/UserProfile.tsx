@@ -123,7 +123,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({
         setNicknameMessage("");
         setIsNicknameAvailable(null);
         showSuccess("닉네임 변경 완료", "닉네임이 성공적으로 변경되었습니다.");
-        await onLogout();
+        // 토스트 메시지가 표시될 시간을 확보한 후 로그아웃
+        setTimeout(async () => {
+          await onLogout();
+        }, 2000);
       } else {
         showError(
           "닉네임 변경 실패",

@@ -8,6 +8,11 @@ import {
   TrendingUp,
   Award,
   Target,
+  Trophy,
+  Flame,
+  Star,
+  TreePine,
+  Leaf,
 } from "lucide-react";
 
 interface UserStatsProps {
@@ -38,29 +43,29 @@ const calculateActivityScore = (stats: {
 // 활동 레벨 계산 함수 (점수 기반)
 const getActivityLevel = (
   totalScore: number
-): { level: string; badge: string; color: string } => {
+): { level: string; badge: React.ReactNode; color: string } => {
   if (totalScore >= 500) {
     return {
       level: "전설급",
-      badge: "🏆",
+      badge: <Trophy className="w-6 h-6" />,
       color: "from-yellow-400 to-orange-500",
     };
   } else if (totalScore >= 250) {
-    return { level: "고수", badge: "🔥", color: "from-red-400 to-pink-500" };
+    return { level: "고수", badge: <Flame className="w-6 h-6" />, color: "from-red-400 to-pink-500" };
   } else if (totalScore >= 100) {
     return {
       level: "활발함",
-      badge: "⭐",
+      badge: <Star className="w-6 h-6" />,
       color: "from-blue-400 to-purple-500",
     };
   } else if (totalScore >= 25) {
     return {
       level: "초보자",
-      badge: "🌱",
+      badge: <TreePine className="w-6 h-6" />,
       color: "from-green-400 to-teal-500",
     };
   } else {
-    return { level: "새싹", badge: "🌿", color: "from-gray-400 to-gray-500" };
+    return { level: "새싹", badge: <Leaf className="w-6 h-6" />, color: "from-gray-400 to-gray-500" };
   }
 };
 

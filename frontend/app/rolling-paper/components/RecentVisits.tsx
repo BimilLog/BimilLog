@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Heart, X, Trash2 } from "lucide-react";
+import { Clock, Heart, X, Trash2, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import {
   getRecentVisits,
@@ -100,9 +100,9 @@ export const RecentVisits: React.FC = () => {
         </div>
 
         <div className="mt-4 pt-3 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
-            💡 최근 {recentVisits.length}개의 방문 기록 (최대 5개까지
-            저장됩니다)
+          <p className="text-xs text-gray-500 text-center flex items-center justify-center space-x-1">
+            <Lightbulb className="w-3 h-3" />
+            <span>최근 {recentVisits.length}개의 방문 기록 (최대 5개까지 저장됩니다)</span>
           </p>
         </div>
       </CardContent>

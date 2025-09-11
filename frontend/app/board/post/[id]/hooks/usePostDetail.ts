@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { boardApi, commentApi, type Post, type Comment } from "@/lib/api";
@@ -27,7 +27,9 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
   const [targetComment, setTargetComment] = useState<Comment | null>(null);
 
   // Data fetching
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
+    if (!id) return;
+    
     try {
       const response = await boardApi.getPost(Number(id));
       if (response.success && response.data) {
@@ -41,11 +43,11 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
 
-  const buildCommentTree = (comments: Comment[]): Comment[] => {
-    const commentMap = new Map<number, Comment & { replies: Comment[] }>();
-    const rootComments: Comment[] = [];
+  const buildCommentTree = useCallback((comments: Comment[]): CommentWithReplies[] => {
+    const commentMap = new Map<number, CommentWithReplies>();
+    const rootComments: CommentWithReplies[] = [];
 
     comments.forEach((comment) => {
       commentMap.set(comment.id, { ...comment, replies: [] });
@@ -55,16 +57,18 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
       if (comment.parentId && commentMap.has(comment.parentId)) {
         const parent = commentMap.get(comment.parentId)!;
         const child = commentMap.get(comment.id)!;
-        parent.replies.push(child);
+        parent.replies!.push(child);
       } else {
         rootComments.push(commentMap.get(comment.id)!);
       }
     });
 
     return rootComments;
-  };
+  }, []);
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
+    if (!id) return;
+    
     try {
       const [commentsResponse, popularResponse] = await Promise.all([
         commentApi.getComments(Number(id), 0),
@@ -74,15 +78,21 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
       if (commentsResponse.success && commentsResponse.data) {
         const treeComments = buildCommentTree(commentsResponse.data.content);
         setComments(treeComments);
+      } else {
+        setComments([]);
       }
 
       if (popularResponse.success && popularResponse.data) {
         setPopularComments(popularResponse.data);
+      } else {
+        setPopularComments([]);
       }
     } catch (error) {
       console.error("댓글 조회 실패:", error);
+      setComments([]);
+      setPopularComments([]);
     }
-  };
+  }, [id, buildCommentTree]);
 
   const getTotalCommentCount = (
     comments: (Comment & { replies?: Comment[] })[]
@@ -126,7 +136,7 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
       fetchPost();
     }
     fetchComments();
-  }, [id]);
+  }, [id, initialPost, fetchPost, fetchComments]);
 
   return {
     // Data

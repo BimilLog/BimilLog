@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from "@/components/molecules/dialog";
 import { Button } from "@/components/atoms/button";
 import { useBrowserGuide } from "@/hooks/useBrowserGuide";
 import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
+import { CheckCircle, Link } from "lucide-react";
 
 interface BrowserGuideModalProps {
   isOpen: boolean;
@@ -104,7 +105,17 @@ export function BrowserGuideModal({
                 variant="outline"
                 className="w-full"
               >
-                {copiedToClipboard ? "✅ 링크 복사됨!" : "🔗 링크 복사하기"}
+                {copiedToClipboard ? (
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>링크 복사됨!</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Link className="w-4 h-4" />
+                    <span>링크 복사하기</span>
+                  </div>
+                )}
               </Button>
             </>
           )}

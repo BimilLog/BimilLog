@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AuthHeader } from "@/components/organisms/auth-header";
-import { Lightbulb, Send, Bug } from "lucide-react";
+import { Lightbulb, Send, Bug, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
 import { HomeFooter } from "@/components/organisms/home/HomeFooter";
@@ -231,8 +231,9 @@ export default function SuggestPage() {
           {/* 안내 사항 */}
           <Card className="mt-8 border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                📝 건의하기 안내
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+                <FileText className="w-5 h-5" />
+                <span>건의하기 안내</span>
               </h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>

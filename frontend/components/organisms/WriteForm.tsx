@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SafeHTML } from "@/components/ui";
-import { Save } from "lucide-react";
+import { Save, Lightbulb } from "lucide-react";
 import Editor from "@/components/molecules/editor";
 
 interface User {
@@ -79,8 +79,9 @@ export const WriteForm: React.FC<WriteFormProps> = ({
                 내용
               </Label>
               <Editor value={content} onChange={setContent} />
-              <p className="text-xs text-gray-500">
-                💡 다양한 스타일로 내용을 꾸며보세요.
+              <p className="text-xs text-gray-500 flex items-center space-x-1">
+                <Lightbulb className="w-3 h-3" />
+                <span>다양한 스타일로 내용을 꾸며보세요.</span>
               </p>
             </div>
 

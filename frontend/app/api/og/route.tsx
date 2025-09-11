@@ -85,8 +85,20 @@ export async function GET(request: Request) {
         height: 630,
       }
     );
-  } catch (e: any) {
-    console.error(`OG Image generation failed: ${e.message}`);
-    return new Response("Failed to generate OG image", { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : "Unknown error";
+    console.error(`OG Image generation failed: ${errorMessage}`);
+    
+    return new Response(
+      JSON.stringify({ 
+        error: "Failed to generate OG image", 
+        details: errorMessage,
+        timestamp: new Date().toISOString()
+      }), 
+      { 
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
 }

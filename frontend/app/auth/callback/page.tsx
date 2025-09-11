@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,21 +15,21 @@ export default function AuthCallbackPage() {
   const { refreshUser } = useAuth();
   const { fetchNotifications } = useNotifications();
   const { showSuccess, showError, toasts, removeToast } = useToast();
-  const isProcessing = useRef(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (isProcessing.current) {
+    if (isProcessing) {
       return;
     }
-    isProcessing.current = true;
+    setIsProcessing(true);
 
     const handleCallback = async () => {
       const code = searchParams.get("code");
       const error = searchParams.get("error");
-      const state = searchParams.get("state"); // 최종 리다이렉트 URL
+      const state = searchParams.get("state");
 
       if (error) {
-        console.error("Kakao Auth error:", error);
+        showError("로그인 오류", `카카오 인증 중 오류가 발생했습니다: ${error}`);
         router.push("/login?error=" + encodeURIComponent(error));
         return;
       }
@@ -43,7 +43,9 @@ export default function AuthCallbackPage() {
             try {
               fcmToken = await getFCMToken();
             } catch (fcmError) {
-              console.error("FCM 토큰 가져오기 중 오류:", fcmError);
+              if (process.env.NODE_ENV === 'development') {
+                console.error("FCM 토큰 가져오기 중 오류:", fcmError);
+              }
             }
           }
 
@@ -64,8 +66,8 @@ export default function AuthCallbackPage() {
               router.push("/signup?required=true");
             } else if (authResponse.status === "EXISTING_USER") {
               // 기존 사용자: 사용자 정보 갱신 후 홈으로 이동
-              await refreshUser(); // 전역 상태 업데이트
-              await fetchNotifications(); // 알림 목록 조회
+              await refreshUser();
+              await fetchNotifications();
 
               // 카카오 친구 동의 완료 후 돌아온 경우 확인
               const returnUrl = sessionStorage.getItem("returnUrl");
@@ -95,29 +97,33 @@ export default function AuthCallbackPage() {
 
               router.push(finalRedirect);
             } else {
-              console.error("Unexpected login response status:", authResponse.status);
+              showError("로그인 오류", "예상치 못한 로그인 응답이 발생했습니다.");
               router.push("/login?error=" + encodeURIComponent("예상치 못한 로그인 응답"));
             }
           } else {
-            console.error("Server login failed:", loginResponse.error);
-            router.push(
-              "/login?error=" +
-                encodeURIComponent(loginResponse.error || "로그인 실패")
-            );
+            const errorMessage = loginResponse.error || "로그인 실패";
+            showError("로그인 실패", errorMessage);
+            router.push("/login?error=" + encodeURIComponent(errorMessage));
           }
         } catch (apiError) {
-          console.error("API call failed during Kakao login:", apiError);
+          if (process.env.NODE_ENV === 'development') {
+            console.error("API call failed during Kakao login:", apiError);
+          }
+          showError("API 호출 실패", "서버와 통신 중 오류가 발생했습니다.");
           router.push("/login?error=" + encodeURIComponent("API 호출 실패"));
         }
       } else {
-        // code가 없는 경우 (예: 사용자가 로그인 취소)
-        router.push(
-          "/login?error=" + encodeURIComponent("카카오 로그인 취소 또는 오류")
-        );
+        showError("로그인 취소", "카카오 로그인이 취소되었습니다.");
+        router.push("/login?error=" + encodeURIComponent("카카오 로그인 취소 또는 오류"));
       }
     };
 
     handleCallback();
+
+    // cleanup: 컴포넌트 언마운트 시 processing 상태 초기화
+    return () => {
+      setIsProcessing(false);
+    };
   }, [
     router,
     searchParams,

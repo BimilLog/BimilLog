@@ -90,7 +90,7 @@ export default function InstallPage() {
           <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-2xl mx-auto">
             더 빠르고 편리한 앱 경험으로
             <br />
-            언제 어디서나 마음을 전해보세요 💌
+            언제 어디서나 마음을 전해보세요
           </p>
 
           {/* 메인 설치 버튼 */}
@@ -142,7 +142,7 @@ export default function InstallPage() {
                       <span className="font-bold bg-blue-100 px-2 py-1 rounded">
                         [홈 화면에 추가]
                       </span>
-                      를 선택하면 설치 완료! 🎉
+                      를 선택하면 설치 완료!
                     </span>
                   </li>
                 </ol>
@@ -185,7 +185,7 @@ export default function InstallPage() {
                       <span className="font-bold bg-green-100 px-2 py-1 rounded">
                         "설치"
                       </span>
-                      를 누르면 완료! 🎉
+                      를 누르면 완료!
                     </span>
                   </li>
                 </ol>

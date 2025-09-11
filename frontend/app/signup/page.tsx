@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi, userApi } from "@/lib/api";
@@ -33,6 +33,7 @@ export default function SignUpPage() {
 
   // 임시 사용자 UUID 관리
   const [tempUuid, setTempUuid] = useState<string | null>(null);
+  const isMounted = useRef(true);
 
   const [nickname, setNicknameInput] = useState("");
   const [nicknameMessage, setNicknameMessage] = useState("");
@@ -58,15 +59,26 @@ export default function SignUpPage() {
       } else {
         // UUID가 없는 경우 로그인 페이지로 리다이렉트
         showError("회원가입 오류", "회원가입 정보가 없습니다. 다시 로그인해주세요.");
-        router.push("/login");
+        setTimeout(() => {
+          if (isMounted.current) {
+            router.push("/login");
+          }
+        }, 2000);
       }
     }
   }, [needsNickname, router, showError]);
 
+  // cleanup: 컴포넌트 언마운트 시 isMounted 플래그 업데이트
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newNickname = e.target.value;
+    const newNickname = e.target.value.trim();
     setNicknameInput(newNickname);
-    setIsNicknameAvailable(null); // 닉네임이 바뀌면 중복확인 결과 초기화
+    setIsNicknameAvailable(null);
 
     const { valid, message } = validateNickname(newNickname);
     setIsNicknameFormatValid(valid);
@@ -77,7 +89,7 @@ export default function SignUpPage() {
     if (!isNicknameFormatValid) return;
     setIsChecking(true);
     try {
-      const response = await userApi.checkUserName(nickname.trim());
+      const response = await userApi.checkUserName(nickname);
       if (response.success) {
         const isAvailable = response.data ?? false;
         setIsNicknameAvailable(isAvailable);
@@ -107,25 +119,21 @@ export default function SignUpPage() {
     try {
       const response = await authApi.signUp(nickname, tempUuid);
       if (response.success) {
-        console.log(
-          "신규회원 닉네임 설정 성공 - 사용자 정보 갱신 후 SSE 자동 연결 예정"
-        );
-
         // 세션스토리지에서 임시 UUID 제거
         sessionStorage.removeItem("tempUserUuid");
 
-        // 사용자 정보 갱신 (useAuth의 refreshUser 호출)
+        // 사용자 정보 갱신
         await refreshUser();
 
-        // 알림 목록 조회 (SSE 연결은 useNotifications의 useEffect에서 자동으로 처리됨)
+        // 알림 목록 조회
         await fetchNotifications();
 
-        router.push("/");
+        if (isMounted.current) {
+          router.push("/");
+        }
       } else {
-        showError(
-          "회원가입 실패",
-          "error" in response ? response.error : "회원가입에 실패했습니다."
-        );
+        const errorMessage = response.error || "회원가입에 실패했습니다.";
+        showError("회원가입 실패", errorMessage);
         setIsNicknameAvailable(false);
       }
     } catch (error) {
@@ -261,7 +269,6 @@ export default function SignUpPage() {
 
       <div className="flex items-center justify-center p-4 py-16">
         <div className="w-full max-w-md">
-          {/* Logo */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
               <img
@@ -282,7 +289,6 @@ export default function SignUpPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              {/* 카카오 로그인 */}
               <Button
                 className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold text-base"
                 onClick={() => login("/signup?required=true")}

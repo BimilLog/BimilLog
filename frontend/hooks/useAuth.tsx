@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(response.data);
         
         // 기존회원(로그인) 또는 신규회원(회원가입 완료) 시 SSE 연결
-        if (response.data.userName && response.data.userName.trim() !== "") {
+        if (response.data.userName?.trim()) {
           if (process.env.NODE_ENV === 'development') {
             console.log(`사용자 인증 완료 (${response.data.userName}) - SSE 연결 시작`);
           }
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // needsRelogin 이벤트 리스너
   useEffect(() => {
-    const handleNeedsRelogin = async (event: Event) => {
+    const handleNeedsRelogin = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { title, message } = customEvent.detail;
 
@@ -68,14 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 토스트 알림 표시
       toast.showInfo(title, message, 5000);
 
-      // 바로 로그아웃 API 호출
-      try {
-        await authApi.logout();
-      } catch (error) {
-        console.error("Logout API failed:", error);
-      }
-
-      // 바로 로그인 페이지로 리다이렉트
+      // 바로 로그인 페이지로 리다이렉트 (logout API 호출 불필요 - 이미 인증 실패 상태)
       window.location.href = "/login";
     };
 
@@ -119,7 +112,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 항상 SSE 연결 해제하고 상태 초기화
       sseManager.disconnect();
       setUser(null);
-      window.location.href = "/";
     }
   };
 

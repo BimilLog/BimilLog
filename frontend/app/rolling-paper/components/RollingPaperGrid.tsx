@@ -270,17 +270,17 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
         </div>
 
         {/* 떠다니는 데코레이션 */}
-        <div className="absolute top-8 md:top-16 right-4 md:right-8 text-xl md:text-3xl animate-spin-slow">
-          🌟
+        <div className="absolute top-8 md:top-16 right-4 md:right-8 animate-spin-slow">
+          <Star className="w-5 h-5 md:w-7 md:h-7 text-yellow-400" />
         </div>
-        <div className="absolute top-16 md:top-32 left-8 md:left-12 text-lg md:text-2xl animate-bounce">
-          🐋
+        <div className="absolute top-16 md:top-32 left-8 md:left-12 animate-bounce">
+          <Fish className="w-4 h-4 md:w-6 md:h-6 text-blue-500" />
         </div>
-        <div className="absolute bottom-12 md:bottom-20 right-8 md:right-16 text-lg md:text-2xl animate-pulse">
-          🌀
+        <div className="absolute bottom-12 md:bottom-20 right-8 md:right-16 animate-pulse">
+          <Zap className="w-4 h-4 md:w-6 md:h-6 text-cyan-400" />
         </div>
-        <div className="absolute bottom-16 md:bottom-32 left-4 md:left-8 text-base md:text-xl animate-bounce delay-700">
-          🏄‍♂️
+        <div className="absolute bottom-16 md:bottom-32 left-4 md:left-8 animate-bounce delay-700">
+          <User className="w-3 h-3 md:w-5 md:h-5 text-indigo-500" />
         </div>
       </div>
     </div>

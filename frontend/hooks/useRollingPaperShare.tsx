@@ -58,7 +58,7 @@ export function useRollingPaperShare({
 
     const shareData = {
       title: `${nickname}님의 롤링페이퍼`,
-      text: `${nickname}님에게 익명으로 따뜻한 메시지를 남겨보세요! 현재 ${messageCount}개의 메시지가 있어요 💌`,
+      text: `${nickname}님에게 익명으로 따뜻한 메시지를 남겨보세요! 현재 ${messageCount}개의 메시지가 있어요`,
       url: url,
     };
 
@@ -81,7 +81,7 @@ export function useRollingPaperShare({
       // 폴백: 클립보드에 복사
       fallbackShare(url);
     }
-  }, [nickname, messageCount, isOwner, showSuccess]);
+  }, [nickname, messageCount, isOwner, fallbackShare]);
 
   const fallbackShare = useCallback(
     (url: string) => {
