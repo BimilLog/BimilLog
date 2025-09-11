@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * <h2>알림 쿼리 영속성 어댑터</h2>
- * <p>알림 조회와 관련된 데이터베이스 작업을 처리합니다.</p>
- * <p>NotificationQueryPort 인터페이스를 구현하여 알림 조회 기능을 제공합니다.</p>
+ * <h2>알림 조회 어댑터</h2>
+ * <p>알림 조회 작업을 담당하는 영속성 어댑터입니다.</p>
+ * <p>알림 목록 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0

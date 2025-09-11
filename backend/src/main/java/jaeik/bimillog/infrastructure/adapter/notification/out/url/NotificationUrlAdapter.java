@@ -7,11 +7,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * <h2>알림 URL 생성 어댑터</h2>
- * <p>
- * 다양한 알림 유형에 대한 프론트엔드 URL을 생성하는 아웃바운드 어댑터입니다.
- * NotificationUrlPort를 구현하여 도메인이 외부 URL 구조에 의존하지 않도록 합니다.
- * </p>
- * <p>알림 클릭 시 이동할 페이지 URL을 생성하여 사용자 경험을 향상시킵니다.</p>
+ * <p>알림 URL 생성을 담당하는 어댑터입니다.</p>
+ * <p>게시글 URL 생성, 롤링페이퍼 URL 생성</p>
  *
  * @author Jaeik
  * @version 2.0.0

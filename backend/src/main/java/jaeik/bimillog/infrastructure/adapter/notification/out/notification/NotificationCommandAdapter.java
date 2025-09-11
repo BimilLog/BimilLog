@@ -14,9 +14,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * <h2>알림 명령 영속성 어댑터</h2>
- * <p>알림 상태 변경 관련 데이터베이스 작업을 처리합니다.</p>
- * <p>NotificationCommandPort 인터페이스를 구현하여 알림 저장 및 일괄 업데이트 기능을 제공합니다.</p>
+ * <h2>알림 명령 어댑터</h2>
+ * <p>알림 명령 작업을 담당하는 영속성 어댑터입니다.</p>
+ * <p>알림 저장, 알림 일괄 업데이트</p>
  *
  * @author Jaeik
  * @version 2.0.0
