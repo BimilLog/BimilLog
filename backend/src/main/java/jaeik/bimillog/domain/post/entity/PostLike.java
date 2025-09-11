@@ -11,11 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * <h2>게시글 추천 엔티티</h2>
- * <p>
- * 사용자와 게시글 간의 추천 관계를 나타내는 연결 엔티티
- * </p>
- * <p>게시글 추천/추천 취소 시 PostLikeCommandController에서 생성/삭제됩니다.</p>
- * <p>PostQueryService에서 사용자의 게시글 추천 상태 확인 시 조회됩니다.</p>
+ * <p>사용자와 게시글 간의 추천 관계를 나타내는 연결 엔티티입니다.</p>
  * <p>중복 추천 방지를 위해 user_id + post_id 묶음 인덱스를 사용합니다.</p>
  * <p>CASCADE 옵션으로 사용자나 게시글 삭제 시 자동 삭제됩니다.</p>
  *

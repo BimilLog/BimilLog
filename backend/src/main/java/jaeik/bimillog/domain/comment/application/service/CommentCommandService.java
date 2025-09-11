@@ -62,7 +62,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @param parentId 부모 댓글 ID (대댓글인 경우)
      * @param content 댓글 내용
      * @param password 댓글 비밀번호 (익명 댓글인 경우)
-     * @throws CustomException 게시글이 존재하지 않거나 부모 댓글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -100,7 +99,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @param userId 로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
      * @param content 새로운 댓글 내용
      * @param password 댓글 비밀번호 (익명 댓글인 경우)
-     * @throws CustomException 댓글을 찾을 수 없거나 권한 검증에 실패한 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -119,7 +117,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @param commentId 삭제할 댓글 ID
      * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param password 댓글 비밀번호 (익명 댓글인 경우)
-     * @throws CustomException 댓글이 존재하지 않거나 권한이 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -137,7 +134,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      *
      * @param userId    사용자 ID (로그인한 경우), null인 경우 예외 발생
      * @param commentId 추천/취소할 댓글 ID
-     * @throws CustomException 사용자나 댓글이 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -178,13 +174,12 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <h3>댓글 권한 검증</h3>
      * <p>댓글 ID와 사용자 정보로 권한을 검증하고 댓글 엔티티를 반환합니다.</p>
      * <p>Comment 엔티티의 canModify 메서드를 활용한 권한 검증</p>
-     * <p>댓글 수정, 삭제 메서드에서 공통 권한 검증용으로 사용됩니다.</p>
+     * <p>updateComment, deleteComment 메서드에서 공통 권한 검증용으로 사용됩니다.</p>
      *
      * @param commentId 댓글 ID
      * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @return Comment 유효성 검사를 통과한 댓글 엔티티
-     * @throws CustomException 댓글을 찾을 수 없거나, 권한이 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -202,7 +197,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <h3>댓글과 클로저 관계 저장</h3>
      * <p>새 댓글을 저장하고 계층 구조 관리를 위한 클로저 관계를 함께 저장합니다.</p>
      * <p>부모 댓글이 있는 경우 상위 클로저 관계를 복사하여 계층 구조 유지</p>
-     * <p>댓글 작성 메서드에서 호출되어 댓글과 클로저 관계를 원자적으로 생성합니다.</p>
+     * <p>writeComment 메서드에서 호출되어 댓글과 클로저 관계를 원자적으로 생성합니다.</p>
      *
      * @param post     댓글이 속한 게시글 엔티티
      * @param user     댓글 작성 사용자 엔티티
@@ -237,7 +232,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <h3>댓글 삭제 위임</h3>
      * <p>댓글 ID를 CommentDeletePort로 전달하여 삭제 처리를 위임합니다.</p>
      * <p>자손 존재 여부에 따른 하드/소프트 삭제 결정은 포트에서 담당</p>
-     * <p>댓글 삭제 메서드에서 호출되어 실제 삭제 로직을 수행합니다.</p>
+     * <p>deleteComment 메서드에서 호출되어 실제 삭제 로직을 수행합니다.</p>
      *
      * @param commentId 삭제 대상 댓글 ID
      * @author Jaeik

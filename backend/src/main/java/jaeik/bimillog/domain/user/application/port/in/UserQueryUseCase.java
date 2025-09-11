@@ -16,9 +16,11 @@ import java.util.Optional;
 
 /**
  * <h2>사용자 조회 유스케이스</h2>
- * <p>사용자 정보 조회를 위한 입력 포트</p>
+ * <p>사용자 정보 조회를 위한 입력 포트입니다.</p>
+ * <p>사용자 엔티티 조회, 설정 조회, 닉네임 검증</p>
+ * <p>소셜 로그인 사용자 조회, 토큰 기반 인증</p>
  *
- * @author jaeik
+ * @author Jaeik
  * @version 2.0.0
  */
 public interface UserQueryUseCase {
@@ -31,7 +33,7 @@ public interface UserQueryUseCase {
      * @param provider 소셜 로그인 제공자
      * @param socialId 사용자의 소셜 ID
      * @return User 조회된 사용자 객체
-     * @author jaeik
+     * @author Jaeik
      * @since 2.0.0
      */
     User findByProviderAndSocialId(SocialProvider provider, String socialId);
@@ -42,7 +44,7 @@ public interface UserQueryUseCase {
      *
      * @param id 사용자의 고유 ID
      * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
-     * @author jaeik
+     * @author Jaeik
      * @since 2.0.0
      */
     Optional<User> findById(Long id);
@@ -54,7 +56,7 @@ public interface UserQueryUseCase {
      *
      * @param userName 확인할 닉네임
      * @return boolean 존재하면 true, 아니면 false
-     * @author jaeik
+     * @author Jaeik
      * @since 2.0.0
      */
     boolean existsByUserName(String userName);
@@ -65,7 +67,7 @@ public interface UserQueryUseCase {
      *
      * @param userName 사용자 닉네임
      * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
-     * @author jaeik
+     * @author Jaeik
      * @since 2.0.0
      */
     Optional<User> findByUserName(String userName);
@@ -73,7 +75,7 @@ public interface UserQueryUseCase {
     /**
      * <h3>ID로 사용자 프록시 조회</h3>
      * <p>실제 쿼리 없이 ID를 가진 사용자의 프록시(참조) 객체를 반환합니다.</p>
-     * <p>JPA 연관 관계 설정 시 성능 최적화를 위해 사용됩니다.</p>
+     * <p>JPA 연관 관계 설정 시 사용됩니다.</p>
      * <p>{@link PostCommandService}, {@link PostInteractionService}에서 게시글 연관 엔티티 설정 시 호출됩니다.</p>
      *
      * @param userId 사용자 ID
@@ -96,7 +98,7 @@ public interface UserQueryUseCase {
 
     /**
      * <h3>설정 ID로 설정 조회</h3>
-     * <p>JWT 토큰의 settingId를 활용하여 효율적으로 설정 정보를 조회</p>
+     * <p>JWT 토큰의 settingId를 활용하여 설정 정보를 조회합니다.</p>
      * <p>{@link UserQueryController}에서 사용자 설정 조회 API 시 호출됩니다.</p>
      *
      * @param settingId 설정 ID

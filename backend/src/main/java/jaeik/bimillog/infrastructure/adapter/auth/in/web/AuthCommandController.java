@@ -18,7 +18,8 @@ import jakarta.validation.Valid;
 
 /**
  * <h2>인증 명령 컨트롤러</h2>
- * <p>소셜 로그인, 회원 가입, 로그아웃, 회원 탈퇴 등 인증 관련 명령 요청을 처리</p>
+ * <p>소셜 로그인, 회원 가입, 로그아웃 등 인증 관련 명령 요청을 처리합니다.</p>
+ * <p>소셜 로그인, 회원가입, 로그아웃 API</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -34,8 +35,8 @@ public class AuthCommandController {
     private final LogoutUseCase logoutUseCase;
 
     /**
-     * <h3>소셜 로그인 API</h3>
-     * <p>소셜 로그인 요청을 처리하고, 새로운 사용자라면 임시 UUID를 반환</p>
+     * <h3>소셜 로그인</h3>
+     * <p>소셜 로그인 요청을 처리하고, 새로운 사용자라면 임시 UUID를 반환합니다.</p>
      *
      * @param request 소셜 로그인 요청 DTO (provider, code, fcmToken)
      * @return 로그인 응답
@@ -61,8 +62,8 @@ public class AuthCommandController {
     }
 
     /**
-     * <h3>회원 가입 API</h3>
-     * <p>사용자가 회원 가입을 요청할 때 호출</p>
+     * <h3>회원가입</h3>
+     * <p>사용자의 회원가입 요청을 처리합니다.</p>
      *
      * @param request 회원가입 요청 DTO (userName, uuid)
      * @return 회원 가입 성공 응답
@@ -78,8 +79,8 @@ public class AuthCommandController {
     }
 
     /**
-     * <h3>로그아웃 API</h3>
-     * <p>사용자가 로그아웃을 요청할 때 호출</p>
+     * <h3>로그아웃</h3>
+     * <p>사용자의 로그아웃 요청을 처리합니다.</p>
      *
      * @param userDetails 인증된 사용자 정보
      * @return 로그아웃 성공 응답

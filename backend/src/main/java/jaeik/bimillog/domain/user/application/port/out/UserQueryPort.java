@@ -107,7 +107,7 @@ public interface UserQueryPort {
     /**
      * <h3>ID로 사용자 프록시 가져오기</h3>
      * <p>주어진 ID의 사용자 엔티티 프록시(참조)를 가져옵니다.</p>
-     * <p>JPA 연관 관계 설정 시 성능 최적화를 위해 사용됩니다.</p>
+     * <p>JPA 연관 관계 설정 시 사용됩니다.</p>
      * <p>{@link UserQueryService}에서 사용자 엔티티 참조 생성 시 호출됩니다.</p>
      *
      * @param userId 참조를 가져올 사용자 ID

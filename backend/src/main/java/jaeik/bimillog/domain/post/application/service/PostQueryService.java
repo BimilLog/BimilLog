@@ -18,18 +18,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <h2>PostQueryService</h2>
- * <p>
- * 게시글 조회 관련 UseCase 인터페이스의 구체적 구현체로서 조회 최적화 비즈니스 로직을 오케스트레이션합니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 게시글 도메인의 조회 처리를 담당하며, 캐시 전략과 JOIN 최적화를 통한
- * 성능 개선과 사용자 경험 향상을 위한 복잡한 조회 규칙을 관리합니다.
- * </p>
- * <p>
- * CQRS 패턴에 따라 읽기 전용 트랜잭션으로 설정되어 있으며, 캐시 동기화와 조회 최적화를 통해
- * 대용량 트래픽에서도 안정적인 성능을 보장합니다.
- * </p>
+ * <h2>게시글 조회 서비스</h2>
+ * <p>게시글 도메인의 조회 비즈니스 로직을 처리하는 서비스입니다.</p>
+ * <p>게시판 목록 조회, 게시글 상세 조회, 검색 기능</p>
+ * <p>인기글 조회, 사용자 활동 내역 조회</p>
+ * <p>Redis 캐시와 MySQL 조회를 조합한 성능 최적화</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -45,10 +38,10 @@ public class PostQueryService implements PostQueryUseCase {
     private final PostCacheQueryPort postCacheQueryPort;
 
     /**
-     * <h3>게시판 목록 조회 비즈니스 로직 실행</h3>
-     * <p>PostQueryUseCase 인터페이스의 게시판 조회 기능을 구현하며, 최신순 정렬과 페이지네이션 조회 규칙을 적용합니다.</p>
-     * <p>공지사항과 일반 게시글을 구분하여 처리하고, QueryDSL 기반의 최적화된 쿼리로 효율적인 조회를 수행합니다.</p>
-     * <p>PostQueryController에서 게시판 목록 요청 시 호출됩니다.</p>
+     * <h3>게시판 목록 조회</h3>
+     * <p>전체 게시글을 최신순으로 정렬하여 페이지 단위로 조회합니다.</p>
+     * <p>공지사항은 제외하고 일반 게시글만 조회</p>
+     * <p>{@link PostQueryController}에서 게시판 목록 요청 시 호출됩니다.</p>
      *
      * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
      * @return Page&lt;PostSearchResult&gt; 페이지네이션된 게시글 목록
@@ -62,11 +55,10 @@ public class PostQueryService implements PostQueryUseCase {
 
 
     /**
-     * <h3>게시글 상세 조회 최적화 비즈니스 로직 실행</h3>
-     * <p>PostQueryUseCase 인터페이스의 상세 조회 기능을 구현하며, 캐시 우선 조회와 JOIN 최적화 전략을 적용합니다.</p>
-     * <p>인기 게시글인 경우 Redis 캐시에서 우선 조회하고, 캐시 미스 시 최적화된 단일 JOIN 쿼리로 조회합니다.</p>
-     * <p>사용자별 좋아요 정보를 포함하여 완전한 게시글 상세 정보를 제공합니다.</p>
-     * <p>PostQueryController에서 게시글 상세 조회 요청 시 호출됩니다.</p>
+     * <h3>게시글 상세 조회</h3>
+     * <p>특정 게시글의 상세 내용과 댓글수, 추천수, 사용자 추천여부를 조회합니다.</p>
+     * <p>인기 게시글인 경우 Redis 캐시에서 우선 조회하고, 캐시 미스 시 JOIN 쿼리로 조회합니다.</p>
+     * <p>{@link PostQueryController}에서 게시글 상세 조회 요청 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
      * @param userId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
@@ -93,10 +85,9 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>데이터베이스 최적화 조회 로직</h3>
-     * <p>캐시 미스 또는 일반 게시글에 대해 최적화된 단일 JOIN 쿼리로 모든 필요 정보를 조회합니다.</p>
-     * <p>게시글 기본 정보, 좋아요 수, 댓글 수, 사용자 좋아요 여부를 QueryDSL 기반 JOIN 쿼리로 한번에 처리합니다.</p>
-     * <p>N+1 문제를 해결하고 데이터베이스 부하를 최소화하여 성능 개선에 기여합니다.</p>
+     * <h3>데이터베이스에서 게시글 조회</h3>
+     * <p>캐시 미스 또는 일반 게시글에 대해 JOIN 쿼리로 모든 필요 정보를 조회합니다.</p>
+     * <p>게시글 기본 정보, 좋아요 수, 댓글 수, 사용자 좋아요 여부를 한번에 처리합니다.</p>
      * <p>getPost 메서드에서 캐시 조회 실패 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
@@ -112,11 +103,10 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>게시글 검색 비즈니스 로직 실행</h3>
-     * <p>PostQueryUseCase 인터페이스의 검색 기능을 구현하며, MySQL Full-text Search를 활용한 고성능 검색을 제공합니다.</p>
-     * <p>제목, 내용, 작성자별 검색 타입을 지원하고, ngram 파서를 통한 한글 검색 최적화를 적용합니다.</p>
-     * <p>최신순 정렬과 페이지네이션을 통해 대용량 검색 결과도 효율적으로 처리합니다.</p>
-     * <p>PostQueryController에서 검색 요청 시 호출됩니다.</p>
+     * <h3>게시글 검색</h3>
+     * <p>검색 타입과 검색어를 기반으로 게시글을 검색합니다.</p>
+     * <p>MySQL Full-text Search와 ngram 파서를 활용한 한국어 검색을 지원합니다.</p>
+     * <p>{@link PostQueryController}에서 검색 요청 시 호출됩니다.</p>
      *
      * @param type     검색 유형 (title: 제목, content: 내용, writer: 작성자)
      * @param query    검색어 (한글, 영문, 숫자 지원)

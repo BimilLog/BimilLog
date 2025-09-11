@@ -54,7 +54,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
      *
      * @param commentId 댓글 ID
      * @return Comment 조회된 댓글 엔티티
-     * @throws CommentCustomException 댓글이 존재하지 않을 때
      * @author Jaeik
      * @since 2.0.0
      */
@@ -67,7 +66,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환</p>
+     * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>{@link CommentQueryService}에서 사용자 작성 댓글 목록 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
@@ -103,7 +102,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환</p>
+     * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>{@link CommentQueryService}에서 사용자 추천한 댓글 목록 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
@@ -140,7 +139,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     /**
      * <h3>인기 댓글 조회</h3>
      * <p>주어진 게시글의 인기 댓글 목록을 조회합니다.</p>
-     * <p>추천 수가 높은 댓글들을 우선순위로 정렬하여 반환</p>
+     * <p>추천 수가 높은 댓글들을 우선순위로 정렬하여 반환합니다.</p>
      * <p>{@link CommentQueryService}에서 인기 댓글 조회 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
@@ -172,7 +171,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
      * <p>여러 게시글의 댓글 수를 배치로 조회합니다.</p>
-     * <p>게시글 ID 목록을 한 번에 처리하여 각 게시글별 댓글 수를 반환</p>
+     * <p>게시글 ID 목록을 한 번에 처리하여 각 게시글별 댓글 수를 반환합니다.</p>
      * <p>{@link CommentQueryService}에서 게시글 ID 목록에 대한 댓글 수 조회 시 호출됩니다.</p>
      *
      * @param postIds 게시글 ID 목록
@@ -201,7 +200,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     /**
      * <h3>과거순 댓글 조회</h3>
      * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
-     * <p>생성 시간이 오래된 댓글부터 최신 댓글까지 시간 순서대로 정렬</p>
+     * <p>생성 시간이 오래된 댓글부터 최신 댓글까지 시간 순서대로 정렬합니다.</p>
      * <p>{@link CommentQueryService}에서 과거순 댓글 조회 시 호출됩니다.</p>
      *
      * @param postId   게시글 ID
@@ -233,8 +232,8 @@ public class CommentQueryAdapter implements CommentQueryPort {
     /**
      * <h3>루트 댓글 수 조회</h3>
      * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
-     * <p>depth=0인 댓글(루트 댓글)만 카운트</p>
-     * <p>과거순 댓글 조회 메서드에서 호출되어 페이지네이션 total 값 계산을 담당합니다.</p>
+     * <p>depth=0인 댓글(루트 댓글)만 카운트합니다.</p>
+     * <p>findCommentsWithOldestOrder 메서드에서 호출되어 페이지네이션 total 값 계산을 담당합니다.</p>
      *
      * @param postId 게시글 ID
      * @return Long 루트 댓글의 수

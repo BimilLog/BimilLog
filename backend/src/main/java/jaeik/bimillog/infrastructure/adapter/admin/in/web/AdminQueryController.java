@@ -14,23 +14,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <h2>AdminQueryController</h2>
- * <p>
- * 헥사고날 아키텍처에서 관리자 도메인의 조회 처리를 위한 Primary Adapter입니다.
- * </p>
- * <p>
- * CQRS 패턴에 따른 쿼리(Query) 측면의 관리자 API를 제공하며, 읽기 전용 관리자 업무를 처리합니다.
- * </p>
- * <p>
- * 관리자 대시보드에서 신고 목록 조회, 통계 확인 등의 요청을 받아 적절한 데이터를 제공합니다.
- * </p>
- * <p>
- * Spring Security의 @PreAuthorize를 통해 ADMIN 권한을 가진 사용자만 접근할 수 있도록 보안을 강화합니다.
- * </p>
- * <p>
- * AdminQueryUseCase를 호출하여 도메인 계층에서 데이터를 조회하고, 
- * 웹 계층에 적합한 DTO 형태로 변환하여 클라이언트에 응답합니다.
- * </p>
+ * <h2>관리자 조회 컨트롤러</h2>
+ * <p>관리자 도메인의 조회 작업을 담당하는 컨트롤러입니다.</p>
+ * <p>신고 목록 페이지네이션 조회</p>
+ * <p>ADMIN 권한 필요</p>
  *
  * @author Jaeik
  * @version 2.0.0

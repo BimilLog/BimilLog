@@ -41,7 +41,7 @@ public class LogoutService implements LogoutUseCase {
      * <h3>사용자 로그아웃 처리</h3>
      * <p>인증된 사용자를 시스템에서 로그아웃 처리합니다.</p>
      * <p>소셜 플랫폼 로그아웃, 보안 컨텍스트 정리, 토큰 무효화 이벤트 발행을 순차적으로 실행합니다.</p>
-     * <p>사용자 로그아웃 요청 시 호출됩니다.</p>
+     * <p>{@link AuthCommandController}에서 POST /api/auth/logout 요청 처리 시 호출됩니다.</p>
      *
      * @param userDetails 현재 인증된 사용자 정보
      * @return ResponseCookie 로그아웃용 쿠키 설정 목록 (토큰 삭제용)

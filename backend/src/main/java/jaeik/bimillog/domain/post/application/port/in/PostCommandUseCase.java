@@ -17,7 +17,7 @@ public interface PostCommandUseCase {
     /**
      * <h3>게시글 작성</h3>
      * <p>새로운 게시글을 생성하고 저장합니다.</p>
-     * <p>익명/회원 게시글 모두 지원, 익명 게시글은 비밀번호 설정 가능</p>
+     * <p>익명/회원 게시글 모두 지원하며, 익명 게시글은 비밀번호 설정이 가능합니다.</p>
      * <p>{@link PostCommandController}에서 게시글 작성 API 처리 시 호출됩니다.</p>
      *
      * @param userId   게시글 작성자의 사용자 ID (null이면 익명 게시글)
@@ -33,7 +33,7 @@ public interface PostCommandUseCase {
     /**
      * <h3>게시글 수정</h3>
      * <p>기존 게시글의 제목과 내용을 수정합니다.</p>
-     * <p>작성자 권한 검증 후 제목과 내용 업데이트</p>
+     * <p>작성자 권한 검증 후 제목과 내용을 업데이트합니다.</p>
      * <p>{@link PostCommandController}에서 게시글 수정 API 처리 시 호출됩니다.</p>
      *
      * @param userId  수정 요청 사용자 ID (작성자 검증용)
@@ -48,7 +48,7 @@ public interface PostCommandUseCase {
     /**
      * <h3>게시글 삭제</h3>
      * <p>게시글을 데이터베이스에서 완전히 삭제합니다.</p>
-     * <p>작성자 권한 검증 후 게시글과 연관 데이터 제거</p>
+     * <p>작성자 권한 검증 후 게시글과 연관 데이터를 제거합니다.</p>
      * <p>{@link PostCommandController}에서 게시글 삭제 API 처리 시 호출됩니다.</p>
      *
      * @param userId 삭제 요청 사용자 ID (작성자 검증용)

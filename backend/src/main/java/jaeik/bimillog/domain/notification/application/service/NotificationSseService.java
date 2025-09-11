@@ -16,7 +16,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * <h2>SSE 실시간 알림 서비스</h2>
  * <p>Server-Sent Events를 통한 실시간 알림을 담당하는 서비스입니다.</p>
  * <p>SSE 구독 관리, 연결 관리, 이벤트 기반 알림 전송</p>
- * <p>비동기 이벤트 처리로 즉시성 있는 알림 서비스 제공</p>
  *
  * @author Jaeik
  * @version 2.0.0

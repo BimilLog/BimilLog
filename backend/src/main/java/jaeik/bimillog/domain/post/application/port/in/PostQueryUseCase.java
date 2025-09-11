@@ -38,8 +38,8 @@ public interface PostQueryUseCase {
 
     /**
      * <h3>게시글 상세 페이지 조회</h3>
-     * <p>특정 게시글의 상세 내용과 댓글수, 추천수, 사용자 추천여부를 통합 조회합니다.</p>
-     * <p>JOIN 쿼리로 게시글 상세 페이지에 필요한 모든 정보를 한 번에 조회</p>
+     * <p>특정 게시글의 상세 내용과 댓글수, 추천수, 사용자 추천여부를 조회합니다.</p>
+     * <p>JOIN으로 게시글 상세 페이지에 필요한 모든 정보를 한 번에 조회합니다.</p>
      * <p>{@link PostQueryController}에서 GET /api/post/{postId} 요청 처리 시 호출됩니다.</p>
      *
      * @param postId 조회할 게시글의 식별자 ID
@@ -53,7 +53,7 @@ public interface PostQueryUseCase {
     /**
      * <h3>게시글 전문 검색</h3>
      * <p>검색 타입과 검색어를 기반으로 게시글을 검색합니다.</p>
-     * <p>MySQL ngram parser를 활용한 전문 검색으로 한국어 검색 지원</p>
+     * <p>MySQL ngram parser를 활용하여 한국어 검색을 지원합니다.</p>
      * <p>{@link PostQueryController}에서 GET /api/post/search 요청 처리 시 호출됩니다.</p>
      *
      * @param type 검색 대상 유형 (title: 제목, content: 내용, author: 작성자)
@@ -80,7 +80,7 @@ public interface PostQueryUseCase {
     /**
      * <h3>레전드 인기글 목록 페이지네이션 조회</h3>
      * <p>역대 최고 인기글로 선정된 레전드 게시글 목록을 조회합니다.</p>
-     * <p>Redis List 구조를 활용하여 페이지네이션 처리</p>
+     * <p>Redis List 구조로 페이지네이션을 처리합니다.</p>
      * <p>{@link PostQueryController}에서 GET /api/post/legend 요청 처리 시 호출됩니다.</p>
      *
      * @param type 조회할 캐시 유형 (PostCacheFlag.LEGEND 고정값)

@@ -5,15 +5,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * <h2>SSE 포트</h2>
- * <p>
- * 헥사고날 아키텍처에서 Server-Sent Events(SSE) 연결 관리와 메시지 전송을 정의하는 Secondary Port입니다.
- * SSE 실시간 연결 생명주기 관리와 클라이언트로의 메시지 브로드캐스트에 대한 외부 어댑터 인터페이스를 제공합니다.
- * </p>
- * <p>
- * SseEmitter를 활용한 실시간 연결 관리, 메모리 기반 연결 저장소, 타임아웃 처리 등을 추상화합니다.
- * 다중 기기 지원을 위한 사용자별 다중 연결 관리와 선택적 연결 해제를 지원합니다.
- * </p>
- * <p>NotificationSseService에서 사용되며, SseAdapter에 의해 구현합니다.</p>
+ * <p>Server-Sent Events 연결 관리와 메시지 전송을 담당하는 포트입니다.</p>
+ * <p>SSE 구독, SSE 연결 정리, SSE 메시지 전송, Emitter ID 생성</p>
  *
  * @author Jaeik
  * @version 2.0.0

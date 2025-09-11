@@ -11,12 +11,9 @@ import java.time.Instant;
 
 /**
  * <h2>게시글 검색 결과 값 객체</h2>
- * <p>
- * 게시글 목록 조회와 검색 결과를 담는 mutable 도메인 객체
- * </p>
- * <p>PostQueryController에서 게시글 목록, 검색, 인기글 조회 시 반환되는 핵심 객체입니다.</p>
- * <p>PostDetail과 다르게 mutable로 설계되어 대량 데이터 조회 시 댓글수, 추천수 업데이트가 가능합니다.</p>
- * <p>QueryDSL Projection과 레디스 캐시를 통해 성능 최적화된 목록 조회를 지원합니다.</p>
+ * <p>게시글 목록 조회와 검색 결과를 담는 mutable 도메인 객체입니다.</p>
+ * <p>PostDetail과 다르게 mutable로 설계되어 대량 데이터 조회 시 메타데이터 업데이트가 가능합니다.</p>
+ * <p>QueryDSL Projection과 레디스 캐시를 지원합니다.</p>
  * <p>SimplePostResDTO의 도메인 전용 대체 객체로 사용됩니다.</p>
  *
  * @author Jaeik

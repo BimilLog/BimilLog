@@ -16,15 +16,8 @@ import java.util.List;
 
 /**
  * <h2>FCM 푸시 알림 서비스</h2>
- * <p>
- * 헥사고날 아키텍처에서 NotificationFcmUseCase를 구현하는 Application Service입니다.
- * Firebase Cloud Messaging을 통한 모바일 푸시 알림 관리와 전송에 관한 비즈니스 로직을 처리합니다.
- * </p>
- * <p>
- * FCM 토큰 등록/삭제와 다양한 이벤트 기반 푸시 알림 전송을 담당하며, 비동기 이벤트 처리를 통해 실시간 알림을 제공합니다.
- * 알림 수신 자격 검증, 토큰 유효성 관리, 예외 처리를 통해 안정적인 푸시 알림 시스템을 구축합니다.
- * </p>
- * <p>NotificationFcmController와 각종 이벤트 리스너에서 호출되며, FcmPort와 NotificationUtilPort를 통해 외부 시스템에 접근합니다.</p>
+ * <p>FCM 토큰 관리와 푸시 알림 전송을 담당하는 서비스입니다.</p>
+ * <p>FCM 토큰 등록/삭제, 댓글 알림, 롤링페이퍼 알림, 인기글 알림</p>
  *
  * @author Jaeik
  * @version 2.0.0

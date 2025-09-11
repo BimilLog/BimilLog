@@ -12,23 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 /**
- * <h2>AdminCommandController</h2>
- * <p>
- * 헥사고날 아키텍처에서 관리자 도메인의 명령 처리를 위한 Primary Adapter입니다.
- * </p>
- * <p>
- * CQRS 패턴에 따른 명령(Command) 측면의 관리자 API를 제공하며, 시스템 상태를 변경하는 관리자 작업을 처리합니다.
- * </p>
- * <p>
- * 관리자 대시보드에서 신고 검토 후 사용자 제재나 강제 탈퇴 결정을 내릴 때 호출되는 REST API를 제공합니다.
- * </p>
- * <p>
- * Spring Security의 @PreAuthorize를 통해 ADMIN 권한을 가진 사용자만 접근할 수 있도록 보안을 강화합니다.
- * </p>
- * <p>
- * AdminCommandUseCase를 호출하여 실제 비즈니스 로직 실행을 도메인 계층에 위임하고,
- * HTTP 응답 처리와 같은 웹 계층의 책임만 담당합니다.
- * </p>
+ * <h2>관리자 명령 컨트롤러</h2>
+ * <p>관리자 도메인의 명령 작업을 담당하는 컨트롤러입니다.</p>
+ * <p>사용자 제재, 강제 탈퇴 처리</p>
+ * <p>ADMIN 권한 필요</p>
  *
  * @author Jaeik
  * @version 2.0.0

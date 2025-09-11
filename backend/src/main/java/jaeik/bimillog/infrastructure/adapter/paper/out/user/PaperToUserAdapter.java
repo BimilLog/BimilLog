@@ -31,7 +31,7 @@ public class PaperToUserAdapter implements PaperToUserPort {
      * <p>{@link PaperCommandService#writeMessage}에서 사용자 검증 시 호출됩니다.</p>
      *
      * @param userName 조회할 사용자의 사용자명
-     * @return Optional<User> 조회된 User 엔티티 (존재하지 않으면 빈 Optional)
+     * @return Optional<User> 조회된 User 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
@@ -47,7 +47,7 @@ public class PaperToUserAdapter implements PaperToUserPort {
      * <p>{@link PaperQueryService#visitPaper}에서 사용자 검증 시 호출됩니다.</p>
      *
      * @param userName 존재 여부를 확인할 사용자명
-     * @return boolean 사용자 존재 여부 (true: 존재, false: 존재하지 않음)
+     * @return boolean 사용자 존재 여부
      * @author Jaeik
      * @since 2.0.0
      */

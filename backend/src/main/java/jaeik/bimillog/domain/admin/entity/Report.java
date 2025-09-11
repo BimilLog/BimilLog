@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
- * <h2>Report</h2>
- * <p>Admin 도메인의 핵심 엔티티로서 사용자가 제출한 신고 및 건의사항 정보를 표현하는 도메인 객체입니다.</p>
+ * <h2>신고 엔티티</h2>
+ * <p>사용자가 제출한 신고 및 건의사항 정보를 담는 엔티티입니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

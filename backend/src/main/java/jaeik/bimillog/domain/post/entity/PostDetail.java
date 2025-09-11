@@ -6,14 +6,12 @@ import lombok.Builder;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import jaeik.bimillog.domain.post.application.service.PostQueryService;
 
 /**
  * <h2>게시글 상세 정보 값 객체</h2>
- * <p>
- * 게시글 상세 조회 결과를 담는 immutable 도메인 값 객체
- * </p>
- * <p>PostQueryController에서 게시글 상세 조회 시 반환되는 핵심 객체입니다.</p>
- * <p>QueryDSL Projection을 통해 빠른 조회를 지원하며, 레디스 캐시에 저장되어 성능 최적화에 기여합니다.</p>
+ * <p>게시글 상세 조회 결과를 담는 immutable 도메인 값 객체입니다.</p>
+ * <p>QueryDSL Projection과 레디스 캐시를 지원합니다.</p>
  * <p>FullPostResDTO의 도메인 전용 대체 객체로 사용됩니다.</p>
  *
  * @param id 게시글 ID
@@ -57,8 +55,8 @@ public record PostDetail(
     /**
      * <h3>게시글 상세 정보 생성</h3>
      * <p>게시글 엔티티와 메타 정보로부터 상세 정보를 생성합니다.</p>
-     * <p>PostQueryService에서 게시글 상세 조회 시 호출됩니다.</p>
      * <p>로그인 사용자를 위한 추천 상태 포함 버전입니다.</p>
+     * <p>{@link PostQueryService}에서 게시글 상세 조회 시 호출됩니다.</p>
      *
      * @param post 게시글 엔티티
      * @param likeCount 추천수
@@ -88,8 +86,8 @@ public record PostDetail(
     /**
      * <h3>추천 여부 없는 상세 정보 생성</h3>
      * <p>비로그인 사용자를 위한 상세 정보를 생성합니다.</p>
-     * <p>PostQueryService에서 비로그인 사용자의 게시글 상세 조회 시 호출됩니다.</p>
-     * <p>isLiked 값이 false로 고정되어 추천 상태 확인 불가능한 버전입니다.</p>
+     * <p>isLiked 값이 false로 고정됩니다.</p>
+     * <p>{@link PostQueryService}에서 비로그인 사용자의 게시글 상세 조회 시 호출됩니다.</p>
      *
      * @param post 게시글 엔티티
      * @param likeCount 추천수
@@ -105,8 +103,7 @@ public record PostDetail(
     /**
      * <h3>기본 댓글 수로 상세 정보 생성</h3>
      * <p>댓글 수 0으로 기본 상세 정보를 생성합니다.</p>
-     * <p>주로 캐시된 게시글 데이터에서 댓글 수 업데이트 전에 사용됩니다.</p>
-     * <p>PostCacheService에서 게시글 캐시 데이터 생성 시 호출됩니다.</p>
+     * <p>주로 캐시된 게시글 데이터에서 사용됩니다.</p>
      *
      * @param post 게시글 엔티티
      * @param likeCount 추천수
@@ -121,8 +118,8 @@ public record PostDetail(
     /**
      * <h3>추천 여부를 변경한 새로운 PostDetail 생성</h3>
      * <p>캐시된 PostDetail의 isLiked 필드만 변경하여 새로운 immutable 객체를 생성합니다.</p>
-     * <p>PostQueryService에서 로그인 사용자의 추천 상태 맞춤형 조회 시 호출됩니다.</p>
-     * <p>전체 객체를 재생성하지 않고 필요한 필드만 변경하여 캐시 효율성을 높입니다.</p>
+     * <p>필요한 필드만 변경하여 캐시 효율성을 높입니다.</p>
+     * <p>{@link PostQueryService}에서 로그인 사용자의 추천 상태 맞춤형 조회 시 호출됩니다.</p>
      *
      * @param isLiked 사용자 추천 여부
      * @return PostDetail 새로운 PostDetail 객체
@@ -149,8 +146,8 @@ public record PostDetail(
     /**
      * <h3>목록용 검색 결과로 변환</h3>
      * <p>PostDetail에서 PostSearchResult로 변환합니다.</p>
-     * <p>PostQueryService에서 게시글 목록 조회를 위해 호출됩니다.</p>
-     * <p>isLiked 정보는 목록 화면에서 필요하지 않으므로 제외하여 데이터 크기를 최적화합니다.</p>
+     * <p>isLiked 정보는 목록 화면에서 필요하지 않으므로 제외됩니다.</p>
+     * <p>{@link PostQueryService}에서 게시글 목록 조회 시 호출됩니다.</p>
      *
      * @return PostSearchResult 목록용 검색 결과
      * @since 2.0.0

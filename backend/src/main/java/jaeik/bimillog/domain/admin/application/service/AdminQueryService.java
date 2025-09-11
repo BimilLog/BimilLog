@@ -17,8 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * <h2>관리자 조회 서비스</h2>
  * <p>관리자 도메인의 조회 작업을 담당하는 서비스입니다.</p>
- * <p>신고 목록 페이진네이션 조회</p>
- * <p>읽기 전용 트랜잭션으로 성능 최적화</p>
+ * <p>신고 목록 페이지네이션 조회</p>
+ * <p>읽기 전용 트랜잭션 사용</p>
  * <p>신고 유형별 필터링, 최신순 정렬</p>
  *
  * @author Jaeik

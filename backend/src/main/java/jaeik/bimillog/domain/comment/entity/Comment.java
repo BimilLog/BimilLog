@@ -13,12 +13,9 @@ import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * <h2>댓글 엔티티</h2>
- * <p>
- * 게시글에 대한 댓글 정보를 저장하는 엔티티
- * </p>
- * <p>
- * 댓글 내용은 255자 까지 허용한다.
- * </p>
+ * <p>게시글에 대한 댓글 정보를 저장하는 엔티티입니다.</p>
+ * <p>댓글 내용은 255자까지 허용합니다.</p>
+ * <p>익명 댓글과 회원 댓글을 모두 지원하며, 계층 구조를 가집니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -59,15 +56,13 @@ public class Comment extends BaseEntity {
 
     /**
      * <h3>댓글 생성</h3>
-     *
-     * <p>
-     * 새로운 댓글을 생성한다.
-     * </p>
+     * <p>새로운 댓글을 생성합니다.</p>
+     * <p>회원 댓글인 경우 password는 null, 익명 댓글인 경우 user는 null로 설정됩니다.</p>
      *
      * @param post     댓글이 달릴 게시글
-     * @param user     댓글 작성자
+     * @param user     댓글 작성자 (익명 댓글인 경우 null)
      * @param content  댓글 내용
-     * @param password 댓글 비밀번호 (선택적)
+     * @param password 댓글 비밀번호 (회원 댓글인 경우 null)
      * @return 생성된 댓글 엔티티
      * @author Jaeik
      * @since 2.0.0
@@ -84,10 +79,7 @@ public class Comment extends BaseEntity {
 
     /**
      * <h3>댓글 수정</h3>
-     *
-     * <p>
-     * 댓글 내용을 수정한다.
-     * </p>
+     * <p>댓글 내용을 수정합니다.</p>
      *
      * @param content 수정할 댓글 내용
      * @author Jaeik

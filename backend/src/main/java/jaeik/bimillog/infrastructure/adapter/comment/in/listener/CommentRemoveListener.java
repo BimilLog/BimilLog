@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * <h2>댓글 삭제 리스너</h2>
  * <p>사용자 탈퇴 및 강제 탈퇴 이벤트를 처리하는 리스너입니다.</p>
- * <p>댓글 삭제 이벤트 리스너 구현체입니다.</p>
  * <p>사용자 자발적/강제 탈퇴 시 댓글 익명화 및 삭제</p>
  * <p>이벤트 기반 비동기 처리</p>
  *
@@ -28,11 +27,11 @@ public class CommentRemoveListener {
     private final CommentCommandUseCase commentCommandUseCase;
 
     /**
-     * <h3>탈퇴 이벤트 처리로 댓글 삭제</h3>
-     * <p>사용자 탈퇴 및 강제 탈퇴 이벤트 발생 시 해당 사용자의 댓글을 삭제합니다.</p>
+     * <h3>탈퇴 이벤트 처리</h3>
+     * <p>사용자 탈퇴 및 강제 탈퇴 이벤트 발생 시 해당 사용자의 댓글을 처리합니다.</p>
      * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
      * <p>자손이 없는 댓글: 하드 삭제</p>
-     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생시 탈퇴로 인한 댓글 삭제 흐름에서 호출됩니다.</p>
+     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생 시 스프링 이벤트 시스템에 의해 호출됩니다.</p>
      *
      * @param event 사용자 탈퇴 또는 강제 탈퇴 이벤트
      * @author Jaeik

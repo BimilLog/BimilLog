@@ -24,10 +24,8 @@ import java.util.List;
 
 /**
  * <h2>FCM 어댑터</h2>
- * <p>
- * Firebase Cloud Messaging(FCM) 토큰 관리 및 메시지 전송을 처리하는 아웃바운드 어댑터입니다.
- * Google Firebase 서비스와의 통신을 담당하며, 푸시 알림 기능을 제공합니다.
- * </p>
+ * <p>Firebase Cloud Messaging 연동을 담당하는 어댑터입니다.</p>
+ * <p>FCM 토큰 저장/삭제, FCM 메시지 전송</p>
  *
  * @author Jaeik
  * @version 2.0.0

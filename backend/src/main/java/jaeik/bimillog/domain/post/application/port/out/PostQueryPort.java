@@ -93,7 +93,6 @@ public interface PostQueryPort {
     /**
      * <h3>게시글 통합 상세 정보 조회</h3>
      * <p>게시글과 관련된 모든 정보(좋아요 수, 댓글 수, 사용자별 좋아요 여부)를 JOIN으로 한 번에 조회합니다.</p>
-     * <p>4개 개별 쿼리를 1개 JOIN 쿼리로 처리하여 데이터베이스 접근 회수 감소</p>
      * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
      *
      * @param postId 조회할 게시글 ID

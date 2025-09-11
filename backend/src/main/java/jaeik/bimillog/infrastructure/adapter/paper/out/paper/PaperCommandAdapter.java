@@ -27,8 +27,8 @@ public class PaperCommandAdapter implements PaperCommandPort {
      * <p>메시지 내용과 그리드 레이아웃 정보를 포함하여 저장하고 ID를 반환합니다.</p>
      * <p>{@link PaperCommandService#writeMessage}에서 호출됩니다.</p>
      *
-     * @param message 저장할 메시지 엔티티 (내용, 위치, 크기, 장식 정보 포함)
-     * @return Message 저장된 메시지 엔티티 (생성된 ID 포함)
+     * @param message 저장할 메시지 엔티티
+     * @return Message 저장된 메시지 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
@@ -43,7 +43,7 @@ public class PaperCommandAdapter implements PaperCommandPort {
      * <p>메시지 소유권 검증이 완료된 후 호출됩니다.</p>
      * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 호출됩니다.</p>
      *
-     * @param messageId 삭제할 메시지의 고유 식별자
+     * @param messageId 삭제할 메시지의 ID
      * @author Jaeik
      * @since 2.0.0
      */

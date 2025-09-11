@@ -16,7 +16,6 @@ import java.util.List;
  * <h2>알림 조회 서비스</h2>
  * <p>알림 도메인의 조회 작업을 담당하는 서비스입니다.</p>
  * <p>알림 목록 조회</p>
- * <p>사용자 인증 정보 검증과 null 안전성 보장</p>
  *
  * @author Jaeik
  * @version 2.0.0

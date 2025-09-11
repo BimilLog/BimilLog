@@ -10,24 +10,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * <h2>ReportSaveListener</h2>
- * <p>
- * 이벤트 기반 아키텍처에서 도메인 간 통신을 담당하는 Secondary Adapter입니다.
- * </p>
- * <p>
- * User 도메인에서 발행하는 ReportSubmittedEvent를 구독하여 Admin 도메인으로 신고 접수 처리를 전달합니다.
- * </p>
- * <p>
- * 사용자가 프론트엔드에서 신고를 제출할 때 User 도메인이 이벤트를 발행하면,
- * 이 리스너가 비동기적으로 Admin 도메인의 신고 접수 로직을 실행합니다.
- * </p>
- * <p>
- * 비동기 처리를 통해 사용자의 요청 응답 시간에 영향을 주지 않으면서도
- * 도메인 간 결합도를 낮추는 이벤트 기반 설계를 구현합니다.
- * </p>
- * <p>
- * 에러 처리와 로깅을 통해 신고 접수 과정의 투명성과 디버깅 용이성을 제공합니다.
- * </p>
+ * <h2>신고 저장 리스너</h2>
+ * <p>신고 제출 이벤트를 처리하는 리스너입니다.</p>
+ * <p>ReportSubmittedEvent 구독하여 신고 데이터 저장</p>
+ * <p>비동기 처리로 응답 시간 단축</p>
  *
  * @author Jaeik
  * @version 2.0.0

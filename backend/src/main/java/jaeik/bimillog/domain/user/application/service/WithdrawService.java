@@ -24,12 +24,13 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <h2>회원 탈퇴 및 제재 서비스</h2>
- * <p>회원 탈퇴, 제재, 로그아웃 관련 기능을 통합 관리하는 서비스 클래스</p>
+ * <h2>회원 탈퇴 서비스</h2>
+ * <p>WithdrawUseCase의 구현체로 회원 탈퇴 및 제재 로직을 담당합니다.</p>
+ * <p>회원 탈퇴, 관리자 강제 탈퇴, 사용자 제재</p>
+ * <p>블랙리스트 추가, JWT 토큰 무효화, 이벤트 처리</p>
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -43,7 +44,6 @@ public class WithdrawService implements WithdrawUseCase {
     /**
      * <h3>회원 탈퇴 처리</h3>
      * <p>사용자를 탈퇴시키고, 소셜 로그아웃을 수행하며, 이벤트를 발행합니다.</p>
-     * <p>탈퇴 시 해당 사용자의 모든 JWT 토큰을 블랙리스트에 등록하여 즉시 무효화합니다.</p>
      *
      * @param userDetails 현재 사용자 정보
      * @return ResponseCookie 리스트
@@ -70,7 +70,6 @@ public class WithdrawService implements WithdrawUseCase {
     /**
      * <h3>관리자 강제 탈퇴 처리</h3>
      * <p>관리자 권한으로 지정된 사용자를 강제 탈퇴 처리합니다.</p>
-     * <p>강제 탈퇴 시 해당 사용자의 모든 JWT 토큰을 블랙리스트에 등록하여 즉시 차단합니다.</p>
      *
      * @param userId 탈퇴시킬 사용자 ID
      * @since 2.0.0
@@ -89,7 +88,6 @@ public class WithdrawService implements WithdrawUseCase {
     /**
      * <h3>사용자 블랙리스트 추가</h3>
      * <p>사용자 ID를 기반으로 사용자를 조회하고 해당 사용자의 소셜 정보로 블랙리스트에 추가합니다.</p>
-     * <p>중복 등록 방지를 위해 데이터베이스 UNIQUE 제약조건을 활용합니다.</p>
      *
      * @param userId 블랙리스트에 추가할 사용자 ID
      * @since 2.0.0

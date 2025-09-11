@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.paper.application.port.in;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
+import jaeik.bimillog.infrastructure.adapter.paper.in.web.PaperQueryController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 
 import java.util.List;
@@ -10,10 +11,8 @@ import java.util.Optional;
 
 /**
  * <h2>롤링페이퍼 조회 유스케이스</h2>
- * <p>롤링페이퍼 관련 조회 작업의 추상화된 인터페이스를 정의합니다.</p>
- * <p>내 롤링페이퍼 조회: 소유자가 마이페이지에서 내게 온 메시지들 확인</p>
- * <p>다른 사용자 롤링페이퍼 방문: 메시지 작성자가 친구 롤링페이퍼에 메시지 남기고 싶을 때</p>
- * <p>메시지 ID로 메시지 조회: Comment 도메인에서 댓글이 속한 메시지 정보 확인</p>
+ * <p>롤링페이퍼 도메인의 조회 작업을 담당하는 유스케이스입니다.</p>
+ * <p>내 롤링페이퍼 조회, 타인 롤링페이퍼 방문, 메시지 단건 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0

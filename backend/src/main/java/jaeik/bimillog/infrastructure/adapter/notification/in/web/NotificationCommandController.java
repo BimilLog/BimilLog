@@ -16,11 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <h2>알림 명령 컨트롤러</h2>
- * <p>
- * 알림 상태 변경 관련 REST API를 처리하는 인바운드 어댑터입니다.
- * 알림의 읽음 처리 및 삭제 요청을 도메인으로 전달합니다.
- * </p>
- * 
+ * <p>알림 명령 작업을 담당하는 REST API 컨트롤러입니다.</p>
+ * <p>알림 읽음 처리, 알림 삭제</p>
+ *
  * @author Jaeik
  * @version 2.0.0
  */
