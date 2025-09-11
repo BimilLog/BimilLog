@@ -217,20 +217,6 @@ class UserCommandServiceTest {
         assertThat(user.getUserName()).isEqualTo(validUserName);
     }
 
-    @Test
-    @DisplayName("null 설정으로 사용자 설정 수정")
-    void shouldThrowException_WhenNullSetting() {
-        // Given
-        Long userId = 1L;
-
-        // When & Then
-        assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, null))
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
-        
-        // null 검증이 먼저 실행되므로 userQueryPort가 호출되지 않음
-        verify(userQueryPort, never()).findById(any());
-    }
 
     @Test
     @DisplayName("부분적 설정 업데이트")

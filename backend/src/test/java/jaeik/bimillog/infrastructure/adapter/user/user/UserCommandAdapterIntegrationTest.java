@@ -161,7 +161,7 @@ class UserCommandAdapterIntegrationTest {
         existingUser = userRepository.save(existingUser);
 
         // 사용자 정보 수정
-        existingUser.updateUserName("newUserName");
+        // User 엔티티 직접 수정 대신 서비스 레이어 테스트에서 확인
         existingUser.updateUserInfo("new nickname", "http://new-image.com/image.jpg");
 
         // When: 수정된 사용자 저장

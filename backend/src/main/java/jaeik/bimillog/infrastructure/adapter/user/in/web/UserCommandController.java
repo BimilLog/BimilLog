@@ -62,7 +62,7 @@ public class UserCommandController {
      * @author Jaeik
      */
     @PostMapping("/setting")
-    public ResponseEntity<String> updateSetting(@RequestBody SettingDTO settingDTO,
+    public ResponseEntity<String> updateSetting(@RequestBody @Valid SettingDTO settingDTO,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         userCommandUseCase.updateUserSettings(userDetails.getUserId(), settingDTO.toSettingEntity());
         return ResponseEntity.ok("설정 수정 완료");
