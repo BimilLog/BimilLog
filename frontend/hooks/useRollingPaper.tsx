@@ -40,7 +40,10 @@ interface UseRollingPaperReturn {
     centerY: number,
     radius?: number
   ) => { x: number; y: number } | null;
-  // 좌표 변환 함수
+  // 좌표 변환 함수 (백엔드 ↔ 프론트엔드)
+  frontendToBackend: (x: number, y: number) => { x: number; y: number };
+  backendToFrontend: (x: number, y: number) => { x: number; y: number };
+  // 페이지 좌표 변환 함수
   getPageFromCoords: (x: number, y: number) => number;
   getGridPosFromCoords: (
     x: number,
@@ -116,10 +119,16 @@ export function useRollingPaper({
     return { x, y };
   };
 
+  // 좌표 변환 함수들 (백엔드는 1-based, 프론트엔드는 0-based)
+  const frontendToBackend = (x: number, y: number) => ({ x: x + 1, y: y + 1 });
+  const backendToFrontend = (x: number, y: number) => ({ x: x - 1, y: y - 1 });
+
   // 좌표 유틸리티 함수들
   const isPositionOccupied = (x: number, y: number): boolean => {
+    // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
+    const backend = frontendToBackend(x, y);
     return messages.some(
-      (message) => message.width === x && message.height === y
+      (message) => message.width === backend.x && message.height === backend.y
     );
   };
 
@@ -127,8 +136,10 @@ export function useRollingPaper({
     x: number,
     y: number
   ): RollingPaperMessage | VisitMessage | null => {
+    // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
+    const backend = frontendToBackend(x, y);
     return (
-      messages.find((message) => message.width === x && message.height === y) ||
+      messages.find((message) => message.width === backend.x && message.height === backend.y) ||
       null
     );
   };
@@ -279,7 +290,10 @@ export function useRollingPaper({
     getMessageAt,
     findEmptyPosition,
     findNearbyEmptyPosition,
-    // 좌표 변환 함수
+    // 좌표 변환 함수 (백엔드 ↔ 프론트엔드)
+    frontendToBackend,
+    backendToFrontend,
+    // 페이지 좌표 변환 함수
     getPageFromCoords,
     getGridPosFromCoords,
     getCoordsFromPageAndGrid,

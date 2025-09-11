@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Clock } from "lucide-react";
+import { Trash2, Clock, Lock } from "lucide-react";
 import {
   getDecoInfo,
   type RollingPaperMessage,
@@ -96,8 +96,9 @@ export const MessageView: React.FC<MessageViewProps> = ({
             {message.content}
           </p>
         ) : (
-          <p className="text-gray-600 leading-relaxed font-medium italic">
-            메시지 내용은 작성자만 볼 수 있습니다 🔒
+          <p className="text-gray-600 leading-relaxed font-medium italic flex items-center space-x-2">
+            <Lock className="w-4 h-4" />
+            <span>메시지 내용은 작성자만 볼 수 있습니다</span>
           </p>
         )}
 

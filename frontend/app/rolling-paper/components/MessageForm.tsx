@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Send } from "lucide-react";
+import { Send, Snowflake, Waves, IceCream2, Mail } from "lucide-react";
 import { getDecoInfo, decoTypeMap } from "@/lib/api";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
@@ -106,7 +106,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <span>❄️</span>
+              <Snowflake className="w-4 h-4" />
               <span>익명 닉네임</span>
             </label>
             <Input
@@ -123,11 +123,11 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
 
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <span>🌊</span>
+              <Waves className="w-4 h-4" />
               <span>시원한 메시지</span>
             </label>
             <Textarea
-              placeholder="마음을 담은 시원한 메시지를 남겨주세요... 💌"
+              placeholder="마음을 담은 시원한 메시지를 남겨주세요..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={4}
@@ -141,7 +141,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
 
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <span>🧊</span>
+              <IceCream2 className="w-4 h-4" />
               <span>장식 선택</span>
             </label>
             <Select value={decoType} onValueChange={setDecoType}>
@@ -185,7 +185,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
             ) : (
               <div className="flex items-center space-x-2">
                 <Send className="w-5 h-5" />
-                <span>🌊 메시지 남기기</span>
+                <span>메시지 남기기</span>
               </div>
             )}
           </Button>

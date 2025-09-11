@@ -145,14 +145,14 @@ export function useNotifications() {
           console.log("새 알림 수신:", data);
         }
         
-        // 임시 알림을 즉시 표시 (사용자 경험 향상)
+        // SSEManager에서 이미 변환된 Notification 객체를 직접 사용
         const tempNotification: Notification = {
           id: data.id,
-          content: data.content || data.data,
+          content: data.content,
           url: data.url,
-          notificationType: data.notificationType || data.type,
+          notificationType: data.notificationType,
           createdAt: data.createdAt,
-          isRead: false,
+          isRead: data.isRead,
         }
 
         setNotifications((prev) => [tempNotification, ...prev])
@@ -171,7 +171,7 @@ export function useNotifications() {
 
         // 브라우저 알림 표시
         if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-          new Notification(data.content || data.data, {
+          new Notification(data.content, {
             body: data.url,
             icon: "/favicon.ico",
           })

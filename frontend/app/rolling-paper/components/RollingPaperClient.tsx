@@ -59,6 +59,8 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
     getMessageAt,
     getCoordsFromPageAndGrid,
     getPageFromCoords,
+    frontendToBackend,
+    backendToFrontend,
   } = useRollingPaper({
     nickname,
     isPublic,
@@ -111,14 +113,17 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
     if (!isPublic || !nickname) return;
 
     try {
+      // 프론트엔드 좌표를 백엔드 좌표로 변환 (0-based → 1-based)
+      const backendPosition = frontendToBackend(position.x, position.y);
+      
       const response = await rollingPaperApi.createMessage(
         decodeURIComponent(nickname),
         {
           decoType: data.decoType,
           anonymity: data.anonymousNickname,
           content: data.content,
-          width: position.x,
-          height: position.y,
+          width: backendPosition.x,
+          height: backendPosition.y,
         }
       );
 
@@ -142,10 +147,12 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
 
   // 메시지 클릭 핸들러 (그리드 하이라이트)
   const handleMessageClick = (message: RollingPaperMessage | VisitMessage) => {
-    setHighlightedPosition({ x: message.width, y: message.height });
+    // 백엔드 좌표를 프론트엔드 좌표로 변환 (1-based → 0-based)
+    const frontendPosition = backendToFrontend(message.width, message.height);
+    setHighlightedPosition(frontendPosition);
 
-    // 해당 메시지가 있는 페이지로 이동
-    const messagePage = getPageFromCoords(message.width, message.height);
+    // 해당 메시지가 있는 페이지로 이동 (프론트엔드 좌표 사용)
+    const messagePage = getPageFromCoords(frontendPosition.x, frontendPosition.y);
     if (messagePage !== currentPage) {
       setCurrentPage(messagePage);
     }

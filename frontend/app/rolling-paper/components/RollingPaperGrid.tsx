@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Waves, Snowflake, Sparkles, IceCream2, Diamond, Mail, Star, User, Fish, Zap } from "lucide-react";
 import {
   getDecoInfo,
   type RollingPaperMessage,
@@ -93,26 +93,29 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
         {/* 제목 영역 */}
         <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-12 md:px-20 text-center">
           <div className="relative">
-            <h1 className="text-lg md:text-3xl font-bold text-cyan-800 mb-2 transform -rotate-1">
-              🌊 {nickname}님의 롤링페이퍼 🌊
+            <h1 className="text-lg md:text-3xl font-bold text-cyan-800 mb-2 transform -rotate-1 flex items-center justify-center space-x-2">
+              <Waves className="w-5 h-5 md:w-7 md:h-7" />
+              <span>{nickname}님의 롤링페이퍼</span>
+              <Waves className="w-5 h-5 md:w-7 md:h-7" />
             </h1>
 
             {/* 시원한 데코레이션 */}
-            <div className="absolute -top-1 md:-top-2 -left-2 md:-left-4 text-lg md:text-2xl animate-bounce">
-              ❄️
+            <div className="absolute -top-1 md:-top-2 -left-2 md:-left-4 animate-bounce">
+              <Snowflake className="w-4 h-4 md:w-6 md:h-6 text-cyan-500" />
             </div>
-            <div className="absolute -top-1 -right-3 md:-right-6 text-sm md:text-xl animate-pulse">
-              ✨
+            <div className="absolute -top-1 -right-3 md:-right-6 animate-pulse">
+              <Sparkles className="w-3 h-3 md:w-5 md:h-5 text-blue-500" />
             </div>
-            <div className="absolute -bottom-1 md:-bottom-2 left-4 md:left-8 text-sm md:text-lg animate-bounce delay-300">
-              🧊
+            <div className="absolute -bottom-1 md:-bottom-2 left-4 md:left-8 animate-bounce delay-300">
+              <IceCream2 className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
             </div>
-            <div className="absolute -bottom-1 right-6 md:right-12 text-sm md:text-xl animate-pulse delay-500">
-              💎
+            <div className="absolute -bottom-1 right-6 md:right-12 animate-pulse delay-500">
+              <Diamond className="w-3 h-3 md:w-5 md:h-5 text-indigo-500" />
             </div>
 
-            <p className="text-cyan-600 text-xs md:text-sm mt-2 transform rotate-1 font-medium">
-              총 {messages.length}개의 시원한 메시지 💌
+            <p className="text-cyan-600 text-xs md:text-sm mt-2 transform rotate-1 font-medium flex items-center justify-center space-x-1">
+              <span>총 {messages.length}개의 시원한 메시지</span>
+              <Mail className="w-3 h-3 md:w-4 md:h-4" />
             </p>
           </div>
         </div>
@@ -228,10 +231,18 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
                   {(messageAtPosition || !isOwner) && (
                     <DialogContent className="max-w-sm md:max-w-md mx-auto bg-gradient-to-br from-cyan-50 to-blue-50 border-2 md:border-4 border-cyan-200 rounded-2xl md:rounded-3xl">
                       <DialogHeader>
-                        <DialogTitle className="text-center text-cyan-800 font-bold text-sm md:text-base">
-                          {messageAtPosition
-                            ? "💌 메시지 보기"
-                            : "✨ 새 메시지 작성"}
+                        <DialogTitle className="text-center text-cyan-800 font-bold text-sm md:text-base flex items-center justify-center space-x-2">
+                          {messageAtPosition ? (
+                            <>
+                              <Mail className="w-4 h-4" />
+                              <span>메시지 보기</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4" />
+                              <span>새 메시지 작성</span>
+                            </>
+                          )}
                         </DialogTitle>
                       </DialogHeader>
                       {messageAtPosition ? (

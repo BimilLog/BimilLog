@@ -52,9 +52,18 @@ export default function SettingsPage() {
       const response = await userApi.getUserSettings();
       if (response.success && response.data) {
         setSettings(response.data);
+      } else {
+        showError(
+          "설정 로드 실패",
+          response.error || "설정을 불러오는 중 오류가 발생했습니다."
+        );
       }
     } catch (error) {
       console.error("설정 로드 실패:", error);
+      showError(
+        "설정 로드 실패",
+        "설정을 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해주세요."
+      );
     } finally {
       setLoading(false);
     }
@@ -75,9 +84,23 @@ export default function SettingsPage() {
       const response = await userApi.updateUserSettings(fullSettings);
       if (response.success) {
         setSettings(fullSettings);
+        showSuccess("설정 저장 완료", "알림 설정이 성공적으로 저장되었습니다.");
+      } else {
+        showError(
+          "설정 저장 실패",
+          response.error || "설정 저장 중 오류가 발생했습니다. 다시 시도해주세요."
+        );
+        // 실패 시 이전 설정으로 되돌리기
+        await loadSettings();
       }
     } catch (error) {
       console.error("설정 저장 실패:", error);
+      showError(
+        "설정 저장 실패",
+        "설정 저장 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
+      // 실패 시 이전 설정으로 되돌리기
+      await loadSettings();
     } finally {
       setSaving(false);
     }
@@ -116,20 +139,23 @@ export default function SettingsPage() {
       setWithdrawing(true);
       const response = await authApi.deleteAccount();
       if (response.success) {
-        showSuccess("회원탈퇴 완료", "회원탈퇴가 완료되었습니다.");
-        router.push("/");
-        window.location.reload();
+        showSuccess("회원탈퇴 완료", "회원탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사했습니다.");
+        // 잠시 기다렸다가 홈으로 이동
+        setTimeout(() => {
+          router.push("/");
+          window.location.reload();
+        }, 2000);
       } else {
         showError(
           "회원탈퇴 실패",
-          "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
+          response.error || "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
         );
       }
     } catch (error) {
       console.error("회원탈퇴 실패:", error);
       showError(
         "회원탈퇴 실패",
-        "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
+        error instanceof Error ? error.message : "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
       );
     } finally {
       setWithdrawing(false);

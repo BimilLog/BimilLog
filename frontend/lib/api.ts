@@ -66,23 +66,53 @@ export interface SignUpRequest {
   uuid: string
 }
 
-// 롤링페이퍼 메시지 타입 - v2 백엔드 MessageDTO 호환
+// DecoType enum - 백엔드 DecoType과 완전 일치
+export type DecoType = 
+  // 과일
+  | "POTATO" | "CARROT" | "CABBAGE" | "TOMATO" | "STRAWBERRY" | "BLUEBERRY"
+  | "WATERMELON" | "PUMPKIN" | "APPLE" | "GRAPE" | "BANANA"
+  
+  // 이상한 장식  
+  | "GOBLIN" | "SLIME" | "ORC" | "DRAGON" | "PHOENIX"
+  | "WEREWOLF" | "ZOMBIE" | "KRAKEN" | "CYCLOPS" | "DEVIL" | "ANGEL"
+  
+  // 음료
+  | "COFFEE" | "MILK" | "WINE" | "SOJU" | "BEER" | "BUBBLETEA" | "SMOOTHIE"
+  | "BORICHA" | "STRAWBERRYMILK" | "BANANAMILK"
+  
+  // 음식
+  | "BREAD" | "BURGER" | "CAKE" | "SUSHI" | "PIZZA" | "CHICKEN" | "NOODLE" | "EGG"
+  | "SKEWER" | "KIMBAP" | "SUNDAE" | "MANDU" | "SAMGYEOPSAL" | "FROZENFISH" | "HOTTEOK"
+  | "COOKIE" | "PICKLE"
+  
+  // 동물
+  | "CAT" | "DOG" | "RABBIT" | "FOX" | "TIGER" | "PANDA" | "LION" | "ELEPHANT"
+  | "SQUIRREL" | "HEDGEHOG" | "CRANE" | "SPARROW" | "CHIPMUNK" | "GIRAFFE" | "HIPPO" | "POLARBEAR" | "BEAR"
+  
+  // 자연
+  | "STAR" | "SUN" | "MOON" | "VOLCANO" | "CHERRY" | "MAPLE" | "BAMBOO" | "SUNFLOWER"
+  | "STARLIGHT" | "CORAL" | "ROCK" | "WATERDROP" | "WAVE" | "RAINBOW"
+  
+  // 기타
+  | "DOLL" | "BALLOON" | "SNOWMAN" | "FAIRY" | "BUBBLE"
+
+// 롤링페이퍼 메시지 타입 - v2 백엔드 MessageDTO 완전 호환
 export interface RollingPaperMessage {
   id: number
   userId: number
-  decoType: string
+  decoType: DecoType
   anonymity: string
   content: string
   width: number
   height: number
-  createdAt?: string // ISO 8601 string format
+  createdAt: string // ISO 8601 string format - 백엔드 Instant는 ISO string으로 변환됨
 }
 
-// 방문용 메시지 타입 - v2 백엔드 VisitMessageDTO 호환
+// 방문용 메시지 타입 - v2 백엔드 VisitMessageDTO 완전 호환
 export interface VisitMessage {
   id: number
   userId: number
-  decoType: string
+  decoType: DecoType
   width: number
   height: number
 }
@@ -400,7 +430,7 @@ export const authApi = {
   logout: () => apiClient.post("/api/auth/logout"),
 
   // 회원 탈퇴
-  deleteAccount: () => apiClient.delete("/api/auth/withdraw"),
+  deleteAccount: () => apiClient.delete("/api/user/withdraw"),
 
   // 회원가입 (백엔드 v2 호환)
   signUp: (userName: string, uuid: string) => {
@@ -488,7 +518,7 @@ export const rollingPaperApi = {
   createMessage: (
     userName: string,
     message: {
-      decoType: string
+      decoType: DecoType
       anonymity: string
       content: string
       width: number
@@ -769,16 +799,14 @@ export class SSEManager {
             console.log("Parsed SSE data:", data);
           }
           
-          // 백엔드 메시지 구조: { message: "내용", url: "URL" }
-          // 프론트엔드 알림 구조로 변환
+          // 백엔드 v2 SSE 메시지 구조를 프론트엔드 Notification 인터페이스로 변환
           const notificationData = {
-            // 임시 ID (실제로는 서버에서 받아야 함 - 추후 개선 필요)
-            id: Date.now() + Math.random(), // 중복 방지
-            data: data.message || data.data || "새로운 알림",
+            id: data.id || Date.now() + Math.random(), // 서버 ID 우선, 없으면 임시 ID
+            content: data.message || data.content || data.data || "새로운 알림",
             url: data.url || "",
-            type: event.type || "NOTIFICATION",
-            createdAt: new Date().toISOString(),
-            read: false
+            notificationType: (event.type || "ADMIN") as "PAPER" | "COMMENT" | "POST_FEATURED" | "INITIATE" | "ADMIN",
+            createdAt: data.createdAt || new Date().toISOString(),
+            isRead: false
           }
           
           // INITIATE 이벤트는 연결 확인용이므로 알림으로 처리하지 않음
@@ -807,8 +835,8 @@ export class SSEManager {
       // 기본 메시지 이벤트
       this.eventSource.onmessage = handleSSEEvent
 
-      // 특정 타입별 이벤트 리스너 등록
-      const eventTypes = ["COMMENT", "FARM", "POST_FEATURED", "COMMENT_FEATURED", "ADMIN", "INITIATE"]
+      // 특정 타입별 이벤트 리스너 등록 - v2 백엔드 NotificationType과 일치
+      const eventTypes = ["COMMENT", "PAPER", "POST_FEATURED", "ADMIN", "INITIATE"]
       eventTypes.forEach(type => {
         if (this.eventSource) {
           this.eventSource.addEventListener(type, handleSSEEvent)
@@ -986,7 +1014,7 @@ export const decoTypeMap = {
 }
 
 // 헬퍼 함수들
-export const getDecoInfo = (decoType: string) => {
+export const getDecoInfo = (decoType: DecoType | string) => {
   return (
     decoTypeMap[decoType as keyof typeof decoTypeMap] || {
       name: "기본",
