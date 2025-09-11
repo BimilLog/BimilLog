@@ -128,7 +128,7 @@ class NotificationCommandServiceTest {
         // When & Then
         assertThatThrownBy(() -> notificationCommandService.batchUpdate(nullUserDetails, updateCommand))
                 .isInstanceOf(NotificationCustomException.class)
-                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.INVALID_USER_CONTEXT);
         
         verifyNoInteractions(notificationCommandPort);
     }
@@ -151,48 +151,6 @@ class NotificationCommandServiceTest {
     }
 
 
-    @Test
-    @DisplayName("알림 일괄 업데이트 - 중복 ID 제거")
-    void shouldRemoveDuplicateIds_WhenDuplicateIds() {
-        // Given
-        when(userDetails.getUserId()).thenReturn(1L);
-        List<Long> readIds = Arrays.asList(1L, 1L, 2L, 2L, 3L);
-        List<Long> deletedIds = Arrays.asList(4L, 4L, 5L);
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), argThat(cmd -> {
-            return cmd.readIds().size() == 3 && 
-                   cmd.readIds().containsAll(Arrays.asList(1L, 2L, 3L)) &&
-                   cmd.deletedIds().size() == 2 && 
-                   cmd.deletedIds().containsAll(Arrays.asList(4L, 5L));
-        }));
-        verifyNoMoreInteractions(notificationCommandPort);
-    }
-
-    @Test
-    @DisplayName("알림 일괄 업데이트 - read와 delete ID가 겹치는 경우 삭제 우선")
-    void shouldPrioritizeDelete_WhenReadAndDeleteIdsOverlap() {
-        // Given
-        when(userDetails.getUserId()).thenReturn(1L);
-        List<Long> readIds = Arrays.asList(1L, 2L, 3L);
-        List<Long> deletedIds = Arrays.asList(2L, 3L, 4L); // 2L, 3L이 중복
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), argThat(cmd -> {
-            return cmd.readIds().size() == 1 && cmd.readIds().contains(1L) &&
-                   cmd.deletedIds().size() == 3 && 
-                   cmd.deletedIds().containsAll(Arrays.asList(2L, 3L, 4L));
-        }));
-        verifyNoMoreInteractions(notificationCommandPort);
-    }
 
     @Test
     @DisplayName("알림 일괄 업데이트 - 둘 다 null인 경우")

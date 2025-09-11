@@ -212,12 +212,28 @@ class PaperQueryServiceTest {
         verifyNoMoreInteractions(paperQueryPort);
     }
 
+    @Test
+    @DisplayName("다른 사용자 롤링페이퍼 방문 - null 또는 빈 사용자명 예외")
+    void shouldThrowException_WhenInvalidUserName() {
+        // Given - null userName
+        String userName = null;
 
+        // When & Then - null case
+        assertThatThrownBy(() -> paperQueryService.visitPaper(userName))
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
+        // Given - empty userName
+        String emptyUserName = "   ";
 
+        // When & Then - empty case
+        assertThatThrownBy(() -> paperQueryService.visitPaper(emptyUserName))
+                .isInstanceOf(PaperCustomException.class)
+                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-
-
+        verify(paperToUserPort, never()).existsByUserName(any());
+        verify(paperQueryPort, never()).findMessagesByUserName(any());
+    }
 
     private Message createMessage(Long id, Long userId, String content) {
         User mockUser = mock(User.class);

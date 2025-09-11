@@ -98,10 +98,6 @@ public class WithdrawService implements WithdrawUseCase {
     @Override
     @Transactional
     public void addToBlacklist(Long userId) {
-        if (userId == null) {
-            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
-        }
-
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
@@ -129,10 +125,6 @@ public class WithdrawService implements WithdrawUseCase {
     @Override
     @Transactional
     public void banUser(Long userId) {
-        if (userId == null) {
-            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
-        }
-
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 

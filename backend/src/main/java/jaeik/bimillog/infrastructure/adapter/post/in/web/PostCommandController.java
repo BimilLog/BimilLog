@@ -2,7 +2,10 @@ package jaeik.bimillog.infrastructure.adapter.post.in.web;
 
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostReqDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,9 +47,26 @@ public class PostCommandController {
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostReqDTO postReqDTO) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        Integer passwordInt = parsePassword(postReqDTO.getPassword());
-        Long postId = postCommandUseCase.writePost(userId, postReqDTO.getTitle(), postReqDTO.getContent(), passwordInt);
+        postReqDTO.setUserId(userId);
+        
+        // userId 설정 후 수동 검증 실행
+        validatePostRequest(postReqDTO);
+        
+        Long postId = postCommandUseCase.writePost(userId, postReqDTO.getTitle(), postReqDTO.getContent(), postReqDTO.getParsedPassword());
         return ResponseEntity.created(URI.create("/api/posts/" + postId)).build();
+    }
+    
+    private void validatePostRequest(PostReqDTO postReqDTO) {
+        boolean hasPassword = postReqDTO.getPassword() != null && !postReqDTO.getPassword().trim().isEmpty();
+        Long userId = postReqDTO.getUserId();
+        
+        if (userId == null && !hasPassword) {
+            throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        if (userId != null && hasPassword) {
+            throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
+        }
     }
 
     /**
@@ -55,7 +75,7 @@ public class PostCommandController {
      *
      * @param postId      수정할 게시글 ID
      * @param userDetails 현재 로그인 사용자 정보
-     * @param postReqDTO  수정할 게시글 정보 DTO
+     * @param postUpdateDTO  수정할 게시글 정보 DTO
      * @return 성공 응답 (200 OK)
      * @author Jaeik
      * @since 2.0.0
@@ -63,8 +83,8 @@ public class PostCommandController {
     @PutMapping("/{postId}")
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
-                                           @RequestBody @Valid PostReqDTO postReqDTO) {
-        postCommandUseCase.updatePost(userDetails.getUserId(), postId, postReqDTO.getTitle(), postReqDTO.getContent());
+                                           @RequestBody @Valid PostUpdateDTO postUpdateDTO) {
+        postCommandUseCase.updatePost(userDetails.getUserId(), postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent());
         return ResponseEntity.ok().build();
     }
 
@@ -102,19 +122,5 @@ public class PostCommandController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * <h3>비밀번호 문자열을 정수로 변환</h3>
-     *
-     * @param password 변환할 비밀번호 문자열
-     * @return Integer 비밀번호 (null 가능)
-     * @author jaeik
-     * @since 2.0.0
-     */
-    private Integer parsePassword(String password) {
-        if (password != null && !password.trim().isEmpty()) {
-            return Integer.parseInt(password);
-        }
-        return null;
-    }
 }
 

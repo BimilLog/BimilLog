@@ -49,10 +49,6 @@ public class PaperCommandService implements PaperCommandUseCase {
      */
     @Override
     public void deleteMessageInMyPaper(Long userId, Long messageId) {
-        if (messageId == null || userId == null) {
-            throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
-        }
-        
         Long ownerId = paperQueryPort.findOwnerIdByMessageId(messageId)
                 .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
 
@@ -81,7 +77,7 @@ public class PaperCommandService implements PaperCommandUseCase {
     @Override
     public void writeMessage(String userName, DecoType decoType, String anonymity, 
                            String content, int width, int height) {
-        if (userName == null || decoType == null) {
+        if (userName == null || userName.trim().isEmpty()) {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
         

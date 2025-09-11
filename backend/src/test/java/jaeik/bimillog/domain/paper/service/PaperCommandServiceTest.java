@@ -162,9 +162,9 @@ class PaperCommandServiceTest {
     }
 
     @Test
-    @DisplayName("메시지 작성 - null 사용자명")
-    void shouldThrowException_WhenUserNameIsNull() {
-        // Given
+    @DisplayName("메시지 작성 - null 또는 빈 사용자명 예외")
+    void shouldThrowException_WhenInvalidUserName() {
+        // Given - null userName
         String userName = null;
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
@@ -172,30 +172,16 @@ class PaperCommandServiceTest {
         int width = 2;
         int height = 2;
 
-        // When & Then
+        // When & Then - null case
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(paperToUserPort, never()).findByUserName(any());
-        verify(paperCommandPort, never()).save(any());
-        verify(eventPublisher, never()).publishEvent(any());
-    }
+        // Given - empty userName
+        String emptyUserName = "   ";
 
-
-    @Test
-    @DisplayName("메시지 작성 - null DecoType")
-    void shouldThrowException_WhenNullDecoType() {
-        // Given
-        String userName = "testuser";
-        DecoType decoType = null;
-        String anonymity = "익명";
-        String content = "테스트 메시지";
-        int width = 2;
-        int height = 2;
-
-        // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height))
+        // When & Then - empty case
+        assertThatThrownBy(() -> paperCommandService.writeMessage(emptyUserName, decoType, anonymity, content, width, height))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
@@ -229,18 +215,6 @@ class PaperCommandServiceTest {
         ));
     }
 
-    @Test
-    @DisplayName("내 롤링페이퍼 메시지 삭제 - null messageId")
-    void shouldThrowException_WhenMessageIdIsNull() {
-        // Given
-        Long userId = 1L;
-        Long messageId = null;
-
-        // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageId))
-                .isInstanceOf(PaperCustomException.class)
-                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
-    }
 
 
 

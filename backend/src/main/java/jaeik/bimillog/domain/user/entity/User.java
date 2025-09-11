@@ -4,7 +4,6 @@ import jaeik.bimillog.global.entity.BaseEntity;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -107,7 +106,7 @@ public class User extends BaseEntity {
      *
      * @param newUserName 새로운 닉네임
      * @param userQueryPort 중복 확인을 위한 쿼리 포트
-     * @throws CustomException 중복된 닉네임인 경우
+     * @throws UserCustomException 중복된 닉네임인 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -120,20 +119,6 @@ public class User extends BaseEntity {
         this.userName = newUserName;
     }
     
-    /**
-     * <h3>닉네임 수정 (단순)</h3>
-     *
-     * <p>
-     * 방어적 코드 - 단순 닉네임 업데이트. 내부 사용 전용.
-     * </p>
-     *
-     * @param userName 새로운 닉네임
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void updateUserName(String userName) {
-        this.userName = userName;
-    }
 
     /**
      * <h3>사용자 역할 변경</h3>

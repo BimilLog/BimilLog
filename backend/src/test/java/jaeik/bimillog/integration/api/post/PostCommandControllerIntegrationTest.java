@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostReqDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -114,7 +115,6 @@ class PostCommandControllerIntegrationTest {
         PostReqDTO postReqDTO = PostReqDTO.builder()
                 .title("통합 테스트 게시글")
                 .content("게시글 작성 통합 테스트 내용입니다.")
-                .password("1234")
                 .build();
 
         // When & Then
@@ -190,10 +190,9 @@ class PostCommandControllerIntegrationTest {
         
         Post savedPost = postRepository.save(existingPost);
 
-        PostReqDTO updateReqDTO = PostReqDTO.builder()
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
                 .title("수정된 제목")
-                .content("수정된 내용입니다.")
-                .password("5678")
+                .content("수정된 내용입니다. 10자 이상으로 작성합니다.")
                 .build();
 
         // When & Then
@@ -209,7 +208,7 @@ class PostCommandControllerIntegrationTest {
         Optional<Post> updatedPost = postRepository.findById(savedPost.getId());
         assertThat(updatedPost).isPresent();
         assertThat(updatedPost.get().getTitle()).isEqualTo("수정된 제목");
-        assertThat(updatedPost.get().getContent()).isEqualTo("수정된 내용입니다.");
+        assertThat(updatedPost.get().getContent()).isEqualTo("수정된 내용입니다. 10자 이상으로 작성합니다.");
     }
 
     @Test
@@ -238,9 +237,9 @@ class PostCommandControllerIntegrationTest {
         
         Post savedPost = postRepository.save(anotherPost);
 
-        PostReqDTO updateReqDTO = PostReqDTO.builder()
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
                 .title("수정 시도")
-                .content("수정 시도 내용")
+                .content("수정 시도 내용입니다. 10자 이상으로 작성합니다.")
                 .build();
 
         // When & Then
@@ -363,7 +362,6 @@ class PostCommandControllerIntegrationTest {
         PostReqDTO postReqDTO = PostReqDTO.builder()
                 .title(title)
                 .content(content)
-                .password("1234")
                 .build();
 
         // When & Then

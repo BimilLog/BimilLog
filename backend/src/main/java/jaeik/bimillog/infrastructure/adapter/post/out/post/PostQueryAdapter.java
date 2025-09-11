@@ -101,12 +101,7 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<PostSearchResult> findBySearch(String type, String query, Pageable pageable) {
-        if (query == null || query.trim().isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, 0L);
-        }
-
-        String trimmedQuery = query.trim();
-        BooleanExpression condition = createSearchCondition(type, trimmedQuery, pageable);
+        BooleanExpression condition = createSearchCondition(type, query, pageable);
         return findPostsWithCondition(condition, pageable);
     }
 
@@ -181,7 +176,7 @@ public class PostQueryAdapter implements PostQueryPort {
      * <p>규칙: 3글자 이상이고 writer가 아니면 FULLTEXT, 아니면 LIKE</p>
      *
      * @param type  검색 유형 (title, writer, title_content)
-     * @param query 검색어 (이미 trim된 상태)
+     * @param query 검색어 (DTO에서 이미 검증됨)
      * @return 생성된 BooleanExpression
      * @author Jaeik
      * @since 2.0.0
@@ -205,7 +200,7 @@ public class PostQueryAdapter implements PostQueryPort {
             case "content" -> post.content.contains(query);
             case "title_content" -> post.title.contains(query)
                                    .or(post.content.contains(query));
-            default -> throw new PostCustomException(PostErrorCode.INVALID_SEARCH_TYPE);
+            default -> post.title.contains(query); // DTO 검증으로 인해 도달할 수 없는 분기
         };
         
         return likeCondition.and(post.isNotice.isFalse());
@@ -216,7 +211,7 @@ public class PostQueryAdapter implements PostQueryPort {
      * <p>글자 수에 따라 검색 패턴을 조정합니다.</p>
      * <p>1-3글자: %LIKE% (완전 매칭), 4글자+: LIKE% (인덱스 활용)</p>
      *
-     * @param query 검색어
+     * @param query 검색어 (DTO에서 이미 검증됨)
      * @return 작성자 검색 조건
      * @author Jaeik
      * @since 2.0.0
@@ -245,7 +240,7 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     private List<Long> getPostIdsByFullTextSearch(String type, String query, Pageable pageable) {
         try {
-            String searchTerm = query.trim() + "*";
+            String searchTerm = query + "*";
             
             // 페이징 정보를 활용하여 필요한 만큼만 조회
             // 최대 1000개로 제한하여 메모리 사용량 제한

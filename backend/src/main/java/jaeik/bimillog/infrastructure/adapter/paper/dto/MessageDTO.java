@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.paper.dto;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +46,76 @@ public class MessageDTO {
     private int height;
 
     private Instant createdAt;
+
+    /**
+     * <h3>메시지 작성 시 decoType 필수 검증</h3>
+     * <p>id가 null이면 작성 모드로 판단하여 decoType이 필수입니다.</p>
+     * <p>id가 있으면 삭제/조회 모드로 판단하여 decoType 검증을 생략합니다.</p>
+     *
+     * @return true이면 검증 통과, false이면 검증 실패
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @AssertTrue(message = "메시지 작성 시 decoType은 필수입니다.")
+    public boolean isDecoTypeValidForWrite() {
+        return id != null || decoType != null;
+    }
+
+    /**
+     * <h3>메시지 작성 시 content 필수 검증</h3>
+     * <p>id가 null이면 작성 모드로 판단하여 content가 필수입니다.</p>
+     * <p>빈 문자열과 공백만 있는 문자열은 유효하지 않습니다.</p>
+     *
+     * @return true이면 검증 통과, false이면 검증 실패
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @AssertTrue(message = "메시지 작성 시 내용은 필수입니다.")
+    public boolean isContentValidForWrite() {
+        return id != null || (content != null && !content.trim().isEmpty());
+    }
+
+    /**
+     * <h3>그리드 width 범위 검증</h3>
+     * <p>메시지 작성 시 width는 1~6 사이여야 합니다.</p>
+     * <p>PC 그리드는 6x10, Mobile 그리드는 4x10을 고려한 제한입니다.</p>
+     *
+     * @return true이면 검증 통과, false이면 검증 실패
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @AssertTrue(message = "width는 1~6 사이여야 합니다.")
+    public boolean isWidthValid() {
+        return id != null || (width >= 1 && width <= 6);
+    }
+
+    /**
+     * <h3>그리드 height 범위 검증</h3>
+     * <p>메시지 작성 시 height는 1~10 사이여야 합니다.</p>
+     * <p>PC와 Mobile 그리드 모두 최대 10줄까지 지원합니다.</p>
+     *
+     * @return true이면 검증 통과, false이면 검증 실패
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @AssertTrue(message = "height는 1~10 사이여야 합니다.")
+    public boolean isHeightValid() {
+        return id != null || (height >= 1 && height <= 10);
+    }
+
+    /**
+     * <h3>메시지 삭제 시 id 필수 검증</h3>
+     * <p>id가 있으면 삭제 모드로 판단하여 id가 양수여야 합니다.</p>
+     * <p>id가 null이거나 0 이하면 유효하지 않습니다.</p>
+     *
+     * @return true이면 검증 통과, false이면 검증 실패
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @AssertTrue(message = "메시지 삭제 시 messageId는 필수입니다.")
+    public boolean isIdValidForDelete() {
+        return id == null || id > 0;
+    }
 
     /**
      * <h3>MessageDetail VO에서 MessageDTO 변환</h3>

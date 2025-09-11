@@ -53,7 +53,6 @@ public class Report extends BaseEntity {
      * @since 2.0.0
      */
     public static Report createReport(ReportType reportType, Long targetId, String content, User reporter) {
-
         return Report.builder()
                 .reportType(reportType)
                 .targetId(targetId)

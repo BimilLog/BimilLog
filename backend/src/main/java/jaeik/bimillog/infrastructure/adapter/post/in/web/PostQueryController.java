@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostResDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostResDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.PostSearchDTO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.util.PostViewCookieUtil;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
 
 /**
  * <h2>게시글 조회 컨트롤러</h2>
@@ -90,20 +93,18 @@ public class PostQueryController {
 
     /**
      * <h3>게시글 검색 API</h3>
-     * <p>검색 유형(type)과 검색어(query)를 통해 게시글을 검색하고 최신순으로 페이지네이션합니다.</p>
+     * <p>검증된 검색 조건으로 게시글을 검색하고 최신순으로 페이지네이션합니다.</p>
      *
-     * @param type     검색 유형 (예: title, content, writer)
-     * @param query    검색어
-     * @param pageable 페이지 정보
+     * @param searchDTO 검색 조건 DTO (타입, 검색어 검증 포함)
+     * @param pageable  페이지 정보
      * @return 검색된 게시글 목록 페이지 (200 OK)
      * @author Jaeik
      * @since 2.0.0
      */
     @GetMapping("/search")
-    public ResponseEntity<Page<SimplePostResDTO>> searchPost(@RequestParam String type,
-                                                             @RequestParam String query,
+    public ResponseEntity<Page<SimplePostResDTO>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
                                                              Pageable pageable) {
-        Page<PostSearchResult> postList = postQueryUseCase.searchPost(type, query, pageable);
+        Page<PostSearchResult> postList = postQueryUseCase.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable);
         Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }

@@ -41,9 +41,6 @@ public class UserCommandService implements UserCommandUseCase {
      */
     @Override
     public void updateUserSettings(Long userId, Setting newSetting) {
-        if (newSetting == null) {
-            throw new UserCustomException(UserErrorCode.INVALID_INPUT_VALUE);
-        }
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 

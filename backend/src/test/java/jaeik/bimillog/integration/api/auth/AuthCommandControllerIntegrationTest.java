@@ -1,9 +1,11 @@
 package jaeik.bimillog.integration.api.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.infrastructure.adapter.auth.dto.SignUpRequestDTO;
+import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginRequestDTO;
 import java.util.Map;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.entity.UserDetail;
@@ -73,17 +75,13 @@ class AuthCommandControllerIntegrationTest {
     @DisplayName("소셜 로그인 통합 테스트 - 신규 사용자")
     void socialLogin_NewUser_IntegrationTest() throws Exception {
         // Given
-        String provider = "KAKAO";
-        String code = "new_user_code"; // TestSocialLoginPortConfig에서 신규 사용자로 처리
-        String fcmToken = "integration-test-fcm-token";
+        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-token");
 
         // When & Then
         mockMvc.perform(post("/api/auth/login")
-                        .param("provider", provider)
-                        .param("code", code)
-                        .param("fcmToken", fcmToken)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
@@ -98,15 +96,13 @@ class AuthCommandControllerIntegrationTest {
         User existingUser = createTestUser();
         userRepository.save(existingUser);
 
-        String provider = "KAKAO";
-        String code = "existing_user_code"; // TestSocialLoginPortConfig에서 기존 사용자로 처리
+        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing_user_code", null);
 
         // When & Then
         mockMvc.perform(post("/api/auth/login")
-                        .param("provider", provider)
-                        .param("code", code)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
@@ -119,17 +115,13 @@ class AuthCommandControllerIntegrationTest {
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     void signUp_IntegrationTest_Success() throws Exception {
         // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
-        String provider = "KAKAO";
-        String code = "new_user_code";
-        String fcmToken = "integration-test-fcm-token";
+        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-token");
         
         // 1. 소셜 로그인으로 임시 데이터 생성
         var loginResult = mockMvc.perform(post("/api/auth/login")
-                        .param("provider", provider)
-                        .param("code", code)
-                        .param("fcmToken", fcmToken)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(socialRequest))
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andReturn();
         
@@ -139,14 +131,13 @@ class AuthCommandControllerIntegrationTest {
         var responseMap = mapper.readValue(responseBody, Map.class);
         String uuid = (String) responseMap.get("uuid");
         
-        String userName = "통합테스트사용자";
-
         // 3. 회원가입 수행
+        SignUpRequestDTO signUpRequest = new SignUpRequestDTO("통합테스트사용자", uuid);
+        
         mockMvc.perform(post("/api/auth/signup")
-                        .param("userName", userName)
-                        .cookie(new jakarta.servlet.http.Cookie("temp_user_id", uuid))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signUpRequest))
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
@@ -185,7 +176,7 @@ class AuthCommandControllerIntegrationTest {
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
 
         // When & Then
-        mockMvc.perform(delete("/api/auth/withdraw")
+        mockMvc.perform(delete("/api/user/withdraw")
                         .with(user(userDetails))
                         .with(csrf()))
                 .andDo(print())

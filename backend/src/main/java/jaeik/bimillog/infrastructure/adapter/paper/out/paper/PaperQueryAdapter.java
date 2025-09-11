@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.paper.entity.QMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,10 +39,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
      */
     @Override
     public Optional<Message> findMessageById(Long messageId) {
-        if (messageId == null) {
-            return Optional.empty();
-        }
-        
         QMessage message = QMessage.message;
         return Optional.ofNullable(
                 jpaQueryFactory
@@ -66,10 +61,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
      */
     @Override
     public List<Message> findMessagesByUserId(Long userId) {
-        if (userId == null) {
-            return Collections.emptyList();
-        }
-        
         QMessage message = QMessage.message;
 
         return jpaQueryFactory
@@ -92,10 +83,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
      */
     @Override
     public List<Message> findMessagesByUserName(String userName) {
-        if (userName == null || userName.trim().isEmpty()) {
-            return Collections.emptyList();
-        }
-        
         QMessage message = QMessage.message;
 
         return jpaQueryFactory
@@ -117,10 +104,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
      */
     @Override
     public Optional<Long> findOwnerIdByMessageId(Long messageId) {
-        if (messageId == null) {
-            return Optional.empty();
-        }
-        
         QMessage message = QMessage.message;
         
         Long ownerId = jpaQueryFactory

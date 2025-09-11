@@ -122,5 +122,4 @@ public class ReportDTO {
                 .createdAt(report.getCreatedAt())
                 .build();
     }
-
 }

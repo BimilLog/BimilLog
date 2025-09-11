@@ -49,8 +49,8 @@ public class SocialService implements SocialUseCase {
      * <p>기존 사용자는 즉시 로그인 처리하고, 신규 사용자는 회원가입을 위한 임시 데이터를 저장합니다.</p>
      * <p>{@link AuthCommandController}에서 소셜 로그인 요청 처리 시 호출됩니다.</p>
      *
-     * @param provider 소셜 플랫폼 제공자 (KAKAO, GOOGLE 등)
-     * @param code OAuth 인가 코드
+     * @param provider 소셜 플랫폼 제공자 (DTO에서 이미 검증됨)
+     * @param code OAuth 인가 코드 (DTO에서 이미 검증됨)
      * @param fcmToken 푸시 알림용 Firebase Cloud Messaging 토큰 (선택사항)
      * @return LoginResult 기존 사용자(쿠키) 또는 신규 사용자(UUID) 정보
      * @throws AuthCustomException 블랙리스트 사용자인 경우

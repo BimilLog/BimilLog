@@ -40,7 +40,6 @@ public class FcmAdapter implements FcmPort {
 
     private static final String API_URL = "https://fcm.googleapis.com/v1/projects/growfarm-6cd79/messages:send";
     private static final String FIREBASE_CONFIG_PATH = "growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json";
-    private static final String DEFAULT_NOTIFICATION_BODY = "지금 확인해보세요!";
     private static final String FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
     private static final String BEARER_PREFIX = "Bearer ";
 
@@ -117,6 +116,7 @@ public class FcmAdapter implements FcmPort {
     /**
      * <h3>FCM 메시지 구성</h3>
      * <p>FCM 전송 DTO를 기반으로 FCM API에 전송할 메시지 JSON 문자열을 생성합니다.</p>
+     * <p>DTO에서 필드 검증 및 기본값 처리가 완료되므로 단순 변환 작업만 수행합니다.</p>
      *
      * @param fcmMessage FCM 객체
      * @return FCM API로 전송할 JSON 형식의 메시지 문자열
@@ -129,13 +129,13 @@ public class FcmAdapter implements FcmPort {
         FcmMessageDTO fcmMessageDto = FcmMessageDTO.builder()
                 .message(FcmMessageDTO.Message.builder()
                         .token(fcmMessage.token())
-                        .notification(FcmMessageDTO.Notification.builder()
-                                .title(fcmMessage.title())
-                                .body(fcmMessage.body())
-                                .image(null)
-                                .build())
+                        .notification(FcmMessageDTO.Notification.of(
+                                fcmMessage.title(),
+                                fcmMessage.body(),
+                                null))
                         .build())
-                .validateOnly(false).build();
+                .validateOnly(false)
+                .build();
         return om.writeValueAsString(fcmMessageDto);
     }
 

@@ -350,15 +350,14 @@ class PostQueryControllerIntegrationTest {
     @Test
     @DisplayName("게시글 검색 - 공백 검색어")
     void searchPost_Fail_EmptyQuery() throws Exception {
-        // When & Then - 공백 검색어에 대해 빈 결과 반환
+        // When & Then - 공백 검색어에 대해 400 Bad Request
         mockMvc.perform(get("/api/post/search")
                         .param("type", "title")
                         .param("query", "")
                         .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())
-                .andExpect(status().isOk()) // 200 OK지만 빈 결과
-                .andExpect(jsonPath("$.content", hasSize(0))); // 빈 결과 반환
+                .andExpect(status().isBadRequest()); // DTO 검증 실패로 400
     }
 
     @Test

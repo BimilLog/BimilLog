@@ -125,9 +125,9 @@ class UserCommandControllerIntegrationTest {
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
         
         SettingDTO settingDTO = SettingDTO.builder()
-                .messageNotification(false)
-                .commentNotification(true)
-                .postFeaturedNotification(false)
+                .messageNotification(Boolean.FALSE)
+                .commentNotification(Boolean.TRUE)
+                .postFeaturedNotification(Boolean.FALSE)
                 .build();
 
         // When & Then
@@ -162,9 +162,9 @@ class UserCommandControllerIntegrationTest {
     void updateSetting_Unauthenticated_Forbidden() throws Exception {
         // Given
         SettingDTO settingDTO = SettingDTO.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
+                .messageNotification(Boolean.TRUE)
+                .commentNotification(Boolean.TRUE)
+                .postFeaturedNotification(Boolean.TRUE)
                 .build();
 
         // When & Then
@@ -174,6 +174,54 @@ class UserCommandControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(settingDTO)))
                 .andDo(print())
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("설정 수정 - null 값 검증 실패 - 400 Bad Request")
+    void updateSetting_NullValidation_BadRequest() throws Exception {
+        // Given
+        User testUser = createTestUser();
+        userRepository.save(testUser);
+        
+        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        
+        // null 값이 포함된 SettingDTO
+        SettingDTO settingDTO = SettingDTO.builder()
+                .messageNotification(null)  // null 값
+                .commentNotification(Boolean.TRUE)
+                .postFeaturedNotification(Boolean.FALSE)
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/setting")
+                        .with(user(userDetails))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(settingDTO)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("닉네임 변경 - 빈 문자열 검증 실패 - 400 Bad Request")
+    void updateUserName_BlankValidation_BadRequest() throws Exception {
+        // Given
+        User testUser = createTestUser();
+        userRepository.save(testUser);
+        
+        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        
+        UserNameDTO userNameDTO = new UserNameDTO();
+        userNameDTO.setUserName(""); // 빈 문자열
+
+        // When & Then
+        mockMvc.perform(post("/api/user/username")
+                        .with(user(userDetails))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test

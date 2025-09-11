@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.user.dto;
 
 import jaeik.bimillog.domain.user.entity.Setting;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**
@@ -19,11 +20,14 @@ import lombok.*;
 @Builder
 public class SettingDTO {
 
-    private boolean messageNotification;
+    @NotNull(message = "메시지 알림 설정은 필수입니다")
+    private Boolean messageNotification;
 
-    private boolean commentNotification;
+    @NotNull(message = "댓글 알림 설정은 필수입니다") 
+    private Boolean commentNotification;
 
-    private boolean postFeaturedNotification;
+    @NotNull(message = "게시글 추천 알림 설정은 필수입니다")
+    private Boolean postFeaturedNotification;
 
     /**
      * <h3>DTO를 Setting 엔티티로 변환</h3>
@@ -35,9 +39,9 @@ public class SettingDTO {
      */
     public Setting toSettingEntity() {
         return Setting.builder()
-                .messageNotification(messageNotification)
-                .commentNotification(commentNotification)
-                .postFeaturedNotification(postFeaturedNotification)
+                .messageNotification(messageNotification.booleanValue())
+                .commentNotification(commentNotification.booleanValue())
+                .postFeaturedNotification(postFeaturedNotification.booleanValue())
                 .build();
     }
 
@@ -52,9 +56,9 @@ public class SettingDTO {
      */
     public static SettingDTO fromSetting(Setting setting) {
         return SettingDTO.builder()
-                .messageNotification(setting.isMessageNotification())
-                .commentNotification(setting.isCommentNotification())
-                .postFeaturedNotification(setting.isPostFeaturedNotification())
+                .messageNotification(Boolean.valueOf(setting.isMessageNotification()))
+                .commentNotification(Boolean.valueOf(setting.isCommentNotification()))
+                .postFeaturedNotification(Boolean.valueOf(setting.isPostFeaturedNotification()))
                 .build();
     }
 }

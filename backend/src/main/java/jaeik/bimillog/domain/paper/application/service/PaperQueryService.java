@@ -67,6 +67,10 @@ public class PaperQueryService implements PaperQueryUseCase {
      */
     @Override
     public List<VisitMessageDetail> visitPaper(String userName) {
+        if (userName == null || userName.trim().isEmpty()) {
+            throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
+        }
+        
         boolean exists = paperToUserPort.existsByUserName(userName);
         if (!exists) {
             throw new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND);
