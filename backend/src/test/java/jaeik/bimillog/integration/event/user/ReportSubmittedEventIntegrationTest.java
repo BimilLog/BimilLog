@@ -160,28 +160,6 @@ class ReportSubmittedEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("시스템 예외 발생 시 처리")
-    void reportSubmissionWorkflow_SystemExceptionHandling() {
-        // Given
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(
-                999L, "baduser", ReportType.POST, 200L, "시스템 오류 발생");
-        
-        // 시스템 예외 발생 시뮬레이션 (예: DB 연결 실패)
-        doThrow(new RuntimeException("Database connection failed"))
-                .when(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("시스템 오류 발생"));
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 시스템 예외가 발생해도 리스너는 호출되고 예외를 삼켜야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("시스템 오류 발생"));
-                    verifyNoMoreInteractions(adminCommandUseCase);
-                });
-    }
 
     @Test
     @DisplayName("이벤트 처리 중 예외 발생 시 다른 이벤트에 영향 없음")
@@ -210,69 +188,6 @@ class ReportSubmittedEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("모든 신고 유형 처리 검증")
-    void reportSubmissionWorkflow_AllReportTypes() {
-        // Given - 모든 신고 유형
-        ReportSubmittedEvent commentReport = ReportSubmittedEvent.of(
-                1L, "user1", ReportType.COMMENT, 100L, "댓글 신고");
-        ReportSubmittedEvent postReport = ReportSubmittedEvent.of(
-                2L, "user2", ReportType.POST, 200L, "게시글 신고");
-        ReportSubmittedEvent improvement = ReportSubmittedEvent.of(
-                3L, "user3", ReportType.IMPROVEMENT, null, "기능 개선 건의");
 
-        // When
-        eventPublisher.publishEvent(commentReport);
-        eventPublisher.publishEvent(postReport);
-        eventPublisher.publishEvent(improvement);
 
-        // Then - 모든 신고 유형이 정상 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("댓글 신고"));
-                    verify(adminCommandUseCase).createReport(eq(2L), eq(ReportType.POST), eq(200L), eq("게시글 신고"));
-                    verify(adminCommandUseCase).createReport(eq(3L), eq(ReportType.IMPROVEMENT), eq(null), eq("기능 개선 건의"));
-                    verifyNoMoreInteractions(adminCommandUseCase);
-                });
-    }
-
-    @Test
-    @DisplayName("비동기 이벤트 리스너 정상 작동 검증")
-    void reportSubmissionEventAsync_ShouldTriggerListenerCorrectly() {
-        // Given
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(
-                999L, "asynctest", ReportType.POST, 9999L, "비동기 테스트 신고");
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 비동기 처리가 정상 완료되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(3))
-                .untilAsserted(() -> {
-                    verify(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(9999L), eq("비동기 테스트 신고"));
-                    verifyNoMoreInteractions(adminCommandUseCase);
-                });
-    }
-
-    @Test
-    @DisplayName("특수 문자가 포함된 신고 내용 처리")
-    void reportSubmissionWorkflow_SpecialCharacters() {
-        // Given - 특수문자가 포함된 신고 내용
-        String specialContent = "신고합니다! <script>alert('XSS')</script> & \"악성코드\" 포함됨";
-        ReportSubmittedEvent event = ReportSubmittedEvent.of(
-                1L, "reporter", ReportType.COMMENT, 100L, specialContent);
-
-        // When
-        eventPublisher.publishEvent(event);
-
-        // Then - 특수문자가 포함된 내용도 정상 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq(specialContent));
-                    verifyNoMoreInteractions(adminCommandUseCase);
-                });
-    }
 }

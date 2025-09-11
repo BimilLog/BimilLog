@@ -184,79 +184,53 @@ class UserActivityServiceTest {
     }
 
     @Test
-    @DisplayName("빈 게시글 목록 조회")
-    void shouldReturnEmptyPage_WhenNoUserPosts() {
+    @DisplayName("빈 게시글 관련 목록 조회 - 작성 게시글과 추천 게시글")
+    void shouldReturnEmptyPage_WhenNoUserPostsAndLikedPosts() {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         Page<PostSearchResult> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
         given(userActivityPort.findPostsByUserId(userId, pageable)).willReturn(emptyPage);
+        given(userActivityPort.findLikedPostsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
-        Page<PostSearchResult> result = userActivityService.getUserPosts(userId, pageable);
+        Page<PostSearchResult> userPostsResult = userActivityService.getUserPosts(userId, pageable);
+        Page<PostSearchResult> likedPostsResult = userActivityService.getUserLikedPosts(userId, pageable);
 
         // Then
         verify(userActivityPort).findPostsByUserId(userId, pageable);
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
+        verify(userActivityPort).findLikedPostsByUserId(userId, pageable);
+        
+        assertThat(userPostsResult.getContent()).isEmpty();
+        assertThat(userPostsResult.getTotalElements()).isEqualTo(0);
+        assertThat(likedPostsResult.getContent()).isEmpty();
+        assertThat(likedPostsResult.getTotalElements()).isEqualTo(0);
     }
 
     @Test
-    @DisplayName("빈 댓글 목록 조회")
-    void shouldReturnEmptyPage_WhenNoUserComments() {
+    @DisplayName("빈 댓글 관련 목록 조회 - 작성 댓글과 추천 댓글")
+    void shouldReturnEmptyPage_WhenNoUserCommentsAndLikedComments() {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
 
         given(userActivityPort.findCommentsByUserId(userId, pageable)).willReturn(emptyPage);
-
-        // When
-        Page<SimpleCommentInfo> result = userActivityService.getUserComments(userId, pageable);
-
-        // Then
-        verify(userActivityPort).findCommentsByUserId(userId, pageable);
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("빈 추천 게시글 목록 조회")
-    void shouldReturnEmptyPage_WhenNoUserLikedPosts() {
-        // Given
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<PostSearchResult> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
-
-        given(userActivityPort.findLikedPostsByUserId(userId, pageable)).willReturn(emptyPage);
-
-        // When
-        Page<PostSearchResult> result = userActivityService.getUserLikedPosts(userId, pageable);
-
-        // Then
-        verify(userActivityPort).findLikedPostsByUserId(userId, pageable);
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("빈 추천 댓글 목록 조회")
-    void shouldReturnEmptyPage_WhenNoUserLikedComments() {
-        // Given
-        Long userId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<SimpleCommentInfo> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
-
         given(userActivityPort.findLikedCommentsByUserId(userId, pageable)).willReturn(emptyPage);
 
         // When
-        Page<SimpleCommentInfo> result = userActivityService.getUserLikedComments(userId, pageable);
+        Page<SimpleCommentInfo> userCommentsResult = userActivityService.getUserComments(userId, pageable);
+        Page<SimpleCommentInfo> likedCommentsResult = userActivityService.getUserLikedComments(userId, pageable);
 
         // Then
+        verify(userActivityPort).findCommentsByUserId(userId, pageable);
         verify(userActivityPort).findLikedCommentsByUserId(userId, pageable);
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
+        
+        assertThat(userCommentsResult.getContent()).isEmpty();
+        assertThat(userCommentsResult.getTotalElements()).isEqualTo(0);
+        assertThat(likedCommentsResult.getContent()).isEmpty();
+        assertThat(likedCommentsResult.getTotalElements()).isEqualTo(0);
     }
 
     @Test

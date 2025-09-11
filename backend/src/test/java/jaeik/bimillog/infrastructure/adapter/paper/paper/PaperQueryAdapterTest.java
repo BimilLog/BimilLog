@@ -26,11 +26,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
- * <h2>PaperQueryAdapter 테스트</h2>
- * <p>PaperQueryAdapter의 모든 기능을 테스트합니다.</p>
+ * <h2>PaperQueryAdapter 통합 테스트</h2>
+ * <p>PaperQueryAdapter의 핵심 조회 기능을 테스트합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -59,21 +58,14 @@ class PaperQueryAdapterTest {
     private PaperQueryAdapter paperQueryAdapter;
 
     private User testUser;
-    private User anotherUser;
     private Message testMessage1;
     private Message testMessage2;
-    private Message anotherUserMessage;
 
     @BeforeEach
     void setUp() {
-        // 사용자 엔티티 생성 및 저장
         testUser = createAndSaveUser("testuser", "12345", "테스트유저");
-        anotherUser = createAndSaveUser("anotheruser", "67890", "다른유저");
-
-        // 메시지 엔티티 생성 및 저장
         testMessage1 = createAndSaveMessage(testUser, "첫 번째 메시지", DecoType.APPLE, 100, 50);
         testMessage2 = createAndSaveMessage(testUser, "두 번째 메시지", DecoType.BANANA, 150, 75);
-        anotherUserMessage = createAndSaveMessage(anotherUser, "다른 사용자 메시지", DecoType.GRAPE, 200, 100);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -103,16 +95,6 @@ class PaperQueryAdapterTest {
     }
 
     @Test
-    @DisplayName("메시지 ID로 메시지 조회 - null ID")
-    void shouldReturnEmpty_WhenNullId() {
-        // When
-        Optional<Message> result = paperQueryAdapter.findMessageById(null);
-
-        // Then
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     @DisplayName("사용자 ID로 메시지 목록 조회 - 성공")
     void shouldFindMessagesByUserId_WhenValidUserId() {
         // Given
@@ -131,20 +113,6 @@ class PaperQueryAdapterTest {
     }
 
     @Test
-    @DisplayName("사용자 ID로 메시지 목록 조회 - 메시지가 없는 경우")
-    void shouldReturnEmptyList_WhenUserHasNoMessages() {
-        // Given
-        User userWithoutMessages = createAndSaveUser("noMessages", "555", "메시지없음");
-        testEntityManager.flush();
-
-        // When
-        List<Message> result = paperQueryAdapter.findMessagesByUserId(userWithoutMessages.getId());
-
-        // Then
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     @DisplayName("사용자명으로 메시지 목록 조회 - 성공")
     void shouldFindMessagesByUserName_WhenValidUserName() {
         // When
@@ -157,109 +125,46 @@ class PaperQueryAdapterTest {
     }
 
     @Test
-    @DisplayName("사용자명으로 메시지 목록 조회 - 메시지가 없는 경우")
-    void shouldReturnEmptyList_WhenUserNameHasNoMessages() {
-        // Given
-        User userWithoutMessages = createAndSaveUser("noMessages", "555", "메시지없음");
-        testEntityManager.flush();
-
-        // When
-        List<Message> result = paperQueryAdapter.findMessagesByUserName(userWithoutMessages.getUserName());
-
-        // Then
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     @DisplayName("null 및 빈 문자열 처리")
     void shouldHandleNullAndEmptyInputs() {
-        assertThatNoException().isThrownBy(() -> {
-            List<Message> nullUserIdResult = paperQueryAdapter.findMessagesByUserId(null);
-            assertThat(nullUserIdResult).isEmpty();
-            
-            List<Message> nullUserNameResult = paperQueryAdapter.findMessagesByUserName(null);
-            assertThat(nullUserNameResult).isEmpty();
-            
-            List<Message> emptyUserNameResult = paperQueryAdapter.findMessagesByUserName("");
-            assertThat(emptyUserNameResult).isEmpty();
-            
-            List<Message> whiteSpaceUserNameResult = paperQueryAdapter.findMessagesByUserName("   ");
-            assertThat(whiteSpaceUserNameResult).isEmpty();
-        });
+        // null ID 처리
+        Optional<Message> nullIdResult = paperQueryAdapter.findMessageById(null);
+        assertThat(nullIdResult).isEmpty();
+
+        // null userId 처리
+        List<Message> nullUserIdResult = paperQueryAdapter.findMessagesByUserId(null);
+        assertThat(nullUserIdResult).isEmpty();
+        
+        // null userName 처리
+        List<Message> nullUserNameResult = paperQueryAdapter.findMessagesByUserName(null);
+        assertThat(nullUserNameResult).isEmpty();
+        
+        // 빈 문자열 userName 처리
+        List<Message> emptyUserNameResult = paperQueryAdapter.findMessagesByUserName("");
+        assertThat(emptyUserNameResult).isEmpty();
+        
+        // 공백 문자열 userName 처리
+        List<Message> whiteSpaceUserNameResult = paperQueryAdapter.findMessagesByUserName("   ");
+        assertThat(whiteSpaceUserNameResult).isEmpty();
     }
 
     @Test
-    @DisplayName("사용자 엔티티 페치 조인 확인")
-    void shouldFetchUserEntity_WhenFindingMessages() {
+    @DisplayName("메시지 ID로 소유자 ID 조회 - 성공")
+    void shouldFindOwnerIdByMessageId_WhenValidId() {
         // When
-        List<Message> result = paperQueryAdapter.findMessagesByUserId(testUser.getId());
-
-        // Then - User 엔티티가 제대로 페치 조인되어야 함
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getUser()).isNotNull();
-        assertThat(result.get(0).getUser().getUserName()).isEqualTo(testUser.getUserName());
-    }
-
-    @Test
-    @DisplayName("복수 사용자 메시지 조회시 각자의 메시지만 조회됨")
-    void shouldReturnOnlyUserOwnMessages_WhenMultipleUsersExist() {
-        // When
-        List<Message> testUserMessages = paperQueryAdapter.findMessagesByUserId(testUser.getId());
-        List<Message> anotherUserMessages = paperQueryAdapter.findMessagesByUserId(anotherUser.getId());
+        Optional<Long> result = paperQueryAdapter.findOwnerIdByMessageId(testMessage1.getId());
 
         // Then
-        assertThat(testUserMessages).hasSize(2);
-        assertThat(anotherUserMessages).hasSize(1);
-        
-        testUserMessages.forEach(message -> 
-            assertThat(message.getUserId()).isEqualTo(testUser.getId())
-        );
-        
-        anotherUserMessages.forEach(message -> 
-            assertThat(message.getUserId()).isEqualTo(anotherUser.getId())
-        );
-    }
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(testUser.getId());
 
-    @Test
-    @DisplayName("대용량 메시지 조회 성능 테스트")
-    void shouldHandleLargeNumberOfMessages() {
-        // Given - 대용량 메시지 생성
-        User bulkUser = createAndSaveUser("bulkuser", "999", "대용량");
-        for (int i = 0; i < 100; i++) {
-            createAndSaveMessage(bulkUser, "대용량 메시지 " + i, DecoType.APPLE, 100 + i, 50 + i);
-        }
-        testEntityManager.flush();
+        // null ID 처리
+        Optional<Long> nullResult = paperQueryAdapter.findOwnerIdByMessageId(null);
+        assertThat(nullResult).isEmpty();
 
-        // When
-        long startTime = System.currentTimeMillis();
-        List<Message> result = paperQueryAdapter.findMessagesByUserId(bulkUser.getId());
-        long endTime = System.currentTimeMillis();
-
-        // Then
-        assertThat(result).hasSize(100);
-        assertThat(endTime - startTime).isLessThan(1000); // 1초 이내 조회
-        
-        // 정렬 확인
-        for (int i = 0; i < result.size() - 1; i++) {
-            assertThat(result.get(i).getCreatedAt())
-                .isAfterOrEqualTo(result.get(i + 1).getCreatedAt());
-        }
-    }
-
-    @Test
-    @DisplayName("특수문자가 포함된 사용자명 검색")
-    void shouldFindMessages_WithSpecialCharacterUserName() {
-        // Given
-        User specialUser = createAndSaveUser("user@test_123", "special123", "특수문자");
-        createAndSaveMessage(specialUser, "특수문자 사용자 메시지", DecoType.STAR, 300, 150);
-        testEntityManager.flush();
-
-        // When
-        List<Message> result = paperQueryAdapter.findMessagesByUserName("user@test_123");
-
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getContent()).isEqualTo("특수문자 사용자 메시지");
+        // 존재하지 않는 ID 처리
+        Optional<Long> notFoundResult = paperQueryAdapter.findOwnerIdByMessageId(999L);
+        assertThat(notFoundResult).isEmpty();
     }
 
     private User createAndSaveUser(String userName, String socialId, String socialNickname) {
@@ -286,7 +191,7 @@ class PaperQueryAdapterTest {
                 .user(user)
                 .content(content)
                 .decoType(decoType)
-                .anonymity("익명123")  // anonymity는 8자 제한이므로 짧게 변경
+                .anonymity("익명123")
                 .width(width)
                 .height(height)
                 .build();

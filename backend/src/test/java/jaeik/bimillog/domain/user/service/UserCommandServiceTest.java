@@ -171,61 +171,6 @@ class UserCommandServiceTest {
     }
 
 
-    // save 메서드가 제거되었으므로 해당 테스트도 제거
-
-
-    /*
-     * TODO: 서비스 코드에 입력 검증 로직 추가 후 활성화 필요
-     * 현재 UserCommandService에서 입력 검증을 하지 않아 테스트 실패
-     * 향후 서비스 계층에 입력 검증 로직 추가 시 주석 해제하여 테스트 활성화
-     */
-    // @Test
-    // @DisplayName("빈 문자열 닉네임 변경 시도 - INVALID_INPUT_VALUE 예외 발생")
-    // void shouldThrowException_WhenEmptyUserName() {
-    //     // Given
-    //     Long userId = 1L;
-    //     String emptyUserName = "";
-    //
-    //     // When & Then
-    //     assertThatThrownBy(() -> userCommandService.updateUserName(userId, emptyUserName))
-    //             .isInstanceOf(UserCustomException.class)
-    //             .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
-    //
-    //     // 입력 검증 실패로 userQueryPort가 호출되지 않아야 함
-    //     verify(userQueryPort, never()).findById(any());
-    // }
-
-    // @Test
-    // @DisplayName("null 닉네임 변경 시도 - INVALID_INPUT_VALUE 예외 발생")
-    // void shouldThrowException_WhenNullUserName() {
-    //     // Given
-    //     Long userId = 1L;
-    //     String nullUserName = null;
-    //
-    //     // When & Then
-    //     assertThatThrownBy(() -> userCommandService.updateUserName(userId, nullUserName))
-    //             .isInstanceOf(UserCustomException.class)
-    //             .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
-    //
-    //     // 입력 검증 실패로 userQueryPort가 호출되지 않아야 함
-    //     verify(userQueryPort, never()).findById(any());
-    // }
-
-    // @Test
-    // @DisplayName("매우 긴 닉네임 변경 시 길이 제한 검증")
-    // void shouldThrowException_WhenUserNameTooLong() {
-    //     // Given
-    //     Long userId = 1L;
-    //     String tooLongUserName = "a".repeat(51); // 51자 길이 (50자 제한 가정)
-    //
-    //     // When & Then
-    //     assertThatThrownBy(() -> userCommandService.updateUserName(userId, tooLongUserName))
-    //             .isInstanceOf(UserCustomException.class)
-    //             .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
-    //
-    //     // 입력 검증 실패로 userQueryPort가 호출되지 않아야 함
-    //     verify(userQueryPort, never()).findById(any());
-    // }
 
     @Test
     @DisplayName("적절한 길이의 닉네임 변경 성공")
@@ -249,21 +194,6 @@ class UserCommandServiceTest {
         assertThat(user.getUserName()).isEqualTo(validUserName);
     }
 
-    // @Test
-    // @DisplayName("특수 문자 포함 닉네임 변경 시 형식 검증")
-    // void shouldThrowException_WhenInvalidCharacterUserName() {
-    //     // Given
-    //     Long userId = 1L;
-    //     String invalidUserName = "user@#$%^&*()"; // 허용되지 않는 특수문자
-    //
-    //     // When & Then
-    //     assertThatThrownBy(() -> userCommandService.updateUserName(userId, invalidUserName))
-    //             .isInstanceOf(UserCustomException.class)
-    //             .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
-    //
-    //     // 입력 검증 실패로 userQueryPort가 호출되지 않아야 함
-    //     verify(userQueryPort, never()).findById(any());
-    // }
 
     @Test
     @DisplayName("허용되는 문자 조합 닉네임 변경 성공")

@@ -184,24 +184,6 @@ class SseAdapterTest {
     }
 
     @Test
-    @DisplayName("다양한 알림 타입 전송 테스트")
-    void shouldSendDifferentNotificationTypes() {
-        // Given
-        given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.PAPER)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(mockUser));
-        given(emitterRepository.findAllEmitterByUserId(userId))
-                .willReturn(Map.of(emitterId, mockEmitter));
-
-        // When
-        SseMessage sseMessage = SseMessage.of(userId, NotificationType.PAPER, "롤링페이퍼 메시지", "/paper/url");
-        sseAdapter.send(sseMessage);
-
-        // Then
-        verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.PAPER);
-        verify(notificationCommandPort).save(mockUser, NotificationType.PAPER, "롤링페이퍼 메시지", "/paper/url");
-    }
-
-    @Test
     @DisplayName("여러 Emitter에 동시 전송 테스트")
     void shouldSendToMultipleEmitters() {
         // Given

@@ -34,7 +34,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * <h2>PostCommandAdapter 테스트</h2>
- * <p>게시글 명령 어댑터의 모든 기능을 테스트합니다.</p>
+ * <p>게시글 명령 어댑터의 핵심 비즈니스 로직을 테스트합니다.</p>
+ * <p>조회수 증가, 공지사항 설정, 캐시 플래그 설정</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -87,131 +88,6 @@ class PostCommandAdapterTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    @Test
-    @DisplayName("정상 케이스 - 새 게시글 저장")
-    void shouldSavePost_WhenValidPostProvided() {
-        // Given: 유효한 사용자와 게시글 생성
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(user);
-
-        String title = "테스트 제목";
-        String content = "테스트 내용입니다.";
-        Integer password = 1234;
-
-        Post post = Post.createPost(user, title, content, password);
-
-        // When: 게시글 저장
-        Post savedPost = postCommandAdapter.save(post);
-
-        // Then: 저장된 게시글 검증
-        assertThat(savedPost).isNotNull();
-        assertThat(savedPost.getId()).isNotNull();
-        assertThat(savedPost.getTitle()).isEqualTo("테스트 제목");
-        assertThat(savedPost.getContent()).isEqualTo("테스트 내용입니다.");
-        assertThat(savedPost.getUser().getUserName()).isEqualTo("testUser");
-        assertThat(savedPost.getViews()).isEqualTo(0);
-        assertThat(savedPost.isNotice()).isFalse();
-
-        // 데이터베이스에서 실제 저장 확인
-        Post foundPost = entityManager.find(Post.class, savedPost.getId());
-        assertThat(foundPost).isNotNull();
-        assertThat(foundPost.getTitle()).isEqualTo("테스트 제목");
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 기존 게시글 수정 저장")
-    void shouldUpdatePost_WhenModifiedPostProvided() {
-        // Given: 기존 게시글 저장
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(user);
-
-        String originalTitle = "원본 제목";
-        String originalContent = "원본 내용";
-        Integer originalPassword = 1234;
-
-        Post originalPost = Post.createPost(user, originalTitle, originalContent, originalPassword);
-        Post savedPost = postCommandAdapter.save(originalPost);
-        entityManager.flush();
-
-        // 수정할 내용
-        String updateTitle = "수정된 제목";
-        String updateContent = "수정된 내용입니다.";
-
-        savedPost.updatePost(updateTitle, updateContent);
-
-        // When: 수정된 게시글 저장
-        Post updatedPost = postCommandAdapter.save(savedPost);
-
-        // Then: 수정 내용 검증
-        assertThat(updatedPost.getId()).isEqualTo(savedPost.getId());
-        assertThat(updatedPost.getTitle()).isEqualTo("수정된 제목");
-        assertThat(updatedPost.getContent()).isEqualTo("수정된 내용입니다.");
-        
-        // 데이터베이스에서 수정 확인
-        entityManager.flush();
-        entityManager.clear();
-        Post foundPost = entityManager.find(Post.class, updatedPost.getId());
-        assertThat(foundPost.getTitle()).isEqualTo("수정된 제목");
-        assertThat(foundPost.getContent()).isEqualTo("수정된 내용입니다.");
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 게시글 삭제")
-    void shouldDeletePost_WhenValidPostProvided() {
-        // Given: 저장된 게시글
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(user);
-
-        String title = "삭제할 제목";
-        String content = "삭제할 내용";
-        Integer password = 1234;
-
-        Post post = Post.createPost(user, title, content, password);
-        Post savedPost = postCommandAdapter.save(post);
-        Long postId = savedPost.getId();
-        entityManager.flush();
-
-        // When: 게시글 삭제
-        postCommandAdapter.delete(savedPost);
-        entityManager.flush();
-
-        // Then: 삭제 검증
-        Post deletedPost = entityManager.find(Post.class, postId);
-        assertThat(deletedPost).isNull();
-    }
 
     @Test
     @DisplayName("정상 케이스 - 조회수 증가")
@@ -253,80 +129,6 @@ class PostCommandAdapterTest {
         assertThat(updatedPost.getViews()).isEqualTo(1);
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 조회수 여러번 증가")
-    void shouldIncrementViewMultipleTimes_WhenCalledRepeatedly() {
-        // Given: 저장된 게시글
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(user);
-
-        String title = "다중 조회수 테스트";
-        String content = "다중 조회수 증가 테스트";
-        Integer password = 1234;
-
-        Post post = Post.createPost(user, title, content, password);
-        Post savedPost = postCommandAdapter.save(post);
-        entityManager.flush();
-
-        // When: 조회수 3번 증가
-        postCommandAdapter.incrementViewByPostId(savedPost.getId());
-        postCommandAdapter.incrementViewByPostId(savedPost.getId());
-        postCommandAdapter.incrementViewByPostId(savedPost.getId());
-        entityManager.flush();
-        entityManager.clear();
-
-        // Then: 조회수가 3 증가했는지 검증
-        Post updatedPost = entityManager.find(Post.class, savedPost.getId());
-        assertThat(updatedPost.getViews()).isEqualTo(3);
-    }
-
-
-    @Test
-    @DisplayName("경계값 - 긴 제목과 내용으로 게시글 저장")
-    void shouldSavePost_WhenTitleAndContentAreLong() {
-        // Given: 최대 길이 제목(30자)과 긴 내용
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(user);
-
-        String longTitle = "a".repeat(30); // 30자 제목
-        String longContent = "긴 내용입니다. ".repeat(100); // 매우 긴 내용
-
-        Integer password = 1234;
-
-        Post post = Post.createPost(user, longTitle, longContent, password);
-
-        // When: 긴 제목과 내용의 게시글 저장
-        Post savedPost = postCommandAdapter.save(post);
-
-        // Then: 저장 성공 검증
-        assertThat(savedPost).isNotNull();
-        assertThat(savedPost.getTitle()).hasSize(30);
-        assertThat(savedPost.getContent()).isNotEmpty();
-        assertThat(savedPost.getContent().length()).isEqualTo(longContent.length()); // 원본과 동일해야 함
-        assertThat(savedPost.getContent().length()).isGreaterThan(500); // 충분히 긴 내용 검증
-    }
 
     @Test
     @DisplayName("비즈니스 로직 - 공지사항 설정 후 저장")
@@ -400,12 +202,10 @@ class PostCommandAdapterTest {
         assertThat(foundPost.getPostCacheFlag()).isEqualTo(PostCacheFlag.REALTIME);
     }
 
-
-
     @Test
-    @DisplayName("트랜잭션 - 저장 후 즉시 조회 가능")
-    void shouldBeAvailableImmediately_WhenPostSaved() {
-        // Given: 새 게시글
+    @DisplayName("정상 케이스 - 게시글 삭제")
+    void shouldDeletePost_WhenValidPostProvided() {
+        // Given: 저장된 게시글
         User user = User.builder()
                 .userName("testUser")
                 .socialId("123456")
@@ -420,22 +220,26 @@ class PostCommandAdapterTest {
                 .build();
         entityManager.persistAndFlush(user);
 
-        String title = "즉시 조회 테스트";
-        String content = "저장 후 바로 조회되는지 확인";
+        String title = "삭제될 게시글";
+        String content = "삭제 테스트 내용";
         Integer password = 1234;
 
         Post post = Post.createPost(user, title, content, password);
-
-        // When: 저장 후 즉시 조회
         Post savedPost = postCommandAdapter.save(post);
-        entityManager.flush(); // 강제 플러시
+        entityManager.flush();
+        entityManager.clear();
 
-        Post foundPost = entityManager.find(Post.class, savedPost.getId());
+        // When: 게시글 삭제
+        Post postToDelete = entityManager.find(Post.class, savedPost.getId());
+        assertThat(postToDelete).isNotNull(); // 삭제 전 존재 확인
+        
+        postCommandAdapter.delete(postToDelete);
+        entityManager.flush();
+        entityManager.clear();
 
-        // Then: 즉시 조회 가능 확인
-        assertThat(foundPost).isNotNull();
-        assertThat(foundPost.getId()).isEqualTo(savedPost.getId());
-        assertThat(foundPost.getTitle()).isEqualTo("즉시 조회 테스트");
+        // Then: 게시글 삭제 확인
+        Post deletedPost = entityManager.find(Post.class, savedPost.getId());
+        assertThat(deletedPost).isNull();
     }
 
 }

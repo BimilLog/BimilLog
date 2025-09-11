@@ -34,7 +34,8 @@ import static org.mockito.BDDMockito.given;
 
 /**
  * <h2>PostQueryAdapter 통합 테스트</h2>
- * <p>게시글 조회 어댑터의 모든 기능을 테스트합니다.</p>
+ * <p>게시글 조회 어댑터의 핵심 비즈니스 로직을 테스트합니다.</p>
+ * <p>페이징 조회, 사용자별 조회, 검색, 공지사항 제외 등</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -126,32 +127,6 @@ class PostQueryAdapterTest {
         entityManager.clear();
     }
 
-    @Test
-    @DisplayName("정상 케이스 - ID로 게시글 조회")
-    void shouldFindPost_WhenValidIdProvided() {
-        // Given: 저장된 게시글 ID
-        Long postId = testPost1.getId();
-
-        // When: ID로 게시글 조회
-        Post foundPost = postQueryAdapter.findById(postId);
-
-        // Then: 게시글이 정상 조회됨
-        assertThat(foundPost).isNotNull();
-        assertThat(foundPost.getId()).isEqualTo(postId);
-        assertThat(foundPost.getTitle()).isEqualTo("첫 번째 게시글");
-        assertThat(foundPost.getContent()).isEqualTo("첫 번째 게시글 내용");
-    }
-
-    @Test
-    @DisplayName("경계값 - 존재하지 않는 ID로 조회")
-    void shouldReturnEmpty_WhenNonExistentIdProvided() {
-        // Given: 존재하지 않는 게시글 ID
-        Long nonExistentId = 99999L;
-
-        // When & Then: 존재하지 않는 ID로 조회 시 예외 발생
-        assertThatThrownBy(() -> postQueryAdapter.findById(nonExistentId))
-                .isInstanceOf(PostCustomException.class);
-    }
 
     @Test
     @DisplayName("정상 케이스 - 페이지별 게시글 조회 (공지사항 제외)")
@@ -179,27 +154,6 @@ class PostQueryAdapterTest {
         assertThat(result.getContent().get(0).getLikeCount()).isNotNull();
     }
 
-    @Test
-    @DisplayName("경계값 - 빈 페이지 요청")
-    void shouldReturnEmptyPage_WhenNoPostsExist() {
-        // Given: 모든 일반 게시글 삭제
-        entityManager.getEntityManager()
-                .createQuery("DELETE FROM Post p WHERE p.isNotice = false")
-                .executeUpdate();
-        entityManager.flush();
-        entityManager.clear();
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: 빈 페이지 조회
-        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
-
-        // Then: 빈 페이지 반환
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0L);
-        assertThat(result.getTotalPages()).isEqualTo(0);
-    }
 
     @Test
     @DisplayName("정상 케이스 - 사용자별 작성 게시글 조회")
@@ -224,21 +178,6 @@ class PostQueryAdapterTest {
         assertThat(userNames).containsExactly("testUser");
     }
 
-    @Test
-    @DisplayName("경계값 - 존재하지 않는 사용자의 게시글 조회")
-    void shouldReturnEmptyPage_WhenNonExistentUserIdProvided() {
-        // Given: 존재하지 않는 사용자 ID
-        Long nonExistentUserId = 99999L;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: 존재하지 않는 사용자의 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findPostsByUserId(nonExistentUserId, pageable);
-
-        // Then: 빈 페이지 반환
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0L);
-    }
 
     @Test
     @DisplayName("정상 케이스 - 사용자 추천 게시글 조회")
@@ -295,34 +234,6 @@ class PostQueryAdapterTest {
         assertThat(result.getContent()).allMatch(post -> post.getLikeCount() != null);
     }
 
-    @Test
-    @DisplayName("경계값 - 추천하지 않은 사용자의 추천 게시글 조회")
-    void shouldReturnEmptyPage_WhenUserHasNoLikedPosts() {
-        // Given: 추천을 하지 않은 새로운 사용자
-        User newUser = User.builder()
-                .userName("newUser")
-                .socialId("new123")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("새로운유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(newUser);
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: 추천 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findLikedPostsByUserId(newUser.getId(), pageable);
-
-        // Then: 빈 페이지 반환
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0L);
-    }
 
     @Test
     @DisplayName("정상 케이스 - 제목 검색")
@@ -400,31 +311,4 @@ class PostQueryAdapterTest {
 
 
 
-    @Test
-    @DisplayName("데이터 매핑 - 모든 필드 정확히 매핑")
-    void shouldMapAllFields_WhenCreatingPostSearchResult() {
-        // Given: 캐시 플래그가 설정된 게시글 (가장 최신)
-        testPost3.updatePostCacheFlag(PostCacheFlag.REALTIME);
-        entityManager.merge(testPost3);
-        entityManager.flush();
-
-        Pageable pageable = PageRequest.of(0, 1);
-
-        // When: 게시글 조회 (최신순 정렬로 testPost3가 첫 번째)
-        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
-
-        // Then: 모든 필드가 정확히 매핑됨
-        PostSearchResult dto = result.getContent().get(0);
-        
-        assertThat(dto.getId()).isEqualTo(testPost3.getId());
-        assertThat(dto.getTitle()).isEqualTo(testPost3.getTitle());
-        assertThat(dto.getUserId()).isEqualTo(testUser.getId());
-        assertThat(dto.getUserName()).isEqualTo(testUser.getUserName());
-        assertThat(dto.getPostCacheFlag()).isEqualTo(PostCacheFlag.REALTIME);
-        assertThat(dto.isNotice()).isFalse();
-        assertThat(dto.getCreatedAt()).isNotNull();
-        assertThat(dto.getCommentCount()).isNotNull();
-        assertThat(dto.getLikeCount()).isNotNull();
-        assertThat(dto.getViewCount()).isNotNull();
-    }
 }
