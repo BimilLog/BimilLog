@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationToUserPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.application.service.NotificationFcmService;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
@@ -10,6 +9,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,7 +45,7 @@ class NotificationFcmServiceTest {
     private FcmPort fcmPort;
 
     @Mock
-    private NotificationToUserPort notificationToUserPort;
+    private GlobalUserQueryPort globalUserQueryPort;
 
     @Mock
     private NotificationUtilPort notificationUtilPort;
@@ -62,15 +63,15 @@ class NotificationFcmServiceTest {
         Long userId = 1L;
         String fcmToken = "valid-fcm-token";
         
-        given(notificationToUserPort.findById(userId)).willReturn(user);
+        given(globalUserQueryPort.findById(userId)).willReturn(Optional.of(user));
 
         // When
         notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
-        verify(notificationToUserPort, times(1)).findById(userId);
+        verify(globalUserQueryPort, times(1)).findById(userId);
         verify(fcmPort, times(1)).save(any(FcmToken.class));
-        verifyNoMoreInteractions(notificationToUserPort, fcmPort);
+        verifyNoMoreInteractions(globalUserQueryPort, fcmPort);
     }
 
     @Test
@@ -80,14 +81,14 @@ class NotificationFcmServiceTest {
         Long userId = 999L;
         String fcmToken = "valid-fcm-token";
         
-        given(notificationToUserPort.findById(userId)).willThrow(new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
+        given(globalUserQueryPort.findById(userId)).willThrow(new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
-        verify(notificationToUserPort, times(1)).findById(userId);
+        verify(globalUserQueryPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());
     }
 
@@ -102,7 +103,7 @@ class NotificationFcmServiceTest {
         notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
-        verify(notificationToUserPort, never()).findById(anyLong());
+        verify(globalUserQueryPort, never()).findById(anyLong());
         verify(fcmPort, never()).save(any());
     }
 
@@ -117,7 +118,7 @@ class NotificationFcmServiceTest {
         notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
-        verify(notificationToUserPort, never()).findById(anyLong());
+        verify(globalUserQueryPort, never()).findById(anyLong());
         verify(fcmPort, never()).save(any());
     }
 

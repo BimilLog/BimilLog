@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.user.service;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.application.port.out.TokenPort;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserQueryService;
 import jaeik.bimillog.domain.user.entity.Setting;
@@ -40,7 +40,7 @@ class UserQueryServiceTest {
     private UserQueryPort userQueryPort;
     
     @Mock
-    private TokenPort tokenPort;
+    private GlobalTokenQueryPort globalTokenQueryPort;
 
     @InjectMocks
     private UserQueryService userQueryService;
@@ -232,13 +232,13 @@ class UserQueryServiceTest {
         Token expectedToken = Token.createTemporaryToken("access-token", "refresh-token");
                 
 
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(expectedToken));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(expectedToken));
 
         // When
         Optional<Token> result = userQueryService.findTokenById(tokenId);
 
         // Then
-        verify(tokenPort).findById(tokenId);
+        verify(globalTokenQueryPort).findById(tokenId);
         assertThat(result).isPresent();
         assertThat(result.get().getAccessToken()).isEqualTo("access-token");
         assertThat(result.get().getRefreshToken()).isEqualTo("refresh-token");

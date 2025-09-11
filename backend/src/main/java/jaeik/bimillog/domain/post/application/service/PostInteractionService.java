@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     private final PostQueryPort postQueryPort;
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostLikeQueryPort postLikeQueryPort;
-    private final PostToUserPort postToUserPort;
+    private final GlobalUserQueryPort globalUserQueryPort;
 
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -54,7 +55,7 @@ public class PostInteractionService implements PostInteractionUseCase {
      */
     @Override
     public void likePost(Long userId, Long postId) {
-        User user = postToUserPort.getReferenceById(userId);
+        User user = globalUserQueryPort.getReferenceById(userId);
         Post post = postQueryPort.findById(postId);
 
         if (postLikeQueryPort.existsByUserAndPost(user, post)) {

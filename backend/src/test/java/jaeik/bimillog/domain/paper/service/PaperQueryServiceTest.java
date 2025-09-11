@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -10,6 +9,7 @@ import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +43,7 @@ class PaperQueryServiceTest {
     private PaperQueryPort paperQueryPort;
 
     @Mock
-    private PaperToUserPort paperToUserPort;
+    private GlobalUserQueryPort globalUserQueryPort;
 
 
     @Mock
@@ -116,7 +116,7 @@ class PaperQueryServiceTest {
                 createMessage(2L, 200L, "메시지2")
         );
 
-        given(paperToUserPort.existsByUserName(userName)).willReturn(true);
+        given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);
         given(paperQueryPort.findMessagesByUserName(userName)).willReturn(messages);
 
         // When
@@ -130,9 +130,9 @@ class PaperQueryServiceTest {
         assertThat(result.get(1).id()).isEqualTo(2L);
         assertThat(result.get(1).userId()).isEqualTo(200L);
 
-        verify(paperToUserPort, times(1)).existsByUserName(userName);
+        verify(globalUserQueryPort, times(1)).existsByUserName(userName);
         verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
-        verifyNoMoreInteractions(paperToUserPort, paperQueryPort);
+        verifyNoMoreInteractions(globalUserQueryPort, paperQueryPort);
     }
 
     @Test
@@ -141,14 +141,14 @@ class PaperQueryServiceTest {
         // Given
         String userName = "nonexistentuser";
 
-        given(paperToUserPort.existsByUserName(userName)).willReturn(false);
+        given(globalUserQueryPort.existsByUserName(userName)).willReturn(false);
 
         // When & Then
         assertThatThrownBy(() -> paperQueryService.visitPaper(userName))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
-        verify(paperToUserPort, times(1)).existsByUserName(userName);
+        verify(globalUserQueryPort, times(1)).existsByUserName(userName);
         verify(paperQueryPort, never()).findMessagesByUserName(any());
     }
 
@@ -159,7 +159,7 @@ class PaperQueryServiceTest {
         String userName = "testuser";
         List<Message> emptyList = Collections.emptyList();
 
-        given(paperToUserPort.existsByUserName(userName)).willReturn(true);
+        given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);
         given(paperQueryPort.findMessagesByUserName(userName)).willReturn(emptyList);
 
         // When
@@ -169,7 +169,7 @@ class PaperQueryServiceTest {
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
-        verify(paperToUserPort, times(1)).existsByUserName(userName);
+        verify(globalUserQueryPort, times(1)).existsByUserName(userName);
         verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
     }
 
@@ -231,7 +231,7 @@ class PaperQueryServiceTest {
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(paperToUserPort, never()).existsByUserName(any());
+        verify(globalUserQueryPort, never()).existsByUserName(any());
         verify(paperQueryPort, never()).findMessagesByUserName(any());
     }
 

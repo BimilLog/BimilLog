@@ -1,15 +1,15 @@
 
 package jaeik.bimillog.domain.user.application.service;
 
+import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.bimillog.domain.user.application.port.out.TokenPort;
-import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.user.in.web.UserQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ import java.util.Optional;
 public class UserQueryService implements UserQueryUseCase {
 
     private final UserQueryPort userQueryPort;
-    private final TokenPort tokenPort;
+    private final GlobalTokenQueryPort globalTokenQueryPort;
 
     /**
      * <h3>소셜 정보로 사용자 조회</h3>
@@ -124,7 +124,7 @@ public class UserQueryService implements UserQueryUseCase {
      */
     @Override
     public Optional<Token> findTokenById(Long tokenId) {
-        return tokenPort.findById(tokenId);
+        return globalTokenQueryPort.findById(tokenId);
     }
 
     /**

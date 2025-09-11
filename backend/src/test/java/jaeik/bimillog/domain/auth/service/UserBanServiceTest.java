@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
@@ -38,7 +38,7 @@ class UserBanServiceTest {
     private UserBanPort userBanPort;
 
     @Mock
-    private AuthToTokenPort authToTokenPort;
+    private GlobalTokenQueryPort globalTokenQueryPort;
 
     @InjectMocks
     private UserBanService userBanService;
@@ -140,7 +140,7 @@ class UserBanServiceTest {
         String reason = "Security violation";
         List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(authToTokenPort.findAllByUserId(userId)).willReturn(userTokens);
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(userTokens);
         given(userBanPort.generateTokenHash("access-token-1")).willReturn("hash1");
         given(userBanPort.generateTokenHash("access-token-2")).willReturn("hash2");
 
@@ -148,7 +148,7 @@ class UserBanServiceTest {
         userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
-        verify(authToTokenPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByUserId(userId);
         verify(userBanPort).generateTokenHash("access-token-1");
         verify(userBanPort).generateTokenHash("access-token-2");
         
@@ -172,13 +172,13 @@ class UserBanServiceTest {
         // Given
         Long userId = 100L;
         String reason = "Security violation";
-        given(authToTokenPort.findAllByUserId(userId)).willReturn(List.of());
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(List.of());
 
         // When
         userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
-        verify(authToTokenPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByUserId(userId);
         verify(userBanPort, never()).generateTokenHash(anyString());
         verify(userBanPort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
@@ -191,7 +191,7 @@ class UserBanServiceTest {
         String reason = "Partial failure test";
         List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(authToTokenPort.findAllByUserId(userId)).willReturn(userTokens);
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(userTokens);
         given(userBanPort.generateTokenHash("access-token-1")).willReturn("hash1");
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(userBanPort).generateTokenHash("access-token-2");
@@ -219,7 +219,7 @@ class UserBanServiceTest {
         String reason = "Complete failure test";
         List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(authToTokenPort.findAllByUserId(userId)).willReturn(userTokens);
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(userTokens);
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(userBanPort).generateTokenHash(anyString());
 
@@ -227,7 +227,7 @@ class UserBanServiceTest {
         userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
-        verify(authToTokenPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByUserId(userId);
         verify(userBanPort).generateTokenHash("access-token-1");
         verify(userBanPort).generateTokenHash("access-token-2");
         verify(userBanPort, never()).blacklistTokenHashes(any(), anyString(), any());
@@ -240,13 +240,13 @@ class UserBanServiceTest {
         Long userId = 100L;
         String reason = "Load failure test";
         doThrow(new RuntimeException("Token loading failed"))
-                .when(authToTokenPort).findAllByUserId(userId);
+                .when(globalTokenQueryPort).findAllByUserId(userId);
 
         // When
         userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
-        verify(authToTokenPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByUserId(userId);
         verify(userBanPort, never()).generateTokenHash(anyString());
         verify(userBanPort, never()).blacklistTokenHashes(any(), anyString(), any());
     }

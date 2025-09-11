@@ -2,14 +2,14 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
 import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
-import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.DecoType;
+import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +43,7 @@ class PaperCommandServiceTest {
     private PaperQueryPort paperQueryPort;
 
     @Mock
-    private PaperToUserPort paperToUserPort;
+    private GlobalUserQueryPort globalUserQueryPort;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -125,17 +125,17 @@ class PaperCommandServiceTest {
         int width = 2;
         int height = 2;
         
-        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
         paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
 
         // Then
-        verify(paperToUserPort, times(1)).findByUserName(userName);
+        verify(globalUserQueryPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
-        verifyNoMoreInteractions(paperToUserPort, paperCommandPort, eventPublisher);
+        verifyNoMoreInteractions(globalUserQueryPort, paperCommandPort, eventPublisher);
     }
 
     @Test
@@ -149,14 +149,14 @@ class PaperCommandServiceTest {
         int width = 2;
         int height = 2;
 
-        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.empty());
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
-        verify(paperToUserPort, times(1)).findByUserName(userName);
+        verify(globalUserQueryPort, times(1)).findByUserName(userName);
         verify(paperCommandPort, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -185,7 +185,7 @@ class PaperCommandServiceTest {
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(paperToUserPort, never()).findByUserName(any());
+        verify(globalUserQueryPort, never()).findByUserName(any());
         verify(paperCommandPort, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -202,7 +202,7 @@ class PaperCommandServiceTest {
         int width = 2;
         int height = 2;
         
-        given(paperToUserPort.findByUserName(userName)).willReturn(Optional.of(user));
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When

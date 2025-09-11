@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.application.port.out.*;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostInteractionService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
@@ -47,7 +48,7 @@ class PostInteractionServiceTest {
     private PostLikeQueryPort postLikeQueryPort;
 
     @Mock
-    private PostToUserPort postToUserPort;
+    private GlobalUserQueryPort globalUserQueryPort;
 
     @Mock
     private User user;
@@ -65,7 +66,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(postToUserPort.getReferenceById(userId)).willReturn(user);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(post);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
@@ -73,7 +74,7 @@ class PostInteractionServiceTest {
         postInteractionService.likePost(userId, postId);
 
         // Then
-        verify(postToUserPort).getReferenceById(userId);
+        verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         
@@ -94,7 +95,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(postToUserPort.getReferenceById(userId)).willReturn(user);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(post);
         given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
@@ -102,7 +103,7 @@ class PostInteractionServiceTest {
         postInteractionService.likePost(userId, postId);
 
         // Then
-        verify(postToUserPort).getReferenceById(userId);
+        verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort).existsByUserAndPost(user, post);
         verify(postLikeCommandPort).deleteByUserAndPost(user, post);
@@ -116,7 +117,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 999L;
 
-        given(postToUserPort.getReferenceById(userId)).willReturn(user);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
@@ -124,7 +125,7 @@ class PostInteractionServiceTest {
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(postToUserPort).getReferenceById(userId);
+        verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
         verify(postLikeQueryPort, never()).existsByUserAndPost(any(), any());
         verify(postLikeCommandPort, never()).save(any());

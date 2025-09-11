@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.auth.in.web.AuthCommandController;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class LogoutService implements LogoutUseCase {
 
     private final DeleteUserPort deleteUserPort;
     private final SocialPort socialPort;
-    private final AuthToTokenPort authToTokenPort;
+    private final GlobalTokenQueryPort globalTokenQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -77,7 +77,7 @@ public class LogoutService implements LogoutUseCase {
     @Transactional(readOnly = true)
     private void performSocialLogout(CustomUserDetails userDetails) {
         try {
-            authToTokenPort.findById(userDetails.getTokenId()).ifPresent(token -> {
+            globalTokenQueryPort.findById(userDetails.getTokenId()).ifPresent(token -> {
                 if (token.getUsers() != null) {
                     try {
                         socialPort.logout(token.getUsers().getProvider(), token.getAccessToken());

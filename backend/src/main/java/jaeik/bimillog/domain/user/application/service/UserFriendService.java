@@ -4,12 +4,12 @@ import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserFriendUseCase;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
-import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class UserFriendService implements UserFriendUseCase {
 
     private final KakaoFriendPort kakaoFriendPort;
     private final UserQueryPort userQueryPort;
-    private final TokenPort tokenPort;
+    private final GlobalTokenQueryPort globalTokenQueryPort;
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
@@ -59,7 +59,7 @@ public class UserFriendService implements UserFriendUseCase {
 
         return Mono.fromCallable(() -> {
                     // 1. 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
-                    Token token = tokenPort.findById(tokenId)
+                    Token token = globalTokenQueryPort.findById(tokenId)
                             .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
                     // 카카오 액세스 토큰 확인

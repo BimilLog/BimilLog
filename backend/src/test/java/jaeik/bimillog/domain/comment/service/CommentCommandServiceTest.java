@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.application.port.out.*;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
@@ -55,7 +56,7 @@ class CommentCommandServiceTest {
     @Mock private CommentDeletePort commentDeletePort;
     @Mock private CommentQueryPort commentQueryPort;
     @Mock private CommentLikePort commentLikePort;
-    @Mock private CommentToUserPort commentToUserPort;
+    @Mock private GlobalUserQueryPort globalUserQueryPort;
     @Mock private CommentToPostPort commentToPostPort;
     @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -95,7 +96,7 @@ class CommentCommandServiceTest {
     void shouldAddLike_WhenUserHasNotLikedComment() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(globalUserQueryPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
@@ -117,7 +118,7 @@ class CommentCommandServiceTest {
     void shouldRemoveLike_WhenUserHasAlreadyLikedComment() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(globalUserQueryPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(true);
 
         // When
@@ -140,7 +141,7 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_NOT_FOUND);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
-        verify(commentToUserPort, never()).findById(any());
+        verify(globalUserQueryPort, never()).findById(any());
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
         verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
@@ -151,7 +152,7 @@ class CommentCommandServiceTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.empty());
+        given(globalUserQueryPort.findById(TEST_USER_ID)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(TEST_USER_ID, TEST_COMMENT_ID))
@@ -159,7 +160,7 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
-        verify(commentToUserPort).findById(TEST_USER_ID);
+        verify(globalUserQueryPort).findById(TEST_USER_ID);
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
         verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
@@ -170,7 +171,7 @@ class CommentCommandServiceTest {
     void shouldThrowException_WhenUserIdIsNull() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(null)).willReturn(Optional.empty());
+        given(globalUserQueryPort.findById(null)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
@@ -178,7 +179,7 @@ class CommentCommandServiceTest {
                 .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
-        verify(commentToUserPort).findById(null);
+        verify(globalUserQueryPort).findById(null);
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
         verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
@@ -196,7 +197,7 @@ class CommentCommandServiceTest {
                 .build();
 
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(ownComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(globalUserQueryPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
 
         // When
@@ -216,7 +217,7 @@ class CommentCommandServiceTest {
     void shouldToggleLikeMultipleTimes() {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(globalUserQueryPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
 
         // 첫 번째: 좋아요 추가
         given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, TEST_USER_ID)).willReturn(false);
@@ -562,7 +563,7 @@ class CommentCommandServiceTest {
                 .build();
 
         given(commentToPostPort.findById(postId)).willReturn(testPost);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(globalUserQueryPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
 
         // When
@@ -655,7 +656,7 @@ class CommentCommandServiceTest {
         List<CommentClosure> parentClosures = Collections.singletonList(parentClosure);
 
         given(commentToPostPort.findById(postId)).willReturn(testPost);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(globalUserQueryPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
         given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
 
@@ -710,7 +711,7 @@ class CommentCommandServiceTest {
                 .build();
 
         given(commentToPostPort.findById(postId)).willReturn(testPost);
-        given(commentToUserPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
+        given(globalUserQueryPort.findById(TEST_USER_ID)).willReturn(Optional.of(testUser));
         given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
         given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.empty());
 

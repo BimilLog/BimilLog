@@ -1,10 +1,10 @@
 package jaeik.bimillog.infrastructure.filter;
 
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
-import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -39,7 +39,7 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-    private final TokenPort tokenPort;
+    private final GlobalTokenQueryPort globalTokenQueryPort;
     private final UserQueryPort userQueryPort;
     private final JwtHandler jwtHandler;
     private final AuthCookieManager authCookieManager;
@@ -109,7 +109,7 @@ public class JwtFilter extends OncePerRequestFilter {
             if (refreshToken != null && jwtHandler.validateToken(refreshToken) && !userBanUseCase.isBlacklisted(refreshToken)) {
                 Long tokenId = jwtHandler.getTokenIdFromToken(refreshToken);
                 // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
-                Token token = tokenPort.findById(tokenId)
+                Token token = globalTokenQueryPort.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.REPEAT_LOGIN));
                 if (Objects.equals(token.getId(), tokenId)) {
 

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.user.service;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
-import jaeik.bimillog.domain.user.application.port.out.TokenPort;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserFriendService;
 import jaeik.bimillog.domain.user.entity.*;
@@ -48,7 +48,7 @@ class UserFriendServiceTest {
     private UserQueryPort userQueryPort;
     
     @Mock
-    private TokenPort tokenPort;
+    private GlobalTokenQueryPort globalTokenQueryPort;
 
     @InjectMocks
     private UserFriendService userFriendService;
@@ -92,7 +92,7 @@ class UserFriendServiceTest {
         List<String> userNames = Arrays.asList("", "bimillogUser", "");
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", offset, limit)).willReturn(Mono.just(kakaoResponseVO));
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
 
@@ -112,7 +112,7 @@ class UserFriendServiceTest {
         assertThat(result.elements().get(2).userName()).isNull(); // 김철수 - 비가입
         
         verify(userQueryPort).findById(userId);
-        verify(tokenPort).findById(tokenId);
+        verify(globalTokenQueryPort).findById(tokenId);
         verify(kakaoFriendPort).getFriendList("access-token", offset, limit);
         verify(userQueryPort).findUserNamesInOrder(Arrays.asList("1", "2", "3"));
     }
@@ -145,7 +145,7 @@ class UserFriendServiceTest {
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.empty());
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
@@ -153,7 +153,7 @@ class UserFriendServiceTest {
                 .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
         
         verify(userQueryPort).findById(userId);
-        verify(tokenPort).findById(tokenId);
+        verify(globalTokenQueryPort).findById(tokenId);
     }
 
     @Test
@@ -171,7 +171,7 @@ class UserFriendServiceTest {
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
 
         // When & Then
         assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
@@ -194,7 +194,7 @@ class UserFriendServiceTest {
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
 
         // When & Then
         assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, 1L, 0, 10).block())
@@ -221,7 +221,7 @@ class UserFriendServiceTest {
         );
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(Mono.just(kakaoResponseVO));
 
         // When
@@ -252,7 +252,7 @@ class UserFriendServiceTest {
         );
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 100)).willReturn(Mono.just(kakaoResponseVO));
 
         // When
@@ -279,7 +279,7 @@ class UserFriendServiceTest {
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 10))
                 .willReturn(Mono.error(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR)));
 
@@ -304,7 +304,7 @@ class UserFriendServiceTest {
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 10))
                 .willReturn(Mono.error(new RuntimeException("일반적인 API 에러")));
 
@@ -334,7 +334,7 @@ class UserFriendServiceTest {
         );
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(Mono.just(emptyResponseVO));
 
         // When
@@ -378,7 +378,7 @@ class UserFriendServiceTest {
         List<String> userNames = Arrays.asList("user1", "user2");
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
-        given(tokenPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(Mono.just(responseVO));
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);
 

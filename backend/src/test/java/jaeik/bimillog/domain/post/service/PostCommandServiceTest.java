@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.application.port.out.PostToUserPort;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
@@ -42,7 +42,7 @@ class PostCommandServiceTest {
     private PostQueryPort postQueryPort;
 
     @Mock
-    private PostToUserPort postToUserPort;
+    private GlobalUserQueryPort globalUserQueryPort;
 
     @Mock
     private PostCacheCommandPort postCacheCommandPort;
@@ -66,7 +66,7 @@ class PostCommandServiceTest {
         String content = "테스트 내용";
         Integer password = 1234;
 
-        given(postToUserPort.getReferenceById(userId)).willReturn(user);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
         given(postCommandPort.save(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
@@ -76,9 +76,9 @@ class PostCommandServiceTest {
         // Then
         assertThat(result).isEqualTo(expectedPostId);
 
-        verify(postToUserPort, times(1)).getReferenceById(userId);
+        verify(globalUserQueryPort, times(1)).getReferenceById(userId);
         verify(postCommandPort, times(1)).save(any(Post.class));
-        verifyNoMoreInteractions(postToUserPort, postCommandPort);
+        verifyNoMoreInteractions(globalUserQueryPort, postCommandPort);
     }
 
     @Test

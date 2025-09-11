@@ -2,10 +2,10 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
 import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ UserBanService implements UserBanUseCase {
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
     private final UserBanPort userBanPort;
-    private final AuthToTokenPort authToTokenPort;
+    private final GlobalTokenQueryPort globalTokenQueryPort;
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>
@@ -77,7 +77,7 @@ UserBanService implements UserBanUseCase {
     @Override
     public void blacklistAllUserTokens(Long userId, String reason) {
         try {
-            List<Token> userTokens = authToTokenPort.findAllByUserId(userId);
+            List<Token> userTokens = globalTokenQueryPort.findAllByUserId(userId);
 
             if (userTokens.isEmpty()) {
                 log.info("사용자 {}의 활성 토큰을 찾을 수 없음", userId);

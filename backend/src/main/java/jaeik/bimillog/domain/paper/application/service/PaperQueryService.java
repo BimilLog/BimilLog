@@ -2,12 +2,12 @@ package jaeik.bimillog.domain.paper.application.service;
 
 import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.paper.in.web.PaperQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ import java.util.Optional;
 public class PaperQueryService implements PaperQueryUseCase {
 
     private final PaperQueryPort paperQueryPort;
-    private final PaperToUserPort paperToUserPort;
+    private final GlobalUserQueryPort globalUserQueryPort;
 
 
     /**
@@ -71,7 +71,7 @@ public class PaperQueryService implements PaperQueryUseCase {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
         
-        boolean exists = paperToUserPort.existsByUserName(userName);
+        boolean exists = globalUserQueryPort.existsByUserName(userName);
         if (!exists) {
             throw new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND);
         }

@@ -2,14 +2,14 @@ package jaeik.bimillog.infrastructure.adapter.auth.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.auth.out.auth.SaveUserAdapter;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class SaveUserAdapterTest {
 
-    @Mock private TokenPort tokenPort;
+    @Mock private GlobalTokenCommandPort globalTokenCommandPort;
     @Mock private AuthCookieManager authCookieManager;
     @Mock private UserQueryPort userQueryPort;
     @Mock private UserCommandPort userCommandPort;
@@ -79,7 +79,7 @@ class SaveUserAdapterTest {
 
         given(userQueryPort.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(existingUser);
-        given(tokenPort.save(any(Token.class))).willReturn(existingToken);
+        given(globalTokenCommandPort.save(any(Token.class))).willReturn(existingToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
         // When: 기존 사용자 로그인 처리
@@ -91,7 +91,7 @@ class SaveUserAdapterTest {
         
         // 토큰이 저장되는지 검증
         ArgumentCaptor<Token> tokenCaptor = ArgumentCaptor.forClass(Token.class);
-        verify(tokenPort).save(tokenCaptor.capture());
+        verify(globalTokenCommandPort).save(tokenCaptor.capture());
         Token savedToken = tokenCaptor.getValue();
         assertThat(savedToken.getAccessToken()).isEqualTo("access-token");
         assertThat(savedToken.getRefreshToken()).isEqualTo("refresh-token");
@@ -121,7 +121,7 @@ class SaveUserAdapterTest {
                 .hasMessage(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND.getMessage());
 
         // 후속 작업이 실행되지 않았는지 검증
-        verify(tokenPort, never()).save(any());
+        verify(globalTokenCommandPort, never()).save(any());
         verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
     }
 
@@ -146,7 +146,7 @@ class SaveUserAdapterTest {
 
         given(userQueryPort.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(existingUser);
-        given(tokenPort.save(any(Token.class))).willReturn(savedToken);
+        given(globalTokenCommandPort.save(any(Token.class))).willReturn(savedToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
@@ -157,7 +157,7 @@ class SaveUserAdapterTest {
 
         // Then: FCM 이벤트가 발행되지 않았는지 검증
         verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
-        verify(tokenPort).save(any(Token.class));
+        verify(globalTokenCommandPort).save(any(Token.class));
     }
 
     @Test
@@ -189,7 +189,7 @@ class SaveUserAdapterTest {
         );
 
         given(userCommandPort.save(any(User.class))).willReturn(newUser);
-        given(tokenPort.save(any(Token.class))).willReturn(newToken);
+        given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
         // When: 신규 사용자 저장
@@ -211,7 +211,7 @@ class SaveUserAdapterTest {
         verify(redisUserDataPort).removeTempData(uuid);
         
         // 토큰 저장 및 쿠키 결과 검증
-        verify(tokenPort).save(any(Token.class));
+        verify(globalTokenCommandPort).save(any(Token.class));
         assertThat(result).isEqualTo(expectedCookies);
     }
 
@@ -236,7 +236,7 @@ class SaveUserAdapterTest {
         Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
 
         given(userCommandPort.save(any(User.class))).willReturn(newUser);
-        given(tokenPort.save(any(Token.class))).willReturn(newToken);
+        given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
 
         // When: FCM 토큰 없이 사용자 저장

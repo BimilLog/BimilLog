@@ -3,13 +3,13 @@ package jaeik.bimillog.domain.paper.application.service;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.bimillog.domain.paper.application.port.out.PaperToUserPort;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.paper.in.web.PaperCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,7 +31,7 @@ public class PaperCommandService implements PaperCommandUseCase {
 
     private final PaperCommandPort paperCommandPort;
     private final PaperQueryPort paperQueryPort;
-    private final PaperToUserPort paperToUserPort;
+    private final GlobalUserQueryPort globalUserQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
 
@@ -81,7 +81,7 @@ public class PaperCommandService implements PaperCommandUseCase {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
         
-        User user = paperToUserPort.findByUserName(userName)
+        User user = globalUserQueryPort.findByUserName(userName)
                 .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
 
         Message message = Message.createMessage(user, decoType, anonymity, content, width, height);

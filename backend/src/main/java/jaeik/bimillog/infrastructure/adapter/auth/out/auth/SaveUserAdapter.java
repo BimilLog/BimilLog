@@ -4,12 +4,12 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SaveUserAdapter implements SaveUserPort {
 
-    private final TokenPort tokenPort;
+    private final GlobalTokenCommandPort globalTokenCommandPort;
     private final AuthCookieManager authCookieManager;
     private final UserQueryPort userQueryPort;
     private final UserCommandPort UserCommandPort;
@@ -66,7 +66,7 @@ public class SaveUserAdapter implements SaveUserPort {
         registerFcmTokenIfPresent(user.getId(), fcmToken);
 
         return authCookieManager.generateJwtCookie(UserDetail.of(user,
-                tokenPort.save(newToken).getId(),
+                globalTokenCommandPort.save(newToken).getId(),
                 null));
     }
 
@@ -95,7 +95,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         redisUserDataPort.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(UserDetail.of(user,
-                tokenPort.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
+                globalTokenCommandPort.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
                 null));
     }
 

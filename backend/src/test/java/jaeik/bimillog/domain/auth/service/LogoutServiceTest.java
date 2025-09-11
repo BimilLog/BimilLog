@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToTokenPort;
+import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.auth.application.service.LogoutService;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
@@ -48,7 +48,7 @@ class LogoutServiceTest {
     private SocialPort socialPort;
 
     @Mock
-    private AuthToTokenPort authToTokenPort;
+    private GlobalTokenQueryPort globalTokenQueryPort;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -95,7 +95,7 @@ class LogoutServiceTest {
         Token mockToken = createMockTokenWithUser();
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
-        given(authToTokenPort.findById(200L)).willReturn(Optional.of(mockToken));
+        given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(mockToken));
         given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
@@ -115,7 +115,7 @@ class LogoutServiceTest {
             assertThat(capturedEvent.tokenId()).isEqualTo(200L);
 
             // 포트 호출 검증
-            verify(authToTokenPort).findById(200L);
+            verify(globalTokenQueryPort).findById(200L);
             verify(socialPort).logout(SocialProvider.KAKAO, "mock-access-token");
             verify(deleteUserPort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
@@ -129,7 +129,7 @@ class LogoutServiceTest {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
-        given(authToTokenPort.findById(200L)).willReturn(Optional.empty());
+        given(globalTokenQueryPort.findById(200L)).willReturn(Optional.empty());
         given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
@@ -138,7 +138,7 @@ class LogoutServiceTest {
 
             // Then
             assertThat(result).isEqualTo(logoutCookies);
-            verify(authToTokenPort).findById(200L);
+            verify(globalTokenQueryPort).findById(200L);
             // 토큰이 없으면 socialPort.logout은 호출되지 않음
             verify(socialPort, never()).logout(any(SocialProvider.class), anyString());
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
@@ -156,7 +156,7 @@ class LogoutServiceTest {
         
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
-        given(authToTokenPort.findById(200L)).willReturn(Optional.of(tokenWithoutUser));
+        given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(tokenWithoutUser));
         given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
@@ -165,7 +165,7 @@ class LogoutServiceTest {
 
             // Then
             assertThat(result).isEqualTo(logoutCookies);
-            verify(authToTokenPort).findById(200L);
+            verify(globalTokenQueryPort).findById(200L);
             // 사용자가 null이면 socialPort.logout은 호출되지 않음
             verify(socialPort, never()).logout(any(SocialProvider.class), anyString());
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));

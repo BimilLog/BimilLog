@@ -12,6 +12,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.comment.in.listener.CommentRemoveListener;
 import jaeik.bimillog.infrastructure.adapter.comment.in.web.CommentCommandController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -43,7 +44,7 @@ public class CommentCommandService implements CommentCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
     private final CommentToPostPort commentToPostPort;
-    private final CommentToUserPort commentToUserPort;
+    private final GlobalUserQueryPort globalUserQueryPort;
     private final CommentSavePort commentSavePort;
     private final CommentDeletePort commentDeletePort;
     private final CommentQueryPort commentQueryPort;
@@ -70,7 +71,7 @@ public class CommentCommandService implements CommentCommandUseCase {
         try {
             Post post = commentToPostPort.findById(postId);
 
-            User user = userId != null ? commentToUserPort.findById(userId).orElse(null) : null;
+            User user = userId != null ? globalUserQueryPort.findById(userId).orElse(null) : null;
             String userName = user != null ? user.getUserName() : "익명";
 
             saveCommentWithClosure(post, user, content, password, parentId);
@@ -140,7 +141,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Override
     public void likeComment(Long userId, Long commentId) {
         Comment comment = commentQueryPort.findById(commentId);
-        User user = commentToUserPort.findById(userId)
+        User user = globalUserQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         if (commentLikePort.isLikedByUser(commentId, userId)) {

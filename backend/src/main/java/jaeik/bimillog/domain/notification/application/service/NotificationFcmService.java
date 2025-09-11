@@ -2,12 +2,14 @@ package jaeik.bimillog.domain.notification.application.service;
 
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationToUserPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,7 +30,7 @@ import java.util.List;
 public class NotificationFcmService implements NotificationFcmUseCase {
 
     private final FcmPort fcmPort;
-    private final NotificationToUserPort notificationToUserPort;
+    private final GlobalUserQueryPort globalUserQueryPort;
     private final NotificationUtilPort notificationUtilPort;
 
     /**
@@ -51,7 +53,8 @@ public class NotificationFcmService implements NotificationFcmUseCase {
             return;
         }
 
-        User user = notificationToUserPort.findById(userId);
+        User user = globalUserQueryPort.findById(userId)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         fcmPort.save(FcmToken.create(user, fcmToken));
     }
