@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.common.in;
+package jaeik.bimillog.infrastructure.adapter.global.in;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/common")
+@RequestMapping("/api/global")
 public class HealthCheckController {
 
     /**

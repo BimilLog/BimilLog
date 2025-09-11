@@ -12,15 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>FCM 토큰 제거 이벤트 리스너</h2>
- * <p>
- * 헥사고날 아키텍처의 Primary Adapter로서 Auth 도메인에서 발행하는 사용자 세션 관련 이벤트를 수신합니다.
- * </p>
- * <p>
- * 사용자가 로그아웃 버튼을 클릭하거나 회원탈퇴를 진행하는 상황에서 AuthCommandService가 인증 처리를 완료한 후 
- * UserLoggedOutEvent나 UserWithdrawnEvent를 발행하면, 이를 수신하여 해당 사용자의 모든 FCM 토큰을 삭제합니다.
- * </p>
- * <p>로그아웃한 사용자나 탈퇴한 사용자에게 불필요한 푸시 알림이 전송되는 것을 방지하고, 
- * 개인정보 보호를 위해 NotificationFcmUseCase를 통해 토큰을 완전히 정리합니다.</p>
+ * <p>로그아웃과 회원 탈퇴 이벤트를 수신하여 FCM 토큰을 삭제하는 리스너입니다.</p>
+ * <p>사용자 로그아웃 시 FCM 토큰 삭제, 회원 탈퇴 시 FCM 토큰 삭제</p>
  *
  * @author Jaeik
  * @version 2.0.0
