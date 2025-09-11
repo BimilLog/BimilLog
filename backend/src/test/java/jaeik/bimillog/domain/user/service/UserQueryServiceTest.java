@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.application.port.out.TokenPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserQueryService;
+import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -245,48 +246,45 @@ class UserQueryServiceTest {
 
 
     @Test
-    @DisplayName("모든 소셜 제공자에 대한 사용자 조회")
-    void shouldFindUser_ForAllSocialProviders() {
-        // Given & When & Then
-        SocialProvider[] providers = SocialProvider.values();
-        
-        for (SocialProvider provider : providers) {
-            String socialId = "test_" + provider.name().toLowerCase();
-            User expectedUser = User.builder()
-                    .id(1L)
-                    .userName("testUser")
-                    .provider(provider)
-                    .socialId(socialId)
-                    .role(UserRole.USER)
-                    .build();
+    @DisplayName("설정 ID로 설정 조회 - 정상 케이스")
+    void shouldFindSetting_WhenValidSettingId() {
+        // Given
+        Long settingId = 1L;
+        Setting expectedSetting = Setting.builder()
+                .id(settingId)
+                .messageNotification(true)
+                .commentNotification(false)
+                .postFeaturedNotification(true)
+                .build();
 
-            given(userQueryPort.findByProviderAndSocialId(provider, socialId))
-                    .willReturn(expectedUser);
+        given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(expectedSetting));
 
-            User result = userQueryService.findByProviderAndSocialId(provider, socialId);
+        // When
+        Setting result = userQueryService.findBySettingId(settingId);
 
-            assertThat(result.getProvider()).isEqualTo(provider);
-            assertThat(result.getSocialId()).isEqualTo(socialId);
-        }
+        // Then
+        verify(userQueryPort).findSettingById(settingId);
+        assertThat(result).isEqualTo(expectedSetting);
+        assertThat(result.getId()).isEqualTo(settingId);
+        assertThat(result.isMessageNotification()).isTrue();
+        assertThat(result.isCommentNotification()).isFalse();
+        assertThat(result.isPostFeaturedNotification()).isTrue();
     }
 
     @Test
-    @DisplayName("null 값들로 조회 시도")
-    void shouldHandleNullValues_Gracefully() {
+    @DisplayName("설정 ID로 설정 조회 - 설정이 존재하지 않는 경우")
+    void shouldThrowException_WhenSettingNotFound() {
         // Given
-        given(userQueryPort.findByProviderAndSocialId(null, null))
-                .willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-        given(userQueryPort.findByUserName(null)).willReturn(Optional.empty());
-        given(userQueryPort.existsByUserName(null)).willReturn(false);
+        Long settingId = 999L;
+
+        given(userQueryPort.findSettingById(settingId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userQueryService.findByProviderAndSocialId(null, null))
-                .isInstanceOf(UserCustomException.class);
-        Optional<User> result2 = userQueryService.findByUserName(null);
-        boolean result3 = userQueryService.existsByUserName(null);
-
-        assertThat(result2).isEmpty();
-        assertThat(result3).isFalse();
+        assertThatThrownBy(() -> userQueryService.findBySettingId(settingId))
+                .isInstanceOf(UserCustomException.class)
+                .hasMessage(UserErrorCode.SETTINGS_NOT_FOUND.getMessage());
+        
+        verify(userQueryPort).findSettingById(settingId);
     }
 
 }

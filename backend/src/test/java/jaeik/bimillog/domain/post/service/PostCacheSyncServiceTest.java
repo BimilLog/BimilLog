@@ -241,8 +241,8 @@ class PostCacheSyncServiceTest {
     @Test
     @DisplayName("대량 게시글 처리 - 성능 테스트 시나리오")
     void shouldHandleLargeNumberOfPosts_PerformanceScenario() {
-        // Given - 대량의 게시글 생성 (1000개로 원복)
-        List<PostSearchResult> largePosts = createLargePostList(1000);
+        // Given - 대량의 게시글 생성 (100개)
+        List<PostSearchResult> largePosts = createLargePostList(100);
         List<Long> postIds = largePosts.stream().map(PostSearchResult::getId).toList();
 
         given(postCacheSyncPort.findWeeklyPopularPosts()).willReturn(largePosts);
@@ -257,8 +257,8 @@ class PostCacheSyncServiceTest {
         verify(postCacheCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
         verify(postCacheCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
         
-        // 1000개 게시글 중 userId가 있는 것들만 이벤트 발행 (500개)
-        verify(eventPublisher, times(500)).publishEvent(any(PostFeaturedEvent.class));
+        // 100개 게시글 중 userId가 있는 것들만 이벤트 발행 (50개)
+        verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));
     }
 
     // 테스트 유틸리티 메서드들

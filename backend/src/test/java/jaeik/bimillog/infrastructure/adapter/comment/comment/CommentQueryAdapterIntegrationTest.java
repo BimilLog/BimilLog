@@ -41,6 +41,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -397,6 +398,87 @@ class CommentQueryAdapterIntegrationTest {
     }
 
     @Test
+    @DisplayName("정상 케이스 - 게시글 ID 목록에 대한 댓글 수 조회")
+    void shouldFindCommentCountsByPostIds_WhenValidPostIdsProvided() {
+        // Given: 여러 게시글과 각각의 댓글들
+        Post post2 = Post.builder()
+                .user(testUser1)
+                .title("두 번째 게시글")
+                .content("두 번째 내용")
+                .isNotice(false)
+                .views(0)
+                .build();
+        entityManager.persistAndFlush(post2);
+        
+        Post post3 = Post.builder()
+                .user(testUser2)
+                .title("세 번째 게시글")
+                .content("세 번째 내용")
+                .isNotice(false)
+                .views(0)
+                .build();
+        entityManager.persistAndFlush(post3);
+
+        // testPost에 댓글 3개 생성
+        Comment comment1 = Comment.createComment(testPost, testUser1, "첫 번째 게시글 댓글1", null);
+        Comment comment2 = Comment.createComment(testPost, testUser2, "첫 번째 게시글 댓글2", null);
+        Comment comment3 = Comment.createComment(testPost, testUser1, "첫 번째 게시글 댓글3", null);
+        
+        commentRepository.save(comment1);
+        commentRepository.save(comment2);
+        commentRepository.save(comment3);
+
+        // post2에 댓글 2개 생성
+        Comment comment4 = Comment.createComment(post2, testUser1, "두 번째 게시글 댓글1", null);
+        Comment comment5 = Comment.createComment(post2, testUser2, "두 번째 게시글 댓글2", null);
+        
+        commentRepository.save(comment4);
+        commentRepository.save(comment5);
+
+        // post3에는 댓글 없음
+        
+        List<Long> postIds = List.of(testPost.getId(), post2.getId(), post3.getId());
+
+        // When: 게시글 ID 목록에 대한 댓글 수 조회
+        Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(postIds);
+
+        // Then: 각 게시글별 댓글 수가 올바르게 반환되는지 검증
+        assertThat(commentCounts).isNotNull();
+        assertThat(commentCounts).hasSize(2); // 댓글이 있는 게시글 2개만 포함
+        assertThat(commentCounts.get(testPost.getId())).isEqualTo(3);
+        assertThat(commentCounts.get(post2.getId())).isEqualTo(2);
+        assertThat(commentCounts.get(post3.getId())).isNull(); // 댓글이 없는 게시글은 맵에 포함되지 않음
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 빈 게시글 ID 목록으로 댓글 수 조회")
+    void shouldReturnEmptyMap_WhenEmptyPostIdsProvided() {
+        // Given: 빈 게시글 ID 목록
+        List<Long> emptyPostIds = List.of();
+
+        // When: 빈 목록으로 댓글 수 조회
+        Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(emptyPostIds);
+
+        // Then: 빈 맵이 반환되어야 함
+        assertThat(commentCounts).isNotNull();
+        assertThat(commentCounts).isEmpty();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 존재하지 않는 게시글 ID로 댓글 수 조회")
+    void shouldReturnEmptyMap_WhenNonExistentPostIdsProvided() {
+        // Given: 존재하지 않는 게시글 ID들
+        List<Long> nonExistentPostIds = List.of(999L, 998L, 997L);
+
+        // When: 존재하지 않는 게시글 ID로 댓글 수 조회
+        Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(nonExistentPostIds);
+
+        // Then: 빈 맵이 반환되어야 함
+        assertThat(commentCounts).isNotNull();
+        assertThat(commentCounts).isEmpty();
+    }
+
+    @Test
     @DisplayName("트랜잭션 - 복합 쿼리 테스트")
     void shouldHandleComplexQueries_WhenMultipleOperationsPerformed() {
         // Given: 복잡한 테스트 데이터 설정
@@ -420,8 +502,11 @@ class CommentQueryAdapterIntegrationTest {
         assertThat(foundComment1).isNotNull();
         assertThat(foundComment1.getContent()).isEqualTo("복합쿼리 댓글1");
 
+        // 2. 댓글 수 조회
+        Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(List.of(testPost.getId()));
+        assertThat(commentCounts.get(testPost.getId())).isEqualTo(2);
 
-        // 2. 존재하지 않는 댓글 조회
+        // 3. 존재하지 않는 댓글 조회
         assertThatThrownBy(() -> commentQueryAdapter.findById(999L))
                 .isInstanceOf(CommentCustomException.class);
     }

@@ -236,38 +236,37 @@ class WithdrawServiceTest {
     }
 
     @Test
-    @DisplayName("다양한 소셜 제공자에 대한 탈퇴 처리")
-    void shouldWithdraw_WithDifferentSocialProviders() {
+    @DisplayName("특정 토큰 정리 - 정상 케이스")
+    void shouldCleanupSpecificToken_WhenValidParameters() {
         // Given
-        SocialProvider[] providers = {SocialProvider.KAKAO};
+        Long userId = 1L;
+        Long tokenId = 100L;
 
-        for (SocialProvider provider : providers) {
-            User user = User.builder()
-                    .id(100L)
-                    .socialId("social123")
-                    .provider(provider)
-                    .userName("testUser")
-                    .build();
+        // When
+        withdrawService.cleanupSpecificToken(userId, tokenId);
 
-            given(userDetails.getUserId()).willReturn(100L);
-            given(userQueryPort.findById(100L)).willReturn(Optional.of(user));
-            given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
+        // Then
+        verify(deleteUserPort).logoutUser(userId, tokenId);
+    }
 
-            // When
-            List<ResponseCookie> result = withdrawService.withdraw(userDetails);
+    @Test
+    @DisplayName("특정 토큰 정리 - 다중 기기 로그아웃 시나리오")
+    void shouldCleanupMultipleTokens_WhenMultipleDevices() {
+        // Given - 동일 사용자의 여러 기기
+        Long userId = 1L;
+        Long tokenId1 = 100L;
+        Long tokenId2 = 101L;
+        Long tokenId3 = 102L;
 
-            // Then
-            assertThat(result).isEqualTo(logoutCookies);
-            
-            // 탈퇴 이벤트 발행 검증
-            ArgumentCaptor<UserWithdrawnEvent> eventCaptor = ArgumentCaptor.forClass(UserWithdrawnEvent.class);
-            verify(eventPublisher).publishEvent(eventCaptor.capture());
-            
-            UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
-            assertThat(capturedEvent.userId()).isEqualTo(100L);
-            assertThat(capturedEvent.socialId()).isEqualTo("social123");
-            assertThat(capturedEvent.provider()).isEqualTo(provider);
-        }
+        // When - 각 기기별로 개별 토큰 정리
+        withdrawService.cleanupSpecificToken(userId, tokenId1);
+        withdrawService.cleanupSpecificToken(userId, tokenId2);
+        withdrawService.cleanupSpecificToken(userId, tokenId3);
+
+        // Then - 각 토큰이 개별적으로 정리되어야 함
+        verify(deleteUserPort).logoutUser(userId, tokenId1);
+        verify(deleteUserPort).logoutUser(userId, tokenId2);
+        verify(deleteUserPort).logoutUser(userId, tokenId3);
     }
 
     @Test

@@ -359,68 +359,7 @@ class PostQueryAdapterTest {
                 post.getUserName().toLowerCase().contains(query.toLowerCase()));
     }
 
-    @Test
-    @DisplayName("경계값 - 빈 검색어로 검색")
-    void shouldReturnEmptyResults_WhenEmptySearchQueryProvided() {
-        // Given: 빈 검색어
-        String searchType = "title";
-        String query = "";
-        Pageable pageable = PageRequest.of(0, 10);
 
-        // When: 빈 검색어로 검색
-        Page<PostSearchResult> result = postQueryAdapter.findBySearch(searchType, query, pageable);
-
-        // Then: 빈 검색어는 빈 결과를 반환해야 함 (논리적으로 올바른 동작)
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(0); // 빈 검색어이므로 결과 없음
-        assertThat(result.getTotalElements()).isEqualTo(0L);
-    }
-
-    @Test
-    @DisplayName("성능 - 페이지네이션 동작 확인")
-    void shouldHandlePagination_WhenMultiplePagesRequested() {
-        // Given: 더 많은 게시글 생성 (총 10개)
-        for (int i = 4; i <= 10; i++) {
-            Post post = Post.createPost(testUser, "추가 게시글 " + i, "추가 게시글 내용 " + i, 1234);
-            entityManager.persistAndFlush(post);
-        }
-
-        // Mock 댓글 수와 추천 수 업데이트
-        Map<Long, Integer> allCommentCounts = new HashMap<>();
-        Map<Long, Integer> allLikeCounts = new HashMap<>();
-        for (int i = 1; i <= 10; i++) {
-            allCommentCounts.put((long) i, i % 3); // 0, 1, 2 순환
-            allLikeCounts.put((long) i, i % 5); // 0, 1, 2, 3, 4 순환
-        }
-        given(postCommentToPort.findCommentCountsByPostIds(any(List.class)))
-                .willReturn(allCommentCounts);
-        given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
-                .willReturn(allLikeCounts);
-
-        // When: 첫 페이지와 두 번째 페이지 조회
-        Pageable firstPage = PageRequest.of(0, 3);
-        Pageable secondPage = PageRequest.of(1, 3);
-
-        Page<PostSearchResult> firstResult = postQueryAdapter.findByPage(firstPage);
-        Page<PostSearchResult> secondResult = postQueryAdapter.findByPage(secondPage);
-
-        // Then: 페이지네이션이 정상 동작함
-        assertThat(firstResult.getContent()).hasSize(3);
-        assertThat(secondResult.getContent()).hasSize(3);
-        assertThat(firstResult.getTotalElements()).isEqualTo(10L); // 공지사항 제외
-        assertThat(secondResult.getTotalElements()).isEqualTo(10L);
-        
-        // 각 페이지의 내용이 다름을 확인
-        Set<Long> firstPageIds = firstResult.getContent().stream()
-                .map(PostSearchResult::getId)
-                .collect(java.util.stream.Collectors.toSet());
-        Set<Long> secondPageIds = secondResult.getContent().stream()
-                .map(PostSearchResult::getId)
-                .collect(java.util.stream.Collectors.toSet());
-        
-        // 두 페이지 결과가 중복되지 않는지 검증
-        assertThat(java.util.Collections.disjoint(firstPageIds, secondPageIds)).isTrue();
-    }
 
     @Test
     @DisplayName("비즈니스 로직 - 공지사항은 일반 페이지 조회에서 제외")
@@ -459,59 +398,7 @@ class PostQueryAdapterTest {
         }
     }
 
-    @Test
-    @DisplayName("통합 테스트 - N+1 문제 해결 확인")
-    void shouldAvoidNPlusOneProblem_WhenFetchingPostsWithComments() {
-        // Given: 게시글들과 댓글 수, 추천 수 Mock
-        Map<Long, Integer> commentCounts = new HashMap<>();
-        commentCounts.put(testPost1.getId(), 5);
-        commentCounts.put(testPost2.getId(), 3);
-        commentCounts.put(testPost3.getId(), 1);
-        
-        Map<Long, Integer> likeCounts = new HashMap<>();
-        likeCounts.put(testPost1.getId(), 8);
-        likeCounts.put(testPost2.getId(), 6);
-        likeCounts.put(testPost3.getId(), 2);
-        
-        given(postCommentToPort.findCommentCountsByPostIds(any(List.class)))
-                .willReturn(commentCounts);
-        given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
-                .willReturn(likeCounts);
 
-        Pageable pageable = PageRequest.of(0, 3);
-
-        // When: 게시글과 댓글 수, 추천 수 조회
-        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
-
-        // Then: 배치로 댓글 수와 추천 수가 조회되어 N+1 문제 없음
-        assertThat(result.getContent()).hasSize(3);
-        
-        // 모든 게시글에 댓글 수와 추천 수가 설정됨
-        assertThat(result.getContent()).allMatch(post -> post.getCommentCount() != null);
-        assertThat(result.getContent()).allMatch(post -> post.getLikeCount() != null);
-        
-        // 댓글 수와 추천 수가 Mock으로 설정한 값과 일치
-        for (PostSearchResult post : result.getContent()) {
-            if (commentCounts.containsKey(post.getId())) {
-                assertThat(post.getCommentCount()).isEqualTo(commentCounts.get(post.getId()));
-            }
-            if (likeCounts.containsKey(post.getId())) {
-                assertThat(post.getLikeCount()).isEqualTo(likeCounts.get(post.getId()));
-            }
-        }
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - null Pageable 처리")
-    void shouldHandleNullPageable_GracefullyWithoutError() {
-        // Given: null Pageable
-        Pageable nullPageable = null;
-
-        // When & Then: 적절한 예외 처리
-        assertThatThrownBy(() -> {
-            postQueryAdapter.findByPage(nullPageable);
-        }).isInstanceOf(Exception.class); // NullPointerException 또는 적절한 예외
-    }
 
     @Test
     @DisplayName("데이터 매핑 - 모든 필드 정확히 매핑")

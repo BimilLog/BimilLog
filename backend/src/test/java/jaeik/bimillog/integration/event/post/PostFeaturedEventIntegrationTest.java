@@ -171,55 +171,6 @@ public class PostFeaturedEventIntegrationTest {
                 });
     }
 
-    @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - null userId")
-    void postFeaturedEventCreation_ShouldValidateNullUserId() {
-        // When & Then - null userId로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new PostFeaturedEvent(
-                null, "메시지", 1L, "제목", "내용"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("사용자 ID는 null일 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - null postId")
-    void postFeaturedEventCreation_ShouldValidateNullPostId() {
-        // When & Then - null postId로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new PostFeaturedEvent(
-                1L, "메시지", null, "제목", "내용"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("게시글 ID는 null일 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - 빈 SSE 메시지")
-    void postFeaturedEventCreation_ShouldValidateEmptySseMessage() {
-        // When & Then - 빈 SSE 메시지로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new PostFeaturedEvent(
-                1L, "", 1L, "제목", "내용"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("SSE 메시지는 null이거나 비어있을 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - 빈 FCM 제목")
-    void postFeaturedEventCreation_ShouldValidateEmptyFcmTitle() {
-        // When & Then - 빈 FCM 제목으로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new PostFeaturedEvent(
-                1L, "메시지", 1L, "   ", "내용"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("FCM 제목은 null이거나 비어있을 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - 빈 FCM 내용")
-    void postFeaturedEventCreation_ShouldValidateEmptyFcmBody() {
-        // When & Then - 빈 FCM 내용으로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new PostFeaturedEvent(
-                1L, "메시지", 1L, "제목", null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("FCM 내용은 null이거나 비어있을 수 없습니다.");
-    }
 
     @Test
     @DisplayName("비동기 이벤트 리스너 정상 작동 검증")

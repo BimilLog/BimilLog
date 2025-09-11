@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.admin.application.port.out;
 
+import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.Report;
 
 /**

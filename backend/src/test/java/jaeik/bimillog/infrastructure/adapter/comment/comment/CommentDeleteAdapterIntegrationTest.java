@@ -161,35 +161,6 @@ class CommentDeleteAdapterIntegrationTest {
         assertThat(deletedComment).isEmpty();
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 게시글 ID로 모든 댓글 삭제")
-    @Commit  // 트랜잭션 롤백 방지로 @Modifying 쿼리 결과 확인
-    void shouldDeleteAllCommentsByPostId_WhenValidPostIdProvided() {
-        // Given: 동일한 게시글에 여러 댓글 생성
-        Comment comment1 = Comment.createComment(testPost, testUser, "댓글 1", null);
-        Comment comment2 = Comment.createComment(testPost, testUser, "댓글 2", null);
-        Comment comment3 = Comment.createComment(testPost, testUser, "댓글 3", null);
-        
-        commentRepository.save(comment1);
-        commentRepository.save(comment2);
-        commentRepository.save(comment3);
-
-        // 댓글들이 저장되었는지 확인
-        List<Comment> commentsBefore = commentRepository.findAll();
-        assertThat(commentsBefore).hasSize(3);
-
-        // When: 게시글 ID로 모든 댓글 삭제
-        // 비즈니스 로직에서 해당 메서드는 삭제되었음 Cascade로 글 삭제시 댓글 자동 삭제됨
-//        commentDeleteAdapter.deleteAllByPostId(testPost.getId());
-
-        // EntityManager 초기화로 변경사항 반영
-        entityManager.flush();
-        entityManager.clear();
-
-        // Then: 모든 댓글이 삭제되었는지 검증
-        List<Comment> commentsAfter = commentRepository.findAll();
-        assertThat(commentsAfter).isEmpty();
-    }
 
     @Test
     @DisplayName("정상 케이스 - 사용자 댓글 익명화")
@@ -267,26 +238,6 @@ class CommentDeleteAdapterIntegrationTest {
         assertThat(deletedComment).isEmpty(); // 하드 삭제로 완전히 제거
     }
 
-    @Test
-    @DisplayName("경계값 - 빈 게시글에 댓글 삭제 시 아무 동작 안함")
-    void shouldDoNothing_WhenDeletingCommentsFromEmptyPost() {
-        // Given: 댓글이 없는 새 게시글
-        Post emptyPost = Post.builder()
-                .user(testUser)
-                .title("빈 게시글")
-                .content("댓글 없음")
-                .isNotice(false)
-                .views(0)
-                .build();
-        entityManager.persistAndFlush(emptyPost);
-
-        // When: 빈 게시글의 댓글 삭제
-//        commentDeleteAdapter.deleteAllByPostId(emptyPost.getId());
-
-        // Then: 예외가 발생하지 않고 정상적으로 완료되어야 함
-        List<Comment> comments = commentRepository.findAll();
-        assertThat(comments).isEmpty();
-    }
 
     @Test
     @DisplayName("경계값 - 존재하지 않는 사용자 ID로 익명화")

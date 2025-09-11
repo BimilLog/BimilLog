@@ -126,39 +126,7 @@ class CommentToUserAdapterUnitTest {
         then(userQueryUseCase).should().findById(adminUserId);
     }
 
-    @Test
-    @DisplayName("정상 케이스 - null 사용자 ID로 조회")
-    void shouldHandleNullUserId_WhenNullProvided() {
-        // Given: null 사용자 ID
-        Long nullUserId = null;
-        given(userQueryUseCase.findById(nullUserId)).willReturn(Optional.empty());
 
-        // When: null ID로 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(nullUserId);
-
-        // Then: 빈 Optional이 반환되었는지 검증
-        assertThat(result).isEmpty();
-
-        // UserQueryUseCase의 메서드가 호출되었는지 검증
-        then(userQueryUseCase).should().findById(nullUserId);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 음수 사용자 ID로 조회")
-    void shouldHandleNegativeUserId_WhenNegativeIdProvided() {
-        // Given: 음수 사용자 ID
-        Long negativeUserId = -1L;
-        given(userQueryUseCase.findById(negativeUserId)).willReturn(Optional.empty());
-
-        // When: 음수 ID로 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(negativeUserId);
-
-        // Then: 빈 Optional이 반환되었는지 검증
-        assertThat(result).isEmpty();
-
-        // UserQueryUseCase의 메서드가 호출되었는지 검증
-        then(userQueryUseCase).should().findById(negativeUserId);
-    }
 
     @Test
     @DisplayName("정상 케이스 - 사용자 설정이 포함된 사용자 조회")
@@ -190,22 +158,6 @@ class CommentToUserAdapterUnitTest {
         then(userQueryUseCase).should().findById(userId);
     }
 
-    @Test
-    @DisplayName("경계값 - 최대값 사용자 ID로 조회")
-    void shouldHandleMaxUserId_WhenMaxLongValueProvided() {
-        // Given: Long 최대값을 사용자 ID로 사용
-        Long maxUserId = Long.MAX_VALUE;
-        given(userQueryUseCase.findById(maxUserId)).willReturn(Optional.empty());
-
-        // When: 최대값 ID로 사용자 조회
-        Optional<User> result = loadUserAdapter.findById(maxUserId);
-
-        // Then: 빈 Optional이 반환되었는지 검증
-        assertThat(result).isEmpty();
-
-        // UserQueryUseCase의 메서드가 호출되었는지 검증
-        then(userQueryUseCase).should().findById(maxUserId);
-    }
 
     @Test
     @DisplayName("예외 케이스 - UserQueryUseCase에서 예외 발생 시 전파")

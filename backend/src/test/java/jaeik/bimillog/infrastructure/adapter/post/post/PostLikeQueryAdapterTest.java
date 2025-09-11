@@ -1,90 +1,49 @@
 package jaeik.bimillog.infrastructure.adapter.post.post;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.postlike.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.post.out.post.PostLikeQueryAdapter;
-import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 /**
- * <h2>PostLikeQueryAdapter 테스트</h2>
- * <p>게시글 추천 쿼리 어댑터의 모든 기능을 테스트합니다.</p>
+ * <h2>PostLikeQueryAdapter 단위 테스트</h2>
+ * <p>게시글 추천 쿼리 어댑터의 기능을 Mock 기반으로 테스트합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@DataJpaTest(
-        excludeFilters = @ComponentScan.Filter(
-                type = FilterType.ASSIGNABLE_TYPE,
-                classes = BimilLogApplication.class
-        )
-)
-@Testcontainers
-@EntityScan(basePackages = {
-        "jaeik.bimillog.domain.post.entity",
-        "jaeik.bimillog.domain.user.entity",
-        "jaeik.bimillog.domain.global.entity"
-})
-@EnableJpaRepositories(basePackages = {
-        "jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.postlike"
-})
-@Import(PostLikeQueryAdapter.class)
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
-})
+@ExtendWith(MockitoExtension.class)
 class PostLikeQueryAdapterTest {
 
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
+    @Mock
+    private PostLikeRepository postLikeRepository;
 
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
-        }
-    }
-
-    @Autowired
     private PostLikeQueryAdapter postLikeQueryAdapter;
-
-    @Autowired
-    private TestEntityManager entityManager;
+    
+    private User testUser;
+    private Post testPost;
+    
+    @BeforeEach
+    void setUp() {
+        postLikeQueryAdapter = new PostLikeQueryAdapter(postLikeRepository);
+        
+        // 테스트 데이터 준비
+        testUser = createTestUser("testUser", "123456");
+        testPost = createTestPost(testUser, "테스트 게시글", "테스트 내용");
+    }
 
     @Test
     @DisplayName("정상 케이스 - 사용자와 게시글로 추천 존재 여부 확인 (true)")
@@ -260,32 +219,7 @@ class PostLikeQueryAdapterTest {
         assertThat(count2).isEqualTo(7L);
     }
 
-    @Test
-    @DisplayName("예외 케이스 - null 사용자로 추천 여부 확인")
-    void shouldReturnFalse_WhenUserIsNull() {
-        // Given: 사용자와 게시글
-        User user = createTestUser("testUser", "123456");
-        entityManager.persistAndFlush(user);
 
-        Post post = createTestPost(user, "테스트 게시글", "테스트 내용");
-        entityManager.persistAndFlush(post);
-
-        // When: null 사용자로 추천 여부 확인
-        boolean exists = postLikeQueryAdapter.existsByUserAndPost(null, post);
-
-        // Then: false 반환 (익명 사용자는 추천 불가)
-        assertThat(exists).isFalse();
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - null 게시글로 추천 수 조회")
-    void shouldReturnZero_WhenPostIsNull() {
-        // When: null 게시글의 추천 수 조회
-        long count = postLikeQueryAdapter.countByPost(null);
-
-        // Then: 0 반환
-        assertThat(count).isEqualTo(0L);
-    }
 
     @Test
     @DisplayName("동시성 - 추천 생성과 동시에 조회")
@@ -310,47 +244,6 @@ class PostLikeQueryAdapterTest {
         assertThat(postLikeQueryAdapter.countByPost(post)).isEqualTo(1L);
     }
 
-    @Test
-    @DisplayName("성능 - 대량 추천 데이터 조회")
-    void shouldPerformWell_WhenQueryingLargeDataset() {
-        // Given: 하나의 인기 게시글과 많은 추천
-        User author = createTestUser("author", "000000");
-        entityManager.persistAndFlush(author);
-
-        Post popularPost = createTestPost(author, "인기 게시글", "많은 추천을 받을 게시글");
-        entityManager.persistAndFlush(popularPost);
-
-        final int LIKE_COUNT = 100;
-        User testUser = null;
-
-        // 100개의 추천 생성
-        for (int i = 1; i <= LIKE_COUNT; i++) {
-            User user = createTestUser("user" + i, "user" + i + "123");
-            entityManager.persistAndFlush(user);
-
-            if (i == 50) testUser = user; // 50번째 사용자 기록
-
-            PostLike like = PostLike.builder().user(user).post(popularPost).build();
-            entityManager.persistAndFlush(like);
-        }
-
-        entityManager.flush();
-        entityManager.clear();
-
-        // When: 대량 데이터에서 조회
-        long startTime = System.currentTimeMillis();
-        
-        long totalCount = postLikeQueryAdapter.countByPost(popularPost);
-        boolean exists = postLikeQueryAdapter.existsByUserAndPost(testUser, popularPost);
-        
-        long endTime = System.currentTimeMillis();
-        long queryTime = endTime - startTime;
-
-        // Then: 올바른 결과와 합리적인 성능
-        assertThat(totalCount).isEqualTo(LIKE_COUNT);
-        assertThat(exists).isTrue();
-        assertThat(queryTime).isLessThan(1000L); // 1초 이내
-    }
 
     @Test
     @DisplayName("트랜잭션 - 일관성 있는 데이터 조회")

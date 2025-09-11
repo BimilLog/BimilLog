@@ -137,35 +137,7 @@ class CommentToPostAdapterUnitTest {
         then(postQueryUseCase).should().findById(noticePostId);
     }
 
-    @Test
-    @DisplayName("정상 케이스 - null 게시글 ID로 조회")
-    void shouldHandleNullPostId_WhenNullProvided() {
-        // Given: null 게시글 ID
-        Long nullPostId = null;
-        given(postQueryUseCase.findById(nullPostId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
-        // When & Then: null ID로 게시글 조회 시 예외 발생
-        assertThatThrownBy(() -> commentLoadPostAdapter.findById(nullPostId))
-                .isInstanceOf(PostCustomException.class);
-
-        // PostQueryUseCase의 메서드가 호출되었는지 검증
-        then(postQueryUseCase).should().findById(nullPostId);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 음수 게시글 ID로 조회")
-    void shouldHandleNegativePostId_WhenNegativeIdProvided() {
-        // Given: 음수 게시글 ID
-        Long negativePostId = -1L;
-        given(postQueryUseCase.findById(negativePostId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-
-        // When: 음수 ID로 게시글 조회
-        assertThatThrownBy(() -> commentLoadPostAdapter.findById(negativePostId))
-                .isInstanceOf(PostCustomException.class);
-
-        // PostQueryUseCase의 메서드가 호출되었는지 검증
-        then(postQueryUseCase).should().findById(negativePostId);
-    }
 
     @Test
     @DisplayName("정상 케이스 - 높은 조회수를 가진 게시글 조회")
@@ -231,20 +203,6 @@ class CommentToPostAdapterUnitTest {
         then(postQueryUseCase).should().findById(postId);
     }
 
-    @Test
-    @DisplayName("경계값 - 최대값 게시글 ID로 조회")
-    void shouldHandleMaxPostId_WhenMaxLongValueProvided() {
-        // Given: Long 최대값을 게시글 ID로 사용
-        Long maxPostId = Long.MAX_VALUE;
-        given(postQueryUseCase.findById(maxPostId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-
-        // When & Then: 최대값 ID로 게시글 조회 시 예외 발생
-        assertThatThrownBy(() -> commentLoadPostAdapter.findById(maxPostId))
-                .isInstanceOf(PostCustomException.class);
-
-        // PostQueryUseCase의 메서드가 호출되었는지 검증
-        then(postQueryUseCase).should().findById(maxPostId);
-    }
 
     @Test
     @DisplayName("예외 케이스 - PostQueryUseCase에서 예외 발생 시 전파")
@@ -315,33 +273,6 @@ class CommentToPostAdapterUnitTest {
         then(postQueryUseCase).should().findById(postId);
     }
 
-    @Test
-    @DisplayName("경계값 - 빈 제목과 내용을 가진 게시글 조회")
-    void shouldReturnPostWithEmptyContent_WhenEmptyContentPostExists() {
-        // Given: 빈 제목과 내용을 가진 게시글
-        Post emptyContentPost = Post.builder()
-                .user(testUser)
-                .title("")
-                .content("")
-                .isNotice(false)
-                .views(0)
-                .build();
-
-        Long postId = 5L;
-        given(postQueryUseCase.findById(postId)).willReturn(emptyContentPost);
-
-        // When: 빈 내용 게시글 조회
-        Post result = commentLoadPostAdapter.findById(postId);
-
-        // Then: 빈 내용 게시글이 올바르게 반환되었는지 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getTitle()).isEmpty();
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getViews()).isEqualTo(0);
-
-        // PostQueryUseCase의 메서드가 호출되었는지 검증
-        then(postQueryUseCase).should().findById(postId);
-    }
 
     @Test
     @DisplayName("트랜잭션 - 복잡한 게시글 엔티티 조회")

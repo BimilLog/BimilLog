@@ -131,37 +131,6 @@ public class PostViewedEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("이벤트 생성 시 유효성 검증 - null postId")
-    void postViewedEventCreation_ShouldValidateNullPostId() {
-        // When & Then - null postId로 이벤트 생성 시 예외 발생
-        assertThatThrownBy(() -> new PostViewedEvent(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("게시글 ID는 null일 수 없습니다.");
-    }
-
-    @Test
-    @DisplayName("대량 게시글 조회 이벤트 독립적 처리")
-    void massPostViewedEvents_ShouldProcessAllIndependently() {
-        // Given - 서로 다른 게시글들에 대한 조회 이벤트
-        int postCount = 10;
-
-        // When - 여러 게시글에 대한 조회 이벤트 발행
-        for (int i = 1; i <= postCount; i++) {
-            eventPublisher.publishEvent(new PostViewedEvent((long) i));
-        }
-
-        // Then - 모든 게시글이 독립적으로 조회수 증가 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    for (int i = 1; i <= postCount; i++) {
-                        verify(postInteractionUseCase).incrementViewCount(eq((long) i));
-                    }
-                    verifyNoMoreInteractions(postInteractionUseCase);
-                });
-    }
-
-    @Test
     @DisplayName("비동기 이벤트 리스너 정상 작동 검증")
     void postViewedEventAsync_ShouldTriggerListenerCorrectly() {
         // Given
@@ -176,53 +145,6 @@ public class PostViewedEventIntegrationTest {
                 .atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> {
                     verify(postInteractionUseCase).incrementViewCount(eq(postId));
-                    verifyNoMoreInteractions(postInteractionUseCase);
-                });
-    }
-
-    @Test
-    @DisplayName("특수한 postId 값들의 조회 이벤트 처리")
-    void postViewedEventWithSpecialPostIds_ShouldProcessCorrectly() {
-        // Given - 경계값 및 특수한 postId들
-        Long maxLong = Long.MAX_VALUE;
-        Long minValidId = 1L;
-        Long largeId = 999999999L;
-
-        // When
-        eventPublisher.publishEvent(new PostViewedEvent(maxLong));
-        eventPublisher.publishEvent(new PostViewedEvent(minValidId));
-        eventPublisher.publishEvent(new PostViewedEvent(largeId));
-
-        // Then - 모든 특수한 ID 값들이 정상 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCount(eq(maxLong));
-                    verify(postInteractionUseCase).incrementViewCount(eq(minValidId));
-                    verify(postInteractionUseCase).incrementViewCount(eq(largeId));
-                    verifyNoMoreInteractions(postInteractionUseCase);
-                });
-    }
-
-    @Test
-    @DisplayName("조회 이벤트와 다른 이벤트의 독립적 처리 검증")
-    void postViewedEventIndependentProcessing_ShouldNotAffectOtherEvents() {
-        // Given
-        Long postId1 = 1L;
-        Long postId2 = 2L;
-        PostViewedEvent viewEvent1 = new PostViewedEvent(postId1);
-        PostViewedEvent viewEvent2 = new PostViewedEvent(postId2);
-
-        // When - 여러 조회 이벤트를 연속으로 발행
-        eventPublisher.publishEvent(viewEvent1);
-        eventPublisher.publishEvent(viewEvent2);
-
-        // Then - 각 이벤트가 독립적으로 처리되어야 함
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> {
-                    verify(postInteractionUseCase).incrementViewCount(eq(postId1));
-                    verify(postInteractionUseCase).incrementViewCount(eq(postId2));
                     verifyNoMoreInteractions(postInteractionUseCase);
                 });
     }

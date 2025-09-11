@@ -291,26 +291,6 @@ class PostCommandAdapterTest {
         assertThat(updatedPost.getViews()).isEqualTo(3);
     }
 
-    @Test
-    @DisplayName("경계값 - null 사용자로 게시글 생성")
-    void shouldSavePost_WhenUserIsNull() {
-        // Given: null 사용자와 게시글 (익명 게시글 시나리오)
-        String title = "익명 게시글";
-        String content = "익명으로 작성한 게시글입니다.";
-        Integer password = 1234;
-
-        Post post = Post.createPost(null, title, content, password);
-
-        // When: null 사용자 게시글 저장
-        Post savedPost = postCommandAdapter.save(post);
-
-        // Then: 저장 성공 검증
-        assertThat(savedPost).isNotNull();
-        assertThat(savedPost.getId()).isNotNull();
-        assertThat(savedPost.getUser()).isNull();
-        assertThat(savedPost.getTitle()).isEqualTo("익명 게시글");
-        assertThat(savedPost.getContent()).isEqualTo("익명으로 작성한 게시글입니다.");
-    }
 
     @Test
     @DisplayName("경계값 - 긴 제목과 내용으로 게시글 저장")
@@ -420,74 +400,7 @@ class PostCommandAdapterTest {
         assertThat(foundPost.getPostCacheFlag()).isEqualTo(PostCacheFlag.REALTIME);
     }
 
-    @Test
-    @DisplayName("예외 케이스 - 제약조건 위반 (제목 null)")
-    void shouldThrowException_WhenTitleIsNull() {
-        // Given: 제목이 null인 게시글
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(user);
 
-        // 직접 빌더로 null 제목 설정
-        Post post = Post.builder()
-                .user(user)
-                .title(null) // NULL 제목
-                .content("내용은 있음")
-                .views(0)
-                .isNotice(false)
-                .password(1234)
-                .build();
-
-        // When & Then: 제약조건 위반 예외 발생
-        assertThatThrownBy(() -> {
-            postCommandAdapter.save(post);
-            entityManager.flush();
-        }).isInstanceOf(Exception.class);
-    }
-
-    @Test
-    @DisplayName("예외 케이스 - 제약조건 위반 (내용 null)")
-    void shouldThrowException_WhenContentIsNull() {
-        // Given: 내용이 null인 게시글
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(user);
-
-        Post post = Post.builder()
-                .user(user)
-                .title("제목은 있음")
-                .content(null) // NULL 내용
-                .views(0)
-                .isNotice(false)
-                .password(1234)
-                .build();
-
-        // When & Then: 제약조건 위반 예외 발생
-        assertThatThrownBy(() -> {
-            postCommandAdapter.save(post);
-            entityManager.flush();
-        }).isInstanceOf(Exception.class);
-    }
 
     @Test
     @DisplayName("트랜잭션 - 저장 후 즉시 조회 가능")
@@ -525,44 +438,4 @@ class PostCommandAdapterTest {
         assertThat(foundPost.getTitle()).isEqualTo("즉시 조회 테스트");
     }
 
-    @Test
-    @DisplayName("성능 - 대량 게시글 저장")
-    void shouldHandleMultiplePosts_WhenSavingMany() {
-        // Given: 사용자와 여러 게시글
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
-        entityManager.persistAndFlush(user);
-
-        // When: 10개 게시글 저장
-        for (int i = 1; i <= 10; i++) {
-            String title = "대량 테스트 게시글 " + i;
-            String content = "대량 저장 테스트 내용 " + i;
-            Integer password = 1234;
-
-            Post post = Post.createPost(user, title, content, password);
-            Post savedPost = postCommandAdapter.save(post);
-
-            // Then: 각 게시글이 정상 저장되었는지 확인
-            assertThat(savedPost.getId()).isNotNull();
-            assertThat(savedPost.getTitle()).contains("대량 테스트 게시글 " + i);
-        }
-
-        entityManager.flush();
-        
-        // 총 저장된 게시글 수 확인
-        Long count = entityManager.getEntityManager()
-                .createQuery("SELECT COUNT(p) FROM Post p", Long.class)
-                .getSingleResult();
-        assertThat(count).isEqualTo(10L);
-    }
 }

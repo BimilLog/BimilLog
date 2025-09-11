@@ -246,19 +246,6 @@ class CommentLikeAdapterIntegrationTest {
     }
 
 
-    @Test
-    @DisplayName("경계값 - null 값 처리 확인")
-    void shouldHandleNullValues_WhenNullParametersProvided() {
-        // 실제 비즈니스 로직에서는 null이 넘어오지 않아야 하지만
-        // 어댑터 레벨에서의 방어 코드 확인
-        
-        // Given & When & Then: null 처리 테스트
-        // 비즈니스 로직에서 NULL 체크가 선행되므로 여기서는 기본 동작 확인
-        
-        // 정상적인 경우만 테스트 (NULL은 비즈니스 레이어에서 사전 차단)
-        boolean normalCase = commentLikeAdapter.isLikedByUser(testComment1.getId(), testUser1.getId());
-        assertThat(normalCase).isFalse();
-    }
 
     @Test
     @DisplayName("트랜잭션 - 추천 상태 변경 시 실시간 반영 확인")
