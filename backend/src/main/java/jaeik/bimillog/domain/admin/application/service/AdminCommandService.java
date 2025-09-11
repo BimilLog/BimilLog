@@ -57,15 +57,9 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     public void createReport(Long userId, ReportType reportType, Long targetId, String content) {
-        validateCreateReportParameters(reportType, targetId);
-
         User reporter = Optional.ofNullable(userId)
                 .flatMap(userQueryPort::findById)
                 .orElse(null);
-
-        if (targetId == null && (reportType == ReportType.POST || reportType == ReportType.COMMENT)) {
-            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
-        }
 
         Report report = Report.createReport(reportType, targetId, content, reporter);
         adminCommandPort.save(report);
@@ -107,48 +101,25 @@ public class AdminCommandService implements AdminCommandUseCase {
         eventPublisher.publishEvent(new AdminWithdrawEvent(user.getId(), "관리자 강제 탈퇴"));
     }
 
-    /**
-     * <h3>신고 생성 파라미터 검증</h3>
-     * <p>신고 생성 시 필요한 파라미터들의 유효성을 사전 검증합니다.</p>
-     * <p>POST/COMMENT 신고는 targetId 필수, ERROR/IMPROVEMENT는 null 허용</p>
-     * <p>조기 검증으로 불필요한 데이터베이스 조회 방지</p>
-     * <p>createReport에서 파라미터 검증 단계에서 사용됩니다.</p>
-     *
-     * @param reportType 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT)
-     * @param targetId 신고 대상 ID (POST/COMMENT 시 필수, ERROR/IMPROVEMENT 시 null 허용)
-     * @throws AdminCustomException POST/COMMENT 신고인데 targetId가 null인 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void validateCreateReportParameters(ReportType reportType, Long targetId) {
-        if (targetId == null && (reportType == ReportType.POST || reportType == ReportType.COMMENT)) {
-            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
-        }
-    }
 
     /**
      * <h3>신고 대상 사용자 조회</h3>
      * <p>제재할 사용자를 식별하고 조회합니다.</p>
      * <p>POST 신고: Post 도메인에서 게시글 작성자 조회, COMMENT 신고: Comment 도메인에서 댓글 작성자 조회</p>
-     * <p>ERROR/IMPROVEMENT 신고는 사용자 대상이 아니므로 예외 발생</p>
      * <p>banUser, forceWithdrawUser에서 사용자 식별 단계에서 사용됩니다.</p>
      *
      * @param reportType 신고 유형 (POST, COMMENT만 허용)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
      * @return User 신고 대상 사용자 엔티티
-     * @throws AdminCustomException ERROR/IMPROVEMENT 신고이거나 대상 사용자를 찾을 수 없는 경우
+     * @throws AdminCustomException 대상 사용자를 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     private User resolveUser(ReportType reportType, Long targetId) {
-        if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
-            throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
-        }
-
         User user = switch (reportType) {
             case POST -> postQueryUseCase.findById(targetId).getUser();
             case COMMENT -> commentQueryUseCase.findById(targetId).getUser();
-            default -> null;
+            default -> throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         };
 
         if (user == null) {
@@ -156,8 +127,5 @@ public class AdminCommandService implements AdminCommandUseCase {
         }
 
         return user;
-
-        // IMPROVEMENT와 ERROR는 도달 불가로 null이 일어나지 않음
-        // 글이나 댓글이 있어도 비로그인자나 탈퇴한 회원의 경우 유저가 null일 수 있음.
     }
 }

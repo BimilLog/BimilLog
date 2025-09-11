@@ -2,6 +2,8 @@ package jaeik.bimillog.infrastructure.adapter.admin.dto;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -37,6 +39,68 @@ public class ReportDTO {
     private String content;
     
     private Instant createdAt;
+
+    /**
+     * <h3>POST/COMMENT 신고 시 targetId 필수 검증</h3>
+     * <p>POST와 COMMENT 타입의 신고는 targetId가 반드시 필요합니다.</p>
+     * <p>게시글 또는 댓글 신고 시 해당 ID를 통해 신고 대상을 식별해야 하기 때문입니다.</p>
+     *
+     * @return boolean POST/COMMENT 타입일 때 targetId가 null이 아니면 true, 그 외 타입은 항상 true
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @AssertTrue(message = "POST/COMMENT 신고는 targetId가 필수입니다")
+    public boolean isTargetIdRequiredForContentReport() {
+        if (reportType == ReportType.POST || reportType == ReportType.COMMENT) {
+            return targetId != null;
+        }
+        return true;
+    }
+
+    /**
+     * <h3>ERROR/IMPROVEMENT 신고 시 targetId null 검증</h3>
+     * <p>ERROR와 IMPROVEMENT 타입의 신고는 targetId가 필요하지 않습니다.</p>
+     * <p>시스템 오류 신고나 개선 제안은 특정 게시글이나 댓글과 무관하기 때문입니다.</p>
+     *
+     * @return boolean ERROR/IMPROVEMENT 타입일 때 targetId가 null이면 true, 그 외 타입은 항상 true
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @AssertTrue(message = "ERROR/IMPROVEMENT 신고는 targetId가 없어야 합니다")
+    public boolean isTargetIdNotAllowedForSystemReport() {
+        if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
+            return targetId == null;
+        }
+        return true;
+    }
+
+    /**
+     * <h3>사용자 제재 가능 타입 검증</h3>
+     * <p>사용자 제재는 POST와 COMMENT 타입만 가능합니다.</p>
+     * <p>ERROR와 IMPROVEMENT는 시스템 개선용이므로 사용자 제재 대상이 아닙니다.</p>
+     *
+     * @return boolean POST/COMMENT 타입이면 true, ERROR/IMPROVEMENT는 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public boolean isBannableReportType() {
+        return reportType == ReportType.POST || reportType == ReportType.COMMENT;
+    }
+
+    /**
+     * <h3>익명 사용자 정보 설정</h3>
+     * <p>인증된 사용자와 익명 사용자를 구분하여 신고자 정보를 설정합니다.</p>
+     * <p>인증된 사용자: userId와 실제 사용자명 사용</p>
+     * <p>익명 사용자: userId는 null, 사용자명은 "익명"으로 설정</p>
+     *
+     * @param userDetails 인증된 사용자 정보 (익명일 경우 null)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void enrichReporterInfo(CustomUserDetails userDetails) {
+        this.reporterId = (userDetails != null) ? userDetails.getUserId() : null;
+        this.reporterName = (userDetails != null) ? userDetails.getUsername() : "익명";
+    }
 
     /**
      * <h3>Report 엔티티로부터 ReportDTO 생성</h3>

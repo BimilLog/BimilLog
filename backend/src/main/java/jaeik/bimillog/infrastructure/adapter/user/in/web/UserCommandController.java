@@ -88,14 +88,13 @@ public class UserCommandController {
     @PostMapping("/report")
     public ResponseEntity<String> submitReport(@RequestBody @Valid ReportDTO reportDTO,
                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
-        // 인증된 사용자와 익명 사용자 구분 처리
-        Long reporterId = (userDetails != null) ? userDetails.getUserId() : null;
-        String reporterName = (userDetails != null) ? userDetails.getUsername() : "익명";
+        // 신고자 정보 설정 (인증된 사용자 또는 익명 사용자)
+        reportDTO.enrichReporterInfo(userDetails);
         
         // 신고 이벤트 발행
         ReportSubmittedEvent event = ReportSubmittedEvent.of(
-                reporterId,
-                reporterName,
+                reportDTO.getReporterId(),
+                reportDTO.getReporterName(),
                 reportDTO.getReportType(),
                 reportDTO.getTargetId(),
                 reportDTO.getContent()
