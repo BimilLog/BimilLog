@@ -35,8 +35,18 @@ export const CommentForm: React.FC<CommentFormProps> = ({
               type="password"
               placeholder="비밀번호 (4자리 숫자)"
               value={commentPassword}
-              onChange={(e) => onPasswordChange(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // 4자리 숫자만 허용
+                if (value === '' || (/^\d{1,4}$/.test(value))) {
+                  onPasswordChange(value);
+                }
+              }}
+              maxLength={4}
             />
+            {commentPassword && (commentPassword.length !== 4 || !/^\d{4}$/.test(commentPassword)) && (
+              <p className="text-red-500 text-sm mt-1">4자리 숫자를 입력해주세요</p>
+            )}
           </div>
         )}
         <div className="flex space-x-4">
@@ -45,7 +55,14 @@ export const CommentForm: React.FC<CommentFormProps> = ({
             value={newComment}
             onChange={(e) => onCommentChange(e.target.value)}
           />
-          <Button onClick={onSubmit} disabled={isSubmittingComment}>
+          <Button 
+            onClick={onSubmit} 
+            disabled={
+              isSubmittingComment || 
+              !newComment.trim() || 
+              (!isAuthenticated && (!commentPassword || commentPassword.length !== 4 || !/^\d{4}$/.test(commentPassword)))
+            }
+          >
             <Send className="w-4 h-4" />
           </Button>
         </div>

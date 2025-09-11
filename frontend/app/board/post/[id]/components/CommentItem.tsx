@@ -168,6 +168,11 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   <User className="w-3 h-3 flex-shrink-0" />
                   <span className="truncate">{comment.userName}</span>
                 </Link>
+                {comment.popular && (
+                  <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">
+                    인기
+                  </span>
+                )}
                 <span className="text-xs text-gray-500 whitespace-nowrap">
                   {new Date(comment.createdAt).toLocaleDateString()}
                 </span>

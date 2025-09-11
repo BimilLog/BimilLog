@@ -76,15 +76,10 @@ export const usePostActions = (
         comment.userName === "익명" || comment.userName === null
           ? await commentApi.deleteComment(
               comment.id,
-              user?.userId,
-              Number(password),
-              comment.content
+              Number(password)
             )
           : await commentApi.deleteComment(
-              comment.id,
-              user?.userId,
-              undefined,
-              comment.content
+              comment.id
             );
 
       if (response.success) {

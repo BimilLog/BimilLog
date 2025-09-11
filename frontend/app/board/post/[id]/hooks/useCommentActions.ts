@@ -33,7 +33,6 @@ export const useCommentActions = (
     try {
       await commentApi.createComment({
         postId: Number(postId),
-        userName: isAuthenticated ? user?.userName || "" : "익명",
         content: newComment,
         password: isAuthenticated ? undefined : Number(commentPassword),
       });
@@ -43,6 +42,7 @@ export const useCommentActions = (
       await onRefresh();
     } catch (error) {
       console.error("댓글 작성 실패:", error);
+      alert("댓글 작성 중 오류가 발생했습니다.");
     } finally {
       setIsSubmittingComment(false);
     }
@@ -57,7 +57,6 @@ export const useCommentActions = (
     try {
       await commentApi.createComment({
         postId: Number(postId),
-        userName: isAuthenticated ? user?.userName || "" : "익명",
         content: replyContent,
         parentId: replyingTo.id,
         password: isAuthenticated ? undefined : Number(replyPassword),
@@ -69,6 +68,7 @@ export const useCommentActions = (
       await onRefresh();
     } catch (error) {
       console.error("답글 작성 실패:", error);
+      alert("답글 작성 중 오류가 발생했습니다.");
     } finally {
       setIsSubmittingReply(false);
     }
@@ -112,41 +112,18 @@ export const useCommentActions = (
     const isMyComment = isAuthenticated && user?.userName === editingComment.userName;
 
     try {
-      const response = isMyComment
-        ? await commentApi.updateComment(editingComment.id, {
-            content: editContent,
-          })
-        : editPassword.trim()
-        ? await commentApi.updateComment(editingComment.id, {
-            content: editContent,
-            password: editPassword,
-          })
-        : null;
+      await commentApi.updateComment(editingComment.id, {
+        content: editContent,
+        password: !isMyComment && editPassword.trim() ? Number(editPassword) : undefined,
+      });
 
-      if (!response) return;
-
-      if (response.success) {
-        setEditingComment(null);
-        setEditContent("");
-        setEditPassword("");
-        await onRefresh();
-      } else {
-        if (
-          response.error &&
-          response.error.includes("댓글 비밀번호가 일치하지 않습니다")
-        ) {
-          alert("비밀번호가 일치하지 않습니다.");
-        } else {
-          alert(response.error || "댓글 수정에 실패했습니다.");
-        }
-      }
+      setEditingComment(null);
+      setEditContent("");
+      setEditPassword("");
+      await onRefresh();
     } catch (error) {
       console.error("댓글 수정 실패:", error);
-      if (error instanceof Error && error.message.includes("403")) {
-        alert("비밀번호가 일치하지 않습니다.");
-      } else {
-        alert("댓글 수정 중 오류가 발생했습니다.");
-      }
+      alert("댓글 수정 중 오류가 발생했습니다. 비밀번호를 확인해주세요.");
     }
   };
 

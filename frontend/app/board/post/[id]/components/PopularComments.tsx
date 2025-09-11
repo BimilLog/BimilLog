@@ -46,9 +46,8 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
     }
 
     try {
-      const response = await userApi.submitSuggestion({
+      const response = await userApi.submitReport({
         reportType: "COMMENT",
-        userId: user.userId,
         targetId: comment.id,
         content: `댓글 신고: ${comment.content.substring(0, 50)}...`,
       });
@@ -99,6 +98,9 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
                   <p className="font-semibold text-sm sm:text-base text-blue-800 truncate">
                     {comment.userName}
                   </p>
+                  <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">
+                    인기
+                  </span>
                   <span className="text-xs text-gray-500 whitespace-nowrap">
                     {new Date(comment.createdAt).toLocaleDateString()}
                   </span>

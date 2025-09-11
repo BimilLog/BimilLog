@@ -48,6 +48,24 @@ export interface User {
   role: "USER" | "ADMIN"
 }
 
+// 백엔드 v2 Auth API 타입 정의
+export interface AuthResponse {
+  status: "NEW_USER" | "EXISTING_USER" | "SUCCESS"
+  uuid?: string
+  data: Record<string, any>
+}
+
+export interface SocialLoginRequest {
+  provider: string
+  code: string
+  fcmToken?: string
+}
+
+export interface SignUpRequest {
+  userName: string
+  uuid: string
+}
+
 // 롤링페이퍼 메시지 타입 - v2 백엔드 MessageDTO 호환
 export interface RollingPaperMessage {
   id: number
@@ -111,7 +129,6 @@ export interface Comment {
   content: string
   popular: boolean
   deleted: boolean
-  password?: number
   likeCount: number  // v2: likes → likeCount
   createdAt: string
   userLike: boolean
@@ -366,11 +383,14 @@ export const apiClient = new ApiClient(API_BASE_URL)
 
 // 인증 관련 API
 export const authApi = {
-  // 카카오 로그인 URL 가져오기
+  // 카카오 로그인 (백엔드 v2 호환)
   kakaoLogin: (code: string, fcmToken?: string) => {
-    const queryParams = new URLSearchParams({ provider: 'kakao', code })
-    if (fcmToken) queryParams.append("fcmToken", fcmToken)
-    return apiClient.post(`/api/auth/login?${queryParams.toString()}`)
+    const requestBody: SocialLoginRequest = {
+      provider: 'KAKAO',
+      code,
+      fcmToken
+    }
+    return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
   },
 
   // 현재 사용자 정보 조회 (httpOnly 쿠키 자동 포함)
@@ -382,42 +402,13 @@ export const authApi = {
   // 회원 탈퇴
   deleteAccount: () => apiClient.delete("/api/auth/withdraw"),
 
-  // 회원가입 (닉네임 설정)
-  signUp: (userName: string) => {
-    const formData = new URLSearchParams()
-    formData.append('userName', userName)
-    
-    // 최신 CSRF 토큰 가져오기
-    const csrfToken = getCookie("XSRF-TOKEN");
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    };
-    
-    if (csrfToken) {
-      headers["X-XSRF-TOKEN"] = csrfToken;
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[POST] /api/auth/signup - Using CSRF token:`, csrfToken.substring(0, 8) + '...');
-      }
+  // 회원가입 (백엔드 v2 호환)
+  signUp: (userName: string, uuid: string) => {
+    const requestBody: SignUpRequest = {
+      userName,
+      uuid
     }
-    
-    // Use a custom request for form data
-    return fetch(`${apiClient['baseURL']}/api/auth/signup`, {
-      method: 'POST',
-      headers,
-      body: formData.toString(),
-      credentials: 'include'
-    }).then(async response => {
-      // POST 요청 후 토큰 변경 로그
-      logCsrfTokenUpdate('POST', '/api/auth/signup');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return { success: true, data };
-    }).catch(error => {
-      return { success: false, error: error.message };
-    })
+    return apiClient.post<AuthResponse>("/api/auth/signup", requestBody)
   },
 
   // 서버 상태 확인
@@ -612,12 +603,11 @@ export const commentApi = {
   // 댓글 작성 - v2 마이그레이션 (CommentCommandController)
   createComment: (comment: {
     postId: number
-    userName?: string  // v2에서는 userName이 선택적 (userDetails에서 가져옴)
     content: string
     parentId?: number
     password?: number
   }) => {
-    // v2 백엔드 CommentReqDTO 형식에 맞춤
+    // v2 백엔드 CommentReqDTO 형식에 맞춤 (userName은 백엔드에서 userDetails로 자동 처리)
     const payload = {
       postId: comment.postId,
       content: comment.content,
@@ -628,24 +618,24 @@ export const commentApi = {
   },
 
   // 댓글 수정 - v2 마이그레이션 (CommentCommandController)
-  updateComment: (commentId: number, data: { content: string; password?: string }) => {
+  updateComment: (commentId: number, data: { content: string; password?: number }) => {
     // v2 백엔드 CommentReqDTO 형식에 맞춤
     const payload: any = {
       id: commentId,
       content: data.content
     };
-    if (data.password) {
-      payload.password = Number(data.password);
+    if (data.password !== undefined) {
+      payload.password = data.password;
     }
     return apiClient.post("/api/comment/update", payload);
   },
 
   // 댓글 삭제 - v2 마이그레이션 (CommentCommandController)  
-  deleteComment: (commentId: number, userId?: number, password?: number, content?: string) => {
+  deleteComment: (commentId: number, password?: number) => {
     // v2 백엔드 CommentReqDTO 형식에 맞춤
     const payload: any = { id: commentId };
     if (password !== undefined) {
-      payload.password = Number(password);
+      payload.password = password;
     }
     return apiClient.post("/api/comment/delete", payload);
   },

@@ -53,15 +53,18 @@ export default function AuthCallbackPage() {
             fcmToken || undefined
           );
 
-          if (loginResponse.success) {
-            // 쿠키가 정상적으로 세팅되었는지 확인하기 위해 /auth/me API 호출
-            const userResponse = await authApi.getCurrentUser();
-
-            if (userResponse.success && userResponse.data?.userName) {
-              // 정식 회원: 유저 정보가 있고, userName이 존재함
+          if (loginResponse.success && loginResponse.data) {
+            const authResponse = loginResponse.data;
+            
+            if (authResponse.status === "NEW_USER") {
+              // 신규 사용자: uuid를 세션스토리지에 저장하고 회원가입 페이지로 이동
+              if (authResponse.uuid) {
+                sessionStorage.setItem("tempUserUuid", authResponse.uuid);
+              }
+              router.push("/signup?required=true");
+            } else if (authResponse.status === "EXISTING_USER") {
+              // 기존 사용자: 사용자 정보 갱신 후 홈으로 이동
               await refreshUser(); // 전역 상태 업데이트
-
-              // 기존회원 로그인 성공 후 알림 목록 조회 (SSE 연결은 AuthContext에서 자동 처리)
               await fetchNotifications(); // 알림 목록 조회
 
               // 카카오 친구 동의 완료 후 돌아온 경우 확인
@@ -78,7 +81,7 @@ export default function AuthCallbackPage() {
                 sessionStorage.removeItem("returnUrl");
                 sessionStorage.removeItem("kakaoConsentUrl");
 
-                // 성공 알림 표시 (Toast로 변경)
+                // 성공 알림 표시
                 setTimeout(() => {
                   showSuccess(
                     "카카오 친구 목록 동의 완료",
@@ -92,8 +95,8 @@ export default function AuthCallbackPage() {
 
               router.push(finalRedirect);
             } else {
-              // 임시 회원: 유저 정보가 없거나, userName이 없음
-              router.push("/signup?required=true");
+              console.error("Unexpected login response status:", authResponse.status);
+              router.push("/login?error=" + encodeURIComponent("예상치 못한 로그인 응답"));
             }
           } else {
             console.error("Server login failed:", loginResponse.error);

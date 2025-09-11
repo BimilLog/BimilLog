@@ -31,6 +31,9 @@ export default function SignUpPage() {
   const needsNickname = searchParams.get("required") === "true";
   const { showSuccess, showError, toasts, removeToast } = useToast();
 
+  // 임시 사용자 UUID 관리
+  const [tempUuid, setTempUuid] = useState<string | null>(null);
+
   const [nickname, setNicknameInput] = useState("");
   const [nicknameMessage, setNicknameMessage] = useState("");
   const [isNicknameFormatValid, setIsNicknameFormatValid] = useState(false);
@@ -45,6 +48,20 @@ export default function SignUpPage() {
       router.push("/");
     }
   }, [isLoading, isAuthenticated, router, needsNickname]);
+
+  // 세션스토리지에서 임시 UUID 가져오기
+  useEffect(() => {
+    if (needsNickname) {
+      const storedUuid = sessionStorage.getItem("tempUserUuid");
+      if (storedUuid) {
+        setTempUuid(storedUuid);
+      } else {
+        // UUID가 없는 경우 로그인 페이지로 리다이렉트
+        showError("회원가입 오류", "회원가입 정보가 없습니다. 다시 로그인해주세요.");
+        router.push("/login");
+      }
+    }
+  }, [needsNickname, router, showError]);
 
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newNickname = e.target.value;
@@ -85,14 +102,17 @@ export default function SignUpPage() {
   };
 
   const handleSetNickname = async () => {
-    if (!isNicknameFormatValid || !isNicknameAvailable) return;
+    if (!isNicknameFormatValid || !isNicknameAvailable || !tempUuid) return;
     setIsSubmitting(true);
     try {
-      const response = await authApi.signUp(nickname);
+      const response = await authApi.signUp(nickname, tempUuid);
       if (response.success) {
         console.log(
           "신규회원 닉네임 설정 성공 - 사용자 정보 갱신 후 SSE 자동 연결 예정"
         );
+
+        // 세션스토리지에서 임시 UUID 제거
+        sessionStorage.removeItem("tempUserUuid");
 
         // 사용자 정보 갱신 (useAuth의 refreshUser 호출)
         await refreshUser();
@@ -218,7 +238,7 @@ export default function SignUpPage() {
 
                 <Button
                   className="w-full h-12 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 font-semibold"
-                  disabled={!isNicknameAvailable || isSubmitting}
+                  disabled={!isNicknameAvailable || isSubmitting || !tempUuid}
                   onClick={handleSetNickname}
                 >
                   {isSubmitting ? "설정 중..." : "닉네임 설정 완료"}
