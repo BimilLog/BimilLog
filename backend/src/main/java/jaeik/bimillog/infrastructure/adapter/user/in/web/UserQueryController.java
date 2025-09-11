@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.user.application.port.in.UserFriendUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.SimpleCommentDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.PostResponseMapper;
-import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostResDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -87,12 +87,12 @@ public class UserQueryController {
      * @author Jaeik
      */
     @GetMapping("/posts")
-    public ResponseEntity<Page<SimplePostResDTO>> getUserPosts(@RequestParam int page,
-                                                              @RequestParam int size,
-                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Page<SimplePostDTO>> getUserPosts(@RequestParam int page,
+                                                            @RequestParam int size,
+                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<PostSearchResult> postList = userActivityUseCase.getUserPosts(userDetails.getUserId(), pageable);
-        Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
 
@@ -109,12 +109,12 @@ public class UserQueryController {
      * @author Jaeik
      */
     @GetMapping("/likeposts")
-    public ResponseEntity<Page<SimplePostResDTO>> getUserLikedPosts(@RequestParam int page,
-                                                                   @RequestParam int size,
-                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam int page,
+                                                                 @RequestParam int size,
+                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<PostSearchResult> likedPosts = userActivityUseCase.getUserLikedPosts(userDetails.getUserId(), pageable);
-        Page<SimplePostResDTO> dtoList = likedPosts.map(postResponseMapper::convertToSimplePostResDTO);
+        Page<SimplePostDTO> dtoList = likedPosts.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
 

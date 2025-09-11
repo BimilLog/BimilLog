@@ -198,11 +198,11 @@ class PostQueryControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("게시글 검색 성공 - 내용 검색")
-    void searchPost_Success_ByContent() throws Exception {
+    @DisplayName("게시글 검색 성공 - 제목+내용 검색")
+    void searchPost_Success_ByTitleContent() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "content")
+                        .param("type", "title_content")
                         .param("query", "키워드")
                         .param("page", "0")
                         .param("size", "10"))
@@ -338,7 +338,7 @@ class PostQueryControllerIntegrationTest {
     void searchPost_Success_KoreanQuery() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "content")
+                        .param("type", "title_content")
                         .param("query", "내용")
                         .param("page", "0")
                         .param("size", "10"))

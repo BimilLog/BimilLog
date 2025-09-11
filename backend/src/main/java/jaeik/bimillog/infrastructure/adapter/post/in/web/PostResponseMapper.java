@@ -2,8 +2,8 @@ package jaeik.bimillog.infrastructure.adapter.post.in.web;
 
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostResDTO;
-import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostResDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,12 +30,12 @@ public class PostResponseMapper {
      * <h3>PostSearchResult를 SimplePostResDTO로 변환</h3>
      *
      * @param postSearchResult 변환할 도메인 객체
-     * @return SimplePostResDTO 응답 DTO
+     * @return SimplePostDTO 응답 DTO
      * @author jaeik
      * @since 2.0.0
      */
-    public SimplePostResDTO convertToSimplePostResDTO(PostSearchResult postSearchResult) {
-        return SimplePostResDTO.builder()
+    public SimplePostDTO convertToSimplePostResDTO(PostSearchResult postSearchResult) {
+        return SimplePostDTO.builder()
                 .id(postSearchResult.getId())
                 .title(postSearchResult.getTitle())
                 .content(postSearchResult.getContent())
@@ -54,12 +54,12 @@ public class PostResponseMapper {
      * <h3>PostDetail을 FullPostResDTO로 변환</h3>
      *
      * @param postDetail 변환할 도메인 객체
-     * @return FullPostResDTO 응답 DTO
+     * @return FullPostDTO 응답 DTO
      * @author jaeik
      * @since 2.0.0
      */
-    public FullPostResDTO convertToFullPostResDTO(PostDetail postDetail) {
-        return FullPostResDTO.builder()
+    public FullPostDTO convertToFullPostResDTO(PostDetail postDetail) {
+        return FullPostDTO.builder()
                 .id(postDetail.id())
                 .title(postDetail.title())
                 .content(postDetail.content())

@@ -197,7 +197,6 @@ public class PostQueryAdapter implements PostQueryPort {
         BooleanExpression likeCondition = switch (type) {
             case "title" -> post.title.contains(query);
             case "writer" -> createWriterLikeCondition(query);
-            case "content" -> post.content.contains(query);
             case "title_content" -> post.title.contains(query)
                                    .or(post.content.contains(query));
             default -> post.title.contains(query); // DTO 검증으로 인해 도달할 수 없는 분기

@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
-import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostResDTO;
-import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostResDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostSearchDTO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.util.PostViewCookieUtil;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -50,9 +50,9 @@ public class PostQueryController {
      * @since 2.0.0
      */
     @GetMapping
-    public ResponseEntity<Page<SimplePostResDTO>> getBoard(Pageable pageable) {
+    public ResponseEntity<Page<SimplePostDTO>> getBoard(Pageable pageable) {
         Page<PostSearchResult> postList = postQueryUseCase.getBoard(pageable);
-        Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
 
@@ -71,13 +71,13 @@ public class PostQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<FullPostResDTO> getPost(@PathVariable Long postId,
-                                                  @AuthenticationPrincipal CustomUserDetails userDetails,
-                                                  HttpServletRequest request,
-                                                  HttpServletResponse response) {
+    public ResponseEntity<FullPostDTO> getPost(@PathVariable Long postId,
+                                               @AuthenticationPrincipal CustomUserDetails userDetails,
+                                               HttpServletRequest request,
+                                               HttpServletResponse response) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
         PostDetail postDetail = postQueryUseCase.getPost(postId, userId);
-        FullPostResDTO fullPostResDTO = postResponseMapper.convertToFullPostResDTO(postDetail);
+        FullPostDTO fullPostDTO = postResponseMapper.convertToFullPostResDTO(postDetail);
         
         // 중복 조회 검증 후 조회수 증가 이벤트 발행
         if (!postViewCookieUtil.hasViewed(request.getCookies(), postId)) {
@@ -88,7 +88,7 @@ public class PostQueryController {
             response.addCookie(postViewCookieUtil.createViewCookie(request.getCookies(), postId));
         }
         
-        return ResponseEntity.ok(fullPostResDTO);
+        return ResponseEntity.ok(fullPostDTO);
     }
 
     /**
@@ -102,10 +102,10 @@ public class PostQueryController {
      * @since 2.0.0
      */
     @GetMapping("/search")
-    public ResponseEntity<Page<SimplePostResDTO>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
-                                                             Pageable pageable) {
+    public ResponseEntity<Page<SimplePostDTO>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
+                                                          Pageable pageable) {
         Page<PostSearchResult> postList = postQueryUseCase.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable);
-        Page<SimplePostResDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
 

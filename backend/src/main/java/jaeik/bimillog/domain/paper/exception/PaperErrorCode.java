@@ -5,28 +5,12 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * <h2>PaperErrorCode</h2>
- * <p>
- * 롤링페이퍼 도메인에서 발생할 수 있는 모든 에러 코드를 정의하는 열거형입니다.
- * 각 에러 코드는 HTTP 상태 코드, 사용자 메시지, 로그 레벨을 포함하여 일관된 오류 처리를 보장합니다.
- * </p>
- * <p>
- * 정의된 에러 코드 유형:
- * - 조회 관련 오류: 존재하지 않는 사용자명이나 메시지 ID로 접근 시
- * - 권한 관련 오류: 본인 소유가 아닌 메시지 삭제 시도 시
- * - 입력 검증 오류: 잘못된 형식의 데이터 입력 시
- * </p>
- * <p>
- * 비즈니스 컨텍스트에서 각 에러 코드가 필요한 이유:
- * 1. USERNAME_NOT_FOUND - 잘못된 사용자명으로 롤링페이퍼 접근 방지
- * 2. MESSAGE_NOT_FOUND - 삭제된 또는 존재하지 않는 메시지 접근 방지
- * 3. MESSAGE_DELETE_FORBIDDEN - 타인의 롤링페이퍼 무단 수정 방지
- * 4. INVALID_INPUT_VALUE - 잘못된 형식의 데이터로 인한 시스템 오류 방지
- * </p>
- * <p>
- * PaperCustomException 생성 시 에러 유형을 구분하기 위해 사용됩니다.
- * PaperExceptionHandler에서 HTTP 응답 코드와 로그 레벨을 결정하기 위해 사용됩니다.
- * </p>
+ * <h2>롤링페이퍼 에러 코드</h2>
+ * <p>롤링페이퍼 도메인에서 발생할 수 있는 모든 에러 코드를 정의하는 열거형입니다.</p>
+ * <p>USERNAME_NOT_FOUND: 잘못된 사용자명으로 롤링페이퍼 접근 방지</p>
+ * <p>MESSAGE_NOT_FOUND: 삭제된 또는 존재하지 않는 메시지 접근 방지</p>
+ * <p>MESSAGE_DELETE_FORBIDDEN: 타인의 롤링페이퍼 무단 수정 방지</p>
+ * <p>INVALID_INPUT_VALUE: 잘못된 형식의 데이터로 인한 시스템 오류 방지</p>
  *
  * @author Jaeik
  * @version 2.0.0

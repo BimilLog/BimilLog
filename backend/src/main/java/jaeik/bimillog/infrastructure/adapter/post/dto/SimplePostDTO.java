@@ -31,7 +31,7 @@ import java.time.Instant;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SimplePostResDTO {
+public class SimplePostDTO {
     private Long id;
     private String title;
     private String content;

@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.post.dto;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,7 +25,7 @@ import java.time.Instant;
  */
 @Getter
 @Setter
-public class FullPostResDTO {
+public class FullPostDTO {
     private Long id;
     private Long userId;
     private String userName;
@@ -39,22 +38,4 @@ public class FullPostResDTO {
     private PostCacheFlag postCacheFlag;
     private boolean isNotice;
     private boolean isLiked;
-
-    @Builder
-    public FullPostResDTO(Long id, Long userId, String userName, String title, String content,
-                          Integer viewCount, Integer likeCount, boolean isNotice, Instant createdAt, boolean isLiked, Integer commentCount, PostCacheFlag postCacheFlag) {
-        this.id = id;
-        this.userId = userId;
-        this.userName = userName;
-        this.title = title;
-        this.content = content;
-        this.viewCount = viewCount;
-        this.likeCount = likeCount;
-        this.isNotice = isNotice;
-        this.createdAt = createdAt;
-        this.isLiked = isLiked;
-        this.commentCount = commentCount;
-        this.postCacheFlag = postCacheFlag;
-    }
-
 }

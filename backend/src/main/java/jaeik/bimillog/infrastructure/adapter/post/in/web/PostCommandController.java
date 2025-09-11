@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.infrastructure.adapter.post.dto.PostReqDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -38,27 +38,27 @@ public class PostCommandController {
      * <p>로그인/익명 사용자 모두 작성 가능, 익명 시 비밀번호 설정</p>
      *
      * @param userDetails 현재 로그인 사용자 정보 (익명 사용자는 null)
-     * @param postReqDTO  게시글 작성 요청 DTO
+     * @param postCreateDTO  게시글 작성 요청 DTO
      * @return 생성된 게시글 URI (201 Created)
      * @author Jaeik
      * @since 2.0.0
      */
     @PostMapping
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                          @RequestBody @Valid PostReqDTO postReqDTO) {
+                                          @RequestBody @Valid PostCreateDTO postCreateDTO) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        postReqDTO.setUserId(userId);
+        postCreateDTO.setUserId(userId);
         
         // userId 설정 후 수동 검증 실행
-        validatePostRequest(postReqDTO);
+        validatePostRequest(postCreateDTO);
         
-        Long postId = postCommandUseCase.writePost(userId, postReqDTO.getTitle(), postReqDTO.getContent(), postReqDTO.getParsedPassword());
+        Long postId = postCommandUseCase.writePost(userId, postCreateDTO.getTitle(), postCreateDTO.getContent(), postCreateDTO.getParsedPassword());
         return ResponseEntity.created(URI.create("/api/posts/" + postId)).build();
     }
     
-    private void validatePostRequest(PostReqDTO postReqDTO) {
-        boolean hasPassword = postReqDTO.getPassword() != null && !postReqDTO.getPassword().trim().isEmpty();
-        Long userId = postReqDTO.getUserId();
+    private void validatePostRequest(PostCreateDTO postCreateDTO) {
+        boolean hasPassword = postCreateDTO.getPassword() != null && !postCreateDTO.getPassword().trim().isEmpty();
+        Long userId = postCreateDTO.getUserId();
         
         if (userId == null && !hasPassword) {
             throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);

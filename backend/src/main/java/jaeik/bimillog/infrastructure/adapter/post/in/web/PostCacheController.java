@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.post.in.web;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostResDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,18 +16,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <h2>PostCacheController</h2>
- * <p>
- * Post 도메인의 캐시된 인기 게시글 조회 REST API 엔드포인트를 제공하는 웹 어댑터입니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 캐시 성능 최적화가 적용된 인기 게시글 요청을 도메인으로 연결하며,
- * 실시간, 주간, 레전드, 공지사항 카테고리별 조회 기능을 분리하여 제공합니다.
- * </p>
- * <p>
- * 프론트엔드의 메인 페이지에서 인기글 위젯 표시 시 호출되어 사용자 관심도가 높은 게시글을 빠르게 제공하고,
- * 배치 처리를 통해 한 번에 여러 카테고리 데이터를 효율적으로 조회합니다.
- * </p>
+ * <h2>게시글 캐시 컨트롤러</h2>
+ * <p>Post 도메인의 캐시글을 담당하는 웹 어댑터입니다.</p>
+ * <p>실시간, 주간, 레전드, 공지사항 카테고리별 조회 기능을 분리하여 제공합니다.</p>
+ * <p>실시간, 주간 인기글 조회</p>
+ * <p>레전드 인기글 조회</p>
+ * <p>공지사항 조회</p>
  * 
  * @author Jaeik
  * @version 2.0.0
@@ -53,11 +47,11 @@ public class PostCacheController {
      * @return 실시간, 주간 인기글 목록
      */
     @GetMapping("/popular")
-    public ResponseEntity<Map<String, List<SimplePostResDTO>>> getPopularBoard() {
+    public ResponseEntity<Map<String, List<SimplePostDTO>>> getPopularBoard() {
         Map<String, List<PostSearchResult>> popularPosts = postQueryUseCase.getRealtimeAndWeeklyPosts();
         
         // DTO 변환
-        Map<String, List<SimplePostResDTO>> result = Map.of(
+        Map<String, List<SimplePostDTO>> result = Map.of(
             "realtime", popularPosts.get("realtime").stream()
                 .map(postResponseMapper::convertToSimplePostResDTO)
                 .toList(),
@@ -82,9 +76,9 @@ public class PostCacheController {
      * @return 레전드 게시글 목록 페이지
      */
     @GetMapping("/legend")
-    public ResponseEntity<Page<SimplePostResDTO>> getLegendBoard(Pageable pageable) {
+    public ResponseEntity<Page<SimplePostDTO>> getLegendBoard(Pageable pageable) {
         Page<PostSearchResult> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
-        Page<SimplePostResDTO> dtoList = legendPopularPosts.map(postResponseMapper::convertToSimplePostResDTO);
+        Page<SimplePostDTO> dtoList = legendPopularPosts.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
 
@@ -100,8 +94,8 @@ public class PostCacheController {
      * @return 공지사항 게시글 목록
      */
     @GetMapping("/notice")
-    public ResponseEntity<List<SimplePostResDTO>> getNoticeBoard() {
-        List<SimplePostResDTO> noticePosts = postQueryUseCase.getNoticePosts()
+    public ResponseEntity<List<SimplePostDTO>> getNoticeBoard() {
+        List<SimplePostDTO> noticePosts = postQueryUseCase.getNoticePosts()
                 .stream()
                 .map(postResponseMapper::convertToSimplePostResDTO)
                 .toList();

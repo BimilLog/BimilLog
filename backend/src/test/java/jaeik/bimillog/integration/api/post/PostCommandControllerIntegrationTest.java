@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.entity.UserDetail;
-import jaeik.bimillog.infrastructure.adapter.post.dto.PostReqDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
@@ -112,7 +112,7 @@ class PostCommandControllerIntegrationTest {
     @DisplayName("게시글 작성 성공 - 유효한 데이터")
     void writePost_Success() throws Exception {
         // Given
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
                 .title("통합 테스트 게시글")
                 .content("게시글 작성 통합 테스트 내용입니다.")
                 .build();
@@ -120,7 +120,7 @@ class PostCommandControllerIntegrationTest {
         // When & Then
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(postReqDTO))
+                        .content(objectMapper.writeValueAsString(postCreateDTO))
                         .with(user(testUser))
                         .with(csrf()))
                 .andDo(print())
@@ -141,7 +141,7 @@ class PostCommandControllerIntegrationTest {
     @DisplayName("게시글 작성 실패 - 제목 누락")
     void writePost_Fail_NoTitle() throws Exception {
         // Given
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
                 .content("제목이 없는 게시글 내용")
                 .password("1234")
                 .build();
@@ -149,7 +149,7 @@ class PostCommandControllerIntegrationTest {
         // When & Then
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(postReqDTO))
+                        .content(objectMapper.writeValueAsString(postCreateDTO))
                         .with(user(testUser))
                         .with(csrf()))
                 .andDo(print())
@@ -160,7 +160,7 @@ class PostCommandControllerIntegrationTest {
     @DisplayName("게시글 작성 성공 - 비로그인 사용자 (익명 작성)")
     void writePost_Success_Anonymous() throws Exception {
         // Given
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
                 .title("익명 게시글")
                 .content("비로그인 사용자의 익명 게시글 작성")
                 .password("1234")
@@ -168,7 +168,7 @@ class PostCommandControllerIntegrationTest {
 
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(postReqDTO))
+                        .content(objectMapper.writeValueAsString(postCreateDTO))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated())
@@ -355,11 +355,11 @@ class PostCommandControllerIntegrationTest {
     @Test
     @DisplayName("게시글 작성 - 적당한 길이의 제목과 내용")
     void writePost_LongTitleAndContent() throws Exception {
-        // Given - PostReqDTO 검증: title 최대 30자, content 최대 1000자
+        // Given - PostCreateDTO 검증: title 최대 30자, content 최대 1000자
         String title = "a".repeat(30); // 제한 내의 제목
         String content = "가".repeat(1000); // 제한 내의 내용
 
-        PostReqDTO postReqDTO = PostReqDTO.builder()
+        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
                 .title(title)
                 .content(content)
                 .build();
@@ -367,7 +367,7 @@ class PostCommandControllerIntegrationTest {
         // When & Then
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(postReqDTO))
+                        .content(objectMapper.writeValueAsString(postCreateDTO))
                         .with(user(testUser))
                         .with(csrf()))
                 .andDo(print())

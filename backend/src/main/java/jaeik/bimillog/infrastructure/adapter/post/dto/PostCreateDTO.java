@@ -19,7 +19,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostReqDTO {
+public class PostCreateDTO {
 
     @NotBlank(message = "게시글 제목은 필수입니다")
     @Size(min = 2, max = 30, message = "게시글 제목은 2자 이상 30자 이하여야 합니다")

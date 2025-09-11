@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
  * <h2>관리자 조회 포트</h2>
  * <p>관리자 도메인의 조회 작업을 담당하는 포트입니다.</p>
  * <p>신고 목록 페이지네이션 조회</p>
- * <p>읽기 최적화된 쿼리로 관리자 대시보드 데이터 제공</p>
  *
  * @author Jaeik
  * @version 2.0.0
