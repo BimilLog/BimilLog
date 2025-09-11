@@ -2,16 +2,16 @@ package jaeik.bimillog.infrastructure.adapter.auth.social;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategy;
+import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoApiClient;
+import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoAuthClient;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 
 /**
  * <h2>KakaoLoginStrategy 단위 테스트</h2>
@@ -26,15 +26,14 @@ import static org.mockito.BDDMockito.given;
 class KakaoLoginStrategyTest {
 
     @Mock private KakaoKeyVO kakaoKeyVO;
-    @Mock private WebClient.Builder webClientBuilder;
-    @Mock private WebClient webClient;
+    @Mock private KakaoAuthClient kakaoAuthClient;
+    @Mock private KakaoApiClient kakaoApiClient;
 
     @Test
     @DisplayName("소셜 제공자 확인 - 카카오 Provider 반환")
     void shouldReturnKakaoProvider() {
         // Given
-        given(webClientBuilder.build()).willReturn(webClient);
-        KakaoLoginStrategy kakaoLoginStrategy = new KakaoLoginStrategy(kakaoKeyVO, webClientBuilder);
+        KakaoLoginStrategy kakaoLoginStrategy = new KakaoLoginStrategy(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
 
         // When
         SocialProvider provider = kakaoLoginStrategy.getProvider();
@@ -47,10 +46,10 @@ class KakaoLoginStrategyTest {
     @DisplayName("KakaoLoginStrategy 생성자 정상 동작 검증")
     void shouldCreateInstance_WhenValidDependenciesProvided() {
         // Given
-        given(webClientBuilder.build()).willReturn(webClient);
+        // Feign clients are mocked already
 
         // When
-        KakaoLoginStrategy strategy = new KakaoLoginStrategy(kakaoKeyVO, webClientBuilder);
+        KakaoLoginStrategy strategy = new KakaoLoginStrategy(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
 
         // Then
         assertThat(strategy).isNotNull();

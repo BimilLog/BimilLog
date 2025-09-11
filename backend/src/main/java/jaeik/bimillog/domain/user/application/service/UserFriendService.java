@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,49 +45,48 @@ public class UserFriendService implements UserFriendUseCase {
      * @param offset   조회 시작 위치 (기본값: 0)
      * @param limit    조회할 친구 수 (기본값: 10, 최대: 100)
      * @param tokenId  현재 요청 기기 토큰 ID
-     * @return Mono&lt;KakaoFriendsResponseVO&gt; 카카오 친구 목록 응답 (비동기, 비밀로그 가입 여부 포함)
+     * @return KakaoFriendsResponseVO 카카오 친구 목록 응답 (비밀로그 가입 여부 포함)
      * @throws CustomException 사용자를 찾을 수 없거나 카카오 API 오류 시
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public Mono<KakaoFriendsResponseVO> getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
+    public KakaoFriendsResponseVO getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
         // 기본값 설정
         int actualOffset = offset != null ? offset : 0;
         int actualLimit = limit != null ? Math.min(limit, 100) : 10;
 
-        return Mono.fromCallable(() -> {
-                    // 1. 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
-                    Token token = globalTokenQueryPort.findById(tokenId)
-                            .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+        try {
+            // 1. 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
+            Token token = globalTokenQueryPort.findById(tokenId)
+                    .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
-                    // 카카오 액세스 토큰 확인
-                    if (token.getAccessToken() == null || token.getAccessToken().isEmpty()) {
-                        throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
-                    }
+            // 카카오 액세스 토큰 확인
+            if (token.getAccessToken() == null || token.getAccessToken().isEmpty()) {
+                throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
+            }
 
-                    return token;
-                })
-                .flatMap(token ->
-                        // 2. 카카오 친구 목록 조회
-                        kakaoFriendPort.getFriendList(token.getAccessToken(), actualOffset, actualLimit)
-                )
-                .map(this::processFriendList)
-                .onErrorMap(UserCustomException.class, e -> {
-                    // 카카오 친구 동의 필요한 경우 특별한 에러 메시지 처리
-                    if (e.getUserErrorCode() == UserErrorCode.KAKAO_FRIEND_API_ERROR) {
-                        return new UserCustomException(UserErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
-                    }
-                    return e;
-                })
-                .onErrorMap(Exception.class, e -> {
-                    // UserCustomException은 그대로 전파
-                    if (e instanceof UserCustomException) {
-                        return e;
-                    }
-                    log.error("카카오 API 호출 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
-                    return new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR, e);
-                });
+            // 2. 카카오 친구 목록 조회
+            KakaoFriendsResponseVO response = kakaoFriendPort.getFriendList(
+                    token.getAccessToken(), actualOffset, actualLimit);
+            
+            // 3. 친구 목록 처리 (비밀로그 가입 여부 체크)
+            return processFriendList(response);
+            
+        } catch (UserCustomException e) {
+            // 카카오 친구 동의 필요한 경우 특별한 에러 메시지 처리
+            if (e.getUserErrorCode() == UserErrorCode.KAKAO_FRIEND_API_ERROR) {
+                throw new UserCustomException(UserErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
+            }
+            throw e;
+        } catch (Exception e) {
+            // UserCustomException은 그대로 전파
+            if (e instanceof UserCustomException) {
+                throw e;
+            }
+            log.error("카카오 API 호출 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
+            throw new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR, e);
+        }
     }
 
     /**

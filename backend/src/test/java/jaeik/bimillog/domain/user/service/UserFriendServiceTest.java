@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,11 +92,11 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", offset, limit)).willReturn(Mono.just(kakaoResponseVO));
+        given(kakaoFriendPort.getFriendList("access-token", offset, limit)).willReturn(kakaoResponseVO);
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
 
         // When
-        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, offset, limit).block();
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, offset, limit);
 
         // Then
         assertThat(result).isNotNull();
@@ -126,7 +125,7 @@ class UserFriendServiceTest {
         given(userQueryPort.findById(nonexistentUserId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(nonexistentUserId, 1L, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(nonexistentUserId, 1L, 0, 10))
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
         
@@ -148,7 +147,7 @@ class UserFriendServiceTest {
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10))
                 .isInstanceOf(AuthCustomException.class)
                 .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
         
@@ -174,7 +173,7 @@ class UserFriendServiceTest {
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
 
         // When & Then
-        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10))
                 .isInstanceOf(AuthCustomException.class)
                 .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
     }
@@ -197,7 +196,7 @@ class UserFriendServiceTest {
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
 
         // When & Then
-        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, 1L, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, 1L, 0, 10))
                 .isInstanceOf(AuthCustomException.class)
                 .hasMessage(AuthErrorCode.NOT_FIND_TOKEN.getMessage());
     }
@@ -222,10 +221,10 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(Mono.just(kakaoResponseVO));
+        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(kakaoResponseVO);
 
         // When
-        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, null, null).block();
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, null, null);
 
         // Then
         assertThat(result).isEqualTo(kakaoResponseVO);
@@ -253,10 +252,10 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 100)).willReturn(Mono.just(kakaoResponseVO));
+        given(kakaoFriendPort.getFriendList("access-token", 0, 100)).willReturn(kakaoResponseVO);
 
         // When
-        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 200).block(); // 200을 요청하지만 100으로 제한
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 200); // 200을 요청하지만 100으로 제한
 
         // Then
         assertThat(result).isEqualTo(kakaoResponseVO);
@@ -281,10 +280,10 @@ class UserFriendServiceTest {
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 10))
-                .willReturn(Mono.error(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR)));
+                .willThrow(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR));
 
         // When & Then
-        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10))
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage());
     }
@@ -306,10 +305,10 @@ class UserFriendServiceTest {
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-token", 0, 10))
-                .willReturn(Mono.error(new RuntimeException("일반적인 API 에러")));
+                .willThrow(new RuntimeException("일반적인 API 에러"));
 
         // When & Then
-        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block())
+        assertThatThrownBy(() -> userFriendService.getKakaoFriendList(userId, tokenId, 0, 10))
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.KAKAO_FRIEND_API_ERROR.getMessage());
     }
@@ -335,10 +334,10 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(Mono.just(emptyResponseVO));
+        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(emptyResponseVO);
 
         // When
-        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block();
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 10);
 
         // Then
         assertThat(result).isNotNull();
@@ -379,11 +378,11 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(Mono.just(responseVO));
+        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(responseVO);
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);
 
         // When
-        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 10).block();
+        KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 10);
 
         // Then
         assertThat(result).isNotNull();

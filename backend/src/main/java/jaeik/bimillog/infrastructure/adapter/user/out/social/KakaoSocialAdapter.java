@@ -4,10 +4,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
-import jaeik.bimillog.global.vo.KakaoKeyVO;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 /**
  * <h2>카카오 소셜 어댑터</h2>
@@ -20,12 +17,10 @@ import reactor.core.publisher.Mono;
 @Component
 public class KakaoSocialAdapter implements SocialAdapter {
 
-    private final KakaoKeyVO kakaoKeyVO;
-    private final WebClient webClient;
+    private final KakaoApiClient kakaoApiClient;
 
-    public KakaoSocialAdapter(KakaoKeyVO kakaoKeyVO, WebClient.Builder webClientBuilder) {
-        this.kakaoKeyVO = kakaoKeyVO;
-        this.webClient = webClientBuilder.build();
+    public KakaoSocialAdapter(KakaoApiClient kakaoApiClient) {
+        this.kakaoApiClient = kakaoApiClient;
     }
 
     /**
@@ -48,24 +43,16 @@ public class KakaoSocialAdapter implements SocialAdapter {
      * @param accessToken 카카오 액세스 토큰
      * @param offset      조회 시작 위치 (기본값: 0)
      * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)
-     * @return Mono<KakaoFriendsDTO> 친구 목록 응답 (비동기)
+     * @return KakaoFriendsDTO 친구 목록 응답
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
-    public Mono<KakaoFriendsDTO> getFriendList(String accessToken, Integer offset, Integer limit) {
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(kakaoKeyVO.getGET_FRIEND_LIST_URL())
-                        .queryParam("offset", offset)
-                        .queryParam("limit", limit)
-                        .build())
-                .header("Authorization", "Bearer " + accessToken)
-                .retrieve()
-                .onStatus(httpStatus -> httpStatus.is4xxClientError() || httpStatus.is5xxServerError(),
-                        clientResponse -> clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> Mono.error(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR, new RuntimeException(errorBody)))))
-                .bodyToMono(KakaoFriendsDTO.class)
-                .timeout(java.time.Duration.ofSeconds(10));
+    public KakaoFriendsDTO getFriendList(String accessToken, Integer offset, Integer limit) {
+        try {
+            return kakaoApiClient.getFriends("Bearer " + accessToken, offset, limit);
+        } catch (Exception e) {
+            throw new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR, e);
+        }
     }
 }

@@ -1,7 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.fcm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
@@ -10,16 +8,10 @@ import jaeik.bimillog.infrastructure.adapter.notification.dto.FcmMessageDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.jpa.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -35,8 +27,8 @@ import java.util.List;
 public class FcmAdapter implements FcmPort {
 
     private final FcmTokenRepository fcmTokenRepository;
+    private final FcmApiClient fcmApiClient;
 
-    private static final String API_URL = "https://fcm.googleapis.com/v1/projects/growfarm-6cd79/messages:send";
     private static final String FIREBASE_CONFIG_PATH = "growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json";
     private static final String FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
     private static final String BEARER_PREFIX = "Bearer ";
@@ -53,12 +45,14 @@ public class FcmAdapter implements FcmPort {
      */
     @Override
     public void sendMessageTo(FcmMessage fcmMessage) throws IOException {
-        String message = makeMessage(fcmMessage);
+        FcmMessageDTO fcmMessageDto = createFcmMessageDTO(fcmMessage);
+        String accessToken = getAccessToken();
         
-        RestTemplate restTemplate = createConfiguredRestTemplate();
-        HttpEntity<String> entity = createHttpEntity(message);
-        
-        restTemplate.exchange(API_URL, HttpMethod.POST, entity, String.class);
+        fcmApiClient.sendMessage(
+                BEARER_PREFIX + accessToken,
+                MediaType.APPLICATION_JSON_VALUE,
+                fcmMessageDto
+        );
     }
 
 
@@ -112,19 +106,17 @@ public class FcmAdapter implements FcmPort {
     }
 
     /**
-     * <h3>FCM 메시지 구성</h3>
-     * <p>FCM 전송 DTO를 기반으로 FCM API에 전송할 메시지 JSON 문자열을 생성합니다.</p>
+     * <h3>FCM 메시지 DTO 생성</h3>
+     * <p>FCM 전송 DTO를 생성합니다.</p>
      * <p>DTO에서 필드 검증 및 기본값 처리가 완료되므로 단순 변환 작업만 수행합니다.</p>
      *
      * @param fcmMessage FCM 객체
-     * @return FCM API로 전송할 JSON 형식의 메시지 문자열
-     * @throws JsonProcessingException JSON 변환 중 발생할 수 있는 예외
+     * @return FcmMessageDTO FCM API로 전송할 메시지 DTO
      * @author Jaeik
      * @since 2.0.0
      */
-    private String makeMessage(FcmMessage fcmMessage) throws JsonProcessingException {
-        ObjectMapper om = new ObjectMapper();
-        FcmMessageDTO fcmMessageDto = FcmMessageDTO.builder()
+    private FcmMessageDTO createFcmMessageDTO(FcmMessage fcmMessage) {
+        return FcmMessageDTO.builder()
                 .message(FcmMessageDTO.Message.builder()
                         .token(fcmMessage.token())
                         .notification(FcmMessageDTO.Notification.of(
@@ -134,22 +126,6 @@ public class FcmAdapter implements FcmPort {
                         .build())
                 .validateOnly(false)
                 .build();
-        return om.writeValueAsString(fcmMessageDto);
-    }
-
-
-    private RestTemplate createConfiguredRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters()
-                .addFirst(new StringHttpMessageConverter(StandardCharsets.UTF_8));
-        return restTemplate;
-    }
-
-    private HttpEntity<String> createHttpEntity(String message) throws IOException {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", BEARER_PREFIX + getAccessToken());
-        return new HttpEntity<>(message, headers);
     }
 
 }

@@ -1,4 +1,4 @@
-package jaeik.bimillog.global.config;
+package jaeik.bimillog.infrastructure.config;
 
 import feign.Logger;
 import feign.codec.ErrorDecoder;

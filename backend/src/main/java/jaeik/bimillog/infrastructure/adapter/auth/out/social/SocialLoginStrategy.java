@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.social;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
-import reactor.core.publisher.Mono;
 
 /**
  * <h2>소셜 로그인 전략 인터페이스</h2>
@@ -31,22 +30,21 @@ public interface SocialLoginStrategy {
      * <p>OAuth 2.0 인증 코드를 사용하여 소셜 로그인 플로우를 처리합니다.</p>
      *
      * @param code 소셜 로그인 OAuth 2.0 인증 코드
-     * @return Mono<StrategyLoginResult> 소셜 로그인 결과 (비동기 스트림)
+     * @return StrategyLoginResult 소셜 로그인 결과
      * @author Jaeik
      * @since 2.0.0
      */
-    Mono<StrategyLoginResult> login(String code);
+    StrategyLoginResult login(String code);
 
     /**
      * <h3>소셜 계정 연결 해제</h3>
      * <p>특정 사용자의 소셜 계정 연결을 완전히 해제합니다.</p>
      *
      * @param socialId 연결 해제할 소셜 사용자 식별자
-     * @return Mono<Void> 연결 해제 결과 (비동기 스트림)
      * @author Jaeik
      * @since 2.0.0
      */
-    Mono<Void> unlink(String socialId);
+    void unlink(String socialId);
 
     /**
      * <h3>소셜 로그아웃 처리</h3>

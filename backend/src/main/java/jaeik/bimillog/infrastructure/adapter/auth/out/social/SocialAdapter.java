@@ -46,7 +46,7 @@ public class SocialAdapter implements SocialPort {
     @Transactional
     public LoginResult.SocialLoginData login(SocialProvider provider, String code) {
         SocialLoginStrategy strategy = strategies.get(provider);
-        SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code).block(); // 동기 변환
+        SocialLoginStrategy.StrategyLoginResult initialResult = strategy.login(code);
 
         LoginResult.SocialUserProfile userProfile = initialResult.userProfile();
         Token token = initialResult.token();
@@ -84,7 +84,7 @@ public class SocialAdapter implements SocialPort {
     @Override
     public void unlink(SocialProvider provider, String socialId) {
         SocialLoginStrategy strategy = strategies.get(provider);
-        strategy.unlink(socialId).subscribe();
+        strategy.unlink(socialId);
     }
 
     /**

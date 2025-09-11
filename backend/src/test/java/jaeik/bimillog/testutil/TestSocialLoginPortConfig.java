@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.user.entity.Token;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 
@@ -75,7 +74,7 @@ public class TestSocialLoginPortConfig {
     public KakaoFriendPort testKakaoFriendPort() {
         return new KakaoFriendPort() {
             @Override
-            public Mono<KakaoFriendsResponseVO> getFriendList(String accessToken, Integer offset, Integer limit) {
+            public KakaoFriendsResponseVO getFriendList(String accessToken, Integer offset, Integer limit) {
                 // 테스트용 더미 친구 목록 응답
                 KakaoFriendsResponseVO response = KakaoFriendsResponseVO.of(
                     Collections.emptyList(), // 빈 친구 목록
@@ -84,7 +83,7 @@ public class TestSocialLoginPortConfig {
                     null, // 다음 페이지 URL  
                     0 // 즐겨찾기 친구 수
                 );
-                return Mono.just(response);
+                return response;
             }
         };
     }

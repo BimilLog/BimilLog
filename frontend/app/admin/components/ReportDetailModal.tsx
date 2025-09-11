@@ -26,20 +26,6 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   const [isBanning, setIsBanning] = useState(false);
   const { showSuccess, showError } = useToast();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "investigating":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "resolved":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
 
   const getReportTypeLabel = (type: string) => {
     switch (type) {
@@ -159,19 +145,9 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">상태</label>
-              <Badge
-                className={`text-xs ${getStatusColor(
-                  report.status || "pending"
-                )}`}
-              >
-                {report.status === "pending"
-                  ? "대기중"
-                  : report.status === "investigating"
-                  ? "조사중"
-                  : report.status === "resolved"
-                  ? "해결됨"
-                  : "반려됨"}
+              <label className="text-sm font-medium text-gray-700">처리 상태</label>
+              <Badge className="text-xs bg-yellow-100 text-yellow-800 border-yellow-200">
+                처리 대기
               </Badge>
             </div>
           </div>

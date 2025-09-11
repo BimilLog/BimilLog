@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id: postId } = await params;
 
   try {
-    const response = await apiClient.get<Post>(`/post/query/${postId}?count=false`);
+    const response = await apiClient.get<Post>(`/api/post/${postId}`);
 
     if (!response.success || !response.data) {
       return {
@@ -77,7 +77,7 @@ export default async function PostDetailPage({ params }: Props) {
 
   // 서버에서 초기 데이터 가져오기
   try {
-    const response = await apiClient.get<Post>(`/post/query/${postId}?count=false`);
+    const response = await apiClient.get<Post>(`/api/post/${postId}`);
 
     if (!response.success || !response.data) {
       notFound();

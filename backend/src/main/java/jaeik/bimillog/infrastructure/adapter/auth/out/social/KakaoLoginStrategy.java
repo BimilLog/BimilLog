@@ -4,14 +4,10 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
-import org.springframework.core.ParameterizedTypeReference;
+import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoApiClient;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,29 +22,31 @@ import java.util.Map;
 public class KakaoLoginStrategy implements SocialLoginStrategy {
 
     private final KakaoKeyVO kakaoKeyVO;
-    private final WebClient webClient;
+    private final KakaoAuthClient kakaoAuthClient;
+    private final KakaoApiClient kakaoApiClient;
 
-    public KakaoLoginStrategy(KakaoKeyVO kakaoKeyVO, WebClient.Builder webClientBuilder) {
+    public KakaoLoginStrategy(KakaoKeyVO kakaoKeyVO, KakaoAuthClient kakaoAuthClient, KakaoApiClient kakaoApiClient) {
         this.kakaoKeyVO = kakaoKeyVO;
-        this.webClient = webClientBuilder.build();
+        this.kakaoAuthClient = kakaoAuthClient;
+        this.kakaoApiClient = kakaoApiClient;
     }
 
     /**
      * <h3>카카오 소셜 로그인 전체 처리</h3>
      * <p>카카오 OAuth 2.0 인증 코드를 받아 토큰 발급부터 사용자 정보 조회까지 전체 로그인 플로우를 처리합니다.</p>
      * <p>소셜 로그인 요청 시 카카오 인증 서버로부터 받은 인증 코드를 처리하기 위해 소셜 로그인 플로우에서 호출합니다.</p>
-     * <p>내부적으로 getToken()과 getUserInfo() 메서드를 순차적으로 호출하여 리액티브 스트림 체인으로 처리합니다.</p>
+     * <p>내부적으로 getToken()과 getUserInfo() 메서드를 순차적으로 호출하여 처리합니다.</p>
      *
      * @param code 카카오 OAuth 2.0 인증 코드
-     * @return Mono<StrategyLoginResult> 로그인 결과 (비동기 스트림)
+     * @return StrategyLoginResult 로그인 결과
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Mono<StrategyLoginResult> login(String code) {
-        return getToken(code)
-                .flatMap(token -> getUserInfo(token.getAccessToken())
-                        .map(userProfile -> new StrategyLoginResult(userProfile, token)));
+    public StrategyLoginResult login(String code) {
+        Token token = getToken(code);
+        LoginResult.SocialUserProfile userProfile = getUserInfo(token.getAccessToken());
+        return new StrategyLoginResult(userProfile, token);
     }
 
     /**
@@ -58,33 +56,27 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      * <p>카카오 관리자 키(Admin Key)를 사용하여 서버 측에서 강제로 연결을 해제하므로 사용자가 다시 로그인하려면 새로 인증 과정을 거쳐야 합니다.</p>
      *
      * @param socialId 연결 해제할 카카오 사용자 ID
-     * @return Mono<Void> 연결 해제 결과 (비동기 스트림)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Mono<Void> unlink(String socialId) {
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("target_id_type", "user_id");
-        formData.add("target_id", socialId);
+    public void unlink(String socialId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("target_id_type", "user_id");
+        params.put("target_id", socialId);
 
-        return webClient.post()
-                .uri(kakaoKeyVO.getUNLINK_URL())
-                .header("Authorization", "KakaoAK " + kakaoKeyVO.getADMIN_KEY())
-                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
-                .body(BodyInserters.fromFormData(formData))
-                .retrieve()
-                .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
-                        response -> response.bodyToMono(String.class)
-                                .map(errorBody -> new RuntimeException("Kakao unlink failed: " + errorBody)))
-                .bodyToMono(Void.class);
+        try {
+            kakaoApiClient.unlink("KakaoAK " + kakaoKeyVO.getADMIN_KEY(), params);
+        } catch (Exception e) {
+            throw new RuntimeException("Kakao unlink failed: " + e.getMessage(), e);
+        }
     }
 
     /**
      * <h3>카카오 로그아웃 처리</h3>
      * <p>사용자의 카카오 액세스 토큰을 사용하여 카카오 서버에서 로그아웃 처리를 수행합니다.</p>
      * <p>사용자 로그아웃 시 카카오 세션도 종료시켜 완전한 로그아웃을 위해 로그아웃 플로우에서 호출합니다.</p>
-     * <p>비동기 방식으로 처리되며, 카카오 서버 오류 시에도 로그아웃 플로우를 방해하지 않도록 subscribe()로 안전하게 처리합니다.</p>
+     * <p>카카오 서버 오류 시에도 로그아웃 플로우를 방해하지 않도록 예외를 무시합니다.</p>
      *
      * @param accessToken 사용자의 카카오 액세스 토큰
      * @author Jaeik
@@ -92,16 +84,11 @@ public class KakaoLoginStrategy implements SocialLoginStrategy {
      */
     @Override
     public void logout(String accessToken) {
-        webClient.post()
-                .uri(kakaoKeyVO.getLOGOUT_URL())
-                .header("Authorization", "Bearer " + accessToken)
-                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
-                .retrieve()
-                .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
-                        response -> response.bodyToMono(String.class)
-                                .map(errorBody -> new RuntimeException("Kakao logout failed: " + errorBody)))
-                .bodyToMono(Void.class)
-                .subscribe();
+        try {
+            kakaoApiClient.logout("Bearer " + accessToken, "application/x-www-form-urlencoded;charset=utf-8");
+        } catch (Exception e) {
+            // 로그아웃 실패 시에도 플로우를 계속 진행
+        }
     }
 
     /**
@@ -112,31 +99,31 @@ login() 메서드에서 내부적으로 호출합니다.</p>
      * <p>Authorization Code Grant 플로우를 사용하여 카카오 인증 서버에 token exchange 요청을 전송합니다.</p>
      *
      * @param code 카카오 OAuth 2.0 인증 코드
-     * @return Mono<Token> 도메인 Token 엔티티 (비동기 스트림)
+     * @return Token 도메인 Token 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    private Mono<Token> getToken(String code) {
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("grant_type", "authorization_code");
-        formData.add("client_id", kakaoKeyVO.getCLIENT_ID());
-        formData.add("client_secret", kakaoKeyVO.getCLIENT_SECRET());
-        formData.add("redirect_uri", kakaoKeyVO.getREDIRECT_URI());
-        formData.add("code", code);
+    private Token getToken(String code) {
+        Map<String, String> params = new HashMap<>();
+        params.put("grant_type", "authorization_code");
+        params.put("client_id", kakaoKeyVO.getCLIENT_ID());
+        params.put("client_secret", kakaoKeyVO.getCLIENT_SECRET());
+        params.put("redirect_uri", kakaoKeyVO.getREDIRECT_URI());
+        params.put("code", code);
 
-        return webClient.post()
-                .uri(kakaoKeyVO.getTOKEN_URL())
-                .header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
-                .body(BodyInserters.fromFormData(formData))
-                .retrieve()
-                .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
-                        response -> response.bodyToMono(String.class)
-                                .map(errorBody -> new RuntimeException("Kakao token request failed: " + errorBody)))
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(responseBody -> Token.createTemporaryToken(
-                        (String) responseBody.get("access_token"),
-                        (String) responseBody.get("refresh_token")
-                ));
+        try {
+            Map<String, Object> responseBody = kakaoAuthClient.getToken(
+                    "application/x-www-form-urlencoded;charset=utf-8", 
+                    params
+            );
+            
+            return Token.createTemporaryToken(
+                    (String) responseBody.get("access_token"),
+                    (String) responseBody.get("refresh_token")
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
+        }
     }
 
 
@@ -148,35 +135,32 @@ login() 메서드에서 내부적으로 호출합니다.</p>
      * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 도메인 SocialUserProfile 로 변환합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
-     * @return Mono<LoginResult.SocialUserProfile> 도메인 소셜 사용자 프로필 (비동기 스트림)
+     * @return LoginResult.SocialUserProfile 도메인 소셜 사용자 프로필
      * @author Jaeik
      * @since 2.0.0
      */
-    private Mono<LoginResult.SocialUserProfile> getUserInfo(String accessToken) {
-        return webClient.get()
-                .uri(kakaoKeyVO.getUSER_INFO_URL())
-                .header("Authorization", "Bearer " + accessToken)
-                .retrieve()
-                .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
-                        response -> response.bodyToMono(String.class)
-                                .map(errorBody -> new RuntimeException("Kakao user info request failed: " + errorBody)))
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .map(responseBody -> {
-                    Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
-                    Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+    @SuppressWarnings("unchecked")
+    private LoginResult.SocialUserProfile getUserInfo(String accessToken) {
+        try {
+            Map<String, Object> responseBody = kakaoApiClient.getUserInfo("Bearer " + accessToken);
+            
+            Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
 
-                    String socialId = String.valueOf(responseBody.get("id"));
-                    String nickname = (String) profile.get("nickname");
-                    String thumbnailImage = (String) profile.get("thumbnail_image_url");
+            String socialId = String.valueOf(responseBody.get("id"));
+            String nickname = (String) profile.get("nickname");
+            String thumbnailImage = (String) profile.get("thumbnail_image_url");
 
-                    return new LoginResult.SocialUserProfile(
-                            socialId,
-                            null, // 카카오는 이메일을 제공하지 않음
-                            getProvider(),
-                            nickname,
-                            thumbnailImage
-                    );
-                });
+            return new LoginResult.SocialUserProfile(
+                    socialId,
+                    null, // 카카오는 이메일을 제공하지 않음
+                    getProvider(),
+                    nickname,
+                    thumbnailImage
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Kakao user info request failed: " + e.getMessage(), e);
+        }
     }
 
     /**

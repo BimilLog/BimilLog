@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.application.port.in.UserActivityUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserFriendUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.SimpleCommentDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 /**
  * <h2>사용자 조회 컨트롤러</h2>
@@ -177,19 +177,18 @@ public class UserQueryController {
      * @author Jaeik
      */
     @GetMapping("/friendlist")
-    public Mono<ResponseEntity<KakaoFriendsDTO>> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
-                                                                    @RequestParam(defaultValue = "10") Integer limit,
-                                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return userFriendUseCase.getKakaoFriendList(
+    public ResponseEntity<KakaoFriendsDTO> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
+                                                               @RequestParam(defaultValue = "10") Integer limit,
+                                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        KakaoFriendsResponseVO friendsResponseVO = userFriendUseCase.getKakaoFriendList(
                 userDetails.getUserId(),
                 userDetails.getTokenId(), // JWT에서 파싱된 현재 기기의 토큰 ID
                 offset,
                 limit
-        )
-        .map(friendsResponseVO -> {
-            KakaoFriendsDTO friendsResponse = KakaoFriendsDTO.fromVO(friendsResponseVO);
-            return ResponseEntity.ok(friendsResponse);
-        });
+        );
+        
+        KakaoFriendsDTO friendsResponse = KakaoFriendsDTO.fromVO(friendsResponseVO);
+        return ResponseEntity.ok(friendsResponse);
     }
 
     /**

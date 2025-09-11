@@ -305,7 +305,7 @@ class UserQueryControllerIntegrationTest {
         
         CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
 
-        // When & Then - Mono 응답이 정상적으로 처리되는지 확인
+        // When & Then - 친구 목록 조회가 정상적으로 처리되는지 확인
         mockMvc.perform(get("/api/user/friendlist")
                         .param("offset", "0")
                         .param("limit", "3")

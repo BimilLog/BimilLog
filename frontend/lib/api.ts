@@ -169,14 +169,9 @@ export interface Report {
   targetId: number
   content: string
   createdAt: string
-  // 레거시 호환용 필드들 (ReportList 컴포넌트에서 사용 중)
-  reportId?: number
-  userId?: number
+  // 임시 호환용 (나중에 제거 필요)
   targetTitle?: string
-  status?: "pending" | "investigating" | "resolved" | "rejected"
-  targetAuthor?: string
-  reporterNickname?: string
-  reason?: string
+  userId?: number // reporterId 대신 사용되는 경우가 있음
 }
 
 // 페이지네이션 타입
@@ -522,59 +517,86 @@ export const rollingPaperApi = {
   }) => apiClient.post("/api/paper/delete", messageData),
 }
 
-// 게시판 관련 API - v2 백엔드 마이그레이션
+// 게시판 관련 API - v2 백엔드 CQRS 패턴 완전 연동
 export const boardApi = {
-  // 게시글 목록 조회 - v2 마이그레이션
+  // 게시글 목록 조회 - v2 마이그레이션 (PostQueryController)
   getPosts: (page = 0, size = 10) => apiClient.get<PageResponse<SimplePost>>(`/api/post?page=${page}&size=${size}`),
 
-  // 게시글 상세 조회 - v2 마이그레이션
+  // 게시글 상세 조회 - v2 마이그레이션 (PostQueryController)
   getPost: (postId: number) => apiClient.get<Post>(`/api/post/${postId}`),
 
-  // 게시글 검색 - v2 마이그레이션
-  searchPosts: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR", query: string, page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimplePost>>(
-      `/api/post/search?type=${type}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`,
-    ),
+  // 게시글 검색 - v2 마이그레이션 (PostQueryController) - 백엔드 검색 타입 형식에 맞춤
+  searchPosts: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR", query: string, page = 0, size = 10) => {
+    // Frontend 타입을 Backend 타입으로 변환
+    const typeMap: Record<string, string> = {
+      "TITLE": "title",
+      "AUTHOR": "writer",
+      "TITLE_CONTENT": "title_content"
+    };
+    const backendType = typeMap[type] || "title";
+    
+    return apiClient.get<PageResponse<SimplePost>>(
+      `/api/post/search?type=${backendType}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`,
+    );
+  },
 
-  // 게시글 작성 - v2 마이그레이션 (POST /api/post)
+  // 게시글 작성 - v2 마이그레이션 (PostCommandController)
   createPost: (post: {
     userName: string | null
     title: string
     content: string
     password?: number
   }) => {
-    // v2 백엔드 PostReqDTO 형식에 맞춤
-    const payload = {
+    // v2 백엔드 PostCreateDTO 형식에 맞춤 - password는 4자리 숫자 문자열
+    const payload: any = {
       title: post.title,
-      content: post.content,
-      password: post.password?.toString() || undefined
+      content: post.content
     };
-    return apiClient.post<Post>("/api/post", payload);
+    
+    // 익명 사용자일 경우 password 필드 추가
+    if (post.password !== undefined) {
+      payload.password = post.password.toString().padStart(4, '0'); // 4자리 문자열로 변환
+    }
+    
+    return apiClient.post<{ id: number }>("/api/post", payload).then(response => {
+      // 생성된 게시글 ID만 반환되므로 전체 Post 객체로 래핑
+      if (response.success && response.data) {
+        return { ...response, data: { ...post, id: response.data.id } as Post };
+      }
+      return response as ApiResponse<Post>;
+    });
   },
 
-  // 게시글 수정 - v2 마이그레이션 (PUT /api/post/{postId})
+  // 게시글 수정 - v2 마이그레이션 (PostCommandController)
   updatePost: (post: Post) => {
+    // v2 백엔드 PostUpdateDTO 형식에 맞춤 - password 필드 없음
     const payload = {
       title: post.title,
-      content: post.content,
-      password: post.password?.toString() || undefined
+      content: post.content
     };
     return apiClient.put(`/api/post/${post.id}`, payload);
   },
 
-  // 게시글 삭제 - v2 마이그레이션 (DELETE /api/post/{postId})
+  // 게시글 삭제 - v2 마이그레이션 (PostCommandController)
   deletePost: (postId: number, userId?: number, password?: string, content?: string, title?: string) => {
+    // v2에서는 인증된 사용자는 DELETE 메서드만 사용
+    // 익명 게시글의 경우 별도 처리 필요 (백엔드에서 처리)
     return apiClient.delete(`/api/post/${postId}`);
   },
 
-  // 게시글 추천/취소 - v2 마이그레이션 (POST /api/post/{postId}/like)
+  // 게시글 추천/취소 - v2 마이그레이션 (PostCommandController)
   likePost: (postId: number) => apiClient.post(`/api/post/${postId}/like`),
 
-  // 인기글 조회 (캐시 엔드포인트) - 백엔드 v2에서 엔드포인트 확인 필요
-  // TODO: 백엔드에서 캐시 엔드포인트 구현 상태 확인
-  getRealtimePosts: () => apiClient.get<SimplePost[]>("/post/cache/realtime"), // 레거시 유지 (확인 필요)
-  getWeeklyPosts: () => apiClient.get<SimplePost[]>("/post/cache/weekly"),     // 레거시 유지 (확인 필요)  
-  getLegendPosts: () => apiClient.get<SimplePost[]>("/post/cache/legend"),     // 레거시 유지 (확인 필요)
+  // 인기글 조회 - v2 백엔드 PostCacheController 연동
+  // 실시간 + 주간 인기글 한 번에 조회
+  getPopularPosts: () => apiClient.get<{ realtime: SimplePost[], weekly: SimplePost[] }>("/api/post/popular"),
+  
+  // 레전드 인기글 조회 (페이지네이션 지원)
+  getLegendPosts: (page = 0, size = 10) => 
+    apiClient.get<PageResponse<SimplePost>>(`/api/post/legend?page=${page}&size=${size}`),
+  
+  // 공지사항 조회
+  getNoticePosts: () => apiClient.get<SimplePost[]>("/api/post/notice"),
 }
 
 // 댓글 관련 API - v2 백엔드 CQRS 마이그레이션

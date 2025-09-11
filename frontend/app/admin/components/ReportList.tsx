@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertTriangle, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
+import { AlertTriangle, Eye, Clock } from "lucide-react";
 import { type Report, type PageResponse } from "@/lib/api";
 import { ReportDetailModal } from "./ReportDetailModal";
 
@@ -34,35 +34,6 @@ export const ReportList: React.FC<ReportListProps> = ({
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "investigating":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "resolved":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Clock className="w-4 h-4" />;
-      case "investigating":
-        return <Eye className="w-4 h-4" />;
-      case "resolved":
-        return <CheckCircle className="w-4 h-4" />;
-      case "rejected":
-        return <XCircle className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
 
   const getReportTypeLabel = (type: string) => {
     switch (type) {
@@ -150,22 +121,10 @@ export const ReportList: React.FC<ReportListProps> = ({
                         <Badge variant="outline" className="text-xs">
                           {getReportTypeLabel(report.reportType)}
                         </Badge>
-                        <Badge
-                          className={`text-xs ${getStatusColor(
-                            report.status || "pending"
-                          )}`}
-                        >
+                        <Badge className="text-xs bg-yellow-100 text-yellow-800 border-yellow-200">
                           <div className="flex items-center space-x-1">
-                            {getStatusIcon(report.status || "pending")}
-                            <span>
-                              {report.status === "pending"
-                                ? "대기중"
-                                : report.status === "investigating"
-                                ? "조사중"
-                                : report.status === "resolved"
-                                ? "해결됨"
-                                : "반려됨"}
-                            </span>
+                            <Clock className="w-4 h-4" />
+                            <span>처리 대기</span>
                           </div>
                         </Badge>
                       </div>

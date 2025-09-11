@@ -2,21 +2,20 @@ package jaeik.bimillog.infrastructure.adapter.user.social;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoSocialAdapter;
-import jaeik.bimillog.global.vo.KakaoKeyVO;
+import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoApiClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <h2>KakaoSocialAdapter 테스트</h2>
  * <p>카카오 소셜 어댑터의 기본 동작 테스트</p>
- * <p>복잡한 WebClient 모킹보다는 기본 동작 검증에 집중</p>
+ * <p>Feign Client를 사용한 기본 동작 검증에 집중</p>
  * 
  * @author Jaeik
  * @version 2.0.0
@@ -25,10 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class KakaoSocialAdapterTest {
 
     @Mock
-    private KakaoKeyVO kakaoKeyVO;
-    
-    @Mock
-    private WebClient.Builder webClientBuilder;
+    private KakaoApiClient kakaoApiClient;
 
     @InjectMocks
     private KakaoSocialAdapter kakaoSocialAdapter;

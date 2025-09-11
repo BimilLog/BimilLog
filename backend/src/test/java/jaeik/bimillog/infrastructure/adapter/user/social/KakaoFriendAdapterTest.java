@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -56,10 +55,10 @@ class KakaoFriendAdapterTest {
         );
         
         given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(offset), eq(limit)))
-            .willReturn(Mono.just(expectedResponse));
+            .willReturn(expectedResponse);
 
         // When: 친구 목록 조회 실행
-        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit).block();
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
 
         // Then: 올바른 친구 목록이 반환되고 KakaoSocialAdapter가 호출되었는지 검증
         assertThat(result).isNotNull();
@@ -95,10 +94,10 @@ class KakaoFriendAdapterTest {
         );
         
         given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(offset), eq(limit)))
-            .willReturn(Mono.just(emptyResponse));
+            .willReturn(emptyResponse);
 
         // When: 빈 친구 목록 조회 실행
-        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit).block();
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
 
         // Then: 빈 목록이 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
@@ -126,10 +125,10 @@ class KakaoFriendAdapterTest {
         );
         
         given(kakaoSocialAdapter.getFriendList(eq(accessToken), eq(offset), eq(limit)))
-            .willReturn(Mono.just(paginatedResponse));
+            .willReturn(paginatedResponse);
 
         // When: 페이지네이션으로 친구 목록 조회 실행
-        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit).block();
+        KakaoFriendsResponseVO result = kakaoFriendAdapter.getFriendList(accessToken, offset, limit);
 
         // Then: 페이지네이션 정보가 올바르게 반환되는지 검증
         assertThat(result).isNotNull();
