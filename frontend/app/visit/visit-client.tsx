@@ -1,26 +1,19 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Search,
-  ArrowLeft,
   Heart,
   AlertCircle,
-  CheckCircle,
   Mail,
   PartyPopper,
   Sparkles,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { rollingPaperApi } from "@/lib/api";
-import { ErrorHandler } from "@/lib/error-handler";
+import { useRollingPaperSearch } from "@/hooks/useRollingPaperSearch";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
 import { RecentVisits } from "@/app/rolling-paper/components/RecentVisits";
 import { AuthHeader } from "@/components/organisms/auth-header";
@@ -34,57 +27,21 @@ import {
 } from "@/components/ui/dialog";
 
 export default function VisitClient() {
-  const { user } = useAuth();
-  const [searchNickname, setSearchNickname] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const router = useRouter();
-
-  const handleSearch = async () => {
-    if (!searchNickname.trim()) return;
-
-    const trimmedNickname = searchNickname.trim();
-    setIsSearching(true);
-    setSearchError("");
-
-    try {
-      // 로그인한 사용자의 경우 자신의 닉네임인지 먼저 확인 (API 호출 전)
-      if (user && user.userName === trimmedNickname) {
-        setShowConfirmDialog(true);
-        setIsSearching(false);
-        return;
-      }
-
-      // 다른 사용자의 롤링페이퍼 조회 시도
-      const response = await rollingPaperApi.getRollingPaper(trimmedNickname);
-
-      if (response.success) {
-        // 성공적으로 조회된 경우 방문 페이지로 이동
-        router.push(`/rolling-paper/${encodeURIComponent(trimmedNickname)}`);
-      } else {
-        // 사용자를 찾을 수 없는 경우 - ErrorHandler 사용
-        const appError = ErrorHandler.mapApiError(new Error(response.error || "사용자를 찾을 수 없습니다"));
-        setSearchError(appError.userMessage || "해당 닉네임의 롤링페이퍼를 찾을 수 없어요. 회원가입한 사용자의 롤링페이퍼만 존재합니다.");
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      const appError = ErrorHandler.mapApiError(error);
-      setSearchError(appError.userMessage || "롤링페이퍼를 찾을 수 없어요.");
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  
+  const {
+    searchNickname,
+    setSearchNickname,
+    isSearching,
+    searchError,
+    handleSearch,
+    handleKeyPress,
+  } = useRollingPaperSearch();
 
   const handleGoToMyRollingPaper = () => {
     setShowConfirmDialog(false);
     router.push("/rolling-paper");
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
   };
 
   return (
@@ -131,10 +88,7 @@ export default function VisitClient() {
               <Input
                 placeholder="닉네임을 입력하세요"
                 value={searchNickname}
-                onChange={(e) => {
-                  setSearchNickname(e.target.value);
-                  if (searchError) setSearchError("");
-                }}
+                onChange={(e) => setSearchNickname(e.target.value)}
                 onKeyPress={handleKeyPress}
                 className="pl-10 h-12 text-lg bg-white border-2 border-gray-200 focus:border-purple-400"
                 disabled={isSearching}

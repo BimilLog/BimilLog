@@ -1,12 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Lock } from "lucide-react";
-import {
-  getDecoInfo,
-  type RollingPaperMessage,
-  type VisitMessage,
-  rollingPaperApi,
-} from "@/lib/api";
+import { getDecoInfo, paperCommand } from "@/lib/api";
+import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
 import { ErrorHandler } from "@/lib/error-handler";
 
@@ -42,7 +38,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
     }
 
     try {
-      const response = await rollingPaperApi.deleteMessage(message.id);
+      const response = await paperCommand.deleteMessage(message.id);
       if (response.success) {
         onDelete?.();
         onDeleteSuccess?.("메시지가 성공적으로 삭제되었습니다.");

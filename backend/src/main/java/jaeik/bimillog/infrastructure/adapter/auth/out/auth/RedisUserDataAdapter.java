@@ -73,7 +73,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             TemporaryUserDataDTO tempData = TemporaryUserDataDTO.fromDomainProfile(userProfile, token, fcmToken);
             redisTemplate.opsForValue().set(key, tempData, TTL);
             log.debug("UUID {}에 대한 임시 데이터가 Redis에 성공적으로 저장됨", uuid);
-        }, uuid, "저장", AuthErrorCode.INVALID_USER_DATA);
+        }, uuid);
     }
 
     /**
@@ -135,7 +135,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             log.debug(deleted
                     ? "UUID {}에 대한 임시 데이터가 Redis에서 성공적으로 제거됨"
                     : "UUID {}에 대해 Redis에서 제거할 임시 데이터가 발견되지 않음", uuid);
-        }, uuid, "제거");
+        }, uuid);
     }
 
     /**
@@ -159,20 +159,20 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         return TEMP_KEY_PREFIX + uuid;
     }
 
-    private void executeRedisOperation(Runnable operation, String uuid, String operationType, AuthErrorCode errorCode) {
+    private void executeRedisOperation(Runnable operation, String uuid) {
         try {
             operation.run();
         } catch (Exception e) {
-            log.error("UUID {}에 대한 임시 데이터 Redis {} 실패: {}", uuid, operationType, e.getMessage(), e);
-            throw new AuthCustomException(errorCode);
+            log.error("UUID {}에 대한 임시 데이터 Redis {} 실패: {}", uuid, "저장", e.getMessage(), e);
+            throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
     }
 
-    private void executeRedisOperationSafely(Runnable operation, String uuid, String operationType) {
+    private void executeRedisOperationSafely(Runnable operation, String uuid) {
         try {
             operation.run();
         } catch (Exception e) {
-            log.error("UUID {}에 대한 임시 데이터 Redis {} 실패: {}", uuid, operationType, e.getMessage(), e);
+            log.error("UUID {}에 대한 임시 데이터 Redis {} 실패: {}", uuid, "제거", e.getMessage(), e);
         }
     }
 

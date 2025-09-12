@@ -5,11 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Share2, Waves, FileText, Mail, Lock } from "lucide-react";
-import {
-  getDecoInfo,
-  type RollingPaperMessage,
-  type VisitMessage,
-} from "@/lib/api";
+import { getDecoInfo } from "@/lib/api";
+import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
 
 interface RecentMessagesProps {

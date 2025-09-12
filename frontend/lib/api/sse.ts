@@ -5,7 +5,8 @@ export class SSEManager {
   private listeners: Map<string, (data: Notification) => void> = new Map()
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
-  private reconnectDelay = 1000
+  private baseReconnectDelay = 1000
+  private maxReconnectDelay = 10000
   
   connect() {
     if (this.eventSource) {
@@ -88,11 +89,18 @@ export class SSEManager {
         
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++
-          console.log(`SSE 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts}`)
+          
+          // Exponential backoff: 1s, 2s, 4s, 8s, 10s (max)
+          const delay = Math.min(
+            this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+            this.maxReconnectDelay
+          )
+          
+          console.log(`SSE 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts} (${delay}ms 후)`)
           
           setTimeout(() => {
             this.connect()
-          }, this.reconnectDelay * this.reconnectAttempts)
+          }, delay)
         } else {
           console.error("SSE 재연결 시도 초과됨")
         }

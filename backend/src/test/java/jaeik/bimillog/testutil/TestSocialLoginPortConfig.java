@@ -1,8 +1,10 @@
 package jaeik.bimillog.testutil;
 
+import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -11,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * <h2>테스트용 소셜 로그인 포트 설정</h2>
@@ -24,25 +27,21 @@ public class TestSocialLoginPortConfig {
 
     @Bean
     @Primary
-    public SocialPort testSocialLoginPort() {
-        return new SocialPort() {
+    public SocialLoginStrategyPort testSocialLoginStrategyPort() {
+        return new SocialLoginStrategyPort() {
             @Override
-            public LoginResult.SocialLoginData login(SocialProvider provider, String code) {
+            public StrategyLoginResult authenticate(SocialProvider provider, String code) {
                 // 테스트용 더미 구현
                 String socialId;
-                boolean isNewUser;
                 
                 // code 값에 따라 신규 사용자/기존 사용자 구분
                 if ("new_user_code".equals(code)) {
                     socialId = "new-user-social-id";
-                    isNewUser = true;
                 } else if ("existing_user_code".equals(code)) {
                     socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 사용자 ID와 일치
-                    isNewUser = false;
                 } else {
                     // 기본값은 기존 사용자로 처리
                     socialId = "test-social-id";
-                    isNewUser = false;
                 }
                 
                 LoginResult.SocialUserProfile profile = new LoginResult.SocialUserProfile(
@@ -54,7 +53,7 @@ public class TestSocialLoginPortConfig {
                 );
                 Token token = Token.createTemporaryToken("dummy-access-token", "dummy-refresh-token");
                 
-                return new LoginResult.SocialLoginData(profile, token, isNewUser);
+                return new StrategyLoginResult(profile, token);
             }
 
             @Override
@@ -64,6 +63,23 @@ public class TestSocialLoginPortConfig {
 
             @Override
             public void unlink(SocialProvider provider, String socialId) {
+                // 테스트용 더미 구현 - 아무 작업도 하지 않음
+            }
+        };
+    }
+
+    @Bean
+    @Primary
+    public SocialPort testSocialPort() {
+        return new SocialPort() {
+            @Override
+            public Optional<User> findExistingUser(SocialProvider provider, String socialId) {
+                // 테스트용 더미 구현 - 항상 빈 Optional 반환 (신규 사용자로 처리)
+                return Optional.empty();
+            }
+
+            @Override
+            public void updateUserProfile(User user, LoginResult.SocialUserProfile userProfile) {
                 // 테스트용 더미 구현 - 아무 작업도 하지 않음
             }
         };

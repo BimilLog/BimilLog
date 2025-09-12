@@ -3,22 +3,41 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout } from "@/components/organisms/AuthLayout";
 import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
+import { useAuthError } from "@/hooks/useAuthError";
+import { kakaoAuthManager } from "@/lib/auth/kakao";
 
 export default function LoginPage() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { clearAuthError } = useAuthError();
+  
+  const error = searchParams.get("error");
 
   useEffect(() => {
     if (isAuthenticated) {
       router.push("/");
     }
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        clearAuthError();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, clearAuthError]);
+
+  const handleLogin = () => {
+    kakaoAuthManager.redirectToKakaoAuth();
+  };
 
   if (isLoading) {
     return <AuthLoadingScreen message="로딩 중..." />;
@@ -36,9 +55,21 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-start space-x-2">
+                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-red-800">
+                  <p className="font-medium">로그인 오류</p>
+                  <p>{decodeURIComponent(error)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <Button
-            className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold text-base"
-            onClick={() => login()}
+            className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold text-base transition-all active:scale-[0.98]"
+            onClick={handleLogin}
           >
             <svg
               className="w-5 h-5 mr-2"

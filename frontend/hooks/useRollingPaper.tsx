@@ -2,11 +2,22 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDevice } from "@/hooks/useDevice";
+import { paperQuery } from "@/lib/api";
+import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import {
-  rollingPaperApi,
-  type RollingPaperMessage,
-  type VisitMessage,
-} from "@/lib/api";
+  getCoordinateConfig,
+  createMessagePositionMap,
+  isPositionOccupied as checkPositionOccupied,
+  getMessageAt as getMessageAtPosition,
+  findEmptyPosition as findEmpty,
+  findNearbyEmptyPosition as findNearbyEmpty,
+  frontendToBackend,
+  backendToFrontend,
+  getPageFromCoords as getPage,
+  getGridPosFromCoords as getGridPos,
+  getCoordsFromPageAndGrid as getCoordsFromGrid,
+} from "@/lib/utils/coordinate";
 
 interface UseRollingPaperProps {
   nickname?: string;
@@ -70,42 +81,23 @@ export function useRollingPaper({
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-
-  // 모바일 감지
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkIsMobile();
-    window.addEventListener("resize", checkIsMobile);
-    return () => window.removeEventListener("resize", checkIsMobile);
-  }, []);
+  const { isMobile } = useDevice();
 
   // 좌표 기반 설정
-  const pageWidth = isMobile ? 4 : 6; // 페이지당 가로 칸 수
-  const pageHeight = 10; // 페이지당 세로 칸 수 (고정)
-  const maxPages = isMobile ? 3 : 2; // 최대 페이지 수
-  const canvasWidth = pageWidth * maxPages; // 전체 캔버스 가로 크기 (PC: 12, 모바일: 12)
-  const canvasHeight = pageHeight; // 전체 캔버스 세로 크기 (고정 10)
-  const totalPages = maxPages;
+  const config = getCoordinateConfig(isMobile);
+  const { pageWidth, pageHeight, canvasWidth, canvasHeight, totalPages } = config;
 
   // 좌표 변환 함수들
   const getPageFromCoords = (x: number, y: number): number => {
-    // width를 기준으로 페이지 계산
-    return Math.floor(x / pageWidth) + 1;
+    return getPage(x, y, pageWidth);
   };
 
   const getGridPosFromCoords = (
     x: number,
     y: number
   ): { gridX: number; gridY: number } => {
-    // 백엔드 좌표를 그리드 내 위치로 변환
-    const gridX = x % pageWidth;
-    const gridY = y;
-    return { gridX, gridY };
+    return getGridPos(x, y, pageWidth);
   };
 
   const getCoordsFromPageAndGrid = (
@@ -113,104 +105,36 @@ export function useRollingPaper({
     gridX: number,
     gridY: number
   ): { x: number; y: number } => {
-    // 페이지와 그리드 위치를 백엔드 좌표로 변환
-    const x = (page - 1) * pageWidth + gridX;
-    const y = gridY;
-    return { x, y };
+    return getCoordsFromGrid(page, gridX, gridY, pageWidth);
   };
 
   // 메시지 위치 Map 생성 (성능 최적화)
   const messagePositionMap = useMemo(() => {
-    const map = new Map<string, RollingPaperMessage | VisitMessage>();
-    messages.forEach((message) => {
-      const key = `${message.x},${message.y}`;
-      map.set(key, message);
-    });
-    return map;
+    return createMessagePositionMap(messages);
   }, [messages]);
 
-  // 좌표 변환 함수들
-  // 백엔드: 1-based 좌표 (x: 1~6, y: 1~10)
-  // 프론트엔드: 0-based 좌표 (x: 0~5, y: 0~9)
-  const frontendToBackend = (x: number, y: number) => ({ x: x + 1, y: y + 1 });
-  const backendToFrontend = (x: number, y: number) => ({ x: x - 1, y: y - 1 });
-
-  // 좌표 유틸리티 함수들 (Map 활용으로 성능 개선)
+  // 좌표 유틸리티 함수들
   const isPositionOccupied = (x: number, y: number): boolean => {
-    if (typeof x !== 'number' || typeof y !== 'number') return false;
-    if (x < 0 || y < 0) return false;
-    
-    // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
-    const { x: backendX, y: backendY } = frontendToBackend(x, y);
-    const key = `${backendX},${backendY}`;
-    return messagePositionMap.has(key);
+    return checkPositionOccupied(x, y, messagePositionMap);
   };
 
   const getMessageAt = (
     x: number,
     y: number
   ): RollingPaperMessage | VisitMessage | null => {
-    if (typeof x !== 'number' || typeof y !== 'number') return null;
-    if (x < 0 || y < 0) return null;
-    
-    // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
-    const { x: backendX, y: backendY } = frontendToBackend(x, y);
-    const key = `${backendX},${backendY}`;
-    return messagePositionMap.get(key) ?? null;
+    return getMessageAtPosition(x, y, messagePositionMap);
   };
 
-  // 빈 좌표 찾기 유틸리티
   const findEmptyPosition = (): { x: number; y: number } | null => {
-    // 랜덤하게 빈 좌표를 찾아서 반환
-    const maxAttempts = 100;
-    for (let i = 0; i < maxAttempts; i++) {
-      const x = Math.floor(Math.random() * canvasWidth);
-      const y = Math.floor(Math.random() * canvasHeight);
-      if (!isPositionOccupied(x, y)) {
-        return { x, y };
-      }
-    }
-
-    // 랜덤으로 못 찾으면 순차적으로 찾기
-    for (let y = 0; y < canvasHeight; y++) {
-      for (let x = 0; x < canvasWidth; x++) {
-        if (!isPositionOccupied(x, y)) {
-          return { x, y };
-        }
-      }
-    }
-
-    return null; // 모든 좌표가 차있음
+    return findEmpty(canvasWidth, canvasHeight, messagePositionMap);
   };
 
-  // 인근 빈 좌표 찾기
   const findNearbyEmptyPosition = (
     centerX: number,
     centerY: number,
     radius: number = 3
   ): { x: number; y: number } | null => {
-    // 중심점 주변의 빈 좌표를 찾기
-    for (let r = 1; r <= radius; r++) {
-      for (let dx = -r; dx <= r; dx++) {
-        for (let dy = -r; dy <= r; dy++) {
-          if (Math.abs(dx) === r || Math.abs(dy) === r) {
-            // 원의 경계선만 체크
-            const x = centerX + dx;
-            const y = centerY + dy;
-            if (
-              x >= 0 &&
-              x < canvasWidth &&
-              y >= 0 &&
-              y < canvasHeight &&
-              !isPositionOccupied(x, y)
-            ) {
-              return { x, y };
-            }
-          }
-        }
-      }
-    }
-    return findEmptyPosition(); // 인근에 없으면 아무데나
+    return findNearbyEmpty(centerX, centerY, canvasWidth, canvasHeight, messagePositionMap, radius);
   };
 
   // 소유자 확인
@@ -248,13 +172,13 @@ export function useRollingPaper({
           isAuthenticated && user && user.userName === currentNickname;
 
         if (isOwnerCheck) {
-          response = await rollingPaperApi.getMyRollingPaper();
+          response = await paperQuery.getMy();
         } else {
-          response = await rollingPaperApi.getRollingPaper(currentNickname);
+          response = await paperQuery.getByUserName(currentNickname);
         }
       } else {
         // 내 롤링페이퍼
-        response = await rollingPaperApi.getMyRollingPaper();
+        response = await paperQuery.getMy();
       }
 
       if (response.success && response.data) {

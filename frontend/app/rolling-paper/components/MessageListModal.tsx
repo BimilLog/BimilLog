@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MessageSquare, Sparkles, Share2 } from "lucide-react";
-import { getDecoInfo, type RollingPaperMessage } from "@/lib/api";
+import { getDecoInfo } from "@/lib/api";
+import type { RollingPaperMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
 import { formatRelativeDate } from "@/lib/date-utils";
 
@@ -21,18 +22,20 @@ interface MessageListModalProps {
   onMessageClick: (message: RollingPaperMessage) => void;
 }
 
-export const MessageListModal: React.FC<MessageListModalProps> = ({
+export const MessageListModal: React.FC<MessageListModalProps> = memo(({
   isOpen,
   onClose,
   messages,
   onMessageClick,
 }) => {
-  // 최신순으로 정렬
-  const sortedMessages = messages.sort((a, b) => {
-    const dateA = new Date(a.createdAt || 0).getTime();
-    const dateB = new Date(b.createdAt || 0).getTime();
-    return dateB - dateA; // 최신순
-  });
+  // 최신순으로 정렬 (메모화)
+  const sortedMessages = useMemo(() => {
+    return [...messages].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA; // 최신순
+    });
+  }, [messages]);
 
 
   return (
@@ -136,4 +139,6 @@ export const MessageListModal: React.FC<MessageListModalProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+MessageListModal.displayName = "MessageListModal";

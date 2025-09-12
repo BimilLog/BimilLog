@@ -6,19 +6,17 @@ import { MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRollingPaper } from "@/hooks/useRollingPaper";
 import { useRollingPaperShare } from "@/hooks/useRollingPaperShare";
+import { useMessagePosition } from "@/hooks/useMessagePosition";
 import { useToast } from "@/hooks/useToast";
-import {
-  rollingPaperApi,
-  type RollingPaperMessage,
-  type VisitMessage,
-} from "@/lib/api";
+import { paperCommand } from "@/lib/api";
+import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { addRecentVisit } from "@/lib/cookies";
 import { ErrorHandler } from "@/lib/error-handler";
 import { RollingPaperLayout } from "./RollingPaperLayout";
-import { RollingPaperHeader } from "./RollingPaperHeader";
-import { InfoCard } from "./InfoCard";
+import { NavigationBar } from "./NavigationBar";
+import { SummarySection } from "./SummarySection";
 import { RollingPaperGrid } from "./RollingPaperGrid";
-import { RecentMessages } from "./RecentMessages";
+import { MessageManager } from "./MessageManager";
 import { MessageListModal } from "./MessageListModal";
 import { ResponsiveAdFitBanner } from "@/components";
 import { Button } from "@/components/ui/button";
@@ -41,10 +39,6 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
 
   // 메시지 목록 모달 상태
   const [isMessageListOpen, setIsMessageListOpen] = useState(false);
-  const [highlightedPosition, setHighlightedPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
 
   const {
     messages,
@@ -72,6 +66,20 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
     nickname: targetNickname,
     messageCount,
     isOwner,
+  });
+
+  // 메시지 위치 관리
+  const {
+    highlightedPosition,
+    setHighlightedPosition,
+    clearHighlight,
+    handlePositionClick,
+  } = useMessagePosition({
+    messages,
+    onPositionSelect: !isOwner ? (position) => {
+      // 메시지 작성을 위한 위치 선택 (방문자용)
+      // 실제 구현은 RollingPaperGrid에서 처리
+    } : undefined,
   });
 
   // 인증 체크 (내 롤링페이퍼인 경우)
@@ -125,7 +133,7 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
       // 프론트엔드 좌표를 백엔드 좌표로 변환 (0-based → 1-based)
       const backendPosition = frontendToBackend(position.x, position.y);
       
-      const response = await rollingPaperApi.createMessage(
+      const response = await paperCommand.createMessage(
         decodeURIComponent(nickname),
         {
           decoType: data.decoType,
@@ -169,13 +177,8 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
 
     // 3초 후 하이라이트 제거
     setTimeout(() => {
-      setHighlightedPosition(null);
+      clearHighlight();
     }, 3000);
-  };
-
-  // 하이라이트 제거
-  const clearHighlight = () => {
-    setHighlightedPosition(null);
   };
 
   // 로딩 상태
@@ -203,12 +206,16 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
     <RollingPaperLayout
       adPosition={isPublic ? "타인 롤링페이퍼 상단" : "내 롤링페이퍼 상단"}
     >
-      {/* 헤더 */}
-      <RollingPaperHeader
+      {/* 네비게이션 바 (헤더 + 페이지네이션) */}
+      <NavigationBar
         nickname={targetNickname}
         messageCount={messageCount}
         isOwner={isOwner}
         onShowMessages={isOwner ? () => setIsMessageListOpen(true) : undefined}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        showPagination={!isMobile && totalPages > 1}
         className="sticky top-[68px] sm:top-[80px] z-40"
       />
 
@@ -225,9 +232,15 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
           </div>
         </div>
 
-        {/* 정보 카드 */}
+        {/* 요약 섹션 (정보 카드 + 최근 메시지들) */}
         <div className="mb-8">
-          <InfoCard isOwner={isOwner} nickname={targetNickname} />
+          <SummarySection
+            isOwner={isOwner}
+            nickname={targetNickname}
+            messages={recentMessages}
+            onShare={handleWebShare}
+            onMessageClick={handleMessageClick}
+          />
         </div>
 
         {/* 롤링페이퍼 그리드 */}
@@ -251,15 +264,6 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
           />
         </div>
 
-        {/* 최근 메시지들 - 소유자만 볼 수 있음 */}
-        {isOwner && (
-          <RecentMessages
-            messages={recentMessages}
-            isOwner={isOwner}
-            onShare={handleWebShare}
-            onMessageClick={handleMessageClick}
-          />
-        )}
       </div>
 
       {/* 메시지 목록 모달 */}

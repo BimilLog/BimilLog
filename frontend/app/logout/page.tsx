@@ -4,41 +4,56 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
+import { sessionManager } from "@/lib/auth/session";
+import { fcmManager } from "@/lib/auth/fcm";
 
 export default function LogoutPage() {
   const { logout } = useAuth();
   const router = useRouter();
-  const isMounted = useRef(true);
+  const isProcessingRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     return () => {
-      isMounted.current = false;
+      isMountedRef.current = false;
     };
   }, []);
 
   useEffect(() => {
-    const handleLogout = async () => {
+    if (isProcessingRef.current) {
+      return;
+    }
+    isProcessingRef.current = true;
+
+    const performLogout = async () => {
       try {
-        // 서버 로그아웃
         await logout();
-        
-        // 홈으로 리다이렉트
-        if (isMounted.current) {
-          router.replace("/");
-        }
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error("Logout failed:", error);
         }
-        // 에러가 발생해도 강제 로그아웃
-        await logout();
-        if (isMounted.current) {
+      } finally {
+        sessionManager.clear();
+        fcmManager.clearCache();
+        
+        if (isMountedRef.current) {
           router.replace("/");
         }
       }
     };
 
-    handleLogout();
+    const timeoutId = setTimeout(() => {
+      if (isMountedRef.current) {
+        router.replace("/");
+      }
+    }, 5000);
+
+    performLogout();
+
+    return () => {
+      clearTimeout(timeoutId);
+      isProcessingRef.current = false;
+    };
   }, [logout, router]);
 
   return (

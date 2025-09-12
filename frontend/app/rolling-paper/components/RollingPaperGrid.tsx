@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, memo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,11 +9,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, ChevronLeft, ChevronRight, Waves, Snowflake, Sparkles, IceCream2, Diamond, Mail, Star, User, Fish, Zap } from "lucide-react";
-import {
-  getDecoInfo,
-  type RollingPaperMessage,
-  type VisitMessage,
-} from "@/lib/api";
+import { getDecoInfo } from "@/lib/api";
+import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { MessageForm } from "./MessageForm";
 import { MessageView } from "./MessageView";
 import { Button } from "@/components/ui/button";
@@ -45,7 +42,7 @@ interface RollingPaperGridProps {
   className?: string;
 }
 
-export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
+export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
   messages,
   nickname,
   isOwner,
@@ -63,10 +60,15 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
   onRefresh,
   className = "",
 }) => {
-  // 그리드 설정
-  const pageWidth = isMobile ? 4 : 6; // 페이지당 가로 칸 수
-  const pageHeight = 10; // 페이지당 세로 칸 수 (고정)
-  const totalSlots = pageWidth * pageHeight; // 페이지당 총 칸 수
+  // 그리드 설정 (메모화)
+  const gridConfig = useMemo(() => {
+    const pageWidth = isMobile ? 4 : 6;
+    const pageHeight = 10;
+    const totalSlots = pageWidth * pageHeight;
+    return { pageWidth, pageHeight, totalSlots };
+  }, [isMobile]);
+
+  const { pageWidth, pageHeight, totalSlots } = gridConfig;
 
   return (
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
@@ -182,11 +184,12 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
                 ? getDecoInfo(messageAtPosition.decoType)
                 : null;
 
-              // 하이라이트 좌표인지 확인
-              const isHighlighted =
-                highlightedPosition &&
-                highlightedPosition.x === actualX &&
-                highlightedPosition.y === actualY;
+              // 하이라이트 좌표인지 확인 (메모화)
+              const isHighlighted = useMemo(() => {
+                return highlightedPosition &&
+                  highlightedPosition.x === actualX &&
+                  highlightedPosition.y === actualY;
+              }, [highlightedPosition, actualX, actualY]);
 
               return (
                 <Dialog key={`${actualX}-${actualY}`}>
@@ -300,4 +303,6 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
       </div>
     </div>
   );
-};
+});
+
+RollingPaperGrid.displayName = "RollingPaperGrid";
