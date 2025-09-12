@@ -7,7 +7,7 @@ export const adminCommand = {
     reportType: string
     targetId: number
     content: string 
-  }) => apiClient.post("/api/admin/command/ban", {
+  }) => apiClient.post("/api/admin/ban", {
     reportType: reportData.reportType,
     targetId: reportData.targetId,
     content: reportData.content
@@ -17,21 +17,21 @@ export const adminCommand = {
     targetId: number
     reportType: string
     content: string
-  }) => apiClient.post("/api/admin/command/withdraw", {
+  }) => apiClient.post("/api/admin/withdraw", {
     targetId: reportData.targetId,
     reportType: reportData.reportType,
     content: reportData.content
   }),
   
   deleteContent: (contentId: number, contentType: "POST" | "COMMENT") => 
-    apiClient.delete(`/api/admin/command/content/${contentType.toLowerCase()}/${contentId}`),
+    apiClient.delete(`/api/admin/content/${contentType.toLowerCase()}/${contentId}`),
   
   createNotice: (post: { title: string; content: string }) => 
-    apiClient.post("/api/admin/command/notice/create", post),
+    apiClient.post("/api/admin/notice/create", post),
   
   updateNotice: (postId: number, post: { title: string; content: string }) => 
-    apiClient.put(`/api/admin/command/notice/update/${postId}`, post),
+    apiClient.put(`/api/admin/notice/update/${postId}`, post),
   
   deleteNotice: (postId: number) => 
-    apiClient.delete(`/api/admin/command/notice/delete/${postId}`),
+    apiClient.delete(`/api/admin/notice/delete/${postId}`),
 }

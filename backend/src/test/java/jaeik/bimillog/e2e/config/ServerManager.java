@@ -236,12 +236,4 @@ public class ServerManager {
             return false;
         }
     }
-
-    public static Process getRedisProcess() {
-        return redisProcess;
-    }
-
-    public static void setRedisProcess(Process redisProcess) {
-        ServerManager.redisProcess = redisProcess;
-    }
 }

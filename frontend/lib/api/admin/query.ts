@@ -8,12 +8,12 @@ export const adminQuery = {
     if (reportType && reportType !== "all") {
       params.append("reportType", reportType)
     }
-    return apiClient.get(`/api/admin/query/reports?${params.toString()}`)
+    return apiClient.get(`/api/admin/reports?${params.toString()}`)
   },
   
   getReport: async (reportId: number): Promise<ApiResponse<Report | undefined>> => {
     try {
-      const response = await apiClient.get<Report>(`/api/admin/query/report/${reportId}`)
+      const response = await apiClient.get<Report>(`/api/admin/report/${reportId}`)
       return response
     } catch (error) {
       return { success: false, error: '신고 내역 조회에 실패했습니다.' }

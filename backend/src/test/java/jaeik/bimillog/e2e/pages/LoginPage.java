@@ -22,18 +22,6 @@ public class LoginPage extends BasePage {
     }
     
     /**
-     * <h3>로그인 페이지로 이동</h3>
-     * <p>홈페이지에서 로그인 버튼을 클릭합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void navigateToLogin() {
-        navigate("/");
-        clickByText("로그인");
-    }
-    
-    /**
      * <h3>카카오 로그인 수행</h3>
      * <p>카카오 OAuth 로그인을 수행합니다.</p>
      * <p>이미 카카오 계정이 연결되어 있어 자동 로그인됩니다.</p>

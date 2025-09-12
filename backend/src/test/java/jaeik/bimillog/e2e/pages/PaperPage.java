@@ -16,7 +16,6 @@ import java.time.format.DateTimeFormatter;
  */
 public class PaperPage extends BasePage {
     
-    private static final String CREATE_BUTTON = "button:has-text('롤링페이퍼 만들기')";
     private static final String TITLE_INPUT = "input[name='title']";
     private static final String DESCRIPTION_INPUT = "textarea[name='description']";
     private static final String SUBMIT_BUTTON = "button[type='submit']";
