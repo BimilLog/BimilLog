@@ -22,17 +22,17 @@ public class PostCommandAdapter implements PostCommandPort {
     private final PostRepository postRepository;
 
     /**
-     * <h3>게시글 저장</h3>
-     * <p>게시글 엔티티를 데이터베이스에 저장합니다.</p>
-     * <p>{@link PostCommandService}에서 게시글 작성, 수정 시 호출됩니다.</p>
+     * <h3>게시글 생성</h3>
+     * <p>새로운 게시글 엔티티를 데이터베이스에 생성합니다.</p>
+     * <p>{@link PostCommandService}에서 게시글 작성 시 호출됩니다.</p>
      *
-     * @param post 저장할 게시글 엔티티
-     * @return 저장된 게시글 엔티티
+     * @param post 생성할 게시글 엔티티
+     * @return 생성된 게시글 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Post save(Post post) {
+    public Post create(Post post) {
         return postRepository.save(post);
     }
 

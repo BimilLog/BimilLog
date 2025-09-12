@@ -1,11 +1,9 @@
 package jaeik.bimillog.infrastructure.adapter.notification.out.notification;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.entity.QNotification;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.notification.out.jpa.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +24,12 @@ import java.util.List;
 public class NotificationCommandAdapter implements NotificationCommandPort {
 
     private final NotificationRepository notificationRepository;
-    private final JPAQueryFactory jpaQueryFactory;
-    private final QNotification notification = QNotification.notification;
 
     /**
      * <h3>알림 일괄 업데이트</h3>
      * <p>주어진 알림 ID 목록에 따라 알림을 삭제하거나 읽음 상태로 변경합니다.</p>
-     * <p>동일한 ID가 삭제와 읽음 목록에 모두 있을 경우, 삭제가 우선 처리됩니다.</p>
+     * <p>삭제: Repository 메서드로 일괄 삭제</p>
+     * <p>읽음 처리: 엔티티 조회 후 markAsRead() 호출하여 더티체킹 활용</p>
      *
      * @param userId           현재 로그인한 사용자 ID
      * @param updateCommand 업데이트할 알림 정보 명령 (삭제할 ID 목록, 읽음 처리할 ID 목록 포함)
@@ -45,20 +42,12 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
         List<Long> readIds = updateCommand.readIds();
 
         if (deleteIds != null && !deleteIds.isEmpty()) {
-            jpaQueryFactory
-                    .delete(notification)
-                    .where(notification.id.in(deleteIds)
-                            .and(notification.users.id.eq(userId)))
-                    .execute();
+            notificationRepository.deleteAllByIdInAndUsersId(deleteIds, userId);
         }
 
         if (readIds != null && !readIds.isEmpty()) {
-            jpaQueryFactory
-                    .update(notification)
-                    .set(notification.isRead, true)
-                    .where(notification.id.in(readIds)
-                            .and(notification.users.id.eq(userId)))
-                    .execute();
+            List<Notification> notifications = notificationRepository.findAllByIdInAndUsersId(readIds, userId);
+            notifications.forEach(Notification::markAsRead);
         }
     }
 

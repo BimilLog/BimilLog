@@ -113,6 +113,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     /**
      * <h3>댓글 삭제</h3>
      * <p>댓글을 삭제하며, 자식 댓글 존재 여부에 따라 소프트 삭제 또는 하드 삭제를 수행합니다.</p>
+     * <p>자손이 있으면 엔티티 메서드로 소프트 삭제, 없으면 Port를 통한 하드 삭제 처리</p>
      * <p>{@link CommentCommandController}에서 댓글 삭제 API 처리 시 호출됩니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
@@ -124,7 +125,12 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Override
     public void deleteComment(Long commentId, Long userId, Integer password) {
         Comment comment = validateComment(commentId, userId, password);
-        handleCommentDeletion(comment.getId());
+        
+        if (commentQueryPort.hasDescendants(commentId)) {
+            comment.softDelete(); // 더티 체킹으로 자동 업데이트
+        } else {
+            commentDeletePort.deleteComment(commentId); // 하드 삭제는 Port 사용
+        }
     }
 
     /**
@@ -158,8 +164,8 @@ public class CommentCommandService implements CommentCommandUseCase {
     /**
      * <h3>사용자 탈퇴 시 댓글 처리</h3>
      * <p>사용자 탈퇴 시 해당 사용자의 모든 댓글을 비즈니스 규칙에 따라 처리합니다.</p>
-     * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
-     * <p>자손이 없는 댓글: 하드 삭제</p>
+     * <p>자손이 있는 댓글: 엔티티 메서드로 익명화 (더티 체킹)</p>
+     * <p>자손이 없는 댓글: Port를 통한 하드 삭제</p>
      * <p>{@link CommentRemoveListener}에서 사용자 탈퇴 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId 탈퇴하는 사용자 ID
@@ -168,7 +174,15 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     @Override
     public void processUserCommentsOnWithdrawal(Long userId) {
-        commentDeletePort.processUserCommentsOnWithdrawal(userId);
+        List<Comment> userComments = commentQueryPort.findAllByUserId(userId);
+        
+        for (Comment comment : userComments) {
+            if (commentQueryPort.hasDescendants(comment.getId())) {
+                comment.anonymize(); // 더티 체킹으로 자동 업데이트
+            } else {
+                commentDeletePort.deleteComment(comment.getId()); // 하드 삭제는 Port 사용
+            }
+        }
     }
 
     /**
@@ -229,17 +243,4 @@ public class CommentCommandService implements CommentCommandUseCase {
         commentSavePort.saveAll(closuresToSave);
     }
 
-    /**
-     * <h3>댓글 삭제 위임</h3>
-     * <p>댓글 ID를 CommentDeletePort로 전달하여 삭제 처리를 위임합니다.</p>
-     * <p>자손 존재 여부에 따른 하드/소프트 삭제 결정은 포트에서 담당</p>
-     * <p>deleteComment 메서드에서 호출되어 실제 삭제 로직을 수행합니다.</p>
-     *
-     * @param commentId 삭제 대상 댓글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void handleCommentDeletion(Long commentId) {
-        commentDeletePort.deleteComment(commentId);
-    }
 }

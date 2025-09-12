@@ -1,17 +1,17 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.*;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategyAdapter;
-import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoAuthClient;
-import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoApiClient;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
+import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoAuthClient;
+import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategyAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,12 +30,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 /**
@@ -59,7 +56,6 @@ class SocialServiceTest {
     
     @Mock private KakaoKeyVO kakaoKeyVO;
     @Mock private KakaoAuthClient kakaoAuthClient;
-    @Mock private KakaoApiClient kakaoApiClient;
     @Mock private AuthToUserPort authToUserPort;
     @Mock private SaveUserPort saveUserPort;
     @Mock private RedisUserDataPort redisUserDataPort;
@@ -68,18 +64,13 @@ class SocialServiceTest {
     private KakaoLoginStrategyAdapter kakaoStrategy;
     private SocialService socialService;
 
-    private LoginResult.SocialUserProfile testUserProfile;
+    private SocialAuthData.SocialUserProfile testUserProfile;
     private Token testToken;
-    private LoginResult.SocialLoginData existingUserResult;
-    private LoginResult.SocialLoginData newUserResult;
 
     @BeforeEach
     void setUp() {
-        testUserProfile = new LoginResult.SocialUserProfile(TEST_SOCIAL_ID, null, SocialProvider.KAKAO, TEST_USERNAME, TEST_PROFILE_IMAGE);
+        testUserProfile = new SocialAuthData.SocialUserProfile(TEST_SOCIAL_ID, null, SocialProvider.KAKAO, TEST_USERNAME, TEST_PROFILE_IMAGE);
         testToken = Token.createTemporaryToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-
-        existingUserResult = new LoginResult.SocialLoginData(testUserProfile, testToken, false);
-        newUserResult = new LoginResult.SocialLoginData(testUserProfile, testToken, true);
         
         // 실제 KakaoLoginStrategyAdapter 객체 생성 (의존성은 mock 사용)
         kakaoStrategy = new KakaoLoginStrategyAdapter(kakaoKeyVO, kakaoAuthClient);
@@ -139,7 +130,7 @@ class SocialServiceTest {
             given(mockUser.getThumbnailImage()).willReturn("different.jpg");
             given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.of(mockUser));
             given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
-            given(saveUserPort.handleExistingUserLogin(any(LoginResult.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
+            given(saveUserPort.handleExistingUserLogin(any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
 
             // When
             LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -153,7 +144,7 @@ class SocialServiceTest {
             verify(kakaoAuthClient).getUserInfo(anyString());
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
             verify(mockUser).updateUserInfo(eq(TEST_USERNAME), eq(TEST_PROFILE_IMAGE));
-            verify(saveUserPort).handleExistingUserLogin(any(LoginResult.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
+            verify(saveUserPort).handleExistingUserLogin(any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
         }
     }
 
@@ -196,7 +187,7 @@ class SocialServiceTest {
             verify(kakaoAuthClient).getToken(anyString(), any());
             verify(kakaoAuthClient).getUserInfo(anyString());
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
-            verify(redisUserDataPort).saveTempData(anyString(), any(LoginResult.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
+            verify(redisUserDataPort).saveTempData(anyString(), any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
             verify(redisUserDataPort).createTempCookie(anyString());
         }
     }

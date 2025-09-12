@@ -35,7 +35,7 @@ public class UserCommandAdapter implements UserCommandPort {
     @Override
     public User save(User user) {
         if (user == null) {
-            throw new IllegalArgumentException("User cannot be null");
+            throw new IllegalArgumentException("User는 null이 될 수 없습니다.");
         }
         return userRepository.save(user);
     }

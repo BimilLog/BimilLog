@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;

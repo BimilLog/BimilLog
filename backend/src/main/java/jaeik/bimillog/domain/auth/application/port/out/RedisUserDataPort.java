@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SignUpService;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.Token;
 import org.springframework.http.ResponseCookie;
 
@@ -31,7 +31,7 @@ public interface RedisUserDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void saveTempData(String uuid, LoginResult.SocialUserProfile userProfile, Token token, String fcmToken);
+    void saveTempData(String uuid, SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken);
 
     /**
      * <h3>임시 사용자 데이터 조회</h3>
@@ -44,7 +44,7 @@ public interface RedisUserDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<LoginResult.TempUserData> getTempData(String uuid);
+    Optional<SocialAuthData.TempUserData> getTempData(String uuid);
 
     /**
      * <h3>임시 사용자 데이터 삭제</h3>

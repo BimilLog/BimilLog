@@ -89,36 +89,6 @@ class NotificationCommandServiceTest {
     }
 
     @Test
-    @DisplayName("알림 일괄 업데이트 - 빈 리스트인 경우")
-    void shouldBatchUpdate_WhenEmptyLists() {
-        // Given
-        when(userDetails.getUserId()).thenReturn(1L);
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(List.of(), List.of());
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
-        verifyNoMoreInteractions(notificationCommandPort);
-    }
-
-    @Test
-    @DisplayName("알림 일괄 업데이트 - null DTO인 경우")
-    void shouldBatchUpdate_WhenNullDto() {
-        // Given
-        when(userDetails.getUserId()).thenReturn(1L);
-        NotificationUpdateVO updateCommand = null;
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        // null 커맨드는 서비스에서 처리하고 Port를 호출하지 않음
-        verifyNoInteractions(notificationCommandPort);
-    }
-
-    @Test
     @DisplayName("알림 일괄 업데이트 - null 사용자")
     void shouldThrowException_WhenNullUser() {
         // Given
@@ -131,39 +101,5 @@ class NotificationCommandServiceTest {
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.INVALID_USER_CONTEXT);
         
         verifyNoInteractions(notificationCommandPort);
-    }
-
-    @Test
-    @DisplayName("알림 일괄 업데이트 - 대량 데이터")
-    void shouldBatchUpdate_WhenLargeDataSet() {
-        // Given
-        when(userDetails.getUserId()).thenReturn(1L);
-        List<Long> largeReadIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
-        List<Long> largeDeletedIds = Arrays.asList(11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 19L, 20L);
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(largeReadIds, largeDeletedIds);
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
-        verifyNoMoreInteractions(notificationCommandPort);
-    }
-
-
-
-    @Test
-    @DisplayName("알림 일괄 업데이트 - 둘 다 null인 경우")
-    void shouldBatchUpdate_WhenBothListsAreNull() {
-        // Given
-        when(userDetails.getUserId()).thenReturn(1L);
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(null, null);
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
-        verifyNoMoreInteractions(notificationCommandPort);
     }
 }

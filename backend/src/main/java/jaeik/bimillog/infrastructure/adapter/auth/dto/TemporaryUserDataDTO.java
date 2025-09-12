@@ -1,10 +1,12 @@
 package jaeik.bimillog.infrastructure.adapter.auth.dto;
 
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.Token;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import jakarta.validation.constraints.AssertTrue;
 
 /**
  * <h2>임시 사용자 데이터 DTO</h2>
@@ -19,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TemporaryUserDataDTO {
-    private LoginResult.SocialUserProfile socialUserProfile;
+    private SocialAuthData.SocialUserProfile socialUserProfile;
     private Token token;
     private String fcmToken;
 
@@ -35,7 +37,7 @@ public class TemporaryUserDataDTO {
      * @since 2.0.0
      * @author Jaeik
      */
-    public static TemporaryUserDataDTO fromDomainProfile(LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) {
+    public static TemporaryUserDataDTO fromDomainProfile(SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) {
         return new TemporaryUserDataDTO(userProfile, token, fcmToken);
     }
 
@@ -47,7 +49,7 @@ public class TemporaryUserDataDTO {
      * @since 2.0.0
      * @author Jaeik
      */
-    public LoginResult.SocialUserProfile toDomainProfile() {
+    public SocialAuthData.SocialUserProfile toDomainProfile() {
         return socialUserProfile;
     }
 }

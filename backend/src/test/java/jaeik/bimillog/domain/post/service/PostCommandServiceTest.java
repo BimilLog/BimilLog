@@ -67,7 +67,7 @@ class PostCommandServiceTest {
         Integer password = 1234;
 
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
-        given(postCommandPort.save(any(Post.class))).willReturn(post);
+        given(postCommandPort.create(any(Post.class))).willReturn(post);
         given(post.getId()).willReturn(expectedPostId);
 
         // When
@@ -77,7 +77,7 @@ class PostCommandServiceTest {
         assertThat(result).isEqualTo(expectedPostId);
 
         verify(globalUserQueryPort, times(1)).getReferenceById(userId);
-        verify(postCommandPort, times(1)).save(any(Post.class));
+        verify(postCommandPort, times(1)).create(any(Post.class));
         verifyNoMoreInteractions(globalUserQueryPort, postCommandPort);
     }
 
@@ -98,7 +98,6 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(post, times(1)).updatePost("수정된 제목", "수정된 내용");
-        verify(postCommandPort, times(1)).save(post);
         verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
     }
@@ -118,7 +117,6 @@ class PostCommandServiceTest {
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort, times(1)).findById(postId);
-        verify(postCommandPort, never()).save(any());
         verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
 
@@ -140,7 +138,6 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(post, never()).updatePost(anyString(), anyString());
-        verify(postCommandPort, never()).save(any());
         verify(postCacheCommandPort, never()).deleteCache(any(), any());
     }
 
@@ -226,7 +223,6 @@ class PostCommandServiceTest {
 
         // 게시글 수정은 완료되지만 캐시 삭제에서 실패
         verify(post, times(1)).updatePost("title", "content");
-        verify(postCommandPort, times(1)).save(post);
         verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
     }
 }

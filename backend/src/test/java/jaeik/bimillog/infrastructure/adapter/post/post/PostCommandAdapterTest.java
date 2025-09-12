@@ -112,7 +112,7 @@ class PostCommandAdapterTest {
         Integer password = 1234;
 
         Post post = Post.createPost(user, title, content, password);
-        Post savedPost = postCommandAdapter.save(post);
+        Post savedPost = postCommandAdapter.create(post);
         entityManager.flush();
         entityManager.clear();
 
@@ -153,11 +153,12 @@ class PostCommandAdapterTest {
         Integer password = 1234;
 
         Post post = Post.createPost(user, title, content, password);
-        Post savedPost = postCommandAdapter.save(post);
+        Post savedPost = postCommandAdapter.create(post);
 
         // When: 공지사항으로 설정 후 저장
         savedPost.setAsNotice();
-        Post updatedPost = postCommandAdapter.save(savedPost);
+        entityManager.flush();
+        Post updatedPost = savedPost;
         entityManager.flush();
         entityManager.clear();
 
@@ -189,11 +190,12 @@ class PostCommandAdapterTest {
         Integer password = 1234;
 
         Post post = Post.createPost(user, title, content, password);
-        Post savedPost = postCommandAdapter.save(post);
+        Post savedPost = postCommandAdapter.create(post);
 
         // When: 캐시 플래그 설정 후 저장
         savedPost.updatePostCacheFlag(PostCacheFlag.REALTIME);
-        Post updatedPost = postCommandAdapter.save(savedPost);
+        entityManager.flush();
+        Post updatedPost = savedPost;
         entityManager.flush();
         entityManager.clear();
 
@@ -225,7 +227,7 @@ class PostCommandAdapterTest {
         Integer password = 1234;
 
         Post post = Post.createPost(user, title, content, password);
-        Post savedPost = postCommandAdapter.save(post);
+        Post savedPost = postCommandAdapter.create(post);
         entityManager.flush();
         entityManager.clear();
 

@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostAdminService;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -36,9 +35,6 @@ class PostAdminServiceTest {
     private PostQueryPort postQueryPort;
 
     @Mock
-    private PostCommandPort postCommandPort;
-
-    @Mock
     private Post post;
 
     @InjectMocks
@@ -62,7 +58,6 @@ class PostAdminServiceTest {
         verify(postQueryPort).findById(postId);
         verify(post, times(2)).isNotice(); // 상태 확인 (if문 + 로그)
         verify(post).setAsNotice();
-        verify(postCommandPort).save(post);
     }
 
     @Test
@@ -82,7 +77,6 @@ class PostAdminServiceTest {
         verify(post, never()).isNotice();
         verify(post, never()).setAsNotice();
         verify(post, never()).unsetAsNotice();
-        verify(postCommandPort, never()).save(any());
     }
 
     @Test
@@ -119,7 +113,6 @@ class PostAdminServiceTest {
         verify(postQueryPort).findById(postId);
         verify(post, times(2)).isNotice(); // 상태 확인 (if문 + 로그)
         verify(post).unsetAsNotice();
-        verify(postCommandPort).save(post);
     }
 
 

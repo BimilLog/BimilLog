@@ -49,6 +49,18 @@ public class Notification extends BaseEntity {
     private boolean isRead;
 
     /**
+     * <h3>알림 읽음 처리</h3>
+     * <p>알림의 읽음 상태를 true로 변경합니다.</p>
+     * <p>더티체킹을 통해 트랜잭션 종료 시 자동으로 데이터베이스에 반영됩니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void markAsRead() {
+        this.isRead = true;
+    }
+
+    /**
      * <h3>알림 생성 팩토리 메소드</h3>
      * <p>새로운 알림 엔티티를 생성합니다.</p>
      * <p>읽음 상태는 기본적으로 false로 설정됩니다.</p>

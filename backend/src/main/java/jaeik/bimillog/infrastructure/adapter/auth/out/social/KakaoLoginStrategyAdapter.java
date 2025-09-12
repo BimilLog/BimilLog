@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.social;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
@@ -49,7 +49,7 @@ public class KakaoLoginStrategyAdapter implements SocialLoginStrategyPort {
             throw new IllegalArgumentException("KakaoSocialLoginStrategy는 KAKAO 제공자만 지원합니다: " + provider);
         }
         Token token = getToken(code);
-        LoginResult.SocialUserProfile userProfile = getUserInfo(token.getAccessToken());
+        SocialAuthData.SocialUserProfile userProfile = getUserInfo(token.getAccessToken());
         return new SocialLoginStrategyPort.StrategyLoginResult(userProfile, token);
     }
 
@@ -148,12 +148,12 @@ public class KakaoLoginStrategyAdapter implements SocialLoginStrategyPort {
      * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 도메인 SocialUserProfile 로 변환합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
-     * @return LoginResult.SocialUserProfile 도메인 소셜 사용자 프로필
+     * @return SocialAuthData.SocialUserProfile 도메인 소셜 사용자 프로필
      * @author Jaeik
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
-    private LoginResult.SocialUserProfile getUserInfo(String accessToken) {
+    private SocialAuthData.SocialUserProfile getUserInfo(String accessToken) {
         try {
             Map<String, Object> responseBody = kakaoAuthClient.getUserInfo("Bearer " + accessToken);
             
@@ -164,7 +164,7 @@ public class KakaoLoginStrategyAdapter implements SocialLoginStrategyPort {
             String nickname = (String) profile.get("nickname");
             String thumbnailImage = (String) profile.get("thumbnail_image_url");
 
-            return new LoginResult.SocialUserProfile(
+            return new SocialAuthData.SocialUserProfile(
                     socialId,
                     null, // 카카오는 이메일을 제공하지 않음
                     SocialProvider.KAKAO,

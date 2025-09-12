@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
-import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostAdminService implements PostAdminUseCase {
 
     private final PostQueryPort postQueryPort;
-    private final PostCommandPort postCommandPort;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
@@ -51,7 +49,6 @@ public class PostAdminService implements PostAdminUseCase {
             log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         }
         
-        postCommandPort.save(post);
         log.info("게시글 공지 토글 DB 업데이트 완료: postId={}, isNotice={}", postId, post.isNotice());
     }
 

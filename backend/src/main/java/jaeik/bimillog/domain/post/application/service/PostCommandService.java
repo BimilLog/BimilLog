@@ -56,7 +56,7 @@ public class PostCommandService implements PostCommandUseCase {
     public Long writePost(Long userId, String title, String content, Integer password) {
         User user = (userId != null) ? globalUserQueryPort.getReferenceById(userId) : null;
         Post newPost = Post.createPost(user, title, content, password);
-        Post savedPost = postCommandPort.save(newPost);
+        Post savedPost = postCommandPort.create(newPost);
         return savedPost.getId();
     }
 
@@ -84,7 +84,6 @@ public class PostCommandService implements PostCommandUseCase {
         }
 
         post.updatePost(title, content);
-        postCommandPort.save(post);
         postCacheCommandPort.deleteCache(null, postId);
         
         log.info("게시글 수정 완료: postId={}, userId={}, title={}", postId, userId, title);

@@ -728,17 +728,5 @@ class CommentCommandServiceTest {
 
     // === 사용자 탈퇴 시 댓글 처리 테스트 ===
 
-    @Test
-    @DisplayName("사용자 탈퇴 시 댓글 처리 성공")
-    void shouldProcessUserComments_WhenUserWithdrawal() {
-        // Given
-        Long withdrawalUserId = TEST_USER_ID;
-
-        // When
-        commentCommandService.processUserCommentsOnWithdrawal(withdrawalUserId);
-
-        // Then
-        verify(commentDeletePort).processUserCommentsOnWithdrawal(withdrawalUserId);
-    }
 
 }

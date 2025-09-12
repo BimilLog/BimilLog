@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.auth.auth;
 
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.auth.out.auth.RedisUserDataAdapter;
@@ -64,7 +64,7 @@ class RedisUserDataAdapterTest {
     @MockitoBean
     private AuthCookieManager authCookieManager;
 
-    private LoginResult.SocialUserProfile testUserProfile;
+    private SocialAuthData.SocialUserProfile testUserProfile;
     private Token testToken;
     private String testUuid;
 
@@ -81,7 +81,7 @@ class RedisUserDataAdapterTest {
         
         // 테스트 데이터 준비
         testUuid = "test-uuid-12345";
-        testUserProfile = new LoginResult.SocialUserProfile(
+        testUserProfile = new SocialAuthData.SocialUserProfile(
             "123456789", 
             "test@example.com", 
             SocialProvider.KAKAO, 
@@ -99,7 +99,7 @@ class RedisUserDataAdapterTest {
         redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, "test-fcm-token");
 
         // Then: 저장된 데이터 조회 검증
-        Optional<LoginResult.TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
+        Optional<SocialAuthData.TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
         
         assertThat(savedData).isPresent();
         assertThat(savedData.get().userProfile().socialId()).isEqualTo("123456789");
@@ -125,7 +125,7 @@ class RedisUserDataAdapterTest {
         assertThat(ttl).isBetween(290L, 300L); // 5분 = 300초, 약간의 오차 허용
         
         // 즉시 조회 시에는 데이터 존재
-        Optional<LoginResult.TempUserData> immediateResult = redisTempDataAdapter.getTempData(testUuid);
+        Optional<SocialAuthData.TempUserData> immediateResult = redisTempDataAdapter.getTempData(testUuid);
         assertThat(immediateResult).isPresent();
     }
 
@@ -152,7 +152,7 @@ class RedisUserDataAdapterTest {
         String nonExistentUuid = "non-existent-uuid";
 
         // When: 존재하지 않는 UUID로 조회
-        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(nonExistentUuid);
+        Optional<SocialAuthData.TempUserData> result = redisTempDataAdapter.getTempData(nonExistentUuid);
 
         // Then: 빈 Optional 반환
         assertThat(result).isEmpty();
@@ -169,7 +169,7 @@ class RedisUserDataAdapterTest {
         redisTempDataAdapter.removeTempData(testUuid);
 
         // Then: 데이터가 삭제되어 조회되지 않음
-        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
+        Optional<SocialAuthData.TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isEmpty();
         
         // Redis에서도 삭제됨 확인
@@ -222,7 +222,7 @@ class RedisUserDataAdapterTest {
         redisTempDataAdapter.saveTempData(testUuid, testUserProfile, testToken, null);
 
         // Then: FCM 토큰이 null로 저장됨
-        Optional<LoginResult.TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
+        Optional<SocialAuthData.TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
         assertThat(result.get().fcmToken()).isNull();
         assertThat(result.get().userProfile().nickname()).isEqualTo("testUser");

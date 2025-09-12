@@ -2,10 +2,10 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
-import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
@@ -33,7 +33,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
     private final GlobalTokenCommandPort globalTokenCommandPort;
     private final AuthCookieManager authCookieManager;
-    private final UserQueryPort userQueryPort;
+    private final UserQueryUseCase userQueryUseCase;
     private final UserCommandPort UserCommandPort;
     private final RedisUserDataPort redisUserDataPort;
     private final NotificationFcmUseCase notificationFcmUseCase;
@@ -52,8 +52,8 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> handleExistingUserLogin(LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
-        User user = userQueryPort.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId());
+    public List<ResponseCookie> handleExistingUserLogin(SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
+        User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId());
 
         user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
@@ -86,7 +86,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> saveNewUser(String userName, String uuid, LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
+    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
         Setting setting = Setting.createSetting();
         
         User user = UserCommandPort.save(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));

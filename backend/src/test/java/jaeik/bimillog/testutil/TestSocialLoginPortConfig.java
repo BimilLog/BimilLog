@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
@@ -44,7 +44,7 @@ public class TestSocialLoginPortConfig {
                     socialId = "test-social-id";
                 }
                 
-                LoginResult.SocialUserProfile profile = new LoginResult.SocialUserProfile(
+                SocialAuthData.SocialUserProfile profile = new SocialAuthData.SocialUserProfile(
                     socialId, 
                     "test@example.com", 
                     provider, 

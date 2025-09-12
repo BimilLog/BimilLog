@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -101,7 +102,7 @@ public class SocialService implements SocialUseCase {
         SocialLoginStrategyPort.StrategyLoginResult authResult = 
             strategy.authenticate(provider, code);
         
-        LoginResult.SocialUserProfile userProfile = authResult.userProfile();
+        SocialAuthData.SocialUserProfile userProfile = authResult.userProfile();
 
         // 2. 블랙리스트 사용자 확인
         if (userBanPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
@@ -150,14 +151,11 @@ public class SocialService implements SocialUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, LoginResult.SocialUserProfile userProfile, SocialLoginStrategyPort.StrategyLoginResult authResult) {
+    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialAuthData.SocialUserProfile userProfile, SocialLoginStrategyPort.StrategyLoginResult authResult) {
         if (existingUser.isPresent()) {
             return handleExistingUser(existingUser.get(), userProfile, authResult.token(), fcmToken);
         } else {
-            LoginResult.SocialLoginData loginData = new LoginResult.SocialLoginData(
-                    userProfile, authResult.token(), true
-            );
-            return handleNewUser(loginData, fcmToken);
+            return handleNewUser(userProfile, authResult.token(), fcmToken);
         }
     }
 
@@ -175,7 +173,7 @@ public class SocialService implements SocialUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.ExistingUser handleExistingUser(User user, LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) {
+    private LoginResult.ExistingUser handleExistingUser(User user, SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) {
         // 프로필 정보 업데이트 확인 및 처리
         boolean needsUpdate = !Objects.equals(user.getSocialNickname(), userProfile.nickname());
 
@@ -198,15 +196,16 @@ public class SocialService implements SocialUseCase {
      * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
      * <p>{@link #processSocialLogin}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
-     * @param loginResult 소셜 플랫폼에서 받은 로그인 결과
+     * @param userProfile 소셜 플랫폼에서 받은 사용자 프로필
+     * @param token 소셜 로그인으로 발급받은 토큰 정보
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
      * @return NewUser 회원가입용 UUID와 임시 쿠키 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.NewUser handleNewUser(LoginResult.SocialLoginData loginResult, String fcmToken) {
+    private LoginResult.NewUser handleNewUser(SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
-        redisUserDataPort.saveTempData(uuid, loginResult.userProfile(), loginResult.token(), fcmToken);
+        redisUserDataPort.saveTempData(uuid, userProfile, token, fcmToken);
         ResponseCookie tempCookie = redisUserDataPort.createTempCookie(uuid);
         return new LoginResult.NewUser(uuid, tempCookie);
     }

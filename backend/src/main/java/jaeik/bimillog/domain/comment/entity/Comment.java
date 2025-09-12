@@ -118,6 +118,33 @@ public class Comment extends BaseEntity {
     }
 
     /**
+     * <h3>댓글 소프트 삭제</h3>
+     * <p>댓글을 소프트 삭제 처리합니다.</p>
+     * <p>자손 댓글이 있는 경우 내용을 익명화하고 삭제 플래그를 설정합니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void softDelete() {
+        this.deleted = true;
+        this.content = "삭제된 댓글입니다";
+    }
+
+    /**
+     * <h3>댓글 익명화 처리</h3>
+     * <p>사용자 탈퇴 시 댓글을 익명화 처리합니다.</p>
+     * <p>사용자 연관관계를 제거하고 내용을 익명화하며 소프트 삭제 처리합니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void anonymize() {
+        this.user = null;
+        this.content = "탈퇴한 사용자의 댓글입니다";
+        this.deleted = true;
+    }
+
+    /**
      * <h3>댓글 수정/삭제 권한 확인</h3>
      * <p>댓글을 수정하거나 삭제할 수 있는 권한이 있는지 확인합니다.</p>
      * <p>회원 댓글: 소유자 확인, 익명 댓글: 비밀번호 확인</p>
