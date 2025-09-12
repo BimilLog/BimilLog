@@ -155,10 +155,31 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
     /* ===================== Private Helpers ===================== */
 
+    /**
+     * <h3>임시 키 생성</h3>
+     * <p>UUID를 사용하여 Redis 저장용 임시 키를 생성합니다.</p>
+     * <p>임시 데이터 저장, 조회, 삭제 시 일관된 키 형식을 보장합니다.</p>
+     *
+     * @param uuid 사용자 식별 UUID
+     * @return "temp:user:" 접두어가 붙은 Redis 키
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private String buildTempKey(String uuid) {
         return TEMP_KEY_PREFIX + uuid;
     }
 
+    /**
+     * <h3>Redis 작업 실행</h3>
+     * <p>Redis 작업을 실행하고 실패 시 AuthCustomException을 발생시킵니다.</p>
+     * <p>임시 데이터 저장 작업에서 예외 발생 시 사용자에게 적절한 오류 응답을 제공하기 위해 사용됩니다.</p>
+     *
+     * @param operation 실행할 Redis 작업
+     * @param uuid 작업 대상 UUID (로깅용)
+     * @throws AuthCustomException Redis 작업 실패 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private void executeRedisOperation(Runnable operation, String uuid) {
         try {
             operation.run();
@@ -168,6 +189,16 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }
     }
 
+    /**
+     * <h3>안전한 Redis 작업 실행</h3>
+     * <p>Redis 작업을 실행하되 예외 발생 시에도 프로그램이 중단되지 않도록 합니다.</p>
+     * <p>임시 데이터 삭제처럼 실패해도 전체 플로우에 영향을 주지 않아야 하는 작업에 사용됩니다.</p>
+     *
+     * @param operation 실행할 Redis 작업
+     * @param uuid 작업 대상 UUID (로깅용)
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private void executeRedisOperationSafely(Runnable operation, String uuid) {
         try {
             operation.run();
@@ -176,6 +207,18 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }
     }
 
+    /**
+     * <h3>임시 데이터 입력 검증</h3>
+     * <p>임시 데이터 저장 시 필요한 모든 파라미터의 유효성을 검증합니다.</p>
+     * <p>saveTempData 메서드에서 Redis 저장 전 데이터 무결성을 보장하기 위해 호출됩니다.</p>
+     *
+     * @param uuid 임시 사용자 식별 UUID
+     * @param userProfile 소셜 사용자 프로필
+     * @param token 토큰 정보
+     * @throws AuthCustomException 유효하지 않은 데이터가 있는 경우
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private void validateTempDataInputs(String uuid, SocialAuthData.SocialUserProfile userProfile, Token token) {
         if (isInvalidUuid(uuid)) {
             log.warn(NULL_UUID_MESSAGE, uuid);
@@ -191,10 +234,32 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }
     }
 
+    /**
+     * <h3>UUID 유효성 검사</h3>
+     * <p>UUID가 null이거나 공백 문자열인지 확인합니다.</p>
+     * <p>validateTempDataInputs 메서드에서 UUID 파라미터 검증을 위해 호출됩니다.</p>
+     *
+     * @param uuid 검사할 UUID 문자열
+     * @return UUID가 유효하지 않으면 true, 유효하면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private boolean isInvalidUuid(String uuid) {
         return uuid == null || uuid.trim().isEmpty();
     }
 
+    /**
+     * <h3>Redis 데이터를 도메인 모델로 변환</h3>
+     * <p>Redis에서 조회한 Object 데이터를 도메인 모델인 TempUserData로 변환합니다.</p>
+     * <p>getTempData 메서드에서 Redis 조회 결과를 도메인 계층으로 전달하기 위해 호출됩니다.</p>
+     *
+     * @param uuid 작업 대상 UUID (로깅용)
+     * @param data Redis에서 조회한 원시 데이터
+     * @return 변환된 도메인 모델 (Optional로 래핑)
+     * @throws AuthCustomException 데이터 변환 실패 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private Optional<SocialAuthData.TempUserData> convertRedisDataToDomain(String uuid, Object data) {
         if (data == null) {
             log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견되지 않음", uuid);
@@ -210,6 +275,18 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }
     }
 
+    /**
+     * <h3>Object를 DTO로 변환</h3>
+     * <p>Redis에서 조회한 Object를 예상되는 타입별로 처리하여 TemporaryUserDataDTO로 변환합니다.</p>
+     * <p>convertRedisDataToDomain 메서드에서 타입 안전 변환을 위해 호출됩니다.</p>
+     *
+     * @param uuid 작업 대상 UUID (로깅용)
+     * @param data Redis에서 조회한 원시 데이터 (TemporaryUserDataDTO 또는 Map)
+     * @return 변환된 TemporaryUserDataDTO 객체
+     * @throws AuthCustomException 예상되지 않은 타입이거나 변환 실패 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private TemporaryUserDataDTO convertToDTO(String uuid, Object data) {
         return switch (data) {
             case TemporaryUserDataDTO dto -> dto;
@@ -224,6 +301,17 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         };
     }
 
+    /**
+     * <h3>Map을 DTO로 변환</h3>
+     * <p>Redis에서 LinkedHashMap 형태로 역직렬화된 데이터를 TemporaryUserDataDTO로 변환합니다.</p>
+     * <p>convertToDTO 메서드에서 Map 타입 데이터에 대한 변환 처리를 위해 호출됩니다.</p>
+     *
+     * @param map LinkedHashMap 형태의 Redis 데이터
+     * @return 변환된 TemporaryUserDataDTO 객체
+     * @throws AuthCustomException Map 구조 파싱이나 변환 실패 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @SuppressWarnings("unchecked")
     private TemporaryUserDataDTO convertMapToDTO(Map<?, ?> map) {
         try {
@@ -238,6 +326,16 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }
     }
 
+    /**
+     * <h3>Map에서 Token 추출</h3>
+     * <p>LinkedHashMap 형태의 토큰 데이터에서 Token 도메인 객체를 생성합니다.</p>
+     * <p>convertMapToDTO 메서드에서 중첩된 토큰 데이터 추출을 위해 호출됩니다.</p>
+     *
+     * @param tokenMap 토큰 정보가 담긴 Map
+     * @return 추출된 Token 도메인 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private Token extractTokenFromMap(Map<String, Object> tokenMap) {
         return Token.createTemporaryToken(
                 (String) tokenMap.get("accessToken"),
@@ -245,6 +343,16 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         );
     }
 
+    /**
+     * <h3>Map에서 SocialUserProfile 추출</h3>
+     * <p>LinkedHashMap 형태의 소셜 사용자 데이터에서 SocialUserProfile 도메인 객체를 생성합니다.</p>
+     * <p>convertMapToDTO 메서드에서 중첩된 소셜 데이터 추출을 위해 호출됩니다.</p>
+     *
+     * @param socialMap 소셜 사용자 정보가 담긴 Map
+     * @return 추출된 SocialUserProfile 도메인 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private SocialAuthData.SocialUserProfile extractSocialDataFromMap(Map<String, Object> socialMap) {
         return new SocialAuthData.SocialUserProfile(
                 (String) socialMap.get("socialId"),

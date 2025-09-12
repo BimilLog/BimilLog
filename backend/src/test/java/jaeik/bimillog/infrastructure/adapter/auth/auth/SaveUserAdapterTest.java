@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.adapter.auth.auth;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
-import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
+import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -44,8 +44,8 @@ class SaveUserAdapterTest {
 
     @Mock private GlobalTokenCommandPort globalTokenCommandPort;
     @Mock private AuthCookieManager authCookieManager;
-    @Mock private UserQueryPort userQueryPort;
-    @Mock private UserCommandPort userCommandPort;
+    @Mock private UserQueryUseCase userQueryUseCase;
+    @Mock private UserCommandUseCase userCommandUseCase;
     @Mock private RedisUserDataPort redisUserDataPort;
     @Mock private NotificationFcmUseCase notificationFcmUseCase;
 
@@ -77,7 +77,7 @@ class SaveUserAdapterTest {
                 ResponseCookie.from("jwt", "generated-jwt").build()
         );
 
-        given(userQueryPort.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
+        given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(existingUser);
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(existingToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
@@ -112,7 +112,7 @@ class SaveUserAdapterTest {
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
 
-        given(userQueryPort.findByProviderAndSocialId(SocialProvider.KAKAO, "nonexistent"))
+        given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "nonexistent"))
                 .willThrow(new jaeik.bimillog.domain.user.exception.UserCustomException(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND));
 
         // When & Then: 예외 발생 검증
@@ -144,7 +144,7 @@ class SaveUserAdapterTest {
         Token savedToken = Token.createTemporaryToken("access-token", "refresh-token");
                 
 
-        given(userQueryPort.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
+        given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(existingUser);
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(savedToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
@@ -188,7 +188,7 @@ class SaveUserAdapterTest {
                 ResponseCookie.from("jwt", "new-user-jwt").build()
         );
 
-        given(userCommandPort.save(any(User.class))).willReturn(newUser);
+        given(userCommandUseCase.saveUser(any(User.class))).willReturn(newUser);
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
@@ -197,7 +197,7 @@ class SaveUserAdapterTest {
 
         // Then: 사용자 저장 검증
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userCommandPort).save(userCaptor.capture());
+        verify(userCommandUseCase).saveUser(userCaptor.capture());
         User capturedUser = userCaptor.getValue();
         assertThat(capturedUser.getUserName()).isEqualTo(userName);
         assertThat(capturedUser.getSocialNickname()).isEqualTo("신규사용자");
@@ -235,7 +235,7 @@ class SaveUserAdapterTest {
 
         Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
 
-        given(userCommandPort.save(any(User.class))).willReturn(newUser);
+        given(userCommandUseCase.saveUser(any(User.class))).willReturn(newUser);
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
 
