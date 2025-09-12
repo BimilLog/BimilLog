@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 
@@ -15,7 +14,7 @@ import java.util.Optional;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface SocialPort {
+public interface AuthToUserPort {
 
     /**
      * <h3>기존 소셜 사용자 조회</h3>
@@ -31,16 +30,4 @@ public interface SocialPort {
      */
     Optional<User> findExistingUser(SocialProvider provider, String socialId);
 
-    /**
-     * <h3>소셜 사용자 프로필 업데이트</h3>
-     * <p>소셜 플랫폼에서 가져온 최신 프로필 정보로 사용자 정보를 업데이트합니다.</p>
-     * <p>소셜 닉네임, 프로필 이미지 등이 변경된 경우 동기화합니다.</p>
-     * <p>{@link SocialService}에서 기존 사용자 로그인 시 프로필 동기화를 위해 호출됩니다.</p>
-     *
-     * @param user 업데이트할 사용자 엔티티
-     * @param userProfile 소셜 플랫폼에서 가져온 최신 프로필 정보
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void updateUserProfile(User user, LoginResult.SocialUserProfile userProfile);
 }

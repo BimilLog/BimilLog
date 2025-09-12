@@ -1,6 +1,6 @@
-package jaeik.bimillog.infrastructure.adapter.auth.out.social;
+package jaeik.bimillog.infrastructure.adapter.auth.out.user;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class SocialAdapter implements SocialPort {
+public class AuthToUserAdapter implements AuthToUserPort {
 
     private final UserQueryUseCase userQueryUseCase;
 
@@ -51,33 +51,4 @@ public class SocialAdapter implements SocialPort {
         }
     }
 
-    /**
-     * <h3>소셜 사용자 프로필 업데이트</h3>
-     * <p>소셜 플랫폼에서 가져온 최신 프로필 정보로 사용자 정보를 업데이트합니다.</p>
-     * <p>변경된 정보가 있을 때만 실제 업데이트를 수행하여 불필요한 DB 작업을 방지합니다.</p>
-     * <p>{@link jaeik.bimillog.domain.auth.application.service.SocialService}에서 기존 사용자 로그인 시 호출됩니다.</p>
-     *
-     * @param user 업데이트할 사용자 엔티티
-     * @param userProfile 소셜 플랫폼에서 가져온 최신 프로필 정보
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public void updateUserProfile(User user, LoginResult.SocialUserProfile userProfile) {
-        // 조건부 사용자 정보 업데이트: 변경된 정보가 있을 때만 업데이트
-        boolean needsUpdate = false;
-        
-        if (!Objects.equals(user.getSocialNickname(), userProfile.nickname())) {
-            needsUpdate = true;
-        }
-        
-        if (!Objects.equals(user.getThumbnailImage(), userProfile.profileImageUrl())) {
-            needsUpdate = true;
-        }
-        
-        if (needsUpdate) {
-            user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
-        }
-    }
 }

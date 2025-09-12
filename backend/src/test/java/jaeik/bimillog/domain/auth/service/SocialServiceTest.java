@@ -60,7 +60,7 @@ class SocialServiceTest {
     @Mock private KakaoKeyVO kakaoKeyVO;
     @Mock private KakaoAuthClient kakaoAuthClient;
     @Mock private KakaoApiClient kakaoApiClient;
-    @Mock private SocialPort socialPort;
+    @Mock private AuthToUserPort authToUserPort;
     @Mock private SaveUserPort saveUserPort;
     @Mock private RedisUserDataPort redisUserDataPort;
     @Mock private UserBanPort userBanPort;
@@ -85,7 +85,7 @@ class SocialServiceTest {
         kakaoStrategy = new KakaoLoginStrategyAdapter(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
         socialService = new SocialService(
             List.of(kakaoStrategy),
-            socialPort,
+                authToUserPort,
             saveUserPort,
             redisUserDataPort,
             userBanPort
@@ -135,7 +135,9 @@ class SocialServiceTest {
             ));
             
             User mockUser = mock(User.class);
-            given(socialPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.of(mockUser));
+            given(mockUser.getSocialNickname()).willReturn("different");
+            given(mockUser.getThumbnailImage()).willReturn("different.jpg");
+            given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.of(mockUser));
             given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
             given(saveUserPort.handleExistingUserLogin(any(LoginResult.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
 
@@ -149,8 +151,8 @@ class SocialServiceTest {
 
             verify(kakaoAuthClient).getToken(anyString(), any());
             verify(kakaoApiClient).getUserInfo(anyString());
-            verify(socialPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
-            verify(socialPort).updateUserProfile(eq(mockUser), eq(testUserProfile));
+            verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
+            verify(mockUser).updateUserInfo(eq(TEST_USERNAME), eq(TEST_PROFILE_IMAGE));
             verify(saveUserPort).handleExistingUserLogin(any(LoginResult.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
         }
     }
@@ -179,7 +181,7 @@ class SocialServiceTest {
                     )
                 )
             ));
-            given(socialPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.empty());
+            given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.empty());
             given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
             given(redisUserDataPort.createTempCookie(anyString())).willReturn(tempCookie);
 
@@ -193,7 +195,7 @@ class SocialServiceTest {
 
             verify(kakaoAuthClient).getToken(anyString(), any());
             verify(kakaoApiClient).getUserInfo(anyString());
-            verify(socialPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
+            verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
             verify(redisUserDataPort).saveTempData(anyString(), any(LoginResult.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
             verify(redisUserDataPort).createTempCookie(anyString());
         }

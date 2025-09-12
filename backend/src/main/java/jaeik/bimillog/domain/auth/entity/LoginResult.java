@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.entity;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -42,7 +42,7 @@ public sealed interface LoginResult
      * <h3>소셜 플랫폼 로그인 원시 데이터</h3>
      * <p>외부 소셜 플랫폼에서 받아온 로그인 처리 결과를 담는 원시 데이터 구조입니다.</p>
      * <p>도메인 LoginResult로 변환되기 전의 포트 계층에서 사용하는 중간 데이터입니다.</p>
-     * <p>{@link SocialPort}에서 소셜 플랫폼 API 호출 결과를 담아 반환할 때 사용됩니다.</p>
+     * <p>{@link AuthToUserPort}에서 소셜 플랫폼 API 호출 결과를 담아 반환할 때 사용됩니다.</p>
      *
      * @param userProfile 소셜 플랫폼에서 받은 사용자 프로필 정보
      * @param token 소셜 로그인으로 발급받은 토큰 정보

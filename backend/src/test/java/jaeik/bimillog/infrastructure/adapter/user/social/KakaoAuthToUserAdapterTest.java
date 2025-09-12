@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class KakaoSocialAdapterTest {
+class KakaoAuthToUserAdapterTest {
 
     @Mock
     private KakaoApiClient kakaoApiClient;

@@ -1,7 +1,7 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
@@ -70,18 +70,14 @@ public class TestSocialLoginPortConfig {
 
     @Bean
     @Primary
-    public SocialPort testSocialPort() {
-        return new SocialPort() {
+    public AuthToUserPort testSocialPort() {
+        return new AuthToUserPort() {
             @Override
             public Optional<User> findExistingUser(SocialProvider provider, String socialId) {
                 // 테스트용 더미 구현 - 항상 빈 Optional 반환 (신규 사용자로 처리)
                 return Optional.empty();
             }
 
-            @Override
-            public void updateUserProfile(User user, LoginResult.SocialUserProfile userProfile) {
-                // 테스트용 더미 구현 - 아무 작업도 하지 않음
-            }
         };
     }
 

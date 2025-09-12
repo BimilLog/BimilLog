@@ -6,13 +6,14 @@ import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.auth.in.web.AuthCommandController;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategyAdapter;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -45,13 +47,13 @@ import java.util.stream.Collectors;
 public class SocialService implements SocialUseCase {
 
     private final Map<SocialProvider, SocialLoginStrategyPort> strategies;
-    private final SocialPort socialPort;
+    private final AuthToUserPort authToUserPort;
     private final SaveUserPort saveUserPort;
     private final RedisUserDataPort redisUserDataPort;
     private final UserBanPort userBanPort;
 
     public SocialService(List<SocialLoginStrategyPort> strategyList,
-                        SocialPort socialPort,
+                        AuthToUserPort authToUserPort,
                         SaveUserPort saveUserPort,
                         RedisUserDataPort redisUserDataPort,
                         UserBanPort userBanPort) {
@@ -68,7 +70,7 @@ public class SocialService implements SocialUseCase {
                 (existing, replacement) -> existing,
                 () -> new EnumMap<>(SocialProvider.class)
             ));
-        this.socialPort = socialPort;
+        this.authToUserPort = authToUserPort;
         this.saveUserPort = saveUserPort;
         this.redisUserDataPort = redisUserDataPort;
         this.userBanPort = userBanPort;
@@ -107,40 +109,88 @@ public class SocialService implements SocialUseCase {
         }
 
         // 3. 기존 사용자 확인
-        Optional<User> existingUser = socialPort.findExistingUser(provider, userProfile.socialId());
+        Optional<User> existingUser = authToUserPort.findExistingUser(provider, userProfile.socialId());
 
+        return processUserLogin(fcmToken, existingUser, userProfile, authResult);
+    }
+
+    /**
+     * <h3>소셜 계정 연동 해제</h3>
+     * <p>사용자의 소셜 플랫폼 계정 연동을 해제합니다.</p>
+     * <p>소셜 플랫폼 API를 호출하여 앱 연동을 완전히 차단합니다.</p>
+     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생 시 소셜 계정 정리를 위해 호출됩니다.</p>
+     *
+     * @param provider 연동 해제할 소셜 플랫폼 제공자
+     * @param socialId 소셜 플랫폼에서의 사용자 고유 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void unlinkSocialAccount(SocialProvider provider, String socialId) {
+        log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
+
+        SocialLoginStrategyPort strategy = getStrategy(provider);
+        strategy.unlink(provider, socialId);
+
+        log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);
+    }
+
+    /**
+     * <h3>사용자 로그인 처리</h3>
+     * <p>기존 사용자와 신규 사용자를 구분하여 각각의 로그인 처리를 수행합니다.</p>
+     * <p>기존 사용자: 프로필 업데이트 후 즉시 로그인 완료</p>
+     * <p>신규 사용자: 임시 데이터 저장 후 회원가입 페이지로 안내</p>
+     * <p>{@link #processSocialLogin}에서 OAuth 인증 완료 후 호출됩니다.</p>
+     *
+     * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
+     * @param existingUser 기존 사용자 확인 결과
+     * @param userProfile 소셜 플랫폼에서 받은 사용자 프로필
+     * @param authResult 소셜 로그인 인증 결과
+     * @return LoginResult 기존 사용자(쿠키) 또는 신규 사용자(UUID) 정보
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, LoginResult.SocialUserProfile userProfile, SocialLoginStrategyPort.StrategyLoginResult authResult) {
         if (existingUser.isPresent()) {
             // 4a. 기존 사용자 처리: 프로필 업데이트 및 로그인
-            socialPort.updateUserProfile(existingUser.get(), userProfile);
-            LoginResult.SocialLoginData loginData = new LoginResult.SocialLoginData(
-                userProfile, authResult.token(), false
-            );
-            return handleExistingUser(loginData, fcmToken);
+            return handleExistingUser(existingUser.get(), userProfile, authResult.token(), fcmToken);
         } else {
             // 4b. 신규 사용자 처리: 임시 데이터 저장
             LoginResult.SocialLoginData loginData = new LoginResult.SocialLoginData(
-                userProfile, authResult.token(), true
+                    userProfile, authResult.token(), true
             );
             return handleNewUser(loginData, fcmToken);
         }
     }
 
     /**
-     * <h3>기존 사용자 로그인 후처리</h3>
-     * <p>이미 회원가입된 사용자의 소셜 로그인을 완료 처리합니다.</p>
-     * <p>JWT 토큰 생성 및 쿠키 설정을 통해 인증 상태를 확립합니다.</p>
-     * <p>{@link #processSocialLogin}에서 기존 사용자 판별 후 호출됩니다.</p>
+     * <h3>기존 사용자 로그인 처리</h3>
+     * <p>기존 사용자의 프로필 정보 업데이트와 로그인 완료 처리를 수행합니다.</p>
+     * <p>소셜 닉네임이나 프로필 이미지가 변경된 경우 JPA 더티체킹으로 업데이트하고, JWT 토큰을 생성하여 쿠키로 반환합니다.</p>
+     * <p>{@link #processUserLogin}에서 기존 사용자로 판별된 경우 호출됩니다.</p>
      *
-     * @param loginResult 소셜 플랫폼에서 받은 로그인 결과
+     * @param user 기존 사용자 엔티티
+     * @param userProfile 소셜 플랫폼에서 받은 최신 프로필 정보
+     * @param token 소셜 로그인 토큰 정보
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
      * @return ExistingUser JWT 토큰이 포함된 쿠키 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.ExistingUser handleExistingUser(LoginResult.SocialLoginData loginResult, String fcmToken) {
-        List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(
-                loginResult.userProfile(), loginResult.token(), fcmToken
-        );
+    private LoginResult.ExistingUser handleExistingUser(User user, LoginResult.SocialUserProfile userProfile, Token token, String fcmToken) {
+        // 프로필 정보 업데이트 확인 및 처리
+        boolean needsUpdate = !Objects.equals(user.getSocialNickname(), userProfile.nickname());
+
+        if (!Objects.equals(user.getThumbnailImage(), userProfile.profileImageUrl())) {
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+            user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
+        }
+
+        // JWT 토큰 생성 및 쿠키 반환
+        List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(userProfile, token, fcmToken);
         return new LoginResult.ExistingUser(cookies);
     }
 
@@ -178,27 +228,6 @@ public class SocialService implements SocialUseCase {
         if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
             throw new AuthCustomException(AuthErrorCode.ALREADY_LOGIN);
         }
-    }
-
-    /**
-     * <h3>소셜 계정 연동 해제</h3>
-     * <p>사용자의 소셜 플랫폼 계정 연동을 해제합니다.</p>
-     * <p>소셜 플랫폼 API를 호출하여 앱 연동을 완전히 차단합니다.</p>
-     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생 시 소셜 계정 정리를 위해 호출됩니다.</p>
-     *
-     * @param provider 연동 해제할 소셜 플랫폼 제공자
-     * @param socialId 소셜 플랫폼에서의 사용자 고유 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void unlinkSocialAccount(SocialProvider provider, String socialId) {
-        log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
-
-        SocialLoginStrategyPort strategy = getStrategy(provider);
-        strategy.unlink(provider, socialId);
-
-        log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);
     }
 
     /**
