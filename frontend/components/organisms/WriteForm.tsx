@@ -1,8 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import { Input } from "@/components";
+import { Label } from "@/components";
 import { SafeHTML } from "@/components/ui";
 import { Save, Lightbulb } from "lucide-react";
 import Editor from "@/components/molecules/editor";

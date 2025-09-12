@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/molecules/dialog";
-import { Textarea } from "@/components/atoms/textarea";
-import { Alert, AlertDescription } from "@/components/molecules/alert";
+} from "@/components";
+import { Textarea } from "@/components";
+import { Alert, AlertDescription } from "@/components";
 import { Flag, AlertTriangle } from "lucide-react";
 
 interface ReportModalProps {

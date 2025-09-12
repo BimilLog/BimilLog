@@ -10,32 +10,32 @@ export * from '../lib/constants/design-tokens';
 // ATOMS - 가장 기본적인 UI 요소들
 // ==============================================
 // Form Controls
-export { Button, buttonVariants } from './atoms/button';
-export { Input } from './atoms/input';
-export { Label } from './atoms/label';
-export { Textarea } from './atoms/textarea';
-export { Switch } from './atoms/switch';
+export { Button, buttonVariants } from './atoms/actions/button';
+export { Input } from './atoms/forms/input';
+export { Label } from './atoms/forms/label';
+export { Textarea } from './atoms/forms/textarea';
+export { Switch } from './atoms/actions/switch';
 
 // Media & Content
-export { Avatar, AvatarImage, AvatarFallback } from './atoms/avatar';
-export { Badge } from './atoms/badge';
-export { Icon } from './atoms/icon';
-export { Spinner } from './atoms/spinner';
+export { Avatar, AvatarImage, AvatarFallback } from './atoms/display/avatar';
+export { Badge } from './atoms/display/badge';
+export { Icon } from './atoms/display/icon';
+export { Spinner } from './atoms/feedback/spinner';
 export { default as SafeHTML } from './atoms/SafeHTML';
-export { KakaoShareButton } from './atoms/kakao-share-button';
-export { DecoIcon, EmojiStyleDecoIcon } from './atoms/deco-icon';
+export { KakaoShareButton } from './atoms/actions/kakao-share-button';
+export { DecoIcon, EmojiStyleDecoIcon } from './atoms/display/deco-icon';
 export { AuthLoadingScreen } from './atoms/AuthLoadingScreen';
 
 // Refactored atoms
-export { StatCard } from './atoms/stat-card';
-export { LoadingSpinner } from './atoms/loading-spinner';
+export { StatCard } from './atoms/display/stat-card';
+export { LoadingSpinner } from './atoms/feedback/spinner';
 
 // ==============================================
 // MOLECULES - 조합된 컴포넌트들
 // ==============================================
 // Form & Input Components
-export { SearchBox } from './molecules/search-box';
-export { FormField } from './molecules/form-field';
+export { SearchBox } from './molecules/forms/search-box';
+export { FormField } from './molecules/forms/form-field';
 
 // Layout & Structure
 export { 
@@ -46,8 +46,8 @@ export {
   CardContent, 
   CardFooter,
   CardAction
-} from './molecules/card';
-export { Alert, AlertDescription, AlertTitle } from './molecules/alert';
+} from './molecules/cards/card';
+export { Alert, AlertDescription, AlertTitle } from './molecules/feedback/alert';
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './molecules/tabs';
 
 // Interactive Components
@@ -59,12 +59,12 @@ export {
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from './molecules/dialog';
+} from './molecules/modals/dialog';
 export { 
   Popover,
   PopoverContent,
   PopoverTrigger
-} from './molecules/popover';
+} from './molecules/modals/popover';
 export {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,23 +88,25 @@ export {
   SheetHeader,
   SheetTitle,
   SheetTrigger
-} from './molecules/sheet';
+} from './molecules/modals/sheet';
 
 // Content Components
-export { default as Editor } from './molecules/editor';
-export { ReportModal } from './molecules/ReportModal';
-export { KakaoFriendsModal } from './molecules/kakao-friends-modal';
+export { default as Editor } from './molecules/forms/editor';
+export { ReportModal } from './molecules/modals/ReportModal';
+export { KakaoFriendsModal } from './molecules/modals/kakao-friends-modal';
+export { BrowserGuideModal } from './molecules/modals/browser-guide-modal';
 
 // Refactored molecules
-export { ActivityCard } from './molecules/activity-card';
-export { ProfileCard } from './molecules/profile-card';
+export { ActivityCard } from './molecules/cards/activity-card';
+export { ProfileCard } from './molecules/cards/profile-card';
 export { SettingsSection } from './molecules/settings-section';
-export { ToastContainer, ToastComponent } from './molecules/toast';
+export { ToastContainer, ToastComponent } from './molecules/feedback/toast';
 export { SettingToggle } from './molecules/setting-toggle';
 
 // Advertisement Components
 export { AdFitBanner, AD_SIZES, AD_UNITS, getAdUnit } from './molecules/adfit-banner';
 export { ResponsiveAdFitBanner } from './molecules/responsive-adfit-banner';
+export { PWAInstallButton } from './molecules/pwa-install-button';
 
 // State Components
 export { 
@@ -112,8 +114,8 @@ export {
   Spinner as MoleculeSpinner,
   Skeleton,
   loadingStyles
-} from './molecules/loading';
-export { EmptyState } from './molecules/empty-state';
+} from './molecules/feedback/loading';
+export { EmptyState } from './molecules/feedback/empty-state';
 
 // ==============================================
 // ORGANISMS - 복잡한 컴포넌트들

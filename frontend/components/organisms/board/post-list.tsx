@@ -1,8 +1,8 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components";
+import { Badge } from "@/components";
+import { Button } from "@/components";
 import Link from "next/link";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";

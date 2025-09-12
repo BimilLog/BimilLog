@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
-import { sessionManager } from "@/lib/auth/session";
+// sessionManager 제거 - 더 이상 필요 없음
 import { fcmManager } from "@/lib/auth/fcm";
 
 export default function LogoutPage() {
@@ -33,7 +33,7 @@ export default function LogoutPage() {
           console.error("Logout failed:", error);
         }
       } finally {
-        sessionManager.clear();
+        // sessionManager.clear(); // 더 이상 필요 없음
         fcmManager.clearCache();
         
         if (isMountedRef.current) {

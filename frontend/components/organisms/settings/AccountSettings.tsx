@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components";
 import { SettingsSection } from "@/components/molecules";
 import { LogOut, AlertTriangle } from "lucide-react";
 

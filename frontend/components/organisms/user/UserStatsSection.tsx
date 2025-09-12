@@ -1,7 +1,7 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components";
+import { Badge } from "@/components";
+import { Button } from "@/components";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StatCard, LoadingSpinner } from "@/components/atoms";
 import {

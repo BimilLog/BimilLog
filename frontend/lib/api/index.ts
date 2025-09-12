@@ -115,12 +115,13 @@ export const adminApi = {
 // Utils exports from original api.ts
 import { DecoType, decoTypeMap } from '@/types/domains/paper'
 
-export function getDecoInfo(decoType: DecoType) {
-  const decoInfo = decoTypeMap[decoType]
-  return decoInfo?.name || "알 수 없음"
+export function getDecoInfo(decoType: DecoType | string) {
+  const decoInfo = decoTypeMap[decoType as DecoType]
+  return decoInfo || { name: "알 수 없음", color: "from-gray-100 to-gray-200" }
 }
 
 export { decoTypeMap } from '@/types/domains/paper'
+export type { DecoType } from '@/types/domains/paper'
 
 // Re-export types for convenience
 export type { 

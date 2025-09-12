@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/atoms/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components";
+import { Card, CardContent } from "@/components";
 import {
   Smartphone,
   Monitor,

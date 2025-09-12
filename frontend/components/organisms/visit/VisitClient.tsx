@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRollingPaperSearch } from "@/hooks/useRollingPaperSearch";
-import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import { KakaoShareButton } from "@/components/atoms/actions/kakao-share-button";
 import { RecentVisits } from "@/components/organisms/rolling-paper/RecentVisits";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { HomeFooter } from "@/components/organisms/home/HomeFooter";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Input, Textarea, Select } from "@/components";
+import { Button, Input, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components";
 import { Send, Snowflake, Waves, IceCream2 } from "lucide-react";
 import { getDecoInfo, decoTypeMap, type DecoType } from "@/lib/api";
 import { DecoIcon } from "@/components";

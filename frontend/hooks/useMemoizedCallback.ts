@@ -17,7 +17,7 @@ export function useMemoizedCallback<T extends (...args: any[]) => any>(
     memoizedCallback.current = ((...args) => callbackRef.current(...args)) as T;
   }
 
-  return useCallback(memoizedCallback.current, deps);
+  return useCallback(memoizedCallback.current!, deps) as T;
 }
 
 /**
@@ -32,7 +32,7 @@ export function useExpensiveComputation<T>(
   const resultRef = useRef<T>();
   const depsRef = useRef<DependencyList>();
 
-  const needsRecompute = () => {
+  const needsRecompute = (): boolean => {
     if (!depsRef.current) return true;
     if (shouldRecompute) {
       return shouldRecompute(depsRef.current, deps);

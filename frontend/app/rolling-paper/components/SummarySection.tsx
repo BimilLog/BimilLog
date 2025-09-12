@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import { Badge } from "@/components";
+import { Button } from "@/components";
 import { MessageSquare, Share2, Waves, FileText, Mail, Lock, Info } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components";
 import { MessageSquare, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";

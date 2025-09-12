@@ -25,7 +25,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({
   title,
 }) => {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+    <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onCancel()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -35,7 +35,7 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({
             type="password"
             placeholder="비밀번호를 입력하세요"
             value={password}
-            onChange={(e) => onPasswordChange(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onPasswordChange(e.target.value)}
           />
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={onCancel}>

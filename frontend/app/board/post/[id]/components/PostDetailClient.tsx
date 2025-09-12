@@ -152,7 +152,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           <PostHeader
             post={post}
             commentCount={commentCount}
-            canModify={canModify}
+            canModify={canModify()}
             onDeleteClick={postActions.handleDeletePost}
           />
           <PostContent
@@ -163,7 +163,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           <PostActions
             post={post}
             commentCount={commentCount}
-            canModify={canModify}
+            canModify={canModify()}
             isAuthenticated={isAuthenticated}
             onDeletePost={postActions.handleDeletePost}
             onLike={postActions.handleLike}

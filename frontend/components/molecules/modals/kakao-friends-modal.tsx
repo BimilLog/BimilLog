@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/molecules/dialog";
+} from "@/components";
 import { Spinner } from "@/components/atoms/spinner";
 import { EmptyState } from "@/components/molecules/empty-state";
-import { Alert } from "@/components/molecules/alert";
+import { Alert } from "@/components";
 import { userApi, KakaoFriendList } from "@/lib/api";
 import { logoutAndRedirectToConsent } from "@/lib/kakao-auth";
 import { Users, MessageCircle, X, RefreshCw, AlertCircle } from "lucide-react";

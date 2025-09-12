@@ -14,7 +14,7 @@ import {
   Star,
   Shield,
 } from "lucide-react";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components";
 import { Card, CardContent } from "@/components/molecules/card";
 import {
   Sheet,
@@ -25,7 +25,7 @@ import {
 import { useNotifications } from "@/hooks/useNotifications";
 import { isMobileOrTablet } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { formatKoreanDate } from "@/lib/date-utils";
+import { formatKoreanDate } from "@/lib/utils/date";
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);

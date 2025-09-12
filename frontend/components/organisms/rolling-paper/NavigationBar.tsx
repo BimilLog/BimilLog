@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components";
 import { MessageSquare, Share2, List, ChevronLeft, ChevronRight } from "lucide-react";
-import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import { KakaoShareButton } from "@/components";
 import { useRollingPaperShare } from "@/hooks/useRollingPaperShare";
 
 interface NavigationBarProps {

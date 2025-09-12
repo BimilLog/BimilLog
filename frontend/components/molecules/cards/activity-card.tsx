@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components";
+import { Badge } from "@/components";
 import { 
   Heart, 
   MessageCircle, 
@@ -17,7 +17,7 @@ import {
   Calendar 
 } from "lucide-react";
 import { SimplePost, SimpleComment } from "@/lib/api";
-import { formatKoreanDate } from "@/lib/date-utils";
+import { formatKoreanDate } from "@/lib/utils/date";
 
 interface ActivityCardProps {
   item: SimplePost | SimpleComment;

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import { Label } from "@/components";
+import { Textarea } from "@/components";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { Lightbulb, Send, Bug, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";

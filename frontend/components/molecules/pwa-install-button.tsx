@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components";
 import { useBrowserGuide } from "@/hooks/useBrowserGuide";
 import { useState } from "react";
 import { BrowserGuideModal } from "./browser-guide-modal";

@@ -1,17 +1,17 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components";
+import { Card, CardContent } from "@/components";
+import { Input } from "@/components";
+import { Label } from "@/components";
+import { Badge } from "@/components";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from "@/components";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 import {
   AlertCircle,
   Check,
@@ -25,7 +25,7 @@ import {
 import { User, userApi } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
 import { useToast } from "@/hooks/useToast";
-import { ToastContainer } from "@/components/molecules/toast";
+import { ToastContainer } from "@/components";
 
 interface ProfileCardProps {
   user: User;

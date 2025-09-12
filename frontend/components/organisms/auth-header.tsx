@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
 import { Settings } from "lucide-react";
 import { MobileNav } from "@/components/organisms/mobile-nav";

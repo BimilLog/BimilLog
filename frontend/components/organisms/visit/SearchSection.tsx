@@ -37,7 +37,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
           <Input
             placeholder="닉네임을 입력하세요"
             value={searchNickname}
-            onChange={(e) => setSearchNickname(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchNickname(e.target.value)}
             onKeyPress={onKeyPress}
             className="pl-10 h-12 text-lg bg-white border-2 border-gray-200 focus:border-purple-400"
             disabled={isSearching}

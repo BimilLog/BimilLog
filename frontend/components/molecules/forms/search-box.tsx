@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Input } from "@/components/atoms/input";
-import { Button } from "@/components/atoms/button";
-import { Icon } from "@/components/atoms/icon";
+import { Input } from "@/components";
+import { Button } from "@/components";
+import { Icon } from "@/components";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 

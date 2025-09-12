@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import { Badge } from "@/components";
+import { Button } from "@/components";
 import { MessageSquare, Share2, Waves, FileText, Mail, Lock, Info } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
@@ -148,7 +148,7 @@ export const SummarySection: React.FC<SummarySectionProps> = React.memo(({
                   }`}
                 >
                   <div
-                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r ${decoInfo.color} flex items-center justify-center shadow-lg border-2 border-white flex-shrink-0`}
+                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} flex items-center justify-center shadow-lg border-2 border-white flex-shrink-0`}
                   >
                     <DecoIcon decoType={message.decoType} size="md" showBackground={false} />
                   </div>
@@ -173,7 +173,7 @@ export const SummarySection: React.FC<SummarySectionProps> = React.memo(({
                         </Badge>
                       )}
                       <span className="text-xs text-gray-500 font-medium">
-                        {decoInfo.name}
+                        {typeof decoInfo?.name === 'string' ? decoInfo.name : '기본'}
                       </span>
                     </div>
                   </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components";
 import { Heart, Home, Search, ArrowLeft } from "lucide-react";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { HomeFooter } from "@/components/organisms/home/HomeFooter";

@@ -7,13 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components";
 import { Plus, ChevronLeft, ChevronRight, Waves, Snowflake, Sparkles, IceCream2, Diamond, Mail, Star, User, Fish, Zap } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { MessageForm } from "./MessageForm";
 import { MessageView } from "./MessageView";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components";
 import { DecoIcon } from "@/components";
 
 interface RollingPaperGridProps {

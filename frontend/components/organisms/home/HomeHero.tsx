@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components";
 import { Heart, UserCheck } from "lucide-react";
 import Link from "next/link";
-import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import { KakaoShareButton } from "@/components";
 
 interface HomeHeroProps {
   isAuthenticated: boolean;

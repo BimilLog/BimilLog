@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { useAuth } from "@/hooks/useAuth";
-import { KakaoFriendsModal } from "@/components/molecules/kakao-friends-modal";
+import { KakaoFriendsModal } from "@/components";
 import {
   ResponsiveAdFitBanner,
   AdFitBanner,

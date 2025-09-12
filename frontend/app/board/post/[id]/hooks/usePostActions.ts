@@ -15,7 +15,7 @@ export const usePostActions = (
   const handleLike = async () => {
     if (!post) return;
     try {
-      await boardCommandApi.likePost(post.id);
+      await boardCommandApi.like(post.id);
       await onRefresh();
     } catch (error) {
     }
@@ -27,13 +27,7 @@ export const usePostActions = (
     try {
       // API는 파라미터를 받지만 실제로는 DELETE 메서드만 사용 (백엔드에서 처리)
       // 익명 게시글의 경우 password를 헤더나 바디에 포함하여 전송해야 할 수 있음
-      const response = await boardCommandApi.deletePost(
-        post.id,
-        post.userId,
-        password,
-        post.content,
-        post.title
-      );
+      const response = await boardCommandApi.delete(post.id);
 
       if (response.success) {
         showSuccess("삭제 완료", "게시글이 성공적으로 삭제되었습니다.");
@@ -72,7 +66,7 @@ export const usePostActions = (
   const confirmDeleteComment = async (comment: Comment, password?: string) => {
     try {
       // password가 있으면 전달, 없으면 undefined로 통일
-      const response = await commentCommandApi.deleteComment(
+      const response = await commentCommandApi.delete(
         comment.id,
         password ? Number(password) : undefined
       );

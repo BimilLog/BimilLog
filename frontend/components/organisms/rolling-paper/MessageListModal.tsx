@@ -6,14 +6,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from "@/components";
+import { Button } from "@/components";
+import { Badge } from "@/components";
 import { Calendar, MessageSquare, Sparkles, Share2 } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
-import { formatRelativeDate } from "@/lib/date-utils";
+import { formatRelativeDate } from "@/lib/utils/date";
 
 interface MessageListModalProps {
   isOpen: boolean;

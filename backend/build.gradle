@@ -70,6 +70,10 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.19.3' // TestContainers JUnit 지원
     testImplementation 'org.testcontainers:mysql:1.19.3' // MySQL TestContainer
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    
+    // ==== E2E 테스트 (Playwright) ====
+    testImplementation 'com.microsoft.playwright:playwright:1.49.0' // Playwright 브라우저 자동화
+    testImplementation 'org.assertj:assertj-core:3.26.3' // AssertJ 테스트 검증
 
     // ==== 알림 관련 ====
     implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin

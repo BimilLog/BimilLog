@@ -270,7 +270,7 @@ export default function EditPostPage() {
                       id="title"
                       placeholder="제목을 입력하세요"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
                       className="text-lg font-medium border-2 border-gray-200 focus:border-purple-400"
                     />
                   </div>
@@ -300,7 +300,7 @@ export default function EditPostPage() {
                         type="password"
                         placeholder="게시글 수정을 위한 비밀번호를 입력하세요"
                         value={guestPassword}
-                        onChange={(e) => setGuestPassword(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGuestPassword(e.target.value)}
                         className="border-2 border-gray-200 focus:border-purple-400"
                       />
                       <p className="text-xs text-gray-500">

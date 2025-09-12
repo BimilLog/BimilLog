@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components";
 import { Pin, User } from "lucide-react";
 import Link from "next/link";
 import type { SimplePost } from "@/lib/api";
-import { formatKoreanDate } from "@/lib/date-utils";
+import { formatKoreanDate } from "@/lib/utils/date";
 
 interface NoticeListProps {
   posts: SimplePost[];

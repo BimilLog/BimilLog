@@ -47,10 +47,7 @@ export function useNotifications() {
         console.log(`배치 처리 시작 - 읽음: ${readIds.length}개, 삭제: ${deleteIds.length}개`)
       }
       
-      const response = await notificationApi.updateNotifications({
-        readIds: readIds.length > 0 ? readIds : undefined,
-        deletedIds: deleteIds.length > 0 ? deleteIds : undefined,
-      })
+      const response = await notificationApi.getNotifications()
 
       if (response.success) {
         if (process.env.NODE_ENV === 'development') {
@@ -247,9 +244,8 @@ export function useNotifications() {
       if (process.env.NODE_ENV === 'development') {
         console.log(`모든 알림 읽음 처리 - 즉시 실행 (${unreadIds.length}개)`)
       }
-      const response = await notificationApi.updateNotifications({
-        readIds: unreadIds,
-      })
+      await notificationApi.markAllAsRead()
+      const response = await notificationApi.getNotifications()
       if (response.success) {
         setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })))  // v2: read → isRead
         setUnreadCount(0)
@@ -279,9 +275,10 @@ export function useNotifications() {
       if (process.env.NODE_ENV === 'development') {
         console.log(`모든 알림 삭제 - 즉시 실행 (${allIds.length}개)`)
       }
-      const response = await notificationApi.updateNotifications({
-        deletedIds: allIds,
-      })
+      for (const id of allIds) {
+        await notificationApi.deleteNotification(id)
+      }
+      const response = await notificationApi.getNotifications()
       if (response.success) {
         setNotifications([])
         setUnreadCount(0)

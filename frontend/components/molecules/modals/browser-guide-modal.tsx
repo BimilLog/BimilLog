@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/molecules/dialog";
-import { Button } from "@/components/atoms/button";
+import { Dialog, DialogContent } from "@/components";
+import { Button } from "@/components";
 import { useBrowserGuide } from "@/hooks/useBrowserGuide";
 import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
 import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";

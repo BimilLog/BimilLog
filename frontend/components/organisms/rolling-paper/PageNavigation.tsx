@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PageNavigationProps {

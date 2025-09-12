@@ -1,6 +1,6 @@
 import React from "react";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components";
 import { SettingsSection, SettingToggle } from "@/components/molecules";
 import { Bell, Heart, MessageCircle, TrendingUp } from "lucide-react";
 import { Setting } from "@/lib/api";

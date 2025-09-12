@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import { Button } from "@/components";
+import { Badge } from "@/components";
 import { Clock, Heart, X, Trash2, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import {
@@ -11,7 +11,7 @@ import {
   removeRecentVisit,
   clearRecentVisits,
   getRelativeTimeString,
-} from "@/lib/cookies";
+} from "@/lib/utils/cookies";
 
 interface RecentVisit {
   nickname: string;

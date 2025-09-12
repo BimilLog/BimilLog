@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components";
 import { Heart, MessageCircle, Users, Sparkles } from "lucide-react";
 
 export const HomeFeatures: React.FC = () => {

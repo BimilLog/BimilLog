@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components";
+import { Badge } from "@/components";
 import { Lock } from "lucide-react";
 import { getDecoInfo, paperCommand } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";

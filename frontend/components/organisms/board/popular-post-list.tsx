@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type SimplePost } from "@/lib/api";

@@ -7,13 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components";
 import { Plus, ChevronLeft, ChevronRight, Waves, Snowflake, Sparkles, IceCream2, Diamond, Mail, Star, User, Fish, Zap } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { MessageForm } from "@/components/organisms/rolling-paper/MessageForm";
 import { MessageView } from "@/components/organisms/rolling-paper/MessageView";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components";
 import { DecoIcon } from "@/components";
 
 interface RollingPaperGridProps {
@@ -202,7 +202,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                           isHighlighted
                             ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-xl shadow-green-200 cursor-pointer"
                             : messageAtPosition
-                            ? `bg-gradient-to-br ${decoInfo?.color} border-white shadow-md md:shadow-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
+                            ? `bg-gradient-to-br ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} border-white shadow-md md:shadow-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
                             : isOwner
                             ? "border-dashed border-gray-300 cursor-not-allowed opacity-50"
                             : "border-dashed border-cyan-300 hover:border-cyan-500 hover:bg-cyan-50 cursor-pointer hover:scale-105 hover:rotate-1"

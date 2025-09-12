@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components";
 import {
   Heart,
   Search,
