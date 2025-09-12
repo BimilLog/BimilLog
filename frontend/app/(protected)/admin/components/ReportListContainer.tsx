@@ -4,14 +4,14 @@ import {
   CardContent, 
   CardHeader, 
   CardTitle, 
-  AlertTriangle 
+  AlertTriangle,
+  EmptyState 
 } from "@/components";
 import { type Report } from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { ReportCard } from "./ReportCard";
 import { MobileReportCard } from "./MobileReportCard";
 import { ReportFilters } from "./ReportFilters";
-import { EmptyState } from "./EmptyState";
 import { LoadingState } from "./LoadingState";
 import { ReportDetailModalImproved } from "./ReportDetailModalImproved";
 
@@ -102,9 +102,14 @@ export const ReportListContainer: React.FC<ReportListContainerProps> = ({
             </div>
           ) : (
             <EmptyState
-              hasSearchFilter={true}
-              searchTerm={searchTerm}
-              filterType={filterType}
+              type="custom"
+              title="신고 내역이 없습니다"
+              description={
+                (searchTerm || filterType !== "all")
+                  ? "검색 조건에 맞는 신고가 없습니다. 다른 검색어나 필터를 시도해보세요."
+                  : "현재 처리 대기 중인 신고가 없습니다."
+              }
+              icon={<AlertTriangle className="w-12 h-12" />}
             />
           )}
         </CardContent>

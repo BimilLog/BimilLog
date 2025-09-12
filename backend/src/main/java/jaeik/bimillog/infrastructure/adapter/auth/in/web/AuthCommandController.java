@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.global.annotation.Log;
+import jaeik.bimillog.global.annotation.Log.LogLevel;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginRequestDTO;
@@ -46,6 +48,10 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/login")
+    @Log(level = LogLevel.INFO, 
+         logExecutionTime = true,
+         excludeParams = {"code", "fcmToken"},
+         message = "소셜 로그인 요청")
     public ResponseEntity<AuthResponseDTO> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
         LoginResult loginResult = socialUseCase.processSocialLogin(
                 request.getSocialProvider(), 
@@ -73,6 +79,10 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/signup")
+    @Log(level = LogLevel.INFO,
+         logExecutionTime = true,
+         excludeParams = {"uuid"},
+         message = "회원가입 요청")
     public ResponseEntity<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO request) {
         return ResponseEntity.ok()
                 .headers(headers -> signUpUseCase.signUp(request.getUserName(), request.getUuid()).forEach(cookie ->
@@ -90,6 +100,9 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/logout")
+    @Log(level = LogLevel.INFO,
+         message = "로그아웃 요청",
+         logParams = false)
     public ResponseEntity<AuthResponseDTO> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok()
                 .headers(headers -> logoutUseCase.logout(userDetails).forEach(cookie ->

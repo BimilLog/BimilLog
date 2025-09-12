@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
+import jaeik.bimillog.global.annotation.Log;
+import jaeik.bimillog.global.annotation.Log.LogLevel;
 import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostSearchDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
@@ -49,6 +51,9 @@ public class PostQueryController {
      * @since 2.0.0
      */
     @GetMapping
+    @Log(level = LogLevel.DEBUG,
+         message = "게시판 목록 조회",
+         logResult = false)
     public ResponseEntity<Page<SimplePostDTO>> getBoard(Pageable pageable) {
         Page<PostSearchResult> postList = postQueryUseCase.getBoard(pageable);
         Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
@@ -70,6 +75,10 @@ public class PostQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{postId}")
+    @Log(level = LogLevel.INFO,
+         message = "게시글 상세 조회",
+         logExecutionTime = true,
+         excludeParams = {"request", "response", "userDetails"})
     public ResponseEntity<FullPostDTO> getPost(@PathVariable Long postId,
                                                @AuthenticationPrincipal CustomUserDetails userDetails,
                                                HttpServletRequest request,
@@ -101,6 +110,10 @@ public class PostQueryController {
      * @since 2.0.0
      */
     @GetMapping("/search")
+    @Log(level = LogLevel.INFO,
+         message = "게시글 검색",
+         logExecutionTime = true,
+         logResult = false)
     public ResponseEntity<Page<SimplePostDTO>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
                                                           Pageable pageable) {
         Page<PostSearchResult> postList = postQueryUseCase.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable);

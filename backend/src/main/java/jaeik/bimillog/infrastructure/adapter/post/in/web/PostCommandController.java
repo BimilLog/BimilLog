@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.global.annotation.Log;
+import jaeik.bimillog.global.annotation.Log.LogLevel;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
@@ -44,6 +46,10 @@ public class PostCommandController {
      * @since 2.0.0
      */
     @PostMapping
+    @Log(level = LogLevel.INFO,
+         message = "게시글 작성",
+         logExecutionTime = true,
+         excludeParams = {"password", "userDetails"})
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostCreateDTO postCreateDTO) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;

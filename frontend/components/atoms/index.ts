@@ -1,5 +1,5 @@
 // Display components
-export { Avatar } from './display/avatar';
+export { Avatar, AvatarImage, AvatarFallback } from './display/avatar';
 export { Badge } from './display/badge';
 export { Icon } from './display/icon';
 export { DecoIcon, EmojiStyleDecoIcon } from './display/deco-icon';

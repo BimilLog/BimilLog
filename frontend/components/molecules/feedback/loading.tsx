@@ -10,8 +10,8 @@ interface LoadingProps {
   type?: "default" | "page" | "button" | "card";
 }
 
-// 기본 스피너 컴포넌트
-export function Spinner({
+// 기본 스피너 컴포넌트 (내부 사용)
+function LoadingIcon({
   className,
   size = "md",
 }: {
@@ -51,7 +51,7 @@ export function Loading({
         )}
       >
         <div className="text-center">
-          <Spinner size="lg" className="mx-auto mb-4" />
+          <LoadingIcon size="lg" className="mx-auto mb-4" />
           <p className="text-gray-600 text-lg">{message || "로딩 중..."}</p>
         </div>
       </div>
@@ -66,7 +66,7 @@ export function Loading({
           className
         )}
       >
-        <Spinner size="lg" className="mx-auto mb-4" />
+        <LoadingIcon size="lg" className="mx-auto mb-4" />
         <p className="text-gray-600">{message || "로딩 중..."}</p>
       </div>
     );
@@ -75,7 +75,7 @@ export function Loading({
   if (type === "button") {
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <Spinner size={size} />
+        <LoadingIcon size={size} />
         <span className="text-sm">{message || "처리 중..."}</span>
       </div>
     );
@@ -85,7 +85,7 @@ export function Loading({
   return (
     <div className={cn("flex items-center justify-center p-8", className)}>
       <div className="text-center">
-        <Spinner size={size} className="mx-auto mb-2" />
+        <LoadingIcon size={size} className="mx-auto mb-2" />
         {message && <p className="text-sm text-gray-600">{message}</p>}
       </div>
     </div>
