@@ -55,26 +55,18 @@ public class SocialAuthData {
             String fcmToken
     ) {
         /**
-         * <h3>검증된 임시 사용자 데이터 생성</h3>
-         * <p>필수 파라미터 검증을 수행한 후 임시 사용자 데이터 객체를 생성합니다.</p>
-         * <p>null 값 검증을 통해 데이터 무결성을 보장하고 안전한 객체 생성을 지원합니다.</p>
+         * <h3>임시 사용자 데이터 생성</h3>
+         * <p>소셜 로그인 과정에서 임시 데이터 객체를 생성합니다.</p>
          * <p>{@link SocialService}에서 신규 사용자의 임시 데이터 저장 시 호출됩니다.</p>
          *
-         * @param userProfile 소셜 플랫폼 사용자 프로필 (필수)
-         * @param token 소셜 로그인 토큰 정보 (필수)  
+         * @param userProfile 소셜 플랫폼 사용자 프로필
+         * @param token 소셜 로그인 토큰 정보  
          * @param fcmToken 푸시 알림 토큰 (선택사항, null 가능)
-         * @return 검증 완료된 임시 사용자 데이터 객체
-         * @throws IllegalArgumentException userProfile이나 token이 null인 경우
+         * @return 임시 사용자 데이터 객체
          * @author Jaeik
          * @since 2.0.0
          */
         public static TempUserData of(SocialUserProfile userProfile, Token token, String fcmToken) {
-            if (userProfile == null) {
-                throw new IllegalArgumentException("유저 프로파일은 null이 될 수 없습니다");
-            }
-            if (token == null) {
-                throw new IllegalArgumentException("token은 null이 될 수 없습니다");
-            }
             return new TempUserData(userProfile, token, fcmToken);
         }
     }
