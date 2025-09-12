@@ -19,9 +19,7 @@ services:
     restart: unless-stopped
 
   redis:
-    build:
-      context: ./backend
-      dockerfile: redis.Dockerfile
+    image: redis:8.0.2-alpine3.21
     container_name: bimillog-redis
     ports:
       - "6379:6379"

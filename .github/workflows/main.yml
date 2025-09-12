@@ -37,18 +37,14 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
 
-      - name: Build and push backend and redis images using Docker Compose
+      - name: Build and push backend image
         run: |
-          # Build images using Docker Compose
-          docker-compose build
+          # Build only backend image (Redis uses official image)
+          docker-compose build backend
           
           # Tag and push backend image
           docker tag bimillog-backend:latest $IMAGE_REPO:backend
           docker push $IMAGE_REPO:backend
-          
-          # Tag and push redis image
-          docker tag bimillog-redis:latest $IMAGE_REPO:redis
-          docker push $IMAGE_REPO:redis
 
       - name: Deploy Backend and Redis via Bastion Host
         uses: appleboy/ssh-action@v1.0.3
@@ -79,7 +75,7 @@ jobs:
                 restart: unless-stopped
             
               redis:
-                image: jaeikjeong/bimillog:redis
+                image: redis:8.0.2-alpine3.21
                 container_name: bimillog-redis
                 ports:
                   - "6379:6379"
