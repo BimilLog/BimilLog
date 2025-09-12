@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { Spinner } from "../atoms";
+import { Spinner } from "@/components";
 
 interface EditorProps {
   value: string;

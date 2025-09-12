@@ -1,17 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { userApi, authApi, type Setting } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 
 export function useSettings() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
   const [settings, setSettings] = useState<Setting | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { showSuccess, showError } = useToast();
+  const router = useRouter();
   const isMounted = useRef(true);
 
   useEffect(() => {
@@ -21,37 +20,29 @@ export function useSettings() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-
-    if (isAuthenticated) {
-      loadSettings();
-    }
-  }, [isAuthenticated, isLoading, router]);
+    loadSettings();
+  }, []);
 
   const loadSettings = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await userApi.getUserSettings();
       if (!isMounted.current) return;
 
       if (response.success && response.data) {
         setSettings(response.data);
       } else {
-        showError(
-          "설정 로드 실패",
-          response.error || "설정을 불러오는 중 오류가 발생했습니다."
-        );
+        const errorMessage = response.error || "설정을 불러오는 중 오류가 발생했습니다.";
+        setError(errorMessage);
+        showError("설정 로드 실패", errorMessage);
       }
     } catch (error) {
       if (!isMounted.current) return;
       console.error("설정 로드 실패:", error);
-      showError(
-        "설정 로드 실패",
-        "설정을 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해주세요."
-      );
+      const errorMessage = "설정을 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해주세요.";
+      setError(errorMessage);
+      showError("설정 로드 실패", errorMessage);
     } finally {
       if (isMounted.current) {
         setLoading(false);
@@ -171,9 +162,8 @@ export function useSettings() {
     loading,
     saving,
     withdrawing,
+    error,
     allEnabled,
-    isAuthenticated,
-    isLoading,
     updateSettings,
     handleSingleToggle,
     handleAllToggle,

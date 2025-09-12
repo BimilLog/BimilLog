@@ -9,6 +9,7 @@ import {
   DialogTitle,
   UserX 
 } from "@/components";
+import { AlertTriangle } from "lucide-react";
 import { type Report, adminApi } from "@/lib/api";
 import { useToast } from "@/hooks/useToast";
 import { 
@@ -236,8 +237,9 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   {isProcessing ? "처리 중..." : "강제 탈퇴"}
                 </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-3">
-                ⚠️ 조치는 되돌릴 수 없습니다. 신중히 결정해주세요.
+              <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-amber-500" />
+                조치는 되돌릴 수 없습니다. 신중히 결정해주세요.
               </p>
             </div>
           )}

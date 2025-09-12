@@ -2,33 +2,22 @@
 
 import type React from "react";
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, useMemo, useCallback } from "react";
 import { authApi, userApi, sseManager, type User } from "@/lib/api";
 import { useToastContext } from "@/hooks/useToast";
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (postAuthRedirectUrl?: string) => void;
-  logout: () => Promise<void>;
-  signUp: (userName: string, uuid: string) => Promise<{ success: boolean; error?: string }>;
-  updateUserName: (userName: string) => Promise<boolean>;
-  deleteAccount: () => Promise<boolean>;
-  refreshUser: () => Promise<void>;
-}
+import type { AuthContextType, AuthProviderProps } from "@/types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const toast = useToastContext();
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = useMemo(() => !!user, [user]);
 
   // 현재 사용자 정보 조회
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
       const response = await authApi.getCurrentUser();
 
@@ -54,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // needsRelogin 이벤트 리스너
   useEffect(() => {
@@ -81,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [toast]);
 
   // 카카오 로그인
-  const login = (postAuthRedirectUrl?: string) => {
+  const login = useCallback((postAuthRedirectUrl?: string) => {
     const kakaoAuthUrl = process.env.NEXT_PUBLIC_KAKAO_AUTH_URL;
     const kakaoClientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
     const kakaoRedirectUri = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
@@ -93,10 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       url += `&state=${encodeURIComponent(postAuthRedirectUrl)}`; // 최종 리다이렉트 URL을 state 파라미터로 전달
     }
     window.location.href = url;
-  };
+  }, []);
 
   // 로그아웃
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
       if (process.env.NODE_ENV === 'development') {
         console.log("로그아웃 시작...");
@@ -114,10 +103,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sseManager.disconnect();
       setUser(null);
     }
-  };
+  }, []);
 
   // 닉네임 변경
-  const updateUserName = async (userName: string): Promise<boolean> => {
+  const updateUserName = useCallback(async (userName: string): Promise<boolean> => {
     if (!user) {
       console.error("User not available for username update");
       return false;
@@ -134,10 +123,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Update username failed:", error);
       return false;
     }
-  };
+  }, [user, refreshUser]);
 
   // 회원가입
-  const signUp = async (userName: string, uuid: string): Promise<{ success: boolean; error?: string }> => {
+  const signUp = useCallback(async (userName: string, uuid: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await authApi.signUp(userName, uuid);
       if (response.success) {
@@ -149,10 +138,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("SignUp failed:", error);
       return { success: false, error: "회원가입 중 오류가 발생했습니다." };
     }
-  };
+  }, [refreshUser]);
 
   // 회원 탈퇴
-  const deleteAccount = async (): Promise<boolean> => {
+  const deleteAccount = useCallback(async (): Promise<boolean> => {
     try {
       const response = await authApi.deleteAccount();
       if (response.success) {
@@ -166,13 +155,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Delete account failed:", error);
       return false;
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshUser();
-  }, []);
+  }, [refreshUser]);
 
-  const value: AuthContextType = {
+  const value = useMemo<AuthContextType>(() => ({
     user,
     isLoading,
     isAuthenticated,
@@ -182,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateUserName,
     deleteAccount,
     refreshUser,
-  };
+  }), [user, isLoading, isAuthenticated, login, logout, signUp, updateUserName, deleteAccount, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

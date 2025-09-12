@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { generateKeywords } from "@/lib/seo";
-import VisitClient from "./visit-client";
+import { VisitClient } from "@/components/organisms/visit/VisitClient";
 
 export const metadata: Metadata = {
   title: "롤링페이퍼 방문",

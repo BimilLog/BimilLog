@@ -4,7 +4,7 @@
 // ==============================================
 // DESIGN SYSTEM
 // ==============================================
-export * from '../lib/design-tokens';
+export * from '../lib/constants/design-tokens';
 
 // ==============================================
 // ATOMS - 가장 기본적인 UI 요소들
@@ -182,7 +182,7 @@ export { AuthLayout } from './organisms/AuthLayout';
 // ==============================================
 // UTILITY FUNCTIONS & HOOKS
 // ==============================================
-export * from '../lib/cookies';
+export * from '../lib/utils/cookies';
 export { useRollingPaper } from '../hooks/useRollingPaper';
 export { useRollingPaperShare } from '../hooks/useRollingPaperShare';
 

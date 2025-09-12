@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Edit, Trash2, Heart } from "lucide-react";
+import { Edit, Trash2, Heart, MessageCircle, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Post, Comment } from "@/lib/api";
 
@@ -41,13 +41,13 @@ const PostActions = memo(({
 
         {/* 댓글 수 표시 */}
         <div className="flex items-center space-x-1 text-gray-500">
-          <span className="text-sm">💬</span>
+          <MessageCircle className="w-4 h-4" />
           <span className="text-sm">{commentCount}</span>
         </div>
 
         {/* 조회수 표시 */}
         <div className="flex items-center space-x-1 text-gray-500">
-          <span className="text-sm">👁</span>
+          <Eye className="w-4 h-4" />
           <span className="text-sm">{post.viewCount || 0}</span>
         </div>
       </div>

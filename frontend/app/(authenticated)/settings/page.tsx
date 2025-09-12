@@ -1,10 +1,7 @@
 "use client";
 
-import { Settings as SettingsIcon } from "lucide-react";
-import { AuthHeader } from "@/components/organisms/auth-header";
-import { HomeFooter } from "@/components/organisms/home/HomeFooter";
-import { LoadingSpinner } from "@/components/atoms";
-import { ToastContainer } from "@/components/molecules/toast";
+import { Settings as SettingsIcon, AlertTriangle, RefreshCw } from "lucide-react";
+import { LoadingSpinner, ToastContainer, Alert, AlertDescription, Button } from "@/components";
 import { NotificationSettings, AccountSettings } from "@/components/organisms/settings";
 import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/useToast";
@@ -16,40 +13,52 @@ export default function SettingsPage() {
     saving,
     withdrawing,
     allEnabled,
-    isAuthenticated,
-    isLoading,
+    error,
     handleSingleToggle,
     handleAllToggle,
     handleWithdraw,
+    loadSettings,
   } = useSettings();
 
   const { toasts, removeToast } = useToast();
 
-  if (isLoading || !isAuthenticated) {
-    return null;
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-        <AuthHeader />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto">
-            <LoadingSpinner
-              variant="gradient"
-              message="설정을 불러오는 중..."
-              className="py-16"
-            />
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <LoadingSpinner
+            variant="gradient"
+            message="설정을 불러오는 중..."
+            className="py-16"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              <div className="flex items-center justify-between">
+                <span>{error}</span>
+                <Button onClick={loadSettings} variant="outline" size="sm" className="ml-4">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  다시 시도
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <AuthHeader />
-
+    <>
       <header className="py-6">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-3">
@@ -64,7 +73,7 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 pb-8">
+      <div className="container mx-auto px-4 pb-8">
         <div className="max-w-2xl mx-auto space-y-6">
           <NotificationSettings
             settings={settings}
@@ -78,10 +87,9 @@ export default function SettingsPage() {
             onWithdraw={handleWithdraw}
           />
         </div>
-      </main>
+      </div>
 
-      <HomeFooter />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </div>
+    </>
   );
 }

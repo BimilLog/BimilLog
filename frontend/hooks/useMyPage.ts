@@ -1,12 +1,10 @@
 import { useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useToast } from "@/hooks/useToast";
 
 export function useMyPage() {
-  const { user, isAuthenticated, isLoading, updateUserName, refreshUser, logout } = useAuth();
-  const router = useRouter();
+  const { user, isLoading, updateUserName, refreshUser, logout } = useAuth();
   const { showSuccess } = useToast();
 
   const {
@@ -18,14 +16,10 @@ export function useMyPage() {
   } = useUserStats(user);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
     if (user) {
       fetchUserStats();
     }
-  }, [isAuthenticated, isLoading, router, user, fetchUserStats]);
+  }, [user, fetchUserStats]);
 
   const handleNicknameChange = useCallback(
     async (newNickname: string) => {
@@ -52,7 +46,6 @@ export function useMyPage() {
   return {
     user,
     isLoading,
-    isAuthenticated,
     userStats,
     isLoadingStats,
     statsError,

@@ -1,6 +1,6 @@
 import { Metadata, ResolvingMetadata } from "next";
 import { generateKeywords } from "@/lib/seo";
-import PublicRollingPaperClient from "./public-rolling-paper-client";
+import { RollingPaperClient } from "../components/RollingPaperClient";
 
 type Props = {
   params: Promise<{ nickname: string }>;
@@ -117,7 +117,7 @@ export default async function PublicRollingPaperPage({
           __html: JSON.stringify(jsonLd),
         }}
       />
-      <PublicRollingPaperClient nickname={nickname} />
+      <RollingPaperClient nickname={nickname} />
     </>
   );
 }
