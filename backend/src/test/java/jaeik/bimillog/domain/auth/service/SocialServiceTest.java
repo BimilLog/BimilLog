@@ -82,7 +82,7 @@ class SocialServiceTest {
         newUserResult = new LoginResult.SocialLoginData(testUserProfile, testToken, true);
         
         // 실제 KakaoLoginStrategyAdapter 객체 생성 (의존성은 mock 사용)
-        kakaoStrategy = new KakaoLoginStrategyAdapter(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
+        kakaoStrategy = new KakaoLoginStrategyAdapter(kakaoKeyVO, kakaoAuthClient);
         socialService = new SocialService(
             List.of(kakaoStrategy),
                 authToUserPort,
@@ -124,7 +124,7 @@ class SocialServiceTest {
                 "access_token", TEST_ACCESS_TOKEN,
                 "refresh_token", TEST_REFRESH_TOKEN
             ));
-            given(kakaoApiClient.getUserInfo(anyString())).willReturn(Map.of(
+            given(kakaoAuthClient.getUserInfo(anyString())).willReturn(Map.of(
                 "id", TEST_SOCIAL_ID,
                 "kakao_account", Map.of(
                     "profile", Map.of(
@@ -150,7 +150,7 @@ class SocialServiceTest {
             assertThat(existingUserResponse.cookies()).isEqualTo(cookies);
 
             verify(kakaoAuthClient).getToken(anyString(), any());
-            verify(kakaoApiClient).getUserInfo(anyString());
+            verify(kakaoAuthClient).getUserInfo(anyString());
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
             verify(mockUser).updateUserInfo(eq(TEST_USERNAME), eq(TEST_PROFILE_IMAGE));
             verify(saveUserPort).handleExistingUserLogin(any(LoginResult.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
@@ -172,7 +172,7 @@ class SocialServiceTest {
                 "access_token", TEST_ACCESS_TOKEN,
                 "refresh_token", TEST_REFRESH_TOKEN
             ));
-            given(kakaoApiClient.getUserInfo(anyString())).willReturn(Map.of(
+            given(kakaoAuthClient.getUserInfo(anyString())).willReturn(Map.of(
                 "id", TEST_SOCIAL_ID,
                 "kakao_account", Map.of(
                     "profile", Map.of(
@@ -194,7 +194,7 @@ class SocialServiceTest {
             assertThat(newUserResponse.tempCookie()).isEqualTo(tempCookie);
 
             verify(kakaoAuthClient).getToken(anyString(), any());
-            verify(kakaoApiClient).getUserInfo(anyString());
+            verify(kakaoAuthClient).getUserInfo(anyString());
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
             verify(redisUserDataPort).saveTempData(anyString(), any(LoginResult.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
             verify(redisUserDataPort).createTempCookie(anyString());
@@ -214,7 +214,7 @@ class SocialServiceTest {
                 "access_token", TEST_ACCESS_TOKEN,
                 "refresh_token", TEST_REFRESH_TOKEN
             ));
-            given(kakaoApiClient.getUserInfo(anyString())).willReturn(Map.of(
+            given(kakaoAuthClient.getUserInfo(anyString())).willReturn(Map.of(
                 "id", TEST_SOCIAL_ID,
                 "kakao_account", Map.of(
                     "profile", Map.of(
@@ -231,7 +231,7 @@ class SocialServiceTest {
                     .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.BLACKLIST_USER);
 
             verify(kakaoAuthClient).getToken(anyString(), any());
-            verify(kakaoApiClient).getUserInfo(anyString());
+            verify(kakaoAuthClient).getUserInfo(anyString());
             verify(userBanPort).existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID);
         }
     }

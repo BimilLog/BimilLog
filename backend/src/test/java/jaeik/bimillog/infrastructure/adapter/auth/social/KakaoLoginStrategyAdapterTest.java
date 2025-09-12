@@ -1,9 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.auth.social;
 
-import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategyAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoApiClient;
-import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoAuthClient;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
+import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoAuthClient;
+import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategyAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +25,6 @@ class KakaoLoginStrategyAdapterTest {
 
     @Mock private KakaoKeyVO kakaoKeyVO;
     @Mock private KakaoAuthClient kakaoAuthClient;
-    @Mock private KakaoApiClient kakaoApiClient;
 
 
     @Test
@@ -36,7 +34,7 @@ class KakaoLoginStrategyAdapterTest {
         // Feign clients are mocked already
 
         // When
-        KakaoLoginStrategyAdapter strategy = new KakaoLoginStrategyAdapter(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
+        KakaoLoginStrategyAdapter strategy = new KakaoLoginStrategyAdapter(kakaoKeyVO, kakaoAuthClient);
 
         // Then
         assertThat(strategy).isNotNull();

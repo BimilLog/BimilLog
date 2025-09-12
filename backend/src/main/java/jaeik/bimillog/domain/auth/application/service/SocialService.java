@@ -152,10 +152,8 @@ public class SocialService implements SocialUseCase {
      */
     private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, LoginResult.SocialUserProfile userProfile, SocialLoginStrategyPort.StrategyLoginResult authResult) {
         if (existingUser.isPresent()) {
-            // 4a. 기존 사용자 처리: 프로필 업데이트 및 로그인
             return handleExistingUser(existingUser.get(), userProfile, authResult.token(), fcmToken);
         } else {
-            // 4b. 신규 사용자 처리: 임시 데이터 저장
             LoginResult.SocialLoginData loginData = new LoginResult.SocialLoginData(
                     userProfile, authResult.token(), true
             );
