@@ -14,8 +14,8 @@ import lombok.Builder;
  * @param id 메시지 ID
  * @param userId 사용자 ID (작성자가 본인인지 확인용)
  * @param decoType 데코레이션 타입
- * @param width 메시지 너비
- * @param height 메시지 높이
+ * @param x 메시지 x 좌표
+ * @param y 메시지 y 좌표
  * @author Jaeik
  * @since 2.0.0
  */
@@ -23,8 +23,8 @@ public record VisitMessageDetail(
         Long id,
         Long userId,
         DecoType decoType,
-        int width,
-        int height
+        int x,
+        int y
 ) {
 
     @Builder
@@ -46,8 +46,8 @@ public record VisitMessageDetail(
                 .id(message.getId())
                 .userId(message.getUserId())
                 .decoType(message.getDecoType())
-                .width(message.getWidth())
-                .height(message.getHeight())
+                .x(message.getX())
+                .y(message.getY())
                 .build();
     }
 }

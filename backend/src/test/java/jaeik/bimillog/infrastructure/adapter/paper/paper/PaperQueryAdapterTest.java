@@ -186,14 +186,14 @@ class PaperQueryAdapterTest {
         return testEntityManager.persistAndFlush(user);
     }
 
-    private Message createAndSaveMessage(User user, String content, DecoType decoType, int width, int height) {
+    private Message createAndSaveMessage(User user, String content, DecoType decoType, int x, int y) {
         Message message = Message.builder()
                 .user(user)
                 .content(content)
                 .decoType(decoType)
                 .anonymity("익명123")
-                .width(width)
-                .height(height)
+                .x(x)
+                .y(y)
                 .build();
         
         return testEntityManager.persistAndFlush(message);

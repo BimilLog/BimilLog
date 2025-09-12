@@ -87,8 +87,8 @@ class PaperCommandAdapterTest {
                 .decoType(DecoType.POTATO)
                 .anonymity("익명친구")
                 .content("안녕하세요! 테스트 메시지입니다.")
-                .width(2)
-                .height(3)
+                .x(2)
+                .y(3)
                 .build();
     }
 
@@ -108,8 +108,8 @@ class PaperCommandAdapterTest {
         assertThat(foundMessage.getDecoType()).isEqualTo(DecoType.POTATO);
         assertThat(foundMessage.getAnonymity()).isEqualTo("익명친구");
         assertThat(foundMessage.getContent()).isEqualTo("안녕하세요! 테스트 메시지입니다.");
-        assertThat(foundMessage.getWidth()).isEqualTo(2);
-        assertThat(foundMessage.getHeight()).isEqualTo(3);
+        assertThat(foundMessage.getX()).isEqualTo(2);
+        assertThat(foundMessage.getY()).isEqualTo(3);
         assertThat(foundMessage.getCreatedAt()).isNotNull();
         assertThat(foundMessage.getModifiedAt()).isNotNull();
     }
@@ -139,8 +139,8 @@ class PaperCommandAdapterTest {
                 .decoType(DecoType.POTATO)
                 .anonymity("첫번째")
                 .content("첫 번째 메시지")
-                .width(5)
-                .height(7)
+                .x(5)
+                .y(7)
                 .build();
         
         paperCommandAdapter.save(firstMessage);
@@ -152,8 +152,8 @@ class PaperCommandAdapterTest {
                 .decoType(DecoType.TOMATO)
                 .anonymity("두번째")
                 .content("두 번째 메시지")
-                .width(5) // 같은 좌표
-                .height(7) // 같은 좌표
+                .x(5) // 같은 좌표
+                .y(7) // 같은 좌표
                 .build();
 
         assertThatThrownBy(() -> {

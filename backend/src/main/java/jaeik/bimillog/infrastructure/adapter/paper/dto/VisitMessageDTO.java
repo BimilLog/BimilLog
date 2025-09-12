@@ -52,8 +52,8 @@ public class VisitMessageDTO {
         dto.id = visitMessageDetail.id();
         dto.userId = visitMessageDetail.userId();
         dto.decoType = visitMessageDetail.decoType();
-        dto.x = visitMessageDetail.width();
-        dto.y = visitMessageDetail.height();
+        dto.x = visitMessageDetail.x();
+        dto.y = visitMessageDetail.y();
         return dto;
     }
 }

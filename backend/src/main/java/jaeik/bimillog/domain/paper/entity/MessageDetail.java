@@ -17,8 +17,8 @@ import java.time.Instant;
  * @param decoType 데코레이션 타입
  * @param anonymity 익명 이름
  * @param content 메시지 내용
- * @param width 메시지 너비
- * @param height 메시지 높이
+ * @param x 메시지 x 좌표
+ * @param y 메시지 y 좌표
  * @param createdAt 작성일시
  * @author Jaeik
  * @since 2.0.0
@@ -29,8 +29,8 @@ public record MessageDetail(
         DecoType decoType,
         String anonymity,
         String content,
-        int width,
-        int height,
+        int x,
+        int y,
         Instant createdAt
 ) {
 
@@ -55,8 +55,8 @@ public record MessageDetail(
                 .decoType(message.getDecoType())
                 .anonymity(message.getAnonymity())
                 .content(message.getContent())
-                .width(message.getWidth())
-                .height(message.getHeight())
+                .x(message.getX())
+                .y(message.getY())
                 .createdAt(message.getCreatedAt())
                 .build();
     }

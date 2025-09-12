@@ -117,8 +117,8 @@ class PaperCommandControllerIntegrationTest {
         messageDTO.setDecoType(DecoType.APPLE);
         messageDTO.setAnonymity("익명사용자");
         messageDTO.setContent("따뜻한 메시지입니다.");
-        messageDTO.setWidth(1);
-        messageDTO.setHeight(1);
+        messageDTO.setX(1);
+        messageDTO.setY(1);
         
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         
@@ -144,8 +144,8 @@ class PaperCommandControllerIntegrationTest {
         messageDTO.setDecoType(DecoType.STAR);
         messageDTO.setAnonymity("친구1");
         messageDTO.setContent("생일 축하해!");
-        messageDTO.setWidth(2);
-        messageDTO.setHeight(2);
+        messageDTO.setX(2);
+        messageDTO.setY(2);
         
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         CustomUserDetails userDetails = createUserDetails();
@@ -169,8 +169,8 @@ class PaperCommandControllerIntegrationTest {
         messageDTO.setDecoType(DecoType.APPLE);
         messageDTO.setAnonymity("익명");
         messageDTO.setContent("메시지");
-        messageDTO.setWidth(1);
-        messageDTO.setHeight(1);
+        messageDTO.setX(1);
+        messageDTO.setY(1);
         
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         
@@ -194,8 +194,8 @@ class PaperCommandControllerIntegrationTest {
         messageDTO.setDecoType(DecoType.APPLE);
         messageDTO.setAnonymity("매우긴익명사용자이름입니다"); // 8자 초과
         messageDTO.setContent("메시지");
-        messageDTO.setWidth(1);
-        messageDTO.setHeight(1);
+        messageDTO.setX(1);
+        messageDTO.setY(1);
         
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         
@@ -228,8 +228,8 @@ class PaperCommandControllerIntegrationTest {
                 .decoType(DecoType.APPLE)
                 .anonymity("테스트")
                 .content("삭제될 메시지")
-                .width(1)
-                .height(1)
+                .x(1)
+                .y(1)
                 .build();
         Message savedMessage = messageRepository.save(message);
         
@@ -238,8 +238,8 @@ class PaperCommandControllerIntegrationTest {
         messageDTO.setDecoType(DecoType.APPLE);
         messageDTO.setAnonymity("테스트");
         messageDTO.setContent("삭제될 메시지");
-        messageDTO.setWidth(1);
-        messageDTO.setHeight(1);
+        messageDTO.setX(1);
+        messageDTO.setY(1);
         
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         
@@ -277,8 +277,8 @@ class PaperCommandControllerIntegrationTest {
         messageDTO.setDecoType(DecoType.APPLE);
         messageDTO.setAnonymity("테스트");
         messageDTO.setContent("메시지");
-        messageDTO.setWidth(1);
-        messageDTO.setHeight(1);
+        messageDTO.setX(1);
+        messageDTO.setY(1);
         
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         
@@ -299,8 +299,8 @@ class PaperCommandControllerIntegrationTest {
         messageDTO.setDecoType(DecoType.APPLE);
         messageDTO.setAnonymity("테스트");
         messageDTO.setContent("메시지");
-        messageDTO.setWidth(1);
-        messageDTO.setHeight(1);
+        messageDTO.setX(1);
+        messageDTO.setY(1);
         
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         CustomUserDetails userDetails = createUserDetails();

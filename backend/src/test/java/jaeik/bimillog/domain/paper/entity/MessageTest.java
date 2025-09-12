@@ -32,11 +32,11 @@ class MessageTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
 
         // When
-        Message message = Message.createMessage(user, decoType, anonymity, content, width, height);
+        Message message = Message.createMessage(user, decoType, anonymity, content, x, y);
 
         // Then
         assertThat(message).isNotNull();
@@ -44,8 +44,8 @@ class MessageTest {
         assertThat(message.getDecoType()).isEqualTo(decoType);
         assertThat(message.getAnonymity()).isEqualTo(anonymity);
         assertThat(message.getContent()).isEqualTo(content);
-        assertThat(message.getWidth()).isEqualTo(width);
-        assertThat(message.getHeight()).isEqualTo(height);
+        assertThat(message.getX()).isEqualTo(x);
+        assertThat(message.getY()).isEqualTo(y);
     }
 
     @Test
@@ -55,12 +55,12 @@ class MessageTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = "12345678"; // 정확히 8글자
         String content = "테스트 메시지";
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
 
         // When & Then
         assertDoesNotThrow(() -> Message.createMessage(
-                user, decoType, anonymity, content, width, height));
+                user, decoType, anonymity, content, x, y));
     }
 
 
@@ -71,12 +71,12 @@ class MessageTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "A".repeat(255); // 정확히 255글자
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
 
         // When & Then
         assertDoesNotThrow(() -> Message.createMessage(
-                user, decoType, anonymity, content, width, height));
+                user, decoType, anonymity, content, x, y));
     }
 
 
@@ -87,12 +87,12 @@ class MessageTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = null;
         String content = "테스트 메시지";
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
 
         // When & Then
         assertDoesNotThrow(() -> Message.createMessage(
-                user, decoType, anonymity, content, width, height));
+                user, decoType, anonymity, content, x, y));
     }
 
     @Test
@@ -102,12 +102,12 @@ class MessageTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = null;
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
 
         // When & Then
         assertDoesNotThrow(() -> Message.createMessage(
-                user, decoType, anonymity, content, width, height));
+                user, decoType, anonymity, content, x, y));
     }
 
     @Test
@@ -122,8 +122,8 @@ class MessageTest {
                 .decoType(DecoType.APPLE)
                 .anonymity("익명")
                 .content("테스트")
-                .width(2)
-                .height(2)
+                .x(2)
+                .y(2)
                 .build();
 
         // When
@@ -146,8 +146,8 @@ class MessageTest {
                 .decoType(DecoType.APPLE)
                 .anonymity("익명")
                 .content("테스트")
-                .width(2)
-                .height(2)
+                .x(2)
+                .y(2)
                 .build();
 
         // When
@@ -166,8 +166,8 @@ class MessageTest {
                 .decoType(DecoType.APPLE)
                 .anonymity("익명")
                 .content("테스트")
-                .width(2)
-                .height(2)
+                .x(2)
+                .y(2)
                 .build();
 
         // When
@@ -189,8 +189,8 @@ class MessageTest {
                 .decoType(DecoType.APPLE)
                 .anonymity("익명")
                 .content("테스트")
-                .width(2)
-                .height(2)
+                .x(2)
+                .y(2)
                 .build();
 
         // When
@@ -217,32 +217,32 @@ class MessageTest {
     @DisplayName("경계값 테스트 - 최소 크기 (1x1)")
     void shouldCreateMessage_WithMinimumSize() {
         // Given
-        int minWidth = 1;
-        int minHeight = 1;
+        int minX = 1;
+        int minY = 1;
 
         // When
-        Message message = Message.createMessage(user, DecoType.APPLE, "익명", "테스트", minWidth, minHeight);
+        Message message = Message.createMessage(user, DecoType.APPLE, "익명", "테스트", minX, minY);
 
         // Then
         assertThat(message).isNotNull();
-        assertThat(message.getWidth()).isEqualTo(minWidth);
-        assertThat(message.getHeight()).isEqualTo(minHeight);
+        assertThat(message.getX()).isEqualTo(minX);
+        assertThat(message.getY()).isEqualTo(minY);
     }
 
     @Test
     @DisplayName("경계값 테스트 - 큰 크기")
     void shouldCreateMessage_WithLargeSize() {
         // Given
-        int largeWidth = 100;
-        int largeHeight = 100;
+        int largeX = 100;
+        int largeY = 100;
 
         // When
-        Message message = Message.createMessage(user, DecoType.APPLE, "익명", "테스트", largeWidth, largeHeight);
+        Message message = Message.createMessage(user, DecoType.APPLE, "익명", "테스트", largeX, largeY);
 
         // Then
         assertThat(message).isNotNull();
-        assertThat(message.getWidth()).isEqualTo(largeWidth);
-        assertThat(message.getHeight()).isEqualTo(largeHeight);
+        assertThat(message.getX()).isEqualTo(largeX);
+        assertThat(message.getY()).isEqualTo(largeY);
     }
 
     @Test
@@ -273,8 +273,8 @@ class MessageTest {
                 .decoType(DecoType.BANANA)
                 .anonymity("익명")
                 .content("테스트")
-                .width(3)
-                .height(3)
+                .x(3)
+                .y(3)
                 .build();
 
         // When
@@ -293,8 +293,8 @@ class MessageTest {
                 .decoType(DecoType.GRAPE)
                 .anonymity("익명")
                 .content("테스트")
-                .width(2)
-                .height(2)
+                .x(2)
+                .y(2)
                 .build();
 
         // When

@@ -18,7 +18,7 @@ import org.hibernate.annotations.OnDeleteAction;
  * </p>
  * <p>롤링페이퍼에 작성되는 익명 메시지의 모든 정보를 저장</p>
  * <p>메시지 내용은 AES-256으로 암호화되어 저장됨</p>
- * <p>그리드 좌표(width, height)를 통해 롤링페이퍼 상의 위치 관리</p>
+ * <p>그리드 좌표(x, y)를 통해 롤링페이퍼 상의 위치 관리</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -28,7 +28,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "message", uniqueConstraints =
-        {@UniqueConstraint(name = "unique_user_x_y", columnNames = {"user_id", "width", "height"})})
+        {@UniqueConstraint(name = "unique_user_x_y", columnNames = {"user_id", "x", "y"})})
 public class Message extends BaseEntity {
 
     @Id
@@ -58,11 +58,11 @@ public class Message extends BaseEntity {
 
     @NotNull
     @Column(nullable = false)
-    private int width;
+    private int x;
 
     @NotNull
     @Column(nullable = false)
-    private int height;
+    private int y;
 
     /**
      * <h3>메시지 생성 팩토리 메소드</h3>
@@ -78,21 +78,21 @@ public class Message extends BaseEntity {
      * @param decoType 메시지 장식 스타일
      * @param anonymity 익명 작성자 이름
      * @param content 메시지 내용 (자동 암호화됨)
-     * @param width 그리드 레이아웃에서의 너비 좌표
-     * @param height 그리드 레이아웃에서의 높이 좌표
+     * @param x 그리드 레이아웃에서의 x 좌표
+     * @param y 그리드 레이아웃에서의 y 좌표
      * @return 생성된 메시지 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
     public static Message createMessage(User user, DecoType decoType, String anonymity, 
-                                      String content, int width, int height) {
+                                      String content, int x, int y) {
         return Message.builder()
                 .user(user)
                 .decoType(decoType)
                 .anonymity(anonymity)
                 .content(content)
-                .width(width)
-                .height(height)
+                .x(x)
+                .y(y)
                 .build();
     }
 

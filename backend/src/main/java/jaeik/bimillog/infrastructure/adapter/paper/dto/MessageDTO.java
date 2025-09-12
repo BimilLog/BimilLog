@@ -135,8 +135,8 @@ public class MessageDTO {
         dto.decoType = messageDetail.decoType();
         dto.anonymity = messageDetail.anonymity();
         dto.content = messageDetail.content();
-        dto.x = messageDetail.width();
-        dto.y = messageDetail.height();
+        dto.x = messageDetail.x();
+        dto.y = messageDetail.y();
         dto.createdAt = messageDetail.createdAt();
         return dto;
     }

@@ -245,8 +245,8 @@ class PaperQueryServiceTest {
                 .decoType(DecoType.APPLE)
                 .anonymity("익명")
                 .content(content)
-                .width(100)
-                .height(50)
+                .x(100)
+                .y(50)
                 .createdAt(Instant.now())
                 .build();
     }

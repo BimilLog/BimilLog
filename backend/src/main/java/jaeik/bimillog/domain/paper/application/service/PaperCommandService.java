@@ -68,15 +68,15 @@ public class PaperCommandService implements PaperCommandUseCase {
      * @param decoType 메시지 장식 스타일
      * @param anonymity 익명 작성자 이름
      * @param content 메시지 내용
-     * @param width 그리드 레이아웃에서의 메시지 너비
-     * @param height 그리드 레이아웃에서의 메시지 높이
+     * @param x 그리드 레이아웃에서의 메시지 x좌표
+     * @param y 그리드 레이아웃에서의 메시지 y좌표
      * @throws PaperCustomException 대상 사용자가 존재하지 않거나 입력값이 유효하지 않은 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     public void writeMessage(String userName, DecoType decoType, String anonymity, 
-                           String content, int width, int height) {
+                           String content, int x, int y) {
         if (userName == null || userName.trim().isEmpty()) {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
@@ -84,7 +84,7 @@ public class PaperCommandService implements PaperCommandUseCase {
         User user = globalUserQueryPort.findByUserName(userName)
                 .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
 
-        Message message = Message.createMessage(user, decoType, anonymity, content, width, height);
+        Message message = Message.createMessage(user, decoType, anonymity, content, x, y);
         paperCommandPort.save(message);
 
         eventPublisher.publishEvent(new RollingPaperEvent(

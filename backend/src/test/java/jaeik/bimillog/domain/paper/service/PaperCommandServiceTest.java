@@ -122,14 +122,14 @@ class PaperCommandServiceTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
         
         given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
+        paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);
 
         // Then
         verify(globalUserQueryPort, times(1)).findByUserName(userName);
@@ -146,13 +146,13 @@ class PaperCommandServiceTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
 
         given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
@@ -169,11 +169,11 @@ class PaperCommandServiceTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
 
         // When & Then - null case
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
@@ -181,7 +181,7 @@ class PaperCommandServiceTest {
         String emptyUserName = "   ";
 
         // When & Then - empty case
-        assertThatThrownBy(() -> paperCommandService.writeMessage(emptyUserName, decoType, anonymity, content, width, height))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(emptyUserName, decoType, anonymity, content, x, y))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
@@ -199,14 +199,14 @@ class PaperCommandServiceTest {
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
-        int width = 2;
-        int height = 2;
+        int x = 2;
+        int y = 2;
         
         given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(user));
         given(user.getId()).willReturn(userId);
 
         // When
-        paperCommandService.writeMessage(userName, decoType, anonymity, content, width, height);
+        paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);
 
         // Then
         verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 

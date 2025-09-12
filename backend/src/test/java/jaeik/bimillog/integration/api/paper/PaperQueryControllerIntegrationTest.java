@@ -102,14 +102,14 @@ class PaperQueryControllerIntegrationTest {
     /**
      * 테스트용 메시지 생성 및 저장
      */
-    private Message createAndSaveMessage(User paperOwner, String anonymity, String content, int width, int height) {
+    private Message createAndSaveMessage(User paperOwner, String anonymity, String content, int x, int y) {
         Message message = Message.builder()
                 .user(paperOwner)
                 .decoType(DecoType.APPLE)
                 .anonymity(anonymity)
                 .content(content)
-                .width(width)
-                .height(height)
+                .x(x)
+                .y(y)
                 .build();
         return messageRepository.save(message);
     }
@@ -137,8 +137,8 @@ class PaperQueryControllerIntegrationTest {
                 // 최신 생성일 기준 내림차순으로 정렬됨: "익명" -> "친구2" -> "친구1"
                 .andExpect(jsonPath("$[0].anonymity").value("익명"))
                 .andExpect(jsonPath("$[0].content").value("응원합니다"))
-                .andExpect(jsonPath("$[0].width").value(3))
-                .andExpect(jsonPath("$[0].height").value(1))
+                .andExpect(jsonPath("$[0].x").value(3))
+                .andExpect(jsonPath("$[0].y").value(1))
                 .andExpect(jsonPath("$[0].decoType").value("APPLE"));
     }
     
@@ -184,11 +184,11 @@ class PaperQueryControllerIntegrationTest {
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].width").value(1))
-                .andExpect(jsonPath("$[0].height").value(1))
+                .andExpect(jsonPath("$[0].x").value(1))
+                .andExpect(jsonPath("$[0].y").value(1))
                 .andExpect(jsonPath("$[0].decoType").value("APPLE"))
-                .andExpect(jsonPath("$[1].width").value(2))
-                .andExpect(jsonPath("$[1].height").value(2));
+                .andExpect(jsonPath("$[1].x").value(2))
+                .andExpect(jsonPath("$[1].y").value(2));
     }
     
     @Test
@@ -234,8 +234,8 @@ class PaperQueryControllerIntegrationTest {
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].width").value(1))
-                .andExpect(jsonPath("$[0].height").value(2))
+                .andExpect(jsonPath("$[0].x").value(1))
+                .andExpect(jsonPath("$[0].y").value(2))
                 .andExpect(jsonPath("$[0].decoType").value("APPLE"));
     }
     
@@ -256,7 +256,7 @@ class PaperQueryControllerIntegrationTest {
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].width").value(3))
-                .andExpect(jsonPath("$[0].height").value(1));
+                .andExpect(jsonPath("$[0].x").value(3))
+                .andExpect(jsonPath("$[0].y").value(1));
     }
 }
