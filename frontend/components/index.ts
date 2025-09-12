@@ -29,7 +29,6 @@ export { AuthLoadingScreen } from './atoms/AuthLoadingScreen';
 // Refactored atoms
 export { StatCard } from './atoms/stat-card';
 export { LoadingSpinner } from './atoms/loading-spinner';
-export { EmptyState } from './atoms/empty-state';
 
 // ==============================================
 // MOLECULES - 조합된 컴포넌트들
@@ -114,6 +113,7 @@ export {
   Skeleton,
   loadingStyles
 } from './molecules/loading';
+export { EmptyState } from './molecules/empty-state';
 
 // ==============================================
 // ORGANISMS - 복잡한 컴포넌트들

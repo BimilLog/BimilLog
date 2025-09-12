@@ -10,12 +10,14 @@ import {
   AlertCircle,
   Wifi,
   RefreshCw,
+  MessageCircle,
+  ThumbsUp,
 } from "lucide-react";
 import Link from "next/link";
 
 interface EmptyStateProps {
   className?: string;
-  type?: "posts" | "messages" | "search" | "error" | "offline" | "custom";
+  type?: "posts" | "comments" | "liked-posts" | "liked-comments" | "messages" | "search" | "error" | "offline" | "custom";
   title?: string;
   description?: string;
   actionLabel?: string;
@@ -29,6 +31,9 @@ interface EmptyStateProps {
 // 아이콘 맵핑
 const iconMap = {
   posts: FileText,
+  comments: MessageCircle,
+  "liked-posts": Heart,
+  "liked-comments": ThumbsUp,
   messages: Heart,
   search: Search,
   error: AlertCircle,
@@ -43,6 +48,18 @@ const defaultMessages = {
     description: "첫 번째 글을 작성해서 다른 사람들과 소통해보세요!",
     actionLabel: "글쓰기",
     actionHref: "/board/write",
+  },
+  comments: {
+    title: "작성한 댓글이 없습니다",
+    description: "다른 사람의 글에 댓글을 달아보세요!",
+  },
+  "liked-posts": {
+    title: "추천한 글이 없습니다",
+    description: "마음에 드는 글에 추천을 눌러보세요!",
+  },
+  "liked-comments": {
+    title: "추천한 댓글이 없습니다",
+    description: "좋은 댓글에 추천을 눌러보세요!",
   },
   messages: {
     title: "아직 받은 메시지가 없어요",

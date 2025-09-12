@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: backend.Dockerfile
+    container_name: bimillog-backend
+    ports:
+      - "8080:8080"
+    networks:
+      - bimillog-network
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    build:
+      context: ./backend
+      dockerfile: redis.Dockerfile
+    container_name: bimillog-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - bimillog-network
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    restart: unless-stopped
+
+networks:
+  bimillog-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local

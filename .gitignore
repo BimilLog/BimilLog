@@ -1,4 +1,7 @@
 HELP.md
+
+# Environment files (contains secrets)
+.env
 .gradle
 build/
 !**/src/main/**/build/

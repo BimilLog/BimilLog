@@ -37,16 +37,17 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
 
-      - name: Build and push backend image
+      - name: Build and push backend and redis images using Docker Compose
         run: |
-          docker build -t backend ./backend
-          docker tag backend:latest $IMAGE_REPO:backend
+          # Build images using Docker Compose
+          docker-compose build
+          
+          # Tag and push backend image
+          docker tag bimillog-backend:latest $IMAGE_REPO:backend
           docker push $IMAGE_REPO:backend
-
-      - name: Build and push redis image
-        run: |
-          docker build -t redis ./backend/src/main/java/jaeik/growfarm/repository
-          docker tag redis:latest $IMAGE_REPO:redis
+          
+          # Tag and push redis image
+          docker tag bimillog-redis:latest $IMAGE_REPO:redis
           docker push $IMAGE_REPO:redis
 
       - name: Deploy Backend and Redis via Bastion Host
@@ -57,31 +58,46 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           script: |
             ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
-              docker network create growfarm-network || true
+              # Create docker-compose.yml on server
+              cat > docker-compose.yml << 'EOF'
+            version: '3.8'
+            
+            services:
+              backend:
+                image: jaeikjeong/bimillog:backend
+                container_name: bimillog-backend
+                ports:
+                  - "8080:8080"
+                networks:
+                  - bimillog-network
+                volumes:
+                  - /home/ubuntu/logs:/app/logs
+                environment:
+                  - SPRING_PROFILES_ACTIVE=prod
+                depends_on:
+                  - redis
+                restart: unless-stopped
+            
+              redis:
+                image: jaeikjeong/bimillog:redis
+                container_name: bimillog-redis
+                ports:
+                  - "6379:6379"
+                networks:
+                  - bimillog-network
+                command: redis-server --requirepass ${{ secrets.REDIS_PASSWORD }}
+                restart: unless-stopped
+            
+            networks:
+              bimillog-network:
+                driver: bridge
+            EOF
+              
+              # Login to Docker Hub and deploy using compose
               docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-              docker pull jaeikjeong/growfarm:backend
-              docker stop backend || true
-              docker rm backend || true
-              docker run -d \
-                --name backend \
-                --network growfarm-network \
-                -p 8080:8080 \
-                -v /home/ubuntu/logs:/app/logs \
-                -e SPRING_PROFILES_ACTIVE=prod \
-                --entrypoint java \
-                jaeikjeong/growfarm:backend \
-                -Dobj_name=GrowFarm \
-                -Dfile.encoding=UTF-8 \
-                -Duser.timezone=Asia/Seoul \
-                -XX:+HeapDumpOnOutOfMemoryError \
-                -XX:HeapDumpPath=/app/logs/heapdump.hprof \
-                -Xlog:gc*:file=/app/logs/gc.log:time,uptime,level,tags \
-                -jar /app/app.jar
-
-              docker pull jaeikjeong/growfarm:redis
-              docker stop redis || true
-              docker rm redis || true
-              docker run -d --name redis --network growfarm-network -p 6379:6379 jaeikjeong/growfarm:redis --requirepass ${{ secrets.REDIS_PASSWORD }}
+              docker-compose down || true
+              docker-compose pull
+              docker-compose up -d
             ENDSSH
 
       - name: Build and push frontend image
@@ -99,10 +115,10 @@ jobs:
           script: |
             ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-            docker pull jaeikjeong/growfarm:frontend
-            docker stop frontend || true
-            docker rm frontend || true
-            docker run -d --name frontend -p 3000:3000 jaeikjeong/growfarm:frontend
+            docker pull jaeikjeong/bimillog:frontend
+            docker stop bimillog-frontend || true
+            docker rm bimillog-frontend || true
+            docker run -d --name bimillog-frontend -p 3000:3000 jaeikjeong/bimillog:frontend
             ENDSSH  
 
       

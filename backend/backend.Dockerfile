@@ -25,10 +25,18 @@ WORKDIR /app
 
 # 빌드 단계(builder)에서 생성된 JAR 파일만 복사
 # 사용자께서 명시한 정확한 JAR 파일 경로를 사용합니다.
-COPY --from=builder /app/build/libs/growfarm-1.0.0-RC1.jar app.jar
+COPY --from=builder /app/build/libs/BimilLog-2.0.0.jar app.jar
 
 # 운영 환경 프로파일 활성화 (필요시 외부에서 변경 가능)
 ENV SPRING_PROFILES_ACTIVE=prod
 
-# 애플리케이션 실행
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "app.jar"]
+# 애플리케이션 실행 (운영 환경 최적화 옵션 포함)
+ENTRYPOINT ["java", \
+    "-Dobj_name=BimilLog", \
+    "-Dfile.encoding=UTF-8", \
+    "-Duser.timezone=Asia/Seoul", \
+    "-XX:+HeapDumpOnOutOfMemoryError", \
+    "-XX:HeapDumpPath=/app/logs/heapdump.hprof", \
+    "-Xlog:gc*:file=/app/logs/gc.log:time,uptime,level,tags", \
+    "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", \
+    "-jar", "app.jar"]
