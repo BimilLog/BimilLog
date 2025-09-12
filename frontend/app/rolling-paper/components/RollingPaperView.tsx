@@ -7,7 +7,7 @@ import { SummarySection } from "./SummarySection";
 import { RollingPaperGrid } from "./RollingPaperGrid";
 import { MessageListModal } from "./MessageListModal";
 import { ResponsiveAdFitBanner } from "@/components";
-import { ToastContainer } from "@/components/molecules/toast";
+import { ToastContainer } from "@/components";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 
 interface RollingPaperViewProps {

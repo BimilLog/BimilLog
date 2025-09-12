@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { HomeFooter } from "@/components/organisms/home/HomeFooter";
-import { ToastContainer } from "@/components/molecules/toast";
+import { ToastContainer } from "@/components";
 import { useToast } from "@/hooks/useToast";
 
 interface AuthLayoutProps {

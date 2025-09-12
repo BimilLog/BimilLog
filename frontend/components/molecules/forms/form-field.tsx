@@ -1,7 +1,7 @@
 import React from "react";
-import { Label } from "@/components/atoms/label";
-import { Input } from "@/components/atoms/input";
-import { Textarea } from "@/components/atoms/textarea";
+import { Label } from "@/components";
+import { Input } from "@/components";
+import { Textarea } from "@/components";
 import { cn } from "@/lib/utils";
 
 interface FormFieldProps {

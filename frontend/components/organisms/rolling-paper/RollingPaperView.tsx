@@ -7,7 +7,7 @@ import { SummarySection } from "@/components/organisms/rolling-paper/SummarySect
 import { RollingPaperGrid } from "@/components/organisms/rolling-paper/RollingPaperGrid";
 import { MessageListModal } from "@/components/organisms/rolling-paper/MessageListModal";
 import { ResponsiveAdFitBanner } from "@/components";
-import { ToastContainer } from "@/components/molecules/toast";
+import { ToastContainer } from "@/components";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 
 interface RollingPaperViewProps {

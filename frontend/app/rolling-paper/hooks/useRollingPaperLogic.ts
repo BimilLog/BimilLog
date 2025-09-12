@@ -9,7 +9,7 @@ import { useMessagePosition } from "@/hooks/useMessagePosition";
 import { useToast } from "@/hooks/useToast";
 import { paperCommand } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
-import { addRecentVisit } from "@/lib/cookies";
+import { addRecentVisit } from "@/lib/utils/cookies";
 import { ErrorHandler } from "@/lib/error-handler";
 
 interface UseRollingPaperLogicProps {
