@@ -36,7 +36,7 @@ export const useBoardData = () => {
           setTotalPages(0);
           setCurrentPage(0);
         }
-      } catch (error) {
+      } catch {
         setPosts([]);
         setTotalPages(0);
         setCurrentPage(0);

@@ -2,17 +2,21 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, TrendingUp } from "lucide-react";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger, 
+  AlertTriangle, 
+  TrendingUp,
+  AuthHeader,
+  HomeFooter,
+  AdminHeader,
+  ReportList,
+  AdminStats 
+} from "@/components";
 import { adminApi, type Report, type PageResponse } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import { AuthHeader } from "@/components/organisms/auth-header";
-import { HomeFooter } from "@/components/organisms/home/HomeFooter";
-
-// 분리된 컴포넌트들 import
-import { AdminHeader } from "./components/AdminHeader";
-import { ReportList } from "./components/ReportList";
-import { AdminStats } from "./components/AdminStats";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -77,22 +81,24 @@ export default function AdminPage() {
         <AdminHeader />
 
         <Tabs defaultValue="reports" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-2 bg-white/90 backdrop-blur-sm border-0 shadow-md rounded-lg">
             <TabsTrigger
               value="reports"
-              className="flex items-center space-x-2"
+              className="flex items-center gap-3 min-h-[48px] text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-200"
             >
               <AlertTriangle className="w-4 h-4" />
               <span>신고 관리</span>
             </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center space-x-2">
+            <TabsTrigger 
+              value="stats" 
+              className="flex items-center gap-3 min-h-[48px] text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white transition-all duration-200"
+            >
               <TrendingUp className="w-4 h-4" />
               <span>통계</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* 신고 관리 탭 */}
-          <TabsContent value="reports" className="space-y-6">
+          <TabsContent value="reports" className="space-y-6 focus:outline-none">
             <ReportList
               reports={reports}
               isLoading={isLoadingReports}
@@ -104,8 +110,7 @@ export default function AdminPage() {
             />
           </TabsContent>
 
-          {/* 통계 탭 */}
-          <TabsContent value="stats" className="space-y-6">
+          <TabsContent value="stats" className="space-y-6 focus:outline-none">
             <AdminStats />
           </TabsContent>
         </Tabs>

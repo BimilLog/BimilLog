@@ -7,22 +7,24 @@ import {
   type VisitMessage,
   rollingPaperApi,
 } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
-import { useToast } from "@/hooks/useToast";
-import { ToastContainer } from "@/components/molecules/toast";
 import { DecoIcon } from "@/components";
 import { ErrorHandler } from "@/lib/error-handler";
 
 interface MessageViewProps {
   message: RollingPaperMessage | VisitMessage;
   isOwner: boolean;
+  onDelete?: () => void;
+  onDeleteSuccess?: (message: string) => void;
+  onDeleteError?: (message: string) => void;
 }
 
 export const MessageView: React.FC<MessageViewProps> = ({
   message,
   isOwner,
+  onDelete,
+  onDeleteSuccess,
+  onDeleteError,
 }) => {
-  const { showSuccess, showError, toasts, removeToast } = useToast();
   const decoInfo = getDecoInfo(message.decoType);
 
   // RollingPaperMessage 타입 가드
@@ -42,30 +44,29 @@ export const MessageView: React.FC<MessageViewProps> = ({
     try {
       const response = await rollingPaperApi.deleteMessage(message.id);
       if (response.success) {
-        window.location.reload();
+        onDelete?.();
+        onDeleteSuccess?.("메시지가 성공적으로 삭제되었습니다.");
       } else {
-        showError("메시지 삭제 실패", "메시지 삭제에 실패했습니다.");
+        onDeleteError?.("메시지 삭제에 실패했습니다.");
       }
     } catch (error) {
       console.error("Failed to delete message:", error);
-      const appError = ErrorHandler.handleRollingPaperError(error);
-      const { title, message } = ErrorHandler.formatErrorForToast(appError);
-      showError(title, message);
+      const appError = ErrorHandler.mapApiError(error);
+      onDeleteError?.(appError.message);
     }
   };
 
   return (
-    <>
-      <div
-        className={`p-6 bg-gradient-to-br ${decoInfo.color} rounded-2xl border-2 border-white shadow-lg relative overflow-hidden`}
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
-            radial-gradient(circle at 24px 24px, rgba(255,255,255,0.2) 1px, transparent 1px)
-          `,
-          backgroundSize: "16px 16px, 48px 48px",
-        }}
-      >
+    <div
+      className={`p-6 bg-gradient-to-br ${decoInfo.color} rounded-2xl border-2 border-white shadow-lg relative overflow-hidden`}
+      style={{
+        backgroundImage: `
+          radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
+          radial-gradient(circle at 24px 24px, rgba(255,255,255,0.2) 1px, transparent 1px)
+        `,
+        backgroundSize: "16px 16px, 48px 48px",
+      }}
+    >
         <div className="flex items-center space-x-3 mb-4">
           <DecoIcon decoType={message.decoType} size="xl" showBackground={false} animate="bounce" />
           <div className="flex flex-col space-y-1">
@@ -114,9 +115,6 @@ export const MessageView: React.FC<MessageViewProps> = ({
             </Button>
           </div>
         )}
-      </div>
-
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </>
+    </div>
   );
 };

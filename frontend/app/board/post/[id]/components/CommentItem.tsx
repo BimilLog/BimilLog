@@ -73,7 +73,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   onLikeComment,
   canModifyComment,
 }) => {
-  const { user } = useAuth();
+  const { } = useAuth();
   const { showSuccess, showError } = useToast();
   const maxDepth = 3; // 최대 들여쓰기 레벨
   const actualDepth = Math.min(depth, maxDepth);
@@ -101,7 +101,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
           response.error || "신고 접수에 실패했습니다. 다시 시도해주세요."
         );
       }
-    } catch (error) {
+    } catch {
       showError(
         "신고 실패",
         "신고 접수 중 오류가 발생했습니다. 다시 시도해주세요."

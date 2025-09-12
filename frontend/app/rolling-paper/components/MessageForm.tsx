@@ -11,8 +11,6 @@ import {
 } from "@/components/ui/select";
 import { Send, Snowflake, Waves, IceCream2 } from "lucide-react";
 import { getDecoInfo, decoTypeMap, type DecoType } from "@/lib/api";
-import { useToast } from "@/hooks/useToast";
-import { ToastContainer } from "@/components/molecules/toast";
 import { DecoIcon } from "@/components";
 
 interface MessageFormProps {
@@ -23,15 +21,15 @@ interface MessageFormProps {
     anonymousNickname: string;
     decoType: string;
   }) => void;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
 }
 
-export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
+export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit, onSuccess, onError }) => {
   const [content, setContent] = useState("");
   const [anonymousNickname, setAnonymousNickname] = useState("");
   const [decoType, setDecoType] = useState("POTATO");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { showSuccess, showError, showWarning, toasts, removeToast } =
-    useToast();
 
   const decoOptions = Object.entries(decoTypeMap).map(([key, info]) => ({
     value: key,
@@ -41,7 +39,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
 
   const handleSubmit = async () => {
     if (!content.trim() || !anonymousNickname.trim()) {
-      showWarning("입력 확인", "모든 필드를 입력해주세요.");
+      onError?.("모든 필드를 입력해주세요.");
       return;
     }
 
@@ -54,13 +52,10 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
       });
       setContent("");
       setAnonymousNickname("");
-      showSuccess("메시지 작성 완료", "메시지가 성공적으로 추가되었습니다!");
+      onSuccess?.("메시지가 성공적으로 추가되었습니다!");
     } catch (error) {
       console.error("Failed to add message:", error);
-      showError(
-        "메시지 작성 실패",
-        "메시지 추가에 실패했습니다. 다시 시도해주세요."
-      );
+      onError?.("메시지 추가에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
     }
@@ -69,17 +64,16 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
   const selectedDecoInfo = getDecoInfo(decoType);
 
   return (
-    <>
-      <div
-        className="space-y-6 p-6 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl border-2 border-cyan-200"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 15px 15px, rgba(91,192,222,0.2) 1px, transparent 1px),
-            radial-gradient(circle at 45px 45px, rgba(135,206,235,0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: "30px 30px, 90px 90px",
-        }}
-      >
+    <div
+      className="space-y-6 p-6 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl border-2 border-cyan-200"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle at 15px 15px, rgba(91,192,222,0.2) 1px, transparent 1px),
+          radial-gradient(circle at 45px 45px, rgba(135,206,235,0.1) 1px, transparent 1px)
+        `,
+        backgroundSize: "30px 30px, 90px 90px",
+      }}
+    >
         {/* 미리보기 카드 */}
         <div
           className={`p-4 rounded-xl bg-gradient-to-br ${selectedDecoInfo.color} border-2 border-white shadow-lg relative overflow-hidden`}
@@ -191,9 +185,6 @@ export const MessageForm: React.FC<MessageFormProps> = ({ onSubmit }) => {
             )}
           </Button>
         </div>
-      </div>
-
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </>
+    </div>
   );
 };

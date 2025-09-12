@@ -137,6 +137,9 @@ export function useRollingPaper({
 
   // 좌표 유틸리티 함수들 (Map 활용으로 성능 개선)
   const isPositionOccupied = (x: number, y: number): boolean => {
+    if (typeof x !== 'number' || typeof y !== 'number') return false;
+    if (x < 0 || y < 0) return false;
+    
     // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
     const { x: backendX, y: backendY } = frontendToBackend(x, y);
     const key = `${backendX},${backendY}`;
@@ -147,10 +150,13 @@ export function useRollingPaper({
     x: number,
     y: number
   ): RollingPaperMessage | VisitMessage | null => {
+    if (typeof x !== 'number' || typeof y !== 'number') return null;
+    if (x < 0 || y < 0) return null;
+    
     // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
     const { x: backendX, y: backendY } = frontendToBackend(x, y);
     const key = `${backendX},${backendY}`;
-    return messagePositionMap.get(key) || null;
+    return messagePositionMap.get(key) ?? null;
   };
 
   // 빈 좌표 찾기 유틸리티

@@ -1,5 +1,5 @@
 import React from "react";
-import { sanitizeHtml } from "@/util/sanitize";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface SafeHTMLProps {
   html: string;

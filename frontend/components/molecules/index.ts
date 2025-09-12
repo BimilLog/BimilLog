@@ -39,4 +39,11 @@ export * from './kakao-friends-modal';
 
 // State Components
 export * from './loading';
-export * from './empty-state'; 
+export * from './empty-state';
+
+// Refactored Components
+export { ActivityCard } from "./activity-card";
+export { ProfileCard } from "./profile-card";
+export { SettingsSection } from "./settings-section";
+export { ToastContainer, ToastComponent } from "./toast";
+export { SettingToggle } from "./setting-toggle"; 

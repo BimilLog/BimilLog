@@ -12,6 +12,7 @@ export interface AppError {
   type: ErrorType;
   title: string;
   message: string;
+  userMessage?: string; // 사용자에게 표시할 친화적인 메시지
   originalError?: any;
 }
 
@@ -23,6 +24,7 @@ export class ErrorHandler {
         type: 'NETWORK_ERROR',
         title: '네트워크 오류',
         message: '서버와 연결할 수 없습니다. 인터넷 연결을 확인해주세요.',
+        userMessage: '서버와 연결할 수 없습니다. 인터넷 연결을 확인해주세요.',
         originalError: error
       };
     }
@@ -36,6 +38,7 @@ export class ErrorHandler {
           type: 'AUTH_ERROR',
           title: '인증 오류',
           message: '로그인이 필요하거나 세션이 만료되었습니다.',
+          userMessage: '로그인이 필요하거나 세션이 만료되었습니다.',
           originalError: error
         };
       }
@@ -45,6 +48,7 @@ export class ErrorHandler {
           type: 'PERMISSION_DENIED',
           title: '권한 없음',
           message: '이 작업을 수행할 권한이 없습니다.',
+          userMessage: '이 작업을 수행할 권한이 없습니다.',
           originalError: error
         };
       }
@@ -54,6 +58,7 @@ export class ErrorHandler {
           type: 'NOT_FOUND',
           title: '찾을 수 없음',
           message: error.error,
+          userMessage: error.error,
           originalError: error
         };
       }
@@ -63,6 +68,7 @@ export class ErrorHandler {
           type: 'VALIDATION_ERROR',
           title: '입력 오류',
           message: error.error,
+          userMessage: error.error,
           originalError: error
         };
       }
@@ -76,6 +82,7 @@ export class ErrorHandler {
             type: 'VALIDATION_ERROR',
             title: '잘못된 요청',
             message: '요청 형식이 올바르지 않습니다.',
+            userMessage: '요청 형식이 올바르지 않습니다.',
             originalError: error
           };
         case 401:
@@ -83,6 +90,7 @@ export class ErrorHandler {
             type: 'AUTH_ERROR',
             title: '인증 필요',
             message: '로그인이 필요한 서비스입니다.',
+            userMessage: '로그인이 필요한 서비스입니다.',
             originalError: error
           };
         case 403:
@@ -90,6 +98,7 @@ export class ErrorHandler {
             type: 'PERMISSION_DENIED',
             title: '접근 거부',
             message: '이 리소스에 접근할 권한이 없습니다.',
+            userMessage: '이 리소스에 접근할 권한이 없습니다.',
             originalError: error
           };
         case 404:
@@ -97,6 +106,7 @@ export class ErrorHandler {
             type: 'NOT_FOUND',
             title: '찾을 수 없음',
             message: '요청한 리소스를 찾을 수 없습니다.',
+            userMessage: '요청한 리소스를 찾을 수 없습니다.',
             originalError: error
           };
         case 500:
@@ -106,6 +116,7 @@ export class ErrorHandler {
             type: 'SERVER_ERROR',
             title: '서버 오류',
             message: '서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            userMessage: '서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
             originalError: error
           };
       }
@@ -116,6 +127,7 @@ export class ErrorHandler {
       type: 'UNKNOWN_ERROR',
       title: '오류 발생',
       message: error?.message || '알 수 없는 오류가 발생했습니다.',
+      userMessage: error?.message || '알 수 없는 오류가 발생했습니다.',
       originalError: error
     };
   }
@@ -129,6 +141,7 @@ export class ErrorHandler {
         type: 'DUPLICATE_POSITION',
         title: '위치 중복',
         message: '이미 다른 메시지가 있는 위치입니다. 다른 위치를 선택해주세요.',
+        userMessage: '이미 다른 메시지가 있는 위치입니다. 다른 위치를 선택해주세요.',
         originalError: error
       };
     }

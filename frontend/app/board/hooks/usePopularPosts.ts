@@ -26,7 +26,7 @@ export const usePopularPosts = (activeTab: string) => {
         setPopularDataFetched(true);
         setLastPopularFetchTime(new Date());
       }
-    } catch (error) {
+    } catch {
       setRealtimePosts([]);
       setWeeklyPosts([]);
     }
@@ -47,7 +47,7 @@ export const usePopularPosts = (activeTab: string) => {
         setLegendDataFetched(true);
         setLastLegendFetchTime(new Date());
       }
-    } catch (error) {
+    } catch {
       setLegendPosts([]);
     }
   }, [legendDataFetched, lastLegendFetchTime]);

@@ -39,6 +39,9 @@ interface RollingPaperGridProps {
   ) => { x: number; y: number };
   highlightedPosition?: { x: number; y: number } | null;
   onHighlightClear?: () => void;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+  onRefresh?: () => void;
   className?: string;
 }
 
@@ -55,6 +58,9 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
   getCoordsFromPageAndGrid,
   highlightedPosition,
   onHighlightClear,
+  onSuccess,
+  onError,
+  onRefresh,
   className = "",
 }) => {
   // 그리드 설정
@@ -253,6 +259,9 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
                         <MessageView
                           message={messageAtPosition}
                           isOwner={isOwner}
+                          onDelete={onRefresh}
+                          onDeleteSuccess={onSuccess}
+                          onDeleteError={onError}
                         />
                       ) : (
                         onMessageSubmit && (
@@ -262,6 +271,8 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = ({
                             onSubmit={(data) => {
                               onMessageSubmit({ x: actualX, y: actualY }, data);
                             }}
+                            onSuccess={onSuccess}
+                            onError={onError}
                           />
                         )
                       )}

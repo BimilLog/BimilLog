@@ -49,7 +49,7 @@ export default function VisitClient() {
     setSearchError("");
 
     try {
-      // 자신의 닉네임인지 확인
+      // 로그인한 사용자의 경우 자신의 닉네임인지 먼저 확인 (API 호출 전)
       if (user && user.userName === trimmedNickname) {
         setShowConfirmDialog(true);
         setIsSearching(false);
@@ -63,22 +63,14 @@ export default function VisitClient() {
         // 성공적으로 조회된 경우 방문 페이지로 이동
         router.push(`/rolling-paper/${encodeURIComponent(trimmedNickname)}`);
       } else {
-        // 사용자를 찾을 수 없는 경우
-        if (
-          response.error &&
-          response.error.includes("사용자를 찾을 수 없습니다")
-        ) {
-          setSearchError(
-            "해당 닉네임의 롤링페이퍼를 찾을 수 없어요. 회원가입한 사용자의 롤링페이퍼만 존재합니다."
-          );
-        } else {
-          setSearchError(response.error || "롤링페이퍼를 찾을 수 없어요.");
-        }
+        // 사용자를 찾을 수 없는 경우 - ErrorHandler 사용
+        const appError = ErrorHandler.mapApiError(new Error(response.error || "사용자를 찾을 수 없습니다"));
+        setSearchError(appError.userMessage || "해당 닉네임의 롤링페이퍼를 찾을 수 없어요. 회원가입한 사용자의 롤링페이퍼만 존재합니다.");
       }
     } catch (error) {
       console.error("Search error:", error);
       const appError = ErrorHandler.mapApiError(error);
-      setSearchError(appError.message);
+      setSearchError(appError.userMessage || "롤링페이퍼를 찾을 수 없어요.");
     } finally {
       setIsSearching(false);
     }
@@ -154,9 +146,6 @@ export default function VisitClient() {
               <div className="flex items-start space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-red-800">
-                  <p className="font-medium mb-1">
-                    롤링페이퍼를 찾을 수 없어요
-                  </p>
                   <p>{searchError}</p>
                 </div>
               </div>

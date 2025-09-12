@@ -24,6 +24,12 @@ export { Spinner } from './atoms/spinner';
 export { default as SafeHTML } from './atoms/SafeHTML';
 export { KakaoShareButton } from './atoms/kakao-share-button';
 export { DecoIcon, EmojiStyleDecoIcon } from './atoms/deco-icon';
+export { AuthLoadingScreen } from './atoms/AuthLoadingScreen';
+
+// Refactored atoms
+export { StatCard } from './atoms/stat-card';
+export { LoadingSpinner } from './atoms/loading-spinner';
+export { EmptyState } from './atoms/empty-state';
 
 // ==============================================
 // MOLECULES - 조합된 컴포넌트들
@@ -90,6 +96,13 @@ export { default as Editor } from './molecules/editor';
 export { ReportModal } from './molecules/ReportModal';
 export { KakaoFriendsModal } from './molecules/kakao-friends-modal';
 
+// Refactored molecules
+export { ActivityCard } from './molecules/activity-card';
+export { ProfileCard } from './molecules/profile-card';
+export { SettingsSection } from './molecules/settings-section';
+export { ToastContainer, ToastComponent } from './molecules/toast';
+export { SettingToggle } from './molecules/setting-toggle';
+
 // Advertisement Components
 export { AdFitBanner, AD_SIZES, AD_UNITS, getAdUnit } from './molecules/adfit-banner';
 export { ResponsiveAdFitBanner } from './molecules/responsive-adfit-banner';
@@ -101,9 +114,6 @@ export {
   Skeleton,
   loadingStyles
 } from './molecules/loading';
-export {
-  EmptyState
-} from './molecules/empty-state';
 
 // ==============================================
 // ORGANISMS - 복잡한 컴포넌트들
@@ -113,6 +123,9 @@ export { AuthHeader } from './organisms/auth-header';
 export { MobileNav } from './organisms/mobile-nav';
 export { NotificationBell } from './organisms/notification-bell';
 export { Breadcrumb } from './organisms/breadcrumb';
+
+// Auth Components
+export { NicknameSetupForm } from './organisms/NicknameSetupForm';
 
 // Board Components
 export { BoardSearch } from './organisms/board/board-search';
@@ -132,6 +145,20 @@ export { HomeFooter } from './organisms/home/HomeFooter';
 export { WritePageHeader } from './organisms/WritePageHeader';
 export { WriteForm } from './organisms/WriteForm';
 
+// Admin Components
+export { AdminHeader } from './organisms/admin/AdminHeader';
+export { AdminStats } from './organisms/admin/AdminStats';
+export { ReportList } from './organisms/admin/ReportList';
+export { ReportDetailModal } from './organisms/admin/ReportDetailModal';
+
+// Settings Components
+export { NotificationSettings } from './organisms/settings/NotificationSettings';
+export { AccountSettings } from './organisms/settings/AccountSettings';
+
+// User Components
+export { UserStatsSection } from './organisms/user/UserStatsSection';
+export { UserActivitySection } from './organisms/user/UserActivitySection';
+
 // ==============================================
 // ROLLING PAPER COMPONENTS - 롤링페이퍼 전용 컴포넌트들
 // ==============================================
@@ -148,11 +175,28 @@ export { RollingPaperClient } from '../app/rolling-paper/components/RollingPaper
 export { MessageListModal } from '../app/rolling-paper/components/MessageListModal';
 
 // ==============================================
+// LAYOUT COMPONENTS
+// ==============================================
+export { AuthLayout } from './organisms/AuthLayout';
+
+// ==============================================
 // UTILITY FUNCTIONS & HOOKS
 // ==============================================
 export * from '../lib/cookies';
 export { useRollingPaper } from '../hooks/useRollingPaper';
 export { useRollingPaperShare } from '../hooks/useRollingPaperShare';
+
+// ==============================================
+// LUCIDE ICONS - 필수 아이콘들
+// ==============================================
+export {
+  AlertTriangle,
+  TrendingUp,
+  Shield,
+  Eye,
+  Clock,
+  UserX,
+} from 'lucide-react';
 
 // ==============================================
 // TYPE EXPORTS

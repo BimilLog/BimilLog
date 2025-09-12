@@ -26,7 +26,7 @@ import {
   Star,
 } from "lucide-react";
 import { User, userApi } from "@/lib/api";
-import { validateNickname } from "@/util/inputValidation";
+import { validateNickname } from "@/lib/inputValidation";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
 

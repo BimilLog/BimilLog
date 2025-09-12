@@ -3,8 +3,6 @@
  * 프로젝트 전반에 걸쳐 일관된 클립보드 접근을 위한 통합 유틸리티
  */
 
-import { toast } from "@/hooks/useToast";
-
 /**
  * 텍스트를 클립보드에 복사
  * @param text 복사할 텍스트
@@ -18,13 +16,17 @@ export async function copyToClipboard(
     toastTitle?: string;
     toastDescription?: string;
     fallbackAlert?: boolean;
+    showSuccess?: (title: string, message: string) => void;
+    showError?: (title: string, message: string) => void;
   } = {}
 ): Promise<boolean> {
   const {
     showToast = true,
     toastTitle = "링크 복사 완료",
     toastDescription = "링크가 클립보드에 복사되었습니다!",
-    fallbackAlert = false
+    fallbackAlert = false,
+    showSuccess,
+    showError
   } = options;
 
   // SSR 환경에서는 실행하지 않음
@@ -40,8 +42,7 @@ export async function copyToClipboard(
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
       
-      if (showToast) {
-        const { showSuccess } = toast();
+      if (showToast && showSuccess) {
         showSuccess(toastTitle, toastDescription);
       }
       
@@ -63,8 +64,7 @@ export async function copyToClipboard(
     document.body.removeChild(textArea);
 
     if (successful) {
-      if (showToast) {
-        const { showSuccess } = toast();
+      if (showToast && showSuccess) {
         showSuccess(toastTitle, toastDescription);
       } else if (fallbackAlert) {
         alert(toastDescription);
@@ -81,8 +81,7 @@ export async function copyToClipboard(
     // 최후 수단: alert로 사용자에게 수동 복사 요청
     if (fallbackAlert) {
       alert(`다음 링크를 복사해주세요:\n${text}`);
-    } else if (showToast) {
-      const { showError } = toast();
+    } else if (showToast && showError) {
       showError(
         "복사 실패", 
         "클립보드 복사에 실패했습니다. 브라우저 설정을 확인해주세요."

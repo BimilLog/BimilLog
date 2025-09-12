@@ -11,3 +11,8 @@ export { Spinner } from './spinner';
 export { default as SafeHTML } from './SafeHTML';
 export { KakaoShareButton } from './kakao-share-button';
 export { DecoIcon, EmojiStyleDecoIcon } from './deco-icon';
+
+// Refactored Components
+export { StatCard } from "./stat-card";
+export { LoadingSpinner } from "./loading-spinner";
+export { EmptyState } from "./empty-state";

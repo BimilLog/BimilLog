@@ -83,29 +83,27 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
 
   // 소유자 리다이렉트 (공개 롤링페이퍼인 경우)
   useEffect(() => {
-    if (isPublic && isAuthenticated && user && nickname) {
+    if (isPublic && nickname && isAuthenticated && user) {
       const currentNickname = decodeURIComponent(nickname);
-      const isOwnerCheck = user.userName === currentNickname;
-
-      if (isOwnerCheck) {
-        router.push("/rolling-paper");  // SPA 라우팅 유지
+      
+      if (user.userName === currentNickname) {
+        router.push("/rolling-paper");
         return;
       }
     }
-  }, [isAuthenticated, user, nickname, isPublic]);
+  }, [isAuthenticated, user, nickname, isPublic, router]);
 
   // 방문 기록 저장 (다른 사람의 롤링페이퍼인 경우)
   useEffect(() => {
-    if (isPublic && nickname && isAuthenticated !== null && user !== null) {
+    if (isPublic && nickname && !authLoading) {
       const currentNickname = decodeURIComponent(nickname);
-      const isOwnerCheck =
-        isAuthenticated && user && user.userName === currentNickname;
+      const isOwner = isAuthenticated && user?.userName === currentNickname;
 
-      if (!isOwnerCheck) {
+      if (!isOwner) {
         addRecentVisit(nickname);
       }
     }
-  }, [nickname, isAuthenticated, user, isPublic]);
+  }, [nickname, isAuthenticated, user, isPublic, authLoading]);
 
   // 메시지 작성 핸들러
   const handleMessageSubmit = async (
@@ -149,9 +147,11 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
       }
     } catch (error) {
       console.error("Failed to create message:", error);
-      const appError = ErrorHandler.handleRollingPaperError(error);
-      const { title, message } = ErrorHandler.formatErrorForToast(appError);
-      showError(title, message);
+      const appError = ErrorHandler.mapApiError(error);
+      showError(
+        "메시지 전송 실패",
+        appError.userMessage || "메시지 작성에 실패했습니다. 다시 시도해주세요."
+      );
     }
   };
 
@@ -245,6 +245,9 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
             getCoordsFromPageAndGrid={getCoordsFromPageAndGrid}
             highlightedPosition={highlightedPosition}
             onHighlightClear={clearHighlight}
+            onSuccess={(message) => showSuccess("성공", message)}
+            onError={(message) => showError("오류", message)}
+            onRefresh={refetchMessages}
           />
         </div>
 

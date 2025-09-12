@@ -12,6 +12,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (postAuthRedirectUrl?: string) => void;
   logout: () => Promise<void>;
+  signUp: (userName: string, uuid: string) => Promise<{ success: boolean; error?: string }>;
   updateUserName: (userName: string) => Promise<boolean>;
   deleteAccount: () => Promise<boolean>;
   refreshUser: () => Promise<void>;
@@ -135,6 +136,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // 회원가입
+  const signUp = async (userName: string, uuid: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await authApi.signUp(userName, uuid);
+      if (response.success) {
+        await refreshUser(); // 회원가입 성공 후 사용자 정보 갱신
+        return { success: true };
+      }
+      return { success: false, error: response.error || "회원가입에 실패했습니다." };
+    } catch (error) {
+      console.error("SignUp failed:", error);
+      return { success: false, error: "회원가입 중 오류가 발생했습니다." };
+    }
+  };
+
   // 회원 탈퇴
   const deleteAccount = async (): Promise<boolean> => {
     try {
@@ -162,6 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated,
     login,
     logout,
+    signUp,
     updateUserName,
     deleteAccount,
     refreshUser,

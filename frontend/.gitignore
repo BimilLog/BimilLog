@@ -23,6 +23,9 @@
 # misc
 .DS_Store
 *.pem
+*.backup
+*.bak
+*~
 
 # debug
 npm-debug.log*

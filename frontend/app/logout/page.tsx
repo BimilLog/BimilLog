@@ -2,18 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { authApi } from "@/lib/api";
-import { AuthHeader } from "@/components/organisms/auth-header";
-import { HomeFooter } from "@/components/organisms/home/HomeFooter";
-import { useToast } from "@/hooks/useToast";
-import { ToastContainer } from "@/components/molecules/toast";
+import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
 
 export default function LogoutPage() {
   const { logout } = useAuth();
   const router = useRouter();
-  const { showError, showInfo, toasts, removeToast } = useToast();
   const isMounted = useRef(true);
 
   useEffect(() => {
@@ -24,45 +18,10 @@ export default function LogoutPage() {
 
   useEffect(() => {
     const handleLogout = async () => {
-      let kakaoUnlinkSuccess = false;
-      
       try {
-        // 카카오 연결 끊기 - 동의 철회 처리
-        if (window.Kakao && window.Kakao.isInitialized()) {
-          try {
-            // 동의 철회
-            const unlink = () => {
-              return new Promise((resolve, reject) => {
-                window.Kakao.API.request({
-                  url: "/v1/user/unlink",
-                  success: resolve,
-                  fail: reject,
-                });
-              });
-            };
-
-            await unlink();
-            kakaoUnlinkSuccess = true;
-            if (process.env.NODE_ENV === 'development') {
-              console.log("카카오 연결 끊기 성공");
-            }
-          } catch (kakaoError) {
-            if (process.env.NODE_ENV === 'development') {
-              console.error("카카오 연결 끊기 실패:", kakaoError);
-            }
-            // 카카오 연결 끊기 실패 시 사용자에게 안내
-            if (isMounted.current) {
-              showInfo(
-                "카카오 연결 끊기 안내",
-                "카카오 연결 끊기가 완료되지 않았습니다. 카카오 계정 설정에서 직접 연결 해제해주세요."
-              );
-            }
-          }
-        }
-
         // 서버 로그아웃
         await logout();
-
+        
         // 홈으로 리다이렉트
         if (isMounted.current) {
           router.replace("/");
@@ -80,34 +39,12 @@ export default function LogoutPage() {
     };
 
     handleLogout();
-  }, [logout, router, showError, showInfo]);
+  }, [logout, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <AuthHeader />
-
-      <div className="flex items-center justify-center p-4 py-20">
-        <Card className="w-full max-w-md border-0 shadow-2xl bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
-            </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              로그아웃 중...
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-600 mb-6">
-              안전하게 로그아웃 처리 중입니다.
-              <br />
-              잠시만 기다려주세요.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <HomeFooter />
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </div>
+    <AuthLoadingScreen 
+      message="로그아웃 중..."
+      subMessage="안전하게 로그아웃 처리 중입니다."
+    />
   );
 }

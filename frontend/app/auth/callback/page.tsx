@@ -8,6 +8,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { getFCMToken, isMobileOrTablet } from "@/lib/utils";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
+import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -140,19 +141,12 @@ export default function AuthCallbackPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
-      <div className="text-center">
-        <img
-          src="/log.png"
-          alt="비밀로그"
-          className="h-12 object-contain mx-auto mb-4 animate-pulse"
-        />
-        <p className="text-gray-600">로그인 처리 중...</p>
-        {isMobileOrTablet() && (
-          <p className="text-sm text-gray-500 mt-2">모바일 알림 설정 중...</p>
-        )}
-      </div>
+    <>
+      <AuthLoadingScreen 
+        message="로그인 처리 중..."
+        subMessage={isMobileOrTablet() ? "모바일 알림 설정 중..." : undefined}
+      />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </div>
+    </>
   );
 }
