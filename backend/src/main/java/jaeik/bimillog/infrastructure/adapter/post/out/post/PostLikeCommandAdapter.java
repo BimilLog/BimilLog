@@ -9,17 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 /**
- * <h2>게시글 추천 커맨드 영속성 어댑터</h2>
- * <p>
- * 헥사고날 아키텍처의 Secondary Adapter로서 PostLikeCommandPort 인터페이스를 구현합니다.
- * </p>
- * <p>
- * 게시글 추천의 생성, 삭제와 관련된 데이터베이스 작업을 JPA Repository로 처리합니다.
- * </p>
- * <p>
- * PostLikeCommandUseCase에서 게시글 추천/취소 시 호출됩니다.
- * PostDeleteUseCase에서 게시글 삭제 시 관련 추천 정보 삭제를 위해 호출됩니다.
- * </p>
+ * <h2>게시글 추천 명령 어댑터</h2>
+ * <p>게시글 추천 명령 포트의 JPA 구현체입니다.</p>
+ * <p>게시글 추천 생성, 삭제 작업</p>
+ * <p>JPA Repository를 활용한 데이터베이스 작업</p>
  *
  * @author Jaeik
  * @version 2.0.0

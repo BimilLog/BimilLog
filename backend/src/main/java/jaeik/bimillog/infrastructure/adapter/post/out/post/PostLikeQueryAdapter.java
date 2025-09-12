@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 /**
  * <h2>게시글 추천 조회 어댑터</h2>
  * <p>게시글 추천 조회 포트의 JPA/QueryDSL 구현체입니다.</p>
- * <p>배치 조회로 N+1 문제 해결, ID 기반 조회</p>
- * <p>JPA Repository와 QueryDSL을 활용한 성능 최적화</p>
+ * <p>배치 조회, ID 기반 조회</p>
+ * <p>JPA Repository와 QueryDSL을 활용</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -33,8 +33,8 @@ public class PostLikeQueryAdapter implements PostLikeQueryPort {
 
     /**
      * <h3>게시글 ID 목록에 대한 추천 수 배치 조회</h3>
-     * <p>여러 게시글의 추천 수를 한 번의 쿼리로 조회하여 N+1 문제를 해결합니다.</p>
-     * <p>GROUP BY와 COUNT를 활용한 집계 쿼리로 성능 최적화</p>
+     * <p>여러 게시글의 추천 수를 한 번의 쿼리로 배치 조회합니다.</p>
+     * <p>GROUP BY와 COUNT를 활용한 집계 쿼리</p>
      *
      * @param postIds 게시글 ID 목록
      * @return Map<Long, Integer> 게시글 ID를 키로, 추천 수를 값으로 하는 맵
@@ -72,7 +72,7 @@ public class PostLikeQueryAdapter implements PostLikeQueryPort {
     /**
      * <h3>ID 기반 추천 존재 여부 확인</h3>
      * <p>Post와 User 엔티티를 로드하지 않고 ID만으로 추천 여부를 확인합니다.</p>
-     * <p>캐시된 게시글의 추천 여부 확인 시 성능 향상을 위해 사용</p>
+     * <p>캐시된 게시글의 추천 여부 확인 시 사용</p>
      *
      * @param postId 게시글 ID
      * @param userId 사용자 ID
