@@ -15,7 +15,7 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.auth.in.web.AuthCommandController;
-import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoSocialLoginStrategy;
+import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategyAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -59,7 +59,7 @@ public class SocialService implements SocialUseCase {
             .collect(Collectors.toMap(
                 strategy -> {
                     // KakaoSocialLoginStrategy는 KAKAO 제공자만 지원
-                    if (strategy instanceof KakaoSocialLoginStrategy) {
+                    if (strategy instanceof KakaoLoginStrategyAdapter) {
                         return SocialProvider.KAKAO;
                     }
                     throw new IllegalArgumentException("지원하지 않는 전략 구현체: " + strategy.getClass().getSimpleName());

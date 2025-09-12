@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoSocialLoginStrategy;
+import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategyAdapter;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoAuthClient;
 import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoApiClient;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
@@ -36,7 +36,6 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 /**
@@ -66,7 +65,7 @@ class SocialServiceTest {
     @Mock private RedisUserDataPort redisUserDataPort;
     @Mock private UserBanPort userBanPort;
 
-    private KakaoSocialLoginStrategy kakaoStrategy;
+    private KakaoLoginStrategyAdapter kakaoStrategy;
     private SocialService socialService;
 
     private LoginResult.SocialUserProfile testUserProfile;
@@ -82,8 +81,8 @@ class SocialServiceTest {
         existingUserResult = new LoginResult.SocialLoginData(testUserProfile, testToken, false);
         newUserResult = new LoginResult.SocialLoginData(testUserProfile, testToken, true);
         
-        // 실제 KakaoSocialLoginStrategy 객체 생성 (의존성은 mock 사용)
-        kakaoStrategy = new KakaoSocialLoginStrategy(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
+        // 실제 KakaoLoginStrategyAdapter 객체 생성 (의존성은 mock 사용)
+        kakaoStrategy = new KakaoLoginStrategyAdapter(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
         socialService = new SocialService(
             List.of(kakaoStrategy),
             socialPort,

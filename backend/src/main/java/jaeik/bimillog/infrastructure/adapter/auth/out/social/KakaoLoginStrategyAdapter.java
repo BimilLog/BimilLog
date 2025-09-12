@@ -21,13 +21,13 @@ import java.util.Map;
  * @version 2.0.0
  */
 @Component
-public class KakaoSocialLoginStrategy implements SocialLoginStrategyPort {
+public class KakaoLoginStrategyAdapter implements SocialLoginStrategyPort {
 
     private final KakaoKeyVO kakaoKeyVO;
     private final KakaoAuthClient kakaoAuthClient;
     private final KakaoApiClient kakaoApiClient;
 
-    public KakaoSocialLoginStrategy(KakaoKeyVO kakaoKeyVO, KakaoAuthClient kakaoAuthClient, KakaoApiClient kakaoApiClient) {
+    public KakaoLoginStrategyAdapter(KakaoKeyVO kakaoKeyVO, KakaoAuthClient kakaoAuthClient, KakaoApiClient kakaoApiClient) {
         this.kakaoKeyVO = kakaoKeyVO;
         this.kakaoAuthClient = kakaoAuthClient;
         this.kakaoApiClient = kakaoApiClient;

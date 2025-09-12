@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class SocialManagementAdapter implements SocialPort {
+public class SocialAdapter implements SocialPort {
 
     private final UserQueryUseCase userQueryUseCase;
 
