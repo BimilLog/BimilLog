@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { MessageSquare } from "lucide-react";
 import { Comment } from "@/lib/api";
 import { CommentItem } from "./CommentItem";

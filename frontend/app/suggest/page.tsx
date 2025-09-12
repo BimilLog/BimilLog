@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { userApi } from "@/lib/api";
 import { HomeFooter } from "@/components/organisms/home/HomeFooter";
 import { useToast } from "@/hooks/useToast";
-import { ToastContainer } from "@/components/molecules/toast";
+import { ToastContainer } from "@/components/molecules/feedback/toast";
 
 type SuggestionType = "ERROR" | "IMPROVEMENT";
 

@@ -1,13 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { SafeHTML } from "@/components/ui";
+import { Button, Input, Textarea, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, Reply, Flag, MoreHorizontal, User } from "lucide-react";
 import { Comment, userApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import { ReportModal } from "@/components/ui/ReportModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,7 +118,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
           <div className="p-3 sm:p-4 bg-gray-100 rounded-lg">
             <Textarea
               value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditContent(e.target.value)}
               className="min-h-[80px]"
             />
             {!isMyComment(comment) && (
@@ -131,7 +127,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 placeholder="비밀번호"
                 className="mt-2"
                 value={editPassword}
-                onChange={(e) => setEditPassword(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditPassword(e.target.value)}
               />
             )}
             <div className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-3">
@@ -272,7 +268,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                       type="password"
                       placeholder="비밀번호"
                       value={replyPassword}
-                      onChange={(e) => setReplyPassword(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReplyPassword(e.target.value)}
                     />
                   </div>
                 )}
@@ -280,7 +276,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   <Textarea
                     placeholder="답글을 입력하세요..."
                     value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReplyContent(e.target.value)}
                     className="min-h-[80px] resize-none"
                   />
                   <div className="flex gap-2">

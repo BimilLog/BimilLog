@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { ComponentType } from 'react';
+import React, { ComponentType } from 'react';
 
 // Lazy load heavy components
 export const LazyEditor = dynamic(
@@ -27,7 +27,7 @@ export const LazyBrowserGuideModal = dynamic(
 
 // Lazy load heavy organisms
 export const LazyWriteForm = dynamic(
-  () => import('@/components/organisms/WriteForm'),
+  () => import('@/components/organisms/WriteForm').then(mod => ({ default: mod.WriteForm || mod.default })),
   { 
     loading: () => <div className="min-h-screen bg-gray-100 animate-pulse" />,
     ssr: false 
@@ -35,7 +35,7 @@ export const LazyWriteForm = dynamic(
 );
 
 export const LazyAdminStats = dynamic(
-  () => import('@/components/organisms/admin/AdminStats'),
+  () => import('@/components/organisms/admin/AdminStats').then(mod => ({ default: mod.AdminStats || mod.default })),
   { 
     loading: () => <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
       <div className="h-32 bg-gray-200 rounded-lg" />
@@ -46,7 +46,7 @@ export const LazyAdminStats = dynamic(
 );
 
 export const LazyReportList = dynamic(
-  () => import('@/components/organisms/admin/ReportList'),
+  () => import('@/components/organisms/admin/ReportList').then(mod => ({ default: mod.ReportList || mod.default })),
   { 
     loading: () => <div className="space-y-4 animate-pulse">
       <div className="h-20 bg-gray-200 rounded-lg" />

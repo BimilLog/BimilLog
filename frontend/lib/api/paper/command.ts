@@ -11,8 +11,8 @@ export const paperCommand = {
       x: number
       y: number
     },
-  ) => apiClient.post(`/api/paper/${encodeURIComponent(userName)}`, message),
+  ) => apiClient.post(`/api/paper/command/create/${encodeURIComponent(userName)}`, message),
   
   deleteMessage: (messageId: number) => 
-    apiClient.post("/api/paper/delete", { id: messageId }),
+    apiClient.delete(`/api/paper/command/delete/${messageId}`),
 }

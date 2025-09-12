@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { boardApi, type Post } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@/components";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
-import Editor from "@/components/molecules/editor";
+import { Editor } from "@/components";
 import { useToast } from "@/hooks/useToast";
-import { ToastContainer } from "@/components/molecules/toast";
+import { ToastContainer } from "@/components/molecules/feedback/toast";
 import { stripHtml, validatePassword } from "@/lib/utils";
 import { AuthHeader } from "@/components/organisms/auth-header";
 

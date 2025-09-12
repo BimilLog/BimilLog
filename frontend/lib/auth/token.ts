@@ -53,7 +53,7 @@ export class TokenManager {
 
   static isAccessTokenValid(): boolean {
     const tokens = this.getTokens();
-    return tokens?.accessToken && !this.isTokenExpired(tokens);
+    return !!(tokens?.accessToken && !this.isTokenExpired(tokens));
   }
 }
 

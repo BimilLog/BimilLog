@@ -5,25 +5,21 @@ import { PopularComments } from "./PopularComments";
 import { CommentList } from "./CommentList";
 
 interface CommentSectionProps {
-  postId: string;
+  postId: number;
   comments: (Comment & { replies?: Comment[] })[];
   popularComments: Comment[];
   commentCount: number;
   isAuthenticated: boolean;
 
   // CommentForm props
-  newComment: string;
-  commentPassword: string;
   isSubmittingComment: boolean;
-  onCommentChange: (value: string) => void;
-  onPasswordChange: (value: string) => void;
-  onSubmitComment: () => void;
+  onSubmitComment: (comment: string, password: string) => void;
 
   // CommentList props
-  editingComment: number | null;
+  editingComment: Comment | null;
   editContent: string;
   editPassword: string;
-  replyingTo: number | null;
+  replyingTo: Comment | null;
   replyContent: string;
   replyPassword: string;
   isSubmittingReply: boolean;
@@ -32,10 +28,10 @@ interface CommentSectionProps {
   onUpdateComment: () => void;
   onCancelEdit: () => void;
   onDeleteComment: (comment: Comment) => void;
-  onReplyTo: (commentId: number | null) => void;
+  onReplyTo: (comment: Comment) => void;
   onReplySubmit: () => void;
   onCancelReply: () => void;
-  onLikeComment: (commentId: number) => void;
+  onLikeComment: (comment: Comment) => void;
 
   setEditContent: (content: string) => void;
   setEditPassword: (password: string) => void;
@@ -60,11 +56,7 @@ const CommentSection = memo(({
   isAuthenticated,
 
   // CommentForm
-  newComment,
-  commentPassword,
   isSubmittingComment,
-  onCommentChange,
-  onPasswordChange,
   onSubmitComment,
 
   // CommentList
@@ -100,11 +92,7 @@ const CommentSection = memo(({
       {/* 댓글 작성 폼 */}
       <CommentForm
         isAuthenticated={isAuthenticated}
-        newComment={newComment}
-        commentPassword={commentPassword}
         isSubmittingComment={isSubmittingComment}
-        onCommentChange={onCommentChange}
-        onPasswordChange={onPasswordChange}
         onSubmit={onSubmitComment}
       />
 

@@ -27,24 +27,21 @@ export const useCommentActions = (
   const [editPassword, setEditPassword] = useState("");
 
   // 댓글 작성
-  const handleCommentSubmit = useCallback(async () => {
-    if (!newComment.trim()) {
+  const handleCommentSubmit = useCallback(async (comment: string, password: string) => {
+    if (!comment.trim()) {
       showWarning("입력 확인", "댓글 내용을 입력해주세요.");
       return;
     }
 
     setIsSubmittingComment(true);
     try {
-      const validatedPassword = validatePassword(commentPassword, isAuthenticated);
+      const validatedPassword = validatePassword(password, isAuthenticated);
       
       await commentCommandApi.createComment({
         postId: Number(postId),
-        content: newComment,
+        content: comment,
         password: validatedPassword,
       });
-
-      setNewComment("");
-      setCommentPassword("");
       await onRefresh();
     } catch (error) {
       if (error instanceof Error) {

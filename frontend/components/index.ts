@@ -162,17 +162,21 @@ export { UserActivitySection } from './organisms/user/UserActivitySection';
 // ==============================================
 // ROLLING PAPER COMPONENTS - 롤링페이퍼 전용 컴포넌트들
 // ==============================================
-export { RecentVisits } from '../app/rolling-paper/components/RecentVisits';
-export { RollingPaperHeader } from '../app/rolling-paper/components/RollingPaperHeader';
-export { MessageForm } from '../app/rolling-paper/components/MessageForm';
-export { MessageView } from '../app/rolling-paper/components/MessageView';
-export { RollingPaperGrid } from '../app/rolling-paper/components/RollingPaperGrid';
-export { RecentMessages } from '../app/rolling-paper/components/RecentMessages';
-export { RollingPaperLayout } from '../app/rolling-paper/components/RollingPaperLayout';
-export { PageNavigation } from '../app/rolling-paper/components/PageNavigation';
-export { InfoCard } from '../app/rolling-paper/components/InfoCard';
-export { RollingPaperClient } from '../app/rolling-paper/components/RollingPaperClient';
-export { MessageListModal } from '../app/rolling-paper/components/MessageListModal';
+export { RecentVisits } from './organisms/rolling-paper/RecentVisits';
+export { RollingPaperHeader } from './organisms/rolling-paper/RollingPaperHeader';
+export { MessageForm } from './organisms/rolling-paper/MessageForm';
+export { MessageView } from './organisms/rolling-paper/MessageView';
+export { RollingPaperGrid } from './organisms/rolling-paper/RollingPaperGrid';
+export { RecentMessages } from './organisms/rolling-paper/RecentMessages';
+export { RollingPaperLayout } from './organisms/rolling-paper/RollingPaperLayout';
+export { PageNavigation } from './organisms/rolling-paper/PageNavigation';
+export { InfoCard } from './organisms/rolling-paper/InfoCard';
+export { RollingPaperClient } from './organisms/rolling-paper/RollingPaperClient';
+export { MessageListModal } from './organisms/rolling-paper/MessageListModal';
+export { RollingPaperView } from './organisms/rolling-paper/RollingPaperView';
+export { RollingPaperContainer } from './organisms/rolling-paper/RollingPaperContainer';
+export { NavigationBar } from './organisms/rolling-paper/NavigationBar';
+export { SummarySection } from './organisms/rolling-paper/SummarySection';
 
 // ==============================================
 // LAYOUT COMPONENTS

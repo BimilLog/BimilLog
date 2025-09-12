@@ -1,12 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { SafeHTML } from "@/components/ui";
+import { Card, CardContent, CardHeader, CardTitle, Button, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, MessageSquare, Flag, MoreHorizontal } from "lucide-react";
 import { Comment, userApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import { ReportModal } from "@/components/ui/ReportModal";
 import {
   DropdownMenu,
   DropdownMenuContent,

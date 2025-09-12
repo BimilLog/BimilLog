@@ -1,10 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { CardContent } from "@/components/ui/card";
-import { SafeHTML } from "@/components/ui";
+import { Button, CardContent, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, Flag } from "lucide-react";
 import { Post, userApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import { ReportModal } from "@/components/ui/ReportModal";
 import { useState } from "react";
 import { useToast } from "@/hooks/useToast";
 

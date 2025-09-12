@@ -14,7 +14,7 @@ export const commentCommand = {
       parentId: comment.parentId,
       password: comment.password
     }
-    return apiClient.post("/api/comment/write", payload)
+    return apiClient.post("/api/comment/command/create", payload)
   },
   
   update: (commentId: number, data: { content: string; password?: number }): Promise<ApiResponse<void>> => {
@@ -22,19 +22,19 @@ export const commentCommand = {
       content: data.content,
       password: data.password?.toString().padStart(4, '0')
     }
-    return apiClient.put(`/api/comment/${commentId}`, payload)
+    return apiClient.put(`/api/comment/command/update/${commentId}`, payload)
   },
   
   delete: (commentId: number, password?: number): Promise<ApiResponse<void>> => {
     if (password !== undefined) {
-      return apiClient.delete(`/api/comment/${commentId}?password=${password.toString().padStart(4, '0')}`)
+      return apiClient.delete(`/api/comment/command/delete/${commentId}?password=${password.toString().padStart(4, '0')}`)
     }
-    return apiClient.delete(`/api/comment/${commentId}`)
+    return apiClient.delete(`/api/comment/command/delete/${commentId}`)
   },
   
   like: (commentId: number): Promise<ApiResponse<void>> => 
-    apiClient.post("/api/comment/like", { commentId }),
+    apiClient.post("/api/comment/command/like", { commentId }),
   
   cancelLike: (commentId: number): Promise<ApiResponse<void>> =>
-    apiClient.delete("/api/comment/like", { commentId }),
+    apiClient.delete("/api/comment/command/like", { commentId }),
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/auth-header";
@@ -178,11 +178,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           commentCount={commentCount}
           isAuthenticated={isAuthenticated}
           
-          newComment={commentActions.newComment}
-          commentPassword={commentActions.commentPassword}
           isSubmittingComment={commentActions.isSubmittingComment}
-          onCommentChange={commentActions.setNewComment}
-          onPasswordChange={commentActions.setCommentPassword}
           onSubmitComment={commentActions.handleCommentSubmit}
           
           editingComment={commentActions.editingComment}

@@ -80,6 +80,31 @@ export function validatePassword(password: string, isAuthenticated: boolean): nu
 }
 
 /**
+ * 사용자 이름에서 이니셜 추출 (최대 2자)
+ * @param name 사용자 이름
+ * @returns 이니셜 (예: "홍길동" -> "홍길", "John Doe" -> "JD")
+ */
+export function getInitials(name: string): string {
+  if (!name || !name.trim()) return '';
+  
+  const trimmedName = name.trim();
+  
+  // 한글/한자 이름인 경우 (공백 없이 연속된 문자)
+  if (/^[\u4e00-\u9fff\uac00-\ud7af]+$/.test(trimmedName)) {
+    return trimmedName.slice(0, 2);
+  }
+  
+  // 영문 이름인 경우 (공백으로 구분된 단어들)
+  const words = trimmedName.split(/\s+/).filter(word => word.length > 0);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  
+  // 단일 단어인 경우 첫 2글자
+  return trimmedName.slice(0, 2).toUpperCase();
+}
+
+/**
  * FCM 토큰 가져오기 (모바일/태블릿에서만)
  */
 export async function getFCMToken(): Promise<string | null> {

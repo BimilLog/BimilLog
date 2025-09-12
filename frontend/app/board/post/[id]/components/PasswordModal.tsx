@@ -3,9 +3,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+  Button,
+  Input
+} from "@/components";
 
 interface PasswordModalProps {
   isOpen: boolean;

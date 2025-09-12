@@ -1,4 +1,4 @@
-import { formatKoreanDate } from "@/lib/date-utils";
+import { formatKoreanDate } from "@/lib/utils/date";
 
 export const getRelativeTime = (dateString: string): string => {
   const now = new Date();

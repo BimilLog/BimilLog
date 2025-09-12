@@ -4,7 +4,7 @@
  */
 
 import { storage, type RecentVisit } from '@/lib/utils/storage';
-import { formatRelativeDate } from '@/lib/date-utils';
+import { formatRelativeDate } from '@/lib/utils/date';
 
 // 하위 호환성을 위한 래퍼 함수들
 export const addRecentVisit = (nickname: string): void => {

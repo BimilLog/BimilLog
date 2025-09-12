@@ -1,6 +1,4 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge, Button, CardHeader, CardTitle } from "@/components";
 import {
   Eye,
   ThumbsUp,
@@ -13,13 +11,13 @@ import {
 } from "lucide-react";
 import { Post } from "@/lib/api";
 import Link from "next/link";
-import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import { KakaoShareButton } from "@/components";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/molecules/popover";
-import { formatDateTime } from "@/lib/date-utils";
+} from "@/components";
+import { formatDateTime } from "@/lib/utils/date";
 
 interface PostHeaderProps {
   post: Post;

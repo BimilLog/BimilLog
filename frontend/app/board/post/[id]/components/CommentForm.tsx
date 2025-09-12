@@ -1,71 +1,99 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+"use client";
+
+import { useForm } from "react-hook-form";
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Textarea } from "@/components";
 import { Send } from "lucide-react";
+
+interface CommentFormData {
+  comment: string;
+  password: string;
+}
 
 interface CommentFormProps {
   isAuthenticated: boolean;
-  newComment: string;
-  commentPassword: string;
   isSubmittingComment: boolean;
-  onCommentChange: (comment: string) => void;
-  onPasswordChange: (password: string) => void;
-  onSubmit: () => void;
+  onSubmit: (comment: string, password: string) => void;
 }
 
 export const CommentForm: React.FC<CommentFormProps> = ({
   isAuthenticated,
-  newComment,
-  commentPassword,
   isSubmittingComment,
-  onCommentChange,
-  onPasswordChange,
   onSubmit,
 }) => {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<CommentFormData>({
+    mode: "onChange",
+    defaultValues: {
+      comment: "",
+      password: "",
+    },
+  });
+
+  const password = watch("password");
+  const comment = watch("comment");
+
+  const onSubmitForm = (data: CommentFormData) => {
+    onSubmit(data.comment, data.password);
+    reset();
+  };
+
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-8">
       <CardHeader>
         <CardTitle className="text-lg">댓글 작성</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isAuthenticated && (
-          <div className="mb-4">
-            <Input
-              type="password"
-              placeholder="비밀번호 (4자리 숫자)"
-              value={commentPassword}
-              onChange={(e) => {
-                const value = e.target.value;
-                // 4자리 숫자만 허용
-                if (value === '' || (/^\d{1,4}$/.test(value))) {
-                  onPasswordChange(value);
-                }
-              }}
-              maxLength={4}
+        <form onSubmit={handleSubmit(onSubmitForm)}>
+          {!isAuthenticated && (
+            <div className="mb-4">
+              <Input
+                type="password"
+                placeholder="비밀번호 (4자리 숫자)"
+                {...register("password", {
+                  required: !isAuthenticated,
+                  pattern: {
+                    value: /^\d{4}$/,
+                    message: "4자리 숫자를 입력해주세요",
+                  },
+                })}
+                maxLength={4}
+              />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.password.message || "4자리 숫자를 입력해주세요"}
+                </p>
+              )}
+            </div>
+          )}
+          <div className="flex space-x-4">
+            <Textarea
+              placeholder="댓글을 입력하세요..."
+              {...register("comment", {
+                required: "댓글을 입력해주세요",
+                minLength: {
+                  value: 1,
+                  message: "댓글을 입력해주세요",
+                },
+              })}
+              className="flex-1"
             />
-            {commentPassword && (commentPassword.length !== 4 || !/^\d{4}$/.test(commentPassword)) && (
-              <p className="text-red-500 text-sm mt-1">4자리 숫자를 입력해주세요</p>
-            )}
+            <Button 
+              type="submit"
+              disabled={
+                isSubmittingComment || 
+                !comment.trim() || 
+                (!isAuthenticated && (!password || !/^\d{4}$/.test(password)))
+              }
+            >
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
-        )}
-        <div className="flex space-x-4">
-          <Textarea
-            placeholder="댓글을 입력하세요..."
-            value={newComment}
-            onChange={(e) => onCommentChange(e.target.value)}
-          />
-          <Button 
-            onClick={onSubmit} 
-            disabled={
-              isSubmittingComment || 
-              !newComment.trim() || 
-              (!isAuthenticated && (!commentPassword || commentPassword.length !== 4 || !/^\d{4}$/.test(commentPassword)))
-            }
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
+        </form>
       </CardContent>
     </Card>
   );

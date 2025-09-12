@@ -19,7 +19,7 @@ import {
   Drumstick,
   type LucideIcon
 } from 'lucide-react';
-import { DecoType } from './api';
+import { DecoType } from '@/types/domains/paper';
 
 export interface IconMapping {
   icon: LucideIcon;

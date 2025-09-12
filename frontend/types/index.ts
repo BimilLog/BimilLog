@@ -13,6 +13,3 @@ export * from './domains/comment'
 export * from './domains/notification'
 export * from './domains/paper'
 export * from './domains/admin'
-
-// API common types
-export * from './api/common'
