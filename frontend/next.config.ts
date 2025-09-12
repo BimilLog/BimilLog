@@ -35,6 +35,7 @@ const pwaConfig = {
 };
 
 const nextConfig = withPWA(pwaConfig)({
+    output: 'standalone',
     async redirects() {
         return [
             {

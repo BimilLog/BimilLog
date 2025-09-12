@@ -5,7 +5,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.QPostLike;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.post.out.post.PostLikeQueryAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,9 +36,6 @@ import static org.mockito.Mockito.verify;
 class PostLikeQueryAdapterTest {
 
     @Mock
-    private PostLikeRepository postLikeRepository;
-
-    @Mock
     private JPAQueryFactory jpaQueryFactory;
 
     private PostLikeQueryAdapter postLikeQueryAdapter;
@@ -49,7 +45,7 @@ class PostLikeQueryAdapterTest {
 
     @BeforeEach
     void setUp() {
-        postLikeQueryAdapter = new PostLikeQueryAdapter(postLikeRepository, jpaQueryFactory);
+        postLikeQueryAdapter = new PostLikeQueryAdapter(jpaQueryFactory);
         
         testUser = User.builder()
                 .id(1L)

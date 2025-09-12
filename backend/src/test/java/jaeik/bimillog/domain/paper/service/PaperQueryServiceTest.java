@@ -174,45 +174,6 @@ class PaperQueryServiceTest {
     }
 
     @Test
-    @DisplayName("메시지 ID로 조회 - 성공")
-    void shouldFindMessageById_WhenValidId() {
-        // Given
-        Long messageId = 123L;
-        Message expectedMessage = createMessage(messageId, 1L, "테스트 메시지");
-
-        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.of(expectedMessage));
-
-        // When
-        Optional<Message> result = paperQueryService.findMessageById(messageId);
-
-        // Then
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(messageId);
-        assertThat(result.get().getContent()).isEqualTo("테스트 메시지");
-
-        verify(paperQueryPort, times(1)).findMessageById(messageId);
-        verifyNoMoreInteractions(paperQueryPort);
-    }
-
-    @Test
-    @DisplayName("메시지 ID로 조회 - 메시지 없음")
-    void shouldFindMessageById_WhenMessageNotFound() {
-        // Given
-        Long messageId = 999L;
-
-        given(paperQueryPort.findMessageById(messageId)).willReturn(Optional.empty());
-
-        // When
-        Optional<Message> result = paperQueryService.findMessageById(messageId);
-
-        // Then
-        assertThat(result).isEmpty();
-
-        verify(paperQueryPort, times(1)).findMessageById(messageId);
-        verifyNoMoreInteractions(paperQueryPort);
-    }
-
-    @Test
     @DisplayName("다른 사용자 롤링페이퍼 방문 - null 또는 빈 사용자명 예외")
     void shouldThrowException_WhenInvalidUserName() {
         // Given - null userName

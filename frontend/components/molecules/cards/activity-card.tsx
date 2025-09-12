@@ -1,20 +1,20 @@
 import React from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-import {
-  Heart,
-  MessageCircle,
-  Eye,
-  Clock,
-  Calendar,
-  ThumbsUp,
-  FileText,
-  User,
-  Pin,
-  Flame,
-  TrendingUp,
-  Award,
+import { 
+  Heart, 
+  MessageCircle, 
+  Eye, 
+  Clock, 
+  ThumbsUp, 
+  FileText, 
+  User, 
+  Pin, 
+  Flame, 
+  TrendingUp, 
+  Award, 
+  Calendar 
 } from "lucide-react";
 import { SimplePost, SimpleComment } from "@/lib/api";
 import { formatKoreanDate } from "@/lib/date-utils";
@@ -73,7 +73,7 @@ const PopularityBadge = ({ postCacheFlag }: { postCacheFlag?: string }) => {
   );
 };
 
-const PostCard = ({ post, isLiked }: { post: SimplePost; isLiked: boolean }) => (
+const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = ({ post, isLiked }) => (
   <Card className="group bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
     <CardHeader className="pb-3">
       <div className="flex items-start justify-between">
@@ -159,7 +159,7 @@ const PostCard = ({ post, isLiked }: { post: SimplePost; isLiked: boolean }) => 
   </Card>
 );
 
-const CommentCard = ({ comment, isLiked }: { comment: SimpleComment; isLiked: boolean }) => (
+const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = ({ comment, isLiked }) => (
   <Card className="group bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
     <CardHeader className="pb-3">
       <div className="flex items-start justify-between">
@@ -220,14 +220,14 @@ const CommentCard = ({ comment, isLiked }: { comment: SimpleComment; isLiked: bo
   </Card>
 );
 
-export const ActivityCard: React.FC<ActivityCardProps> = ({
-  item,
-  type,
-  isLiked = false,
-  className,
+export const ActivityCard: React.FC<ActivityCardProps> = ({ 
+  item, 
+  type, 
+  isLiked = false, 
+  className 
 }) => {
   const cardClassName = className || "";
-  
+
   if (type === "post") {
     return (
       <div className={cardClassName}>

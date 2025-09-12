@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { boardApi, commentApi, type Post, type Comment } from "@/lib/api";
 
 interface CommentWithReplies extends Comment {

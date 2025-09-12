@@ -23,12 +23,14 @@ RUN ./gradlew build -x test --no-daemon
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# 빌드 단계(builder)에서 생성된 JAR 파일만 복사
-# 사용자께서 명시한 정확한 JAR 파일 경로를 사용합니다.
-COPY --from=builder /app/build/libs/BimilLog-2.0.0.jar app.jar
+# 빌드 단계(builder)에서 생성된 JAR 파일만 복사 (와일드카드로 버전 독립적)
+COPY --from=builder /app/build/libs/*.jar app.jar
 
 # 운영 환경 프로파일 활성화 (필요시 외부에서 변경 가능)
 ENV SPRING_PROFILES_ACTIVE=prod
+
+# 로그 디렉토리 생성
+RUN mkdir -p /app/logs
 
 # 애플리케이션 실행 (운영 환경 최적화 옵션 포함)
 ENTRYPOINT ["java", \

@@ -72,29 +72,6 @@ class PaperQueryAdapterTest {
     }
 
     @Test
-    @DisplayName("메시지 ID로 메시지 조회 - 성공")
-    void shouldFindMessageById_WhenValidId() {
-        // When
-        Optional<Message> result = paperQueryAdapter.findMessageById(testMessage1.getId());
-
-        // Then
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(testMessage1.getId());
-        assertThat(result.get().getContent()).isEqualTo("첫 번째 메시지");
-        assertThat(result.get().getDecoType()).isEqualTo(DecoType.APPLE);
-    }
-
-    @Test
-    @DisplayName("메시지 ID로 메시지 조회 - 존재하지 않는 ID")
-    void shouldReturnEmpty_WhenMessageNotFound() {
-        // When
-        Optional<Message> result = paperQueryAdapter.findMessageById(999L);
-
-        // Then
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     @DisplayName("사용자 ID로 메시지 목록 조회 - 성공")
     void shouldFindMessagesByUserId_WhenValidUserId() {
         // Given
@@ -127,10 +104,6 @@ class PaperQueryAdapterTest {
     @Test
     @DisplayName("null 및 빈 문자열 처리")
     void shouldHandleNullAndEmptyInputs() {
-        // null ID 처리
-        Optional<Message> nullIdResult = paperQueryAdapter.findMessageById(null);
-        assertThat(nullIdResult).isEmpty();
-
         // null userId 처리
         List<Message> nullUserIdResult = paperQueryAdapter.findMessagesByUserId(null);
         assertThat(nullUserIdResult).isEmpty();

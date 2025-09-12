@@ -1,7 +1,7 @@
 // Rolling paper utility functions
 
-import { DecoType, decoTypeMap } from '@/types/rolling-paper'
-import { getIconMapping } from './icon-mappings'
+import { DecoType, decoTypeMap } from '@/types/domains/paper'
+import { getIconMapping } from './constants/icon-mappings'
 
 // 헬퍼 함수들 - icon mapping 추가
 export const getDecoInfo = (decoType: DecoType | string) => {

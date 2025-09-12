@@ -3,10 +3,23 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Save } from "lucide-react";
 import { AuthHeader } from "@/components/organisms/auth-header";
+import dynamic from "next/dynamic";
 
 // 분리된 훅과 컴포넌트들 import
 import { useWriteForm } from "./hooks/useWriteForm";
-import { WritePageHeader, WriteForm, Breadcrumb } from "@/components";
+import { WritePageHeader, Breadcrumb } from "@/components";
+
+// WriteForm을 동적 import로 변경하여 Editor 컴포넌트 최적화
+const WriteForm = dynamic(() => import("@/components").then(mod => ({ default: mod.WriteForm })), {
+  loading: () => (
+    <div className="flex items-center justify-center p-8">
+      <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
+        <Save className="w-7 h-7 text-white animate-pulse" />
+      </div>
+    </div>
+  ),
+  ssr: false, // Editor는 클라이언트에서만 렌더링
+});
 
 export default function WritePostPage() {
   const { isLoading } = useAuth();

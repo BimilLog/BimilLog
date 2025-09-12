@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { boardApi } from "@/lib/api";
+import { useAuth, useToast } from "@/hooks";
+import { boardCommandApi } from "@/lib/api";
 import { stripHtml, validatePassword } from "@/lib/utils";
 
 export const useWriteForm = () => {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
+  const { showSuccess, showError, showWarning } = useToast();
   
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -18,7 +19,7 @@ export const useWriteForm = () => {
     const plainContent = stripHtml(content).trim();
 
     if (!title.trim() || !plainContent) {
-      alert("제목과 내용을 모두 입력해주세요.");
+      showWarning("입력 확인", "제목과 내용을 모두 입력해주세요.");
       return;
     }
 
@@ -28,7 +29,7 @@ export const useWriteForm = () => {
       validatedPassword = validatePassword(password, isAuthenticated);
     } catch (error) {
       if (error instanceof Error) {
-        alert(error.message);
+        showWarning("입력 확인", error.message);
       }
       return;
     }
@@ -42,13 +43,13 @@ export const useWriteForm = () => {
         password: validatedPassword,
       };
 
-      const response = await boardApi.createPost(postData);
+      const response = await boardCommandApi.createPost(postData);
       if (response.success && response.data) {
-        alert("게시글이 성공적으로 작성되었습니다!");
+        showSuccess("작성 완료", "게시글이 성공적으로 작성되었습니다!");
         router.push(`/board/post/${response.data.id}`);
       }
     } catch (error) {
-      alert("게시글 작성 중 오류가 발생했습니다.");
+      showError("작성 실패", "게시글 작성 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
     }

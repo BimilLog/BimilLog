@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { AuthHeader } from "@/components/organisms/auth-header";
 import { BoardSearch } from "@/components/organisms/board/board-search";
 import {
@@ -20,7 +20,7 @@ import { usePopularPosts } from "./hooks/usePopularPosts";
 import { BoardHeader } from "@/components/organisms/board/BoardHeader";
 import { BoardTabs } from "@/components/organisms/board/BoardTabs";
 
-export default function BoardClient() {
+function BoardClient() {
   const [activeTab, setActiveTab] = useState("all");
 
   // 게시판 데이터 관리
@@ -42,6 +42,11 @@ export default function BoardClient() {
   // 인기글 데이터 관리
   const { realtimePosts, weeklyPosts, legendPosts } =
     usePopularPosts(activeTab);
+
+  // 탭 변경 핸들러 메모이제이션
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab);
+  }, []);
 
   // 탭 변경 시 메인 데이터 조회
   useEffect(() => {
@@ -92,7 +97,7 @@ export default function BoardClient() {
         {/* 게시판 탭 */}
         <BoardTabs
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={handleTabChange}
           posts={posts}
           currentPage={currentPage}
           totalPages={totalPages}
@@ -133,3 +138,6 @@ export default function BoardClient() {
     </div>
   );
 }
+
+// 메모이제이션으로 성능 최적화
+export default memo(BoardClient);

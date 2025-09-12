@@ -1,17 +1,23 @@
-// Atoms - 가장 기본적인 UI 요소들
-export { Button } from './button';
-export { Input } from './input';
-export { Label } from './label';
-export { Textarea } from './textarea';
-export { Avatar } from './avatar';
-export { Badge } from './badge';
-export { Switch } from './switch';
-export { Icon } from './icon';
-export { Spinner } from './spinner';
-export { default as SafeHTML } from './SafeHTML';
-export { KakaoShareButton } from './kakao-share-button';
-export { DecoIcon, EmojiStyleDecoIcon } from './deco-icon';
+// Display components
+export { Avatar } from './display/avatar';
+export { Badge } from './display/badge';
+export { Icon } from './display/icon';
+export { DecoIcon, EmojiStyleDecoIcon } from './display/deco-icon';
+export { StatCard } from './display/stat-card';
 
-// Refactored Components
-export { StatCard } from "./stat-card";
-export { LoadingSpinner } from "./loading-spinner";
+// Form components
+export { Input } from './forms/input';
+export { Textarea } from './forms/textarea';
+export { Label } from './forms/label';
+
+// Feedback components
+export { Spinner, LoadingSpinner } from './feedback/spinner';
+
+// Action components
+export { Button, buttonVariants } from './actions/button';
+export { Switch } from './actions/switch';
+export { KakaoShareButton } from './actions/kakao-share-button';
+
+// Other components
+export { default as SafeHTML } from './SafeHTML';
+export { AuthLoadingScreen } from './AuthLoadingScreen';

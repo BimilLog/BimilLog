@@ -6,7 +6,7 @@ import { Button } from "@/components/atoms/button";
 import { useBrowserGuide } from "@/hooks/useBrowserGuide";
 import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
 import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";
-import { copyToClipboard } from "@/lib/clipboard";
+import { copyToClipboard } from "@/lib/utils/clipboard";
 
 interface BrowserGuideModalProps {
   isOpen: boolean;

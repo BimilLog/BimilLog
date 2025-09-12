@@ -14,12 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>롤링페이퍼 조회 서비스</h2>
  * <p>롤링페이퍼 도메인의 조회 작업을 담당하는 서비스입니다.</p>
- * <p>내 롤링페이퍼 조회, 타인 롤링페이퍼 방문, 메시지 단건 조회</p>
+ * <p>내 롤링페이퍼 조회, 타인 롤링페이퍼 방문</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -79,22 +78,5 @@ public class PaperQueryService implements PaperQueryUseCase {
         return messages.stream()
                 .map(VisitMessageDetail::from)
                 .toList();
-    }
-
-
-    /**
-     * <h3>메시지 ID로 메시지 조회</h3>
-     * <p>주어진 메시지 ID에 해당하는 메시지를 조회합니다.</p>
-     * <p>메시지의 존재성과 기본 정보를 검증합니다.</p>
-     * <p>다른 도메인에서 메시지 정보가 필요할 때 호출됩니다.</p>
-     *
-     * @param messageId 조회할 메시지의 ID
-     * @return 메시지 엔티티 (Optional)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Optional<Message> findMessageById(Long messageId) {
-        return paperQueryPort.findMessageById(messageId);
     }
 }

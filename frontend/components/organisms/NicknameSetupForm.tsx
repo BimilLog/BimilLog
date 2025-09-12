@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useRouter } from "next/navigation";
 import { userApi } from "@/lib/api";
-import { validateNickname } from "@/lib/inputValidation";
+import { validateNickname } from "@/lib/utils/validation";
 import { useToast } from "@/hooks/useToast";
 
 interface NicknameSetupFormProps {

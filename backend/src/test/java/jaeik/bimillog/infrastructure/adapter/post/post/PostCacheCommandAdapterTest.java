@@ -55,9 +55,6 @@ class PostCacheCommandAdapterTest {
 
     @BeforeEach
     void setUp() {
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
-        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
-        
         postCacheCommandAdapter = new PostCacheCommandAdapter(redisTemplate, jpaQueryFactory);
 
         testPostDetail = PostDetail.builder()
@@ -80,6 +77,9 @@ class PostCacheCommandAdapterTest {
     @DisplayName("정상 케이스 - 게시글 목록과 상세 캐시 저장")
     void shouldCachePosts_WhenValidPostsProvided() {
         // Given
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
+        
         List<PostDetail> postDetails = List.of(testPostDetail);
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         
@@ -118,6 +118,7 @@ class PostCacheCommandAdapterTest {
     @DisplayName("정상 케이스 - 캐시 삭제")
     void shouldDeleteCache_WhenValidCacheTypeProvided() {
         // Given
+        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         
         // When
@@ -131,6 +132,8 @@ class PostCacheCommandAdapterTest {
     @DisplayName("예외 케이스 - Redis 쓰기 오류 시 PostCustomException 발생")
     void shouldThrowCustomException_WhenRedisWriteError() {
         // Given
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
         doThrow(new RuntimeException("Redis connection failed"))
             .when(valueOperations).set(anyString(), any(), any(Duration.class));
 

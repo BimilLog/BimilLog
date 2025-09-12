@@ -3,7 +3,7 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: backend.Dockerfile
     container_name: bimillog-backend
     ports:
@@ -31,7 +31,3 @@ services:
 networks:
   bimillog-network:
     driver: bridge
-
-volumes:
-  logs:
-    driver: local

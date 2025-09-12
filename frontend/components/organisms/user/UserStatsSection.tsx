@@ -20,7 +20,7 @@ import {
   RefreshCw,
   Info,
 } from "lucide-react";
-import { calculateActivityScore, getActivityLevel, getNextLevelThreshold } from "@/lib/formatters";
+import { calculateActivityScore, getActivityLevel, getNextLevelThreshold } from "@/lib/utils/format";
 
 interface UserStatsProps {
   stats: {

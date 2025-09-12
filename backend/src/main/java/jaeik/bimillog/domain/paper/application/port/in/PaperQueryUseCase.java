@@ -1,18 +1,16 @@
 package jaeik.bimillog.domain.paper.application.port.in;
 
-import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.infrastructure.adapter.paper.in.web.PaperQueryController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>롤링페이퍼 조회 유스케이스</h2>
  * <p>롤링페이퍼 도메인의 조회 작업을 담당하는 유스케이스입니다.</p>
- * <p>내 롤링페이퍼 조회, 타인 롤링페이퍼 방문, 메시지 단건 조회</p>
+ * <p>내 롤링페이퍼 조회, 타인 롤링페이퍼 방문</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -45,16 +43,4 @@ public interface PaperQueryUseCase {
      * @since 2.0.0
      */
     List<VisitMessageDetail> visitPaper(String userName);
-
-    /**
-     * <h3>메시지 ID로 메시지 조회</h3>
-     * <p>주어진 메시지 ID에 해당하는 메시지를 조회합니다.</p>
-     * <p>Comment 도메인에서 댓글이 속한 메시지 정보를 확인할 때 호출됩니다.</p>
-     *
-     * @param messageId 조회할 메시지의 ID
-     * @return 메시지 엔티티 (Optional)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Optional<Message> findMessageById(Long messageId);
 }

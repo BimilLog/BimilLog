@@ -1,49 +1,33 @@
-// Molecules - 2개 이상의 Atoms가 결합된 단순한 UI 그룹
-export { Alert, AlertDescription, AlertTitle } from './alert';
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
-export { Popover, PopoverContent, PopoverTrigger } from './popover';
+// Card components
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './cards/card';
+export { ActivityCard } from './cards/activity-card';
+export { ProfileCard } from './cards/profile-card';
+
+// Modal components
+export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './modals/dialog';
+export { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './modals/sheet';
+export { Popover, PopoverContent, PopoverTrigger } from './modals/popover';
+export { ReportModal } from './modals/ReportModal';
+export { KakaoFriendsModal } from './modals/kakao-friends-modal';
+export { BrowserGuideModal } from './modals/browser-guide-modal';
+
+// Form components
+export { FormField } from './forms/form-field';
+export { default as Editor } from './forms/editor';
+export { SearchBox } from './forms/search-box';
+
+// Feedback components
+export { Alert, AlertDescription, AlertTitle } from './feedback/alert';
+export { ToastContainer, ToastComponent, type Toast, type ToastType } from './feedback/toast';
+export { Loading } from './feedback/loading';
+export { EmptyState } from './feedback/empty-state';
+
+// Other components
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './dropdown-menu';
 export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
-export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './dialog';
-export { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './sheet';
-export { ReportModal } from './ReportModal';
-export { KakaoFriendsModal } from './kakao-friends-modal';
-export { default as Editor } from './editor';
-export { SearchBox } from './search-box';
-export { FormField } from './form-field';
-
-// Molecules - 조합된 UI 컴포넌트들
-// 2개 이상의 atoms가 결합된 복합 컴포넌트들
-
-// Form & Input Components
-export * from './form-field';
-export * from './search-box';
-
-// Layout & Structure
-export * from './card';
-export * from './alert';
-export * from './tabs';
-
-// Interactive Components
-export * from './dialog';
-export * from './popover';
-export * from './dropdown-menu';
-export * from './select';
-export * from './sheet';
-
-// Content Components
-export * from './editor';
-export * from './ReportModal';
-export * from './kakao-friends-modal';
-
-// State Components
-export * from './loading';
-export * from './empty-state';
-
-// Refactored Components
-export { ActivityCard } from "./activity-card";
-export { ProfileCard } from "./profile-card";
-export { SettingsSection } from "./settings-section";
-export { ToastContainer, ToastComponent } from "./toast";
-export { SettingToggle } from "./setting-toggle"; 
+export { SettingsSection } from './settings-section';
+export { SettingToggle } from './setting-toggle';
+export { AdFitBanner } from './adfit-banner';
+export { ResponsiveAdFitBanner } from './responsive-adfit-banner';
+export { PWAInstallButton } from './pwa-install-button'; 

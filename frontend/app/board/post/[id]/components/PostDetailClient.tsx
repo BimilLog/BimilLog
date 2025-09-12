@@ -17,9 +17,8 @@ import { Post } from "@/lib/api";
 // 분리된 컴포넌트들 import
 import { PostHeader } from "./PostHeader";
 import { PostContent } from "./PostContent";
-import { CommentForm } from "./CommentForm";
-import { PopularComments } from "./PopularComments";
-import { CommentList } from "./CommentList";
+import { PostActions } from "./PostActions";
+import { CommentSection } from "./CommentSection";
 import { PasswordModal } from "./PasswordModal";
 
 // 분리된 훅들 import
@@ -161,40 +160,39 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
             isAuthenticated={isAuthenticated}
             onLike={postActions.handleLike}
           />
+          <PostActions
+            post={post}
+            commentCount={commentCount}
+            canModify={canModify}
+            isAuthenticated={isAuthenticated}
+            onDeletePost={postActions.handleDeletePost}
+            onLike={postActions.handleLike}
+          />
         </Card>
 
-        {/* 댓글 작성 폼 */}
-        <CommentForm
+        {/* 댓글 섹션 */}
+        <CommentSection
+          postId={post.id}
+          comments={comments}
+          popularComments={popularComments}
+          commentCount={commentCount}
           isAuthenticated={isAuthenticated}
+          
           newComment={commentActions.newComment}
           commentPassword={commentActions.commentPassword}
           isSubmittingComment={commentActions.isSubmittingComment}
           onCommentChange={commentActions.setNewComment}
           onPasswordChange={commentActions.setCommentPassword}
-          onSubmit={commentActions.handleCommentSubmit}
-        />
-
-        {/* 인기 댓글 */}
-        <PopularComments
-          comments={popularComments}
-          onLikeComment={commentActions.handleLikeComment}
-          onReplyTo={commentActions.setReplyingTo}
-          onCommentClick={commentActions.scrollToComment}
-        />
-
-        {/* 댓글 목록 */}
-        <CommentList
-          comments={comments}
-          commentCount={commentCount}
-          postId={post.id}
+          onSubmitComment={commentActions.handleCommentSubmit}
+          
           editingComment={commentActions.editingComment}
           editContent={commentActions.editContent}
           editPassword={commentActions.editPassword}
           replyingTo={commentActions.replyingTo}
           replyContent={commentActions.replyContent}
           replyPassword={commentActions.replyPassword}
-          isAuthenticated={isAuthenticated}
           isSubmittingReply={commentActions.isSubmittingReply}
+          
           onEditComment={commentActions.handleEditComment}
           onUpdateComment={commentActions.handleUpdateComment}
           onCancelEdit={commentActions.handleCancelEdit}
@@ -202,13 +200,16 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           onReplyTo={commentActions.setReplyingTo}
           onReplySubmit={commentActions.handleReplySubmit}
           onCancelReply={commentActions.handleCancelReply}
+          onLikeComment={commentActions.handleLikeComment}
+          
           setEditContent={commentActions.setEditContent}
           setEditPassword={commentActions.setEditPassword}
           setReplyContent={commentActions.setReplyContent}
           setReplyPassword={commentActions.setReplyPassword}
+          
           isMyComment={isMyComment}
-          onLikeComment={commentActions.handleLikeComment}
           canModifyComment={canModifyComment}
+          onCommentClick={commentActions.scrollToComment}
         />
 
         {/* Mobile Advertisement */}

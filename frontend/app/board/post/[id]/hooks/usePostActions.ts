@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { boardApi, commentApi, type Post, type Comment } from "@/lib/api";
+import { useAuth, useToast } from "@/hooks";
+import { boardCommandApi, commentCommandApi, type Post, type Comment } from "@/lib/api";
 
 export const usePostActions = (
   post: Post | null,
@@ -9,12 +9,13 @@ export const usePostActions = (
 ) => {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
+  const { showSuccess, showError, showWarning } = useToast();
 
   // 게시글 추천
   const handleLike = async () => {
     if (!post) return;
     try {
-      await boardApi.likePost(post.id);
+      await boardCommandApi.likePost(post.id);
       await onRefresh();
     } catch (error) {
     }
@@ -26,7 +27,7 @@ export const usePostActions = (
     try {
       // API는 파라미터를 받지만 실제로는 DELETE 메서드만 사용 (백엔드에서 처리)
       // 익명 게시글의 경우 password를 헤더나 바디에 포함하여 전송해야 할 수 있음
-      const response = await boardApi.deletePost(
+      const response = await boardCommandApi.deletePost(
         post.id,
         post.userId,
         password,
@@ -35,22 +36,23 @@ export const usePostActions = (
       );
 
       if (response.success) {
+        showSuccess("삭제 완료", "게시글이 성공적으로 삭제되었습니다.");
         router.push("/board");
       } else {
         if (
           response.error &&
           response.error.includes("게시글 비밀번호가 일치하지 않습니다")
         ) {
-          alert("비밀번호가 일치하지 않습니다.");
+          showError("삭제 실패", "비밀번호가 일치하지 않습니다.");
         } else {
-          alert(response.error || "게시글 삭제에 실패했습니다.");
+          showError("삭제 실패", response.error || "게시글 삭제에 실패했습니다.");
         }
       }
     } catch (error) {
       if (error instanceof Error && error.message.includes("403")) {
-        alert("비밀번호가 일치하지 않습니다.");
+        showError("삭제 실패", "비밀번호가 일치하지 않습니다.");
       } else {
-        alert("게시글 삭제 중 오류가 발생했습니다.");
+        showError("삭제 실패", "게시글 삭제 중 오류가 발생했습니다.");
       }
     }
   };
@@ -70,28 +72,29 @@ export const usePostActions = (
   const confirmDeleteComment = async (comment: Comment, password?: string) => {
     try {
       // password가 있으면 전달, 없으면 undefined로 통일
-      const response = await commentApi.deleteComment(
+      const response = await commentCommandApi.deleteComment(
         comment.id,
         password ? Number(password) : undefined
       );
 
       if (response.success) {
+        showSuccess("삭제 완료", "댓글이 성공적으로 삭제되었습니다.");
         await onRefresh();
       } else {
         if (
           response.error &&
           response.error.includes("댓글 비밀번호가 일치하지 않습니다")
         ) {
-          alert("비밀번호가 일치하지 않습니다.");
+          showError("삭제 실패", "비밀번호가 일치하지 않습니다.");
         } else {
-          alert(response.error || "댓글 삭제에 실패했습니다.");
+          showError("삭제 실패", response.error || "댓글 삭제에 실패했습니다.");
         }
       }
     } catch (error) {
       if (error instanceof Error && error.message.includes("403")) {
-        alert("비밀번호가 일치하지 않습니다.");
+        showError("삭제 실패", "비밀번호가 일치하지 않습니다.");
       } else {
-        alert("댓글 삭제 중 오류가 발생했습니다.");
+        showError("삭제 실패", "댓글 삭제 중 오류가 발생했습니다.");
       }
     }
   };
@@ -112,7 +115,7 @@ export const usePostActions = (
     targetComment?: Comment
   ) => {
     if (!password.trim()) {
-      alert("비밀번호를 입력해주세요.");
+      showWarning("입력 확인", "비밀번호를 입력해주세요.");
       return;
     }
 

@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useToast } from "@/hooks/useToast";
-import { copyRollingPaperLink } from "@/lib/clipboard";
+import { copyRollingPaperLink } from "@/lib/utils/clipboard";
 
 interface UseRollingPaperShareProps {
   nickname: string;

@@ -70,24 +70,6 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
     }
 
     /**
-     * <h3>타입별 정렬 점수 계산</h3>
-     * <p>각 PostCacheFlag 타입에 따라 게시글의 정렬 점수를 계산합니다.</p>
-     *
-     * @param type 캐시 타입
-     * @param post 게시글 상세 정보
-     * @return 정렬 점수 (높을수록 상위)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private double calculateScore(PostCacheFlag type, PostDetail post) {
-        return switch (type) {
-            case REALTIME, WEEKLY, LEGEND -> post.likeCount();
-            case NOTICE -> -post.createdAt().toEpochMilli();
-        };
-    }
-
-
-    /**
      * <h3>게시글 전체 캐시 (목록 + 상세)</h3>
      * <p>게시글 목록과 각 게시글의 상세 정보를 함께 캐시합니다.</p>
      * <p>PostDetail에서 PostSearchResult를 추출하여 목록 캐시를 생성하고,</p>
@@ -111,7 +93,11 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
             // 1. 목록 캐시: Sorted Set으로 저장 (postId, score)
             String listKey = metadata.key();
             for (PostDetail post : fullPosts) {
-                double score = calculateScore(type, post);
+                // 타입별 정렬 점수 계산
+                double score = switch (type) {
+                    case REALTIME, WEEKLY, LEGEND -> post.likeCount();
+                    case NOTICE -> -post.createdAt().toEpochMilli();
+                };
                 redisTemplate.opsForZSet().add(listKey, post.id().toString(), score);
             }
             // TTL 설정
@@ -184,7 +170,7 @@ public class PostCacheCommandAdapter implements PostCacheCommandPort {
             if (type == null && targetTypes.length == 0) {
                 // 특정 게시글의 모든 캐시 삭제 (기존 동작 유지)
                 deleteSpecificPostCache(postId);
-            } else if (type == null && targetTypes.length > 0) {
+            } else if (type == null) {
                 // 특정 게시글의 지정된 캐시만 삭제 (성능 최적화)
                 deleteSpecificPostCache(postId, targetTypes);
             } else {

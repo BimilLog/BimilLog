@@ -18,19 +18,6 @@ import java.util.Optional;
 public interface PaperQueryPort {
 
     /**
-     * <h3>메시지 ID로 메시지 조회</h3>
-     * <p>특정 ID에 해당하는 롤링페이퍼 메시지를 조회합니다.</p>
-     * <p>메시지 존재성 확인과 상세 정보 제공을 위해 사용됩니다.</p>
-     * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 메시지 삭제 전 존재성 검증 시 호출됩니다.</p>
-     *
-     * @param messageId 조회할 메시지의 ID
-     * @return Optional<Message> 조회된 메시지 엔티티 (존재하지 않으면 Optional.empty())
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Optional<Message> findMessageById(Long messageId);
-
-    /**
      * <h3>사용자 ID로 메시지 조회</h3>
      * <p>특정 사용자의 롤링페이퍼에 작성된 모든 메시지를 조회합니다.</p>
      * <p>내 롤링페이퍼 조회 시 사용됩니다.</p>

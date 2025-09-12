@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { commentApi, type Comment } from "@/lib/api";
+import { useAuth, useToast } from "@/hooks";
+import { commentCommandApi, type Comment } from "@/lib/api";
 import { validatePassword } from "@/lib/utils";
 
 export const useCommentActions = (
@@ -8,6 +8,7 @@ export const useCommentActions = (
   onRefresh: () => Promise<void>
 ) => {
   const { user, isAuthenticated } = useAuth();
+  const { showSuccess, showError, showWarning } = useToast();
 
   // 댓글 작성 상태
   const [newComment, setNewComment] = useState("");
@@ -28,7 +29,7 @@ export const useCommentActions = (
   // 댓글 작성
   const handleCommentSubmit = useCallback(async () => {
     if (!newComment.trim()) {
-      alert("댓글 내용을 입력해주세요.");
+      showWarning("입력 확인", "댓글 내용을 입력해주세요.");
       return;
     }
 
@@ -36,7 +37,7 @@ export const useCommentActions = (
     try {
       const validatedPassword = validatePassword(commentPassword, isAuthenticated);
       
-      await commentApi.createComment({
+      await commentCommandApi.createComment({
         postId: Number(postId),
         content: newComment,
         password: validatedPassword,
@@ -47,9 +48,9 @@ export const useCommentActions = (
       await onRefresh();
     } catch (error) {
       if (error instanceof Error) {
-        alert(error.message);
+        showError("작성 실패", error.message);
       } else {
-        alert("댓글 작성 중 오류가 발생했습니다.");
+        showError("작성 실패", "댓글 작성 중 오류가 발생했습니다.");
       }
     } finally {
       setIsSubmittingComment(false);
@@ -59,7 +60,7 @@ export const useCommentActions = (
   // 답글 작성
   const handleReplySubmit = useCallback(async () => {
     if (!replyContent.trim()) {
-      alert("답글 내용을 입력해주세요.");
+      showWarning("입력 확인", "답글 내용을 입력해주세요.");
       return;
     }
     if (!replyingTo) return;
@@ -68,7 +69,7 @@ export const useCommentActions = (
     try {
       const validatedPassword = validatePassword(replyPassword, isAuthenticated);
       
-      await commentApi.createComment({
+      await commentCommandApi.createComment({
         postId: Number(postId),
         content: replyContent,
         parentId: replyingTo.id,
@@ -81,9 +82,9 @@ export const useCommentActions = (
       await onRefresh();
     } catch (error) {
       if (error instanceof Error) {
-        alert(error.message);
+        showError("답글 작성 실패", error.message);
       } else {
-        alert("답글 작성 중 오류가 발생했습니다.");
+        showError("답글 작성 실패", "답글 작성 중 오류가 발생했습니다.");
       }
     } finally {
       setIsSubmittingReply(false);
@@ -100,10 +101,10 @@ export const useCommentActions = (
   // 댓글 추천
   const handleLikeComment = useCallback(async (comment: Comment) => {
     try {
-      await commentApi.likeComment(comment.id);
+      await commentCommandApi.likeComment(comment.id);
       await onRefresh();
     } catch (error) {
-      alert("댓글 추천 중 오류가 발생했습니다.");
+      showError("추천 실패", "댓글 추천 중 오류가 발생했습니다.");
     }
   }, [onRefresh]);
 
@@ -125,7 +126,7 @@ export const useCommentActions = (
   const handleUpdateComment = useCallback(async () => {
     if (!editingComment) return;
     if (!editContent.trim()) {
-      alert("수정할 내용을 입력해주세요.");
+      showWarning("입력 확인", "수정할 내용을 입력해주세요.");
       return;
     }
 
@@ -140,13 +141,13 @@ export const useCommentActions = (
           validatedPassword = validatePassword(editPassword, false);
         } catch (error) {
           if (error instanceof Error) {
-            alert(error.message);
+            showWarning("입력 확인", error.message);
           }
           return;
         }
       }
 
-      await commentApi.updateComment(editingComment.id, {
+      await commentCommandApi.updateComment(editingComment.id, {
         content: editContent,
         password: validatedPassword,
       });
@@ -156,7 +157,7 @@ export const useCommentActions = (
       setEditPassword("");
       await onRefresh();
     } catch (error) {
-      alert("댓글 수정 중 오류가 발생했습니다. 비밀번호를 확인해주세요.");
+      showError("수정 실패", "댓글 수정 중 오류가 발생했습니다. 비밀번호를 확인해주세요.");
     }
   }, [editingComment, editContent, editPassword, isAuthenticated, user?.userName, onRefresh]);
 

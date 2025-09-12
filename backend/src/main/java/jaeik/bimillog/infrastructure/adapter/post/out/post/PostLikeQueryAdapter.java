@@ -3,10 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.post.out.post;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
-import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.QPostLike;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -26,7 +23,6 @@ import java.util.stream.Collectors;
 @Repository
 @RequiredArgsConstructor
 public class PostLikeQueryAdapter implements PostLikeQueryPort {
-    private final PostLikeRepository postLikeRepository;
     private final JPAQueryFactory jpaQueryFactory;
     
     private static final QPostLike postLike = QPostLike.postLike;

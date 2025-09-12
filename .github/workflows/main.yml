@@ -39,10 +39,8 @@ jobs:
 
       - name: Build and push backend image
         run: |
-          # Build only backend image (Redis uses official image)
-          docker-compose build backend
-          
-          # Tag and push backend image
+          cd backend
+          docker build -f backend.Dockerfile -t bimillog-backend .
           docker tag bimillog-backend:latest $IMAGE_REPO:backend
           docker push $IMAGE_REPO:backend
 
@@ -54,8 +52,7 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           script: |
             ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
-              # Create docker-compose.yml on server
-              cat > docker-compose.yml << 'EOF'
+            cat > docker-compose.yml << 'EOF'
             version: '3.8'
             
             services:
@@ -81,7 +78,9 @@ jobs:
                   - "6379:6379"
                 networks:
                   - bimillog-network
-                command: redis-server --requirepass ${{ secrets.REDIS_PASSWORD }}
+                command: redis-server --requirepass ${REDIS_PASSWORD}
+                environment:
+                  - REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
                 restart: unless-stopped
             
             networks:
@@ -90,7 +89,7 @@ jobs:
             EOF
               
               # Login to Docker Hub and deploy using compose
-              docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+              echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
               docker-compose down || true
               docker-compose pull
               docker-compose up -d
@@ -98,8 +97,9 @@ jobs:
 
       - name: Build and push frontend image
         run: |
-          docker build -t frontend ./frontend
-          docker tag frontend:latest $IMAGE_REPO:frontend
+          cd frontend
+          docker build -t bimillog-frontend .
+          docker tag bimillog-frontend:latest $IMAGE_REPO:frontend
           docker push $IMAGE_REPO:frontend
 
       - name: Deploy Frontend via Bastion Host
@@ -110,33 +110,10 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           script: |
             ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             docker pull jaeikjeong/bimillog:frontend
             docker stop bimillog-frontend || true
             docker rm bimillog-frontend || true
             docker run -d --name bimillog-frontend -p 3000:3000 jaeikjeong/bimillog:frontend
-            ENDSSH  
+            ENDSSH
 
-      
-      
-
-      
-
-      
-
-
-
-     
-
-
-      
-
-      
-
-      
-            
-            
-            
-            
-            
-            

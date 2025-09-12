@@ -15,7 +15,7 @@ import java.util.Optional;
 /**
  * <h2>롤링페이퍼 조회 어댑터</h2>
  * <p>롤링페이퍼 도메인의 조회 작업을 담당하는 어댑터입니다.</p>
- * <p>메시지 ID로 조회, 사용자 ID로 조회, 사용자명으로 조회, 소유자 ID 조회</p>
+ * <p>사용자 ID로 조회, 사용자명으로 조회, 소유자 ID 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -25,28 +25,6 @@ import java.util.Optional;
 public class PaperQueryAdapter implements PaperQueryPort {
 
     private final JPAQueryFactory jpaQueryFactory;
-
-    /**
-     * <h3>메시지 ID로 메시지 조회</h3>
-     * <p>특정 ID에 해당하는 메시지 엔티티를 조회합니다.</p>
-     * <p>메시지 존재 여부 확인과 권한 검증에 사용됩니다.</p>
-     * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 존재성 검증 시 호출됩니다.</p>
-     *
-     * @param messageId 조회할 메시지의 ID
-     * @return Optional<Message> 조회된 메시지 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Optional<Message> findMessageById(Long messageId) {
-        QMessage message = QMessage.message;
-        return Optional.ofNullable(
-                jpaQueryFactory
-                        .selectFrom(message)
-                        .where(message.id.eq(messageId))
-                        .fetchOne()
-        );
-    }
 
     /**
      * <h3>사용자 ID로 내 롤링페이퍼 메시지 목록 조회</h3>

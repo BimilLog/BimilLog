@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { storage } from "@/lib/storage";
+import { storage } from "@/lib/utils/storage";
 
 export function useBrowserGuide() {
   const [isKakaoInApp, setIsKakaoInApp] = useState(false);
