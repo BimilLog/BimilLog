@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { userApi, authApi, type Setting } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -29,27 +29,38 @@ import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
 
 export default function SettingsPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [settings, setSettings] = useState<Setting | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
   const { showSuccess, showError, toasts, removeToast } = useToast();
+  const isMounted = useRef(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
       router.push("/login");
       return;
     }
 
-    loadSettings();
-  }, [isAuthenticated, router]);
+    if (isAuthenticated) {
+      loadSettings();
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const loadSettings = async () => {
     try {
       setLoading(true);
       const response = await userApi.getUserSettings();
+      if (!isMounted.current) return;
+      
       if (response.success && response.data) {
         setSettings(response.data);
       } else {
@@ -59,18 +70,21 @@ export default function SettingsPage() {
         );
       }
     } catch (error) {
+      if (!isMounted.current) return;
       console.error("설정 로드 실패:", error);
       showError(
         "설정 로드 실패",
         "설정을 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해주세요."
       );
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   };
 
   const updateSettings = async (newSettings: Partial<Setting>) => {
-    if (!settings) return;
+    if (!settings || !isMounted.current) return;
 
     // 현재 설정값과 새로운 설정값을 병합하여 전체 설정 객체 생성
     const fullSettings: Setting = {
@@ -82,6 +96,8 @@ export default function SettingsPage() {
       setSaving(true);
       // 항상 전체 설정 객체를 전송
       const response = await userApi.updateUserSettings(fullSettings);
+      if (!isMounted.current) return;
+      
       if (response.success) {
         setSettings(fullSettings);
         showSuccess("설정 저장 완료", "알림 설정이 성공적으로 저장되었습니다.");
@@ -90,19 +106,22 @@ export default function SettingsPage() {
           "설정 저장 실패",
           response.error || "설정 저장 중 오류가 발생했습니다. 다시 시도해주세요."
         );
-        // 실패 시 이전 설정으로 되돌리기
-        await loadSettings();
+        // 실패 시 UI만 원래대로 되돌리기 (불필요한 네트워크 요청 제거)
+        setSettings(settings);
       }
     } catch (error) {
+      if (!isMounted.current) return;
       console.error("설정 저장 실패:", error);
       showError(
         "설정 저장 실패",
         "설정 저장 중 오류가 발생했습니다. 다시 시도해주세요."
       );
-      // 실패 시 이전 설정으로 되돌리기
-      await loadSettings();
+      // 실패 시 UI만 원래대로 되돌리기
+      setSettings(settings);
     } finally {
-      setSaving(false);
+      if (isMounted.current) {
+        setSaving(false);
+      }
     }
   };
 
@@ -138,12 +157,16 @@ export default function SettingsPage() {
     try {
       setWithdrawing(true);
       const response = await authApi.deleteAccount();
+      if (!isMounted.current) return;
+      
       if (response.success) {
         showSuccess("회원탈퇴 완료", "회원탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사했습니다.");
         // 잠시 기다렸다가 홈으로 이동
         setTimeout(() => {
-          router.push("/");
-          window.location.reload();
+          if (isMounted.current) {
+            router.push("/");
+            window.location.reload();
+          }
         }, 2000);
       } else {
         showError(
@@ -152,13 +175,16 @@ export default function SettingsPage() {
         );
       }
     } catch (error) {
+      if (!isMounted.current) return;
       console.error("회원탈퇴 실패:", error);
       showError(
         "회원탈퇴 실패",
         error instanceof Error ? error.message : "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
       );
     } finally {
-      setWithdrawing(false);
+      if (isMounted.current) {
+        setWithdrawing(false);
+      }
     }
   };
 
@@ -169,7 +195,8 @@ export default function SettingsPage() {
       settings.postFeaturedNotification === true
   );
 
-  if (!isAuthenticated) {
+  // 로딩 중이거나 인증되지 않은 경우 즉시 null 반환
+  if (isLoading || !isAuthenticated) {
     return null;
   }
 

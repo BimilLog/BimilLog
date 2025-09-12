@@ -23,6 +23,7 @@ export { Icon } from './atoms/icon';
 export { Spinner } from './atoms/spinner';
 export { default as SafeHTML } from './atoms/SafeHTML';
 export { KakaoShareButton } from './atoms/kakao-share-button';
+export { DecoIcon, EmojiStyleDecoIcon } from './atoms/deco-icon';
 
 // ==============================================
 // MOLECULES - 조합된 컴포넌트들

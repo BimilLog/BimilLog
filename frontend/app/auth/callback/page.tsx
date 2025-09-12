@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,13 +15,15 @@ export default function AuthCallbackPage() {
   const { refreshUser } = useAuth();
   const { fetchNotifications } = useNotifications();
   const { showSuccess, showError, toasts, removeToast } = useToast();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const isProcessingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (isProcessing) {
+    if (isProcessingRef.current) {
       return;
     }
-    setIsProcessing(true);
+    isProcessingRef.current = true;
+    abortControllerRef.current = new AbortController();
 
     const handleCallback = async () => {
       const code = searchParams.get("code");
@@ -120,9 +122,13 @@ export default function AuthCallbackPage() {
 
     handleCallback();
 
-    // cleanup: 컴포넌트 언마운트 시 processing 상태 초기화
+    // cleanup: 컴포넌트 언마운트 시 처리
     return () => {
-      setIsProcessing(false);
+      isProcessingRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
     };
   }, [
     router,

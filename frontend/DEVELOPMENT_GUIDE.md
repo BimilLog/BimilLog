@@ -1,17 +1,17 @@
-# 🚀 GrowFarm 개발 가이드
+# GrowFarm 개발 가이드
 
 > 비밀로그 프로젝트의 개발 패턴, 컴포넌트 구조, 성능 최적화 가이드
 
-## 📋 빠른 참조
+## 빠른 참조
 
-### 🎯 프로젝트 핵심 정보
+### 프로젝트 핵심 정보
 
 - **서비스**: 롤링페이퍼 + 커뮤니티 게시판
 - **타겟**: 모바일 퍼스트 (익명 메시지 플랫폼)
 - **브랜드**: Pink-Purple-Indigo 그라디언트
 - **스택**: Next.js 15.2.4 + TypeScript + Tailwind + Spring Boot
 
-### 🎨 디자인 시스템 핵심
+### 디자인 시스템 핵심
 
 ```css
 /* 메인 브랜드 그라디언트 */
@@ -28,18 +28,18 @@ min-h-[44px] px-4 active:scale-[0.98] transition-transform
 
 ---
 
-## 🧬 아토믹 디자인 구조
+## 아토믹 디자인 구조
 
 ### 사용 패턴
 
 ```typescript
-// ✅ 권장: 메인 export에서 일괄 import
+// 권장: 메인 export에서 일괄 import
 import { Button, Card, AuthHeader, HomeHero } from "@/components";
 
-// ✅ 호환성: 기존 UI 경로 지원
+// 호환성: 기존 UI 경로 지원
 import { Button } from "@/components/ui/button";
 
-// ✅ 직접: 아토믹 레벨별 import
+// 직접: 아토믹 레벨별 import
 import { Button } from "@/components/atoms/button";
 import { HomeHero } from "@/components/organisms/home/HomeHero";
 ```
@@ -134,7 +134,7 @@ const useActions = (id: string, onRefresh: () => void) => {
 
 ---
 
-## 🎯 컴포넌트 개발 패턴
+## 컴포넌트 개발 패턴
 
 ### 새 컴포넌트 생성 템플릿
 
@@ -205,7 +205,7 @@ interface ComponentProps extends BaseProps, ActionProps, DataProps {
 
 ---
 
-## 🎨 스타일링 가이드
+## 스타일링 가이드
 
 ### 일관된 스타일 패턴
 
@@ -473,11 +473,11 @@ useEffect(() => {
 
 ```typescript
 // 문제: 불변성 위반
-// ❌ 잘못된 방법
+// 잘못된 방법
 state.push(newItem);
 setState(state);
 
-// ✅ 올바른 방법
+// 올바른 방법
 setState((prev) => [...prev, newItem]);
 ```
 
@@ -485,10 +485,10 @@ setState((prev) => [...prev, newItem]);
 
 ```typescript
 // Tailwind 클래스명 확인
-// ❌ 동적 클래스명 (Tailwind가 인식 못함)
+// 동적 클래스명 (Tailwind가 인식 못함)
 className={`bg-${color}-500`}
 
-// ✅ 완전한 클래스명 사용
+// 완전한 클래스명 사용
 className={color === 'blue' ? 'bg-blue-500' : 'bg-red-500'}
 ```
 

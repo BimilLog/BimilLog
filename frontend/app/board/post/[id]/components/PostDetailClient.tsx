@@ -26,6 +26,7 @@ import { PasswordModal } from "./PasswordModal";
 import { usePostDetail } from "../hooks/usePostDetail";
 import { useCommentActions } from "../hooks/useCommentActions";
 import { usePostActions } from "../hooks/usePostActions";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   initialPost: Post;
@@ -33,6 +34,9 @@ interface Props {
 }
 
 export default function PostDetailClient({ initialPost, postId }: Props) {
+  // 인증 상태 가져오기
+  const { isAuthenticated } = useAuth();
+  
   // 게시글 상세 데이터 관리
   const {
     post,
@@ -154,14 +158,14 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           />
           <PostContent
             post={post}
-            isAuthenticated={true}
+            isAuthenticated={isAuthenticated}
             onLike={postActions.handleLike}
           />
         </Card>
 
         {/* 댓글 작성 폼 */}
         <CommentForm
-          isAuthenticated={true}
+          isAuthenticated={isAuthenticated}
           newComment={commentActions.newComment}
           commentPassword={commentActions.commentPassword}
           isSubmittingComment={commentActions.isSubmittingComment}
@@ -189,7 +193,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           replyingTo={commentActions.replyingTo}
           replyContent={commentActions.replyContent}
           replyPassword={commentActions.replyPassword}
-          isAuthenticated={true}
+          isAuthenticated={isAuthenticated}
           isSubmittingReply={commentActions.isSubmittingReply}
           onEditComment={commentActions.handleEditComment}
           onUpdateComment={commentActions.handleUpdateComment}
@@ -210,21 +214,13 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
         {/* Mobile Advertisement */}
         <div className="mt-8 mb-6">
           <div className="flex justify-center px-2">
-            {(() => {
-              const adUnit = getAdUnit("MOBILE_BANNER");
-              return adUnit ? (
-                <AdFitBanner
-                  adUnit={adUnit}
-                  width={AD_SIZES.BANNER_320x50.width}
-                  height={AD_SIZES.BANNER_320x50.height}
-                  onAdFail={() => {
-                    if (process.env.NODE_ENV === 'development') {
-                      console.log("게시글 상세 페이지 광고 로딩 실패");
-                    }
-                  }}
-                />
-              ) : null;
-            })()}
+            {getAdUnit("MOBILE_BANNER") && (
+              <AdFitBanner
+                adUnit={getAdUnit("MOBILE_BANNER")!}
+                width={AD_SIZES.BANNER_320x50.width}
+                height={AD_SIZES.BANNER_320x50.height}
+              />
+            )}
           </div>
         </div>
 

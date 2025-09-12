@@ -28,7 +28,7 @@ public class PaperCommandController {
     /**
      * <h3>롤링페이퍼 메시지 작성 API</h3>
      * <p>메시지 작성 POST 요청을 처리합니다.</p>
-     * <p>익명 사용자도 접근 가능하며, 그리드 레이아웃에 맞는 위치와 크기를 지정할 수 있습니다.</p>
+     * <p>익명 사용자도 접근 가능하며, 그리드 레이아웃에 맞는 좌표를 지정할 수 있습니다.</p>
      *
      * @param userName   메시지를 작성할 롤링페이퍼 소유자의 사용자명
      * @param messageDTO 작성할 메시지 정보
@@ -42,7 +42,7 @@ public class PaperCommandController {
             @RequestBody @Valid MessageDTO messageDTO) {
         paperCommandUseCase.writeMessage(userName, messageDTO.getDecoType(), 
                 messageDTO.getAnonymity(), messageDTO.getContent(), 
-                messageDTO.getWidth(), messageDTO.getHeight());
+                messageDTO.getX(), messageDTO.getY());
         return ResponseEntity.ok("메시지가 작성되었습니다.");
     }
 

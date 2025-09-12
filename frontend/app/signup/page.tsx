@@ -54,16 +54,32 @@ export default function SignUpPage() {
   useEffect(() => {
     if (needsNickname) {
       const storedUuid = sessionStorage.getItem("tempUserUuid");
-      if (storedUuid) {
-        setTempUuid(storedUuid);
+      if (storedUuid && storedUuid.length > 0) {
+        // UUID 유효성 검증 (UUID 형식 확인)
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(storedUuid)) {
+          setTempUuid(storedUuid);
+        } else {
+          console.error("Invalid UUID format:", storedUuid);
+          if (isMounted.current) {
+            showError("회원가입 오류", "잘못된 회원가입 정보입니다. 다시 로그인해주세요.");
+            setTimeout(() => {
+              if (isMounted.current) {
+                router.push("/login");
+              }
+            }, 2000);
+          }
+        }
       } else {
         // UUID가 없는 경우 로그인 페이지로 리다이렉트
-        showError("회원가입 오류", "회원가입 정보가 없습니다. 다시 로그인해주세요.");
-        setTimeout(() => {
-          if (isMounted.current) {
-            router.push("/login");
-          }
-        }, 2000);
+        if (isMounted.current) {
+          showError("회원가입 오류", "회원가입 정보가 없습니다. 다시 로그인해주세요.");
+          setTimeout(() => {
+            if (isMounted.current) {
+              router.push("/login");
+            }
+          }, 2000);
+        }
       }
     }
   }, [needsNickname, router, showError]);
@@ -86,10 +102,12 @@ export default function SignUpPage() {
   };
 
   const handleCheckNickname = async () => {
-    if (!isNicknameFormatValid) return;
+    if (!isNicknameFormatValid || !isMounted.current) return;
     setIsChecking(true);
     try {
       const response = await userApi.checkUserName(nickname);
+      if (!isMounted.current) return;
+      
       if (response.success) {
         const isAvailable = response.data ?? false;
         setIsNicknameAvailable(isAvailable);
@@ -105,19 +123,32 @@ export default function SignUpPage() {
         );
       }
     } catch (error) {
+      if (!isMounted.current) return;
       console.error(error);
       setIsNicknameAvailable(false);
       setNicknameMessage("닉네임 확인 중 오류가 발생했습니다.");
     } finally {
-      setIsChecking(false);
+      if (isMounted.current) {
+        setIsChecking(false);
+      }
     }
   };
 
   const handleSetNickname = async () => {
-    if (!isNicknameFormatValid || !isNicknameAvailable || !tempUuid) return;
+    if (!isNicknameFormatValid || !isNicknameAvailable || !tempUuid || !isMounted.current) return;
+    
+    // UUID 유효성 재확인
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tempUuid)) {
+      showError("회원가입 오류", "잘못된 회원가입 정보입니다.");
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       const response = await authApi.signUp(nickname, tempUuid);
+      if (!isMounted.current) return;
+      
       if (response.success) {
         // 세션스토리지에서 임시 UUID 제거
         sessionStorage.removeItem("tempUserUuid");
@@ -133,14 +164,19 @@ export default function SignUpPage() {
         }
       } else {
         const errorMessage = response.error || "회원가입에 실패했습니다.";
-        showError("회원가입 실패", errorMessage);
-        setIsNicknameAvailable(false);
+        if (isMounted.current) {
+          showError("회원가입 실패", errorMessage);
+          setIsNicknameAvailable(false);
+        }
       }
     } catch (error) {
+      if (!isMounted.current) return;
       console.error(error);
       showError("회원가입 실패", "오류가 발생했습니다.");
     } finally {
-      setIsSubmitting(false);
+      if (isMounted.current) {
+        setIsSubmitting(false);
+      }
     }
   };
 

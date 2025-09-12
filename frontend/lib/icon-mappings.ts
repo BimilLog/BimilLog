@@ -2,7 +2,7 @@ import {
   // 과일 관련 아이콘
   Apple, Cherry, Grape,
   // 음료 관련 아이콘
-  Coffee, Wine, Beer, Cup, CupSoda,
+  Coffee, Wine, Beer, CupSoda,
   // 음식 관련 아이콘
   Cake, Pizza, Fish, Soup, Egg, Cookie, Beef,
   // 동물 관련 아이콘
@@ -13,10 +13,10 @@ import {
   // 몬스터/판타지 관련 아이콘
   Skull, Flame, Ghost, Eye, Zap,
   // 기본 모양 아이콘
-  Circle, Package, Flask, Utensils, Shield, Snowflake,
+  Circle, Package, Utensils, Shield, Snowflake, GlassWater,
   // 기타 아이콘
-  Baby, HelpCircle, Rabbit, Bug, FootPrints, Milk, Sandwich,
-  Drumstick, Sausage, Cucumber,
+  Baby, HelpCircle, Rabbit, Bug, Footprints, Milk, Sandwich,
+  Drumstick,
   type LucideIcon
 } from 'lucide-react';
 import { DecoType } from './api';
@@ -159,7 +159,7 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     bgColor: 'bg-purple-100'
   },
   SOJU: { 
-    icon: Flask, 
+    icon: GlassWater, 
     color: 'text-blue-600',
     bgColor: 'bg-blue-100'
   },
@@ -169,7 +169,7 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     bgColor: 'bg-amber-100'
   },
   BUBBLETEA: { 
-    icon: Cup, 
+    icon: CupSoda, 
     color: 'text-pink-600',
     bgColor: 'bg-pink-100'
   },
@@ -246,7 +246,7 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     bgColor: 'bg-green-100'
   },
   SUNDAE: { 
-    icon: Sausage, 
+    icon: Sandwich, 
     color: 'text-gray-600',
     bgColor: 'bg-gray-100'
   },
@@ -276,7 +276,7 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     bgColor: 'bg-yellow-100'
   },
   PICKLE: { 
-    icon: Cucumber, 
+    icon: Leaf, 
     color: 'text-green-600',
     bgColor: 'bg-green-100'
   },
@@ -318,7 +318,7 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     bgColor: 'bg-yellow-100'
   },
   ELEPHANT: { 
-    icon: FootPrints, 
+    icon: Footprints, 
     color: 'text-gray-600',
     bgColor: 'bg-gray-100'
   },

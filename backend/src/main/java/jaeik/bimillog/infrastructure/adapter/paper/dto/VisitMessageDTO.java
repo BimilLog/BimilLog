@@ -31,15 +31,15 @@ public class VisitMessageDTO {
 
     private DecoType decoType;
 
-    private int width;
+    private int x;
 
-    private int height;
+    private int y;
 
     /**
      * <h3>VisitMessageDetail VO에서 VisitMessageDTO 변환</h3>
      * <p>도메인 계층의 VisitMessageDetail 값 객체를 인프라스트럭처 계층의 DTO로 변환합니다.</p>
      * <p>메시지 내용을 제외한 그리드 레이아웃 정보만 매핑하여 프라이버시를 보호하면서도 
-     * 방문자가 메시지 위치를 파악할 수 있도록 합니다.</p>
+     * 방문자가 메시지 좌표를 파악할 수 있도록 합니다.</p>
      * <p>롤링페이퍼 방문 API 응답 생성 시 PaperQueryController에서 호출되어 도메인 데이터를 HTTP 응답용 DTO로 변환합니다.</p>
      *
      * @param visitMessageDetail 변환할 VisitMessageDetail 도메인 값 객체 (레이아웃 정보만 포함)
@@ -52,8 +52,8 @@ public class VisitMessageDTO {
         dto.id = visitMessageDetail.id();
         dto.userId = visitMessageDetail.userId();
         dto.decoType = visitMessageDetail.decoType();
-        dto.width = visitMessageDetail.width();
-        dto.height = visitMessageDetail.height();
+        dto.x = visitMessageDetail.width();
+        dto.y = visitMessageDetail.height();
         return dto;
     }
 }

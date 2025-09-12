@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { rollingPaperApi } from "@/lib/api";
+import { ErrorHandler } from "@/lib/error-handler";
 import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
 import { RecentVisits } from "@/app/rolling-paper/components/RecentVisits";
 import { AuthHeader } from "@/components/organisms/auth-header";
@@ -76,7 +77,8 @@ export default function VisitClient() {
       }
     } catch (error) {
       console.error("Search error:", error);
-      setSearchError("검색 중 오류가 발생했어요. 다시 시도해 주세요.");
+      const appError = ErrorHandler.mapApiError(error);
+      setSearchError(appError.message);
     } finally {
       setIsSearching(false);
     }

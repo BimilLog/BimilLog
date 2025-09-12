@@ -1,8 +1,8 @@
-# 🧬 아토믹 디자인 패턴 가이드
+# 아토믹 디자인 패턴 가이드
 
 이 프로젝트는 Brad Frost의 아토믹 디자인 방법론을 적용한 확장 가능한 컴포넌트 시스템입니다.
 
-## 📁 폴더 구조
+## 폴더 구조
 
 ```
 frontend/components/
@@ -13,7 +13,7 @@ frontend/components/
 └── ui.ts          # 호환성을 위한 re-export 파일
 ```
 
-## 🔧 사용 방법
+## 사용 방법
 
 ### 새로운 아토믹 구조 사용 (권장)
 
@@ -39,7 +39,7 @@ import { Button } from "@/components/atoms/button";
 import { Card } from "@/components/molecules/card";
 ```
 
-## 🎯 컴포넌트 개발 가이드라인
+## 컴포넌트 개발 가이드라인
 
 ### Atoms 개발 원칙
 
@@ -59,7 +59,7 @@ import { Card } from "@/components/molecules/card";
 - 상태 관리와 비즈니스 로직 포함
 - API 호출 및 데이터 처리
 
-## 🎨 디자인 토큰 시스템
+## 디자인 토큰 시스템
 
 완전한 디자인 토큰 시스템이 구현되어 있습니다. `@/lib/design-tokens`에서 사용할 수 있습니다.
 
@@ -99,7 +99,7 @@ const baseSpacing = designTokens.spacing[4];
 3. **Import 경로 업데이트**: 새로운 경로로 import 구문 변경
 4. **Index 파일 업데이트**: 해당 레벨의 index.ts에 export 추가
 
-## 🎯 사용 권장 사항
+## 사용 권장 사항
 
 1. **새로운 컴포넌트**: 아토믹 구조를 사용하여 개발
 2. **기존 컴포넌트**: 점진적으로 새로운 구조로 마이그레이션

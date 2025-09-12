@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   rollingPaperApi,
@@ -119,18 +119,28 @@ export function useRollingPaper({
     return { x, y };
   };
 
-  // 좌표 변환 함수들 (백엔드는 1-based, 프론트엔드는 0-based)
+  // 메시지 위치 Map 생성 (성능 최적화)
+  const messagePositionMap = useMemo(() => {
+    const map = new Map<string, RollingPaperMessage | VisitMessage>();
+    messages.forEach((message) => {
+      const key = `${message.x},${message.y}`;
+      map.set(key, message);
+    });
+    return map;
+  }, [messages]);
+
+  // 좌표 변환 함수들
+  // 백엔드: 1-based 좌표 (x: 1~6, y: 1~10)
+  // 프론트엔드: 0-based 좌표 (x: 0~5, y: 0~9)
   const frontendToBackend = (x: number, y: number) => ({ x: x + 1, y: y + 1 });
   const backendToFrontend = (x: number, y: number) => ({ x: x - 1, y: y - 1 });
 
-  // 좌표 유틸리티 함수들
+  // 좌표 유틸리티 함수들 (Map 활용으로 성능 개선)
   const isPositionOccupied = (x: number, y: number): boolean => {
     // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
     const { x: backendX, y: backendY } = frontendToBackend(x, y);
-    // 백엔드에서 width/height 필드는 실제로는 x/y 좌표값임
-    return messages.some(
-      (message) => message.width === backendX && message.height === backendY
-    );
+    const key = `${backendX},${backendY}`;
+    return messagePositionMap.has(key);
   };
 
   const getMessageAt = (
@@ -139,11 +149,8 @@ export function useRollingPaper({
   ): RollingPaperMessage | VisitMessage | null => {
     // 프론트엔드 좌표를 백엔드 좌표로 변환하여 비교
     const { x: backendX, y: backendY } = frontendToBackend(x, y);
-    // 백엔드에서 width/height 필드는 실제로는 x/y 좌표값임
-    return (
-      messages.find((message) => message.width === backendX && message.height === backendY) ||
-      null
-    );
+    const key = `${backendX},${backendY}`;
+    return messagePositionMap.get(key) || null;
   };
 
   // 빈 좌표 찾기 유틸리티

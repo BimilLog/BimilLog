@@ -11,6 +11,7 @@ import { formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
 import { DecoIcon } from "@/components";
+import { ErrorHandler } from "@/lib/error-handler";
 
 interface MessageViewProps {
   message: RollingPaperMessage | VisitMessage;
@@ -39,15 +40,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
     }
 
     try {
-      const response = await rollingPaperApi.deleteMessage({
-        id: message.id,
-        userId: message.userId,
-        decoType: message.decoType,
-        anonymity: message.anonymity,
-        content: message.content,
-        width: message.width,
-        height: message.height,
-      });
+      const response = await rollingPaperApi.deleteMessage(message.id);
       if (response.success) {
         window.location.reload();
       } else {
@@ -55,7 +48,9 @@ export const MessageView: React.FC<MessageViewProps> = ({
       }
     } catch (error) {
       console.error("Failed to delete message:", error);
-      showError("메시지 삭제 실패", "메시지 삭제 중 오류가 발생했습니다.");
+      const appError = ErrorHandler.handleRollingPaperError(error);
+      const { title, message } = ErrorHandler.formatErrorForToast(appError);
+      showError(title, message);
     }
   };
 

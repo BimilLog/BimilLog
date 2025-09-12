@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,10 +13,19 @@ import { ToastContainer } from "@/components/molecules/toast";
 export default function LogoutPage() {
   const { logout } = useAuth();
   const router = useRouter();
-  const { showError, toasts, removeToast } = useToast();
+  const { showError, showInfo, toasts, removeToast } = useToast();
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleLogout = async () => {
+      let kakaoUnlinkSuccess = false;
+      
       try {
         // 카카오 연결 끊기 - 동의 철회 처리
         if (window.Kakao && window.Kakao.isInitialized()) {
@@ -33,6 +42,7 @@ export default function LogoutPage() {
             };
 
             await unlink();
+            kakaoUnlinkSuccess = true;
             if (process.env.NODE_ENV === 'development') {
               console.log("카카오 연결 끊기 성공");
             }
@@ -40,31 +50,37 @@ export default function LogoutPage() {
             if (process.env.NODE_ENV === 'development') {
               console.error("카카오 연결 끊기 실패:", kakaoError);
             }
-            showError(
-              "카카오 연결 끊기 실패",
-              "동의 URL을 찾을 수 없습니다. 다시 시도해주세요."
-            );
+            // 카카오 연결 끊기 실패 시 사용자에게 안내
+            if (isMounted.current) {
+              showInfo(
+                "카카오 연결 끊기 안내",
+                "카카오 연결 끊기가 완료되지 않았습니다. 카카오 계정 설정에서 직접 연결 해제해주세요."
+              );
+            }
           }
         }
 
         // 서버 로그아웃
-        await authApi.logout();
         await logout();
 
         // 홈으로 리다이렉트
-        router.replace("/");
+        if (isMounted.current) {
+          router.replace("/");
+        }
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error("Logout failed:", error);
         }
         // 에러가 발생해도 강제 로그아웃
         await logout();
-        router.replace("/");
+        if (isMounted.current) {
+          router.replace("/");
+        }
       }
     };
 
     handleLogout();
-  }, [logout, router, showError]);
+  }, [logout, router, showError, showInfo]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">

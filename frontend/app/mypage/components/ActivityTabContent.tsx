@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import {
   Heart,
@@ -16,11 +18,20 @@ import {
   Flame,
   Award,
   Pin,
+  AlertTriangle,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { SimplePost, SimpleComment } from "@/lib/api";
 
 interface ActivityTabContentProps {
-  fetchData: () => Promise<any[]>;
+  fetchData: (page?: number, size?: number) => Promise<{
+    content: any[];
+    totalElements: number;
+    totalPages: number;
+    currentPage: number;
+  }>;
   contentType: "posts" | "comments" | "liked-posts" | "liked-comments";
 }
 
@@ -294,13 +305,57 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
 }) => {
   const [items, setItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const loadData = async (page = 0, append = false) => {
+    try {
+      if (!append) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+      setError(null);
+      
+      const result = await fetchData(page, 10);
+      
+      if (append) {
+        setItems(prev => [...prev, ...result.content]);
+      } else {
+        setItems(result.content);
+      }
+      
+      setCurrentPage(result.currentPage);
+      setTotalPages(result.totalPages);
+      setTotalElements(result.totalElements);
+    } catch (err) {
+      console.error("Failed to fetch activity data:", err);
+      setError("데이터를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
-    fetchData()
-      .then((data) => setItems(data))
-      .catch((err) => console.error("Failed to fetch activity data:", err))
-      .finally(() => setIsLoading(false));
+    loadData(0);
   }, [fetchData]);
+
+  const handleLoadMore = () => {
+    if (currentPage < totalPages - 1) {
+      loadData(currentPage + 1, true);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 0 && page < totalPages) {
+      loadData(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -310,6 +365,28 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
         </div>
         <p className="text-gray-600">데이터를 불러오는 중...</p>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert className="border-red-200 bg-red-50 mt-6">
+        <AlertTriangle className="h-4 w-4 text-red-600" />
+        <AlertDescription className="text-red-800">
+          <div className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button
+              onClick={() => loadData(currentPage)}
+              variant="outline"
+              size="sm"
+              className="ml-4"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              다시 시도
+            </Button>
+          </div>
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -323,7 +400,7 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
       <div className="flex items-center justify-between pb-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           <span className="text-lg font-semibold text-gray-800">
-            총 {items.length.toLocaleString()}개
+            총 {totalElements.toLocaleString()}개
           </span>
           {contentType.includes("posts") && (
             <Badge className="bg-blue-100 text-blue-700 border-blue-200">
@@ -336,6 +413,11 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
             </Badge>
           )}
         </div>
+        {totalPages > 1 && (
+          <div className="text-sm text-gray-600">
+            페이지 {currentPage + 1} / {totalPages}
+          </div>
+        )}
       </div>
 
       {/* 아이템 목록 */}
@@ -360,12 +442,70 @@ export const ActivityTabContent: React.FC<ActivityTabContentProps> = ({
         })}
       </div>
 
-      {/* 푸터 정보 */}
-      {items.length > 5 && (
-        <div className="text-center pt-6 border-t border-gray-200">
-          <p className="text-base md:text-sm text-gray-500">
-            더 많은 내용을 보시려면 각 항목을 클릭해주세요
-          </p>
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center space-x-2 pt-6 border-t border-gray-200">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 0}
+          >
+            <ChevronLeft className="w-4 h-4" />
+            이전
+          </Button>
+          
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = Math.max(0, Math.min(currentPage - 2 + i, totalPages - 1));
+              if (pageNum < 0 || pageNum >= totalPages) return null;
+              
+              return (
+                <Button
+                  key={pageNum}
+                  variant={pageNum === currentPage ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNum)}
+                  className="w-10"
+                >
+                  {pageNum + 1}
+                </Button>
+              );
+            }).filter(Boolean)}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages - 1}
+          >
+            다음
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* 더보기 버튼 (스크롤 모드) */}
+      {currentPage < totalPages - 1 && (
+        <div className="text-center pt-4">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            className="w-full max-w-xs"
+          >
+            {isLoadingMore ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                불러오는 중...
+              </>
+            ) : (
+              <>
+                더보기 ({items.length} / {totalElements})
+              </>
+            )}
+          </Button>
         </div>
       )}
     </div>

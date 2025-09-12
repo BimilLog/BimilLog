@@ -41,9 +41,9 @@ public class MessageDTO {
     @Size(max = 255, message = "내용은 최대 255자 까지 입력 가능합니다.")
     private String content;
 
-    private int width;
+    private int x;
 
-    private int height;
+    private int y;
 
     private Instant createdAt;
 
@@ -76,31 +76,31 @@ public class MessageDTO {
     }
 
     /**
-     * <h3>그리드 width 범위 검증</h3>
-     * <p>메시지 작성 시 width는 1~6 사이여야 합니다.</p>
+     * <h3>그리드 X 좌표 범위 검증</h3>
+     * <p>메시지 작성 시 x는 1~6 사이여야 합니다.</p>
      * <p>PC 그리드는 6x10, Mobile 그리드는 4x10을 고려한 제한입니다.</p>
      *
      * @return true이면 검증 통과, false이면 검증 실패
      * @author Jaeik
      * @since 2.0.0
      */
-    @AssertTrue(message = "width는 1~6 사이여야 합니다.")
-    public boolean isWidthValid() {
-        return id != null || (width >= 1 && width <= 6);
+    @AssertTrue(message = "x는 1~6 사이여야 합니다.")
+    public boolean isXValid() {
+        return id != null || (x >= 1 && x <= 6);
     }
 
     /**
-     * <h3>그리드 height 범위 검증</h3>
-     * <p>메시지 작성 시 height는 1~10 사이여야 합니다.</p>
+     * <h3>그리드 Y 좌표 범위 검증</h3>
+     * <p>메시지 작성 시 y는 1~10 사이여야 합니다.</p>
      * <p>PC와 Mobile 그리드 모두 최대 10줄까지 지원합니다.</p>
      *
      * @return true이면 검증 통과, false이면 검증 실패
      * @author Jaeik
      * @since 2.0.0
      */
-    @AssertTrue(message = "height는 1~10 사이여야 합니다.")
-    public boolean isHeightValid() {
-        return id != null || (height >= 1 && height <= 10);
+    @AssertTrue(message = "y는 1~10 사이여야 합니다.")
+    public boolean isYValid() {
+        return id != null || (y >= 1 && y <= 10);
     }
 
     /**
@@ -135,8 +135,8 @@ public class MessageDTO {
         dto.decoType = messageDetail.decoType();
         dto.anonymity = messageDetail.anonymity();
         dto.content = messageDetail.content();
-        dto.width = messageDetail.width();
-        dto.height = messageDetail.height();
+        dto.x = messageDetail.width();
+        dto.y = messageDetail.height();
         dto.createdAt = messageDetail.createdAt();
         return dto;
     }

@@ -2,18 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { boardApi } from "@/lib/api";
-
-const stripHtml = (html: string) => {
-  // <br> 태그를 줄바꿈으로 변환
-  let result = html.replace(/<br\s*\/?>/gi, '\n');
-  // <p> 태그 끝을 줄바꿈으로 변환
-  result = result.replace(/<\/p>/gi, '\n');
-  // 다른 HTML 태그들 제거
-  result = result.replace(/<[^>]*>?/gm, '');
-  // 연속된 줄바꿈을 정리 (3개 이상을 2개로)
-  result = result.replace(/\n{3,}/g, '\n\n');
-  return result;
-};
+import { stripHtml, validatePassword } from "@/lib/utils";
 
 export const useWriteForm = () => {
   const { user, isAuthenticated } = useAuth();
@@ -33,32 +22,25 @@ export const useWriteForm = () => {
       return;
     }
 
-    if (!isAuthenticated && !password) {
-      alert("비회원은 비밀번호를 입력해야 합니다.");
-      return;
-    }
-
-    if (password && !/^[0-9]+$/.test(password)) {
-      alert("비밀번호는 숫자만 입력 가능합니다.");
+    // 비밀번호 validation
+    let validatedPassword: number | undefined;
+    try {
+      validatedPassword = validatePassword(password, isAuthenticated);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      }
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const postData: {
-        userName: string | null;
-        title: string;
-        content: string;
-        password?: number;
-      } = {
+      const postData = {
         userName: isAuthenticated ? user!.userName : null,
         title: title.trim(),
         content: plainContent,
+        password: validatedPassword,
       };
-
-      if (!isAuthenticated && password) {
-        postData.password = Number.parseInt(password);
-      }
 
       const response = await boardApi.createPost(postData);
       if (response.success && response.data) {
@@ -66,7 +48,6 @@ export const useWriteForm = () => {
         router.push(`/board/post/${response.data.id}`);
       }
     } catch (error) {
-      console.error("Failed to create post:", error);
       alert("게시글 작성 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);

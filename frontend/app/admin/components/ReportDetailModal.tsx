@@ -16,12 +16,14 @@ interface ReportDetailModalProps {
   report: Report | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onReportUpdated?: () => void;
 }
 
 export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   report,
   isOpen,
   onOpenChange,
+  onReportUpdated,
 }) => {
   const [isBanning, setIsBanning] = useState(false);
   const { showSuccess, showError } = useToast();
@@ -53,7 +55,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
     setIsBanning(true);
     try {
-      // v2 API로 업데이트: banUser 메소드 사용
+      // v2 API로 업데이트: banUser 메소드 사용 - targetId의 사용자를 차단
       const response = await adminApi.banUser({
         reporterId: report.reporterId || report.userId,
         reporterName: report.reporterName,
@@ -65,8 +67,10 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
       if (response.success) {
         showSuccess("사용자 차단", "사용자가 성공적으로 차단되었습니다.");
         onOpenChange(false);
-        // 새로고침 신호 발송
-        window.location.reload();
+        // 목록 새로고침 콜백 호출
+        if (onReportUpdated) {
+          onReportUpdated();
+        }
       } else {
         showError("차단 실패", response.error || "사용자 차단에 실패했습니다.");
       }
@@ -99,8 +103,10 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
       if (response.success) {
         showSuccess("사용자 탈퇴", "사용자가 성공적으로 탈퇴 처리되었습니다.");
         onOpenChange(false);
-        // 새로고침 신호 발송
-        window.location.reload();
+        // 목록 새로고침 콜백 호출
+        if (onReportUpdated) {
+          onReportUpdated();
+        }
       } else {
         showError("탈퇴 실패", response.error || "사용자 탈퇴에 실패했습니다.");
       }
@@ -130,12 +136,14 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                 {getReportTypeLabel(report.reportType)}
               </p>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                대상 ID
-              </label>
-              <p className="text-sm text-gray-900 break-all">{report.targetId}</p>
-            </div>
+            {report.targetId && (
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  대상 ID
+                </label>
+                <p className="text-sm text-gray-900 break-all">{report.targetId}</p>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium text-gray-700">
                 신고자
@@ -172,7 +180,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             />
           </div>
 
-          {report.targetId && (
+          {report.targetId && report.reportType !== "ERROR" && report.reportType !== "IMPROVEMENT" && (
             <div className="flex flex-wrap gap-2">
               <Button
                 onClick={handleBanUser}

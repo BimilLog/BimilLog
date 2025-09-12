@@ -17,7 +17,6 @@ export const usePostActions = (
       await boardApi.likePost(post.id);
       await onRefresh();
     } catch (error) {
-      console.error("추천 실패:", error);
     }
   };
 
@@ -25,16 +24,15 @@ export const usePostActions = (
   const confirmDeletePost = async (password?: string) => {
     if (!post) return;
     try {
-      const response =
-        post.userName === "익명" || post.userName === null
-          ? await boardApi.deletePost(
-              post.id,
-              post.userId,
-              password,
-              post.content,
-              post.title
-            )
-          : await boardApi.deletePost(post.id, post.userId);
+      // API는 파라미터를 받지만 실제로는 DELETE 메서드만 사용 (백엔드에서 처리)
+      // 익명 게시글의 경우 password를 헤더나 바디에 포함하여 전송해야 할 수 있음
+      const response = await boardApi.deletePost(
+        post.id,
+        post.userId,
+        password,
+        post.content,
+        post.title
+      );
 
       if (response.success) {
         router.push("/board");
@@ -49,7 +47,6 @@ export const usePostActions = (
         }
       }
     } catch (error) {
-      console.error("게시글 삭제 실패:", error);
       if (error instanceof Error && error.message.includes("403")) {
         alert("비밀번호가 일치하지 않습니다.");
       } else {
@@ -72,15 +69,11 @@ export const usePostActions = (
   // 댓글 삭제 확인
   const confirmDeleteComment = async (comment: Comment, password?: string) => {
     try {
-      const response =
-        comment.userName === "익명" || comment.userName === null
-          ? await commentApi.deleteComment(
-              comment.id,
-              Number(password)
-            )
-          : await commentApi.deleteComment(
-              comment.id
-            );
+      // password가 있으면 전달, 없으면 undefined로 통일
+      const response = await commentApi.deleteComment(
+        comment.id,
+        password ? Number(password) : undefined
+      );
 
       if (response.success) {
         await onRefresh();
@@ -95,7 +88,6 @@ export const usePostActions = (
         }
       }
     } catch (error) {
-      console.error("댓글 삭제 실패:", error);
       if (error instanceof Error && error.message.includes("403")) {
         alert("비밀번호가 일치하지 않습니다.");
       } else {

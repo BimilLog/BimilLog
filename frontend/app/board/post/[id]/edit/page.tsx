@@ -13,18 +13,8 @@ import Link from "next/link";
 import Editor from "@/components/molecules/editor";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/toast";
-
-const stripHtml = (html: string) => {
-  // <br> 태그를 줄바꿈으로 변환
-  let result = html.replace(/<br\s*\/?>/gi, "\n");
-  // <p> 태그 끝을 줄바꿈으로 변환
-  result = result.replace(/<\/p>/gi, "\n");
-  // 다른 HTML 태그들 제거
-  result = result.replace(/<[^>]*>?/gm, "");
-  // 연속된 줄바꿈을 정리 (3개 이상을 2개로)
-  result = result.replace(/\n{3,}/g, "\n\n");
-  return result;
-};
+import { stripHtml, validatePassword } from "@/lib/utils";
+import { AuthHeader } from "@/components/organisms/auth-header";
 
 export default function EditPostPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -89,7 +79,6 @@ export default function EditPostPage() {
           router.push("/board");
         }
       } catch (error) {
-        console.error("Failed to fetch post:", error);
         showError("오류", "게시글을 불러오는 중 오류가 발생했습니다.");
       } finally {
         setIsLoading(false);
@@ -108,9 +97,14 @@ export default function EditPostPage() {
     }
     if (!post) return;
 
-    // 비회원 게시글의 경우 비밀번호 확인
-    if (isGuest && !guestPassword.trim()) {
-      showWarning("비밀번호 확인", "비밀번호를 입력해주세요.");
+    // 비밀번호 validation
+    let validatedPassword: number | undefined;
+    try {
+      validatedPassword = isGuest ? validatePassword(guestPassword, false) : undefined;
+    } catch (error) {
+      if (error instanceof Error) {
+        showWarning("비밀번호 확인", error.message);
+      }
       return;
     }
 
@@ -120,11 +114,7 @@ export default function EditPostPage() {
         ...post,
         title: title.trim(),
         content: plainContent,
-        password: isGuest
-          ? Number(guestPassword)
-          : password
-          ? Number(password)
-          : undefined,
+        password: validatedPassword,
       };
 
       const response = await boardApi.updatePost(updatedPost);
@@ -146,7 +136,6 @@ export default function EditPostPage() {
         }
       }
     } catch (error) {
-      console.error("Failed to update post:", error);
       // HTTP 에러 상태 처리
       if (error instanceof Error && error.message.includes("403")) {
         showError("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
@@ -158,8 +147,29 @@ export default function EditPostPage() {
     }
   };
 
-  if (isLoading || authLoading) return <div>로딩 중...</div>;
-  if (!post) return <div>게시글 정보를 찾을 수 없습니다.</div>;
+  if (isLoading || authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+        <AuthHeader />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <p className="text-gray-600">로딩 중...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+        <AuthHeader />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <p className="text-gray-600">게시글 정보를 찾을 수 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthorized) {
     return (
@@ -177,6 +187,8 @@ export default function EditPostPage() {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+        <AuthHeader />
+        
         {/* Header (모바일 최적화) */}
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
           <div className="container mx-auto px-4 py-3">

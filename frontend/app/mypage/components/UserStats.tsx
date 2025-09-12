@@ -1,5 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   FileText,
   MessageCircle,
@@ -13,6 +15,9 @@ import {
   Star,
   TreePine,
   Leaf,
+  AlertTriangle,
+  RefreshCw,
+  Info,
 } from "lucide-react";
 
 interface UserStatsProps {
@@ -23,6 +28,10 @@ interface UserStatsProps {
     totalLikedPosts: number;
     totalLikedComments: number;
   };
+  isLoading?: boolean;
+  error?: string | null;
+  partialErrors?: string[];
+  onRetry?: () => void;
 }
 
 // 활동 점수 계산 함수 (글 5점, 댓글 2점, 추천 1점)
@@ -118,13 +127,90 @@ const StatCard = ({
   </Card>
 );
 
-export const UserStats: React.FC<UserStatsProps> = ({ stats }) => {
+export const UserStats: React.FC<UserStatsProps> = ({ 
+  stats, 
+  isLoading = false,
+  error = null,
+  partialErrors = [],
+  onRetry 
+}) => {
   const totalScore = calculateActivityScore(stats);
   const totalLikes = stats.totalLikedPosts + stats.totalLikedComments;
   const activityLevel = getActivityLevel(totalScore);
 
+  // 로딩 상태
+  if (isLoading) {
+    return (
+      <div className="space-y-6 mb-8">
+        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center space-x-2">
+              <RefreshCw className="w-5 h-5 text-purple-600 animate-spin" />
+              <p className="text-gray-600">통계 정보를 불러오는 중...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // 전체 에러 상태
+  if (error) {
+    return (
+      <div className="space-y-6 mb-8">
+        <Alert className="border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            <div className="flex items-center justify-between">
+              <span>{error}</span>
+              {onRetry && (
+                <Button
+                  onClick={onRetry}
+                  variant="outline"
+                  size="sm"
+                  className="ml-4"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  다시 시도
+                </Button>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 mb-8">
+      {/* 부분 에러 경고 표시 */}
+      {partialErrors.length > 0 && (
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <Info className="h-4 w-4 text-yellow-600" />
+          <AlertDescription>
+            <div className="text-yellow-800">
+              <p className="font-medium mb-2">일부 통계 정보를 불러오지 못했습니다:</p>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                {partialErrors.map((err, idx) => (
+                  <li key={idx}>{err}</li>
+                ))}
+              </ul>
+              {onRetry && (
+                <Button
+                  onClick={onRetry}
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  다시 시도
+                </Button>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* 활동 레벨 카드 */}
       <Card className="bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 border-0 shadow-lg">
         <CardContent className="p-6">

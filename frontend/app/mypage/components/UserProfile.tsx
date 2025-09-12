@@ -106,7 +106,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
     if (
       !window.confirm(
-        `닉네임을 "${nicknameInput.trim()}"으로 변경하시겠습니까?\n변경 후 30일 동안 다시 변경할 수 없습니다.`
+        `닉네임을 "${nicknameInput.trim()}"으로 변경하시겠습니까?\n\n⚠️ 주의사항:\n• 변경 후 30일 동안 다시 변경할 수 없습니다.\n• 닉네임 변경 후 재로그인이 필요합니다.\n• 3초 후 자동으로 로그아웃됩니다.`
       )
     ) {
       return;
@@ -122,11 +122,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({
         setIsNicknameDialogOpen(false);
         setNicknameMessage("");
         setIsNicknameAvailable(null);
-        showSuccess("닉네임 변경 완료", "닉네임이 성공적으로 변경되었습니다.");
-        // 토스트 메시지가 표시될 시간을 확보한 후 로그아웃
+        showSuccess("닉네임 변경 완료", "닉네임이 성공적으로 변경되었습니다. 3초 후 재로그인 페이지로 이동합니다.");
+        // 토스트 메시지가 충분히 표시될 시간 확보
         setTimeout(async () => {
           await onLogout();
-        }, 2000);
+        }, 3000);
       } else {
         showError(
           "닉네임 변경 실패",

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MessageSquare, Sparkles } from "lucide-react";
 import { getDecoInfo, type RollingPaperMessage } from "@/lib/api";
+import { DecoIcon } from "@/components";
 
 interface MessageListModalProps {
   isOpen: boolean;
@@ -95,14 +96,13 @@ export const MessageListModal: React.FC<MessageListModalProps> = ({
                     {/* 메시지 헤더 */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        {/* 데코 이모지 */}
-                        <div
-                          className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${decoInfo?.color} shadow-md`}
-                        >
-                          <span className="text-lg md:text-xl">
-                            {decoInfo?.emoji}
-                          </span>
-                        </div>
+                        {/* 데코 아이콘 */}
+                        <DecoIcon 
+                          decoType={message.decoType}
+                          size="lg"
+                          showBackground={true}
+                          className="shadow-md"
+                        />
 
                         {/* 작성자 정보 */}
                         <div>

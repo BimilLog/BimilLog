@@ -49,6 +49,32 @@ export function useRollingPaperShare({
     }
   }, [nickname, messageCount, showSuccess]);
 
+  const fallbackShare = useCallback(
+    (url: string) => {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          showSuccess("링크 복사 완료", "링크가 클립보드에 복사되었습니다!");
+        })
+        .catch((error) => {
+          console.error("클립보드 복사 실패:", error);
+          // 클립보드 API도 실패한 경우 텍스트 선택으로 폴백
+          const textArea = document.createElement("textarea");
+          textArea.value = url;
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand("copy");
+            showSuccess("링크 복사 완료", "링크가 클립보드에 복사되었습니다!");
+          } catch (fallbackError) {
+            console.error("폴백 복사도 실패:", fallbackError);
+          }
+          document.body.removeChild(textArea);
+        });
+    },
+    [showSuccess]
+  );
+
   const handleWebShare = useCallback(async () => {
     const url = isOwner
       ? `${window.location.origin}/rolling-paper/${encodeURIComponent(
@@ -82,32 +108,6 @@ export function useRollingPaperShare({
       fallbackShare(url);
     }
   }, [nickname, messageCount, isOwner, fallbackShare]);
-
-  const fallbackShare = useCallback(
-    (url: string) => {
-      navigator.clipboard
-        .writeText(url)
-        .then(() => {
-          showSuccess("링크 복사 완료", "링크가 클립보드에 복사되었습니다!");
-        })
-        .catch((error) => {
-          console.error("클립보드 복사 실패:", error);
-          // 클립보드 API도 실패한 경우 텍스트 선택으로 폴백
-          const textArea = document.createElement("textarea");
-          textArea.value = url;
-          document.body.appendChild(textArea);
-          textArea.select();
-          try {
-            document.execCommand("copy");
-            showSuccess("링크 복사 완료", "링크가 클립보드에 복사되었습니다!");
-          } catch (fallbackError) {
-            console.error("폴백 복사도 실패:", fallbackError);
-          }
-          document.body.removeChild(textArea);
-        });
-    },
-    [showSuccess]
-  );
 
   const getShareUrl = useCallback(() => {
     return isOwner

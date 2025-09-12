@@ -32,6 +32,7 @@ export default function MyPage() {
   });
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
+  const [partialErrors, setPartialErrors] = useState<string[]>([]);
 
   // 사용자 통계 가져오기
   const fetchUserStats = useCallback(async () => {
@@ -39,6 +40,7 @@ export default function MyPage() {
 
     setIsLoadingStats(true);
     setStatsError(null);
+    setPartialErrors([]);
 
     try {
       // API 호출을 개선하여 오류에 더 관대하게 처리
@@ -56,32 +58,60 @@ export default function MyPage() {
         rollingPaperApi.getMyRollingPaper(),
       ]);
 
+      const errors: string[] = [];
+
+      // 각 API 결과 처리 및 에러 추적
+      const totalPosts = postsRes.status === 'fulfilled' && postsRes.value.success
+        ? postsRes.value.data?.totalElements || 0
+        : (() => {
+            errors.push("작성한 글 정보를 불러오지 못했습니다");
+            return 0;
+          })();
+
+      const totalComments = commentsRes.status === 'fulfilled' && commentsRes.value.success
+        ? commentsRes.value.data?.totalElements || 0
+        : (() => {
+            errors.push("작성한 댓글 정보를 불러오지 못했습니다");
+            return 0;
+          })();
+
+      const totalLikedPosts = likedPostsRes.status === 'fulfilled' && likedPostsRes.value.success
+        ? likedPostsRes.value.data?.totalElements || 0
+        : (() => {
+            errors.push("추천한 글 정보를 불러오지 못했습니다");
+            return 0;
+          })();
+
+      const totalLikedComments = likedCommentsRes.status === 'fulfilled' && likedCommentsRes.value.success
+        ? likedCommentsRes.value.data?.totalElements || 0
+        : (() => {
+            errors.push("추천한 댓글 정보를 불러오지 못했습니다");
+            return 0;
+          })();
+
+      const totalMessages = messagesRes.status === 'fulfilled' && messagesRes.value.success
+        ? messagesRes.value.data?.length || 0
+        : (() => {
+            errors.push("롤링페이퍼 메시지 정보를 불러오지 못했습니다");
+            return 0;
+          })();
+
       const newStats = {
-        totalPosts: 
-          postsRes.status === 'fulfilled' && postsRes.value.success
-            ? postsRes.value.data?.totalElements || 0
-            : 0,
-        totalComments:
-          commentsRes.status === 'fulfilled' && commentsRes.value.success
-            ? commentsRes.value.data?.totalElements || 0
-            : 0,
-        totalLikedPosts:
-          likedPostsRes.status === 'fulfilled' && likedPostsRes.value.success
-            ? likedPostsRes.value.data?.totalElements || 0
-            : 0,
-        totalLikedComments:
-          likedCommentsRes.status === 'fulfilled' && likedCommentsRes.value.success
-            ? likedCommentsRes.value.data?.totalElements || 0
-            : 0,
-        totalMessages:
-          messagesRes.status === 'fulfilled' && messagesRes.value.success
-            ? messagesRes.value.data?.length || 0
-            : 0,
+        totalPosts,
+        totalComments,
+        totalLikedPosts,
+        totalLikedComments,
+        totalMessages,
       };
 
       setUserStats(newStats);
 
-      // 모든 API가 실패한 경우에만 에러로 처리
+      // 부분 실패가 있으면 경고 메시지 표시
+      if (errors.length > 0) {
+        setPartialErrors(errors);
+      }
+
+      // 모든 API가 실패한 경우에만 전체 에러로 처리
       const allFailed = [postsRes, commentsRes, likedPostsRes, likedCommentsRes, messagesRes]
         .every(res => res.status === 'rejected');
       
@@ -138,6 +168,7 @@ export default function MyPage() {
           stats={userStats} 
           isLoading={isLoadingStats}
           error={statsError}
+          partialErrors={partialErrors}
           onRetry={fetchUserStats}
         />
         <ActivityTabs />

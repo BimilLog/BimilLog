@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, TrendingUp } from "lucide-react";
 import { adminApi, type Report, type PageResponse } from "@/lib/api";
@@ -14,6 +15,7 @@ import { ReportList } from "./components/ReportList";
 import { AdminStats } from "./components/AdminStats";
 
 export default function AdminPage() {
+  const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -23,29 +25,30 @@ export default function AdminPage() {
   // 권한 확인
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== "ADMIN")) {
-      window.location.href = "/";
+      router.push("/");
     }
-  }, [isLoading, isAuthenticated, user]);
+  }, [isLoading, isAuthenticated, user, router]);
+
+  // 신고 목록 조회 함수
+  const fetchReports = useCallback(async () => {
+    try {
+      setIsLoadingReports(true);
+      const reportType = filterType === "all" ? undefined : filterType;
+      const response = await adminApi.getReports(0, 20, reportType);
+      if (response.success && response.data) {
+        setReports(response.data as PageResponse<Report>);
+      }
+    } catch (error) {
+      console.error("Failed to fetch reports:", error);
+    } finally {
+      setIsLoadingReports(false);
+    }
+  }, [filterType]);
 
   // 신고 목록 조회
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        setIsLoadingReports(true);
-        const reportType = filterType === "all" ? undefined : filterType;
-        const response = await adminApi.getReports(0, 20, reportType);
-        if (response.success && response.data) {
-          setReports(response.data as PageResponse<Report>);
-        }
-      } catch (error) {
-        console.error("Failed to fetch reports:", error);
-      } finally {
-        setIsLoadingReports(false);
-      }
-    };
-
     fetchReports();
-  }, [filterType]);
+  }, [fetchReports]);
 
   if (isLoading) {
     return (
@@ -97,6 +100,7 @@ export default function AdminPage() {
               setSearchTerm={setSearchTerm}
               filterType={filterType}
               setFilterType={setFilterType}
+              onReportUpdated={fetchReports}
             />
           </TabsContent>
 

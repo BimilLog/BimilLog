@@ -1,28 +1,13 @@
 import { useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { commentApi, type Comment } from "@/lib/api";
+import { validatePassword } from "@/lib/utils";
 
 export const useCommentActions = (
   postId: string,
   onRefresh: () => Promise<void>
 ) => {
   const { user, isAuthenticated } = useAuth();
-
-  // 패스워드 validation 함수
-  const validatePassword = useCallback((password: string): number | undefined => {
-    if (isAuthenticated) return undefined;
-    
-    if (!password.trim()) {
-      throw new Error("비밀번호를 입력해주세요.");
-    }
-    
-    const numPassword = Number(password.trim());
-    if (isNaN(numPassword) || numPassword < 1000 || numPassword > 9999) {
-      throw new Error("비밀번호는 4자리 숫자여야 합니다.");
-    }
-    
-    return numPassword;
-  }, [isAuthenticated]);
 
   // 댓글 작성 상태
   const [newComment, setNewComment] = useState("");
@@ -49,7 +34,7 @@ export const useCommentActions = (
 
     setIsSubmittingComment(true);
     try {
-      const validatedPassword = validatePassword(commentPassword);
+      const validatedPassword = validatePassword(commentPassword, isAuthenticated);
       
       await commentApi.createComment({
         postId: Number(postId),
@@ -61,7 +46,6 @@ export const useCommentActions = (
       setCommentPassword("");
       await onRefresh();
     } catch (error) {
-      console.error("댓글 작성 실패:", error);
       if (error instanceof Error) {
         alert(error.message);
       } else {
@@ -70,7 +54,7 @@ export const useCommentActions = (
     } finally {
       setIsSubmittingComment(false);
     }
-  }, [newComment, commentPassword, postId, validatePassword, onRefresh]);
+  }, [newComment, commentPassword, postId, isAuthenticated, onRefresh]);
 
   // 답글 작성
   const handleReplySubmit = useCallback(async () => {
@@ -82,7 +66,7 @@ export const useCommentActions = (
 
     setIsSubmittingReply(true);
     try {
-      const validatedPassword = validatePassword(replyPassword);
+      const validatedPassword = validatePassword(replyPassword, isAuthenticated);
       
       await commentApi.createComment({
         postId: Number(postId),
@@ -96,7 +80,6 @@ export const useCommentActions = (
       setReplyingTo(null);
       await onRefresh();
     } catch (error) {
-      console.error("답글 작성 실패:", error);
       if (error instanceof Error) {
         alert(error.message);
       } else {
@@ -105,7 +88,7 @@ export const useCommentActions = (
     } finally {
       setIsSubmittingReply(false);
     }
-  }, [replyContent, replyingTo, replyPassword, postId, validatePassword, onRefresh]);
+  }, [replyContent, replyingTo, replyPassword, postId, isAuthenticated, onRefresh]);
 
   // 답글 취소
   const handleCancelReply = useCallback(() => {
@@ -120,7 +103,6 @@ export const useCommentActions = (
       await commentApi.likeComment(comment.id);
       await onRefresh();
     } catch (error) {
-      console.error("댓글 추천 실패:", error);
       alert("댓글 추천 중 오류가 발생했습니다.");
     }
   }, [onRefresh]);
@@ -155,7 +137,7 @@ export const useCommentActions = (
       // 내 댓글이 아닌 경우에만 패스워드 validation 수행
       if (!isMyComment) {
         try {
-          validatedPassword = validatePassword(editPassword);
+          validatedPassword = validatePassword(editPassword, false);
         } catch (error) {
           if (error instanceof Error) {
             alert(error.message);
@@ -174,10 +156,9 @@ export const useCommentActions = (
       setEditPassword("");
       await onRefresh();
     } catch (error) {
-      console.error("댓글 수정 실패:", error);
       alert("댓글 수정 중 오류가 발생했습니다. 비밀번호를 확인해주세요.");
     }
-  }, [editingComment, editContent, editPassword, isAuthenticated, user?.userName, validatePassword, onRefresh]);
+  }, [editingComment, editContent, editPassword, isAuthenticated, user?.userName, onRefresh]);
 
   // 댓글로 스크롤
   const scrollToComment = useCallback((commentId: number) => {

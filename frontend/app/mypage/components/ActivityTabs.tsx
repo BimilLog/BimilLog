@@ -4,21 +4,92 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { userApi } from "@/lib/api";
 import { ActivityTabContent } from "./ActivityTabContent";
 
+// 페이지네이션 상수
+const DEFAULT_PAGE = 0;
+const DEFAULT_PAGE_SIZE = 10;
+
 export const ActivityTabs: React.FC = () => {
   const fetchMyPosts = useCallback(
-    async () => (await userApi.getUserPosts()).data?.content || [],
+    async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
+      try {
+        const response = await userApi.getUserPosts(page, size);
+        if (response.success && response.data) {
+          return {
+            content: response.data.content || [],
+            totalElements: response.data.totalElements || 0,
+            totalPages: response.data.totalPages || 0,
+            currentPage: response.data.number || 0,
+          };
+        }
+        return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
+      } catch (error) {
+        console.error("Failed to fetch user posts:", error);
+        throw error;
+      }
+    },
     []
   );
+
   const fetchMyComments = useCallback(
-    async () => (await userApi.getUserComments()).data?.content || [],
+    async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
+      try {
+        const response = await userApi.getUserComments(page, size);
+        if (response.success && response.data) {
+          return {
+            content: response.data.content || [],
+            totalElements: response.data.totalElements || 0,
+            totalPages: response.data.totalPages || 0,
+            currentPage: response.data.number || 0,
+          };
+        }
+        return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
+      } catch (error) {
+        console.error("Failed to fetch user comments:", error);
+        throw error;
+      }
+    },
     []
   );
+
   const fetchLikedPosts = useCallback(
-    async () => (await userApi.getUserLikedPosts()).data?.content || [],
+    async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
+      try {
+        const response = await userApi.getUserLikedPosts(page, size);
+        if (response.success && response.data) {
+          return {
+            content: response.data.content || [],
+            totalElements: response.data.totalElements || 0,
+            totalPages: response.data.totalPages || 0,
+            currentPage: response.data.number || 0,
+          };
+        }
+        return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
+      } catch (error) {
+        console.error("Failed to fetch liked posts:", error);
+        throw error;
+      }
+    },
     []
   );
+
   const fetchLikedComments = useCallback(
-    async () => (await userApi.getUserLikedComments()).data?.content || [],
+    async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
+      try {
+        const response = await userApi.getUserLikedComments(page, size);
+        if (response.success && response.data) {
+          return {
+            content: response.data.content || [],
+            totalElements: response.data.totalElements || 0,
+            totalPages: response.data.totalPages || 0,
+            currentPage: response.data.number || 0,
+          };
+        }
+        return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
+      } catch (error) {
+        console.error("Failed to fetch liked comments:", error);
+        throw error;
+      }
+    },
     []
   );
 

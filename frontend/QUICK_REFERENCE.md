@@ -1,14 +1,14 @@
-# ⚡ 빠른 참조 가이드
+# 빠른 참조 가이드
 
 > 개발 작업 시 즉시 참조할 수 있는 핵심 패턴 및 정보
 
-## 🎯 프로젝트 정체성
+## 프로젝트 정체성
 
 - **서비스**: 롤링페이퍼(익명 메시지) + 커뮤니티 게시판
 - **타겟**: 모바일 퍼스트 + 익명성 중시
 - **브랜드**: Pink-Purple-Indigo 그라디언트
 
-## 🎨 핵심 스타일
+## 핵심 스타일
 
 ```css
 /* 브랜드 그라디언트 */
@@ -23,17 +23,17 @@ bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shado
 min-h-[44px] px-4 active:scale-[0.98] transition-transform
 ```
 
-## 🧬 컴포넌트 Import
+## 컴포넌트 Import
 
 ```typescript
-// ✅ 권장: 메인 export
+// 권장: 메인 export
 import { Button, Card, AuthHeader } from "@/components";
 
-// ✅ 호환성: 기존 경로
+// 호환성: 기존 경로
 import { Button } from "@/components/ui/button";
 ```
 
-## 📱 반응형 원칙
+## 반응형 원칙
 
 ```css
 /* 브레이크포인트 */
@@ -80,7 +80,7 @@ const useActions = (onRefresh: () => void) => {
 };
 ```
 
-## 🎯 컴포넌트 템플릿
+## 컴포넌트 템플릿
 
 ```typescript
 interface ComponentProps {
@@ -129,7 +129,7 @@ const usePermissions = (item: Post | Comment) => {
 };
 ```
 
-## ⚡ 성능 패턴
+## 성능 패턴
 
 ```typescript
 // SSR 문제 해결

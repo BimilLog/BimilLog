@@ -13,6 +13,7 @@ import {
   type VisitMessage,
 } from "@/lib/api";
 import { addRecentVisit } from "@/lib/cookies";
+import { ErrorHandler } from "@/lib/error-handler";
 import { RollingPaperLayout } from "./RollingPaperLayout";
 import { RollingPaperHeader } from "./RollingPaperHeader";
 import { InfoCard } from "./InfoCard";
@@ -56,6 +57,7 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
     currentPage,
     setCurrentPage,
     refetchMessages,
+    isPositionOccupied,
     getMessageAt,
     getCoordsFromPageAndGrid,
     getPageFromCoords,
@@ -86,7 +88,7 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
       const isOwnerCheck = user.userName === currentNickname;
 
       if (isOwnerCheck) {
-        window.location.href = "/rolling-paper";
+        router.push("/rolling-paper");  // SPA 라우팅 유지
         return;
       }
     }
@@ -112,6 +114,15 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
   ) => {
     if (!isPublic || !nickname) return;
 
+    // 위치가 이미 사용 중인지 확인
+    if (isPositionOccupied(position.x, position.y)) {
+      showError(
+        "위치 중복",
+        "이미 다른 메시지가 있는 위치입니다. 다른 위치를 선택해주세요."
+      );
+      return;
+    }
+
     try {
       // 프론트엔드 좌표를 백엔드 좌표로 변환 (0-based → 1-based)
       const backendPosition = frontendToBackend(position.x, position.y);
@@ -122,8 +133,8 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
           decoType: data.decoType,
           anonymity: data.anonymousNickname,
           content: data.content,
-          width: backendPosition.x,
-          height: backendPosition.y,
+          x: backendPosition.x,
+          y: backendPosition.y,
         }
       );
 
@@ -138,17 +149,16 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
       }
     } catch (error) {
       console.error("Failed to create message:", error);
-      showError(
-        "메시지 전송 실패",
-        "메시지 작성에 실패했습니다. 다시 시도해주세요."
-      );
+      const appError = ErrorHandler.handleRollingPaperError(error);
+      const { title, message } = ErrorHandler.formatErrorForToast(appError);
+      showError(title, message);
     }
   };
 
   // 메시지 클릭 핸들러 (그리드 하이라이트)
   const handleMessageClick = (message: RollingPaperMessage | VisitMessage) => {
     // 백엔드 좌표를 프론트엔드 좌표로 변환 (1-based → 0-based)
-    const frontendPosition = backendToFrontend(message.width, message.height);
+    const frontendPosition = backendToFrontend(message.x, message.y);
     setHighlightedPosition(frontendPosition);
 
     // 해당 메시지가 있는 페이지로 이동 (프론트엔드 좌표 사용)

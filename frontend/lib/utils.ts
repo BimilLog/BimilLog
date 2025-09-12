@@ -43,6 +43,43 @@ export function isMobileOrTablet(): boolean {
 }
 
 /**
+ * HTML 문자열에서 텍스트만 추출
+ */
+export function stripHtml(html: string): string {
+  // <br> 태그를 줄바꿈으로 변환
+  let result = html.replace(/<br\s*\/?>/gi, '\n');
+  // <p> 태그 끝을 줄바꿈으로 변환
+  result = result.replace(/<\/p>/gi, '\n');
+  // 다른 HTML 태그들 제거
+  result = result.replace(/<[^>]*>?/gm, '');
+  // 연속된 줄바꿈을 정리 (3개 이상을 2개로)
+  result = result.replace(/\n{3,}/g, '\n\n');
+  return result;
+}
+
+/**
+ * 비밀번호 validation (4자리 숫자)
+ * @param password 검증할 비밀번호
+ * @param isAuthenticated 인증 여부 (인증된 경우 비밀번호 불필요)
+ * @returns 유효한 비밀번호 숫자 또는 undefined
+ * @throws 비밀번호가 유효하지 않은 경우 Error
+ */
+export function validatePassword(password: string, isAuthenticated: boolean): number | undefined {
+  if (isAuthenticated) return undefined;
+  
+  if (!password.trim()) {
+    throw new Error("비밀번호를 입력해주세요.");
+  }
+  
+  const numPassword = Number(password.trim());
+  if (isNaN(numPassword) || numPassword < 1000 || numPassword > 9999) {
+    throw new Error("비밀번호는 4자리 숫자여야 합니다 (1000-9999).");
+  }
+  
+  return numPassword;
+}
+
+/**
  * FCM 토큰 가져오기 (모바일/태블릿에서만)
  */
 export async function getFCMToken(): Promise<string | null> {

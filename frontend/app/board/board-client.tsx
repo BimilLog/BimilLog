@@ -105,42 +105,26 @@ export default function BoardClient() {
         {/* Mobile Advertisement - 게시판 아래로 이동 */}
         <div className="mt-6 mb-6">
           <div className="flex justify-center px-2">
-            {(() => {
-              const adUnit = getAdUnit("MOBILE_BANNER");
-              return adUnit ? (
-                <AdFitBanner
-                  adUnit={adUnit}
-                  width={AD_SIZES.BANNER_320x50.width}
-                  height={AD_SIZES.BANNER_320x50.height}
-                  onAdFail={() => {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log("게시판 중간 광고 로딩 실패");
-                }
-              }}
-                />
-              ) : null;
-            })()}
+            {getAdUnit("MOBILE_BANNER") && (
+              <AdFitBanner
+                adUnit={getAdUnit("MOBILE_BANNER")!}
+                width={AD_SIZES.BANNER_320x50.width}
+                height={AD_SIZES.BANNER_320x50.height}
+              />
+            )}
           </div>
         </div>
 
         {/* Bottom Mobile Advertisement */}
         <div className="mt-8 pt-6">
           <div className="flex justify-center px-2">
-            {(() => {
-              const adUnit = getAdUnit("MOBILE_BANNER");
-              return adUnit ? (
-                <AdFitBanner
-                  adUnit={adUnit}
-                  width={AD_SIZES.BANNER_320x50.width}
-                  height={AD_SIZES.BANNER_320x50.height}
-                  onAdFail={() => {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log("게시판 하단 광고 로딩 실패");
-                }
-              }}
-                />
-              ) : null;
-            })()}
+            {getAdUnit("MOBILE_BANNER") && (
+              <AdFitBanner
+                adUnit={getAdUnit("MOBILE_BANNER")!}
+                width={AD_SIZES.BANNER_320x50.width}
+                height={AD_SIZES.BANNER_320x50.height}
+              />
+            )}
           </div>
         </div>
       </main>

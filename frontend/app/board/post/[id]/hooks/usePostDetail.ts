@@ -38,7 +38,6 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
         throw new Error("게시글을 불러올 수 없습니다");
       }
     } catch (error) {
-      console.error("게시글 조회 실패:", error);
       router.push("/board");
     } finally {
       setLoading(false);
@@ -88,7 +87,6 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
         setPopularComments([]);
       }
     } catch (error) {
-      console.error("댓글 조회 실패:", error);
       setComments([]);
       setPopularComments([]);
     }

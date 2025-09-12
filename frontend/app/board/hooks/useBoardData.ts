@@ -37,7 +37,6 @@ export const useBoardData = () => {
           setCurrentPage(0);
         }
       } catch (error) {
-        console.error("Failed to fetch posts:", error);
         setPosts([]);
         setTotalPages(0);
         setCurrentPage(0);

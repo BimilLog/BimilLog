@@ -21,6 +21,7 @@ interface ReportListProps {
   setSearchTerm: (term: string) => void;
   filterType: string;
   setFilterType: (type: string) => void;
+  onReportUpdated?: () => void;
 }
 
 export const ReportList: React.FC<ReportListProps> = ({
@@ -30,6 +31,7 @@ export const ReportList: React.FC<ReportListProps> = ({
   setSearchTerm,
   filterType,
   setFilterType,
+  onReportUpdated,
 }) => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -109,7 +111,7 @@ export const ReportList: React.FC<ReportListProps> = ({
                     report.reporterName
                       ?.toLowerCase()
                       .includes(searchTerm.toLowerCase()) ||
-                    report.targetId.toString().includes(searchTerm)
+                    (report.targetId && report.targetId.toString().includes(searchTerm))
                 )
                 .map((report) => (
                   <div
@@ -129,7 +131,10 @@ export const ReportList: React.FC<ReportListProps> = ({
                         </Badge>
                       </div>
                       <h3 className="font-medium text-gray-800 mb-1">
-                        {report.targetTitle || "신고 내용"}
+                        {report.reportType === 'ERROR' || report.reportType === 'IMPROVEMENT' 
+                          ? getReportTypeLabel(report.reportType) + " 신고"
+                          : report.targetTitle || "신고 내용"
+                        }
                       </h3>
                       <p className="text-sm text-gray-600 mb-2">
                         {report.reportType === 'ERROR' || report.reportType === 'IMPROVEMENT' 
@@ -169,6 +174,7 @@ export const ReportList: React.FC<ReportListProps> = ({
         report={selectedReport}
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
+        onReportUpdated={onReportUpdated}
       />
     </>
   );
