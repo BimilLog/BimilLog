@@ -3,7 +3,7 @@
 import { Button } from "@/components";
 import { useBrowserGuide } from "@/hooks/useBrowserGuide";
 import { useState } from "react";
-import { BrowserGuideModal } from "./browser-guide-modal";
+import { BrowserGuideModal } from "@/components";
 
 interface PWAInstallButtonProps {
   className?: string;

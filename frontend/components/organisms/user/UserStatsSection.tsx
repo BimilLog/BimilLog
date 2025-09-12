@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components";
 import { Badge } from "@/components";
 import { Button } from "@/components";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components";
 import { StatCard, LoadingSpinner } from "@/components/atoms";
 import {
   FileText,

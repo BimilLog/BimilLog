@@ -8,7 +8,7 @@ export const authCommand = {
       code,
       fcmToken
     }
-    return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
+    return apiClient.post<AuthResponse>("/api/auth/command/login", requestBody)
   },
   
   signUp: (userName: string, uuid: string) => {
@@ -16,10 +16,10 @@ export const authCommand = {
       userName,
       uuid
     }
-    return apiClient.post<AuthResponse>("/api/auth/signup", requestBody)
+    return apiClient.post<AuthResponse>("/api/auth/command/signup", requestBody)
   },
   
-  logout: () => apiClient.post("/api/auth/logout"),
+  logout: () => apiClient.post("/api/auth/command/logout"),
   
-  withdraw: () => apiClient.delete("/api/user/withdraw"),
+  withdraw: () => apiClient.delete("/api/auth/command/withdraw"),
 }

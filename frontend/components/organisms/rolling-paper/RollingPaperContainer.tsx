@@ -2,7 +2,7 @@
 
 import React from "react";
 import { MessageSquare } from "lucide-react";
-import { useRollingPaperLogic } from "../hooks/useRollingPaperLogic";
+import { useRollingPaperLogic } from "@/app/rolling-paper/hooks/useRollingPaperLogic";
 import { RollingPaperView } from "@/components/organisms/rolling-paper/RollingPaperView";
 
 interface RollingPaperContainerProps {

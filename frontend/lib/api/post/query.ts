@@ -4,10 +4,10 @@ import { ApiResponse, PageResponse } from '@/types/api/common'
 
 export const postQuery = {
   getAll: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => 
-    apiClient.get(`/api/post?page=${page}&size=${size}`),
+    apiClient.get(`/api/post/query/list?page=${page}&size=${size}`),
   
   getById: (postId: number): Promise<ApiResponse<Post>> => 
-    apiClient.get(`/api/post/${postId}`),
+    apiClient.get(`/api/post/query/${postId}`),
   
   search: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR", query: string, page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => {
     const typeMap: Record<string, string> = {
@@ -18,16 +18,16 @@ export const postQuery = {
     const backendType = typeMap[type] || "title"
     
     return apiClient.get(
-      `/api/post/search?type=${backendType}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`
+      `/api/post/query/search?type=${backendType}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`
     )
   },
   
   getPopular: (): Promise<ApiResponse<{ realtime: SimplePost[]; weekly: SimplePost[] }>> => 
-    apiClient.get("/api/post/popular"),
+    apiClient.get("/api/post/query/popular"),
   
   getLegend: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => 
-    apiClient.get(`/api/post/legend?page=${page}&size=${size}`),
+    apiClient.get(`/api/post/query/legend?page=${page}&size=${size}`),
   
   getNotices: (): Promise<ApiResponse<SimplePost[]>> => 
-    apiClient.get("/api/post/notice"),
+    apiClient.get("/api/post/query/notice"),
 }

@@ -1,6 +1,8 @@
 package jaeik.bimillog.e2e.pages;
 
-import com.microsoft.playwright.*;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitForSelectorState;
 
 /**
@@ -41,7 +43,7 @@ public abstract class BasePage {
      * @author Jaeik
      * @since 2.0.0
      */
-    protected void waitForPageLoad() {
+    public void waitForPageLoad() {
         page.waitForLoadState(LoadState.NETWORKIDLE);
     }
     
@@ -285,7 +287,7 @@ public abstract class BasePage {
      * @author Jaeik
      * @since 2.0.0
      */
-    protected void wait(int milliseconds) {
+    public void wait(int milliseconds) {
         page.waitForTimeout(milliseconds);
     }
 }

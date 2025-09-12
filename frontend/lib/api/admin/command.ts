@@ -13,6 +13,16 @@ export const adminCommand = {
     content: reportData.content
   }),
   
+  forceWithdrawUser: (reportData: {
+    targetId: number
+    reportType: string
+    content: string
+  }) => apiClient.post("/api/admin/command/withdraw", {
+    targetId: reportData.targetId,
+    reportType: reportData.reportType,
+    content: reportData.content
+  }),
+  
   deleteContent: (contentId: number, contentType: "POST" | "COMMENT") => 
     apiClient.delete(`/api/admin/command/content/${contentType.toLowerCase()}/${contentId}`),
   

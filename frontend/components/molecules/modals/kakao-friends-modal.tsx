@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components";
-import { Spinner } from "@/components/atoms/spinner";
-import { EmptyState } from "@/components/molecules/empty-state";
+import { Spinner } from "@/components";
+import { EmptyState } from "@/components";
 import { Alert } from "@/components";
 import { userApi, KakaoFriendList } from "@/lib/api";
 import { logoutAndRedirectToConsent } from "@/lib/kakao-auth";

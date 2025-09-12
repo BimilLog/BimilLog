@@ -1,6 +1,6 @@
 "use client";
 
-import { BrowserGuideModal } from "@/components/molecules/browser-guide-modal";
+import { BrowserGuideModal } from "@/components";
 import { useBrowserGuide } from "@/hooks/useBrowserGuide";
 
 interface BrowserGuideWrapperProps {

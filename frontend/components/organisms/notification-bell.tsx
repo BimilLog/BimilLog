@@ -15,13 +15,13 @@ import {
   Shield,
 } from "lucide-react";
 import { Button } from "@/components";
-import { Card, CardContent } from "@/components/molecules/card";
+import { Card, CardContent } from "@/components";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetTrigger,
-} from "@/components/molecules/sheet";
+} from "@/components";
 import { useNotifications } from "@/hooks/useNotifications";
 import { isMobileOrTablet } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";

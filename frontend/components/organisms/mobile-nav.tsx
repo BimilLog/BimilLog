@@ -19,7 +19,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 
 interface MobileNavProps {
   className?: string;

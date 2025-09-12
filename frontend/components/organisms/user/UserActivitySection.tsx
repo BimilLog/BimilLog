@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
 import { Card, CardContent } from "@/components";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import { Badge } from "@/components";
 import { Button } from "@/components";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components";
 import { LoadingSpinner } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
 import { ActivityCard } from "@/components/molecules";

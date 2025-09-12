@@ -88,7 +88,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
             </label>
             <Textarea
               value={reason}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 setReason(e.target.value);
                 setError("");
               }}

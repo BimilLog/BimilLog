@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 import { Settings } from "lucide-react";
 import { MobileNav } from "@/components/organisms/mobile-nav";
 import { NotificationBell } from "./notification-bell";

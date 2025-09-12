@@ -48,7 +48,7 @@ export const SearchBox = React.forwardRef<HTMLDivElement, SearchBoxProps>(
         <Input
           type="text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
           disabled={disabled}

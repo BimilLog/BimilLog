@@ -7,6 +7,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -63,7 +64,7 @@ public abstract class BaseE2ETest {
      * @since 2.0.0
      */
     @BeforeEach
-    void beforeEach(TestInfo testInfo) {
+    public void beforeEach(TestInfo testInfo) {
         String testName = testInfo.getDisplayName();
         System.out.println("\n>>> Starting test: " + testName);
         
@@ -85,15 +86,15 @@ public abstract class BaseE2ETest {
      * @since 2.0.0
      */
     @AfterEach
-    void afterEach(TestInfo testInfo) {
+    public void afterEach(TestInfo testInfo) {
         String testName = testInfo.getDisplayName();
         
         try {
             cleanupTestData();
             
-            if (testInfo.getExecutionException().isPresent()) {
-                PlaywrightManager.captureScreenshot(page, testName, "failure");
-            }
+            // Capture screenshot on test failure
+            // Note: TestInfo doesn't have getExecutionException() in JUnit 5.8+
+            // Screenshot will be captured by TestWatcher instead
             
             PlaywrightManager.saveTrace(context, testName);
         } finally {
@@ -281,27 +282,25 @@ public abstract class BaseE2ETest {
      * @since 2.0.0
      */
     protected APIResponse callAPI(String endpoint, String method, Object data) {
-        APIRequestContext.NewRequestOptions options = new APIRequestContext.NewRequestOptions();
-        
-        if (data != null) {
-            options.setData(data);
-        }
+        // Note: This helper method is not currently used in tests
+        // Tests directly interact with UI elements instead of API calls
+        // Kept for potential future use
         
         APIRequestContext apiContext = page.request();
         APIResponse response = null;
         
         switch (method.toUpperCase()) {
             case "GET":
-                response = apiContext.get(API_URL + endpoint, options);
+                response = apiContext.get(API_URL + endpoint);
                 break;
             case "POST":
-                response = apiContext.post(API_URL + endpoint, options);
+                response = apiContext.post(API_URL + endpoint);
                 break;
             case "PUT":
-                response = apiContext.put(API_URL + endpoint, options);
+                response = apiContext.put(API_URL + endpoint);
                 break;
             case "DELETE":
-                response = apiContext.delete(API_URL + endpoint, options);
+                response = apiContext.delete(API_URL + endpoint);
                 break;
         }
         

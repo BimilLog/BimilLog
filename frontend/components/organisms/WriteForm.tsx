@@ -3,9 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Input } from "@/components";
 import { Label } from "@/components";
-import { SafeHTML } from "@/components/ui";
+import SafeHTML from "@/components/atoms/SafeHTML";
 import { Save, Lightbulb } from "lucide-react";
-import Editor from "@/components/molecules/editor";
+import Editor from "@/components/molecules/forms/editor";
 
 interface User {
   userName: string;

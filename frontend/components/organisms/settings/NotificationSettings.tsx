@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components";
 import { Label } from "@/components";
 import { SettingsSection, SettingToggle } from "@/components/molecules";
 import { Bell, Heart, MessageCircle, TrendingUp } from "lucide-react";

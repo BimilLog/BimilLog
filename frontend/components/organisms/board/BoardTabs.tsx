@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import { MessageSquare, TrendingUp, Crown, Zap } from "lucide-react";
 import { NoticeList } from "./notice-list";
 import { PostList } from "./post-list";

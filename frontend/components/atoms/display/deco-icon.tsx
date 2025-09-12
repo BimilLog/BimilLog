@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { getIconMapping } from '@/lib/icon-mappings';
+import { getIconMapping } from '@/lib/constants/icon-mappings';
 import { DecoType } from '@/lib/api';
 
 interface DecoIconProps {
