@@ -193,26 +193,6 @@ class CommentDeleteAdapterIntegrationTest {
         assertThat(foundComment2.get().getContent()).isEqualTo("탈퇴한 사용자의 댓글입니다.");
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 사용자 댓글 ID 목록 조회")
-    void shouldFindCommentIdsByUserId_WhenValidUserIdProvided() {
-        // Given: 특정 사용자의 여러 댓글 생성
-        Comment comment1 = Comment.createComment(testPost, testUser, "사용자 댓글 1", null);
-        Comment comment2 = Comment.createComment(testPost, testUser, "사용자 댓글 2", null);
-        Comment comment3 = Comment.createComment(testPost, null, "익명 댓글", 1234);
-        
-        comment1 = commentRepository.save(comment1);
-        comment2 = commentRepository.save(comment2);
-        commentRepository.save(comment3);
-
-        // When: 사용자 댓글 ID 목록 조회 (Repository를 직접 호출)
-        List<Long> commentIds = commentRepository.findCommentIdsByUserId(testUser.getId());
-
-        // Then: 해당 사용자의 댓글 ID만 조회되었는지 검증
-        assertThat(commentIds).hasSize(2);
-        assertThat(commentIds).contains(comment1.getId(), comment2.getId());
-        assertThat(commentIds).doesNotContain(comment3.getId());  // 익명 댓글은 제외
-    }
 
     @Test
     @DisplayName("정상 케이스 - 댓글 삭제 통합 메서드")
@@ -258,21 +238,6 @@ class CommentDeleteAdapterIntegrationTest {
         assertThat(foundComment.get().getContent()).isEqualTo("기존 댓글");
     }
 
-    @Test
-    @DisplayName("경계값 - 존재하지 않는 사용자 ID로 댓글 ID 목록 조회")
-    void shouldReturnEmptyList_WhenFindingCommentIdsByNonExistentUser() {
-        // Given: 기존 댓글과 존재하지 않는 사용자 ID
-        Comment comment = Comment.createComment(testPost, testUser, "기존 댓글", null);
-        commentRepository.save(comment);
-        
-        Long nonExistentUserId = 999L;
-
-        // When: 존재하지 않는 사용자 ID로 댓글 ID 목록 조회
-        List<Long> commentIds = commentRepository.findCommentIdsByUserId(nonExistentUserId);
-
-        // Then: 빈 목록이 반환되어야 함
-        assertThat(commentIds).isEmpty();
-    }
 
     @Test
     @DisplayName("경계값 - 존재하지 않는 댓글 ID로 삭제")

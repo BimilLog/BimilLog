@@ -87,20 +87,6 @@ public class CommentSaveAdapter implements CommentSavePort {
      */
     @Override
     public Optional<List<CommentClosure>> getParentClosures(Long parentId) {
-        return findByDescendantId(parentId);
-    }
-
-    /**
-     * <h3>댓글 클로저 관계 조회</h3>
-     * <p>주어진 자손 댓글 ID에 해당하는 모든 댓글 클로저 엔티티 목록을 조회합니다.</p>
-     * <p>부모 댓글의 조상 클로저 관계 조회 메서드에서 호출되어 계층 구조를 파악합니다.</p>
-     *
-     * @param descendantId 자손 댓글 ID
-     * @return Optional<List<CommentClosure>> 조회된 댓글 클로저 엔티티 목록. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Optional<List<CommentClosure>> findByDescendantId(Long descendantId) {
-        return commentClosureRepository.findByDescendantId(descendantId);
+        return commentClosureRepository.findByDescendantId(parentId);
     }
 }
