@@ -3,11 +3,7 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
+import jaeik.bimillog.domain.auth.application.port.out.*;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
@@ -26,12 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

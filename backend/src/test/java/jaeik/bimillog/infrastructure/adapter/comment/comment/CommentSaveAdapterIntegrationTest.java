@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.comment.comment;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
@@ -13,7 +12,6 @@ import jaeik.bimillog.infrastructure.adapter.comment.out.comment.CommentSaveAdap
 import jaeik.bimillog.infrastructure.adapter.comment.out.jpa.CommentClosureRepository;
 import jaeik.bimillog.infrastructure.adapter.comment.out.jpa.CommentRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

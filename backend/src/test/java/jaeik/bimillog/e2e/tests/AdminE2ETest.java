@@ -1,10 +1,11 @@
 package jaeik.bimillog.e2e.tests;
 
+import com.microsoft.playwright.Locator;
 import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
 import jaeik.bimillog.e2e.pages.PostPage;
-import com.microsoft.playwright.Locator;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -38,7 +39,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. 관리자 권한 확인")
-    void 관리자_권한_확인() {
+    void checkAdminPermissions() {
         System.out.println(">>> 관리자 권한 확인 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -65,7 +66,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 사용자 목록 조회")
-    void 사용자_목록_조회() {
+    void getUserList() {
         System.out.println(">>> 사용자 목록 조회 테스트 시작");
         
         ensureAdminLogin();
@@ -95,7 +96,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 사용자 강제 탈퇴")
-    void 사용자_강제_탈퇴() {
+    void forceUserWithdrawal() {
         System.out.println(">>> 사용자 강제 탈퇴 테스트 시작");
         
         ensureAdminLogin();
@@ -140,7 +141,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 게시글 관리자 삭제")
-    void 게시글_관리자_삭제() {
+    void deletePostByAdmin() {
         System.out.println(">>> 게시글 관리자 삭제 테스트 시작");
         
         ensureAdminLogin();
@@ -188,7 +189,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 댓글 관리자 삭제")
-    void 댓글_관리자_삭제() {
+    void deleteCommentByAdmin() {
         System.out.println(">>> 댓글 관리자 삭제 테스트 시작");
         
         ensureAdminLogin();
@@ -225,7 +226,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 신고 내역 조회")
-    void 신고_내역_조회() {
+    void getReportHistory() {
         System.out.println(">>> 신고 내역 조회 테스트 시작");
         
         ensureAdminLogin();
@@ -261,7 +262,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 신고 처리")
-    void 신고_처리() {
+    void processReport() {
         System.out.println(">>> 신고 처리 테스트 시작");
         
         ensureAdminLogin();
@@ -304,7 +305,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. 통계 대시보드")
-    void 통계_대시보드() {
+    void viewStatisticsDashboard() {
         System.out.println(">>> 통계 대시보드 테스트 시작");
         
         ensureAdminLogin();
@@ -342,7 +343,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(9)
     @DisplayName("09. 공지사항 작성")
-    void 공지사항_작성() {
+    void createNotice() {
         System.out.println(">>> 공지사항 작성 테스트 시작");
         
         ensureAdminLogin();
@@ -382,7 +383,7 @@ public class AdminE2ETest extends BaseE2ETest {
     @Test
     @Order(10)
     @DisplayName("10. 관리자 로그 확인")
-    void 관리자_로그_확인() {
+    void checkAdminLogs() {
         System.out.println(">>> 관리자 로그 확인 테스트 시작");
         
         ensureAdminLogin();

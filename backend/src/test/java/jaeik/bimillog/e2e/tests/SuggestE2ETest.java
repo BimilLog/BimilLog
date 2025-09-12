@@ -1,9 +1,10 @@
 package jaeik.bimillog.e2e.tests;
 
+import com.microsoft.playwright.Locator;
 import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
-import com.microsoft.playwright.Locator;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -29,7 +30,7 @@ public class SuggestE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. 익명 사용자 건의사항 작성")
-    void 익명_건의사항_작성() {
+    void writeSuggestionAsAnonymous() {
         System.out.println(">>> 익명 건의사항 작성 테스트 시작");
         
         if (loginPage.isLoggedIn()) {
@@ -69,7 +70,7 @@ public class SuggestE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 로그인 사용자 건의사항 작성")
-    void 로그인_건의사항_작성() {
+    void writeSuggestionAsLoggedIn() {
         System.out.println(">>> 로그인 사용자 건의사항 작성 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -114,7 +115,7 @@ public class SuggestE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 게시글 신고")
-    void 게시글_신고() {
+    void reportPost() {
         System.out.println(">>> 게시글 신고 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -175,7 +176,7 @@ public class SuggestE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 댓글 신고")
-    void 댓글_신고() {
+    void reportComment() {
         System.out.println(">>> 댓글 신고 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -233,7 +234,7 @@ public class SuggestE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 롤링페이퍼 메시지 신고")
-    void 롤링페이퍼_메시지_신고() {
+    void reportPaperMessage() {
         System.out.println(">>> 롤링페이퍼 메시지 신고 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -281,7 +282,7 @@ public class SuggestE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 건의사항 카테고리별 작성")
-    void 건의사항_카테고리별_작성() {
+    void writeSuggestionByCategory() {
         System.out.println(">>> 건의사항 카테고리별 작성 테스트 시작");
         
         String[] categories = {"버그", "기능요청", "개선사항", "기타"};
@@ -321,7 +322,7 @@ public class SuggestE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 건의사항 필수 항목 검증")
-    void 건의사항_필수항목_검증() {
+    void validateRequiredFieldsForSuggestion() {
         System.out.println(">>> 건의사항 필수 항목 검증 테스트 시작");
         
         page.navigate(BASE_URL + "/suggest");
@@ -356,7 +357,7 @@ public class SuggestE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. 건의사항 글자 수 제한")
-    void 건의사항_글자수_제한() {
+    void validateCharacterLimitForSuggestion() {
         System.out.println(">>> 건의사항 글자 수 제한 테스트 시작");
         
         page.navigate(BASE_URL + "/suggest");

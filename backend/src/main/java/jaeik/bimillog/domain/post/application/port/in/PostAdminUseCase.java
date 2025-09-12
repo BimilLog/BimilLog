@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
-import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.application.service.PostAdminService;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
 
 /**
  * <h2>게시글 관리자 유스케이스</h2>

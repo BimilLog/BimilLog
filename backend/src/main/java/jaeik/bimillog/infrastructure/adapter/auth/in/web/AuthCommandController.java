@@ -8,13 +8,15 @@ import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <h2>인증 명령 컨트롤러</h2>

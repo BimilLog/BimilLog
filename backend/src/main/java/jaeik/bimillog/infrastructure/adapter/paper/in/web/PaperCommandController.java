@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.paper.in.web;
 
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
-import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
 import jaeik.bimillog.infrastructure.adapter.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.validation.Valid;

@@ -2,10 +2,9 @@ package jaeik.bimillog.infrastructure.adapter.user.out.social;
 
 import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * <h2>카카오 API Feign Client</h2>

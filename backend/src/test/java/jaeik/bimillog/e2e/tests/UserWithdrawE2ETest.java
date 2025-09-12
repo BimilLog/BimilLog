@@ -1,11 +1,12 @@
 package jaeik.bimillog.e2e.tests;
 
+import com.microsoft.playwright.Locator;
 import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
-import jaeik.bimillog.e2e.pages.PostPage;
 import jaeik.bimillog.e2e.pages.PaperPage;
-import com.microsoft.playwright.Locator;
+import jaeik.bimillog.e2e.pages.PostPage;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -35,7 +36,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. 회원 탈퇴 전 데이터 생성")
-    void 탈퇴_전_데이터_생성() {
+    void createDataBeforeWithdrawal() {
         System.out.println(">>> 탈퇴 전 데이터 생성 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -75,7 +76,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 회원 탈퇴 실행")
-    void 회원_탈퇴_실행() {
+    void executeUserWithdrawal() {
         System.out.println(">>> 회원 탈퇴 실행 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -119,7 +120,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 댓글 소프트 삭제 확인")
-    void 댓글_소프트_삭제_확인() {
+    void verifyCommentSoftDeletion() {
         System.out.println(">>> 댓글 소프트 삭제 확인 시작");
         
         // 게시글 찾아가기
@@ -148,7 +149,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 롤링페이퍼 메시지 CASCADE 삭제 확인")
-    void 롤링페이퍼_메시지_삭제_확인() {
+    void verifyPaperMessageDeletion() {
         System.out.println(">>> 롤링페이퍼 메시지 삭제 확인 시작");
         
         // 롤링페이퍼 URL이 있다면 접근 시도
@@ -170,7 +171,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 회원가입 → 닉네임 설정 플로우")
-    void 회원가입_닉네임_설정() {
+    void signupAndSetNickname() {
         System.out.println(">>> 회원가입 및 닉네임 설정 테스트 시작");
         
         // 로그아웃 상태 확인
@@ -212,7 +213,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 프로필 수정")
-    void 프로필_수정() {
+    void editProfile() {
         System.out.println(">>> 프로필 수정 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -248,7 +249,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 탈퇴 시 알림 데이터 정리")
-    void 탈퇴_시_알림_정리() {
+    void cleanupNotificationsOnWithdrawal() {
         System.out.println(">>> 탈퇴 시 알림 데이터 정리 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -282,7 +283,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. 탈퇴 시 FCM 토큰 제거")
-    void 탈퇴_시_FCM_토큰_제거() {
+    void removeFCMTokenOnWithdrawal() {
         System.out.println(">>> FCM 토큰 제거 테스트 시작");
         
         // FCM 토큰은 브라우저에서 직접 확인 어려움
@@ -304,7 +305,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(9)
     @DisplayName("09. 탈퇴 시 소셜 연동 해제")
-    void 탈퇴_시_소셜_연동_해제() {
+    void unlinkSocialAccountOnWithdrawal() {
         System.out.println(">>> 소셜 연동 해제 테스트 시작");
         
         // 카카오 OAuth 연동 해제는 백엔드에서 처리
@@ -324,7 +325,7 @@ public class UserWithdrawE2ETest extends BaseE2ETest {
     @Test
     @Order(10)
     @DisplayName("10. 탈퇴 취소 불가 확인")
-    void 탈퇴_취소_불가() {
+    void verifyWithdrawalCannotBeCancelled() {
         System.out.println(">>> 탈퇴 취소 불가 테스트 시작");
         
         // 한 번 탈퇴한 계정은 복구 불가능

@@ -5,12 +5,13 @@ import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostDTO;
-import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostSearchDTO;
+import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.util.PostViewCookieUtil;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -18,8 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
 
 /**
  * <h2>게시글 조회 컨트롤러</h2>

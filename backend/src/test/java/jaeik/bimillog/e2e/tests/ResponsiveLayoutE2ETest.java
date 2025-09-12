@@ -1,10 +1,11 @@
 package jaeik.bimillog.e2e.tests;
 
+import com.microsoft.playwright.Locator;
 import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
 import jaeik.bimillog.e2e.pages.PaperPage;
-import com.microsoft.playwright.Locator;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -40,7 +41,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. PC 뷰포트 그리드 레이아웃 (6x10)")
-    void PC_그리드_레이아웃() {
+    void pcGridLayout() {
         System.out.println(">>> PC 그리드 레이아웃 테스트 시작");
         
         // PC 뷰포트 설정
@@ -68,7 +69,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 모바일 뷰포트 그리드 레이아웃 (4x10)")
-    void 모바일_그리드_레이아웃() {
+    void mobileGridLayout() {
         System.out.println(">>> 모바일 그리드 레이아웃 테스트 시작");
         
         // 모바일 뷰포트 설정
@@ -96,7 +97,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 브라우저 창 크기 조절 시 그리드 전환")
-    void 브라우저_창_크기_조절() {
+    void browserWindowResize() {
         System.out.println(">>> 브라우저 창 크기 조절 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -132,7 +133,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 터치 타겟 최소 44px 확인")
-    void 터치_타겟_크기() {
+    void touchTargetSize() {
         System.out.println(">>> 터치 타겟 크기 테스트 시작");
         
         page.setViewportSize(MOBILE_WIDTH, MOBILE_HEIGHT);
@@ -163,7 +164,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 모바일 바텀시트 vs PC 팝오버")
-    void 모바일_바텀시트_PC_팝오버() {
+    void mobileBottomSheetVsPCPopover() {
         System.out.println(">>> 모바일 바텀시트 vs PC 팝오버 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -208,7 +209,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 태블릿 중간 크기 레이아웃")
-    void 태블릿_레이아웃() {
+    void tabletLayout() {
         System.out.println(">>> 태블릿 레이아웃 테스트 시작");
         
         page.setViewportSize(TABLET_WIDTH, TABLET_HEIGHT);
@@ -231,7 +232,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 모바일 네비게이션 햄버거 메뉴")
-    void 모바일_햄버거_메뉴() {
+    void mobileHamburgerMenu() {
         System.out.println(">>> 모바일 햄버거 메뉴 테스트 시작");
         
         page.setViewportSize(MOBILE_WIDTH, MOBILE_HEIGHT);
@@ -258,7 +259,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. 반응형 이미지 최적화")
-    void 반응형_이미지() {
+    void responsiveImages() {
         System.out.println(">>> 반응형 이미지 테스트 시작");
         
         // PC 크기
@@ -291,7 +292,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(9)
     @DisplayName("09. 모바일 스크롤 성능")
-    void 모바일_스크롤_성능() {
+    void mobileScrollPerformance() {
         System.out.println(">>> 모바일 스크롤 성능 테스트 시작");
         
         page.setViewportSize(MOBILE_WIDTH, MOBILE_HEIGHT);
@@ -317,7 +318,7 @@ public class ResponsiveLayoutE2ETest extends BaseE2ETest {
     @Test
     @Order(10)
     @DisplayName("10. 가로/세로 모드 전환")
-    void 가로_세로_모드_전환() {
+    void orientationChange() {
         System.out.println(">>> 가로/세로 모드 전환 테스트 시작");
         
         // 세로 모드

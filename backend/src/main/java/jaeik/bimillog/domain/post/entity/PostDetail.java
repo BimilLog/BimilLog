@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.post.entity;
 
 import com.querydsl.core.annotations.QueryProjection;
+import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import lombok.Builder;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
-import jaeik.bimillog.domain.post.application.service.PostQueryService;
 
 /**
  * <h2>게시글 상세 정보 값 객체</h2>

@@ -1,9 +1,9 @@
 package jaeik.bimillog.integration.event.auth;
 
-import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
@@ -20,8 +20,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>사용자 로그아웃 이벤트 워크플로우 통합 테스트</h2>

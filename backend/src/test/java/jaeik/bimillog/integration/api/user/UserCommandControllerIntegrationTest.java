@@ -2,15 +2,15 @@ package jaeik.bimillog.integration.api.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
-import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.paper.exception;
 
+import jaeik.bimillog.infrastructure.adapter.paper.in.web.PaperCommandController;
+import jaeik.bimillog.infrastructure.adapter.paper.in.web.PaperQueryController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

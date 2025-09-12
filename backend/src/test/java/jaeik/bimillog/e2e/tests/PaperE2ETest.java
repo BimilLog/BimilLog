@@ -4,6 +4,7 @@ import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
 import jaeik.bimillog.e2e.pages.PaperPage;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -32,7 +33,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. 익명 사용자 롤링페이퍼 생성 테스트")
-    void 익명_사용자_롤링페이퍼_생성() {
+    void createPaperAsAnonymousUser() {
         System.out.println(">>> 익명 롤링페이퍼 생성 테스트 시작");
         
         if (loginPage.isLoggedIn()) {
@@ -52,7 +53,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. PC 그리드 레이아웃 확인 (6x10)")
-    void PC_그리드_레이아웃_확인() {
+    void checkPCGridLayout() {
         System.out.println(">>> PC 그리드 레이아웃 테스트 시작");
         
         if (createdPaperUrl != null) {
@@ -71,7 +72,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 모바일 그리드 레이아웃 확인 (4x10)")
-    void 모바일_그리드_레이아웃_확인() {
+    void checkMobileGridLayout() {
         System.out.println(">>> 모바일 그리드 레이아웃 테스트 시작");
         
         if (createdPaperUrl != null) {
@@ -90,7 +91,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 익명 메시지 작성 테스트")
-    void 익명_메시지_작성() {
+    void writeAnonymousMessage() {
         System.out.println(">>> 익명 메시지 작성 테스트 시작");
         
         if (createdPaperUrl != null) {
@@ -112,7 +113,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 메시지 읽기 테스트")
-    void 메시지_읽기() {
+    void readMessage() {
         System.out.println(">>> 메시지 읽기 테스트 시작");
         
         if (createdPaperUrl != null) {
@@ -132,7 +133,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 여러 메시지 작성 테스트")
-    void 여러_메시지_작성() {
+    void writeMultipleMessages() {
         System.out.println(">>> 여러 메시지 작성 테스트 시작");
         
         createdPaperUrl = paperPage.createPaper("다중 메시지 테스트", null);
@@ -155,7 +156,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 로그인 사용자 롤링페이퍼 생성")
-    void 로그인_사용자_롤링페이퍼_생성() {
+    void createPaperAsLoggedInUser() {
         System.out.println(">>> 로그인 사용자 롤링페이퍼 생성 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -174,7 +175,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. 방문 기록 테스트")
-    void 방문_기록_확인() {
+    void checkVisitHistory() {
         System.out.println(">>> 방문 기록 테스트 시작");
         
         String paper1 = paperPage.createPaper("방문기록1", null);
@@ -196,7 +197,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(9)
     @DisplayName("09. 공유 URL 테스트")
-    void 공유_URL_테스트() {
+    void testShareURL() {
         System.out.println(">>> 공유 URL 테스트 시작");
         
         createdPaperUrl = paperPage.createPaper("공유 테스트", null);
@@ -216,7 +217,7 @@ public class PaperE2ETest extends BaseE2ETest {
     @Test
     @Order(10)
     @DisplayName("10. 그리드 셀 가득 채우기 테스트")
-    void 그리드_셀_가득_채우기() {
+    void fillAllGridCells() {
         System.out.println(">>> 그리드 셀 가득 채우기 테스트 시작");
         
         createdPaperUrl = paperPage.createPaper("가득 채우기 테스트", null);

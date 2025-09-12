@@ -1,13 +1,13 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.user.entity.User;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;

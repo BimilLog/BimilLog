@@ -1,15 +1,15 @@
 package jaeik.bimillog.infrastructure.adapter.notification.notification;
 
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.notification.out.notification.NotificationCommandAdapter;
 import jaeik.bimillog.infrastructure.adapter.notification.out.jpa.NotificationRepository;
+import jaeik.bimillog.infrastructure.adapter.notification.out.notification.NotificationCommandAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;

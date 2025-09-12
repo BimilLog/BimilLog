@@ -3,6 +3,7 @@ package jaeik.bimillog.e2e.tests;
 import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -28,7 +29,7 @@ public class AuthE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. 카카오 로그인 테스트")
-    void 카카오_로그인_성공() {
+    void kakaoLoginSuccess() {
         System.out.println(">>> 카카오 로그인 테스트 시작");
         
         loginPage.navigate("/");
@@ -48,7 +49,7 @@ public class AuthE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 세션 유지 테스트")
-    void 페이지_새로고침_후_세션_유지() {
+    void sessionMaintainedAfterPageRefresh() {
         System.out.println(">>> 세션 유지 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -72,7 +73,7 @@ public class AuthE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 보호된 페이지 접근 테스트")
-    void 로그인_없이_보호된_페이지_접근시_리다이렉트() {
+    void redirectWhenAccessingProtectedPageWithoutLogin() {
         System.out.println(">>> 보호된 페이지 접근 테스트 시작");
         
         if (loginPage.isLoggedIn()) {
@@ -91,7 +92,7 @@ public class AuthE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 로그아웃 테스트")
-    void 로그아웃_성공() {
+    void logoutSuccess() {
         System.out.println(">>> 로그아웃 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -111,7 +112,7 @@ public class AuthE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 로그아웃 후 세션 무효화 확인")
-    void 로그아웃_후_세션_무효화() {
+    void sessionInvalidatedAfterLogout() {
         System.out.println(">>> 세션 무효화 테스트 시작");
         
         if (loginPage.isLoggedIn()) {
@@ -135,7 +136,7 @@ public class AuthE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 연속 로그인/로그아웃 테스트")
-    void 연속_로그인_로그아웃() {
+    void continuousLoginLogout() {
         System.out.println(">>> 연속 로그인/로그아웃 테스트 시작");
         
         for (int i = 1; i <= 3; i++) {

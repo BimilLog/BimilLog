@@ -5,6 +5,7 @@ import jaeik.bimillog.e2e.pages.LoginPage;
 import jaeik.bimillog.e2e.pages.PaperPage;
 import jaeik.bimillog.e2e.pages.VisitPage;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -34,7 +35,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. 닉네임으로 롤링페이퍼 검색")
-    void 닉네임_검색() {
+    void searchByNickname() {
         System.out.println(">>> 닉네임 검색 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -60,7 +61,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 검색 결과 없음 처리")
-    void 검색_결과_없음() {
+    void noSearchResults() {
         System.out.println(">>> 검색 결과 없음 테스트 시작");
         
         String randomNickname = "존재하지않는닉네임" + generateTimestamp();
@@ -75,7 +76,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 방문 후 익명 메시지 작성")
-    void 방문_후_익명_메시지() {
+    void anonymousMessageAfterVisit() {
         System.out.println(">>> 방문 후 익명 메시지 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -96,7 +97,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 방문 기록 추가")
-    void 방문_기록_추가() {
+    void addVisitHistory() {
         System.out.println(">>> 방문 기록 추가 테스트 시작");
         
         visitPage.clearVisitHistory();
@@ -120,7 +121,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 최대 5개 방문 기록 제한")
-    void 방문_기록_최대_5개() {
+    void visitHistoryMaxFive() {
         System.out.println(">>> 방문 기록 최대 5개 제한 테스트 시작");
         
         visitPage.clearVisitHistory();
@@ -148,7 +149,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 최근 방문 롤링페이퍼 재방문")
-    void 최근_방문_재방문() {
+    void revisitRecentPaper() {
         System.out.println(">>> 최근 방문 재방문 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -170,7 +171,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 방문 기록 쿠키/로컬스토리지 저장")
-    void 방문_기록_저장_확인() {
+    void verifyVisitHistorySave() {
         System.out.println(">>> 방문 기록 저장 확인 테스트 시작");
         
         visitPage.clearVisitHistory();
@@ -192,7 +193,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. 인기 롤링페이퍼 표시")
-    void 인기_롤링페이퍼() {
+    void popularPapers() {
         System.out.println(">>> 인기 롤링페이퍼 테스트 시작");
         
         visitPage.navigateToVisitPage();
@@ -209,7 +210,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(9)
     @DisplayName("09. 방문 기록 초기화")
-    void 방문_기록_초기화() {
+    void clearVisitHistory() {
         System.out.println(">>> 방문 기록 초기화 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -233,7 +234,7 @@ public class VisitE2ETest extends BaseE2ETest {
     @Test
     @Order(10)
     @DisplayName("10. 검색 자동완성")
-    void 검색_자동완성() {
+    void searchAutoComplete() {
         System.out.println(">>> 검색 자동완성 테스트 시작");
         
         boolean hasAutoComplete = visitPage.hasAutoComplete("테스");

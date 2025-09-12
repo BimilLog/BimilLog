@@ -1,7 +1,9 @@
 package jaeik.bimillog.domain.post.entity;
 
-import jaeik.bimillog.global.entity.BaseEntity;
+import jaeik.bimillog.domain.post.application.service.PostAdminService;
+import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -9,8 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import jaeik.bimillog.domain.post.application.service.PostCommandService;
-import jaeik.bimillog.domain.post.application.service.PostAdminService;
 
 /**
  * <h2>게시글 엔티티</h2>

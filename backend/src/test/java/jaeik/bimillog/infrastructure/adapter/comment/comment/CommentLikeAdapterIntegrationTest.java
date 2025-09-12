@@ -1,16 +1,16 @@
 package jaeik.bimillog.infrastructure.adapter.comment.comment;
 
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.comment.out.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.comment.out.comment.CommentLikeAdapter;
 import jaeik.bimillog.infrastructure.adapter.comment.out.jpa.CommentLikeRepository;
+import jaeik.bimillog.infrastructure.adapter.comment.out.jpa.CommentRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +26,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * <h2>CommentLikeAdapter 통합 테스트</h2>

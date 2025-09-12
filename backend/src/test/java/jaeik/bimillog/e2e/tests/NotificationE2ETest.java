@@ -3,9 +3,10 @@ package jaeik.bimillog.e2e.tests;
 import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
 import jaeik.bimillog.e2e.pages.NotificationPage;
-import jaeik.bimillog.e2e.pages.PostPage;
 import jaeik.bimillog.e2e.pages.PaperPage;
+import jaeik.bimillog.e2e.pages.PostPage;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -37,7 +38,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. SSE 연결 확인")
-    void SSE_연결_확인() {
+    void checkSSEConnection() {
         System.out.println(">>> SSE 연결 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -56,7 +57,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 댓글 알림 수신")
-    void 댓글_알림_수신() {
+    void receiveCommentNotification() {
         System.out.println(">>> 댓글 알림 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -102,7 +103,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 롤링페이퍼 메시지 알림")
-    void 롤링페이퍼_메시지_알림() {
+    void receivePaperMessageNotification() {
         System.out.println(">>> 롤링페이퍼 메시지 알림 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -142,7 +143,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 개별 알림 읽음 처리 (5분 배치)")
-    void 개별_알림_읽음_배치() {
+    void batchMarkIndividualNotificationsAsRead() {
         System.out.println(">>> 개별 알림 읽음 배치 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -172,7 +173,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 개별 알림 삭제 (5분 배치)")
-    void 개별_알림_삭제_배치() {
+    void batchDeleteIndividualNotifications() {
         System.out.println(">>> 개별 알림 삭제 배치 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -201,7 +202,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 모든 알림 읽음 처리 (즉시)")
-    void 모든_알림_읽음_즉시() {
+    void markAllNotificationsAsReadImmediately() {
         System.out.println(">>> 모든 알림 읽음 처리 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -226,7 +227,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 모든 알림 삭제 (즉시)")
-    void 모든_알림_삭제_즉시() {
+    void deleteAllNotificationsImmediately() {
         System.out.println(">>> 모든 알림 삭제 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -251,7 +252,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. FCM 알림 권한 요청")
-    void FCM_알림_권한_요청() {
+    void requestFCMNotificationPermission() {
         System.out.println(">>> FCM 알림 권한 요청 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -271,7 +272,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(9)
     @DisplayName("09. 오프라인 → 온라인 알림 동기화")
-    void 오프라인_온라인_동기화() {
+    void offlineOnlineSynchronization() {
         System.out.println(">>> 오프라인/온라인 동기화 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -301,7 +302,7 @@ public class NotificationE2ETest extends BaseE2ETest {
     @Test
     @Order(10)
     @DisplayName("10. 알림 타입별 아이콘 확인")
-    void 알림_타입별_아이콘() {
+    void checkNotificationIconsByType() {
         System.out.println(">>> 알림 타입별 아이콘 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {

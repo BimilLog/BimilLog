@@ -1,12 +1,11 @@
 package jaeik.bimillog.infrastructure.adapter.auth.dto;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
 
 /**
  * <h2>소셜 로그인 요청 DTO</h2>

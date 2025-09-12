@@ -1,11 +1,12 @@
 package jaeik.bimillog.infrastructure.adapter.post.post;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.post.application.port.out.PostCommentToPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
-import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostLike;
+import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.post.out.post.PostQueryAdapter;
@@ -25,10 +26,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 

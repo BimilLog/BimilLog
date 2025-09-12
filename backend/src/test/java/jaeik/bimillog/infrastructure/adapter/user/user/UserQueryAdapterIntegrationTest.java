@@ -2,13 +2,13 @@ package jaeik.bimillog.infrastructure.adapter.user.user;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.SettingRepository;
-import jaeik.bimillog.infrastructure.adapter.user.out.user.UserQueryAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.user.out.user.UserQueryAdapter;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

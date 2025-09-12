@@ -2,7 +2,6 @@ package jaeik.bimillog.e2e.pages;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.AriaRole;
 
 /**
  * <h2>롤링페이퍼 방문 페이지 객체</h2>

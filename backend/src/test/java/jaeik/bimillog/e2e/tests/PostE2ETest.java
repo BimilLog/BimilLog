@@ -4,6 +4,7 @@ import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
 import jaeik.bimillog.e2e.pages.PostPage;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -33,7 +34,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. 로그인 후 게시글 작성")
-    void 로그인_후_게시글_작성() {
+    void createPostAfterLogin() {
         System.out.println(">>> 게시글 작성 테스트 시작");
         
         if (!loginPage.isLoggedIn()) {
@@ -58,7 +59,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 작성한 게시글 수정")
-    void 게시글_수정() {
+    void editPost() {
         System.out.println(">>> 게시글 수정 테스트 시작");
         
         if (createdPostUrl == null) {
@@ -85,7 +86,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 댓글 작성")
-    void 댓글_작성() {
+    void writeComment() {
         System.out.println(">>> 댓글 작성 테스트 시작");
         
         if (createdPostUrl == null) {
@@ -109,7 +110,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 대댓글 작성 (계층형 댓글)")
-    void 대댓글_작성() {
+    void writeReply() {
         System.out.println(">>> 대댓글 작성 테스트 시작");
         
         if (createdPostUrl == null) {
@@ -134,7 +135,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 게시글 좋아요")
-    void 게시글_좋아요() {
+    void likePost() {
         System.out.println(">>> 게시글 좋아요 테스트 시작");
         
         if (createdPostUrl == null) {
@@ -154,7 +155,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 게시글 조회수 확인")
-    void 게시글_조회수_확인() {
+    void checkPostViewCount() {
         System.out.println(">>> 조회수 확인 테스트 시작");
         
         if (createdPostUrl == null) {
@@ -180,7 +181,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 게시글 검색 (풀텍스트)")
-    void 게시글_검색() {
+    void searchPosts() {
         System.out.println(">>> 게시글 검색 테스트 시작");
         
         String uniqueKeyword = "유니크검색" + generateTimestamp();
@@ -198,7 +199,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. 여러 댓글 작성 후 계층 확인")
-    void 댓글_계층_구조_테스트() {
+    void testCommentHierarchyStructure() {
         System.out.println(">>> 댓글 계층 구조 테스트 시작");
         
         testPostTitle = "계층 댓글 테스트 " + generateTimestamp();
@@ -221,7 +222,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(9)
     @DisplayName("09. 게시글 삭제")
-    void 게시글_삭제() {
+    void deletePost() {
         System.out.println(">>> 게시글 삭제 테스트 시작");
         
         testPostTitle = "삭제할 게시글 " + generateTimestamp();
@@ -242,7 +243,7 @@ public class PostE2ETest extends BaseE2ETest {
     @Test
     @Order(10)
     @DisplayName("10. 익명 사용자 게시글 작성 제한")
-    void 익명_사용자_게시글_작성_제한() {
+    void restrictAnonymousUserPostCreation() {
         System.out.println(">>> 익명 사용자 제한 테스트 시작");
         
         if (loginPage.isLoggedIn()) {

@@ -1,7 +1,10 @@
 package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
-import jaeik.bimillog.domain.post.application.port.out.*;
+import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.exception.PostCustomException;

@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.admin.out.admin;
 
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
-import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
+import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.infrastructure.adapter.admin.out.jpa.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

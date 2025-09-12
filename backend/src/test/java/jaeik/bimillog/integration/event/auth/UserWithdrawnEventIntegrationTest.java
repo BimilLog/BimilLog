@@ -19,7 +19,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.Duration;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>사용자 탈퇴 이벤트 워크플로우 통합 테스트</h2>

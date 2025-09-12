@@ -21,25 +21,24 @@ public class NotificationPage extends BasePage {
      * <h3>알림 벨 클릭</h3>
      * <p>헤더의 알림 벨 아이콘을 클릭하여 알림 목록을 엽니다.</p>
      *
-     * @return 알림 목록 열기 성공 여부
      * @author Jaeik
      * @since 2.0.0
      */
-    public boolean openNotificationList() {
+    public void openNotificationList() {
         try {
             Locator bellButton = page.locator("button:has(svg.lucide-bell)").first();
             if (!bellButton.isVisible()) {
-                return false;
+                return;
             }
             
             bellButton.click();
             wait(500);
-            
-            return page.locator(".notification-list, [role='dialog']").isVisible() ||
-                   page.locator("text=알림").isVisible();
+
+            if (!page.locator(".notification-list, [role='dialog']").isVisible()) {
+                page.locator("text=알림").isVisible();
+            }
         } catch (Exception e) {
             System.err.println("알림 목록 열기 실패: " + e.getMessage());
-            return false;
         }
     }
     
@@ -98,11 +97,10 @@ public class NotificationPage extends BasePage {
      * <p>5분 배치 대기열에 추가됩니다.</p>
      *
      * @param index 알림 인덱스 (0부터 시작)
-     * @return 읽음 처리 성공 여부
      * @author Jaeik
      * @since 2.0.0
      */
-    public boolean markAsRead(int index) {
+    public void markAsRead(int index) {
         try {
             if (!isNotificationListOpen()) {
                 openNotificationList();
@@ -115,13 +113,10 @@ public class NotificationPage extends BasePage {
             if (readButton.isVisible()) {
                 readButton.click();
                 wait(500);
-                return true;
             }
-            
-            return false;
+
         } catch (Exception e) {
             System.err.println("읽음 처리 실패: " + e.getMessage());
-            return false;
         }
     }
     
@@ -131,11 +126,10 @@ public class NotificationPage extends BasePage {
      * <p>5분 배치 대기열에 추가됩니다.</p>
      *
      * @param index 알림 인덱스
-     * @return 삭제 성공 여부
      * @author Jaeik
      * @since 2.0.0
      */
-    public boolean deleteNotification(int index) {
+    public void deleteNotification(int index) {
         try {
             if (!isNotificationListOpen()) {
                 openNotificationList();
@@ -148,13 +142,10 @@ public class NotificationPage extends BasePage {
             if (deleteButton.isVisible()) {
                 deleteButton.click();
                 wait(500);
-                return true;
             }
-            
-            return false;
+
         } catch (Exception e) {
             System.err.println("알림 삭제 실패: " + e.getMessage());
-            return false;
         }
     }
     
@@ -396,22 +387,20 @@ public class NotificationPage extends BasePage {
      * <h3>알림 목록 닫기</h3>
      * <p>열려있는 알림 목록을 닫습니다.</p>
      *
-     * @return 닫기 성공 여부
      * @author Jaeik
      * @since 2.0.0
      */
-    public boolean closeNotificationList() {
+    public void closeNotificationList() {
         try {
             if (!isNotificationListOpen()) {
-                return true;
+                return;
             }
             
             page.keyboard().press("Escape");
             wait(500);
-            
-            return !isNotificationListOpen();
+
+            isNotificationListOpen();
         } catch (Exception e) {
-            return false;
         }
     }
 }

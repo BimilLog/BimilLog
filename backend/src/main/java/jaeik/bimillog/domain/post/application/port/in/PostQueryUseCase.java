@@ -4,10 +4,9 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.infrastructure.adapter.post.in.web.PostQueryController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import jaeik.bimillog.infrastructure.adapter.post.in.web.PostQueryController;
 
 import java.util.List;
 import java.util.Map;

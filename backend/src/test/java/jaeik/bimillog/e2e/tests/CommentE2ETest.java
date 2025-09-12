@@ -4,6 +4,7 @@ import jaeik.bimillog.e2e.base.BaseE2ETest;
 import jaeik.bimillog.e2e.pages.LoginPage;
 import jaeik.bimillog.e2e.pages.PostPage;
 import org.junit.jupiter.api.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -36,7 +37,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(1)
     @DisplayName("01. 3단계 댓글 계층 구조 생성")
-    void 삼단계_댓글_계층_생성() {
+    void createThreeLevelCommentHierarchy() {
         System.out.println(">>> 3단계 댓글 계층 구조 테스트 시작");
         
         String postTitle = "댓글 계층 테스트 " + generateTimestamp();
@@ -62,7 +63,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(2)
     @DisplayName("02. 복잡한 댓글 트리 구조 생성")
-    void 복잡한_댓글_트리_생성() {
+    void createComplexCommentTree() {
         System.out.println(">>> 복잡한 댓글 트리 구조 테스트 시작");
         
         String postTitle = "복잡한 댓글 트리 " + generateTimestamp();
@@ -89,7 +90,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(3)
     @DisplayName("03. 댓글 수정 기능")
-    void 댓글_수정() {
+    void editComment() {
         System.out.println(">>> 댓글 수정 테스트 시작");
         
         if (testPostUrl == null) {
@@ -121,7 +122,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(4)
     @DisplayName("04. 댓글 삭제 - 자손이 없는 경우")
-    void 댓글_삭제_자손없음() {
+    void deleteCommentWithoutChildren() {
         System.out.println(">>> 자손 없는 댓글 삭제 테스트 시작");
         
         String postTitle = "댓글 삭제 테스트1 " + generateTimestamp();
@@ -148,7 +149,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(5)
     @DisplayName("05. 댓글 삭제 - 자손이 있는 경우")
-    void 댓글_삭제_자손있음() {
+    void deleteCommentWithChildren() {
         System.out.println(">>> 자손 있는 댓글 삭제 테스트 시작");
         
         String postTitle = "댓글 삭제 테스트2 " + generateTimestamp();
@@ -176,7 +177,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(6)
     @DisplayName("06. 익명 사용자 댓글 작성 허용")
-    void 익명_사용자_댓글_작성() {
+    void anonymousUserCommentCreation() {
         System.out.println(">>> 익명 사용자 댓글 테스트 시작");
         
         if (loginPage.isLoggedIn()) {
@@ -205,7 +206,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(7)
     @DisplayName("07. 댓글 페이지네이션")
-    void 댓글_페이지네이션() {
+    void commentPagination() {
         System.out.println(">>> 댓글 페이지네이션 테스트 시작");
         
         loginPage.performKakaoLogin();
@@ -237,7 +238,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(8)
     @DisplayName("08. 댓글 알림 테스트")
-    void 댓글_알림() {
+    void commentNotification() {
         System.out.println(">>> 댓글 알림 테스트 시작");
         
         String postTitle = "알림 테스트 " + generateTimestamp();
@@ -261,7 +262,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(9)
     @DisplayName("09. 댓글 좋아요 기능")
-    void 댓글_좋아요() {
+    void likeComment() {
         System.out.println(">>> 댓글 좋아요 테스트 시작");
         
         if (testPostUrl == null) {
@@ -287,7 +288,7 @@ public class CommentE2ETest extends BaseE2ETest {
     @Test
     @Order(10)
     @DisplayName("10. 댓글 신고 기능")
-    void 댓글_신고() {
+    void reportComment() {
         System.out.println(">>> 댓글 신고 테스트 시작");
         
         if (testPostUrl == null) {

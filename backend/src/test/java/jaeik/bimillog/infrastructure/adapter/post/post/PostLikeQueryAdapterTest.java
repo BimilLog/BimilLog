@@ -1,9 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.post.post;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.QPostLike;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.post.out.post.PostLikeQueryAdapter;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,11 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 /**
  * <h2>PostLikeQueryAdapter 단위 테스트</h2>

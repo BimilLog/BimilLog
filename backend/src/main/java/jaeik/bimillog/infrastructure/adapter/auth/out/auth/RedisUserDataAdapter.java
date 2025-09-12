@@ -1,10 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.TemporaryUserDataDTO;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
