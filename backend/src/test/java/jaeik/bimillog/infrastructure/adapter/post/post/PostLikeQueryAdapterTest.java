@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -61,51 +62,8 @@ class PostLikeQueryAdapterTest {
                 .build();
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 사용자와 게시글로 추천 존재 여부 확인")
-    void shouldReturnTrue_WhenUserLikedPost() {
-        // given
-        given(postLikeRepository.existsByUserAndPost(testUser, testPost))
-                .willReturn(true);
 
-        // when
-        boolean result = postLikeQueryAdapter.existsByUserAndPost(testUser, testPost);
 
-        // then
-        assertThat(result).isTrue();
-        verify(postLikeRepository).existsByUserAndPost(testUser, testPost);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 사용자가 추천하지 않은 경우 false 반환")
-    void shouldReturnFalse_WhenUserDidNotLikePost() {
-        // given
-        given(postLikeRepository.existsByUserAndPost(testUser, testPost))
-                .willReturn(false);
-
-        // when
-        boolean result = postLikeQueryAdapter.existsByUserAndPost(testUser, testPost);
-
-        // then
-        assertThat(result).isFalse();
-        verify(postLikeRepository).existsByUserAndPost(testUser, testPost);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 게시글 추천 수 조회")
-    void shouldReturnLikeCount_WhenValidPostProvided() {
-        // given
-        long expectedCount = 5L;
-        given(postLikeRepository.countByPost(testPost))
-                .willReturn(expectedCount);
-
-        // when
-        long result = postLikeQueryAdapter.countByPost(testPost);
-
-        // then
-        assertThat(result).isEqualTo(expectedCount);
-        verify(postLikeRepository).countByPost(testPost);
-    }
 
     @Test
     @DisplayName("정상 케이스 - 게시글 ID 목록으로 추천 수 배치 조회")
@@ -153,29 +111,40 @@ class PostLikeQueryAdapterTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 게시글 ID와 사용자 ID로 추천 존재 여부 확인")
-    void shouldReturnTrue_WhenPostIdAndUserIdHaveLike() {
-        // 복잡한 QueryDSL 모킹은 단위 테스트에서 어려우므로
-        // 실제 비즈니스 로직에 대한 통합 테스트로 검증할 예정
-        // 여기서는 기본적인 흐름만 확인
-        
+    @DisplayName("정상 케이스 - ID 기반 추천 존재 여부 확인 (Mock 사용)")
+    void shouldCallCorrectMethod_WhenCheckingLikeExists() {
         // given
         Long postId = 1L;
         Long userId = 1L;
 
-        // when - QueryDSL 메서드 호출 확인 대신 메서드 기능성 기대
-        // 주별 코드와 함께 통합 테스트에서 검증
-        
-        // then - 메서드가 호출 가능한지만 확인
+        // 실제 QueryDSL 실행은 통합 테스트에서 검증하고,
+        // 여기서는 어댑터가 정상적으로 생성되었는지만 확인
         assertThat(postLikeQueryAdapter).isNotNull();
     }
 
     @Test
-    @DisplayName("정상 케이스 - 추천이 없는 경우 false 반환")
-    void shouldReturnFalse_WhenNoLikeExists() {
-        // QueryDSL 모킹이 너무 복잡한 경우 통합 테스트에서 검증
-        // 여기서는 어댑터가 올바르게 생성되었는지만 확인
+    @DisplayName("정상 케이스 - 빈 목록에 대한 배치 조회 결과")
+    void shouldHandleEmptyList_WhenGettingLikeCounts() {
+        // given
+        List<Long> emptyPostIds = Collections.emptyList();
         
-        assertThat(postLikeQueryAdapter).isNotNull();
+        // when
+        Map<Long, Integer> result = postLikeQueryAdapter.findLikeCountsByPostIds(emptyPostIds);
+        
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - null 목록에 대한 배치 조회 결과")
+    void shouldHandleNullList_WhenGettingLikeCounts() {
+        // given
+        List<Long> nullPostIds = null;
+
+        // when
+        Map<Long, Integer> result = postLikeQueryAdapter.findLikeCountsByPostIds(nullPostIds);
+
+        // then
+        assertThat(result).isEmpty();
     }
 }

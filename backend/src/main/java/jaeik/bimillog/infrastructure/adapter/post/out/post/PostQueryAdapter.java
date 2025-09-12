@@ -32,8 +32,8 @@ import java.util.Optional;
  * <h2>게시글 조회 어댑터</h2>
  * <p>게시글 조회 포트의 JPA/QueryDSL 구현체입니다.</p>
  * <p>게시글 목록 조회, 상세 조회, 검색</p>
- * <p>MySQL 전문 검색과 QueryDSL을 활용한 복잡 쿼리 처리</p>
- * <p>배치 조회로 댓글 수와 추천 수 처리</p>
+ * <p>MySQL 전문 검색과 QueryDSL 쿼리 처리</p>
+ * <p>배치 조회로 댓글 수와 추천 수 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -87,7 +87,7 @@ public class PostQueryAdapter implements PostQueryPort {
     }
 
     /**
-     * <h3>검색을 통한 게시글 조회</h3>
+     * <h3>검색어로 게시글 조회</h3>
      * <p>검색 유형과 쿼리에 따라 게시글을 검색하고 페이지네이션합니다.</p>
      * <p>3글자 이상이고 writer가 아니면 FULLTEXT, 아니면 LIKE 검색</p>
      * <p>{@link PostQueryService}에서 게시글 전문 검색 처리 시 호출됩니다.</p>
@@ -125,7 +125,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
      * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>배치 조회로 댓글 수와 추천 수 처리</p>
+     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
      * <p>{@link PostQueryService}에서 사용자 추천 게시글 내역 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
@@ -208,7 +208,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>작성자 LIKE 검색 조건</h3>
      * <p>글자 수에 따라 검색 패턴을 조정합니다.</p>
-     * <p>1-3글자: %LIKE% (완전 매칭), 4글자+: LIKE% (인덱스 활용)</p>
+     * <p>1-3글자: %LIKE% (완전 매칭), 4글자+: LIKE% 검색</p>
      *
      * @param query 검색어 (DTO에서 이미 검증됨)
      * @return 작성자 검색 조건
@@ -228,7 +228,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>FULLTEXT 검색으로 Post ID 목록 조회</h3>
      * <p>PostFullTextRepository를 사용하여 네이티브 쿼리로 검색합니다.</p>
-     * <p>페이징을 적용하여 메모리 효율성을 개선합니다.</p>
+     * <p>페이징을 적용하여 검색 결과를 제한합니다.</p>
      * 
      * @param type 검색 유형
      * @param query 검색어
@@ -272,7 +272,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>공통 게시글 조회 메서드</h3>
      * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
-     * <p>배치 조회로 댓글 수와 추천 수 처리</p>
+     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
      *
      * @param condition WHERE 조건
      * @param pageable  페이지 정보
@@ -345,7 +345,7 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>게시글 상세 정보 JOIN 쿼리</h3>
      * <p>게시글, 좋아요 수, 댓글 수, 사용자 좋아요 여부를 한 번의 JOIN 쿼리로 조회합니다.</p>
-     * <p>JOIN으로 필요한 데이터를 한 번에 가져오어 데이터베이스 접근 회수 감소</p>
+     * <p>JOIN으로 필요한 데이터를 한 번에 조회</p>
      * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
      *
      * @param postId 조회할 게시글 ID

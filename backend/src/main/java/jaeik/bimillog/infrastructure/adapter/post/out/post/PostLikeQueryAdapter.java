@@ -91,33 +91,4 @@ public class PostLikeQueryAdapter implements PostLikeQueryPort {
         
         return count != null;
     }
-
-    /**
-     * <h3>사용자와 게시글로 추천 존재 여부 확인 (내부 용)</h3>
-     * <p>엔티티 기반 추천 존재 여부 확인을 위한 private 메서드입니다.</p>
-     * <p>PostInteractionService에서 사용하기 위해 유지됩니다.</p>
-     *
-     * @param user 사용자 엔티티
-     * @param post 게시글 엔티티
-     * @return 추천이 존재하면 true, 아니면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public boolean existsByUserAndPost(User user, Post post) {
-        return postLikeRepository.existsByUserAndPost(user, post);
-    }
-
-    /**
-     * <h3>게시글 추천 수 조회 (내부 용)</h3>
-     * <p>엔티티 기반 추천 수 조회를 위한 private 메서드입니다.</p>
-     * <p>필요시 다른 어댑터에서 사용할 수 있도록 public으로 유지됩니다.</p>
-     *
-     * @param post 게시글 엔티티
-     * @return 해당 게시글의 추천 개수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public long countByPost(Post post) {
-        return postLikeRepository.countByPost(post);
-    }
 }

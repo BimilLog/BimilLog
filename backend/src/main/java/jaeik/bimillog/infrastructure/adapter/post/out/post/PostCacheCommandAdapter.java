@@ -21,18 +21,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * <h2>PostCacheCommandAdapter</h2>
- * <p>
- * Post 도메인의 캐시 명령 포트를 Redis 기술로 구현하는 아웃바운드 어댑터입니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 도메인과 캐시 기술을 분리하여 도메인의 순수성을 보장하고,
- * PostCacheCommandPort 인터페이스를 통해 인기글 캐시 저장 및 관리 기능을 제공합니다.
- * </p>
- * <p>
- * PostCacheService에서 실시간, 주간, 레전드, 공지사항 게시글 캐싱 처리 시 호출되어 캐시 데이터를 생성/수정/삭제하고,
- * 스케줄러에 의한 배치 캐싱과 실시간 캐시 업데이트를 모두 처리하여 빠른 인기글 서비스를 지원합니다.
- * </p>
+ * <h2>게시글 캐시 명령 어댑터</h2>
+ * <p>게시글 캐시 명령 포트의 Redis 구현체입니다.</p>
+ * <p>인기글 캐시 데이터 생성, 수정, 삭제</p>
+ * <p>인기글 플래그 설정 및 초기화</p>
  *
  * @author Jaeik
  * @version 2.0.0

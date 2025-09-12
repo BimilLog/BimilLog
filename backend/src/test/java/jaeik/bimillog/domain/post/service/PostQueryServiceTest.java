@@ -128,7 +128,6 @@ class PostQueryServiceTest {
         verify(postQueryPort).findPostDetailWithCounts(postId, userId); // 1회 DB 쿼리
         verify(postQueryPort, never()).findById(any()); // 기존 개별 쿼리 호출 안함
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
-//        verify(postCommentQueryPort, never()).countByPostId(any());
     }
 
     @Test
@@ -185,7 +184,6 @@ class PostQueryServiceTest {
         // 기존 개별 쿼리들은 호출되지 않음을 검증
         verify(postQueryPort, never()).findById(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
-//        verify(postCommentQueryPort, never()).countByPostId(any());
     }
 
     @Test
@@ -216,7 +214,6 @@ class PostQueryServiceTest {
         // 기존 개별 쿼리들은 호출되지 않음
         verify(postQueryPort, never()).findById(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
-//        verify(postCommentQueryPort, never()).countByPostId(any());
     }
 
     @Test
