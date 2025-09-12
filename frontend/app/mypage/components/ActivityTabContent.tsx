@@ -24,6 +24,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { SimplePost, SimpleComment } from "@/lib/api";
+import { formatKoreanDate } from "@/lib/date-utils";
 
 interface ActivityTabContentProps {
   fetchData: (page?: number, size?: number) => Promise<{
@@ -48,7 +49,7 @@ const getRelativeTime = (dateString: string): string => {
   if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
   if (diffInHours < 24) return `${diffInHours}시간 전`;
   if (diffInDays < 7) return `${diffInDays}일 전`;
-  return date.toLocaleDateString("ko-KR");
+  return formatKoreanDate(dateString);
 };
 
 // 인기도 배지 컴포넌트
@@ -172,7 +173,7 @@ const PostCard = ({
                 <div className="text-base md:text-sm">
                   <span className="text-gray-600">작성일</span>
                   <span className="font-semibold text-gray-800 ml-1">
-                    {new Date(post.createdAt).toLocaleDateString("ko-KR")}
+                    {formatKoreanDate(post.createdAt)}
                   </span>
                 </div>
               </div>

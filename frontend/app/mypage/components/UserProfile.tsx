@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertCircle,
+  AlertTriangle,
   Check,
   Clock,
   Crown,
@@ -106,7 +107,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
     if (
       !window.confirm(
-        `닉네임을 "${nicknameInput.trim()}"으로 변경하시겠습니까?\n\n⚠️ 주의사항:\n• 변경 후 30일 동안 다시 변경할 수 없습니다.\n• 닉네임 변경 후 재로그인이 필요합니다.\n• 3초 후 자동으로 로그아웃됩니다.`
+        `닉네임을 "${nicknameInput.trim()}"으로 변경하시겠습니까?\n\n주의사항:\n• 변경 후 30일 동안 다시 변경할 수 없습니다.\n• 닉네임 변경 후 재로그인이 필요합니다.\n• 3초 후 자동으로 로그아웃됩니다.`
       )
     ) {
       return;

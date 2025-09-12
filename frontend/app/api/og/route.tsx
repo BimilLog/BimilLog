@@ -74,7 +74,14 @@ export async function GET(request: Request) {
                 color: "#5B21B6",
               }}
             >
-              <span style={{ marginRight: "8px" }}>🤫</span>
+              <div style={{ marginRight: "8px", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="m2 2 20 20" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M10.5 16.5a5 5 0 0 0 7-7l-2-2a5 5 0 0 0-7 7l2 2Z" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="m17 17-2.5-2.5" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
               <span>비밀로그</span>
             </div>
           </div>

@@ -447,7 +447,7 @@ export const authApi = {
 
 // 사용자 관련 API
 export const userApi = {
-  // 닉네임 중복 확인 ✅ 이미 v2 호환
+  // 닉네임 중복 확인 - v2 호환 완료
   checkUserName: (userName: string) => apiClient.get<boolean>(`/api/user/username/check?userName=${encodeURIComponent(userName)}`),
 
   // 닉네임 변경 - v2 마이그레이션

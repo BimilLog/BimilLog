@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Pin, User } from "lucide-react";
 import Link from "next/link";
 import type { SimplePost } from "@/lib/api";
+import { formatKoreanDate } from "@/lib/date-utils";
 
 interface NoticeListProps {
   posts: SimplePost[];
@@ -54,7 +55,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                     </Link>
                   </td>
                   <td className="p-4 md:p-3 text-left font-medium w-32 hidden md:table-cell">
-                    {new Date(notice.createdAt).toLocaleDateString("ko-KR")}
+                    {formatKoreanDate(notice.createdAt)}
                   </td>
                   <td className="p-4 md:p-3 text-left font-medium w-16">
                     {notice.viewCount}

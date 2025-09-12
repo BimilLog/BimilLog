@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MessageSquare, Sparkles } from "lucide-react";
+import { Calendar, MessageSquare, Sparkles, Share2 } from "lucide-react";
 import { getDecoInfo, type RollingPaperMessage } from "@/lib/api";
 import { DecoIcon } from "@/components";
+import { formatRelativeDate } from "@/lib/date-utils";
 
 interface MessageListModalProps {
   isOpen: boolean;
@@ -33,25 +34,6 @@ export const MessageListModal: React.FC<MessageListModalProps> = ({
     return dateB - dateA; // 최신순
   });
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 1) {
-      return "방금 전";
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}시간 전`;
-    } else if (diffInHours < 24 * 7) {
-      return `${Math.floor(diffInHours / 24)}일 전`;
-    } else {
-      return date.toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -72,8 +54,8 @@ export const MessageListModal: React.FC<MessageListModalProps> = ({
               <MessageSquare className="w-8 h-8 text-cyan-400" />
             </div>
             <p className="text-gray-600 mb-2">아직 받은 메시지가 없어요</p>
-            <p className="text-sm text-gray-500">
-              친구들에게 롤링페이퍼를 공유해보세요! 🌊
+            <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
+              친구들에게 롤링페이퍼를 공유해보세요! <Share2 className="w-4 h-4 text-blue-500" />
             </p>
           </div>
         ) : (
@@ -111,7 +93,7 @@ export const MessageListModal: React.FC<MessageListModalProps> = ({
                           </p>
                           <div className="flex items-center gap-2 text-xs text-gray-500">
                             <Calendar className="w-3 h-3" />
-                            {message.createdAt && formatDate(message.createdAt)}
+                            {message.createdAt && formatRelativeDate(message.createdAt)}
                           </div>
                         </div>
                       </div>

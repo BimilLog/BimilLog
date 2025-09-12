@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/molecules/popover";
+import { formatDateTime } from "@/lib/date-utils";
 
 interface PostHeaderProps {
   post: Post;
@@ -33,21 +34,6 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
   canModify,
   onDeleteClick,
 }) => {
-  // 시간 포맷팅 함수 (T와 Z 제거, 분까지만 표시)
-  const formatDateTime = (dateTimeString: string) => {
-    try {
-      const date = new Date(dateTimeString);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-
-      return `${year}-${month}-${day} ${hours}:${minutes}`;
-    } catch {
-      return dateTimeString; // 포맷팅 실패 시 원본 반환
-    }
-  };
 
   return (
     <CardHeader className="border-b p-4 md:p-6">

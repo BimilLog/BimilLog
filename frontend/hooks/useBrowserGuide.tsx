@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { storage } from "@/lib/storage";
 
 export function useBrowserGuide() {
   const [isKakaoInApp, setIsKakaoInApp] = useState(false);
@@ -34,8 +35,8 @@ export function useBrowserGuide() {
       setIsKakaoInApp(isKakao);
 
       // 로컬 스토리지에서 가이드 숨김 상태 확인
-      const guideHidden = localStorage.getItem("browser-guide-hidden");
-      const hideUntil = localStorage.getItem("browser-guide-hide-until");
+      const guideHidden = storage.local.getBrowserGuideHidden();
+      const hideUntil = storage.local.getBrowserGuideHideUntil();
 
           if (process.env.NODE_ENV === 'development') {
       console.log("Browser detection:", {
@@ -48,9 +49,9 @@ export function useBrowserGuide() {
 
       if ((isKakao || forceShow) && !guideHidden) {
         // 숨김 기간 확인
-        if (hideUntil && new Date().getTime() < parseInt(hideUntil)) {
+        if (hideUntil && new Date().getTime() < hideUntil) {
           if (process.env.NODE_ENV === 'development') {
-            console.log("Guide hidden until:", new Date(parseInt(hideUntil)));
+            console.log("Guide hidden until:", new Date(hideUntil));
           }
           return;
         }
@@ -112,30 +113,21 @@ export function useBrowserGuide() {
       case "1h":
         // 1시간 동안 숨김
         const hideUntil1h = new Date().getTime() + 1 * 60 * 60 * 1000;
-        localStorage.setItem(
-          "browser-guide-hide-until",
-          hideUntil1h.toString()
-        );
+        storage.local.setBrowserGuideHideUntil(hideUntil1h);
         break;
       case "24h":
         // 24시간 동안 숨김
         const hideUntil24h = new Date().getTime() + 24 * 60 * 60 * 1000;
-        localStorage.setItem(
-          "browser-guide-hide-until",
-          hideUntil24h.toString()
-        );
+        storage.local.setBrowserGuideHideUntil(hideUntil24h);
         break;
       case "7d":
         // 7일 동안 숨김
         const hideUntil7d = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
-        localStorage.setItem(
-          "browser-guide-hide-until",
-          hideUntil7d.toString()
-        );
+        storage.local.setBrowserGuideHideUntil(hideUntil7d);
         break;
       case "forever":
         // 영원히 숨김
-        localStorage.setItem("browser-guide-hidden", "true");
+        storage.local.setBrowserGuideHidden(true);
         break;
     }
   };

@@ -105,7 +105,7 @@ public class PostSearchResult implements Serializable {
      * <h3>생성자 - QueryDSL Projection용</h3>
      * <p>QueryDSL Projections.constructor를 위한 전용 생성자입니다.</p>
      * <p>PostQueryRepository에서 게시글 목록 조회 시 QueryDSL을 통해 호출됩니다.</p>
-     * <p>DB에서 직접 PostSearchResult 객체로 조회하여 N+1 문제를 방지하고 성능을 최적화합니다.</p>
+     * <p>DB에서 직접 PostSearchResult 객체로 조회하여 JOIN으로 한 번에 데이터를 가져옵니다.</p>
      *
      * @since 2.0.0
      * @author Jaeik

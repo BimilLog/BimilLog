@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useToast } from "@/hooks/useToast";
+import { copyRollingPaperLink } from "@/lib/clipboard";
 
 interface UseRollingPaperShareProps {
   nickname: string;
@@ -37,42 +38,15 @@ export function useRollingPaperShare({
       }
     } catch (error) {
       console.error("카카오 공유 중 오류 발생:", error);
-      try {
-        const url = `${
-          window.location.origin
-        }/rolling-paper/${encodeURIComponent(nickname)}`;
-        await navigator.clipboard.writeText(url);
-        showSuccess("링크 복사 완료", "링크가 클립보드에 복사되었습니다!");
-      } catch (clipboardError) {
-        console.error("클립보드 복사 실패:", clipboardError);
-      }
+      await copyRollingPaperLink(nickname, messageCount);
     }
   }, [nickname, messageCount, showSuccess]);
 
   const fallbackShare = useCallback(
-    (url: string) => {
-      navigator.clipboard
-        .writeText(url)
-        .then(() => {
-          showSuccess("링크 복사 완료", "링크가 클립보드에 복사되었습니다!");
-        })
-        .catch((error) => {
-          console.error("클립보드 복사 실패:", error);
-          // 클립보드 API도 실패한 경우 텍스트 선택으로 폴백
-          const textArea = document.createElement("textarea");
-          textArea.value = url;
-          document.body.appendChild(textArea);
-          textArea.select();
-          try {
-            document.execCommand("copy");
-            showSuccess("링크 복사 완료", "링크가 클립보드에 복사되었습니다!");
-          } catch (fallbackError) {
-            console.error("폴백 복사도 실패:", fallbackError);
-          }
-          document.body.removeChild(textArea);
-        });
+    () => {
+      copyRollingPaperLink(nickname, messageCount);
     },
-    [showSuccess]
+    [nickname, messageCount]
   );
 
   const handleWebShare = useCallback(async () => {
@@ -100,12 +74,12 @@ export function useRollingPaperShare({
         // 사용자가 공유를 취소한 경우는 무시
         if ((error as Error).name !== "AbortError") {
           console.error("공유 실패:", error);
-          fallbackShare(url);
+          fallbackShare();
         }
       }
     } else {
       // 폴백: 클립보드에 복사
-      fallbackShare(url);
+      fallbackShare();
     }
   }, [nickname, messageCount, isOwner, fallbackShare]);
 

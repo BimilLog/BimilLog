@@ -127,7 +127,6 @@ class PostQueryServiceTest {
         verify(postCacheQueryPort).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryPort).findPostDetailWithCounts(postId, userId); // 1회 DB 쿼리
         verify(postQueryPort, never()).findById(any()); // 기존 개별 쿼리 호출 안함
-        verify(postLikeQueryPort, never()).countByPost(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
 //        verify(postCommentQueryPort, never()).countByPostId(any());
     }
@@ -158,7 +157,6 @@ class PostQueryServiceTest {
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(postQueryPort, never()).findById(any()); // 캐시 히트 시 DB 조회 안함
         verify(postQueryPort, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
-        verify(postLikeQueryPort, never()).countByPost(any()); // 캐시에서 가져올 때는 호출 안함
     }
 
     @Test
@@ -186,7 +184,6 @@ class PostQueryServiceTest {
         
         // 기존 개별 쿼리들은 호출되지 않음을 검증
         verify(postQueryPort, never()).findById(any());
-        verify(postLikeQueryPort, never()).countByPost(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
 //        verify(postCommentQueryPort, never()).countByPostId(any());
     }
@@ -218,7 +215,6 @@ class PostQueryServiceTest {
         
         // 기존 개별 쿼리들은 호출되지 않음
         verify(postQueryPort, never()).findById(any());
-        verify(postLikeQueryPort, never()).countByPost(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
 //        verify(postCommentQueryPort, never()).countByPostId(any());
     }

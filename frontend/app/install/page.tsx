@@ -10,6 +10,7 @@ import {
   Zap,
   Shield,
   Wifi,
+  Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
@@ -41,7 +42,7 @@ export default function InstallPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50">
         <div className="container mx-auto px-4 py-16 text-center">
-          <div className="text-6xl mb-6 animate-pulse">📱</div>
+          <Smartphone className="w-16 h-16 mb-6 animate-pulse text-purple-600 mx-auto" />
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent">
             비밀로그를 앱으로 설치하세요
           </h1>
@@ -69,7 +70,7 @@ export default function InstallPage() {
           </Button>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">📱</span>
+              <Smartphone className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-lg text-gray-800">
               비밀로그 설치
@@ -81,7 +82,7 @@ export default function InstallPage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 text-center">
         <div className="max-w-4xl mx-auto">
-          <div className="text-8xl mb-8 animate-bounce">📱</div>
+          <Smartphone className="w-20 h-20 mb-8 animate-bounce text-purple-600 mx-auto" />
           <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-cyan-600 via-blue-600 to-teal-600 bg-clip-text text-transparent leading-tight">
             비밀로그를
             <br className="md:hidden" />
@@ -276,7 +277,7 @@ export default function InstallPage() {
               <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
               <div className="relative z-10">
                 <div className="w-32 h-32 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-6xl">📱</span>
+                  <Smartphone className="w-16 h-16 text-white" />
                 </div>
                 <h3 className="text-3xl font-bold text-white mb-2">비밀로그</h3>
                 <p className="text-cyan-100 text-lg">
@@ -294,7 +295,7 @@ export default function InstallPage() {
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800">
-            지금 바로 설치해보세요! 🚀
+            <span className="flex items-center gap-2 justify-center">지금 바로 설치해보세요! <Rocket className="w-5 h-5 text-pink-500" /></span>
           </h2>
           <p className="text-xl text-gray-600 mb-8">
             더 나은 비밀로그 경험이 기다리고 있습니다

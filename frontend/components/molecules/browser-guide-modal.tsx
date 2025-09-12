@@ -5,7 +5,8 @@ import { Dialog, DialogContent } from "@/components/molecules/dialog";
 import { Button } from "@/components/atoms/button";
 import { useBrowserGuide } from "@/hooks/useBrowserGuide";
 import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
-import { CheckCircle, Link } from "lucide-react";
+import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface BrowserGuideModalProps {
   isOpen: boolean;
@@ -25,15 +26,16 @@ export function BrowserGuideModal({
     /iPad|iPhone|iPod/.test(navigator.userAgent) &&
     !(window as any).MSStream;
 
-  const copyToClipboard = async () => {
-    try {
-      if (typeof window !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText("https://grow-farm.com/install");
-        setCopiedToClipboard(true);
-        setTimeout(() => setCopiedToClipboard(false), 2000);
-      }
-    } catch (err) {
-      console.error("링크 복사에 실패했습니다:", err);
+  const handleCopyToClipboard = async () => {
+    const success = await copyToClipboard("https://grow-farm.com/install", {
+      showToast: false,
+      toastTitle: "설치 링크 복사 완료",
+      toastDescription: "설치 링크가 클립보드에 복사되었습니다!"
+    });
+    
+    if (success) {
+      setCopiedToClipboard(true);
+      setTimeout(() => setCopiedToClipboard(false), 2000);
     }
   };
 
@@ -53,7 +55,7 @@ export function BrowserGuideModal({
     <Dialog open={effectiveShow} onOpenChange={handleClose}>
       <DialogContent className="p-6 max-w-md mx-auto">
         <div className="text-center mb-6">
-          <div className="text-4xl mb-3">📱</div>
+          <Smartphone className="w-10 h-10 mb-3 text-indigo-600 mx-auto" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">
             더 나은 이용을 위해 앱으로 설치해보세요!
           </h2>
@@ -90,7 +92,7 @@ export function BrowserGuideModal({
               {/* 브라우저 여는 방법 안내 */}
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-blue-800 mb-2 flex items-center">
-                  🌐 브라우저에서 열기
+                  <span className="flex items-center gap-2"><Globe className="w-4 h-4 text-purple-500" /> 브라우저에서 열기</span>
                 </h3>
                 <ol className="text-sm text-blue-700 space-y-1">
                   <li>1. 아래 버튼으로 링크를 복사하세요</li>
@@ -101,7 +103,7 @@ export function BrowserGuideModal({
 
               {/* 링크 복사 버튼 */}
               <Button
-                onClick={copyToClipboard}
+                onClick={handleCopyToClipboard}
                 variant="outline"
                 className="w-full"
               >

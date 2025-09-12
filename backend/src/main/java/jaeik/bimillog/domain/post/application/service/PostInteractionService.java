@@ -44,7 +44,7 @@ public class PostInteractionService implements PostInteractionUseCase {
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
      * <p>PostInteractionUseCase 인터페이스의 좋아요 기능을 구현하며, 사용자별 좋아요 상태 토글 규칙을 적용합니다.</p>
      * <p>이미 좋아요한 게시글인 경우 좋아요를 취소하고, 좋아요하지 않은 게시글인 경우 좋아요를 추가합니다.</p>
-     * <p>PostLike 엔티티의 생성과 삭제를 통해 사용자-게시글 간 좋아요 관계를 관리합니다.</p>
+     * <p>ID 기반 조회로 불필요한 엔티티 로딩을 최소화하여 성능을 향상시킵니다.</p>
      * <p>PostCommandController에서 좋아요 토글 요청 시 호출됩니다.</p>
      *
      * @param userId 현재 로그인한 사용자 ID
@@ -55,10 +55,14 @@ public class PostInteractionService implements PostInteractionUseCase {
      */
     @Override
     public void likePost(Long userId, Long postId) {
+        // 1. ID 기반으로 좋아요 존재 여부 확인 (엔티티 로딩 최소화)
+        boolean isAlreadyLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, userId);
+        
+        // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
         User user = globalUserQueryPort.getReferenceById(userId);
         Post post = postQueryPort.findById(postId);
 
-        if (postLikeQueryPort.existsByUserAndPost(user, post)) {
+        if (isAlreadyLiked) {
             postLikeCommandPort.deleteByUserAndPost(user, post);
             log.debug("게시글 추천 취소됨: userId={}, postId={}", userId, postId);
         } else {

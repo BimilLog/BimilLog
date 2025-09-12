@@ -66,17 +66,17 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(post);
-        given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(false);
 
         // When
         postInteractionService.likePost(userId, postId);
 
         // Then
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
-        verify(postLikeQueryPort).existsByUserAndPost(user, post);
         
         // ArgumentCaptor로 PostLike 객체 검증
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
@@ -95,17 +95,17 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willReturn(post);
-        given(postLikeQueryPort.existsByUserAndPost(user, post)).willReturn(true);
 
         // When
         postInteractionService.likePost(userId, postId);
 
         // Then
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
-        verify(postLikeQueryPort).existsByUserAndPost(user, post);
         verify(postLikeCommandPort).deleteByUserAndPost(user, post);
         verify(postLikeCommandPort, never()).save(any());
     }
@@ -117,6 +117,7 @@ class PostInteractionServiceTest {
         Long userId = 1L;
         Long postId = 999L;
 
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
         given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
@@ -125,9 +126,9 @@ class PostInteractionServiceTest {
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
-        verify(postLikeQueryPort, never()).existsByUserAndPost(any(), any());
         verify(postLikeCommandPort, never()).save(any());
         verify(postLikeCommandPort, never()).deleteByUserAndPost(any(), any());
     }

@@ -25,6 +25,7 @@ import {
 import { useNotifications } from "@/hooks/useNotifications";
 import { isMobileOrTablet } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { formatKoreanDate } from "@/lib/date-utils";
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -114,7 +115,7 @@ export function NotificationBell() {
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 30) return `${diffInDays}일 전`;
 
-    return notificationTime.toLocaleDateString("ko-KR");
+    return formatKoreanDate(notificationTime.toISOString());
   };
 
   // 모바일 환경인지 확인
