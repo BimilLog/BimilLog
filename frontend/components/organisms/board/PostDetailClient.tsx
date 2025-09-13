@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";

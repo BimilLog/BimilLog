@@ -15,7 +15,7 @@ import {
   Shield,
 } from "lucide-react";
 import { Button } from "@/components";
-import { Card, CardContent } from "@/components";
+import { Card } from "@/components";
 import {
   Sheet,
   SheetContent,
@@ -69,7 +69,7 @@ export function NotificationBell() {
   };
 
   // 알림 읽음 처리
-  const handleNotificationClick = async (notification: any) => {
+  const handleNotificationClick = async (notification: { id: number; isRead: boolean; url?: string }) => {
     if (!notification.isRead) {
       await markAsRead(notification.id);
     }

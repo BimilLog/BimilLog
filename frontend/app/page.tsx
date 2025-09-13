@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import Script from "next/script";
 import { HomeClient } from "@/components/organisms/home";
 
 export const metadata: Metadata = {

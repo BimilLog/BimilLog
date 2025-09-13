@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components";
 import { Badge } from "@/components";
 import { Calendar, MessageSquare, Sparkles, Share2 } from "lucide-react";
-import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
 import { formatRelativeDate } from "@/lib/utils/date";
@@ -65,7 +64,6 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
           <div className="max-h-96 md:max-h-[60vh] overflow-y-auto pr-4">
             <div className="space-y-3">
               {sortedMessages.map((message, index) => {
-                const decoInfo = getDecoInfo(message.decoType);
                 const isAnonymous =
                   message.anonymity && message.anonymity !== "";
 

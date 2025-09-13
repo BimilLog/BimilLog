@@ -7,7 +7,7 @@ import { NavigationBar } from "@/components/organisms/rolling-paper/NavigationBa
 import { SummarySection } from "@/components/organisms/rolling-paper/SummarySection";
 import { MessageListModal } from "@/components/organisms/rolling-paper/MessageListModal";
 import { ResponsiveAdFitBanner } from "@/components";
-import { ToastContainer, Loading } from "@/components";
+import { ToastContainer, Loading, type Toast } from "@/components";
 
 const RollingPaperGrid = dynamic(
   () => import("@/components/organisms/rolling-paper/RollingPaperGrid").then(mod => ({ default: mod.RollingPaperGrid })),
@@ -40,10 +40,10 @@ interface RollingPaperViewProps {
     gridY: number
   ) => { x: number; y: number };
   handleWebShare: () => void;
-  handleMessageSubmit?: (position: { x: number; y: number }, data: any) => void;
+  handleMessageSubmit?: (position: { x: number; y: number }, data: unknown) => void;
   handleMessageClick: (message: RollingPaperMessage | VisitMessage) => void;
   refetchMessages: () => Promise<void>;
-  toasts: any[];
+  toasts: Toast[];
   removeToast: (id: string) => void;
   showSuccess: (title: string, message: string) => void;
   showError: (title: string, message: string) => void;
@@ -76,9 +76,7 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
   showError,
 }) => {
   return (
-    <RollingPaperLayout
-      adPosition={isPublic ? "타인 롤링페이퍼 상단" : "내 롤링페이퍼 상단"}
-    >
+    <RollingPaperLayout>
       <NavigationBar
         nickname={targetNickname}
         messageCount={messageCount}

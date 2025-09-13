@@ -5,7 +5,7 @@ import { MessageSquare } from "lucide-react";
 import { useRollingPaperActions } from "@/hooks/features/useRollingPaper";
 import { useAuth, useToast } from "@/hooks";
 import { RollingPaperView } from "@/components/organisms/rolling-paper/RollingPaperView";
-import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
+import type { RollingPaperMessage, VisitMessage, DecoType } from "@/types/domains/paper";
 
 interface RollingPaperContainerProps {
   nickname?: string;
@@ -24,8 +24,6 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     gridData,
     isLoading,
     handleCreateMessage,
-    handleDeleteMessages,
-    handleSelectPosition,
     toggleMessageSelection,
     refetch
   } = useRollingPaperActions(targetNickname);
@@ -125,15 +123,17 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   }, [toggleMessageSelection]);
 
   // 메시지 제출 핸들러
-  const handleMessageSubmit = useCallback(async (position: { x: number; y: number }, data: any) => {
-    await handleCreateMessage({
-      userName: targetNickname,
-      content: data.content,
-      anonymity: data.anonymity,
-      decoType: data.decoType,
-      rowIndex: position.y - 1,
-      colIndex: position.x - 1
-    });
+  const handleMessageSubmit = useCallback(async (position: { x: number; y: number }, data: unknown) => {
+    if (data && typeof data === 'object' && 'content' in data && 'anonymity' in data && 'decoType' in data) {
+      await handleCreateMessage({
+        userName: targetNickname,
+        content: data.content as string,
+        anonymity: data.anonymity as string,
+        decoType: data.decoType as DecoType,
+        rowIndex: position.y - 1,
+        colIndex: position.x - 1
+      });
+    }
   }, [handleCreateMessage, targetNickname]);
 
   // 로딩 상태

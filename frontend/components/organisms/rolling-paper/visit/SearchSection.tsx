@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button, Card, Input } from "@/components";
-import { Search, AlertCircle, Mail, Heart } from "lucide-react";
+import { Search, AlertCircle } from "lucide-react";
 
 interface SearchSectionProps {
   searchNickname: string;

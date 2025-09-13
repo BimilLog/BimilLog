@@ -65,7 +65,6 @@ export function AdminClient() {
   const {
     reports,
     isLoading: isReportsLoading,
-    error,
     refetch
   } = useReports();
 

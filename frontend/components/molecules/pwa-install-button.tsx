@@ -20,7 +20,7 @@ export function PWAInstallButton({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const browserInfo = getBrowserInfo();
   const isIOS =
-    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
 
   const handleButtonClick = () => {
     if (isPWAInstallable) {

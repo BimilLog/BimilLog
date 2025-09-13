@@ -11,7 +11,6 @@ import { useNotifications } from "@/hooks/features";
 import { useRouter } from "next/navigation";
 import { userQuery } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
-import { useToast } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
 
 interface NicknameSetupFormProps {
@@ -24,7 +23,6 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
   const { signUp } = useAuth();
   const { fetchNotifications } = useNotifications();
   const router = useRouter();
-  const { showError } = useToast();
   
   const [nickname, setNickname] = useState("");
   const [nicknameMessage, setNicknameMessage] = useState("");

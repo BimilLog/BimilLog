@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components";
-import { Heart, UserCheck } from "lucide-react";
+import { UserCheck } from "lucide-react";
 import Link from "next/link";
 import { KakaoShareButton } from "@/components";
 

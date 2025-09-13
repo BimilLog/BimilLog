@@ -12,7 +12,7 @@ interface AuthLayoutProps {
   description?: string;
 }
 
-export function AuthLayout({ children, title, description }: AuthLayoutProps) {
+export function AuthLayout({ children }: AuthLayoutProps) {
   const { toasts, removeToast } = useToast();
 
   return (

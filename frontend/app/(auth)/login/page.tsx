@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { Button } from "@/components";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components";
 import { MessageSquare, AlertCircle } from "lucide-react";
-import Link from "next/link";
 import { useAuth } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout } from "@/components/organisms/auth";

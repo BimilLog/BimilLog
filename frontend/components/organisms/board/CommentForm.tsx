@@ -25,7 +25,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({
     handleSubmit,
     watch,
     reset,
-    formState: { errors, isValid },
+    formState: { errors },
   } = useForm<CommentFormData>({
     mode: "onChange",
     defaultValues: {

@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((route) => ({
     url: `${URL}${route}`,
     lastModified: new Date().toISOString(),
-    changeFrequency: "weekly" as "weekly",
+    changeFrequency: "weekly" as const,
     priority: route === "" ? 1 : 
              route === "/rolling-paper" ? 0.9 :
              route === "/visit" ? 0.9 :
@@ -56,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const postRoutes = allPosts.map((post) => ({
     url: `${URL}/board/post/${post.id}`,
     lastModified: new Date(post.createdAt).toISOString(),
-    changeFrequency: "daily" as "daily",
+    changeFrequency: "daily" as const,
     priority: 0.7,
   }));
 

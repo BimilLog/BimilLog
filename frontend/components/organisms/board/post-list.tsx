@@ -3,12 +3,9 @@
 import React from "react";
 import { Card, CardContent } from "@/components";
 import { Badge } from "@/components";
-import { Button } from "@/components";
 import Link from "next/link";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
-import { useState } from "react";
-import { User } from "lucide-react";
 
 interface PostListProps {
   posts: SimplePost[];

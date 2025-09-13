@@ -26,7 +26,6 @@ function BoardClient() {
   // 게시판 데이터 관리
   const {
     posts,
-    isLoading,
     refetch: fetchPostsAndSearch,
     pagination,
     searchTerm,

@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { postQuery, apiClient, type Post } from "@/lib/api";
+import { apiClient, type Post } from "@/lib/api";
 import { generateStructuredData, generateKeywords } from "@/lib/seo";
 import { PostDetailClient } from "@/components/organisms/board";
 
@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 images: [ogImageUrl.toString()],
             },
         };
-  } catch (error) {
+  } catch {
     return {
       title: "게시글을 찾을 수 없습니다 | 비밀로그",
       description: "요청하신 게시글을 찾을 수 없습니다.",
@@ -102,7 +102,7 @@ export default async function PostDetailPage({ params }: Props) {
         <PostDetailClient initialPost={post} postId={postId} />
       </>
     );
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

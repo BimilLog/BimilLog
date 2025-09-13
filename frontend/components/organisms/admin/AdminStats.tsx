@@ -9,6 +9,8 @@ interface AdminStatsProps {
 }
 
 export const AdminStats: React.FC<AdminStatsProps> = ({ reports }) => {
+  // TODO: Implement actual statistics using reports data
+  void reports; // Suppress unused variable warning
   return (
     <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-200 rounded-lg">
       <CardHeader>

@@ -30,7 +30,6 @@ export default function EditPostPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
@@ -52,7 +51,6 @@ export default function EditPostPage() {
           setPost(postData);
           setTitle(postData.title);
           setContent(postData.content);
-          setPassword(postData.password?.toString() || "");
 
           const isGuestPost = postData.userId === null || postData.userId === 0;
           setIsGuest(isGuestPost);
@@ -74,7 +72,7 @@ export default function EditPostPage() {
           showError("게시글 없음", "게시글을 찾을 수 없습니다.");
           router.push("/board");
         }
-      } catch (error) {
+      } catch {
         showError("오류", "게시글을 불러오는 중 오류가 발생했습니다.");
       } finally {
         setIsLoading(false);

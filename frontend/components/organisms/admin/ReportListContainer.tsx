@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Input, Badge, Button } from "@/components";
-import { Search, Filter, ChevronDown, Calendar, User, FileText, AlertTriangle } from "lucide-react";
+import { Card, Input, Badge, Button, Loading } from "@/components";
+import { Search, Filter, ChevronDown, AlertTriangle } from "lucide-react";
 import { ReportFilters } from "./ReportFilters";
 import { ReportCard } from "./ReportCard";
 import { MobileReportCard } from "./MobileReportCard";

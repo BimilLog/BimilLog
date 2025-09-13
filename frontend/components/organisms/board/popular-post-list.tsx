@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils/date";
-import { ThumbsUp, MessageCircle, User } from "lucide-react";
+import { ThumbsUp, MessageCircle } from "lucide-react";
 
 interface PopularPostListProps {
   posts: SimplePost[];

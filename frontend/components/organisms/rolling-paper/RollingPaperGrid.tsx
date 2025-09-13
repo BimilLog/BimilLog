@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, memo } from "react";
+import React, { useMemo, memo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ interface RollingPaperGridProps {
   totalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  onMessageSubmit?: (position: { x: number; y: number }, data: any) => void;
+  onMessageSubmit?: (position: { x: number; y: number }, data: unknown) => void;
   getMessageAt: (
     x: number,
     y: number
@@ -68,7 +68,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     return { pageWidth, pageHeight, totalSlots };
   }, [isMobile]);
 
-  const { pageWidth, pageHeight, totalSlots } = gridConfig;
+  const { pageWidth, totalSlots } = gridConfig;
 
   return (
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
@@ -184,12 +184,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 ? getDecoInfo(messageAtPosition.decoType)
                 : null;
 
-              // 하이라이트 좌표인지 확인 (메모화)
-              const isHighlighted = useMemo(() => {
-                return highlightedPosition &&
-                  highlightedPosition.x === actualX &&
-                  highlightedPosition.y === actualY;
-              }, [highlightedPosition, actualX, actualY]);
+              // 하이라이트 좌표인지 확인
+              const isHighlighted = highlightedPosition &&
+                highlightedPosition.x === actualX &&
+                highlightedPosition.y === actualY;
 
               return (
                 <Dialog key={`${actualX}-${actualY}`}>

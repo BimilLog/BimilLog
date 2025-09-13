@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Edit, Trash2, Heart, MessageCircle, Eye } from "lucide-react";
 import { Button } from "@/components";
-import type { Post, Comment } from "@/lib/api";
+import type { Post } from "@/lib/api";
 
 interface PostActionsProps {
   post: Post;

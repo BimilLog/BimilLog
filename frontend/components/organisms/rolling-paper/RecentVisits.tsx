@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Button } from "@/components";
-import { Badge } from "@/components";
 import { Clock, Heart, X, Trash2, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import {

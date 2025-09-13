@@ -51,7 +51,7 @@ function BrowserGuideModalContent({
   const isIOS =
     typeof navigator !== "undefined" &&
     /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-    !(window as any).MSStream;
+    !(window as unknown as { MSStream?: unknown }).MSStream;
 
   const handleCopyToClipboard = async () => {
     const success = await copyToClipboard("https://grow-farm.com/install", {

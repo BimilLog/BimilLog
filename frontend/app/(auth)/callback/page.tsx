@@ -7,7 +7,7 @@ import { AuthLoadingScreen } from "@/components";
 import { isMobileOrTablet } from "@/lib/utils";
 
 export default function AuthCallbackPage() {
-  const { isProcessing } = useKakaoCallback();
+  useKakaoCallback();
   const { toasts, removeToast } = useToast();
 
   return (

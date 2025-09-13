@@ -60,7 +60,7 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
           response.error || "신고 접수에 실패했습니다. 다시 시도해주세요."
         );
       }
-    } catch (error) {
+    } catch {
       showError(
         "신고 실패",
         "신고 접수 중 오류가 발생했습니다. 다시 시도해주세요."

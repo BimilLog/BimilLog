@@ -44,10 +44,10 @@ export function AdFitBanner({
     // 이미 스크립트가 로딩되었다면 재실행하지 않음
     if (scriptLoadedRef.current) {
       // 스크립트가 이미 로드된 경우, 광고를 다시 시도할 수 있도록 처리
-      if (adRef.current && (window as any).adfit) {
-        (window as any).adfit.render(
+      if (adRef.current && (window as unknown as { adfit?: unknown }).adfit) {
+        ((window as unknown as { adfit: { render: (element: Element | null) => void } }).adfit.render(
           adRef.current.querySelector(".kakao_ad_area")
-        );
+        ));
       }
       return;
     }
@@ -61,10 +61,10 @@ export function AdFitBanner({
       ) {
         scriptLoadedRef.current = true;
         // 스크립트 로드 후 광고 렌더링 시도
-        if (adRef.current && (window as any).adfit) {
-          (window as any).adfit.render(
+        if (adRef.current && (window as unknown as { adfit?: unknown }).adfit) {
+          ((window as unknown as { adfit: { render: (element: Element | null) => void } }).adfit.render(
             adRef.current.querySelector(".kakao_ad_area")
-          );
+          ));
         }
         return;
       }
@@ -77,10 +77,10 @@ export function AdFitBanner({
       script.onload = () => {
         scriptLoadedRef.current = true;
         // 스크립트 로드 후 광고 렌더링 시도
-        if (adRef.current && (window as any).adfit) {
-          (window as any).adfit.render(
+        if (adRef.current && (window as unknown as { adfit?: unknown }).adfit) {
+          ((window as unknown as { adfit: { render: (element: Element | null) => void } }).adfit.render(
             adRef.current.querySelector(".kakao_ad_area")
-          );
+          ));
         }
       };
 
@@ -113,7 +113,7 @@ export function AdFitBanner({
   // 전역 콜백 함수 등록
   useEffect(() => {
     if (typeof window !== "undefined") {
-      (window as any)[`adfit_fail_${adUnit}`] = handleAdFail;
+      (window as unknown as Record<string, (element: HTMLElement) => void>)[`adfit_fail_${adUnit}`] = handleAdFail;
     }
   }, [adUnit, onAdFail]);
 
