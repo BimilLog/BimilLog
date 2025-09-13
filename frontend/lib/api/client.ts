@@ -1,4 +1,4 @@
-import { ApiResponse } from '@/types/api/common'
+import { ApiResponse } from '@/types/common'
 
 function getCookie(name: string): string | null {
   if (typeof window === 'undefined') return null

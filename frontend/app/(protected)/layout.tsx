@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AuthHeader } from "@/components/layouts";
 import { HomeFooter } from "@/components/organisms/home";
 import { LoadingSpinner } from "@/components/atoms";
-import type { AuthLayoutProps } from "@/types/auth";
+import type { AuthLayoutProps } from "@/types/domains/auth";
 
 export default function AuthenticatedLayout({ children }: AuthLayoutProps) {
   const { isAuthenticated, isLoading } = useAuth();

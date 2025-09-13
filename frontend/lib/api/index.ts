@@ -47,7 +47,7 @@ export type {
   ApiResponse, 
   PageResponse,
   ErrorResponse 
-} from '@/types/api/common'
+} from '@/types/common'
 
 export type {
   AuthResponse,

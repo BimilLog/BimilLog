@@ -1,5 +1,5 @@
 import { apiClient } from '../client'
-import { ApiResponse } from '@/types/api/common'
+import { ApiResponse } from '@/types/common'
 
 export const commentCommand = {
   create: (comment: {

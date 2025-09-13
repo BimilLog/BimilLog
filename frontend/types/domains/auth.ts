@@ -70,3 +70,26 @@ export interface AuthError {
   details?: Record<string, any>;
   timestamp: string;
 }
+
+// UI Component Props
+export interface AuthLayoutProps {
+  children: React.ReactNode;
+}
+
+export interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export interface AuthLoadingProps {
+  message?: string;
+  subMessage?: string;
+}
+
+// Legacy User type (for compatibility)
+export interface User {
+  id: number;
+  userName: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}

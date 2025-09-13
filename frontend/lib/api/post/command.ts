@@ -1,6 +1,6 @@
 import { apiClient } from '../client'
 import { Post } from '@/types/domains/post'
-import { ApiResponse } from '@/types/api/common'
+import { ApiResponse } from '@/types/common'
 
 export const postCommand = {
   create: (post: {

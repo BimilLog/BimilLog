@@ -1,9 +1,10 @@
 // Base Response Type
 export interface ApiResponse<T = any> {
   success: boolean;
-  data?: T;
+  data?: T | null;
   error?: string;
   message?: string;
+  needsRelogin?: boolean;
 }
 
 // Pagination Types
@@ -19,15 +20,6 @@ export interface PageInfo {
 
 export interface PageResponse<T> {
   content: T[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-    sort: {
-      sorted: boolean;
-      ascending: boolean;
-      descending: boolean;
-    };
-  };
   totalElements: number;
   totalPages: number;
   first: boolean;
@@ -36,6 +28,15 @@ export interface PageResponse<T> {
   size: number;
   numberOfElements: number;
   empty: boolean;
+  pageable?: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      sorted: boolean;
+      ascending: boolean;
+      descending: boolean;
+    };
+  };
 }
 
 // Common Entity Types

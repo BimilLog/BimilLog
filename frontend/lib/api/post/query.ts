@@ -1,6 +1,6 @@
 import { apiClient } from '../client'
 import { Post, SimplePost } from '@/types/domains/post'
-import { ApiResponse, PageResponse } from '@/types/api/common'
+import { ApiResponse, PageResponse } from '@/types/common'
 
 export const postQuery = {
   getAll: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => 

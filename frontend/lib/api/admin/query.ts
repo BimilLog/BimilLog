@@ -1,6 +1,6 @@
 import { apiClient } from '../client'
 import { Report } from '@/types/domains/admin'
-import { ApiResponse, PageResponse } from '@/types/api/common'
+import { ApiResponse, PageResponse } from '@/types/common'
 
 export const adminQuery = {
   getReports: (page = 0, size = 20, reportType?: string) => {

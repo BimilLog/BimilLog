@@ -1,7 +1,7 @@
 import { apiClient } from '../client'
 import { Setting, KakaoFriendList } from '@/types/domains/user'
 import { SimplePost, SimpleComment } from '@/types'
-import { PageResponse } from '@/types/api/common'
+import { PageResponse } from '@/types/common'
 
 export const userQuery = {
   checkUserName: (userName: string) => 

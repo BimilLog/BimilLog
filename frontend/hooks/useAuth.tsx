@@ -48,7 +48,7 @@ export function useAuth() {
 
 // Legacy AuthProvider for backward compatibility
 import type React from "react";
-import type { AuthProviderProps } from "@/types/auth";
+import type { AuthProviderProps, User } from "@/types/domains/auth";
 
 export function AuthProvider({ children }: AuthProviderProps) {
   // Zustand store는 전역 상태이므로 Provider가 필요없지만

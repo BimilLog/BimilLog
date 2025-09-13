@@ -1,251 +1,312 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  Button, 
-  Badge, 
-  Textarea,
+import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogDescription,
+  Card,
+  Badge,
+  Button,
+  ScrollArea,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components";
-import { UserX, AlertTriangle } from "lucide-react";
-import { type Report, adminCommand } from "@/lib/api";
-import { useToast } from "@/hooks/useToast";
-import {
-  getReportTypeConfig,
-  formatDateTime,
-  hasActionableTarget
-} from "@/lib/utils/admin";
+import { 
+  X, 
+  User, 
+  Calendar, 
+  FileText, 
+  AlertTriangle, 
+  Ban, 
+  UserX, 
+  MessageSquare,
+  Hash,
+  Clock,
+  ChevronRight
+} from "lucide-react";
+import { useReportActions } from "@/hooks/features/admin";
+import type { Report } from "@/types/domains/admin";
 
-interface ReportDetailModalProps {
-  report: Report | null;
+interface ReportDetailModalImprovedProps {
+  report: Report;
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onReportUpdated?: () => void;
+  onClose: () => void;
+  onAction: () => void;
 }
 
-export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
-  report,
-  isOpen,
-  onOpenChange,
-  onReportUpdated,
-}) => {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [adminMemo, setAdminMemo] = useState("");
-  const { showSuccess, showError } = useToast();
+export function ReportDetailModalImproved({ 
+  report, 
+  isOpen, 
+  onClose, 
+  onAction 
+}: ReportDetailModalImprovedProps) {
+  const [activeTab, setActiveTab] = useState("details");
+  const { banUser, forceWithdrawUser, isProcessing } = useReportActions();
 
-  const typeConfig = report ? getReportTypeConfig(report.reportType) : null;
-
-  const handleBanUser = async () => {
-    if (!report || !report.targetId) return;
-
-    const confirmBan = window.confirm(
-      "정말로 이 사용자를 제재하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-    );
-
-    if (!confirmBan) return;
-
-    setIsProcessing(true);
-    try {
-      const response = await adminCommand.banUser({
-        reporterId: report.reporterId,
-        reporterName: report.reporterName,
-        reportType: report.reportType,
-        targetId: report.targetId,
-        content: report.content,
-      });
-
-      if (response.success) {
-        showSuccess("사용자 제재 완료", "사용자가 성공적으로 제재되었습니다.");
-        onOpenChange(false);
-        onReportUpdated?.();
-      } else {
-        showError("제재 실패", response.error || "사용자 제재에 실패했습니다.");
-      }
-    } catch (error) {
-      console.error("Ban user failed:", error);
-      showError("제재 실패", "사용자 제재 중 오류가 발생했습니다.");
-    } finally {
-      setIsProcessing(false);
+  const getReportTypeInfo = (type: string) => {
+    switch(type) {
+      case "POST":
+        return { label: "게시글", color: "bg-yellow-100 text-yellow-700", icon: FileText };
+      case "COMMENT":
+        return { label: "댓글", color: "bg-green-100 text-green-700", icon: MessageSquare };
+      case "ERROR":
+        return { label: "오류", color: "bg-red-100 text-red-700", icon: AlertTriangle };
+      case "IMPROVEMENT":
+        return { label: "개선", color: "bg-blue-100 text-blue-700", icon: FileText };
+      default:
+        return { label: type, color: "bg-gray-100 text-gray-700", icon: FileText };
     }
   };
 
-  const handleForceWithdrawUser = async () => {
-    if (!report || !report.targetId) return;
+  const typeInfo = getReportTypeInfo(report.reportType);
+  const TypeIcon = typeInfo.icon;
 
-    const confirmWithdraw = window.confirm(
-      "정말로 이 사용자를 강제 탈퇴시키시겠습니까? 이 작업은 되돌릴 수 없습니다."
-    );
-
-    if (!confirmWithdraw) return;
-
-    setIsProcessing(true);
-    try {
-      const response = await adminCommand.forceWithdrawUser({
-        targetId: report.targetId,
-        reportType: report.reportType,
-        content: report.content
-      });
-
-      if (response.success) {
-        showSuccess("강제 탈퇴 완료", "사용자가 성공적으로 탈퇴 처리되었습니다.");
-        onOpenChange(false);
-        onReportUpdated?.();
-      } else {
-        showError("탈퇴 실패", response.error || "사용자 탈퇴에 실패했습니다.");
-      }
-    } catch (error) {
-      console.error("Force withdraw user failed:", error);
-      showError("탈퇴 실패", "사용자 탈퇴 중 오류가 발생했습니다.");
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleBanClick = async () => {
+    await banUser(report);
+    onAction();
+    onClose();
   };
 
-  if (!report) return null;
+  const handleWithdrawClick = async () => {
+    await forceWithdrawUser(report);
+    onAction();
+    onClose();
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-            신고 상세 정보
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+        {/* Header */}
+        <div className="px-6 py-4 border-b bg-gradient-to-r from-purple-50 to-pink-50">
+          <DialogHeader>
+            <div className="flex items-start justify-between">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  신고 유형
-                </label>
-                <Badge className={`${typeConfig?.color} font-medium`}>
-                  {typeConfig?.label}
-                </Badge>
+                <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                  신고 상세 정보
+                </DialogTitle>
+                <DialogDescription className="mt-1 text-sm text-gray-600">
+                  신고 ID: #{report.id}
+                </DialogDescription>
               </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  신고자 정보
-                </label>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-900 font-medium">
-                    {report.reporterName}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    ID: {report.reporterId}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  처리 상태
-                </label>
-                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 font-medium">
-                  처리 대기
-                </Badge>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-
-            <div className="space-y-4">
-              {report.targetId && hasActionableTarget(report.reportType) && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    신고 대상 ID
-                  </label>
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-sm text-red-900 font-mono font-medium">
-                      {report.targetId}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {report.targetTitle && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    신고된 콘텐츠 제목
-                  </label>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-900">
-                      {report.targetTitle}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  신고 접수 시간
-                </label>
-                <p className="text-sm text-gray-700 font-mono">
-                  {formatDateTime(report.createdAt)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              신고 내용
-            </label>
-            <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 max-h-48 overflow-y-auto">
-              <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
-                {report.content}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              관리자 메모
-            </label>
-            <Textarea
-              placeholder="처리 내용이나 특이사항을 기록하세요..."
-              value={adminMemo}
-              onChange={(e) => setAdminMemo(e.target.value)}
-              className="min-h-[120px] resize-none bg-white border-gray-200 focus:border-purple-400 focus:ring-purple-400/20"
-              rows={5}
-            />
-          </div>
-
-          {report.targetId && hasActionableTarget(report.reportType) && (
-            <div className="pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-semibold text-gray-700 mb-4">
-                관리자 조치
-              </h4>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleBanUser}
-                  disabled={isProcessing}
-                  variant="destructive"
-                  className="min-h-[48px] bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 font-medium"
-                >
-                  <UserX className="w-4 h-4 mr-2" />
-                  {isProcessing ? "처리 중..." : "사용자 제재"}
-                </Button>
-                <Button
-                  onClick={handleForceWithdrawUser}
-                  disabled={isProcessing}
-                  variant="destructive"
-                  className="min-h-[48px] bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 font-medium"
-                >
-                  <UserX className="w-4 h-4 mr-2" />
-                  {isProcessing ? "처리 중..." : "강제 탈퇴"}
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-amber-500" />
-                조치는 되돌릴 수 없습니다. 신중히 결정해주세요.
-              </p>
-            </div>
-          )}
+          </DialogHeader>
         </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+          <TabsList className="w-full rounded-none border-b px-6">
+            <TabsTrigger value="details" className="flex-1">
+              상세 정보
+            </TabsTrigger>
+            <TabsTrigger value="content" className="flex-1">
+              신고 내용
+            </TabsTrigger>
+            <TabsTrigger value="actions" className="flex-1">
+              처리 작업
+            </TabsTrigger>
+          </TabsList>
+
+          <ScrollArea className="h-[400px]">
+            {/* Details Tab */}
+            <TabsContent value="details" className="px-6 py-4 space-y-4 mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 신고 유형 */}
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                      <TypeIcon className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">신고 유형</p>
+                      <Badge className={typeInfo.color}>
+                        {typeInfo.label}
+                      </Badge>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 대상 ID */}
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                      <Hash className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">대상 ID</p>
+                      <p className="font-semibold text-gray-900">{report.targetId}</p>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 신고 대상 */}
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                      <User className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">신고 대상</p>
+                      <p className="font-semibold text-gray-900">
+                        {report.reporterName || "익명"}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* 신고일 */}
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">신고일</p>
+                      <p className="font-semibold text-gray-900">
+                        {new Date(report.createdAt).toLocaleDateString('ko-KR')}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* 추가 정보 */}
+              <Card className="p-4 bg-gray-50">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700 mb-1">신고 시간</p>
+                    <p className="text-sm text-gray-600">
+                      {new Date(report.createdAt).toLocaleString('ko-KR')}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </TabsContent>
+
+            {/* Content Tab */}
+            <TabsContent value="content" className="px-6 py-4 mt-0">
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      신고 사유
+                    </h3>
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <p className="text-gray-800 whitespace-pre-wrap">
+                        {report.content || "신고 사유가 제공되지 않았습니다."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {report.targetTitle && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4" />
+                        신고된 콘텐츠
+                      </h3>
+                      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                        <p className="text-gray-700 whitespace-pre-wrap">
+                          {report.targetTitle}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </TabsContent>
+
+            {/* Actions Tab */}
+            <TabsContent value="actions" className="px-6 py-4 space-y-4 mt-0">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-900">주의사항</p>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      아래 작업은 되돌릴 수 없습니다. 신중하게 결정해주세요.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {/* 차단 버튼 */}
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                        <Ban className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">사용자 차단</p>
+                        <p className="text-sm text-gray-500">24시간 동안 서비스 이용 제한</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleBanClick}
+                      disabled={isProcessing || !report.reporterName}
+                      className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                    >
+                      차단
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </Card>
+
+                {/* 강제 탈퇴 버튼 */}
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                        <UserX className="w-5 h-5 text-red-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">강제 탈퇴</p>
+                        <p className="text-sm text-gray-500">사용자 계정 영구 삭제</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleWithdrawClick}
+                      disabled={isProcessing || !report.reporterName}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      탈퇴
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+
+              {!report.reporterName && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 text-center">
+                    익명 사용자는 차단 또는 강제 탈퇴할 수 없습니다.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
-};
+}

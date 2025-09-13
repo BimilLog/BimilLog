@@ -2,10 +2,7 @@
 export * from './usePost';
 export * from './useComment';
 export * from './useBoard';
-export * from './useBoardData';
 export * from './usePopularPosts';
-export * from './usePostDetail';
-export * from './usePostActions';
 export * from './useCommentActions';
 
 // Rolling Paper hooks

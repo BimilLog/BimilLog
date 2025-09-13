@@ -7,7 +7,7 @@ import { ReportFilters } from "./ReportFilters";
 import { ReportCard } from "./ReportCard";
 import { MobileReportCard } from "./MobileReportCard";
 import { LoadingState } from "./LoadingState";
-import { ReportDetailModalImproved } from "./ReportDetailModalImproved";
+import { ReportDetailModal } from "./ReportDetailModal";
 import type { Report } from "@/types/domains/admin";
 
 interface ReportListContainerProps {
@@ -192,7 +192,7 @@ export function ReportListContainer({
 
       {/* 신고 상세 모달 */}
       {selectedReport && (
-        <ReportDetailModalImproved
+        <ReportDetailModal
           report={selectedReport}
           isOpen={!!selectedReport}
           onClose={() => setSelectedReport(null)}

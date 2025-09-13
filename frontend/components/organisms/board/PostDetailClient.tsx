@@ -22,7 +22,7 @@ import { CommentSection } from "./CommentSection";
 import { PasswordModal } from "./PasswordModal";
 
 // 분리된 훅들 import
-import { usePostDetail, useCommentActions, usePostActions } from "@/hooks/features";
+import { usePostDetail, usePostActions, useCommentActions } from "@/hooks/features";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
