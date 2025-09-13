@@ -6,8 +6,11 @@ export * from './useBoard';
 // Rolling Paper hooks (Search, Share 기능 통합됨)
 export * from './useRollingPaper';
 
-// User hooks (MyPage, ActivityData, UserStats, Settings 통합됨)
+// User hooks (ActivityData, UserStats - 공통 유틸리티)
 export * from './useUser';
+
+// User specific hooks (MyPage, Settings 분리됨)
+export * from './user';
 
 // UI & Interaction hooks
 export * from './useNotifications';
