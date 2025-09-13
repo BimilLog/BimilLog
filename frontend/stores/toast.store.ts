@@ -4,17 +4,18 @@ import type { Toast, ToastType } from '@/components/molecules/feedback/toast';
 
 interface ToastState {
   toasts: Toast[];
-  
+
   // Actions
   addToast: (type: ToastType, title: string, description?: string, duration?: number) => string;
   removeToast: (id: string) => void;
   clearAllToasts: () => void;
-  
+
   // Convenience methods
   showSuccess: (title: string, description?: string, duration?: number) => string;
   showError: (title: string, description?: string, duration?: number) => string;
   showWarning: (title: string, description?: string, duration?: number) => string;
   showInfo: (title: string, description?: string, duration?: number) => string;
+  showToast: (options: { type: ToastType; message: string; description?: string; duration?: number }) => string;
 }
 
 export const useToastStore = create<ToastState>()(
@@ -63,6 +64,10 @@ export const useToastStore = create<ToastState>()(
       
       showInfo: (title, description, duration) => {
         return get().addToast('info', title, description, duration);
+      },
+
+      showToast: (options) => {
+        return get().addToast(options.type, options.message, options.description, options.duration);
       },
     }),
     {

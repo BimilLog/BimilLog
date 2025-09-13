@@ -7,7 +7,7 @@ import { ToastContainer } from "@/components/molecules/feedback/toast";
 // Main hook - Zustand store를 직접 사용
 export function useToast() {
   const store = useToastStore();
-  
+
   return {
     toasts: store.toasts,
     addToast: store.addToast,
@@ -17,6 +17,8 @@ export function useToast() {
     showError: store.showError,
     showWarning: store.showWarning,
     showInfo: store.showInfo,
+    // showToast 메서드 추가 (하위 호환성)
+    showToast: store.showToast,
   };
 }
 

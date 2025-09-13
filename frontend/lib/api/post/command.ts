@@ -42,4 +42,7 @@ export const postCommand = {
   
   cancelLike: (postId: number): Promise<ApiResponse<void>> =>
     apiClient.delete(`/api/post/unlike`, { postId }),
+
+  toggleNotice: (postId: number): Promise<ApiResponse<boolean>> =>
+    apiClient.post(`/api/post/notice/${postId}`, {}),
 }

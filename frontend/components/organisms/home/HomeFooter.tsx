@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 
 interface FooterLink {
@@ -37,8 +35,8 @@ export const HomeFooter: React.FC = () => {
       title: "운영",
       links: [
         {
-          href: "https://cyclic-icebreaker-daa.notion.site/1d4a9f47800c80a1b12fc2aae7befd0e",
-          label: "개발자 노션",
+          href: "https://jaeiktech.tistory.com",
+          label: "개발자 블로그",
           external: true,
         },
       ],
