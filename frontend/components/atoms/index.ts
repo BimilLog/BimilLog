@@ -4,7 +4,7 @@ export { Badge } from './display/badge';
 export { Icon } from './display/icon';
 export { DecoIcon, EmojiStyleDecoIcon } from './display/deco-icon';
 export { StatCard } from './display/stat-card';
-export { default as SafeHTML } from './display/SafeHTML';
+export { default as SafeHTML } from './display/safe-html';
 
 // Form components
 export { Input } from './forms/input';
@@ -14,7 +14,7 @@ export { Label } from './forms/label';
 // Feedback components
 export { Spinner, LoadingSpinner } from './feedback/spinner';
 export { ErrorBoundary } from './feedback/error-boundary';
-export { AuthLoadingScreen } from './feedback/AuthLoadingScreen';
+export { AuthLoadingScreen } from './feedback/auth-loading-screen';
 
 // Action components
 export { Button, buttonVariants } from './actions/button';

@@ -2,7 +2,7 @@
 
 import { Settings as SettingsIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { LoadingSpinner, ToastContainer, Alert, AlertDescription, Button } from "@/components";
-import { NotificationSettings, AccountSettings } from "@/components/organisms/settings";
+import { NotificationSettings, AccountSettings } from "@/components/organisms/user/settings";
 import { useSettings } from "@/hooks/features";
 import { useToast } from "@/hooks/useToast";
 
