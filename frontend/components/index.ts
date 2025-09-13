@@ -21,8 +21,3 @@ export { loadingStyles } from './molecules/feedback/loading';
 // ==============================================
 export * from './organisms';
 
-// ==============================================
-// LAYOUTS - 레이아웃 컴포넌트들
-// ==============================================
-export * from './layouts';
-

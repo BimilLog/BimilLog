@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 import { Settings } from "lucide-react";
-import { MobileNav } from "@/components/layouts/MobileNav";
+import { MobileNav } from "@/components/organisms/common/MobileNav";
 import { NotificationBell } from "@/components/organisms/common/notification-bell";
 
 export function AuthHeader() {

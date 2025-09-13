@@ -1,5 +1,5 @@
 // Core Hooks
-export { useAuth, AuthProvider } from './useAuth';
+export { useAuth } from './useAuth';
 export { useToast, useToastContext, ToastProvider } from './useToast';
 export { useBrowserGuide } from './useBrowserGuide';
 

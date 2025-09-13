@@ -10,7 +10,8 @@ import type { PasswordModalMode } from "./usePasswordModal";
 
 // ============ BOARD LIST HOOKS ============
 
-// Board 페이지 데이터 관리
+// Board 페이지 데이터 관리 (레거시 - usePostList 사용 권장)
+// @deprecated Use usePostList from usePost.ts instead
 export const useBoardData = () => {
   // 검색 상태
   const [searchTerm, setSearchTerm] = useState("");

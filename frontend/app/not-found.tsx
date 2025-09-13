@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components";
 import { Heart, Home, Search, ArrowLeft } from "lucide-react";
-import { AuthHeader } from "@/components/layouts";
+import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 
 export default function NotFoundPage() {

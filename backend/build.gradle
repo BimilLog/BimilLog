@@ -40,8 +40,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 데이터베이스 지원
     implementation 'org.springframework.boot:spring-boot-starter-cache' // 캐시 지원
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch' // Elasticsearch 지원
-//    implementation 'org.flywaydb:flyway-core' // 향후 flyway로 ddl 작성
-//    implementation 'org.flywaydb:flyway-mysql' // 향후 flyway로 ddl 작성
+    implementation 'org.flywaydb:flyway-core' // DB 마이그레이션 관리
+    implementation 'org.flywaydb:flyway-mysql' // MySQL 전용 Flyway 지원
 
 
 

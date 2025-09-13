@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { AuthProvider } from "@/hooks/useAuth";
 import { BrowserGuideWrapper } from "@/components/organisms/common/browser-guide-wrapper";
 import { ToastProvider } from "@/hooks/useToast";
 
@@ -152,9 +151,7 @@ export default function RootLayout({
         </Script>
 
         <ToastProvider>
-          <AuthProvider>
-            <BrowserGuideWrapper>{children}</BrowserGuideWrapper>
-          </AuthProvider>
+          <BrowserGuideWrapper>{children}</BrowserGuideWrapper>
         </ToastProvider>
       </body>
     </html>

@@ -1,9 +1,7 @@
 // Organisms Components Export
 
 // Common Components
-export { BrowserGuideWrapper } from './common/browser-guide-wrapper';
-export { NotificationBell } from './common/notification-bell';
-export { ReportModal } from './common/ReportModal';
+export * from './common';
 
 // Domain-specific Components
 export * from './admin';

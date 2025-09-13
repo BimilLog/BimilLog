@@ -45,13 +45,3 @@ export function useAuth() {
     refreshUser: authStore.refreshUser,
   };
 }
-
-// Legacy AuthProvider for backward compatibility
-import type React from "react";
-import type { AuthProviderProps, User } from "@/types/domains/auth";
-
-export function AuthProvider({ children }: AuthProviderProps) {
-  // Zustand store는 전역 상태이므로 Provider가 필요없지만
-  // 기존 코드 호환성을 위해 유지
-  return <>{children}</>;
-}

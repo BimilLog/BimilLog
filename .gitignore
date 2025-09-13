@@ -7339,3 +7339,4 @@ replay_pid*
 /.claude/
 /.cursor/
 /backend/AOP_LOGGING_GUIDE.md
+/backend/src/main/resources/dump/

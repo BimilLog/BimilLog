@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AuthHeader } from "@/components/layouts";
+import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { ToastContainer } from "@/components";
 import { useToast } from "@/hooks/useToast";

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { AuthHeader } from "@/components/layouts";
+import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { LoadingSpinner } from "@/components/atoms";
 import type { AuthLayoutProps } from "@/types/domains/auth";

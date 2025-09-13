@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useRollingPaperSearch } from "@/hooks/features";
 import { KakaoShareButton } from "@/components/atoms/actions/kakao-share-button";
 import { RecentVisits } from "@/components/organisms/rolling-paper/RecentVisits";
-import { AuthHeader } from "@/components/layouts";
+import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { SearchSection } from "./SearchSection";
 import { ConfirmDialog } from "./ConfirmDialog";

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { AuthHeader } from "@/components/layouts";
+import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { SuggestClient } from "@/components/organisms/suggest";
 
