@@ -1,10 +1,41 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Settings as SettingsIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { LoadingSpinner, ToastContainer, Alert, AlertDescription, Button } from "@/components";
-import { NotificationSettings, AccountSettings } from "@/components/organisms/user/settings";
 import { useSettings } from "@/hooks";
 import { useToast } from "@/hooks";
+
+// Dynamic imports for heavy settings components
+const NotificationSettings = dynamic(
+  () => import("@/components/organisms/user/settings").then(mod => ({ default: mod.NotificationSettings })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
+        <div className="h-6 bg-gray-200 rounded-lg mb-4 w-32"></div>
+        <div className="space-y-3">
+          <div className="h-12 bg-gray-200 rounded-lg"></div>
+          <div className="h-12 bg-gray-200 rounded-lg"></div>
+          <div className="h-12 bg-gray-200 rounded-lg"></div>
+        </div>
+      </div>
+    )
+  }
+);
+
+const AccountSettings = dynamic(
+  () => import("@/components/organisms/user/settings").then(mod => ({ default: mod.AccountSettings })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
+        <div className="h-6 bg-gray-200 rounded-lg mb-4 w-24"></div>
+        <div className="h-10 bg-gray-200 rounded-lg w-32"></div>
+      </div>
+    )
+  }
+);
 
 export default function SettingsPage() {
   const {

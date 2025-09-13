@@ -5,34 +5,42 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 
 import { cn } from "@/lib/utils"
 
-function Dialog({
+const Dialog = React.memo(({
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+}: React.ComponentProps<typeof DialogPrimitive.Root>) => {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
-}
+});
 
-function DialogTrigger({
+Dialog.displayName = "Dialog";
+
+const DialogTrigger = React.memo(({
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
+}: React.ComponentProps<typeof DialogPrimitive.Trigger>) => {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
-}
+});
 
-function DialogPortal({
+DialogTrigger.displayName = "DialogTrigger";
+
+const DialogPortal = React.memo(({
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) => {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
-}
+});
 
-function DialogClose({
+DialogPortal.displayName = "DialogPortal";
+
+const DialogClose = React.memo(({
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Close>) {
+}: React.ComponentProps<typeof DialogPrimitive.Close>) => {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
-}
+});
 
-function DialogOverlay({
+DialogClose.displayName = "DialogClose";
+
+const DialogOverlay = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+}: React.ComponentProps<typeof DialogPrimitive.Overlay>) => {
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
@@ -43,15 +51,17 @@ function DialogOverlay({
       {...props}
     />
   )
-}
+});
 
-function DialogContent({
+DialogOverlay.displayName = "DialogOverlay";
+
+const DialogContent = React.memo(({
   className,
   children,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
-}) {
+}) => {
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -67,9 +77,11 @@ function DialogContent({
       </DialogPrimitive.Content>
     </DialogPortal>
   )
-}
+});
 
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+DialogContent.displayName = "DialogContent";
+
+const DialogHeader = React.memo(({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="dialog-header"
@@ -77,9 +89,11 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
       {...props}
     />
   )
-}
+});
 
-function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
+DialogHeader.displayName = "DialogHeader";
+
+const DialogFooter = React.memo(({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="dialog-footer"
@@ -90,12 +104,14 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
       {...props}
     />
   )
-}
+});
 
-function DialogTitle({
+DialogFooter.displayName = "DialogFooter";
+
+const DialogTitle = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Title>) {
+}: React.ComponentProps<typeof DialogPrimitive.Title>) => {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
@@ -103,12 +119,14 @@ function DialogTitle({
       {...props}
     />
   )
-}
+});
 
-function DialogDescription({
+DialogTitle.displayName = "DialogTitle";
+
+const DialogDescription = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+}: React.ComponentProps<typeof DialogPrimitive.Description>) => {
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
@@ -116,7 +134,9 @@ function DialogDescription({
       {...props}
     />
   )
-}
+});
+
+DialogDescription.displayName = "DialogDescription";
 
 export {
   Dialog,

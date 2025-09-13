@@ -37,7 +37,7 @@ interface ProfileCardProps {
   className?: string;
 }
 
-export const ProfileCard: React.FC<ProfileCardProps> = ({
+export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
   user,
   onNicknameChange,
   onLogout,
@@ -294,4 +294,17 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </>
   );
-};
+}, (prevProps, nextProps) => {
+  // 사용자 정보가 변경되었는지 확인
+  return (
+    prevProps.user.userId === nextProps.user.userId &&
+    prevProps.user.userName === nextProps.user.userName &&
+    prevProps.user.thumbnailImage === nextProps.user.thumbnailImage &&
+    prevProps.user.role === nextProps.user.role &&
+    prevProps.user.socialNickname === nextProps.user.socialNickname &&
+    prevProps.user.settingId === nextProps.user.settingId &&
+    prevProps.className === nextProps.className
+  );
+});
+
+ProfileCard.displayName = "ProfileCard";

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Input, Badge, Button, Loading } from "@/components";
+import { Card, Input, Badge, Button } from "@/components";
 import { Search, Filter, ChevronDown, Calendar, User, FileText, AlertTriangle } from "lucide-react";
 import { ReportFilters } from "./ReportFilters";
 import { ReportCard } from "./ReportCard";
 import { MobileReportCard } from "./MobileReportCard";
-import { ReportDetailModal } from "./ReportDetailModal";
+import { LazyReportDetailModal as ReportDetailModal } from "@/lib/utils/lazy-components";
 import type { Report } from "@/types/domains/admin";
 
 interface ReportListContainerProps {

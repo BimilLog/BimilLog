@@ -5,10 +5,10 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
 import { cn } from "@/lib/utils"
 
-function Avatar({
+const Avatar = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
+}: React.ComponentProps<typeof AvatarPrimitive.Root>) => {
   return (
     <AvatarPrimitive.Root
       data-slot="avatar"
@@ -19,12 +19,14 @@ function Avatar({
       {...props}
     />
   )
-}
+});
 
-function AvatarImage({
+Avatar.displayName = "Avatar";
+
+const AvatarImage = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+}: React.ComponentProps<typeof AvatarPrimitive.Image>) => {
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
@@ -32,12 +34,14 @@ function AvatarImage({
       {...props}
     />
   )
-}
+});
 
-function AvatarFallback({
+AvatarImage.displayName = "AvatarImage";
+
+const AvatarFallback = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) => {
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
@@ -48,6 +52,8 @@ function AvatarFallback({
       {...props}
     />
   )
-}
+});
+
+AvatarFallback.displayName = "AvatarFallback";
 
 export { Avatar, AvatarImage, AvatarFallback }

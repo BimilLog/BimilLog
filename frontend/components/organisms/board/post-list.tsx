@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Card, CardContent } from "@/components";
 import { Badge } from "@/components";
 import { Button } from "@/components";
@@ -13,7 +14,7 @@ interface PostListProps {
   posts: SimplePost[];
 }
 
-export const PostList = ({ posts }: PostListProps) => {
+export const PostList = React.memo(({ posts }: PostListProps) => {
   const regularPosts = posts.filter((post) => !post.isNotice);
 
   return (
@@ -97,4 +98,6 @@ export const PostList = ({ posts }: PostListProps) => {
       </CardContent>
     </Card>
   );
-};
+});
+
+PostList.displayName = "PostList";

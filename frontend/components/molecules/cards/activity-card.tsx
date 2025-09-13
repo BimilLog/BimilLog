@@ -73,7 +73,7 @@ const PopularityBadge = ({ postCacheFlag }: { postCacheFlag?: string }) => {
   );
 };
 
-const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = ({ post, isLiked }) => (
+const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({ post, isLiked }) => (
   <Card className="group bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
     <CardHeader className="pb-3">
       <div className="flex items-start justify-between">
@@ -157,9 +157,11 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = ({ post, isLi
       </Link>
     </CardContent>
   </Card>
-);
+));
 
-const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = ({ comment, isLiked }) => (
+PostCard.displayName = "PostCard";
+
+const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = React.memo(({ comment, isLiked }) => (
   <Card className="group bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
     <CardHeader className="pb-3">
       <div className="flex items-start justify-between">
@@ -218,13 +220,15 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = ({ c
       </Link>
     </CardContent>
   </Card>
-);
+));
 
-export const ActivityCard: React.FC<ActivityCardProps> = ({ 
-  item, 
-  type, 
-  isLiked = false, 
-  className 
+CommentCard.displayName = "CommentCard";
+
+export const ActivityCard: React.FC<ActivityCardProps> = ({
+  item,
+  type,
+  isLiked = false,
+  className
 }) => {
   const cardClassName = className || "";
 

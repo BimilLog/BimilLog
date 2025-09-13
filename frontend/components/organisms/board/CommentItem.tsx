@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Button, Input, Textarea, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, Reply, Flag, MoreHorizontal, User } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
@@ -42,7 +43,7 @@ interface CommentItemProps {
   canModifyComment: (comment: Comment) => boolean;
 }
 
-export const CommentItem: React.FC<CommentItemProps> = ({
+export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   comment,
   depth,
   editingComment,
@@ -349,4 +350,31 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       />
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Comment 객체의 핵심 필드들만 비교
+  if (prevProps.comment.id !== nextProps.comment.id) return false;
+  if (prevProps.comment.content !== nextProps.comment.content) return false;
+  if (prevProps.comment.likeCount !== nextProps.comment.likeCount) return false;
+  if (prevProps.comment.userLike !== nextProps.comment.userLike) return false;
+  if (prevProps.comment.deleted !== nextProps.comment.deleted) return false;
+
+  // 댓글 수정/답글 상태 비교
+  if (prevProps.editingComment?.id !== nextProps.editingComment?.id) return false;
+  if (prevProps.replyingTo?.id !== nextProps.replyingTo?.id) return false;
+
+  // 기본 props 비교
+  if (prevProps.depth !== nextProps.depth) return false;
+  if (prevProps.editContent !== nextProps.editContent) return false;
+  if (prevProps.editPassword !== nextProps.editPassword) return false;
+  if (prevProps.replyContent !== nextProps.replyContent) return false;
+  if (prevProps.replyPassword !== nextProps.replyPassword) return false;
+  if (prevProps.isAuthenticated !== nextProps.isAuthenticated) return false;
+  if (prevProps.isSubmittingReply !== nextProps.isSubmittingReply) return false;
+
+  // 답글 개수 비교
+  if ((prevProps.comment.replies?.length || 0) !== (nextProps.comment.replies?.length || 0)) return false;
+
+  return true;
+});
+
+CommentItem.displayName = "CommentItem";

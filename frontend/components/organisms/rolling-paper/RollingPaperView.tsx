@@ -1,13 +1,21 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { RollingPaperLayout } from "@/components/organisms/rolling-paper/RollingPaperLayout";
 import { NavigationBar } from "@/components/organisms/rolling-paper/NavigationBar";
 import { SummarySection } from "@/components/organisms/rolling-paper/SummarySection";
-import { RollingPaperGrid } from "@/components/organisms/rolling-paper/RollingPaperGrid";
 import { MessageListModal } from "@/components/organisms/rolling-paper/MessageListModal";
 import { ResponsiveAdFitBanner } from "@/components";
-import { ToastContainer } from "@/components";
+import { ToastContainer, Loading } from "@/components";
+
+const RollingPaperGrid = dynamic(
+  () => import("@/components/organisms/rolling-paper/RollingPaperGrid").then(mod => ({ default: mod.RollingPaperGrid })),
+  {
+    loading: () => <Loading className="min-h-[400px]" />,
+    ssr: false
+  }
+);
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 
 interface RollingPaperViewProps {

@@ -1,16 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Label } from "@/components";
-import { Textarea } from "@/components";
+import { Spinner } from "@/components";
 import { Lightbulb, Send, Bug, FileText } from "lucide-react";
 import { useAuth } from "@/hooks";
 import { userCommand } from "@/lib/api";
 import { useToast } from "@/hooks";
-import { ToastContainer } from "@/components/molecules/feedback/toast";
 import { logger } from '@/lib/utils/logger';
+
+// Dynamic import for heavy components
+const Textarea = dynamic(
+  () => import("@/components").then(mod => ({ default: mod.Textarea })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[200px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+        <Spinner size="md" />
+      </div>
+    )
+  }
+);
+
+const ToastContainer = dynamic(
+  () => import("@/components/molecules/feedback/toast").then(mod => ({ default: mod.ToastContainer })),
+  {
+    ssr: false,
+    loading: () => null
+  }
+);
 
 type SuggestionType = "ERROR" | "IMPROVEMENT";
 

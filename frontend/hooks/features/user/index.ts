@@ -1,2 +1,5 @@
-export { useMyPage } from './useMyPage';
-export { useSettings } from './useUserSettings';
+// User domain specific hooks
+export * from './useUserStats';
+export * from './useUserActivity';
+export * from './useUserSettings';
+export * from './useMyPage';

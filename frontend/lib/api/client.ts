@@ -1,5 +1,6 @@
 import { ApiResponse } from '@/types/common'
 import { logger } from '@/lib/utils'
+import { isValidApiResponse } from './helpers'
 
 function getCookie(name: string): string | null {
   if (typeof window === 'undefined') return null
@@ -95,14 +96,20 @@ export class ApiClient {
         
         try {
           const errorData = await response.json()
-          if (errorData.message) {
-            errorMessage = errorData.message
-          } else if (errorData.error) {
-            errorMessage = errorData.error
+
+          // 에러 응답 구조 검증 및 메시지 추출
+          let extractedMessage = errorMessage
+
+          if (typeof errorData === 'object' && errorData !== null) {
+            if (typeof errorData.message === 'string') {
+              extractedMessage = errorData.message
+            } else if (typeof errorData.error === 'string') {
+              extractedMessage = errorData.error
+            }
           }
-          
-          const needsRelogin = errorMessage.includes("다른기기에서 로그아웃 하셨습니다")
-          
+
+          const needsRelogin = extractedMessage.includes("다른기기에서 로그아웃 하셨습니다")
+
           if (needsRelogin && typeof window !== 'undefined') {
             const event = new CustomEvent('needsRelogin', {
               detail: {
@@ -112,20 +119,24 @@ export class ApiClient {
             })
             window.dispatchEvent(event)
           }
-          
+
           return {
             success: false,
-            error: errorMessage,
+            error: extractedMessage,
             needsRelogin,
           }
-        } catch {
+        } catch (jsonError) {
+          logger.warn('Failed to parse error response as JSON:', jsonError)
+
           try {
             const errorText = await response.text()
             if (errorText) {
               errorMessage = errorText
             }
-          } catch {}
-          
+          } catch (textError) {
+            logger.error('Failed to parse error response as text:', textError)
+          }
+
           return {
             success: false,
             error: errorMessage,
@@ -134,23 +145,45 @@ export class ApiClient {
       }
 
       try {
-        const data = await response.json()
+        const rawData = await response.json()
+
+        // API 응답 구조 검증
+        if (isValidApiResponse<T>(rawData)) {
+          return rawData
+        }
+
+        // 원시 데이터를 ApiResponse 구조로 래핑
         return {
           success: true,
-          data,
+          data: rawData as T,
         }
-      } catch {
-        const text = await response.text()
-        if (text === "OK" || text === "") {
+      } catch (parseError) {
+        // JSON 파싱 실패 시 텍스트로 재시도
+        try {
+          const text = await response.text()
+          if (text === "OK" || text === "") {
+            return {
+              success: true,
+              data: null as T,
+            }
+          }
+
+          // 텍스트 응답을 데이터로 처리
           return {
             success: true,
-            data: null as T,
+            data: text as T,
           }
-        }
-        
-        return {
-          success: false,
-          error: "Failed to parse response",
+        } catch (textError) {
+          logger.error('Response parsing failed:', {
+            parseError,
+            textError,
+            url: `${this.baseURL}${endpoint}`
+          })
+
+          return {
+            success: false,
+            error: "Failed to parse response",
+          }
         }
       }
     } catch (error) {

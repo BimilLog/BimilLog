@@ -6,32 +6,40 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
+const Sheet = React.memo(({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) => {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
-}
+});
 
-function SheetTrigger({
+Sheet.displayName = "Sheet";
+
+const SheetTrigger = React.memo(({
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Trigger>) {
+}: React.ComponentProps<typeof SheetPrimitive.Trigger>) => {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
-}
+});
 
-function SheetClose({
+SheetTrigger.displayName = "SheetTrigger";
+
+const SheetClose = React.memo(({
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Close>) {
+}: React.ComponentProps<typeof SheetPrimitive.Close>) => {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
-}
+});
 
-function SheetPortal({
+SheetClose.displayName = "SheetClose";
+
+const SheetPortal = React.memo(({
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Portal>) {
+}: React.ComponentProps<typeof SheetPrimitive.Portal>) => {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
-}
+});
 
-function SheetOverlay({
+SheetPortal.displayName = "SheetPortal";
+
+const SheetOverlay = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Overlay>) {
+}: React.ComponentProps<typeof SheetPrimitive.Overlay>) => {
   return (
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
@@ -42,16 +50,18 @@ function SheetOverlay({
       {...props}
     />
   )
-}
+});
 
-function SheetContent({
+SheetOverlay.displayName = "SheetOverlay";
+
+const SheetContent = React.memo(({
   className,
   children,
   side = "right",
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
-}) {
+}) => {
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -79,9 +89,11 @@ function SheetContent({
       </SheetPrimitive.Content>
     </SheetPortal>
   )
-}
+});
 
-function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
+SheetContent.displayName = "SheetContent";
+
+const SheetHeader = React.memo(({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="sheet-header"
@@ -89,9 +101,11 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
       {...props}
     />
   )
-}
+});
 
-function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
+SheetHeader.displayName = "SheetHeader";
+
+const SheetFooter = React.memo(({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       data-slot="sheet-footer"
@@ -99,12 +113,14 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
       {...props}
     />
   )
-}
+});
 
-function SheetTitle({
+SheetFooter.displayName = "SheetFooter";
+
+const SheetTitle = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Title>) {
+}: React.ComponentProps<typeof SheetPrimitive.Title>) => {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
@@ -112,12 +128,14 @@ function SheetTitle({
       {...props}
     />
   )
-}
+});
 
-function SheetDescription({
+SheetTitle.displayName = "SheetTitle";
+
+const SheetDescription = React.memo(({
   className,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Description>) {
+}: React.ComponentProps<typeof SheetPrimitive.Description>) => {
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
@@ -125,7 +143,9 @@ function SheetDescription({
       {...props}
     />
   )
-}
+});
+
+SheetDescription.displayName = "SheetDescription";
 
 export {
   Sheet,

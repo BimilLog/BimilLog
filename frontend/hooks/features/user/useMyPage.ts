@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 import { useAuth, useToast } from "@/hooks";
-import { useUserStats } from "../useUser";
+import { useUserStats } from "./useUserStats";
 import { logger } from '@/lib/utils/logger';
 
 export function useMyPage() {

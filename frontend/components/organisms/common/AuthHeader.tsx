@@ -1,14 +1,23 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/hooks";
 import { Button } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 import { Settings } from "lucide-react";
 import { MobileNav } from "@/components/organisms/common/MobileNav";
-import { NotificationBell } from "@/components/organisms/common/notification-bell";
 
-export function AuthHeader() {
+const NotificationBell = dynamic(
+  () => import("@/components/organisms/common/notification-bell").then(mod => ({ default: mod.NotificationBell })),
+  {
+    ssr: false,
+    loading: () => <div className="w-6 h-6 animate-pulse bg-gray-200 rounded-full" />
+  }
+);
+
+export const AuthHeader = React.memo(() => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   const getInitials = (name?: string) => {
@@ -169,4 +178,6 @@ export function AuthHeader() {
       </div>
     </header>
   );
-}
+});
+
+AuthHeader.displayName = "AuthHeader";

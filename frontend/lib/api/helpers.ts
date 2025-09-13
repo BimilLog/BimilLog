@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@/types';
+import type { ApiResponse, PageResponse, ErrorResponse } from '@/types';
 import { logger } from '@/lib/utils/logger';
 
 /**
@@ -67,6 +67,121 @@ export interface AppError {
   originalError?: unknown;
 }
 
+/**
+ * 타입 가드 함수들
+ */
+
+// 기본 객체 타입 가드
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+// API 응답 기본 구조 검증
+export function isValidApiResponse<T>(data: unknown): data is ApiResponse<T> {
+  if (!isObject(data)) return false;
+
+  // success 필드는 필수
+  if (typeof data.success !== 'boolean') return false;
+
+  // error가 있다면 string이어야 함
+  if ('error' in data && typeof data.error !== 'string') return false;
+
+  // message가 있다면 string이어야 함
+  if ('message' in data && typeof data.message !== 'string') return false;
+
+  // needsRelogin이 있다면 boolean이어야 함
+  if ('needsRelogin' in data && typeof data.needsRelogin !== 'boolean') return false;
+
+  return true;
+}
+
+// 페이지네이션 응답 검증
+export function isPageResponse<T>(data: unknown): data is PageResponse<T> {
+  if (!isObject(data)) return false;
+
+  const requiredFields = [
+    'content', 'totalElements', 'totalPages', 'first', 'last',
+    'number', 'size', 'numberOfElements', 'empty'
+  ] as const;
+
+  // 필수 필드 검증
+  for (const field of requiredFields) {
+    if (!(field in data)) return false;
+
+    const value = (data as Record<string, unknown>)[field];
+
+    if (field === 'content') {
+      if (!Array.isArray(value)) return false;
+    } else if (field === 'first' || field === 'last' || field === 'empty') {
+      if (typeof value !== 'boolean') return false;
+    } else {
+      if (typeof value !== 'number') return false;
+    }
+  }
+
+  return true;
+}
+
+// 에러 응답 검증
+export function isErrorResponse(data: unknown): data is ErrorResponse {
+  if (!isObject(data)) return false;
+
+  return (
+    typeof data.code === 'string' &&
+    typeof data.message === 'string' &&
+    typeof data.timestamp === 'string' &&
+    (data.path === undefined || typeof data.path === 'string')
+  );
+}
+
+// 성공 응답에서 data 필드 검증
+export function validateResponseData<T>(
+  response: ApiResponse<T>,
+  validator?: (data: unknown) => data is T
+): T | null {
+  if (!response.success || !response.data) {
+    return null;
+  }
+
+  // 커스텀 validator가 있으면 사용
+  if (validator && !validator(response.data)) {
+    logger.warn('Response data validation failed:', response.data);
+    return null;
+  }
+
+  return response.data;
+}
+
+// API 에러 응답 타입 가드
+function isApiErrorResponse(error: unknown): error is { error: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'error' in error &&
+    typeof (error as Record<string, unknown>).error === 'string'
+  );
+}
+
+// HTTP 상태 코드 포함 에러 타입 가드
+function isHttpStatusError(error: unknown): error is { status: number } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    typeof (error as Record<string, unknown>).status === 'number'
+  );
+}
+
+// 메시지 포함 에러 타입 가드
+function isErrorWithMessage(error: unknown): error is { message: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as Record<string, unknown>).message === 'string'
+  );
+}
+
 export class ErrorHandler {
   static mapApiError(error: unknown): AppError {
     // 네트워크 오류
@@ -81,8 +196,8 @@ export class ErrorHandler {
     }
 
     // API 응답 에러
-    if (error && typeof error === 'object' && 'error' in error && typeof (error as any).error === 'string') {
-      const errorMessage = (error as any).error.toLowerCase();
+    if (isApiErrorResponse(error)) {
+      const errorMessage = error.error.toLowerCase();
 
       if (errorMessage.includes('인증') || errorMessage.includes('로그인')) {
         return {
@@ -108,8 +223,8 @@ export class ErrorHandler {
         return {
           type: 'NOT_FOUND',
           title: '찾을 수 없음',
-          message: (error as any).error,
-          userMessage: (error as any).error,
+          message: error.error,
+          userMessage: error.error,
           originalError: error
         };
       }
@@ -118,16 +233,16 @@ export class ErrorHandler {
         return {
           type: 'VALIDATION_ERROR',
           title: '입력 오류',
-          message: (error as any).error,
-          userMessage: (error as any).error,
+          message: error.error,
+          userMessage: error.error,
           originalError: error
         };
       }
     }
 
     // HTTP 상태 코드 기반 에러
-    if (error && typeof error === 'object' && 'status' in error && typeof (error as any).status === 'number') {
-      switch ((error as any).status) {
+    if (isHttpStatusError(error)) {
+      switch (error.status) {
         case 400:
           return {
             type: 'VALIDATION_ERROR',
@@ -174,11 +289,14 @@ export class ErrorHandler {
     }
 
     // 기본 에러
+    const defaultMessage = '알 수 없는 오류가 발생했습니다.';
+    const errorMessage = isErrorWithMessage(error) ? error.message : defaultMessage;
+
     return {
       type: 'UNKNOWN_ERROR',
       title: '오류 발생',
-      message: (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') ? (error as any).message : '알 수 없는 오류가 발생했습니다.',
-      userMessage: (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') ? (error as any).message : '알 수 없는 오류가 발생했습니다.',
+      message: errorMessage,
+      userMessage: errorMessage,
       originalError: error
     };
   }
@@ -187,7 +305,7 @@ export class ErrorHandler {
     const baseError = this.mapApiError(error);
 
     // 롤링페이퍼 특화 에러 처리
-    if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string' && (error as any).message.includes('위치')) {
+    if (isErrorWithMessage(error) && error.message.includes('위치')) {
       return {
         type: 'DUPLICATE_POSITION',
         title: '위치 중복',
@@ -207,6 +325,110 @@ export class ErrorHandler {
     };
   }
 }
+
+// 안전한 API 호출을 위한 래퍼 함수
+export const safeApiCall = async <T>(
+  apiFunction: () => Promise<ApiResponse<T>>,
+  options?: {
+    validator?: (data: unknown) => data is T;
+    fallback?: T;
+    logErrors?: boolean;
+  }
+): Promise<ApiResponse<T>> => {
+  try {
+    const response = await apiFunction();
+
+    // API 응답 구조 검증
+    if (!isValidApiResponse<T>(response)) {
+      logger.warn('Invalid API response structure:', response);
+      return {
+        success: false,
+        error: 'Invalid response format'
+      };
+    }
+
+    // 성공 응답의 데이터 유효성 검증
+    if (response.success && response.data && options?.validator) {
+      const validatedData = validateResponseData(response, options.validator);
+      if (validatedData === null && response.data !== null) {
+        logger.warn('Response data validation failed, using fallback:', response.data);
+        return {
+          success: true,
+          data: options.fallback || null as T
+        };
+      }
+    }
+
+    return handleApiResponse(response);
+  } catch (error) {
+    if (options?.logErrors !== false) {
+      logger.error('Safe API call failed:', error);
+    }
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+};
+
+// 페이지네이션 응답을 위한 안전한 API 호출
+export const safePagedApiCall = async <T>(
+  apiFunction: () => Promise<ApiResponse<PageResponse<T>>>,
+  options?: {
+    itemValidator?: (item: unknown) => item is T;
+    fallbackContent?: T[];
+    logErrors?: boolean;
+  }
+): Promise<ApiResponse<PageResponse<T>>> => {
+  try {
+    const response = await apiFunction();
+
+    if (!response.success || !response.data) {
+      return response;
+    }
+
+    // 페이지네이션 응답 구조 검증
+    if (!isPageResponse<T>(response.data)) {
+      logger.warn('Invalid page response structure:', response.data);
+      return {
+        success: false,
+        error: 'Invalid page response format'
+      };
+    }
+
+    // content 배열의 각 아이템 검증
+    if (options?.itemValidator && Array.isArray(response.data.content)) {
+      const validatedContent = response.data.content.filter(options.itemValidator);
+
+      if (validatedContent.length !== response.data.content.length) {
+        logger.warn(
+          `Filtered ${response.data.content.length - validatedContent.length} invalid items from page response`
+        );
+
+        return {
+          success: true,
+          data: {
+            ...response.data,
+            content: validatedContent,
+            numberOfElements: validatedContent.length
+          }
+        };
+      }
+    }
+
+    return handleApiResponse(response);
+  } catch (error) {
+    if (options?.logErrors !== false) {
+      logger.error('Safe paged API call failed:', error);
+    }
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+};
 
 // handleApiError를 export (기존 코드 호환성)
 export const handleApiError = (error: unknown): void => {

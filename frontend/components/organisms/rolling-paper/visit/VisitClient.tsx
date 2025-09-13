@@ -1,15 +1,39 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Heart, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRollingPaperSearch } from "@/hooks";
 import { KakaoShareButton } from "@/components/atoms/actions/kakao-share-button";
-import { RecentVisits } from "@/components/organisms/rolling-paper/RecentVisits";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { SearchSection } from "./SearchSection";
-import { ConfirmDialog } from "./ConfirmDialog";
+
+// Dynamic imports for heavy components
+const RecentVisits = dynamic(
+  () => import("@/components/organisms/rolling-paper/RecentVisits").then(mod => ({ default: mod.RecentVisits })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
+        <div className="h-6 bg-gray-200 rounded-lg mb-4 w-32"></div>
+        <div className="space-y-3">
+          <div className="h-16 bg-gray-200 rounded-lg"></div>
+          <div className="h-16 bg-gray-200 rounded-lg"></div>
+        </div>
+      </div>
+    )
+  }
+);
+
+const ConfirmDialog = dynamic(
+  () => import("./ConfirmDialog").then(mod => ({ default: mod.ConfirmDialog })),
+  {
+    ssr: false,
+    loading: () => null
+  }
+);
 
 export function VisitClient() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
