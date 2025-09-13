@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Spinner } from "@/components";
+import { logger } from "@/lib/utils";
 
 interface EditorProps {
   value: string;
@@ -35,9 +36,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 
       try {
         isInitializing.current = true;
-        if (process.env.NODE_ENV === 'development') {
-          console.log("Quill 에디터 초기화를 시작합니다...");
-        }
+        logger.log("Quill 에디터 초기화를 시작합니다...");
 
         // Quill을 동적으로 import
         const { default: Quill } = await import("quill");
@@ -119,7 +118,7 @@ const QuillEditor: React.FC<EditorProps> = ({
               : quill.root.innerHTML;
             onChange(content);
           } catch (err) {
-            console.error("Error getting content:", err);
+            logger.error("Error getting content:", err);
             onChange(quill.root.innerHTML);
           }
         });
@@ -130,7 +129,7 @@ const QuillEditor: React.FC<EditorProps> = ({
             const delta = quill.clipboard.convert({ html: value });
             quill.setContents(delta, "silent");
           } catch (err) {
-            console.error("Error setting initial content:", err);
+            logger.error("Error setting initial content:", err);
             quill.root.innerHTML = value;
           }
         }
@@ -154,11 +153,9 @@ const QuillEditor: React.FC<EditorProps> = ({
 
         setIsReady(true);
         setError(null);
-        if (process.env.NODE_ENV === 'development') {
-          console.log("Quill 에디터가 성공적으로 초기화되었습니다.");
-        }
+        logger.log("Quill 에디터가 성공적으로 초기화되었습니다.");
       } catch (error) {
-        console.error("Quill 로드 실패:", error);
+        logger.error("Quill 로드 실패:", error);
         setError(
           error instanceof Error ? error.message : "에디터 로드에 실패했습니다."
         );
@@ -177,7 +174,7 @@ const QuillEditor: React.FC<EditorProps> = ({
           quillRef.current.off("text-change");
           quillRef.current = null;
         } catch (err) {
-          console.error("Error cleaning up Quill:", err);
+          logger.error("Error cleaning up Quill:", err);
         }
       }
     };
@@ -196,7 +193,7 @@ const QuillEditor: React.FC<EditorProps> = ({
           quillRef.current.setContents(delta, "silent");
         }
       } catch (err) {
-        console.error("Error updating content:", err);
+        logger.error("Error updating content:", err);
       }
     }
   }, [value, isReady, error]);

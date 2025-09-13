@@ -277,7 +277,7 @@ export function useCreatePost() {
 // 게시글 수정
 export function useUpdatePost() {
   return useApiMutation(
-    ({ id, data }: { id: number; data: any }) => postCommand.update({ ...data, id } as Post),
+    ({ id, data }: { id: number; data: Partial<Post> }) => postCommand.update({ ...data, id } as Post),
     {
       showSuccessToast: true,
       successMessage: '게시글이 수정되었습니다.'
@@ -303,7 +303,7 @@ export function useLikePost() {
 // 게시글 액션 통합 Hook (상세 페이지용)
 export function usePostActions(
   postId: string,
-  post: any,
+  post: Post | null,
   canModify: () => boolean,
   setShowPasswordModal: (show: boolean) => void,
   setPasswordModalTitle: (title: string) => void,
@@ -352,8 +352,9 @@ export function usePostActions(
         } else {
           throw new Error(response.message || "삭제 실패");
         }
-      } catch (error: any) {
-        toast.error(error.message || "게시글 삭제에 실패했습니다.");
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "게시글 삭제에 실패했습니다.";
+        toast.error(errorMessage);
       } finally {
         setIsDeleting(false);
         setShowPasswordModal(false);
@@ -374,8 +375,9 @@ export function usePostActions(
       } else {
         throw new Error(response.message || "좋아요 실패");
       }
-    } catch (error: any) {
-      toast.error(error.message || "좋아요 처리에 실패했습니다.");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "좋아요 처리에 실패했습니다.";
+      toast.error(errorMessage);
     } finally {
       setIsLiking(false);
     }
@@ -405,7 +407,7 @@ export function usePostActionsSimple(postId: number) {
     await likePost(postId);
   }, [likePost, postId]);
 
-  const handleUpdate = useCallback(async (data: any) => {
+  const handleUpdate = useCallback(async (data: Partial<Post>) => {
     await updatePost({ id: postId, data });
   }, [updatePost, postId]);
 

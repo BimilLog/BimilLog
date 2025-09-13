@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class PostInteractionService implements PostInteractionUseCase {
@@ -57,6 +56,7 @@ public class PostInteractionService implements PostInteractionUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void likePost(Long userId, Long postId) {
         // 1. ID 기반으로 좋아요 존재 여부 확인 (엔티티 로딩 최소화)
         boolean isAlreadyLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, userId);
@@ -87,6 +87,7 @@ public class PostInteractionService implements PostInteractionUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void incrementViewCount(Long postId) {
         postCommandPort.incrementViewByPostId(postId);
         log.debug("게시글 조회수 증가됨: postId={}", postId);

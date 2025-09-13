@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class PostCommandService implements PostCommandUseCase {
@@ -53,6 +52,7 @@ public class PostCommandService implements PostCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public Long writePost(Long userId, String title, String content, Integer password) {
         User user = (userId != null) ? globalUserQueryPort.getReferenceById(userId) : null;
         Post newPost = Post.createPost(user, title, content, password);
@@ -76,6 +76,7 @@ public class PostCommandService implements PostCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void updatePost(Long userId, Long postId, String title, String content) {
         Post post = postQueryPort.findById(postId);
 
@@ -102,6 +103,7 @@ public class PostCommandService implements PostCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void deletePost(Long userId, Long postId) {
         Post post = postQueryPort.findById(postId);
 

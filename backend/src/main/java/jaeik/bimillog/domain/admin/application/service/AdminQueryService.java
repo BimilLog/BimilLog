@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class AdminQueryService implements AdminQueryUseCase {
 

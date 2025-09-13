@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -74,7 +73,6 @@ public class LogoutService implements LogoutUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Transactional(readOnly = true)
     private void performSocialLogout(CustomUserDetails userDetails) {
         try {
             globalTokenQueryPort.findById(userDetails.getTokenId()).ifPresent(token -> {

@@ -37,7 +37,6 @@ import java.util.List;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class CommentCommandService implements CommentCommandUseCase {
@@ -67,6 +66,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void writeComment(Long userId, Long postId, Long parentId, String content, Integer password) {
         try {
             Post post = commentToPostPort.findById(postId);
@@ -123,6 +123,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void deleteComment(Long commentId, Long userId, Integer password) {
         Comment comment = validateComment(commentId, userId, password);
         
@@ -145,6 +146,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void likeComment(Long userId, Long commentId) {
         Comment comment = commentQueryPort.findById(commentId);
         User user = globalUserQueryPort.findById(userId)
@@ -173,6 +175,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void processUserCommentsOnWithdrawal(Long userId) {
         List<Comment> userComments = commentQueryPort.findAllByUserId(userId);
         

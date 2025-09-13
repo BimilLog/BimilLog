@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { useAuth, useToast } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSignupUuid } from "@/hooks/api";
+import { useSignupUuid } from "@/hooks";
 import { AuthLayout } from "@/components/organisms/auth";
 import { AuthLoadingScreen } from "@/components";
 import { NicknameSetupForm } from "@/components/organisms/auth";

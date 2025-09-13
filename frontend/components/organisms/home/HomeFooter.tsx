@@ -53,7 +53,7 @@ export const HomeFooter: React.FC = () => {
           <div>
             <div className="flex items-center mb-4">
               <h2 className="text-2xl font-bold text-white">비밀로그</h2>
-              <span className="ml-2 text-xs text-gray-500">v1.0.19</span>
+              <span className="ml-2 text-xs text-gray-500">v2.0.0</span>
             </div>
             <p className="text-gray-400">익명으로 마음을 전하는 특별한 공간</p>
           </div>

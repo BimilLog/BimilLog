@@ -14,7 +14,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
   const { showToast = true, onError, customMessages = {} } = options;
   const { showError, showWarning } = useToast();
 
-  const handleError = useCallback((error: any, context?: string) => {
+  const handleError = useCallback((error: unknown, context?: string) => {
     const appError = ErrorHandler.mapApiError(error);
     
     // 커스텀 메시지 적용
@@ -48,7 +48,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     return appError;
   }, [showToast, showError, showWarning, onError, customMessages]);
 
-  const handleRollingPaperError = useCallback((error: any) => {
+  const handleRollingPaperError = useCallback((error: unknown) => {
     const appError = ErrorHandler.handleRollingPaperError(error);
     
     if (showToast) {
@@ -61,32 +61,32 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     return appError;
   }, [showToast, showError, onError]);
 
-  const isNetworkError = useCallback((error: any): boolean => {
+  const isNetworkError = useCallback((error: unknown): boolean => {
     const appError = ErrorHandler.mapApiError(error);
     return appError.type === 'NETWORK_ERROR';
   }, []);
 
-  const isAuthError = useCallback((error: any): boolean => {
+  const isAuthError = useCallback((error: unknown): boolean => {
     const appError = ErrorHandler.mapApiError(error);
     return appError.type === 'AUTH_ERROR';
   }, []);
 
-  const isValidationError = useCallback((error: any): boolean => {
+  const isValidationError = useCallback((error: unknown): boolean => {
     const appError = ErrorHandler.mapApiError(error);
     return appError.type === 'VALIDATION_ERROR';
   }, []);
 
-  const isNotFoundError = useCallback((error: any): boolean => {
+  const isNotFoundError = useCallback((error: unknown): boolean => {
     const appError = ErrorHandler.mapApiError(error);
     return appError.type === 'NOT_FOUND';
   }, []);
 
-  const isServerError = useCallback((error: any): boolean => {
+  const isServerError = useCallback((error: unknown): boolean => {
     const appError = ErrorHandler.mapApiError(error);
     return appError.type === 'SERVER_ERROR';
   }, []);
 
-  const isPermissionError = useCallback((error: any): boolean => {
+  const isPermissionError = useCallback((error: unknown): boolean => {
     const appError = ErrorHandler.mapApiError(error);
     return appError.type === 'PERMISSION_DENIED';
   }, []);

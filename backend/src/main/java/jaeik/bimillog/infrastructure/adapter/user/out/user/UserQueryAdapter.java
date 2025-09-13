@@ -11,6 +11,7 @@ import jaeik.bimillog.infrastructure.adapter.user.out.jpa.SettingRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,7 @@ public class UserQueryAdapter implements UserQueryPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
@@ -57,6 +59,7 @@ public class UserQueryAdapter implements UserQueryPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByIdWithSetting(Long id) {
         return userRepository.findByIdWithSetting(id);
     }
@@ -74,6 +77,7 @@ public class UserQueryAdapter implements UserQueryPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public User findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return userRepository.findByProviderAndSocialId(provider, socialId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
@@ -90,6 +94,7 @@ public class UserQueryAdapter implements UserQueryPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByUserName(String userName) {
         return userRepository.existsByUserName(userName);
     }
@@ -105,6 +110,7 @@ public class UserQueryAdapter implements UserQueryPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByUserName(String userName) {
         return userRepository.findByUserName(userName);
     }
@@ -121,6 +127,7 @@ public class UserQueryAdapter implements UserQueryPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<Setting> findSettingById(Long settingId) {
         return settingRepository.findById(settingId);
     }
@@ -137,6 +144,7 @@ public class UserQueryAdapter implements UserQueryPort {
      * @since  2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public List<String> findUserNamesInOrder (List<String> socialIds) {
         return userRepository.findUserNamesInOrder(socialIds);
     }
@@ -153,6 +161,7 @@ public class UserQueryAdapter implements UserQueryPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public User getReferenceById(Long userId) {
         return userRepository.getReferenceById(userId);
     }

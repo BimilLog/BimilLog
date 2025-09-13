@@ -1,4 +1,5 @@
 import { AuthTokens } from "@/types/domains/auth";
+import { logger } from "@/lib/utils";
 
 export class TokenManager {
   private static readonly TOKEN_STORAGE_KEY = "bimillog_tokens";
@@ -11,7 +12,7 @@ export class TokenManager {
       };
       localStorage.setItem(this.TOKEN_STORAGE_KEY, JSON.stringify(tokenData));
     } catch (error) {
-      console.error("Failed to save tokens:", error);
+      logger.error("Failed to save tokens:", error);
     }
   }
 
@@ -29,7 +30,7 @@ export class TokenManager {
       
       return parsed;
     } catch (error) {
-      console.error("Failed to get tokens:", error);
+      logger.error("Failed to get tokens:", error);
       return null;
     }
   }
@@ -38,7 +39,7 @@ export class TokenManager {
     try {
       localStorage.removeItem(this.TOKEN_STORAGE_KEY);
     } catch (error) {
-      console.error("Failed to clear tokens:", error);
+      logger.error("Failed to clear tokens:", error);
     }
   }
 

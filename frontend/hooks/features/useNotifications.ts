@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { notificationQuery, notificationCommand, sseManager, type Notification } from "@/lib/api"
 import { useAuth } from "@/hooks"
+import { logger } from "@/lib/utils"
 
 export function useNotifications() {
   const { isAuthenticated, user } = useAuth()
@@ -43,24 +44,20 @@ export function useNotifications() {
     }
 
     try {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`배치 처리 시작 - 읽음: ${readIds.length}개, 삭제: ${deleteIds.length}개`)
-      }
-      
+      logger.log(`배치 처리 시작 - 읽음: ${readIds.length}개, 삭제: ${deleteIds.length}개`)
+
       const response = await notificationQuery.getAll()
 
       if (response.success) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("배치 처리 완료")
-        }
+        logger.log("배치 처리 완료")
         // 처리 완료된 ID들 제거
         setPendingReadIds(new Set())
         setPendingDeleteIds(new Set())
       } else {
-        console.error("배치 처리 실패:", response.error)
+        logger.error("배치 처리 실패:", response.error)
       }
     } catch (error) {
-      console.error("배치 처리 중 오류:", error)
+      logger.error("배치 처리 중 오류:", error)
     }
   }, [pendingReadIds, pendingDeleteIds])
 
@@ -77,17 +74,13 @@ export function useNotifications() {
         processBatch()
       }, 5 * 60 * 1000) // 5분
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log("알림 배치 처리 타이머 시작 (5분 간격)");
-      }
+      logger.log("알림 배치 처리 타이머 시작 (5분 간격)")
 
       return () => {
         if (batchTimerRef.current) {
           clearInterval(batchTimerRef.current)
           batchTimerRef.current = null
-          if (process.env.NODE_ENV === 'development') {
-            console.log("알림 배치 처리 타이머 정리");
-          }
+          logger.log("알림 배치 처리 타이머 정리")
         }
       }
     }
@@ -117,12 +110,10 @@ export function useNotifications() {
       if (response.success && response.data) {
         setNotifications(response.data)
         setUnreadCount(response.data.filter((n) => !n.isRead).length)  // v2: read → isRead
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`알림 ${response.data.length}개 조회됨 (읽지 않음: ${response.data.filter((n) => !n.isRead).length}개)`)
-        }
+        logger.log(`알림 ${response.data.length}개 조회됨 (읽지 않음: ${response.data.filter((n) => !n.isRead).length}개)`)
       }
     } catch (error) {
-      console.error("알림 조회 실패:", error)
+      logger.error("알림 조회 실패:", error)
     } finally {
       setIsLoading(false)
     }
@@ -132,18 +123,14 @@ export function useNotifications() {
   // SSE 알림 리스너 등록 (AuthContext에서 연결 관리)
   useEffect(() => {
     if (canConnectSSE()) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`사용자 인증 완료 (${user?.userName}) - 알림 리스너 등록`);
-      }
-      
+      logger.log(`사용자 인증 완료 (${user?.userName}) - 알림 리스너 등록`)
+
       // 기존 리스너 제거 후 새로 등록
       sseManager.removeEventListener("notification")
-      
+
       // 새 알림 수신 리스너 등록
       sseManager.addEventListener("notification", (data) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("새 알림 수신:", data);
-        }
+        logger.log("새 알림 수신:", data)
         
         // SSEManager에서 이미 변환된 Notification 객체를 직접 사용 (서버 재조회 불필요)
         const newNotification: Notification = {
@@ -173,10 +160,8 @@ export function useNotifications() {
       const checkConnection = () => {
         const state = sseManager.getConnectionState()
         const connected = sseManager.isConnected()
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`SSE 연결 상태: ${state}, 연결됨: ${connected}`);
-        }
+
+        logger.log(`SSE 연결 상태: ${state}, 연결됨: ${connected}`)
         setConnectionState(state)
         setIsSSEConnected(connected)
       }
@@ -201,9 +186,7 @@ export function useNotifications() {
 
   // 개별 알림 읽음 처리 (배치에 추가)
   const markAsRead = useCallback(async (notificationId: number) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`알림 ${notificationId} 읽음 처리 - 배치에 추가`)
-    }
+    logger.log(`알림 ${notificationId} 읽음 처리 - 배치에 추가`)
     
     // UI 즉시 업데이트
     setNotifications((prev) =>
@@ -219,9 +202,7 @@ export function useNotifications() {
 
   // 개별 알림 삭제 (배치에 추가)
   const deleteNotification = useCallback(async (notificationId: number) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`알림 ${notificationId} 삭제 - 배치에 추가`)
-    }
+    logger.log(`알림 ${notificationId} 삭제 - 배치에 추가`)
     
     const notification = notifications.find((n) => n.id === notificationId)
     
@@ -241,9 +222,7 @@ export function useNotifications() {
       const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id)  // v2: read → isRead
       if (unreadIds.length === 0) return
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`모든 알림 읽음 처리 - 즉시 실행 (${unreadIds.length}개)`)
-      }
+      logger.log(`모든 알림 읽음 처리 - 즉시 실행 (${unreadIds.length}개)`)
       await notificationCommand.markAllAsRead()
       const response = await notificationQuery.getAll()
       if (response.success) {
@@ -257,12 +236,10 @@ export function useNotifications() {
           return newSet
         })
         
-        if (process.env.NODE_ENV === 'development') {
-          console.log("모든 알림 읽음 처리 완료")
-        }
+        logger.log("모든 알림 읽음 처리 완료")
       }
     } catch (error) {
-      console.error("모든 알림 읽음 처리 실패:", error)
+      logger.error("모든 알림 읽음 처리 실패:", error)
     }
   }
 
@@ -272,9 +249,7 @@ export function useNotifications() {
       const allIds = notifications.map((n) => n.id)
       if (allIds.length === 0) return
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`모든 알림 삭제 - 즉시 실행 (${allIds.length}개)`)
-      }
+      logger.log(`모든 알림 삭제 - 즉시 실행 (${allIds.length}개)`)
       for (const id of allIds) {
         await notificationCommand.delete(id)
       }
@@ -290,12 +265,10 @@ export function useNotifications() {
           return newSet
         })
         
-        if (process.env.NODE_ENV === 'development') {
-          console.log("모든 알림 삭제 완료")
-        }
+        logger.log("모든 알림 삭제 완료")
       }
     } catch (error) {
-      console.error("모든 알림 삭제 실패:", error)
+      logger.error("모든 알림 삭제 실패:", error)
     }
   }
 
@@ -303,9 +276,7 @@ export function useNotifications() {
   const requestNotificationPermission = async () => {
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       const permission = await Notification.requestPermission()
-      if (process.env.NODE_ENV === 'development') {
-        console.log("브라우저 알림 권한:", permission);
-      }
+      logger.log("브라우저 알림 권한:", permission)
       return permission
     }
     return Notification.permission

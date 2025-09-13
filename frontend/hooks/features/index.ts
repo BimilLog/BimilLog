@@ -3,20 +3,14 @@ export * from './usePost';
 export * from './useComment';
 export * from './useBoard';
 
-// Rolling Paper hooks
+// Rolling Paper hooks (Search, Share 기능 통합됨)
 export * from './useRollingPaper';
-export * from './useRollingPaperSearch';
-export * from './useRollingPaperShare';
 
-// User & Settings hooks
-export * from './useActivityData';
-export * from './useMyPage';
-export * from './useSettings';
-export * from './useUserStats';
+// User hooks (MyPage, ActivityData, UserStats, Settings 통합됨)
+export * from './useUser';
 
 // UI & Interaction hooks
 export * from './useNotifications';
-export * from './usePasswordModal';
 
 // Admin hooks
 export * from './admin';

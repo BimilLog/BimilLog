@@ -30,7 +30,6 @@ import java.util.List;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class PostCacheService implements PostCacheUseCase {
@@ -52,6 +51,7 @@ public class PostCacheService implements PostCacheUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void syncNoticeCache(Long postId, boolean isNotice) {
         if (isNotice) {
             log.info("공지사항 캐시 추가 동기화 시작: postId={}", postId);

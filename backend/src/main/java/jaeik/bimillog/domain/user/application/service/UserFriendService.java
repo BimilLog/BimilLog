@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 @Slf4j
 public class UserFriendService implements UserFriendUseCase {
 
@@ -51,6 +50,7 @@ public class UserFriendService implements UserFriendUseCase {
      * @author Jaeik
      */
     @Override
+    @Transactional(readOnly = true)
     public KakaoFriendsResponseVO getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
         // 기본값 설정
         int actualOffset = offset != null ? offset : 0;

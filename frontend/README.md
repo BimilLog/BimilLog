@@ -359,8 +359,8 @@ className={cn("base", isActive && "bg-blue-500")}
   - `ReportDetailModalImproved` → `ReportDetailModal` 통합
   - 미사용 컴포넌트 정리
 - **훅 통합 및 정리**:
-  - `usePostActions` + `usePostDetail` + `usePopularPosts` → `usePost.ts` 통합
-  - `useBoardData` → `useBoard.ts` 통합 및 개선
+  - `usePostActions` + `usePostDetail` → `usePost.ts` 통합 (인기글 기능 포함)
+  - 게시판 데이터 관리를 `useBoard.ts`로 통합 및 개선
   - 모든 기능별 훅을 `/hooks/features` 디렉토리로 통합
 - **타입 시스템 개선**:
   - `types/auth.ts` → `types/domains/auth.ts`

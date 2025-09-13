@@ -11,7 +11,6 @@ import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.paper.in.web.PaperQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,7 +23,6 @@ import java.util.List;
  * @version 2.0.0
  */
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PaperQueryService implements PaperQueryUseCase {
 

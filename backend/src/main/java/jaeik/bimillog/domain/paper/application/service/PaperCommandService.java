@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class PaperCommandService implements PaperCommandUseCase {
 
@@ -48,6 +47,7 @@ public class PaperCommandService implements PaperCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void deleteMessageInMyPaper(Long userId, Long messageId) {
         Long ownerId = paperQueryPort.findOwnerIdByMessageId(messageId)
                 .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
@@ -75,7 +75,8 @@ public class PaperCommandService implements PaperCommandUseCase {
      * @since 2.0.0
      */
     @Override
-    public void writeMessage(String userName, DecoType decoType, String anonymity, 
+    @Transactional
+    public void writeMessage(String userName, DecoType decoType, String anonymity,
                            String content, int x, int y) {
         if (userName == null || userName.trim().isEmpty()) {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);

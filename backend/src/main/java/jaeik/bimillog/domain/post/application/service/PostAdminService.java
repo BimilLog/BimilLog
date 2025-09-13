@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class PostAdminService implements PostAdminUseCase {
@@ -39,6 +38,7 @@ public class PostAdminService implements PostAdminUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void togglePostNotice(Long postId) {
         Post post = postQueryPort.findById(postId);
         
@@ -66,6 +66,7 @@ public class PostAdminService implements PostAdminUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public boolean isPostNotice(Long postId) {
         Post post = postQueryPort.findById(postId);
         

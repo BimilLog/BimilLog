@@ -31,7 +31,6 @@ import java.util.Optional;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class AdminCommandService implements AdminCommandUseCase {
 
@@ -56,6 +55,7 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void createReport(Long userId, ReportType reportType, Long targetId, String content) {
         User reporter = Optional.ofNullable(userId)
                 .flatMap(userQueryPort::findById)

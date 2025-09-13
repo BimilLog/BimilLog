@@ -6,6 +6,7 @@ import jaeik.bimillog.infrastructure.adapter.auth.out.auth.SaveUserAdapter;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>사용자 명령 어댑터</h2>
@@ -33,6 +34,7 @@ public class UserCommandAdapter implements UserCommandPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public User save(User user) {
         if (user == null) {
             throw new IllegalArgumentException("User는 null이 될 수 없습니다.");

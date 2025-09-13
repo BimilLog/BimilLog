@@ -27,7 +27,6 @@ import java.util.Optional;
  * @version 2.0.0
  */
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserQueryService implements UserQueryUseCase {
 
@@ -46,6 +45,7 @@ public class UserQueryService implements UserQueryUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public User findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return userQueryPort.findByProviderAndSocialId(provider, socialId);
     }
@@ -61,6 +61,7 @@ public class UserQueryService implements UserQueryUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findById(Long id) {
         return userQueryPort.findById(id);
     }
@@ -76,6 +77,7 @@ public class UserQueryService implements UserQueryUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByUserName(String userName) {
         return userQueryPort.existsByUserName(userName);
     }
@@ -91,6 +93,7 @@ public class UserQueryService implements UserQueryUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByUserName(String userName) {
         return userQueryPort.findByUserName(userName);
     }
@@ -108,6 +111,7 @@ public class UserQueryService implements UserQueryUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public User getReferenceById(Long userId) {
         return userQueryPort.getReferenceById(userId);
     }
@@ -123,6 +127,7 @@ public class UserQueryService implements UserQueryUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<Token> findTokenById(Long tokenId) {
         return globalTokenQueryPort.findById(tokenId);
     }
@@ -140,6 +145,7 @@ public class UserQueryService implements UserQueryUseCase {
      * @author Jaeik
      */
     @Override
+    @Transactional(readOnly = true)
     public Setting findBySettingId(Long settingId) {
         return userQueryPort.findSettingById(settingId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.SETTINGS_NOT_FOUND));

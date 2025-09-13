@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Input, Badge, Button } from "@/components";
+import { Card, Input, Badge, Button, Loading } from "@/components";
 import { Search, Filter, ChevronDown, Calendar, User, FileText, AlertTriangle } from "lucide-react";
 import { ReportFilters } from "./ReportFilters";
 import { ReportCard } from "./ReportCard";
 import { MobileReportCard } from "./MobileReportCard";
-import { LoadingState } from "./LoadingState";
 import { ReportDetailModal } from "./ReportDetailModal";
 import type { Report } from "@/types/domains/admin";
 
@@ -47,7 +46,7 @@ export function ReportListContainer({
   }, [reports, searchTerm, filterType]);
 
   if (isLoading) {
-    return <LoadingState />;
+    return <Loading type="card" message="신고 목록을 불러오는 중..." />;
   }
 
   const reportCounts = {

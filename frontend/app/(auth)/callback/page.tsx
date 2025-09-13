@@ -1,6 +1,6 @@
 "use client";
 
-import { useKakaoCallback } from "@/hooks/api";
+import { useKakaoCallback } from "@/hooks";
 import { useToast } from "@/hooks";
 import { ToastContainer } from "@/components/molecules/feedback/toast";
 import { AuthLoadingScreen } from "@/components";

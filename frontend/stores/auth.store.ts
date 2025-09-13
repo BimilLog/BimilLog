@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { authQuery, authCommand, userQuery, userCommand, sseManager, type User } from '@/lib/api';
+import { logger } from '@/lib/utils';
 
 interface AuthState {
   user: User | null;
@@ -52,9 +53,7 @@ export const useAuthStore = create<AuthState>()(
               
               // 기존회원(로그인) 또는 신규회원(회원가입 완료) 시 SSE 연결
               if (response.data.userName?.trim()) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log(`사용자 인증 완료 (${response.data.userName}) - SSE 연결 시작`);
-                }
+                logger.log(`사용자 인증 완료 (${response.data.userName}) - SSE 연결 시작`);
                 sseManager.connect();
               }
             } else {
@@ -65,10 +64,10 @@ export const useAuthStore = create<AuthState>()(
               sseManager.disconnect();
             }
           } catch (error) {
-            console.error("Failed to fetch user:", error);
-            set({ 
-              user: null, 
-              isAuthenticated: false 
+            logger.error("Failed to fetch user:", error);
+            set({
+              user: null,
+              isAuthenticated: false
             });
             sseManager.disconnect();
           } finally {
@@ -92,17 +91,13 @@ export const useAuthStore = create<AuthState>()(
         
         logout: async () => {
           try {
-            if (process.env.NODE_ENV === 'development') {
-              console.log("로그아웃 시작...");
-            }
-            
+            logger.log("로그아웃 시작...");
+
             const response = await authCommand.logout();
-            
-            if (process.env.NODE_ENV === 'development') {
-              console.log("로그아웃 API 응답:", response);
-            }
+
+            logger.log("로그아웃 API 응답:", response);
           } catch (error) {
-            console.error("Logout failed:", error);
+            logger.error("Logout failed:", error);
           } finally {
             // 항상 SSE 연결 해제하고 상태 초기화
             sseManager.disconnect();
@@ -125,10 +120,10 @@ export const useAuthStore = create<AuthState>()(
               error: response.error || "회원가입에 실패했습니다." 
             };
           } catch (error) {
-            console.error("SignUp failed:", error);
-            return { 
-              success: false, 
-              error: "회원가입 중 오류가 발생했습니다." 
+            logger.error("SignUp failed:", error);
+            return {
+              success: false,
+              error: "회원가입 중 오류가 발생했습니다."
             };
           }
         },
@@ -136,7 +131,7 @@ export const useAuthStore = create<AuthState>()(
         updateUserName: async (userName: string) => {
           const { user } = get();
           if (!user) {
-            console.error("User not available for username update");
+            logger.error("User not available for username update");
             return false;
           }
           
@@ -148,7 +143,7 @@ export const useAuthStore = create<AuthState>()(
             }
             return false;
           } catch (error) {
-            console.error("Update username failed:", error);
+            logger.error("Update username failed:", error);
             return false;
           }
         },
@@ -167,7 +162,7 @@ export const useAuthStore = create<AuthState>()(
             }
             return false;
           } catch (error) {
-            console.error("Delete account failed:", error);
+            logger.error("Delete account failed:", error);
             return false;
           }
         },

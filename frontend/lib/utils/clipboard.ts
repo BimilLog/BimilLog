@@ -2,6 +2,7 @@
  * 클립보드 유틸리티 함수들
  * 프로젝트 전반에 걸쳐 일관된 클립보드 접근을 위한 통합 유틸리티
  */
+import { logger } from './index';
 
 /**
  * 텍스트를 클립보드에 복사
@@ -31,9 +32,7 @@ export async function copyToClipboard(
 
   // SSR 환경에서는 실행하지 않음
   if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('copyToClipboard: SSR 환경에서는 실행할 수 없습니다.');
-    }
+    logger.warn('copyToClipboard: SSR 환경에서는 실행할 수 없습니다.');
     return false;
   }
 
@@ -74,9 +73,7 @@ export async function copyToClipboard(
 
     throw new Error('execCommand failed');
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('클립보드 복사 실패:', error);
-    }
+    logger.error('클립보드 복사 실패:', error);
 
     // 최후 수단: alert로 사용자에게 수동 복사 요청
     if (fallbackAlert) {
@@ -165,9 +162,7 @@ export async function readFromClipboard(): Promise<string | null> {
     }
     return null;
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('클립보드 읽기 실패:', error);
-    }
+    logger.error('클립보드 읽기 실패:', error);
     return null;
   }
 }

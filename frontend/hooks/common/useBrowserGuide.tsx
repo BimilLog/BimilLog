@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { storage } from "@/lib/utils/storage";
+import { storage, logger } from "@/lib/utils";
 
 export function useBrowserGuide() {
   const [isKakaoInApp, setIsKakaoInApp] = useState(false);
@@ -18,9 +18,7 @@ export function useBrowserGuide() {
       // 카카오톡 인앱 브라우저 감지
   const detectKakaoInApp = () => {
     const userAgent = navigator.userAgent;
-    if (process.env.NODE_ENV === 'development') {
-      console.log("User Agent:", userAgent);
-    }
+    logger.log("User Agent:", userAgent);
 
       // 더 정확한 카카오톡 인앱 브라우저 감지
       const isKakao =
@@ -38,21 +36,17 @@ export function useBrowserGuide() {
       const guideHidden = storage.local.getBrowserGuideHidden();
       const hideUntil = storage.local.getBrowserGuideHideUntil();
 
-          if (process.env.NODE_ENV === 'development') {
-      console.log("Browser detection:", {
-        isKakao,
-        forceShow,
-        guideHidden,
-        hideUntil,
-      });
-    }
+    logger.log("Browser detection:", {
+      isKakao,
+      forceShow,
+      guideHidden,
+      hideUntil,
+    });
 
       if ((isKakao || forceShow) && !guideHidden) {
         // 숨김 기간 확인
         if (hideUntil && new Date().getTime() < hideUntil) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log("Guide hidden until:", new Date(hideUntil));
-          }
+          logger.log("Guide hidden until:", new Date(hideUntil));
           return;
         }
         setShowGuide(true);
@@ -70,9 +64,7 @@ export function useBrowserGuide() {
     const handleAppInstalled = () => {
       setIsPWAInstallable(false);
       setDeferredPrompt(null);
-      if (process.env.NODE_ENV === 'development') {
-        console.log("PWA가 설치되었습니다!");
-      }
+      logger.log("PWA가 설치되었습니다!");
     };
 
     detectKakaoInApp();
@@ -93,9 +85,7 @@ export function useBrowserGuide() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-              if (process.env.NODE_ENV === 'development') {
-          console.log(`User response to the install prompt: ${outcome}`);
-        }
+      logger.log(`User response to the install prompt: ${outcome}`);
       setDeferredPrompt(null);
       setIsPWAInstallable(false);
     }

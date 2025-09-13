@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useCallback } from 'react';
-import type { ApiResponse } from '@/types/common';
-import { ErrorHandler } from '@/lib/api/helpers';
+import type { ApiResponse, ErrorResponse } from '@/types/common';
+import { ErrorHandler, AppError } from '@/lib/api/helpers';
 import { useToast } from '@/hooks';
 
 interface UseApiMutationOptions<T> {
   onSuccess?: (data: T) => void;
-  onError?: (error: any) => void;
+  onError?: (error: AppError) => void;
   showSuccessToast?: boolean;
   showErrorToast?: boolean;
   successMessage?: string;
@@ -20,12 +20,12 @@ interface UseApiMutationResult<T, V> {
   data: T | null;
   isLoading: boolean;
   isError: boolean;
-  error: any;
+  error: AppError | null;
   isSuccess: boolean;
   reset: () => void;
 }
 
-export function useApiMutation<T = any, V = any>(
+export function useApiMutation<T = unknown, V = unknown>(
   mutationFn: (variables: V) => Promise<ApiResponse<T>>,
   options: UseApiMutationOptions<T> = {}
 ): UseApiMutationResult<T, V> {
@@ -41,7 +41,7 @@ export function useApiMutation<T = any, V = any>(
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<AppError | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   
   const { showSuccess, showError } = useToast();
@@ -78,7 +78,7 @@ export function useApiMutation<T = any, V = any>(
       } else if (response.needsRelogin) {
         // 리로그인 필요 시 전역 이벤트는 apiClient에서 처리됨
         setIsError(true);
-        setError(response.error);
+        setError(response.error ? ErrorHandler.mapApiError(response.error) : null);
         return null;
       } else {
         throw new Error(response.error || 'Unknown error');

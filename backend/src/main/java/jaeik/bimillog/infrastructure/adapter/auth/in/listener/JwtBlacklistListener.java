@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class JwtBlacklistListener {
@@ -36,6 +35,7 @@ public class JwtBlacklistListener {
      */
     @Async
     @EventListener({UserBannedEvent.class, AdminWithdrawEvent.class})
+    @Transactional
     public void handleJwtBlacklistEvents(Object event) {
         Long userId;
         String reason;

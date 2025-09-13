@@ -1,4 +1,5 @@
 import { Notification } from '@/types/domains/notification'
+import { logger } from '@/lib/utils'
 
 export class SSEManager {
   private eventSource: EventSource | null = null
@@ -17,32 +18,24 @@ export class SSEManager {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
       const sseUrl = `${API_BASE_URL}/api/notification/connect`
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log("SSE 연결 시도:", sseUrl)
-      }
+      logger.log("SSE 연결 시도:", sseUrl)
       
       this.eventSource = new EventSource(sseUrl, {
         withCredentials: true,
       })
       
       this.eventSource.onopen = (event) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("SSE connection opened successfully", event)
-        }
+        logger.log("SSE connection opened successfully", event)
         this.reconnectAttempts = 0
       }
       
       const handleSSEEvent = (event: MessageEvent) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`SSE ${event.type} event received:`, event.data)
-        }
+        logger.log(`SSE ${event.type} event received:`, event.data)
         
         try {
           const data = JSON.parse(event.data)
           
-          if (process.env.NODE_ENV === 'development') {
-            console.log("Parsed SSE data:", data)
-          }
+          logger.log("Parsed SSE data:", data)
           
           const notificationData = {
             id: data.id || Date.now() + Math.random(),
@@ -54,23 +47,19 @@ export class SSEManager {
           }
           
           if (event.type === "INITIATE") {
-            if (process.env.NODE_ENV === 'development') {
-              console.log("SSE 연결 초기화 완료:", data.message)
-            }
+            logger.log("SSE 연결 초기화 완료:", data.message)
             return
           }
           
           const listener = this.listeners.get("notification")
           if (listener) {
-            if (process.env.NODE_ENV === 'development') {
-              console.log("SSE 알림 리스너 실행:", notificationData)
-            }
+            logger.log("SSE 알림 리스너 실행:", notificationData)
             listener(notificationData)
           } else {
-            console.warn("No listener found for SSE message")
+            logger.warn("No listener found for SSE message")
           }
         } catch (error) {
-          console.error(`Failed to parse SSE ${event.type} event:`, error, "Raw data:", event.data)
+          logger.error(`Failed to parse SSE ${event.type} event:`, error, "Raw data:", event.data)
         }
       }
       
@@ -84,8 +73,8 @@ export class SSEManager {
       })
       
       this.eventSource.onerror = (error) => {
-        console.error("SSE connection error:", error)
-        console.log("EventSource readyState:", this.eventSource?.readyState)
+        logger.error("SSE connection error:", error)
+        logger.log("EventSource readyState:", this.eventSource?.readyState)
         
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++
@@ -96,25 +85,23 @@ export class SSEManager {
             this.maxReconnectDelay
           )
           
-          console.log(`SSE 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts} (${delay}ms 후)`)
+          logger.log(`SSE 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts} (${delay}ms 후)`)
           
           setTimeout(() => {
             this.connect()
           }, delay)
         } else {
-          console.error("SSE 재연결 시도 초과됨")
+          logger.error("SSE 재연결 시도 초과됨")
         }
       }
     } catch (error) {
-      console.error("SSE 연결 실패:", error)
+      logger.error("SSE 연결 실패:", error)
     }
   }
   
   disconnect() {
     if (this.eventSource) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("SSE 연결을 종료합니다.")
-      }
+      logger.log("SSE 연결을 종료합니다.")
       this.eventSource.close()
       this.eventSource = null
       this.reconnectAttempts = 0
@@ -122,16 +109,12 @@ export class SSEManager {
   }
   
   addEventListener(type: string, listener: (data: Notification) => void) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`SSE 리스너 등록: ${type}`)
-    }
+    logger.log(`SSE 리스너 등록: ${type}`)
     this.listeners.set(type, listener)
   }
   
   removeEventListener(type: string) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`SSE 리스너 제거: ${type}`)
-    }
+    logger.log(`SSE 리스너 제거: ${type}`)
     this.listeners.delete(type)
   }
   

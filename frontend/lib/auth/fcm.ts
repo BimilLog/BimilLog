@@ -1,4 +1,4 @@
-import { isMobileOrTablet } from "@/lib/utils";
+import { isMobileOrTablet, logger } from "@/lib/utils";
 
 /**
  * FCM 토큰 가져오기 (모바일/태블릿에서만)
@@ -6,9 +6,7 @@ import { isMobileOrTablet } from "@/lib/utils";
 export async function getFCMToken(): Promise<string | null> {
   // 모바일/태블릿이 아니면 FCM 토큰을 가져오지 않음
   if (!isMobileOrTablet()) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('데스크톱 환경 - FCM 토큰 건너뛰기');
-    }
+    logger.log('데스크톱 환경 - FCM 토큰 건너뛰기');
     return null
   }
 
@@ -46,18 +44,14 @@ export async function getFCMToken(): Promise<string | null> {
     })
 
     if (token) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('FCM 토큰 획득 성공:', token.substring(0, 20) + '...');
-      }
+      logger.log('FCM 토큰 획득 성공:', token.substring(0, 20) + '...');
       return token
     } else {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('FCM 토큰 획득 실패 - 브라우저 알림 권한을 확인해주세요.');
-      }
+      logger.log('FCM 토큰 획득 실패 - 브라우저 알림 권한을 확인해주세요.');
       return null
     }
   } catch (error) {
-    console.error('FCM 토큰 가져오기 실패:', error)
+    logger.error('FCM 토큰 가져오기 실패:', error)
     return null
   }
 }
@@ -110,7 +104,7 @@ export class FCMManager {
         isSupported: true
       };
     } catch (error) {
-      console.error("Failed to get FCM token:", error);
+      logger.error("Failed to get FCM token:", error);
       return {
         token: null,
         isSupported: true,
@@ -128,9 +122,7 @@ export class FCMManager {
       const result = await this.getToken();
       return result.token;
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error("FCM token acquisition failed:", error);
-      }
+      logger.error("FCM token acquisition failed:", error);
       return null;
     }
   }
@@ -152,7 +144,7 @@ export class FCMManager {
       const permission = await Notification.requestPermission();
       return permission;
     } catch (error) {
-      console.error("Failed to request notification permission:", error);
+      logger.error("Failed to request notification permission:", error);
       return "denied";
     }
   }

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { AuthHeader, HomeFooter } from "@/components";
-import { AdminHeader, AdminClient, LoadingState } from "@/components/organisms/admin";
+import { AuthHeader, HomeFooter, Loading } from "@/components";
+import { AdminHeader, AdminClient } from "@/components/organisms/admin";
 
 export default function AdminPage() {
   return (
@@ -10,7 +10,7 @@ export default function AdminPage() {
       <main className="container mx-auto px-4 py-8">
         <AdminHeader />
         
-        <Suspense fallback={<LoadingState />}>
+        <Suspense fallback={<Loading type="card" message="관리자 대시보드를 불러오는 중..." />}>
           <AdminClient />
         </Suspense>
       </main>

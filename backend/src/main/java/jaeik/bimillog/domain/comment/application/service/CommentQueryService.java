@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,6 @@ import java.util.Map;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class CommentQueryService implements CommentQueryUseCase {
@@ -50,7 +48,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    @Transactional(readOnly = true)
     public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
         return commentQueryPort.findPopularComments(postId, userId);
@@ -70,7 +67,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    @Transactional(readOnly = true)
     public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
         return commentQueryPort.findCommentsWithOldestOrder(postId, pageable, userId);
@@ -88,7 +84,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    @Transactional(readOnly = true)
     public Comment findById(Long commentId) {
         return commentQueryPort.findById(commentId);
     }
@@ -106,7 +101,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    @Transactional(readOnly = true)
     public Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable) {
         return commentQueryPort.findCommentsByUserId(userId, pageable);
     }
@@ -124,7 +118,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    @Transactional(readOnly = true)
     public Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable) {
         return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
     }
@@ -141,7 +134,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    @Transactional(readOnly = true)
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
         return commentQueryPort.findCommentCountsByPostIds(postIds);
     }

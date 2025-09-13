@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class NotificationCommandService implements NotificationCommandUseCase {
 
     private final NotificationCommandPort notificationCommandPort;
@@ -42,6 +41,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateVO updateCommand) {
         if (userDetails == null || userDetails.getUserId() == null) {
             throw new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT);

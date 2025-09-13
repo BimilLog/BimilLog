@@ -63,11 +63,11 @@ export interface AppError {
   title: string;
   message: string;
   userMessage?: string; // 사용자에게 표시할 친화적인 메시지
-  originalError?: any;
+  originalError?: unknown;
 }
 
 export class ErrorHandler {
-  static mapApiError(error: any): AppError {
+  static mapApiError(error: unknown): AppError {
     // 네트워크 오류
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return {
@@ -80,8 +80,8 @@ export class ErrorHandler {
     }
 
     // API 응답 에러
-    if (error?.error) {
-      const errorMessage = error.error.toLowerCase();
+    if (error && typeof error === 'object' && 'error' in error && typeof (error as any).error === 'string') {
+      const errorMessage = (error as any).error.toLowerCase();
 
       if (errorMessage.includes('인증') || errorMessage.includes('로그인')) {
         return {
@@ -107,8 +107,8 @@ export class ErrorHandler {
         return {
           type: 'NOT_FOUND',
           title: '찾을 수 없음',
-          message: error.error,
-          userMessage: error.error,
+          message: (error as any).error,
+          userMessage: (error as any).error,
           originalError: error
         };
       }
@@ -117,16 +117,16 @@ export class ErrorHandler {
         return {
           type: 'VALIDATION_ERROR',
           title: '입력 오류',
-          message: error.error,
-          userMessage: error.error,
+          message: (error as any).error,
+          userMessage: (error as any).error,
           originalError: error
         };
       }
     }
 
     // HTTP 상태 코드 기반 에러
-    if (error?.status) {
-      switch (error.status) {
+    if (error && typeof error === 'object' && 'status' in error && typeof (error as any).status === 'number') {
+      switch ((error as any).status) {
         case 400:
           return {
             type: 'VALIDATION_ERROR',
@@ -176,17 +176,17 @@ export class ErrorHandler {
     return {
       type: 'UNKNOWN_ERROR',
       title: '오류 발생',
-      message: error?.message || '알 수 없는 오류가 발생했습니다.',
-      userMessage: error?.message || '알 수 없는 오류가 발생했습니다.',
+      message: (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') ? (error as any).message : '알 수 없는 오류가 발생했습니다.',
+      userMessage: (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') ? (error as any).message : '알 수 없는 오류가 발생했습니다.',
       originalError: error
     };
   }
 
-  static handleRollingPaperError(error: any): AppError {
+  static handleRollingPaperError(error: unknown): AppError {
     const baseError = this.mapApiError(error);
 
     // 롤링페이퍼 특화 에러 처리
-    if (error?.message?.includes('위치')) {
+    if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string' && (error as any).message.includes('위치')) {
       return {
         type: 'DUPLICATE_POSITION',
         title: '위치 중복',
@@ -208,7 +208,7 @@ export class ErrorHandler {
 }
 
 // handleApiError를 export (기존 코드 호환성)
-export const handleApiError = (error: any): void => {
+export const handleApiError = (error: unknown): void => {
   const appError = ErrorHandler.mapApiError(error);
   console.error(appError.title, appError.message, appError.originalError);
 

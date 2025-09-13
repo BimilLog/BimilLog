@@ -40,3 +40,6 @@ export * from './storage'
 
 // Sanitize utilities
 export * from './sanitize'
+
+// Logger utilities
+export * from './logger'

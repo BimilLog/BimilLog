@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserActivityService implements UserActivityUseCase {
 
@@ -36,6 +35,7 @@ public class UserActivityService implements UserActivityUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable) {
         return userActivityPort.findPostsByUserId(userId, pageable);
     }
@@ -51,6 +51,7 @@ public class UserActivityService implements UserActivityUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
         return userActivityPort.findLikedPostsByUserId(userId, pageable);
     }
@@ -67,6 +68,7 @@ public class UserActivityService implements UserActivityUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable) {
         return userActivityPort.findCommentsByUserId(userId, pageable);
     }
@@ -83,6 +85,7 @@ public class UserActivityService implements UserActivityUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable) {
         return userActivityPort.findLikedCommentsByUserId(userId, pageable);
     }

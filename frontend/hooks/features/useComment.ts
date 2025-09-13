@@ -142,8 +142,9 @@ export const useCommentActions = (
         } else {
           throw new Error(response.message || "댓글 작성 실패");
         }
-      } catch (error: any) {
-        toast.error(error.message || "댓글 작성에 실패했습니다.");
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "댓글 작성에 실패했습니다.";
+        toast.error(errorMessage);
         return false;
       } finally {
         setIsSubmitting(false);
@@ -170,8 +171,9 @@ export const useCommentActions = (
         } else {
           throw new Error(response.message || "댓글 수정 실패");
         }
-      } catch (error: any) {
-        toast.error(error.message || "댓글 수정에 실패했습니다.");
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "댓글 수정에 실패했습니다.";
+        toast.error(errorMessage);
         return false;
       } finally {
         setIsSubmitting(false);
@@ -198,8 +200,9 @@ export const useCommentActions = (
         } else {
           throw new Error(response.message || "댓글 삭제 실패");
         }
-      } catch (error: any) {
-        toast.error(error.message || "댓글 삭제에 실패했습니다.");
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "댓글 삭제에 실패했습니다.";
+        toast.error(errorMessage);
         return false;
       } finally {
         setIsDeletingComment(false);
@@ -220,8 +223,9 @@ export const useCommentActions = (
         } else {
           throw new Error(response.message || "좋아요 실패");
         }
-      } catch (error: any) {
-        toast.error(error.message || "좋아요 처리에 실패했습니다.");
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "좋아요 처리에 실패했습니다.";
+        toast.error(errorMessage);
       } finally {
         setIsLikingComment(false);
       }

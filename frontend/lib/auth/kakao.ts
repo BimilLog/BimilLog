@@ -1,3 +1,5 @@
+import { logger } from '@/lib/utils'
+
 export interface KakaoAuthConfig {
   authUrl: string;
   clientId: string;
@@ -19,7 +21,7 @@ export class KakaoAuthManager {
 
   private validateConfig(): void {
     if (!this.config.authUrl || !this.config.clientId || !this.config.redirectUri) {
-      console.error("Kakao Auth configuration is incomplete");
+      logger.error("Kakao Auth configuration is incomplete");
     }
   }
 
@@ -74,12 +76,12 @@ export const generateKakaoConsentUrl = (): string => {
   const redirectUri = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
 
   if (!clientId) {
-    console.error('NEXT_PUBLIC_KAKAO_CLIENT_ID 환경변수가 설정되지 않았습니다.');
+    logger.error('NEXT_PUBLIC_KAKAO_CLIENT_ID 환경변수가 설정되지 않았습니다.');
     throw new Error('카카오 클라이언트 ID가 설정되지 않았습니다.');
   }
 
   if (!redirectUri) {
-    console.error('NEXT_PUBLIC_KAKAO_REDIRECT_URI 환경변수가 설정되지 않았습니다.');
+    logger.error('NEXT_PUBLIC_KAKAO_REDIRECT_URI 환경변수가 설정되지 않았습니다.');
     throw new Error('카카오 리다이렉트 URI가 설정되지 않았습니다.');
   }
 
@@ -111,7 +113,7 @@ export const logoutAndRedirectToConsent = (): void => {
     window.location.href = '/logout?consent=true';
 
   } catch (error) {
-    console.error('카카오 동의 처리 실패:', error);
+    logger.error('카카오 동의 처리 실패:', error);
     throw error;
   }
 };
@@ -149,7 +151,7 @@ export const initializeKakao = (): Promise<boolean> => {
         window.Kakao.init(appKey);
         resolve(true);
       } else {
-        console.error('카카오 앱 키가 설정되지 않았습니다.');
+        logger.error('카카오 앱 키가 설정되지 않았습니다.');
         resolve(false);
       }
       return;
@@ -167,13 +169,13 @@ export const initializeKakao = (): Promise<boolean> => {
         window.Kakao.init(appKey);
         resolve(true);
       } else {
-        console.error('카카오 SDK 로드 후 초기화 실패');
+        logger.error('카카오 SDK 로드 후 초기화 실패');
         resolve(false);
       }
     };
 
     script.onerror = () => {
-      console.error('카카오 SDK 스크립트 로드 실패');
+      logger.error('카카오 SDK 스크립트 로드 실패');
       resolve(false);
     };
 
@@ -188,7 +190,7 @@ export const shareRollingPaper = async (
 ): Promise<boolean> => {
   const isInitialized = await initializeKakao();
   if (!isInitialized) {
-    console.error('카카오 SDK 초기화 실패');
+    logger.error('카카오 SDK 초기화 실패');
     return false;
   }
 
@@ -219,7 +221,7 @@ export const shareRollingPaper = async (
 
     return true;
   } catch (error) {
-    console.error('카카오톡 공유 실패:', error);
+    logger.error('카카오톡 공유 실패:', error);
     return false;
   }
 };
@@ -234,7 +236,7 @@ export const sharePost = async (
 ): Promise<boolean> => {
   const isInitialized = await initializeKakao();
   if (!isInitialized) {
-    console.error('카카오 SDK 초기화 실패');
+    logger.error('카카오 SDK 초기화 실패');
     return false;
   }
 
@@ -266,7 +268,7 @@ export const sharePost = async (
 
     return true;
   } catch (error) {
-    console.error('카카오톡 공유 실패:', error);
+    logger.error('카카오톡 공유 실패:', error);
     return false;
   }
 };
@@ -275,7 +277,7 @@ export const sharePost = async (
 export const shareService = async (): Promise<boolean> => {
   const isInitialized = await initializeKakao();
   if (!isInitialized) {
-    console.error('카카오 SDK 초기화 실패');
+    logger.error('카카오 SDK 초기화 실패');
     return false;
   }
 
@@ -306,7 +308,7 @@ export const shareService = async (): Promise<boolean> => {
 
     return true;
   } catch (error) {
-    console.error('카카오톡 공유 실패:', error);
+    logger.error('카카오톡 공유 실패:', error);
     return false;
   }
 };

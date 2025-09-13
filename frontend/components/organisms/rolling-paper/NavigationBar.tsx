@@ -4,7 +4,7 @@ import React from "react";
 import { Button } from "@/components";
 import { MessageSquare, Share2, List, ChevronLeft, ChevronRight } from "lucide-react";
 import { KakaoShareButton } from "@/components";
-import { useRollingPaperShare } from "@/hooks/features";
+import { useRollingPaperShare } from "@/hooks";
 
 interface NavigationBarProps {
   nickname: string;

@@ -7,9 +7,10 @@ import { Alert, AlertDescription } from "@/components";
 import { LoadingSpinner } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
 import { ActivityCard } from "@/components/molecules";
-import { useActivityData } from "@/hooks/features";
+import { useActivityData } from "@/hooks";
 import { userQuery } from "@/lib/api";
 import { AlertTriangle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { logger } from "@/lib/utils";
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_PAGE_SIZE = 10;
@@ -192,7 +193,7 @@ export const UserActivitySection: React.FC<UserActivitySectionProps> = ({ classN
         }
         return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
       } catch (error) {
-        console.error("Failed to fetch user posts:", error);
+        logger.error("Failed to fetch user posts:", error);
         throw error;
       }
     },
@@ -213,7 +214,7 @@ export const UserActivitySection: React.FC<UserActivitySectionProps> = ({ classN
         }
         return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
       } catch (error) {
-        console.error("Failed to fetch user comments:", error);
+        logger.error("Failed to fetch user comments:", error);
         throw error;
       }
     },
@@ -234,7 +235,7 @@ export const UserActivitySection: React.FC<UserActivitySectionProps> = ({ classN
         }
         return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
       } catch (error) {
-        console.error("Failed to fetch liked posts:", error);
+        logger.error("Failed to fetch liked posts:", error);
         throw error;
       }
     },
@@ -255,7 +256,7 @@ export const UserActivitySection: React.FC<UserActivitySectionProps> = ({ classN
         }
         return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
       } catch (error) {
-        console.error("Failed to fetch liked comments:", error);
+        logger.error("Failed to fetch liked comments:", error);
         throw error;
       }
     },

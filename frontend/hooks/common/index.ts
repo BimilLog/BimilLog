@@ -6,6 +6,7 @@ export { useLoadingState } from './useLoadingState';
 export type { LoadingState, UseLoadingStateReturn } from './useLoadingState';
 
 // Core hooks
-export { useAuth } from './useAuth';
+export { useAuth, usePasswordModal, useKakaoCallback, useAuthError, useSignupUuid } from './useAuth';
+export type { PasswordModalMode, PasswordModalState, UsePasswordModalReturn } from './useAuth';
 export { useToast, useToastContext, ToastProvider } from './useToast';
 export { useBrowserGuide } from './useBrowserGuide';

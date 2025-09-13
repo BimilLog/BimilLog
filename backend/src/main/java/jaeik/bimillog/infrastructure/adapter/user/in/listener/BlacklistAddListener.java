@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class BlacklistAddListener {
@@ -41,6 +40,7 @@ public class BlacklistAddListener {
      */
     @Async
     @EventListener({UserBannedEvent.class, AdminWithdrawEvent.class})
+    @Transactional
     public void handleBlacklistEvents(Object event) {
         Long userId;
         String eventType;

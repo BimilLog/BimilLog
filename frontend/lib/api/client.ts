@@ -1,4 +1,5 @@
 import { ApiResponse } from '@/types/common'
+import { logger } from '@/lib/utils'
 
 function getCookie(name: string): string | null {
   if (typeof window === 'undefined') return null
@@ -23,12 +24,12 @@ function logCsrfTokenUpdate(method: string, endpoint: string): void {
   const currentToken = getCookie("XSRF-TOKEN")
   if (!currentToken) return
   
-  console.log(`[${method}] ${endpoint} - Token after request:`, currentToken.substring(0, 8) + '...')
-  
+  logger.log(`[${method}] ${endpoint} - Token after request:`, currentToken.substring(0, 8) + '...')
+
   setTimeout(() => {
     const newToken = getCookie("XSRF-TOKEN")
     if (newToken && newToken !== currentToken) {
-      console.log(`[TOKEN UPDATE] New CSRF token detected:`, newToken.substring(0, 8) + '...')
+      logger.log(`[TOKEN UPDATE] New CSRF token detected:`, newToken.substring(0, 8) + '...')
     }
   }, 100)
 }
@@ -50,9 +51,7 @@ export class ApiClient {
     
     if (csrfToken) {
       defaultHeaders["X-XSRF-TOKEN"] = csrfToken
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[${options.method || 'GET'}] ${endpoint} - Using CSRF token:`, csrfToken.substring(0, 8) + '...')
-      }
+      logger.log(`[${options.method || 'GET'}] ${endpoint} - Using CSRF token:`, csrfToken.substring(0, 8) + '...')
     }
 
     const config: RequestInit = {
@@ -166,28 +165,28 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: "GET" })
   }
 
-  async post<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "POST",
       body: body ? JSON.stringify(body) : undefined,
     })
   }
 
-  async put<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "PUT",
       body: body ? JSON.stringify(body) : undefined,
     })
   }
 
-  async delete<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async delete<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "DELETE",
       body: body ? JSON.stringify(body) : undefined,
     })
   }
 
-  async patch<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async patch<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "PATCH",
       body: body ? JSON.stringify(body) : undefined,
@@ -202,6 +201,6 @@ export const csrfDebugUtils = {
   getCurrentToken: () => getCookie("XSRF-TOKEN"),
   logCurrentToken: () => {
     const token = getCookie("XSRF-TOKEN")
-    console.log("Current CSRF Token:", token ? token.substring(0, 8) + '...' : 'Not found')
+    logger.log("Current CSRF Token:", token ? token.substring(0, 8) + '...' : 'Not found')
   }
 }

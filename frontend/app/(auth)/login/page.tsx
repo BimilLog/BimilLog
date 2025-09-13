@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout } from "@/components/organisms/auth";
 import { AuthLoadingScreen } from "@/components";
-import { useAuthError } from "@/hooks/api";
+import { useAuthError } from "@/hooks";
 import { kakaoAuthManager } from "@/lib/auth/kakao";
 
 export default function LoginPage() {

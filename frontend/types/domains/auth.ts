@@ -16,7 +16,7 @@ export interface AuthResponse {
       refreshToken?: string;
       expiresAt?: string;
     };
-    [key: string]: any;
+    [key: string]: unknown;
   };
   error?: string;
   errorCode?: string;
@@ -67,7 +67,7 @@ export interface AuthSession {
 export interface AuthError {
   code: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp: string;
 }
 

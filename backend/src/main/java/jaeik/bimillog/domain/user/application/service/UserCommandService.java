@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @version 2.0.0
  */
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class UserCommandService implements UserCommandUseCase {
@@ -43,6 +42,7 @@ public class UserCommandService implements UserCommandUseCase {
      * @author Jaeik
      */
     @Override
+    @Transactional
     public void updateUserSettings(Long userId, Setting newSetting) {
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
@@ -69,6 +69,7 @@ public class UserCommandService implements UserCommandUseCase {
      * @author Jaeik
      */
     @Override
+    @Transactional
     public void updateUserName(Long userId, String newUserName) {
         User user = userQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
@@ -95,6 +96,7 @@ public class UserCommandService implements UserCommandUseCase {
      * @author Jaeik
      */
     @Override
+    @Transactional
     public User saveUser(User user) {
         return userCommandPort.save(user);
     }
