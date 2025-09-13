@@ -1,4 +1,54 @@
-export type ErrorType = 
+import type { ApiResponse } from '@/types';
+
+/**
+ * API 헬퍼 유틸리티
+ */
+
+// 전역 이벤트를 사용한 리로그인 알림
+export const triggerReloginRequired = () => {
+  const event = new CustomEvent('needsRelogin', {
+    detail: {
+      title: '다른 기기에서 로그아웃됨',
+      message: '다른 기기에서 로그아웃 하셨습니다. 다시 로그인 해주세요.'
+    }
+  });
+  window.dispatchEvent(event);
+};
+
+// API 응답을 래핑하는 헬퍼 함수
+export const handleApiResponse = <T>(response: ApiResponse<T>): ApiResponse<T> => {
+  // needsRelogin 플래그가 있으면 전역 이벤트 발생
+  if (response.needsRelogin) {
+    triggerReloginRequired();
+  }
+
+  return response;
+};
+
+// API 호출을 래핑하는 헬퍼 함수
+export const apiCall = async <T>(
+  apiFunction: () => Promise<ApiResponse<T>>
+): Promise<ApiResponse<T>> => {
+  try {
+    const response = await apiFunction();
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error('API call failed:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+};
+
+// 사용 예시를 위한 타입 정의
+export type ApiCallFunction<T> = () => Promise<ApiResponse<T>>;
+
+/**
+ * 에러 핸들링 유틸리티
+ */
+
+export type ErrorType =
   | 'NETWORK_ERROR'
   | 'AUTH_ERROR'
   | 'VALIDATION_ERROR'
@@ -32,7 +82,7 @@ export class ErrorHandler {
     // API 응답 에러
     if (error?.error) {
       const errorMessage = error.error.toLowerCase();
-      
+
       if (errorMessage.includes('인증') || errorMessage.includes('로그인')) {
         return {
           type: 'AUTH_ERROR',
@@ -42,7 +92,7 @@ export class ErrorHandler {
           originalError: error
         };
       }
-      
+
       if (errorMessage.includes('권한')) {
         return {
           type: 'PERMISSION_DENIED',
@@ -52,7 +102,7 @@ export class ErrorHandler {
           originalError: error
         };
       }
-      
+
       if (errorMessage.includes('찾을 수 없')) {
         return {
           type: 'NOT_FOUND',
@@ -62,7 +112,7 @@ export class ErrorHandler {
           originalError: error
         };
       }
-      
+
       if (errorMessage.includes('유효하지')) {
         return {
           type: 'VALIDATION_ERROR',
@@ -134,7 +184,7 @@ export class ErrorHandler {
 
   static handleRollingPaperError(error: any): AppError {
     const baseError = this.mapApiError(error);
-    
+
     // 롤링페이퍼 특화 에러 처리
     if (error?.message?.includes('위치')) {
       return {
@@ -145,7 +195,7 @@ export class ErrorHandler {
         originalError: error
       };
     }
-    
+
     return baseError;
   }
 
@@ -156,3 +206,16 @@ export class ErrorHandler {
     };
   }
 }
+
+// handleApiError를 export (기존 코드 호환성)
+export const handleApiError = (error: any): void => {
+  const appError = ErrorHandler.mapApiError(error);
+  console.error(appError.title, appError.message, appError.originalError);
+
+  // Toast 표시 로직 등 추가 가능
+  const { showToast } = require('@/stores/toast.store').useToastStore.getState();
+  showToast({
+    type: 'error',
+    message: appError.userMessage || appError.message
+  });
+};

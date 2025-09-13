@@ -157,4 +157,26 @@ export const validateNickname = (nickname: string): { valid: boolean; message: s
   }
   
   return { valid: true, message: "사용 가능한 닉네임 형식입니다." };
-}; 
+};
+
+/**
+ * 비밀번호 validation (4자리 숫자)
+ * @param password 검증할 비밀번호
+ * @param isAuthenticated 인증 여부 (인증된 경우 비밀번호 불필요)
+ * @returns 유효한 비밀번호 숫자 또는 undefined
+ * @throws 비밀번호가 유효하지 않은 경우 Error
+ */
+export function validatePassword(password: string, isAuthenticated: boolean): number | undefined {
+  if (isAuthenticated) return undefined;
+
+  if (!password.trim()) {
+    throw new Error("비밀번호를 입력해주세요.");
+  }
+
+  const numPassword = Number(password.trim());
+  if (isNaN(numPassword) || numPassword < 1000 || numPassword > 9999) {
+    throw new Error("비밀번호는 4자리 숫자여야 합니다 (1000-9999).");
+  }
+
+  return numPassword;
+}

@@ -76,3 +76,43 @@ export const getNextLevelThreshold = (currentScore: number): number => {
 export const formatNumber = (num: number): string => {
   return num.toLocaleString();
 };
+
+/**
+ * HTML 문자열에서 텍스트만 추출
+ */
+export function stripHtml(html: string): string {
+  // <br> 태그를 줄바꿈으로 변환
+  let result = html.replace(/<br\s*\/?>/gi, '\n');
+  // <p> 태그 끝을 줄바꿈으로 변환
+  result = result.replace(/<\/p>/gi, '\n');
+  // 다른 HTML 태그들 제거
+  result = result.replace(/<[^>]*>?/gm, '');
+  // 연속된 줄바꿈을 정리 (3개 이상을 2개로)
+  result = result.replace(/\n{3,}/g, '\n\n');
+  return result;
+}
+
+/**
+ * 사용자 이름에서 이니셜 추출 (최대 2자)
+ * @param name 사용자 이름
+ * @returns 이니셜 (예: "홍길동" -> "홍길", "John Doe" -> "JD")
+ */
+export function getInitials(name: string): string {
+  if (!name || !name.trim()) return '';
+
+  const trimmedName = name.trim();
+
+  // 한글/한자 이름인 경우 (공백 없이 연속된 문자)
+  if (/^[\u4e00-\u9fff\uac00-\ud7af]+$/.test(trimmedName)) {
+    return trimmedName.slice(0, 2);
+  }
+
+  // 영문 이름인 경우 (공백으로 구분된 단어들)
+  const words = trimmedName.split(/\s+/).filter(word => word.length > 0);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+
+  // 단일 단어인 경우 첫 2글자
+  return trimmedName.slice(0, 2).toUpperCase();
+}

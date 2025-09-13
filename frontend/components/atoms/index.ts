@@ -4,6 +4,7 @@ export { Badge } from './display/badge';
 export { Icon } from './display/icon';
 export { DecoIcon, EmojiStyleDecoIcon } from './display/deco-icon';
 export { StatCard } from './display/stat-card';
+export { default as SafeHTML } from './display/SafeHTML';
 
 // Form components
 export { Input } from './forms/input';
@@ -13,12 +14,9 @@ export { Label } from './forms/label';
 // Feedback components
 export { Spinner, LoadingSpinner } from './feedback/spinner';
 export { ErrorBoundary } from './feedback/error-boundary';
+export { AuthLoadingScreen } from './feedback/AuthLoadingScreen';
 
 // Action components
 export { Button, buttonVariants } from './actions/button';
 export { Switch } from './actions/switch';
 export { KakaoShareButton } from './actions/kakao-share-button';
-
-// Other components
-export { default as SafeHTML } from './SafeHTML';
-export { AuthLoadingScreen } from './AuthLoadingScreen';
