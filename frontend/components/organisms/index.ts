@@ -9,7 +9,5 @@ export * from './auth';
 export * from './board';
 export * from './home';
 export * from './rolling-paper';
-export * from './settings';
 export * from './suggest';
 export * from './user';
-export * from './visit';

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
+import { useAuth } from "@/hooks";
+import { AuthLoadingScreen } from "@/components";
 import { fcmManager } from "@/lib/auth/fcm";
 
 export default function LogoutPage() {

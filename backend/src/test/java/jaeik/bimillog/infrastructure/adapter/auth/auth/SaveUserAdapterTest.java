@@ -52,7 +52,7 @@ class SaveUserAdapterTest {
     @InjectMocks private SaveUserAdapter saveDataAdapter;
 
     @Test
-    @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 이벤트 발행")
+    @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 FCM 토큰 ID 반환")
     void shouldHandleExistingUserLogin_WhenValidUserDataProvided() {
         // Given: 기존 사용자와 토큰 정보
         SocialAuthData.SocialUserProfile userProfile = new SocialAuthData.SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg");
@@ -60,6 +60,7 @@ class SaveUserAdapterTest {
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
 
         String fcmToken = "fcm-token-12345";
+        Long fcmTokenId = 100L;
 
         User existingUser = User.builder()
                 .id(1L)
@@ -80,6 +81,7 @@ class SaveUserAdapterTest {
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
                 .willReturn(existingUser);
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(existingToken);
+        given(notificationFcmUseCase.registerFcmToken(1L, fcmToken)).willReturn(fcmTokenId);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
         // When: 기존 사용자 로그인 처리
@@ -88,7 +90,7 @@ class SaveUserAdapterTest {
         // Then: 사용자 정보 업데이트 검증
         assertThat(existingUser.getSocialNickname()).isEqualTo("업데이트된닉네임");
         assertThat(existingUser.getThumbnailImage()).isEqualTo("https://updated-profile.jpg");
-        
+
         // 토큰이 저장되는지 검증
         ArgumentCaptor<Token> tokenCaptor = ArgumentCaptor.forClass(Token.class);
         verify(globalTokenCommandPort).save(tokenCaptor.capture());
@@ -96,10 +98,16 @@ class SaveUserAdapterTest {
         assertThat(savedToken.getAccessToken()).isEqualTo("access-token");
         assertThat(savedToken.getRefreshToken()).isEqualTo("refresh-token");
         assertThat(savedToken.getUsers()).isEqualTo(existingUser);
-        
-        // FCM 토큰 직접 등록 검증
+
+        // FCM 토큰 등록 및 ID 반환 검증
         verify(notificationFcmUseCase).registerFcmToken(1L, fcmToken);
-        
+
+        // UserDetail에 FCM 토큰 ID 포함 검증
+        ArgumentCaptor<UserDetail> userDetailCaptor = ArgumentCaptor.forClass(UserDetail.class);
+        verify(authCookieManager).generateJwtCookie(userDetailCaptor.capture());
+        UserDetail capturedUserDetail = userDetailCaptor.getValue();
+        assertThat(capturedUserDetail.getFcmTokenId()).isEqualTo(fcmTokenId);
+
         // 쿠키 생성 결과 검증
         assertThat(result).isEqualTo(expectedCookies);
     }
@@ -161,13 +169,14 @@ class SaveUserAdapterTest {
     }
 
     @Test
-    @DisplayName("신규 사용자 저장 - 정상적인 저장 및 이벤트 발행")
+    @DisplayName("신규 사용자 저장 - 정상적인 저장 및 FCM 토큰 ID 반환")
     void shouldSaveNewUser_WhenValidDataProvided() {
         // Given: 신규 사용자 저장 정보
         String userName = "newUser";
         String uuid = "temp-uuid-12345";
         String fcmToken = "new-fcm-token";
-        
+        Long fcmTokenId = 200L;
+
         SocialAuthData.SocialUserProfile userProfile = new SocialAuthData.SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg");
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
@@ -190,6 +199,7 @@ class SaveUserAdapterTest {
 
         given(userCommandUseCase.saveUser(any(User.class))).willReturn(newUser);
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
+        given(notificationFcmUseCase.registerFcmToken(2L, fcmToken)).willReturn(fcmTokenId);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
         // When: 신규 사용자 저장
@@ -204,12 +214,18 @@ class SaveUserAdapterTest {
         assertThat(capturedUser.getProvider()).isEqualTo(SocialProvider.KAKAO);
         assertThat(capturedUser.getSocialId()).isEqualTo("987654321");
 
-        // FCM 토큰 직접 등록 검증
+        // FCM 토큰 등록 및 ID 반환 검증
         verify(notificationFcmUseCase).registerFcmToken(2L, fcmToken);
+
+        // UserDetail에 FCM 토큰 ID 포함 검증
+        ArgumentCaptor<UserDetail> userDetailCaptor = ArgumentCaptor.forClass(UserDetail.class);
+        verify(authCookieManager).generateJwtCookie(userDetailCaptor.capture());
+        UserDetail capturedUserDetail = userDetailCaptor.getValue();
+        assertThat(capturedUserDetail.getFcmTokenId()).isEqualTo(fcmTokenId);
 
         // 임시 데이터 삭제 검증
         verify(redisUserDataPort).removeTempData(uuid);
-        
+
         // 토큰 저장 및 쿠키 결과 검증
         verify(globalTokenCommandPort).save(any(Token.class));
         assertThat(result).isEqualTo(expectedCookies);

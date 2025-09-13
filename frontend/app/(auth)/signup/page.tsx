@@ -4,13 +4,12 @@ import { useEffect } from "react";
 import { Button } from "@/components";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useToast } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSignupUuid } from "@/hooks/api";
 import { AuthLayout } from "@/components/organisms/auth";
-import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
+import { AuthLoadingScreen } from "@/components";
 import { NicknameSetupForm } from "@/components/organisms/auth";
-import { useToast } from "@/hooks/useToast";
 
 export default function SignUpPage() {
   const { login, isAuthenticated, isLoading } = useAuth();

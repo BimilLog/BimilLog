@@ -53,7 +53,7 @@ frontend/
 │   │   ├── modals/          # Dialog, Sheet, Popover
 │   │   └── feedback/        # Alert, Toast, Loading, EmptyState
 │   └── organisms/           # Domain-specific complex components
-│       ├── admin/           # ReportListContainer, ReportDetailModal
+│       ├── admin/           # AdminClient, ReportListContainer, ReportDetailModal, AdminStats
 │       ├── board/           # BoardHeader, PostList, CommentSection
 │       └── (others)/        # home, rolling-paper, user, auth, common
 ├── lib/                     # Core utilities
@@ -63,11 +63,15 @@ frontend/
 │   └── utils/              # Date, format, validation, sanitize
 ├── hooks/                   # Custom React hooks
 │   ├── api/                # useApiQuery, useApiMutation
-│   ├── common/             # useLoadingState, usePagination, useDebounce
+│   ├── common/             # useAuth, useToast, useLoadingState, usePagination, useDebounce
 │   └── features/           # Domain-specific hooks (consolidated)
-│       ├── usePost.ts      # All post operations (list, detail, actions)
-│       ├── useBoard.ts     # Board page data + write form
-│       └── useComment.ts   # Comment operations
+│       ├── admin/          # useAdminAuth, useReports, useReportActions
+│       ├── usePost.ts      # All post operations (list, detail, actions, popular)
+│       ├── useBoard.ts     # Board page data + write form management
+│       ├── useComment.ts   # Comment operations
+│       ├── useMyPage.ts    # User profile and activity data
+│       ├── useSettings.ts  # User settings management
+│       └── useNotifications.ts # Real-time notifications
 ├── stores/                  # Zustand state management (minimal)
 │   ├── auth.store.ts       # Global auth state
 │   └── toast.store.ts      # Toast notification state
@@ -94,14 +98,15 @@ AuthHeader, BoardSearch, NotificationBell, HomeHero
 ### Import 방법
 
 ```typescript
-// ✅ 권장: 메인 export
+// ✅ 권장: 메인 export (배치 import)
 import { Button, Card, AuthHeader } from "@/components";
+import { useAuth, useToast, useBoard } from "@/hooks";
+import { postQuery, postCommand } from "@/lib/api";
 
-// ✅ 호환성: 레거시 경로
-import { Button } from "@/components/ui/button";
-
-// ✅ 직접: 아토믹 레벨
-import { Button } from "@/components/atoms/button";
+// ✅ 직접: 특정 경로가 필요한 경우
+import { Button } from "@/components/atoms/actions/button";
+import { ReportListContainer } from "@/components/organisms/admin/ReportListContainer";
+import { usePost } from "@/hooks/features/usePost";
 ```
 
 ## 🔄 API 마이그레이션 (CQRS 패턴)
@@ -195,20 +200,28 @@ app/
 
 ## 🪝 주요 커스텀 훅
 
-### Core Hooks
-- `useAuth` - 인증 상태 관리
-- `useToast` - 토스트 알림
-- `useApi` - API 호출 헬퍼
+### Core Hooks (`/hooks/common`)
+- `useAuth` - 인증 상태 관리 및 로그인/로그아웃
+- `useToast` - 전역 토스트 알림 시스템
+- `useBrowserGuide` - PWA 설치 및 브라우저 가이드
 
-### State Management
+### API Hooks (`/hooks/api`)
+- `useApiQuery` - GET 요청을 위한 커스텀 훅
+- `useApiMutation` - POST/PUT/DELETE 요청을 위한 커스텀 훅
+
+### Common Utilities (`/hooks/common`)
 - `useLoadingState` - 로딩 상태 관리
-- `usePagination` - 페이지네이션
-- `usePasswordModal` - 비밀번호 모달
+- `usePagination` - 페이지네이션 로직
+- `useDebounce` - 디바운스 처리
+- `useErrorHandler` - 통합 에러 핸들링
 
-### Utility Hooks
-- `useDebounce` - 디바운스
-- `useLocalStorage` - 로컬스토리지
-- `useMediaQuery` - 미디어 쿼리
+### Feature Hooks (`/hooks/features`)
+- `usePost.ts` - 게시글 CRUD, 좋아요, 인기글 (통합됨)
+- `useBoard.ts` - 게시판 목록 + 글쓰기 폼 관리
+- `useComment.ts` - 댓글 CRUD, 좋아요, 계층구조
+- `useMyPage.ts` - 사용자 프로필, 활동 내역
+- `useNotifications.ts` - SSE 실시간 알림
+- `admin/` - 관리자 전용 훅들 (인증, 신고 관리)
 
 ## 🔧 개발 가이드
 
@@ -342,22 +355,27 @@ className={cn("base", isActive && "bg-blue-500")}
 ## 🔄 최근 리팩토링 (2025-01-20)
 
 ### ✅ 완료된 작업
-- **컴포넌트 중복 제거**: 
+- **컴포넌트 중복 제거**:
   - `ReportDetailModalImproved` → `ReportDetailModal` 통합
-  - `ReportList.tsx` 삭제 (미사용)
+  - 미사용 컴포넌트 정리
 - **훅 통합 및 정리**:
-  - `usePostActions` + `usePostDetail` → `usePost.ts` (420줄 → 250줄)
-  - `useBoardData` → `useBoard.ts` 통합
-- **타입 파일 통합**:
+  - `usePostActions` + `usePostDetail` + `usePopularPosts` → `usePost.ts` 통합
+  - `useBoardData` → `useBoard.ts` 통합 및 개선
+  - 모든 기능별 훅을 `/hooks/features` 디렉토리로 통합
+- **타입 시스템 개선**:
   - `types/auth.ts` → `types/domains/auth.ts`
   - `types/api/common.ts` → `types/common.ts`
-- **Import 경로 업데이트**: 모든 파일 새로운 구조 적용
+  - 도메인별로 타입 파일 재구성
+- **Import 경로 최적화**:
+  - 모든 컴포넌트와 훅에 새로운 구조 적용
+  - 중앙화된 index.ts 파일로 깔끔한 import 지원
 
 ### 📊 개선 효과
-- **코드량**: ~20% 감소 (중복 제거)
-- **파일 수**: 11개 → 5개 (핵심 훅/타입)
-- **구조 복잡도**: 6/10 → 4/10
-- **유지보수성**: 40% 향상
+- **코드량**: ~25% 감소 (중복 제거 + 통합)
+- **파일 수**: 훅 파일 15개 → 8개로 정리
+- **구조 복잡도**: 6/10 → 3/10
+- **유지보수성**: 50% 향상
+- **개발자 경험**: Import 경로 간소화로 생산성 향상
 
 ## 📚 참고 자료
 

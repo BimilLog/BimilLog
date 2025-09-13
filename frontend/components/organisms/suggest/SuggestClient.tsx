@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Label } from "@/components";
 import { Textarea } from "@/components";
 import { Lightbulb, Send, Bug, FileText } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { userCommand } from "@/lib/api";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 import { ToastContainer } from "@/components/molecules/feedback/toast";
 
 type SuggestionType = "ERROR" | "IMPROVEMENT";

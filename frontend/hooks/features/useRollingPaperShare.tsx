@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 import { copyRollingPaperLink } from "@/lib/utils/clipboard";
 
 interface UseRollingPaperShareProps {
@@ -21,7 +21,7 @@ export function useRollingPaperShare({
     if (!nickname) return;
 
     const { shareRollingPaper, fallbackShare } = await import(
-      "@/lib/kakao-share"
+      "@/lib/auth/kakao"
     );
 
     try {

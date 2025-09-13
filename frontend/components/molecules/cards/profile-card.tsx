@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { User, userQuery, userCommand } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 import { ToastContainer } from "@/components";
 
 interface ProfileCardProps {

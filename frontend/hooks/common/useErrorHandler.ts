@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useToast } from '@/hooks';
-import { ErrorHandler, type AppError, type ErrorType } from '@/lib/error-handler';
+import { ErrorHandler, type AppError, type ErrorType } from '@/lib/api/helpers';
 
 interface UseErrorHandlerOptions {
   showToast?: boolean;

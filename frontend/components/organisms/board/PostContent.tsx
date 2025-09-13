@@ -3,9 +3,9 @@
 import { Button, CardContent, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, Flag } from "lucide-react";
 import { Post, userCommand } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { useState } from "react";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 
 interface PostContentProps {
   post: Post;

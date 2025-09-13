@@ -18,7 +18,7 @@ import {
   Sparkles,
   Shield,
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 
 interface MobileNavProps {

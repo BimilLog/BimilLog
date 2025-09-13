@@ -13,7 +13,7 @@ import { Spinner } from "@/components";
 import { EmptyState } from "@/components";
 import { Alert } from "@/components";
 import { userQuery, KakaoFriendList } from "@/lib/api";
-import { logoutAndRedirectToConsent } from "@/lib/kakao-auth";
+import { logoutAndRedirectToConsent } from "@/lib/auth/kakao";
 import { Users, MessageCircle, X, RefreshCw, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 

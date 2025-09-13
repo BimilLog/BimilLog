@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { Button } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 import { Settings } from "lucide-react";

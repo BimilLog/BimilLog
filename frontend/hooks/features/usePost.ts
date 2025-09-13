@@ -9,7 +9,8 @@ import { usePagination } from '@/hooks/common/usePagination';
 import { useDebounce } from '@/hooks/common/useDebounce';
 import { useAuth } from '@/hooks';
 import { toast } from "sonner";
-import type { Post, SimplePost, Comment } from '@/types/domains/post';
+import type { Post, SimplePost } from '@/types/domains/post';
+import type { Comment } from '@/types/domains/comment';
 
 interface CommentWithReplies extends Comment {
   replies?: CommentWithReplies[];

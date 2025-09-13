@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useToast } from "@/hooks";
 import { postQuery, postCommand, type Post } from "@/lib/api";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@/components";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
 import { Editor } from "@/components";
-import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/feedback/toast";
 import { stripHtml, validatePassword } from "@/lib/utils";
 import { AuthHeader } from "@/components/organisms/common";

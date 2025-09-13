@@ -2,7 +2,6 @@
 export * from './usePost';
 export * from './useComment';
 export * from './useBoard';
-export * from './usePopularPosts';
 
 // Rolling Paper hooks
 export * from './useRollingPaper';

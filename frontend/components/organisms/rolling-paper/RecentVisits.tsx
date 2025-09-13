@@ -10,8 +10,8 @@ import {
   getRecentVisits,
   removeRecentVisit,
   clearRecentVisits,
-  getRelativeTimeString,
-} from "@/lib/utils/cookies";
+} from "@/lib/utils/storage";
+import { formatRelativeDate } from "@/lib/utils/date";
 
 interface RecentVisit {
   nickname: string;
@@ -80,7 +80,7 @@ export const RecentVisits: React.FC = () => {
                     {visit.displayName}님의 롤링페이퍼
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {getRelativeTimeString(visit.visitedAt)}
+                    {formatRelativeDate(visit.visitedAt)}
                   </p>
                 </div>
               </Link>

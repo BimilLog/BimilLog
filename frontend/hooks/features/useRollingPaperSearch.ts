@@ -2,9 +2,9 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { paperQuery } from "@/lib/api";
-import { ErrorHandler } from "@/lib/error-handler";
+import { ErrorHandler } from "@/lib/api/helpers";
 
 interface UseRollingPaperSearchReturn {
   searchNickname: string;

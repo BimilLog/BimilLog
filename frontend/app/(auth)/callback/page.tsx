@@ -1,9 +1,9 @@
 "use client";
 
 import { useKakaoCallback } from "@/hooks/api";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 import { ToastContainer } from "@/components/molecules/feedback/toast";
-import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
+import { AuthLoadingScreen } from "@/components";
 import { isMobileOrTablet } from "@/lib/utils";
 
 export default function AuthCallbackPage() {

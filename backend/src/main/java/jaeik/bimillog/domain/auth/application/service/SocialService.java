@@ -20,9 +20,10 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * <h2>소셜 로그인 서비스</h2>
@@ -43,9 +44,6 @@ public class SocialService implements SocialUseCase {
     private final RedisUserDataPort redisUserDataPort;
     private final UserBanPort userBanPort;
 
-    // TODO 여기에 트랜잭셔널이 있는것에 대해 검토해야 함. 네트워크 작업을 중간에 두고 트랜잭션이 일어나고있음 트랜잭션은 되도록 어댑터에 배치
-    //  트랜잭션은 DB작업을 대상으로 하는것 이 메서드는 많은 private메서드를 하위로 두고 있음 그리고 중간에 네트워크 작업도 일어남
-    //  그리고 하위 어댑터들에는 트랜잭션이 달려있음 그래서 이 메서드에 트랜잭셔널이 있는게 타당한지 검토 필요
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
      * <p>외부 소셜 플랫폼을 통한 사용자 인증 및 로그인을 처리합니다.</p>
@@ -62,7 +60,6 @@ public class SocialService implements SocialUseCase {
      * @since 2.0.0
      */
     @Override
-    @Transactional
     public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 

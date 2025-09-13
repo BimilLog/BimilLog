@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -62,16 +63,21 @@ class NotificationFcmServiceTest {
         // Given
         Long userId = 1L;
         String fcmToken = "valid-fcm-token";
-        
+        Long expectedTokenId = 100L;
+        FcmToken savedToken = mock(FcmToken.class);
+
         given(globalUserQueryPort.findById(userId)).willReturn(Optional.of(user));
+        given(savedToken.getId()).willReturn(expectedTokenId);
+        given(fcmPort.save(any(FcmToken.class))).willReturn(savedToken);
 
         // When
-        notificationFcmService.registerFcmToken(userId, fcmToken);
+        Long actualTokenId = notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
         verify(globalUserQueryPort, times(1)).findById(userId);
         verify(fcmPort, times(1)).save(any(FcmToken.class));
         verifyNoMoreInteractions(globalUserQueryPort, fcmPort);
+        assertThat(actualTokenId).isEqualTo(expectedTokenId);
     }
 
     @Test
@@ -100,11 +106,12 @@ class NotificationFcmServiceTest {
         String fcmToken = null;
 
         // When
-        notificationFcmService.registerFcmToken(userId, fcmToken);
+        Long result = notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
         verify(globalUserQueryPort, never()).findById(anyLong());
         verify(fcmPort, never()).save(any());
+        assertThat(result).isNull();
     }
 
     @Test
@@ -115,11 +122,12 @@ class NotificationFcmServiceTest {
         String fcmToken = "";
 
         // When
-        notificationFcmService.registerFcmToken(userId, fcmToken);
+        Long result = notificationFcmService.registerFcmToken(userId, fcmToken);
 
         // Then
         verify(globalUserQueryPort, never()).findById(anyLong());
         verify(fcmPort, never()).save(any());
+        assertThat(result).isNull();
     }
 
     @Test

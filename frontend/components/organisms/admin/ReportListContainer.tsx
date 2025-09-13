@@ -7,7 +7,7 @@ import { ReportFilters } from "./ReportFilters";
 import { ReportCard } from "./ReportCard";
 import { MobileReportCard } from "./MobileReportCard";
 import { LoadingState } from "./LoadingState";
-import { ReportDetailModalImproved as ReportDetailModal } from "./ReportDetailModal";
+import { ReportDetailModal } from "./ReportDetailModal";
 import type { Report } from "@/types/domains/admin";
 
 interface ReportListContainerProps {

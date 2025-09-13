@@ -13,7 +13,7 @@ import {
 import { HomeFooter } from "@/components/organisms/home";
 
 // 분리된 훅들 import
-import { useBoardData, usePopularPosts } from "@/hooks/features";
+import { usePostList, usePopularPostsTabs } from "@/hooks/features";
 
 // 분리된 컴포넌트들 import
 import { BoardHeader } from "@/components/organisms/board/BoardHeader";
@@ -21,38 +21,55 @@ import { BoardTabs } from "@/components/organisms/board/BoardTabs";
 
 function BoardClient() {
   const [activeTab, setActiveTab] = useState("all");
+  const [postsPerPage, setPostsPerPage] = useState("30");
 
   // 게시판 데이터 관리
   const {
+    posts,
+    isLoading,
+    refetch: fetchPostsAndSearch,
+    pagination,
     searchTerm,
     setSearchTerm,
     searchType,
     setSearchType,
-    postsPerPage,
-    setPostsPerPage,
-    handleSearch,
-    posts,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    fetchPostsAndSearch,
-  } = useBoardData();
+    search: handleSearch,
+  } = usePostList(Number(postsPerPage));
 
   // 인기글 데이터 관리
-  const { realtimePosts, weeklyPosts, legendPosts } =
-    usePopularPosts(activeTab);
+  const {
+    posts: popularPostsData,
+    activeTab: popularTab,
+    setActiveTab: setPopularTab,
+  } = usePopularPostsTabs();
+
+  // 탭별 데이터 분리
+  const realtimePosts = popularTab === 'realtime' ? popularPostsData : [];
+  const weeklyPosts = popularTab === 'weekly' ? popularPostsData : [];
+  const legendPosts = popularTab === 'legend' ? popularPostsData : [];
 
   // 탭 변경 핸들러 메모이제이션
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
-  }, []);
+    if (tab === 'realtime' || tab === 'popular') {
+      setPopularTab(tab === 'popular' ? 'weekly' : 'realtime');
+    } else if (tab === 'legend') {
+      setPopularTab('legend');
+    }
+  }, [setPopularTab]);
 
   // 탭 변경 시 메인 데이터 조회
   useEffect(() => {
     if (activeTab === "all") {
-      fetchPostsAndSearch(currentPage);
+      fetchPostsAndSearch();
     }
-  }, [currentPage, activeTab, fetchPostsAndSearch]);
+  }, [pagination.currentPage, activeTab, fetchPostsAndSearch]);
+
+  // postsPerPage 변경 시 처리
+  useEffect(() => {
+    pagination.setPageSize(Number(postsPerPage));
+    pagination.setCurrentPage(0);
+  }, [postsPerPage]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
@@ -98,9 +115,9 @@ function BoardClient() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           posts={posts}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.setCurrentPage}
           realtimePosts={realtimePosts}
           weeklyPosts={weeklyPosts}
           legendPosts={legendPosts}

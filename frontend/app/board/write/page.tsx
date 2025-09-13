@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { Save } from "lucide-react";
 import { AuthHeader } from "@/components/organisms/common";
 import dynamic from "next/dynamic";

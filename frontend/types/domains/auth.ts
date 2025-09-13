@@ -86,7 +86,7 @@ export interface AuthLoadingProps {
 }
 
 // Legacy User type (for compatibility)
-export interface User {
+export interface LegacyUser {
   id: number;
   userName: string;
   email: string;

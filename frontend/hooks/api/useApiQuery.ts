@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ApiResponse } from '@/types/common';
-import { ErrorHandler } from '@/lib/error-handler';
+import { ErrorHandler } from '@/lib/api/helpers';
 import { useToast } from '@/hooks';
 
 interface UseApiQueryOptions<T> {

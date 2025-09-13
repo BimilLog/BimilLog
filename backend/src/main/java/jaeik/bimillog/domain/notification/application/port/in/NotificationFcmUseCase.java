@@ -25,10 +25,11 @@ public interface NotificationFcmUseCase {
      *
      * @param userId   사용자 ID
      * @param fcmToken FCM 토큰 문자열 (Firebase SDK에서 생성)
+     * @return 저장된 FCM 토큰 엔티티의 ID (토큰이 없거나 빈 값인 경우 null)
      * @author Jaeik
      * @since 2.0.0
      */
-    void registerFcmToken(Long userId, String fcmToken);
+    Long registerFcmToken(Long userId, String fcmToken);
 
     /**
      * <h3>FCM 토큰 삭제</h3>

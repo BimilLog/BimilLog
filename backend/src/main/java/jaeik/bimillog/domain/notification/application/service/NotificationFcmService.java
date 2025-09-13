@@ -41,22 +41,25 @@ public class NotificationFcmService implements NotificationFcmUseCase {
      *
      * @param userId   사용자 ID
      * @param fcmToken FCM 토큰 문자열 (Firebase SDK에서 생성)
+     * @return 저장된 FCM 토큰 엔티티의 ID (토큰이 없거나 빈 값인 경우 null)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void registerFcmToken(Long userId, String fcmToken) {
+    public Long registerFcmToken(Long userId, String fcmToken) {
         log.info("FCM 토큰 등록 처리 시작: 사용자 ID={}", userId);
 
         if (fcmToken == null || fcmToken.isEmpty()) {
             log.warn("FCM 토큰이 비어있습니다. 사용자 ID={}", userId);
-            return;
+            return null;
         }
 
         User user = globalUserQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
-        fcmPort.save(FcmToken.create(user, fcmToken));
+        FcmToken savedToken = fcmPort.save(FcmToken.create(user, fcmToken));
+        log.info("FCM 토큰 등록 완료: 사용자 ID={}, 토큰 ID={}", userId, savedToken.getId());
+        return savedToken.getId();
     }
 
     /**

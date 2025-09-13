@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { ToastContainer } from "@/components";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 
 interface AuthLayoutProps {
   children: React.ReactNode;

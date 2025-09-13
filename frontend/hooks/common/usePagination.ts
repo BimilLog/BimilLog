@@ -16,6 +16,7 @@ interface UsePaginationResult {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   goToPage: (page: number) => void;
+  setCurrentPage: (page: number) => void;
   nextPage: () => void;
   previousPage: () => void;
   firstPage: () => void;
@@ -114,6 +115,7 @@ export function usePagination(options: UsePaginationOptions = {}): UsePagination
     hasNextPage,
     hasPreviousPage,
     goToPage,
+    setCurrentPage: goToPage, // Alias for backward compatibility
     nextPage,
     previousPage,
     firstPage,

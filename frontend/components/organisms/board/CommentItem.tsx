@@ -3,7 +3,7 @@
 import { Button, Input, Textarea, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, Reply, Flag, MoreHorizontal, User } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
 } from "@/components/molecules/dropdown-menu";
 import { useState } from "react";
 import Link from "next/link";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };

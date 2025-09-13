@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
-import { useBrowserGuide } from "@/hooks/useBrowserGuide";
+import { useBrowserGuide } from "@/hooks";
 import { useState, useEffect } from "react";
 
 export default function InstallPage() {

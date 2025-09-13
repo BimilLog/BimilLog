@@ -23,7 +23,7 @@ import { PasswordModal } from "./PasswordModal";
 
 // 분리된 훅들 import
 import { usePostDetail, usePostActions, useCommentActions } from "@/hooks/features";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 
 interface Props {
   initialPost: Post;

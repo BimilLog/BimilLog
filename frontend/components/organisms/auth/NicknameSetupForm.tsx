@@ -6,12 +6,12 @@ import { Input } from "@/components";
 import { Label } from "@/components";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components";
 import { Check, AlertCircle } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { useNotifications } from "@/hooks/features";
 import { useRouter } from "next/navigation";
 import { userQuery } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 
 interface NicknameSetupFormProps {
   tempUuid: string;

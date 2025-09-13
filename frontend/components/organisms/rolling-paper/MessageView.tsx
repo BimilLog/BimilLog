@@ -4,7 +4,7 @@ import { Lock } from "lucide-react";
 import { getDecoInfo, paperCommand } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
-import { ErrorHandler } from "@/lib/error-handler";
+import { ErrorHandler } from "@/lib/api/helpers";
 
 interface MessageViewProps {
   message: RollingPaperMessage | VisitMessage;

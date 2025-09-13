@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { userQuery, userCommand, authQuery, authCommand, type Setting } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 
 export function useSettings() {
   const [settings, setSettings] = useState<Setting | null>(null);

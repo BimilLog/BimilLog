@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthHeader } from "@/components/organisms/common";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { KakaoFriendsModal } from "@/components";
 import {
   ResponsiveAdFitBanner,

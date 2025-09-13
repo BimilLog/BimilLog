@@ -102,6 +102,13 @@ export function addDays(date: Date, days: number): Date {
 }
 
 /**
+ * 기본 날짜 포맷 (YYYY.MM.DD) - formatKoreanDate의 별칭
+ */
+export function formatDate(dateString: string): string {
+  return formatKoreanDate(dateString);
+}
+
+/**
  * 현재 시각을 ISO string으로 반환
  */
 export function getNowISOString(): string {

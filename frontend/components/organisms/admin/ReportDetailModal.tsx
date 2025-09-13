@@ -32,19 +32,19 @@ import {
 import { useReportActions } from "@/hooks/features/admin";
 import type { Report } from "@/types/domains/admin";
 
-interface ReportDetailModalImprovedProps {
+interface ReportDetailModalProps {
   report: Report;
   isOpen: boolean;
   onClose: () => void;
   onAction: () => void;
 }
 
-export function ReportDetailModalImproved({ 
-  report, 
-  isOpen, 
-  onClose, 
-  onAction 
-}: ReportDetailModalImprovedProps) {
+export function ReportDetailModal({
+  report,
+  isOpen,
+  onClose,
+  onAction
+}: ReportDetailModalProps) {
   const [activeTab, setActiveTab] = useState("details");
   const { banUser, forceWithdrawUser, isProcessing } = useReportActions();
 

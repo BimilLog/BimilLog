@@ -63,11 +63,11 @@ public class SaveUserAdapter implements SaveUserPort {
                 .users(user)
                 .build();
 
-        registerFcmTokenIfPresent(user.getId(), fcmToken);
+        Long fcmTokenId = registerFcmTokenIfPresent(user.getId(), fcmToken);
 
         return authCookieManager.generateJwtCookie(UserDetail.of(user,
                 globalTokenCommandPort.save(newToken).getId(),
-                null));
+                fcmTokenId));
     }
 
     /**
@@ -88,15 +88,15 @@ public class SaveUserAdapter implements SaveUserPort {
     @Transactional
     public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
         Setting setting = Setting.createSetting();
-        
+
         User user = userCommandUseCase.saveUser(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
 
-        registerFcmTokenIfPresent(user.getId(), fcmToken);
+        Long fcmTokenId = registerFcmTokenIfPresent(user.getId(), fcmToken);
 
         redisUserDataPort.removeTempData(uuid);
         return authCookieManager.generateJwtCookie(UserDetail.of(user,
                 globalTokenCommandPort.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
-                null));
+                fcmTokenId));
     }
 
     /**
@@ -106,12 +106,14 @@ public class SaveUserAdapter implements SaveUserPort {
      *
      * @param userId 사용자 ID
      * @param fcmToken FCM 토큰 (빈 문자열이나 null인 경우 무시)
+     * @return 저장된 FCM 토큰 ID (토큰이 없거나 빈 값인 경우 null)
      * @author Jaeik
      * @since 2.0.0
      */
-    private void registerFcmTokenIfPresent(Long userId, String fcmToken) {
+    private Long registerFcmTokenIfPresent(Long userId, String fcmToken) {
         if (fcmToken != null && !fcmToken.isEmpty()) {
-            notificationFcmUseCase.registerFcmToken(userId, fcmToken);
+            return notificationFcmUseCase.registerFcmToken(userId, fcmToken);
         }
+        return null;
     }
 }

@@ -24,7 +24,7 @@ import {
 } from "@/components";
 import { useNotifications } from "@/hooks/features";
 import { isMobileOrTablet } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { formatKoreanDate } from "@/lib/utils/date";
 
 export function NotificationBell() {

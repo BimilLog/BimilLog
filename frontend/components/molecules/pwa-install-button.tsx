@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components";
-import { useBrowserGuide } from "@/hooks/useBrowserGuide";
+import { useBrowserGuide } from "@/hooks";
 import { useState } from "react";
 import { BrowserGuideModal } from "@/components";
 

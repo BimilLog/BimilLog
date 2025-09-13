@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type SimplePost } from "@/lib/api";
-import { formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils/date";
 import { ThumbsUp, MessageCircle, User } from "lucide-react";
 
 interface PopularPostListProps {

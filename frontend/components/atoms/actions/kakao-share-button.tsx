@@ -8,7 +8,7 @@ import {
   sharePost,
   shareService,
   fallbackShare,
-} from "@/lib/kakao-share";
+} from "@/lib/auth/kakao";
 
 interface KakaoShareButtonProps {
   type: "service" | "rollingPaper" | "post";

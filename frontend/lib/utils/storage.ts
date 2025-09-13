@@ -265,11 +265,11 @@ export const sessionStorage = {
 export const storage = {
   local: localStorage,
   session: sessionStorage,
-  
+
   // 모든 스토리지 정리 (개발용)
   clearAll(): void {
     if (typeof window === 'undefined') return;
-    
+
     try {
       window.localStorage.clear();
       window.sessionStorage.clear();
@@ -278,6 +278,11 @@ export const storage = {
     }
   }
 };
+
+// 직접 export - RecentVisits 컴포넌트용
+export const getRecentVisits = () => localStorage.getRecentVisits();
+export const removeRecentVisit = (nickname: string) => localStorage.removeRecentVisit(nickname);
+export const clearRecentVisits = () => localStorage.clearRecentVisits();
 
 // 기본 내보내기
 export default storage;

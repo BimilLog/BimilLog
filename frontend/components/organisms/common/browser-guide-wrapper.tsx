@@ -1,7 +1,7 @@
 "use client";
 
 import { BrowserGuideModal } from "@/components";
-import { useBrowserGuide } from "@/hooks/useBrowserGuide";
+import { useBrowserGuide } from "@/hooks";
 
 interface BrowserGuideWrapperProps {
   children: React.ReactNode;

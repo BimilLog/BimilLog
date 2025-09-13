@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { LoadingSpinner } from "@/components/atoms";

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { notificationQuery, notificationCommand, sseManager, type Notification } from "@/lib/api"
-import { useAuth } from "../useAuth"
+import { useAuth } from "@/hooks"
 
 export function useNotifications() {
   const { isAuthenticated, user } = useAuth()

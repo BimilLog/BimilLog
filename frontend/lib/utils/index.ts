@@ -36,8 +36,7 @@ export * from './clipboard'
 // Storage utilities
 export * from './storage'
 
-// Cookie utilities
-export * from './cookies'
+// Removed cookies export - deprecated file deleted
 
 // Sanitize utilities
 export * from './sanitize'

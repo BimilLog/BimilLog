@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { adminCommand, type Report } from "@/lib/api";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 
 export function useReportActions(onSuccess?: () => void) {
   const [isProcessing, setIsProcessing] = useState(false);

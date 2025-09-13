@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, Button, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, MessageSquare, Flag, MoreHorizontal } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/molecules/dropdown-menu";
 import { useState } from "react";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 
 interface PopularCommentsProps {
   comments?: Comment[];

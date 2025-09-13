@@ -45,9 +45,9 @@ export const LazyAdminStats = dynamic(
   }
 );
 
-export const LazyReportList = dynamic(
-  () => import('@/components/organisms/admin/ReportList').then(mod => ({ default: mod.ReportList })),
-  { 
+export const LazyReportListContainer = dynamic(
+  () => import('@/components/organisms/admin/ReportListContainer').then(mod => ({ default: mod.ReportListContainer })),
+  {
     loading: () => <div className="space-y-4 animate-pulse">
       <div className="h-20 bg-gray-200 rounded-lg" />
       <div className="h-20 bg-gray-200 rounded-lg" />

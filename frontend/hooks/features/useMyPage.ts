@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { useUserStats } from "./useUserStats";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks";
 
 export function useMyPage() {
   const { user, isLoading, updateUserName, refreshUser, logout } = useAuth();
