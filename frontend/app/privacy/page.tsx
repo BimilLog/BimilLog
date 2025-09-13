@@ -1,5 +1,5 @@
 import { AuthHeader } from "@/components/layouts";
-import { HomeFooter } from "@/components/organisms/home/HomeFooter";
+import { HomeFooter } from "@/components/organisms/home";
 
 export default function PrivacyPage() {
   return (

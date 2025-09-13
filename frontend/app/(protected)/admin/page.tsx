@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { AuthHeader, HomeFooter } from "@/components";
-import { AdminHeader } from "@/components/features/admin";
-import { AdminClient } from "./components/AdminClient";
-import { LoadingState } from "@/components/features/admin";
+import { AdminHeader, AdminClient, LoadingState } from "@/components/organisms/admin";
 
 export default function AdminPage() {
   return (

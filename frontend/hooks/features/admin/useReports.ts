@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { adminQuery, type Report, type PageResponse } from "@/lib/api";
 import { useDebounce } from "@/hooks/common/useDebounce";

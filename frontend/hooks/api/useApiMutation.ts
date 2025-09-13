@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from 'react';
 import type { ApiResponse } from '@/types/api/common';
 import { ErrorHandler } from '@/lib/error-handler';
@@ -69,7 +71,9 @@ export function useApiMutation<T = any, V = any>(
           showSuccess('성공', successMessage);
         }
         
-        onSuccess?.(response.data);
+        if (response.data) {
+          onSuccess?.(response.data as T);
+        }
         return response.data;
       } else if (response.needsRelogin) {
         // 리로그인 필요 시 전역 이벤트는 apiClient에서 처리됨

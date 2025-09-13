@@ -268,7 +268,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
         try {
             TemporaryUserDataDTO dto = convertToDTO(uuid, data);
-            return Optional.of(SocialAuthData.TempUserData.of(dto.toDomainProfile(), dto.getToken(), dto.getFcmToken()));
+            return Optional.of(new SocialAuthData.TempUserData(dto.toDomainProfile(), dto.getToken(), dto.getFcmToken()));
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 변환 실패: {}", uuid, e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);

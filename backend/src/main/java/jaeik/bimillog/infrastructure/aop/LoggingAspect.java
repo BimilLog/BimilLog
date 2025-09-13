@@ -111,6 +111,15 @@ public class LoggingAspect {
         return logMethod(joinPoint, logAnnotation);
     }
     
+    /**
+     * <h3>MDC 컨텍스트 설정</h3>
+     * <p>현재 인증된 사용자 정보를 MDC에 추가합니다.</p>
+     * <p>userId, username, traceId를 MDC에 설정하여 로그 추적을 가능하게 합니다.</p>
+     * <p>{@link #logMethod}에서 메서드 실행 전에 호출됩니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private void setupMDC() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
@@ -120,10 +129,25 @@ public class LoggingAspect {
         MDC.put("traceId", generateTraceId());
     }
     
-    private void logMethodEntry(Logger logger, Log logAnnotation, String className, 
-                                String methodName, ProceedingJoinPoint joinPoint, 
+    /**
+     * <h3>메서드 시작 로그 출력</h3>
+     * <p>메서드 실행 시작 시점의 정보를 로그로 출력합니다.</p>
+     * <p>클래스명, 메서드명, 파라미터 정보를 포함한 로그를 생성합니다.</p>
+     * <p>{@link #logMethod}에서 메서드 실행 직전에 호출됩니다.</p>
+     *
+     * @param logger 로거 인스턴스
+     * @param logAnnotation Log 애노테이션 정보
+     * @param className 클래스명
+     * @param methodName 메서드명
+     * @param joinPoint 조인포인트
+     * @param signature 메서드 시그니처
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void logMethodEntry(Logger logger, Log logAnnotation, String className,
+                                String methodName, ProceedingJoinPoint joinPoint,
                                 MethodSignature signature) {
-        
+
         StringBuilder logMessage = new StringBuilder();
         
         if (!logAnnotation.message().isEmpty()) {
@@ -142,9 +166,24 @@ public class LoggingAspect {
         logAtLevel(logger, logAnnotation.level(), logMessage.toString());
     }
     
-    private void logMethodExit(Logger logger, Log logAnnotation, String className, 
+    /**
+     * <h3>메서드 종료 로그 출력</h3>
+     * <p>메서드 실행 완료 시점의 정보를 로그로 출력합니다.</p>
+     * <p>실행 결과, 실행 시간 정보를 포함한 로그를 생성합니다.</p>
+     * <p>{@link #logMethod}에서 메서드 정상 완료 후 호출됩니다.</p>
+     *
+     * @param logger 로거 인스턴스
+     * @param logAnnotation Log 애노테이션 정보
+     * @param className 클래스명
+     * @param methodName 메서드명
+     * @param result 메서드 실행 결과
+     * @param stopWatch 실행시간 측정 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void logMethodExit(Logger logger, Log logAnnotation, String className,
                                String methodName, Object result, StopWatch stopWatch) {
-        
+
         StringBuilder logMessage = new StringBuilder();
         logMessage.append("[").append(className).append(".").append(methodName).append("] 완료");
         
@@ -164,9 +203,23 @@ public class LoggingAspect {
         logAtLevel(logger, logAnnotation.level(), logMessage.toString());
     }
     
-    private void logMethodError(Logger logger, String className, String methodName, 
+    /**
+     * <h3>메서드 에러 로그 출력</h3>
+     * <p>메서드 실행 중 예외 발생 시 에러 정보를 로그로 출력합니다.</p>
+     * <p>예외 클래스명, 메시지, 실행 시간을 포함한 에러 로그를 생성합니다.</p>
+     * <p>{@link #logMethod}에서 예외 발생 시 호출됩니다.</p>
+     *
+     * @param logger 로거 인스턴스
+     * @param className 클래스명
+     * @param methodName 메서드명
+     * @param e 발생한 예외
+     * @param stopWatch 실행시간 측정 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void logMethodError(Logger logger, String className, String methodName,
                                 Exception e, StopWatch stopWatch) {
-        
+
         StringBuilder logMessage = new StringBuilder();
         logMessage.append("[").append(className).append(".").append(methodName).append("] 실패");
         logMessage.append(" | 에러: ").append(e.getClass().getSimpleName());
@@ -180,8 +233,21 @@ public class LoggingAspect {
         logger.error(logMessage.toString());
     }
     
-    private Map<String, Object> getParameters(ProceedingJoinPoint joinPoint, 
-                                              MethodSignature signature, 
+    /**
+     * <h3>메서드 파라미터 추출</h3>
+     * <p>메서드의 파라미터명과 값을 Map으로 추출합니다.</p>
+     * <p>excludeParams에 지정된 파라미터는 제외하고 Spring 관련 객체는 클래스명만 반환합니다.</p>
+     * <p>{@link #logMethodEntry}에서 파라미터 로깅을 위해 호출됩니다.</p>
+     *
+     * @param joinPoint 조인포인트
+     * @param signature 메서드 시그니처
+     * @param excludeParams 제외할 파라미터명 배열
+     * @return 파라미터명과 값의 Map
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Map<String, Object> getParameters(ProceedingJoinPoint joinPoint,
+                                              MethodSignature signature,
                                               String[] excludeParams) {
         String[] paramNames = signature.getParameterNames();
         Object[] args = joinPoint.getArgs();
@@ -205,6 +271,17 @@ public class LoggingAspect {
             ));
     }
     
+    /**
+     * <h3>민감정보 마스킹 처리</h3>
+     * <p>객체를 JSON 문자열로 변환하며 민감한 필드값을 마스킹합니다.</p>
+     * <p>password, token, secret 등의 민감정보를 [MASKED]로 치환합니다.</p>
+     * <p>{@link #logMethodEntry}, {@link #logMethodExit}에서 파라미터와 결과값 로깅 시 호출됩니다.</p>
+     *
+     * @param data 마스킹할 객체
+     * @return 민감정보가 마스킹된 JSON 문자열
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private String maskSensitiveData(Object data) {
         if (data == null) {
             return "null";
@@ -230,6 +307,18 @@ public class LoggingAspect {
         }
     }
     
+    /**
+     * <h3>지정된 로그 레벨로 메시지 출력</h3>
+     * <p>Log 애노테이션에 지정된 로그 레벨에 따라 메시지를 출력합니다.</p>
+     * <p>DEBUG, INFO, WARN, ERROR 레벨을 지원합니다.</p>
+     * <p>{@link #logMethodEntry}, {@link #logMethodExit}에서 로그 출력 시 호출됩니다.</p>
+     *
+     * @param logger 로거 인스턴스
+     * @param level 로그 레벨
+     * @param message 로그 메시지
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private void logAtLevel(Logger logger, Log.LogLevel level, String message) {
         switch (level) {
             case DEBUG -> logger.debug(message);
@@ -239,6 +328,18 @@ public class LoggingAspect {
         }
     }
     
+    /**
+     * <h3>로그 출력 여부 확인</h3>
+     * <p>현재 로거의 설정에 따라 해당 레벨의 로그 출력 가능 여부를 확인합니다.</p>
+     * <p>불필요한 로그 생성을 방지하여 성능을 향상시킵니다.</p>
+     * <p>{@link #logMethod}에서 로그 출력 전 확인용으로 호출됩니다.</p>
+     *
+     * @param logger 로거 인스턴스
+     * @param level 확인할 로그 레벨
+     * @return 로그 출력 가능 여부
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private boolean shouldLog(Logger logger, Log.LogLevel level) {
         return switch (level) {
             case DEBUG -> logger.isDebugEnabled();
@@ -248,6 +349,16 @@ public class LoggingAspect {
         };
     }
     
+    /**
+     * <h3>추적 ID 생성</h3>
+     * <p>요청 추적을 위한 고유 ID를 생성합니다.</p>
+     * <p>UUID의 앞 8자리를 사용하여 간결한 추적 ID를 만듭니다.</p>
+     * <p>{@link #setupMDC}에서 MDC 설정 시 호출됩니다.</p>
+     *
+     * @return 8자리 추적 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     private String generateTraceId() {
         return java.util.UUID.randomUUID().toString().substring(0, 8);
     }

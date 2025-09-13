@@ -1,6 +1,6 @@
 import { Metadata, ResolvingMetadata } from "next";
 import { generateKeywords } from "@/lib/seo";
-import { RollingPaperClient } from "@/components/features/rolling-paper";
+import { RollingPaperClient } from "@/components/organisms/rolling-paper";
 
 type Props = {
   params: Promise<{ nickname: string }>;

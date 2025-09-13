@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { postCommand } from "@/lib/api";
@@ -47,7 +49,8 @@ export const usePostActions = (
 
       setIsDeleting(true);
       try {
-        const response = await postCommand.delete(Number(postId), password);
+        // Note: Password-based deletion is handled on the backend via session/authentication
+        const response = await postCommand.delete(Number(postId));
         if (response.success) {
           toast.success("게시글이 삭제되었습니다.");
           router.push("/board");

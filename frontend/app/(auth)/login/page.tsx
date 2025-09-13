@@ -7,9 +7,9 @@ import { MessageSquare, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AuthLayout } from "@/components/features/auth";
+import { AuthLayout } from "@/components/organisms/auth";
 import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
-import { useAuthError } from "@/hooks/useAuthError";
+import { useAuthError } from "@/hooks/api";
 import { kakaoAuthManager } from "@/lib/auth/kakao";
 
 export default function LoginPage() {

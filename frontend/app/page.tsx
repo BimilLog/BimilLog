@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Script from "next/script";
-import HomeClient from "./home-client";
+import { HomeClient } from "@/components/organisms/home";
 
 export const metadata: Metadata = {
   title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",

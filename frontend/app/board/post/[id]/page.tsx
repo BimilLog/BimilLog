@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { postQuery, apiClient, type Post } from "@/lib/api";
 import { generateStructuredData, generateKeywords } from "@/lib/seo";
-import { PostDetailClient } from "@/components/features/board";
+import { PostDetailClient } from "@/components/organisms/board";
 
 interface Props {
   params: Promise<{

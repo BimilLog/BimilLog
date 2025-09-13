@@ -6,7 +6,7 @@ import { Button } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 import { Settings } from "lucide-react";
 import { MobileNav } from "@/components/layouts/MobileNav";
-import { NotificationBell } from "@/components/shared/NotificationBell";
+import { NotificationBell } from "@/components/organisms/common/notification-bell";
 
 export function AuthHeader() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();

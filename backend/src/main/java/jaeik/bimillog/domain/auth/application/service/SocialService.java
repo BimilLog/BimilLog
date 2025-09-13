@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.auth.in.web.AuthCommandController;
-import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoLoginStrategyAdapter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -23,8 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * <h2>소셜 로그인 서비스</h2>
@@ -36,38 +34,18 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SocialService implements SocialUseCase {
 
-    private final Map<SocialProvider, SocialLoginStrategyPort> strategies;
+    private final SocialStrategyRegistryPort strategyRegistry;
     private final AuthToUserPort authToUserPort;
     private final SaveUserPort saveUserPort;
     private final RedisUserDataPort redisUserDataPort;
     private final UserBanPort userBanPort;
 
-    public SocialService(List<SocialLoginStrategyPort> strategyList,
-                        AuthToUserPort authToUserPort,
-                        SaveUserPort saveUserPort,
-                        RedisUserDataPort redisUserDataPort,
-                        UserBanPort userBanPort) {
-        this.strategies = strategyList.stream()
-            .collect(Collectors.toMap(
-                strategy -> {
-                    // KakaoSocialLoginStrategy는 KAKAO 제공자만 지원
-                    if (strategy instanceof KakaoLoginStrategyAdapter) {
-                        return SocialProvider.KAKAO;
-                    }
-                    throw new IllegalArgumentException("지원하지 않는 전략 구현체: " + strategy.getClass().getSimpleName());
-                },
-                Function.identity(),
-                (existing, replacement) -> existing,
-                () -> new EnumMap<>(SocialProvider.class)
-            ));
-        this.authToUserPort = authToUserPort;
-        this.saveUserPort = saveUserPort;
-        this.redisUserDataPort = redisUserDataPort;
-        this.userBanPort = userBanPort;
-    }
-
+    // TODO 여기에 트랜잭셔널이 있는것에 대해 검토해야 함. 네트워크 작업을 중간에 두고 트랜잭션이 일어나고있음 트랜잭션은 되도록 어댑터에 배치
+    //  트랜잭션은 DB작업을 대상으로 하는것 이 메서드는 많은 private메서드를 하위로 두고 있음 그리고 중간에 네트워크 작업도 일어남
+    //  그리고 하위 어댑터들에는 트랜잭션이 달려있음 그래서 이 메서드에 트랜잭셔널이 있는게 타당한지 검토 필요
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
      * <p>외부 소셜 플랫폼을 통한 사용자 인증 및 로그인을 처리합니다.</p>
@@ -89,8 +67,8 @@ public class SocialService implements SocialUseCase {
         validateLogin();
 
         // 1. 전략 포트를 통해 OAuth 인증 수행
-        SocialLoginStrategyPort strategy = getStrategy(provider);
-        SocialLoginStrategyPort.StrategyLoginResult authResult = 
+        SocialStrategyPort strategy = strategyRegistry.getStrategy(provider);
+        SocialAuthData.AuthenticationResult authResult =
             strategy.authenticate(provider, code);
         
         SocialAuthData.SocialUserProfile userProfile = authResult.userProfile();
@@ -121,7 +99,7 @@ public class SocialService implements SocialUseCase {
     public void unlinkSocialAccount(SocialProvider provider, String socialId) {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
 
-        SocialLoginStrategyPort strategy = getStrategy(provider);
+        SocialStrategyPort strategy = strategyRegistry.getStrategy(provider);
         strategy.unlink(provider, socialId);
 
         log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);
@@ -142,43 +120,13 @@ public class SocialService implements SocialUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialAuthData.SocialUserProfile userProfile, SocialLoginStrategyPort.StrategyLoginResult authResult) {
+    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialAuthData.SocialUserProfile userProfile, SocialAuthData.AuthenticationResult authResult) {
         if (existingUser.isPresent()) {
-            return handleExistingUser(existingUser.get(), userProfile, authResult.token(), fcmToken);
+            List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(userProfile, authResult.token(), fcmToken);
+            return new LoginResult.ExistingUser(cookies);
         } else {
             return handleNewUser(userProfile, authResult.token(), fcmToken);
         }
-    }
-
-    /**
-     * <h3>기존 사용자 로그인 처리</h3>
-     * <p>기존 사용자의 프로필 정보 업데이트와 로그인 완료 처리를 수행합니다.</p>
-     * <p>소셜 닉네임이나 프로필 이미지가 변경된 경우 JPA 더티체킹으로 업데이트하고, JWT 토큰을 생성하여 쿠키로 반환합니다.</p>
-     * <p>{@link #processUserLogin}에서 기존 사용자로 판별된 경우 호출됩니다.</p>
-     *
-     * @param user 기존 사용자 엔티티
-     * @param userProfile 소셜 플랫폼에서 받은 최신 프로필 정보
-     * @param token 소셜 로그인 토큰 정보
-     * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
-     * @return ExistingUser JWT 토큰이 포함된 쿠키 정보
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private LoginResult.ExistingUser handleExistingUser(User user, SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) {
-        // 프로필 정보 업데이트 확인 및 처리
-        boolean needsUpdate = !Objects.equals(user.getSocialNickname(), userProfile.nickname());
-
-        if (!Objects.equals(user.getThumbnailImage(), userProfile.profileImageUrl())) {
-            needsUpdate = true;
-        }
-
-        if (needsUpdate) {
-            user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
-        }
-
-        // JWT 토큰 생성 및 쿠키 반환
-        List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(userProfile, token, fcmToken);
-        return new LoginResult.ExistingUser(cookies);
     }
 
     /**
@@ -216,25 +164,5 @@ public class SocialService implements SocialUseCase {
         if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
             throw new AuthCustomException(AuthErrorCode.ALREADY_LOGIN);
         }
-    }
-
-    /**
-     * <h3>제공자별 전략 조회</h3>
-     * <p>소셜 제공자에 맞는 로그인 전략 구현체를 반환합니다.</p>
-     * <p>지원하지 않는 제공자의 경우 예외를 발생시킵니다.</p>
-     * <p>이 서비스의 각 public 메서드에서 전략 선택을 위해 호출됩니다.</p>
-     *
-     * @param provider 소셜 로그인 제공자
-     * @return 해당 제공자의 로그인 전략 구현체
-     * @throws IllegalArgumentException 지원하지 않는 제공자인 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private SocialLoginStrategyPort getStrategy(SocialProvider provider) {
-        return Optional.ofNullable(strategies.get(provider))
-            .orElseThrow(() -> new IllegalArgumentException(
-                "지원하지 않는 소셜 제공자: " + provider + 
-                ". 지원 제공자: " + strategies.keySet()
-            ));
     }
 }

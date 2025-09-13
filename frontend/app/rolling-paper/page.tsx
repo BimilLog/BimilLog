@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { generateKeywords } from "@/lib/seo";
-import { RollingPaperClient } from "@/components/features/rolling-paper";
+import { RollingPaperClient } from "@/components/organisms/rolling-paper";
 
 export const metadata: Metadata = {
   title: "나의 롤링페이퍼",

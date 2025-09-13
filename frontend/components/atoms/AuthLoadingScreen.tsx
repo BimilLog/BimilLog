@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthLayout } from "@/components/features/auth";
+import { AuthLayout } from "@/components/organisms/auth";
 
 interface AuthLoadingScreenProps {
   message?: string;

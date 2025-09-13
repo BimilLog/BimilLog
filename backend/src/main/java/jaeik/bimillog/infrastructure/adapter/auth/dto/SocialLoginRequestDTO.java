@@ -48,21 +48,6 @@ public class SocialLoginRequestDTO {
     }
 
     /**
-     * <h3>FCM 토큰 형식 검증</h3>
-     * <p>FCM 토큰이 있을 경우 기본적인 형식을 검증합니다.</p>
-     * <p>FCM 토큰이 null인 경우는 유효한 것으로 처리합니다.</p>
-     *
-     * @return FCM 토큰이 유효하거나 null이면 true, 형식이 잘못되면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @AssertTrue(message = "FCM 토큰 형식이 올바르지 않습니다.")
-    public boolean isFcmTokenValid() {
-        if (fcmToken == null || fcmToken.trim().isEmpty()) return true;
-        return fcmToken.matches("^[A-Za-z0-9\\-_:]+$") && fcmToken.length() > 10;
-    }
-
-    /**
      * <h3>검증된 소셜 제공자 반환</h3>
      * <p>유효성 검증이 완료된 provider 문자열을 SocialProvider 열거형으로 변환하여 반환합니다.</p>
      * <p>DTO 검증이 통과한 후에만 호출해야 합니다.</p>

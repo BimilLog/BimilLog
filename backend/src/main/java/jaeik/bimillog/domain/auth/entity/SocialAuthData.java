@@ -37,6 +37,22 @@ public class SocialAuthData {
     ) {}
 
     /**
+     * <h3>인증 결과 데이터</h3>
+     * <p>소셜 플랫폼 OAuth 인증 완료 후 반환되는 결과 데이터입니다.</p>
+     * <p>소셜 사용자 프로필과 토큰 정보를 포함하여 인증 플로우에서 사용됩니다.</p>
+     * <p>{@link jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort}의 authenticate 메서드 반환값으로 사용됩니다.</p>
+     *
+     * @param userProfile 소셜 플랫폼에서 받은 사용자 프로필 정보
+     * @param token 소셜 로그인으로 발급받은 토큰 정보
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public record AuthenticationResult(
+            SocialUserProfile userProfile,
+            Token token
+    ) {}
+
+    /**
      * <h3>임시 사용자 데이터</h3>
      * <p>소셜 로그인 성공 후 회원가입 완료까지 임시 저장되는 사용자 데이터입니다.</p>
      * <p>Redis에 UUID 키로 저장되어 회원가입 페이지에서 사용자 이름 입력 완료 시 활용됩니다.</p>
@@ -45,7 +61,7 @@ public class SocialAuthData {
      * @param userProfile 소셜 플랫폼에서 받은 사용자 프로필 정보
      * @param token 소셜 로그인으로 발급받은 토큰 정보
      * @param fcmToken 푸시 알림용 Firebase Cloud Messaging 토큰 (선택사항)
-     * 
+     *
      * @author Jaeik
      * @version 2.0.0
      */
@@ -53,21 +69,5 @@ public class SocialAuthData {
             SocialUserProfile userProfile,
             Token token,
             String fcmToken
-    ) {
-        /**
-         * <h3>임시 사용자 데이터 생성</h3>
-         * <p>소셜 로그인 과정에서 임시 데이터 객체를 생성합니다.</p>
-         * <p>{@link SocialService}에서 신규 사용자의 임시 데이터 저장 시 호출됩니다.</p>
-         *
-         * @param userProfile 소셜 플랫폼 사용자 프로필
-         * @param token 소셜 로그인 토큰 정보  
-         * @param fcmToken 푸시 알림 토큰 (선택사항, null 가능)
-         * @return 임시 사용자 데이터 객체
-         * @author Jaeik
-         * @since 2.0.0
-         */
-        public static TempUserData of(SocialUserProfile userProfile, Token token, String fcmToken) {
-            return new TempUserData(userProfile, token, fcmToken);
-        }
-    }
+    ) {}
 }

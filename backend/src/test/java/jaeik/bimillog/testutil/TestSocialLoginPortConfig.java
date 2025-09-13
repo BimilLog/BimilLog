@@ -1,7 +1,7 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
@@ -27,10 +27,15 @@ public class TestSocialLoginPortConfig {
 
     @Bean
     @Primary
-    public SocialLoginStrategyPort testSocialLoginStrategyPort() {
-        return new SocialLoginStrategyPort() {
+    public SocialStrategyPort testSocialLoginStrategyPort() {
+        return new SocialStrategyPort() {
             @Override
-            public StrategyLoginResult authenticate(SocialProvider provider, String code) {
+            public SocialProvider getSupportedProvider() {
+                return SocialProvider.KAKAO; // 테스트용으로 KAKAO 제공자 지원
+            }
+
+            @Override
+            public SocialAuthData.AuthenticationResult authenticate(SocialProvider provider, String code) {
                 // 테스트용 더미 구현
                 String socialId;
                 
@@ -53,7 +58,7 @@ public class TestSocialLoginPortConfig {
                 );
                 Token token = Token.createTemporaryToken("dummy-access-token", "dummy-refresh-token");
                 
-                return new StrategyLoginResult(profile, token);
+                return new SocialAuthData.AuthenticationResult(profile, token);
             }
 
             @Override

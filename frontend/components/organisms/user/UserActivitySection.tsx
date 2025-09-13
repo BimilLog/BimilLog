@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components";
 import { LoadingSpinner } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
 import { ActivityCard } from "@/components/molecules";
-import { useActivityData } from "@/hooks/useActivityData";
+import { useActivityData } from "@/hooks/features";
 import { userQuery } from "@/lib/api";
 import { AlertTriangle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 

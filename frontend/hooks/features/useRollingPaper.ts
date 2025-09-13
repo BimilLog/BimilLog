@@ -1,13 +1,15 @@
+"use client";
+
 import { useState, useCallback, useMemo } from 'react';
 import { paperQuery, paperCommand } from '@/lib/api';
 import { useApiQuery } from '@/hooks/api/useApiQuery';
 import { useApiMutation } from '@/hooks/api/useApiMutation';
-import type { RollingPaperMessage, DecoType } from '@/types/domains/paper';
+import type { RollingPaperMessage, VisitMessage, DecoType } from '@/types/domains/paper';
 
 // 롤링페이퍼 메시지 조회
 export function useRollingPaper(userName: string) {
   const { data, isLoading, refetch } = useApiQuery(
-    () => paperQuery.getMessages(userName),
+    () => paperQuery.getByUserName(userName),
     {
       enabled: !!userName,
       cacheTime: 10 * 60 * 1000, // 10분 캐싱
@@ -18,7 +20,7 @@ export function useRollingPaper(userName: string) {
   // 그리드 데이터 구성
   const gridData = useMemo(() => {
     const messages = data || [];
-    const grid: (RollingPaperMessage | null)[][] = [];
+    const grid: (VisitMessage | null)[][] = [];
     const rows = 10;
     const cols = 6;
 
@@ -27,10 +29,12 @@ export function useRollingPaper(userName: string) {
       grid[i] = new Array(cols).fill(null);
     }
 
-    // 메시지를 그리드에 배치
+    // 메시지를 그리드에 배치 (x, y는 1-based 좌표)
     messages.forEach(message => {
-      if (message.rowIndex < rows && message.colIndex < cols) {
-        grid[message.rowIndex][message.colIndex] = message;
+      const rowIndex = message.y - 1; // y를 0-based rowIndex로 변환
+      const colIndex = message.x - 1; // x를 0-based colIndex로 변환
+      if (rowIndex >= 0 && rowIndex < rows && colIndex >= 0 && colIndex < cols) {
+        grid[rowIndex][colIndex] = message;
       }
     });
 
@@ -47,17 +51,28 @@ export function useRollingPaper(userName: string) {
 
 // 롤링페이퍼 메시지 작성
 export function useCreateRollingPaperMessage() {
-  return useApiMutation(paperCommand.createMessage, {
-    showSuccessToast: true,
-    successMessage: '메시지가 작성되었습니다.'
-  });
+  return useApiMutation(
+    ({ userName, message }: {
+      userName: string;
+      message: {
+        decoType: DecoType;
+        anonymity: string;
+        content: string;
+        x: number;
+        y: number;
+      }
+    }) => paperCommand.createMessage(userName, message),
+    {
+      showSuccessToast: true,
+      successMessage: '메시지가 작성되었습니다.'
+    }
+  );
 }
 
 // 롤링페이퍼 메시지 삭제
 export function useDeleteRollingPaperMessage() {
   return useApiMutation(
-    ({ messageIds, userName }: { messageIds: number[]; userName: string }) =>
-      paperCommand.deleteMessages(messageIds, userName),
+    (messageId: number) => paperCommand.deleteMessage(messageId),
     {
       showSuccessToast: true,
       successMessage: '메시지가 삭제되었습니다.'
@@ -79,12 +94,21 @@ export function useRollingPaperActions(userName: string) {
   const handleCreateMessage = useCallback(async (data: {
     userName: string;
     content: string;
-    fontFamily: string;
+    anonymity: string;
     decoType: DecoType;
     rowIndex: number;
     colIndex: number;
   }) => {
-    await createMessage(data);
+    await createMessage({
+      userName: data.userName,
+      message: {
+        decoType: data.decoType,
+        anonymity: data.anonymity,
+        content: data.content,
+        x: data.colIndex + 1, // 0-based to 1-based
+        y: data.rowIndex + 1  // 0-based to 1-based
+      }
+    });
     await refetch();
     setIsMessageFormOpen(false);
     setSelectedPosition(null);
@@ -93,11 +117,14 @@ export function useRollingPaperActions(userName: string) {
   // 메시지 삭제
   const handleDeleteMessages = useCallback(async () => {
     if (selectedMessages.length === 0) return;
-    
-    await deleteMessages({ messageIds: selectedMessages, userName });
+
+    // 각 메시지를 개별적으로 삭제
+    for (const messageId of selectedMessages) {
+      await deleteMessages(messageId);
+    }
     await refetch();
     setSelectedMessages([]);
-  }, [deleteMessages, selectedMessages, userName, refetch]);
+  }, [deleteMessages, selectedMessages, refetch]);
 
   // 위치 선택
   const handleSelectPosition = useCallback((row: number, col: number) => {

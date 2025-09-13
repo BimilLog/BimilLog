@@ -7,7 +7,6 @@ export { ProfileCard } from './cards/profile-card';
 export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './modals/dialog';
 export { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './modals/sheet';
 export { Popover, PopoverContent, PopoverTrigger } from './modals/popover';
-export { ReportModal } from './modals/ReportModal';
 export { KakaoFriendsModal } from './modals/kakao-friends-modal';
 export { BrowserGuideModal } from './modals/browser-guide-modal';
 
@@ -31,4 +30,5 @@ export { SettingsSection } from './settings-section';
 export { SettingToggle } from './setting-toggle';
 export { AdFitBanner } from './adfit-banner';
 export { ResponsiveAdFitBanner } from './responsive-adfit-banner';
-export { PWAInstallButton } from './pwa-install-button'; 
+export { PWAInstallButton } from './pwa-install-button';
+export { Breadcrumb } from './breadcrumb'; 

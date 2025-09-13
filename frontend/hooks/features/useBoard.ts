@@ -1,8 +1,11 @@
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
 import { postCommand } from "@/lib/api";
 import { stripHtml, validatePassword } from "@/lib/utils";
+import type { PasswordModalMode } from "./usePasswordModal";
 
 // Write Form Hook
 export const useWriteForm = () => {
@@ -74,70 +77,3 @@ export const useWriteForm = () => {
   };
 };
 
-// Password Modal Hook
-export interface PasswordModalState {
-  isOpen: boolean;
-  title: string;
-  mode: "post" | "comment" | null;
-  targetComment?: any;
-  password: string;
-}
-
-export type PasswordModalMode = "post" | "comment";
-
-export interface UsePasswordModalReturn {
-  modalState: PasswordModalState;
-  openModal: (title: string, mode: PasswordModalMode, target?: any) => void;
-  closeModal: () => void;
-  setPassword: (password: string) => void;
-  submitPassword: (onSubmit: (password: string, mode: PasswordModalMode, target?: any) => void) => void;
-}
-
-export const usePasswordModal = (): UsePasswordModalReturn => {
-  const [modalState, setModalState] = useState<PasswordModalState>({
-    isOpen: false,
-    title: "",
-    mode: null,
-    targetComment: undefined,
-    password: "",
-  });
-
-  const openModal = (title: string, mode: PasswordModalMode, target?: any) => {
-    setModalState({
-      isOpen: true,
-      title,
-      mode,
-      targetComment: target,
-      password: "",
-    });
-  };
-
-  const closeModal = () => {
-    setModalState({
-      isOpen: false,
-      title: "",
-      mode: null,
-      targetComment: undefined,
-      password: "",
-    });
-  };
-
-  const setPassword = (password: string) => {
-    setModalState(prev => ({ ...prev, password }));
-  };
-
-  const submitPassword = (onSubmit: (password: string, mode: PasswordModalMode, target?: any) => void) => {
-    if (modalState.mode) {
-      onSubmit(modalState.password, modalState.mode, modalState.targetComment);
-    }
-    closeModal();
-  };
-
-  return {
-    modalState,
-    openModal,
-    closeModal,
-    setPassword,
-    submitPassword,
-  };
-};

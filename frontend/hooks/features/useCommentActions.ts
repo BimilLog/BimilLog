@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import { commentCommand, type Comment } from "@/lib/api";
 import { toast } from "sonner";
@@ -16,11 +18,11 @@ export const useCommentActions = (
 
       setIsSubmitting(true);
       try {
-        const response = await commentCommand.write({
+        const response = await commentCommand.create({
           postId: Number(postId),
           content,
           parentId,
-          password,
+          password: password ? Number(password) : undefined,
         });
 
         if (response.success) {
@@ -46,10 +48,9 @@ export const useCommentActions = (
 
       setIsSubmitting(true);
       try {
-        const response = await commentCommand.update({
-          commentId,
+        const response = await commentCommand.update(commentId, {
           content,
-          password,
+          password: password ? Number(password) : undefined,
         });
 
         if (response.success) {
@@ -75,10 +76,10 @@ export const useCommentActions = (
 
       setIsDeletingComment(true);
       try {
-        const response = await commentCommand.delete({
+        const response = await commentCommand.delete(
           commentId,
-          password,
-        });
+          password ? Number(password) : undefined
+        );
 
         if (response.success) {
           toast.success("댓글이 삭제되었습니다.");

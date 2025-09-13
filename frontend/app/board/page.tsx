@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { BoardClient } from "@/components/features/board";
+import { BoardClient } from "@/components/organisms/board";
 
 export const metadata: Metadata = {
   title: "커뮤니티 게시판",

@@ -63,7 +63,7 @@ class SignUpServiceTest {
         testSocialProfile = new SocialAuthData.SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
         testToken = Token.createTemporaryToken("access-token", "refresh-token");
         
-        testTempData = SocialAuthData.TempUserData.of(testSocialProfile, testToken, "fcm-token");
+        testTempData = new SocialAuthData.TempUserData(testSocialProfile, testToken, "fcm-token");
         
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-token").build(),
@@ -127,7 +127,7 @@ class SignUpServiceTest {
     @DisplayName("FCM 토큰이 없는 임시 데이터로 회원 가입")
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
-        SocialAuthData.TempUserData tempDataWithoutFcm = SocialAuthData.TempUserData.of(testSocialProfile, testToken, null);
+        SocialAuthData.TempUserData tempDataWithoutFcm = new SocialAuthData.TempUserData(testSocialProfile, testToken, null);
         
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(

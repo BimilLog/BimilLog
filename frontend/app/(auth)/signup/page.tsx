@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSignupUuid } from "@/hooks/useSignupUuid";
-import { AuthLayout } from "@/components/features/auth";
+import { useSignupUuid } from "@/hooks/api";
+import { AuthLayout } from "@/components/organisms/auth";
 import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
-import { NicknameSetupForm } from "@/components/features/auth";
+import { NicknameSetupForm } from "@/components/organisms/auth";
 import { useToast } from "@/hooks/useToast";
 
 export default function SignUpPage() {

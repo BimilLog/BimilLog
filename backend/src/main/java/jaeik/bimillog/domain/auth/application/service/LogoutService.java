@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.SocialLoginStrategyPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -33,7 +33,7 @@ import java.util.List;
 public class LogoutService implements LogoutUseCase {
 
     private final DeleteUserPort deleteUserPort;
-    private final SocialLoginStrategyPort socialLoginStrategyPort;
+    private final SocialStrategyRegistryPort strategyRegistry;
     private final GlobalTokenQueryPort globalTokenQueryPort;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -80,8 +80,9 @@ public class LogoutService implements LogoutUseCase {
             globalTokenQueryPort.findById(userDetails.getTokenId()).ifPresent(token -> {
                 if (token.getUsers() != null) {
                     try {
-                        socialLoginStrategyPort.logout(token.getUsers().getProvider(), token.getAccessToken());
-                        log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}", 
+                        strategyRegistry.getStrategy(token.getUsers().getProvider())
+                            .logout(token.getUsers().getProvider(), token.getAccessToken());
+                        log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}",
                                 userDetails.getUserId(), token.getUsers().getProvider());
                     } catch (Exception socialLogoutException) {
                         // 소셜 로그아웃 실패는 전체 프로세스를 방해하지 않도록 로그만 기록

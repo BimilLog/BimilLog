@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { AuthHeader } from "@/components/layouts";
-import { HomeFooter } from "@/components/organisms/home/HomeFooter";
-import SuggestClient from "./suggest-client";
+import { HomeFooter } from "@/components/organisms/home";
+import { SuggestClient } from "@/components/organisms/suggest";
 
 export const metadata: Metadata = {
   title: "건의하기 - 비밀로그",

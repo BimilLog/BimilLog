@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ApiResponse } from '@/types/api/common';
 import { ErrorHandler } from '@/lib/error-handler';
@@ -49,7 +51,7 @@ export function useApiQuery<T>(
   const { showError } = useToast();
   const cacheRef = useRef<{ data: T | null; timestamp: number }>({ data: null, timestamp: 0 });
   const retryCountRef = useRef(0);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchData = useCallback(async (isRefetch = false) => {
     if (!enabled) return;
@@ -78,7 +80,9 @@ export function useApiQuery<T>(
         setData(response.data);
         cacheRef.current = { data: response.data, timestamp: Date.now() };
         retryCountRef.current = 0;
-        onSuccess?.(response.data);
+        if (response.data) {
+          onSuccess?.(response.data as T);
+        }
       } else if (response.needsRelogin) {
         // 리로그인 필요 시 전역 이벤트는 apiClient에서 처리됨
         setIsError(true);

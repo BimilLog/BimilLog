@@ -1,6 +1,6 @@
 "use client";
 
-import { useMyPage } from "@/hooks/useMyPage";
+import { useMyPage } from "@/hooks/features";
 import { ProfileCard } from "@/components/molecules";
 import { UserStatsSection, UserActivitySection } from "@/components/organisms/user";
 import { LoadingSpinner } from "@/components/atoms";

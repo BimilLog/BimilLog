@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from 'react';
 import { commentQuery, commentCommand } from '@/lib/api';
 import { useApiQuery } from '@/hooks/api/useApiQuery';
@@ -18,7 +20,7 @@ export function useCommentList(postId: number) {
 // 인기 댓글 조회
 export function usePopularComments(postId: number) {
   return useApiQuery(
-    () => commentQuery.getPopularComments(postId),
+    () => commentQuery.getPopular(postId),
     {
       enabled: postId > 0,
       cacheTime: 5 * 60 * 1000,
@@ -29,7 +31,7 @@ export function usePopularComments(postId: number) {
 
 // 댓글 작성
 export function useCreateComment() {
-  return useApiMutation(commentCommand.write, {
+  return useApiMutation(commentCommand.create, {
     showSuccessToast: true,
     successMessage: '댓글이 작성되었습니다.'
   });
@@ -38,8 +40,8 @@ export function useCreateComment() {
 // 댓글 수정
 export function useUpdateComment() {
   return useApiMutation(
-    ({ id, content }: { id: number; content: string }) => 
-      commentCommand.update(id, content),
+    ({ id, content }: { id: number; content: string }) =>
+      commentCommand.update(id, { content }),
     {
       showSuccessToast: true,
       successMessage: '댓글이 수정되었습니다.'

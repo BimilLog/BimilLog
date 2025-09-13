@@ -11,7 +11,7 @@ export const LazyEditor = dynamic(
 );
 
 export const LazyReportModal = dynamic(
-  () => import('@/components/molecules/modals/ReportModal').then(mod => ({ default: mod.ReportModal })),
+  () => import('@/components/organisms/common/ReportModal').then(mod => ({ default: mod.ReportModal })),
   { ssr: false }
 );
 
@@ -27,7 +27,7 @@ export const LazyBrowserGuideModal = dynamic(
 
 // Lazy load heavy organisms
 export const LazyWriteForm = dynamic(
-  () => import('@/components/organisms/WriteForm').then(mod => ({ default: mod.WriteForm })),
+  () => import('@/components/organisms/board/WriteForm').then(mod => ({ default: mod.WriteForm })),
   { 
     loading: () => <div className="min-h-screen bg-gray-100 animate-pulse" />,
     ssr: false 

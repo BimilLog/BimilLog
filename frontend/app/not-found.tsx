@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components";
 import { Heart, Home, Search, ArrowLeft } from "lucide-react";
 import { AuthHeader } from "@/components/layouts";
-import { HomeFooter } from "@/components/organisms/home/HomeFooter";
+import { HomeFooter } from "@/components/organisms/home";
 
 export default function NotFoundPage() {
   return (

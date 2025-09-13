@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback, useMemo } from 'react';
 import { postQuery, postCommand } from '@/lib/api';
 import { useApiQuery } from '@/hooks/api/useApiQuery';
@@ -102,7 +104,7 @@ export function useCreatePost() {
 // 게시글 수정
 export function useUpdatePost() {
   return useApiMutation(
-    ({ id, data }: { id: number; data: any }) => postCommand.update(id, data),
+    ({ id, data }: { id: number; data: any }) => postCommand.update({ ...data, id } as Post),
     {
       showSuccessToast: true,
       successMessage: '게시글이 수정되었습니다.'

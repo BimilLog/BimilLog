@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { postQuery } from "@/lib/api";
 import type { SimplePost } from "@/types/domains/post";
