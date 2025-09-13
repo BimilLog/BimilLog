@@ -35,7 +35,7 @@ export function useUserStats(user: User | null) {
           userQuery.getUserComments(0, 1),
           userQuery.getUserLikedPosts(0, 1),
           userQuery.getUserLikedComments(0, 1),
-          paperQuery.getMyRollingPaper(),
+          paperQuery.getMy(),
         ]);
 
       const errors: string[] = [];

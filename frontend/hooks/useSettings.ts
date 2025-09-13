@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { userQuery, authQuery, type Setting } from "@/lib/api";
+import { userQuery, userCommand, authQuery, authCommand, type Setting } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 
@@ -27,7 +27,7 @@ export function useSettings() {
     try {
       setLoading(true);
       setError(null);
-      const response = await userQuery.getUserSettings();
+      const response = await userQuery.getSettings();
       if (!isMounted.current) return;
 
       if (response.success && response.data) {
@@ -60,7 +60,7 @@ export function useSettings() {
 
     try {
       setSaving(true);
-      const response = await userQuery.updateUserSettings(fullSettings);
+      const response = await userCommand.updateSettings(fullSettings);
       if (!isMounted.current) return;
 
       if (response.success) {
@@ -117,7 +117,7 @@ export function useSettings() {
 
     try {
       setWithdrawing(true);
-      const response = await authQuery.deleteAccount();
+      const response = await authCommand.withdraw();
       if (!isMounted.current) return;
 
       if (response.success) {

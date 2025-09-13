@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { authQuery, userQuery, userCommand, sseManager, type User } from '@/lib/api';
+import { authQuery, authCommand, userQuery, userCommand, sseManager, type User } from '@/lib/api';
 
 interface AuthState {
   user: User | null;
@@ -96,7 +96,7 @@ export const useAuthStore = create<AuthState>()(
               console.log("로그아웃 시작...");
             }
             
-            const response = await authQuery.logout();
+            const response = await authCommand.logout();
             
             if (process.env.NODE_ENV === 'development') {
               console.log("로그아웃 API 응답:", response);
@@ -115,7 +115,7 @@ export const useAuthStore = create<AuthState>()(
         
         signUp: async (userName: string, uuid: string) => {
           try {
-            const response = await authQuery.signUp(userName, uuid);
+            const response = await authCommand.signUp(userName, uuid);
             if (response.success) {
               await get().refreshUser();
               return { success: true };
@@ -155,7 +155,7 @@ export const useAuthStore = create<AuthState>()(
         
         deleteAccount: async () => {
           try {
-            const response = await authQuery.deleteAccount();
+            const response = await authCommand.withdraw();
             if (response.success) {
               sseManager.disconnect();
               set({ 

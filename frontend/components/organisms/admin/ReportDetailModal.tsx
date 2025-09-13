@@ -50,7 +50,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
     setIsProcessing(true);
     try {
       const response = await adminCommand.banUser({
-        reporterId: report.reporterId || report.userId,
+        reporterId: report.reporterId,
         reporterName: report.reporterName,
         reportType: report.reportType,
         targetId: report.targetId,
@@ -136,7 +136,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                     {report.reporterName}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">
-                    ID: {report.reporterId || report.userId}
+                    ID: {report.reporterId}
                   </p>
                 </div>
               </div>

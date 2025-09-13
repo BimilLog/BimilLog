@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { notificationQuery, sseManager, type Notification } from "@/lib/api"
+import { notificationQuery, notificationCommand, sseManager, type Notification } from "@/lib/api"
 import { useAuth } from "./useAuth"
 
 export function useNotifications() {
@@ -47,7 +47,7 @@ export function useNotifications() {
         console.log(`배치 처리 시작 - 읽음: ${readIds.length}개, 삭제: ${deleteIds.length}개`)
       }
       
-      const response = await notificationQuery.getNotifications()
+      const response = await notificationQuery.getAll()
 
       if (response.success) {
         if (process.env.NODE_ENV === 'development') {
@@ -112,7 +112,7 @@ export function useNotifications() {
 
     setIsLoading(true)
     try {
-      const response = await notificationQuery.getNotifications()
+      const response = await notificationQuery.getAll()
       
       if (response.success && response.data) {
         setNotifications(response.data)
@@ -244,8 +244,8 @@ export function useNotifications() {
       if (process.env.NODE_ENV === 'development') {
         console.log(`모든 알림 읽음 처리 - 즉시 실행 (${unreadIds.length}개)`)
       }
-      await notificationQuery.markAllAsRead()
-      const response = await notificationQuery.getNotifications()
+      await notificationCommand.markAllAsRead()
+      const response = await notificationQuery.getAll()
       if (response.success) {
         setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })))  // v2: read → isRead
         setUnreadCount(0)
@@ -276,9 +276,9 @@ export function useNotifications() {
         console.log(`모든 알림 삭제 - 즉시 실행 (${allIds.length}개)`)
       }
       for (const id of allIds) {
-        await notificationQuery.deleteNotification(id)
+        await notificationCommand.delete(id)
       }
-      const response = await notificationQuery.getNotifications()
+      const response = await notificationQuery.getAll()
       if (response.success) {
         setNotifications([])
         setUnreadCount(0)

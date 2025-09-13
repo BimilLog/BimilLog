@@ -9,7 +9,7 @@ export function useMemoizedCallback<T extends (...args: any[]) => any>(
   deps: DependencyList
 ): T {
   const callbackRef = useRef<T>(callback);
-  const memoizedCallback = useRef<T>();
+  const memoizedCallback = useRef<T | undefined>(undefined);
 
   callbackRef.current = callback;
 
@@ -29,8 +29,8 @@ export function useExpensiveComputation<T>(
   deps: DependencyList,
   shouldRecompute?: (prevDeps: DependencyList, nextDeps: DependencyList) => boolean
 ): T {
-  const resultRef = useRef<T>();
-  const depsRef = useRef<DependencyList>();
+  const resultRef = useRef<T | undefined>(undefined);
+  const depsRef = useRef<DependencyList | undefined>(undefined);
 
   const needsRecompute = (): boolean => {
     if (!depsRef.current) return true;
