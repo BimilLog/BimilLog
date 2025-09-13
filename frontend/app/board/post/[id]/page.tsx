@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { boardApi, apiClient, type Post } from "@/lib/api";
+import { postQuery, apiClient, type Post } from "@/lib/api";
 import { generateStructuredData, generateKeywords } from "@/lib/seo";
 import PostDetailClient from "./components/PostDetailClient";
 

@@ -12,6 +12,7 @@ export { Label } from './forms/label';
 
 // Feedback components
 export { Spinner, LoadingSpinner } from './feedback/spinner';
+export { ErrorBoundary } from './feedback/error-boundary';
 
 // Action components
 export { Button, buttonVariants } from './actions/button';

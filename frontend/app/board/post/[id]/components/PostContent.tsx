@@ -1,6 +1,6 @@
 import { Button, CardContent, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, Flag } from "lucide-react";
-import { Post, userApi } from "@/lib/api";
+import { Post, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useToast } from "@/hooks/useToast";
@@ -24,7 +24,7 @@ export const PostContent: React.FC<PostContentProps> = ({
   const handleReport = async (reason: string) => {
     try {
       // v2 신고 API 사용 - 익명 사용자도 신고 가능
-      const response = await userApi.submitReport({
+      const response = await userCommand.submitReport({
         reportType: "POST",
         targetId: post.id, // v2에서는 post.id 사용
         content: reason,

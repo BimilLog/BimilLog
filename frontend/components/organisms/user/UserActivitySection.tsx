@@ -8,7 +8,7 @@ import { LoadingSpinner } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
 import { ActivityCard } from "@/components/molecules";
 import { useActivityData } from "@/hooks/useActivityData";
-import { userApi } from "@/lib/api";
+import { userQuery } from "@/lib/api";
 import { AlertTriangle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 const DEFAULT_PAGE = 0;
@@ -181,7 +181,7 @@ export const UserActivitySection: React.FC<UserActivitySectionProps> = ({ classN
   const fetchMyPosts = useCallback(
     async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
       try {
-        const response = await userApi.getUserPosts(page, size);
+        const response = await userQuery.getUserPosts(page, size);
         if (response.success && response.data) {
           return {
             content: response.data.content || [],
@@ -202,7 +202,7 @@ export const UserActivitySection: React.FC<UserActivitySectionProps> = ({ classN
   const fetchMyComments = useCallback(
     async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
       try {
-        const response = await userApi.getUserComments(page, size);
+        const response = await userQuery.getUserComments(page, size);
         if (response.success && response.data) {
           return {
             content: response.data.content || [],
@@ -223,7 +223,7 @@ export const UserActivitySection: React.FC<UserActivitySectionProps> = ({ classN
   const fetchLikedPosts = useCallback(
     async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
       try {
-        const response = await userApi.getUserLikedPosts(page, size);
+        const response = await userQuery.getUserLikedPosts(page, size);
         if (response.success && response.data) {
           return {
             content: response.data.content || [],
@@ -244,7 +244,7 @@ export const UserActivitySection: React.FC<UserActivitySectionProps> = ({ classN
   const fetchLikedComments = useCallback(
     async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
       try {
-        const response = await userApi.getUserLikedComments(page, size);
+        const response = await userQuery.getUserLikedComments(page, size);
         if (response.success && response.data) {
           return {
             content: response.data.content || [],

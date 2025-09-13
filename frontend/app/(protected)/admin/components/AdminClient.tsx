@@ -6,10 +6,9 @@ import {
   Tabs, 
   TabsContent, 
   TabsList, 
-  TabsTrigger, 
-  AlertTriangle, 
-  TrendingUp 
+  TabsTrigger
 } from "@/components";
+import { AlertTriangle, TrendingUp } from "lucide-react";
 import { AdminStats } from "@/components/organisms/admin/AdminStats";
 import { ReportListContainer } from "./ReportListContainer";
 import { useAdminAuth } from "../hooks/useAdminAuth";

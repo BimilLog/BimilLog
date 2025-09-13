@@ -3,10 +3,10 @@ import {
   Card, 
   CardContent, 
   CardHeader, 
-  CardTitle, 
-  AlertTriangle,
+  CardTitle,
   EmptyState 
 } from "@/components";
+import { AlertTriangle } from "lucide-react";
 import { type Report } from "@/lib/api";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { ReportCard } from "./ReportCard";

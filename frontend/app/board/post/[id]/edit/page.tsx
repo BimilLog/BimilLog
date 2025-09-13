@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { boardApi, type Post } from "@/lib/api";
+import { postQuery, postCommand, type Post } from "@/lib/api";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@/components";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
@@ -47,7 +47,7 @@ export default function EditPostPage() {
       if (!postId) return;
 
       try {
-        const response = await boardApi.getPost(postId);
+        const response = await postQuery.getById(postId);
         if (response.success && response.data) {
           const postData = response.data;
           setPost(postData);
@@ -114,7 +114,7 @@ export default function EditPostPage() {
         password: validatedPassword,
       };
 
-      const response = await boardApi.updatePost(updatedPost);
+      const response = await postCommand.update(updatedPost);
       if (response.success) {
         showSuccess("수정 완료", "게시글이 성공적으로 수정되었습니다!");
         router.push(`/board/post/${postId}`);

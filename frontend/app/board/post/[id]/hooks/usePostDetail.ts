@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks";
-import { boardApi, commentApi, type Post, type Comment } from "@/lib/api";
+import { postQuery, commentQuery, type Post, type Comment } from "@/lib/api";
 
 interface CommentWithReplies extends Comment {
   replies?: CommentWithReplies[];
@@ -31,7 +31,7 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
     if (!id) return;
     
     try {
-      const response = await boardApi.getPost(Number(id));
+      const response = await postQuery.getById(Number(id));
       if (response.success && response.data) {
         setPost(response.data);
       } else {
@@ -70,8 +70,8 @@ export const usePostDetail = (id: string | null, initialPost?: Post) => {
     
     try {
       const [commentsResponse, popularResponse] = await Promise.all([
-        commentApi.getComments(Number(id), 0),
-        commentApi.getPopularComments(Number(id)),
+        commentQuery.getByPostId(Number(id), 0),
+        commentQuery.getPopular(Number(id)),
       ]);
 
       if (commentsResponse.success && commentsResponse.data) {

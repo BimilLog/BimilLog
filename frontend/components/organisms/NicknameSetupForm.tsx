@@ -9,7 +9,7 @@ import { Check, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useRouter } from "next/navigation";
-import { userApi } from "@/lib/api";
+import { userQuery } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
 import { useToast } from "@/hooks/useToast";
 
@@ -53,7 +53,7 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
     
     setIsChecking(true);
     try {
-      const response = await userApi.checkUserName(nickname);
+      const response = await userQuery.checkUserName(nickname);
       
       if (response.success) {
         const isAvailable = response.data ?? false;

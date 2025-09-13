@@ -2,7 +2,7 @@
 
 import { Button, Input, Textarea, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, Reply, Flag, MoreHorizontal, User } from "lucide-react";
-import { Comment, userApi } from "@/lib/api";
+import { Comment, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
@@ -79,7 +79,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const handleReport = async (reason: string) => {
     try {
       // v2 신고 API 사용 - 익명 사용자도 신고 가능
-      const response = await userApi.submitReport({
+      const response = await userCommand.submitReport({
         reportType: "COMMENT",
         targetId: comment.id,
         content: reason,

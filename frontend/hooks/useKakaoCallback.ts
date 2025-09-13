@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authApi } from "@/lib/api";
+import { authQuery } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { getFCMToken, isMobileOrTablet } from "@/lib/utils";
@@ -125,7 +125,7 @@ export function useKakaoCallback() {
 
     try {
       const fcmToken = await tryGetFCMToken();
-      const loginResponse = await authApi.kakaoLogin(code, fcmToken || undefined);
+      const loginResponse = await authQuery.kakaoLogin(code, fcmToken || undefined);
 
       if (!loginResponse.success || !loginResponse.data) {
         handleError(loginResponse.error || "로그인 실패", loginResponse.error || "로그인 실패");

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { 
   Button, 
@@ -6,11 +8,10 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  UserX 
+  DialogTitle
 } from "@/components";
-import { AlertTriangle } from "lucide-react";
-import { type Report, adminApi } from "@/lib/api";
+import { UserX, AlertTriangle } from "lucide-react";
+import { type Report, adminCommand } from "@/lib/api";
 import { useToast } from "@/hooks/useToast";
 import { 
   getReportTypeConfig, 
@@ -48,7 +49,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
     setIsProcessing(true);
     try {
-      const response = await adminApi.banUser({
+      const response = await adminCommand.banUser({
         reporterId: report.reporterId || report.userId,
         reporterName: report.reporterName,
         reportType: report.reportType,
@@ -82,7 +83,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
     setIsProcessing(true);
     try {
-      const response = await adminApi.forceWithdrawUser({
+      const response = await adminCommand.forceWithdrawUser({
         targetId: report.targetId,
         reportType: report.reportType,
         content: report.content

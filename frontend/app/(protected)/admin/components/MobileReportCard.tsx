@@ -1,5 +1,6 @@
 import React from "react";
-import { Badge, Clock } from "@/components";
+import { Badge } from "@/components";
+import { Clock } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 import { type Report } from "@/lib/api";
 import { 

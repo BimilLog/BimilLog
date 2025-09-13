@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle, TrendingUp } from "@/components";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import { TrendingUp } from "lucide-react";
 
 export const AdminStats: React.FC = () => {
   return (

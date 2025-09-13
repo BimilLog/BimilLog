@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { boardApi, type SimplePost } from "@/lib/api";
+import { postQuery, type SimplePost } from "@/lib/api";
 
 export const usePopularPosts = (activeTab: string) => {
   const [realtimePosts, setRealtimePosts] = useState<SimplePost[]>([]);
@@ -19,7 +19,7 @@ export const usePopularPosts = (activeTab: string) => {
     }
     
     try {
-      const res = await boardApi.getPopularPosts();
+      const res = await postQuery.getPopular();
       if (res.success && res.data) {
         setRealtimePosts(res.data.realtime || []);
         setWeeklyPosts(res.data.weekly || []);
@@ -40,7 +40,7 @@ export const usePopularPosts = (activeTab: string) => {
     }
     
     try {
-      const res = await boardApi.getLegendPosts(0, 10); // 첫 페이지 10개 조회
+      const res = await postQuery.getLegend(0, 10); // 첫 페이지 10개 조회
       if (res.success && res.data) {
         // PageResponse의 content 배열 사용
         setLegendPosts(res.data.content || []);

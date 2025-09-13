@@ -12,7 +12,7 @@ import {
 import { Spinner } from "@/components";
 import { EmptyState } from "@/components";
 import { Alert } from "@/components";
-import { userApi, KakaoFriendList } from "@/lib/api";
+import { userQuery, KakaoFriendList } from "@/lib/api";
 import { logoutAndRedirectToConsent } from "@/lib/kakao-auth";
 import { Users, MessageCircle, X, RefreshCw, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -34,7 +34,7 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
     setError(null);
     setNeedsConsent(false);
     try {
-      const response = await userApi.getFriendList(0);
+      const response = await userQuery.getFriendList(0);
 
       if (response.success && response.data) {
         setFriendsData(response.data);

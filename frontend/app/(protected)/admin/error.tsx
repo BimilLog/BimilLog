@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button, AlertTriangle } from "@/components";
+import { Button } from "@/components";
+import { AlertTriangle } from "lucide-react";
 
 export default function AdminError({
   error,

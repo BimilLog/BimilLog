@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
-import { boardCommandApi } from "@/lib/api";
+import { postCommand } from "@/lib/api";
 import { stripHtml, validatePassword } from "@/lib/utils";
 
 export const useWriteForm = () => {
@@ -43,7 +43,7 @@ export const useWriteForm = () => {
         password: validatedPassword,
       };
 
-      const response = await boardCommandApi.create(postData);
+      const response = await postCommand.create(postData);
       if (response.success && response.data) {
         showSuccess("작성 완료", "게시글이 성공적으로 작성되었습니다!");
         router.push(`/board/post/${response.data.id}`);

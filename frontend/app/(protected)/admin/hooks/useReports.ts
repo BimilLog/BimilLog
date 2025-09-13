@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { adminApi, type Report, type PageResponse } from "@/lib/api";
+import { adminQuery, type Report, type PageResponse } from "@/lib/api";
 import { useDebounce } from "@/hooks/useDebounce";
 
 interface UseReportsOptions {
@@ -29,7 +29,7 @@ export function useReports(options: UseReportsOptions = {}) {
       setIsLoading(true);
       setError(null);
       const reportType = filterType === "all" ? undefined : filterType;
-      const response = await adminApi.getReports(page, pageSize, reportType);
+      const response = await adminQuery.getReports(page, pageSize, reportType);
       
       if (response.success && response.data) {
         setReports(response.data as PageResponse<Report>);

@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { boardApi, SimplePost } from "@/lib/api";
+import { postQuery, SimplePost } from "@/lib/api";
 
 const URL = "https://grow-farm.com";
 
@@ -34,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     while (currentPage < totalPages) {
-      const response = await boardApi.getPosts(currentPage, 100);
+      const response = await postQuery.getAll(currentPage, 100);
       if (response.success && response.data) {
         allPosts = allPosts.concat(response.data.content);
         totalPages = response.data.totalPages;

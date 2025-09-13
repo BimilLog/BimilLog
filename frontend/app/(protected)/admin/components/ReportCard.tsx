@@ -1,5 +1,6 @@
 import React from "react";
-import { Badge, Button, Eye, Clock } from "@/components";
+import { Badge, Button } from "@/components";
+import { Clock, Eye } from "lucide-react";
 import { type Report } from "@/lib/api";
 import { 
   getReportTypeConfig, 

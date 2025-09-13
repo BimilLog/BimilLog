@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, Button, SafeHTML, ReportModal } from "@/components";
 import { ThumbsUp, MessageSquare, Flag, MoreHorizontal } from "lucide-react";
-import { Comment, userApi } from "@/lib/api";
+import { Comment, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
@@ -43,7 +43,7 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
     }
 
     try {
-      const response = await userApi.submitReport({
+      const response = await userCommand.submitReport({
         reportType: "COMMENT",
         targetId: comment.id,
         content: `댓글 신고: ${comment.content.substring(0, 50)}...`,

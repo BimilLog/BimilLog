@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
-import { boardCommandApi, commentCommandApi, type Post, type Comment } from "@/lib/api";
+import { postCommand, commentCommand, type Post, type Comment } from "@/lib/api";
 
 export const usePostActions = (
   post: Post | null,
@@ -15,7 +15,7 @@ export const usePostActions = (
   const handleLike = async () => {
     if (!post) return;
     try {
-      await boardCommandApi.like(post.id);
+      await postCommand.like(post.id);
       await onRefresh();
     } catch (error) {
     }
@@ -27,7 +27,7 @@ export const usePostActions = (
     try {
       // API는 파라미터를 받지만 실제로는 DELETE 메서드만 사용 (백엔드에서 처리)
       // 익명 게시글의 경우 password를 헤더나 바디에 포함하여 전송해야 할 수 있음
-      const response = await boardCommandApi.delete(post.id);
+      const response = await postCommand.delete(post.id);
 
       if (response.success) {
         showSuccess("삭제 완료", "게시글이 성공적으로 삭제되었습니다.");
@@ -66,7 +66,7 @@ export const usePostActions = (
   const confirmDeleteComment = async (comment: Comment, password?: string) => {
     try {
       // password가 있으면 전달, 없으면 undefined로 통일
-      const response = await commentCommandApi.delete(
+      const response = await commentCommand.delete(
         comment.id,
         password ? Number(password) : undefined
       );

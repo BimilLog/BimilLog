@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { 
   Button, 
@@ -11,11 +13,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-  AlertTriangle,
-  Eye,
-  Clock 
+  SelectValue
 } from "@/components";
+import { AlertTriangle, Eye, Clock } from "lucide-react";
 import { type Report, type PageResponse } from "@/lib/api";
 import { getReportTypeConfig, formatDateTime, truncateText, hasActionableTarget } from "@/lib/admin-utils";
 import { ReportDetailModal } from "./ReportDetailModal";

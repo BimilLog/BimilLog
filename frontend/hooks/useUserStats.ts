@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { userApi, rollingPaperApi, User } from "@/lib/api";
+import { userQuery, paperQuery, User } from "@/lib/api";
 
 interface UserStats {
   totalMessages: number;
@@ -31,11 +31,11 @@ export function useUserStats(user: User | null) {
     try {
       const [postsRes, commentsRes, likedPostsRes, likedCommentsRes, messagesRes] =
         await Promise.allSettled([
-          userApi.getUserPosts(0, 1),
-          userApi.getUserComments(0, 1),
-          userApi.getUserLikedPosts(0, 1),
-          userApi.getUserLikedComments(0, 1),
-          rollingPaperApi.getMyRollingPaper(),
+          userQuery.getUserPosts(0, 1),
+          userQuery.getUserComments(0, 1),
+          userQuery.getUserLikedPosts(0, 1),
+          userQuery.getUserLikedComments(0, 1),
+          paperQuery.getMyRollingPaper(),
         ]);
 
       const errors: string[] = [];

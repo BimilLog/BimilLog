@@ -1,12 +1,33 @@
 import React, { memo } from 'react';
-import { isEqual } from 'lodash-es';
+
+// Simple deep equality check
+function deepEqual(obj1: any, obj2: any): boolean {
+  if (obj1 === obj2) return true;
+  
+  if (obj1 == null || obj2 == null) return false;
+  if (typeof obj1 !== typeof obj2) return false;
+  
+  if (typeof obj1 !== 'object') return obj1 === obj2;
+  
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+  
+  if (keys1.length !== keys2.length) return false;
+  
+  for (const key of keys1) {
+    if (!keys2.includes(key)) return false;
+    if (!deepEqual(obj1[key], obj2[key])) return false;
+  }
+  
+  return true;
+}
 
 // Deep comparison memo wrapper
 export function withDeepMemo<P extends object>(
   Component: React.ComponentType<P>,
   propsAreEqual?: (prevProps: P, nextProps: P) => boolean
 ) {
-  return memo(Component, propsAreEqual || isEqual);
+  return memo(Component, propsAreEqual || deepEqual);
 }
 
 // Shallow comparison memo wrapper with specific props to ignore
@@ -29,10 +50,10 @@ export function withSelectiveMemo<P extends object>(
         delete filteredNextProps[key];
       });
       
-      return isEqual(filteredPrevProps, filteredNextProps);
+      return deepEqual(filteredPrevProps, filteredNextProps);
     }
     
-    return isEqual(prevProps, nextProps);
+    return deepEqual(prevProps, nextProps);
   });
 }
 

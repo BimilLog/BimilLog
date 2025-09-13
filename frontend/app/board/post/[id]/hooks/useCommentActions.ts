@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useAuth, useToast } from "@/hooks";
-import { commentCommandApi, type Comment } from "@/lib/api";
+import { commentCommand, type Comment } from "@/lib/api";
 import { validatePassword } from "@/lib/utils";
 
 export const useCommentActions = (
@@ -37,7 +37,7 @@ export const useCommentActions = (
     try {
       const validatedPassword = validatePassword(password, isAuthenticated);
       
-      await commentCommandApi.create({
+      await commentCommand.create({
         postId: Number(postId),
         content: comment,
         password: validatedPassword,
@@ -66,7 +66,7 @@ export const useCommentActions = (
     try {
       const validatedPassword = validatePassword(replyPassword, isAuthenticated);
       
-      await commentCommandApi.create({
+      await commentCommand.create({
         postId: Number(postId),
         content: replyContent,
         parentId: replyingTo.id,
@@ -98,7 +98,7 @@ export const useCommentActions = (
   // 댓글 추천
   const handleLikeComment = useCallback(async (comment: Comment) => {
     try {
-      await commentCommandApi.like(comment.id);
+      await commentCommand.like(comment.id);
       await onRefresh();
     } catch (error) {
       showError("추천 실패", "댓글 추천 중 오류가 발생했습니다.");
@@ -144,7 +144,7 @@ export const useCommentActions = (
         }
       }
 
-      await commentCommandApi.update(editingComment.id, {
+      await commentCommand.update(editingComment.id, {
         content: editContent,
         password: validatedPassword,
       });

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { authApi, userApi, sseManager, type User } from '@/lib/api';
+import { authQuery, userQuery, userCommand, sseManager, type User } from '@/lib/api';
 
 interface AuthState {
   user: User | null;
@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>()(
         
         refreshUser: async () => {
           try {
-            const response = await authApi.getCurrentUser();
+            const response = await authQuery.getCurrentUser();
             
             if (response.success && response.data) {
               set({ 
@@ -96,7 +96,7 @@ export const useAuthStore = create<AuthState>()(
               console.log("로그아웃 시작...");
             }
             
-            const response = await authApi.logout();
+            const response = await authQuery.logout();
             
             if (process.env.NODE_ENV === 'development') {
               console.log("로그아웃 API 응답:", response);
@@ -115,7 +115,7 @@ export const useAuthStore = create<AuthState>()(
         
         signUp: async (userName: string, uuid: string) => {
           try {
-            const response = await authApi.signUp(userName, uuid);
+            const response = await authQuery.signUp(userName, uuid);
             if (response.success) {
               await get().refreshUser();
               return { success: true };
@@ -141,7 +141,7 @@ export const useAuthStore = create<AuthState>()(
           }
           
           try {
-            const response = await userApi.updateUserName(userName);
+            const response = await userCommand.updateUserName(userName);
             if (response.success) {
               await get().refreshUser();
               return true;
@@ -155,7 +155,7 @@ export const useAuthStore = create<AuthState>()(
         
         deleteAccount: async () => {
           try {
-            const response = await authApi.deleteAccount();
+            const response = await authQuery.deleteAccount();
             if (response.success) {
               sseManager.disconnect();
               set({ 

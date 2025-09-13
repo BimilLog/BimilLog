@@ -20,7 +20,7 @@ export function useReportActions(onSuccess?: () => void) {
 
     setIsProcessing(true);
     try {
-      const response = await adminApi.banUser({
+      const response = await adminCommand.banUser({
         reporterId: report.reporterId,
         reporterName: report.reporterName,
         reportType: report.reportType,
@@ -59,7 +59,7 @@ export function useReportActions(onSuccess?: () => void) {
 
     setIsProcessing(true);
     try {
-      const response = await adminApi.forceWithdrawUser({
+      const response = await adminCommand.forceWithdrawUser({
         targetId: report.targetId,
         reportType: report.reportType,
         content: report.content,

@@ -6,10 +6,9 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  UserX,
-  AlertTriangle 
+  DialogTitle
 } from "@/components";
+import { UserX, AlertTriangle } from "lucide-react";
 import { type Report } from "@/lib/api";
 import { useReportActions } from "../hooks/useReportActions";
 import { 

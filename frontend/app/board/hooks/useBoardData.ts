@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { boardApi, type SimplePost } from "@/lib/api";
+import { postQuery } from "@/lib/api";
+import type { SimplePost } from "@/types/domains/post";
 
 export const useBoardData = () => {
   // 검색 상태
@@ -19,13 +20,13 @@ export const useBoardData = () => {
       setIsLoading(true);
       try {
         const response = searchTerm.trim()
-          ? await boardApi.searchPosts(
+          ? await postQuery.search(
               searchType,
               searchTerm.trim(),
               page,
               Number(postsPerPage)
             )
-          : await boardApi.getPosts(page, Number(postsPerPage));
+          : await postQuery.getAll(page, Number(postsPerPage));
 
         if (response.success && response.data) {
           setPosts(response.data.content);

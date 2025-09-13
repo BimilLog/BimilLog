@@ -1,4 +1,5 @@
-import { Button, Shield } from "@/components";
+import { Button } from "@/components";
+import { Shield } from "lucide-react";
 import Link from "next/link";
 
 export const AdminHeader: React.FC = () => {

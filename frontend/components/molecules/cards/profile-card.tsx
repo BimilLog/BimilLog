@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { Button } from "@/components";
 import { Card, CardContent } from "@/components";
@@ -22,7 +24,7 @@ import {
   Shield,
   Star,
 } from "lucide-react";
-import { User, userApi } from "@/lib/api";
+import { User, userQuery, userCommand } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components";
@@ -74,7 +76,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
 
     setIsChecking(true);
     try {
-      const response = await userApi.checkUserName(nicknameInput.trim());
+      const response = await userQuery.checkUserName(nicknameInput.trim());
       if (response.success) {
         const isAvailable = response.data ?? false;
         setIsNicknameAvailable(isAvailable);
@@ -107,7 +109,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
 
     setIsNicknameChangeSubmitting(true);
     try {
-      const response = await userApi.updateUserName(nicknameInput.trim());
+      const response = await userCommand.updateUserName(nicknameInput.trim());
       if (response.success) {
         await onNicknameChange(nicknameInput.trim());
         setIsNicknameDialogOpen(false);
