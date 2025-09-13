@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
-// sessionManager 제거 - 더 이상 필요 없음
 import { fcmManager } from "@/lib/auth/fcm";
 
 export default function LogoutPage() {

@@ -11,7 +11,7 @@ import { Editor } from "@/components";
 import { useToast } from "@/hooks/useToast";
 import { ToastContainer } from "@/components/molecules/feedback/toast";
 import { stripHtml, validatePassword } from "@/lib/utils";
-import { AuthHeader } from "@/components/organisms/auth-header";
+import { AuthHeader } from "@/components/layouts";
 
 export default function EditPostPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();

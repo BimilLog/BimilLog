@@ -7,9 +7,9 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSignupUuid } from "@/hooks/useSignupUuid";
-import { AuthLayout } from "@/components/organisms/AuthLayout";
+import { AuthLayout } from "@/components/features/auth";
 import { AuthLoadingScreen } from "@/components/atoms/AuthLoadingScreen";
-import { NicknameSetupForm } from "@/components/organisms/NicknameSetupForm";
+import { NicknameSetupForm } from "@/components/features/auth";
 import { useToast } from "@/hooks/useToast";
 
 export default function SignUpPage() {
@@ -46,7 +46,7 @@ export default function SignUpPage() {
           onSuccess={() => {
             showSuccess("회원가입 완료", "비밀로그에 오신 것을 환영합니다!");
           }}
-          onError={(errorMessage) => {
+          onError={(errorMessage: string) => {
             showError("회원가입 실패", errorMessage);
           }}
         />

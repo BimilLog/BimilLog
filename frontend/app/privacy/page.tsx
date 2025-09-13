@@ -1,4 +1,4 @@
-import { AuthHeader } from "@/components/organisms/auth-header";
+import { AuthHeader } from "@/components/layouts";
 import { HomeFooter } from "@/components/organisms/home/HomeFooter";
 
 export default function PrivacyPage() {

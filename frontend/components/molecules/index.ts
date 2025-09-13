@@ -26,6 +26,7 @@ export { EmptyState } from './feedback/empty-state';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './dropdown-menu';
 export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
+export { ScrollArea, ScrollBar } from './scroll-area';
 export { SettingsSection } from './settings-section';
 export { SettingToggle } from './setting-toggle';
 export { AdFitBanner } from './adfit-banner';

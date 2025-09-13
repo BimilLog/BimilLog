@@ -2,11 +2,11 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { Save } from "lucide-react";
-import { AuthHeader } from "@/components/organisms/auth-header";
+import { AuthHeader } from "@/components/layouts";
 import dynamic from "next/dynamic";
 
 // 분리된 훅과 컴포넌트들 import
-import { useWriteForm } from "./hooks/useWriteForm";
+import { useWriteForm } from "@/hooks/features";
 import { WritePageHeader, Breadcrumb } from "@/components";
 
 // WriteForm을 동적 import로 변경하여 Editor 컴포넌트 최적화

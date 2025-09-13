@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { AuthHeader, HomeFooter } from "@/components";
-import { AdminHeader } from "@/components/organisms/admin/AdminHeader";
+import { AdminHeader } from "@/components/features/admin";
 import { AdminClient } from "./components/AdminClient";
-import { LoadingSkeleton } from "./components/LoadingState";
+import { LoadingState } from "@/components/features/admin";
 
 export default function AdminPage() {
   return (
@@ -12,7 +12,7 @@ export default function AdminPage() {
       <main className="container mx-auto px-4 py-8">
         <AdminHeader />
         
-        <Suspense fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingState />}>
           <AdminClient />
         </Suspense>
       </main>

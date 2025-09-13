@@ -9,10 +9,8 @@ import {
   TabsTrigger
 } from "@/components";
 import { AlertTriangle, TrendingUp } from "lucide-react";
-import { AdminStats } from "@/components/organisms/admin/AdminStats";
-import { ReportListContainer } from "./ReportListContainer";
-import { useAdminAuth } from "../hooks/useAdminAuth";
-import { useReports } from "../hooks/useReports";
+import { AdminStats, ReportListContainer } from "@/components/features/admin";
+import { useAdminAuth, useReports } from "@/hooks/features/admin";
 
 export function AdminClient() {
   const router = useRouter();
@@ -29,37 +27,19 @@ export function AdminClient() {
     reports,
     isLoading: isReportsLoading,
     error,
-    filterType,
-    setFilterType,
-    searchTerm,
-    setSearchTerm,
-    refetch,
-  } = useReports({
-    initialFilterType,
-    initialSearchTerm,
-  });
+    refetch
+  } = useReports();
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    params.set("tab", activeTab);
-    if (filterType !== "all") params.set("filter", filterType);
-    if (searchTerm) params.set("search", searchTerm);
-    
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    router.replace(newUrl, { scroll: false });
-  }, [activeTab, filterType, searchTerm, router]);
+    if (!isAuthLoading && !isAdmin) {
+      router.push("/");
+    }
+  }, [isAdmin, isAuthLoading, router]);
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <img
-            src="/log.png"
-            alt="비밀로그"
-            className="h-12 object-contain mx-auto mb-4 animate-pulse"
-          />
-          <p className="text-gray-600">로딩 중...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -69,40 +49,59 @@ export function AdminClient() {
   }
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-2 bg-white/90 backdrop-blur-sm border-0 shadow-md rounded-lg">
-        <TabsTrigger
-          value="reports"
-          className="flex items-center gap-3 min-h-[48px] text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-200 touch-manipulation"
-        >
-          <AlertTriangle className="w-4 h-4" />
-          <span>신고 관리</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="stats"
-          className="flex items-center gap-3 min-h-[48px] text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white transition-all duration-200 touch-manipulation"
-        >
-          <TrendingUp className="w-4 h-4" />
-          <span>통계</span>
-        </TabsTrigger>
-      </TabsList>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 헤더 */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-white" />
+            </div>
+            관리자 대시보드
+          </h1>
+          <p className="mt-2 text-gray-600">
+            신고 관리 및 통계를 확인할 수 있습니다
+          </p>
+        </div>
 
-      <TabsContent value="reports" className="space-y-6 focus:outline-none">
-        <ReportListContainer
-          reports={reports}
-          isLoading={isReportsLoading}
-          error={error}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          filterType={filterType}
-          onFilterChange={setFilterType}
-          onReportUpdated={refetch}
-        />
-      </TabsContent>
+        {/* 통계 카드 */}
+        <AdminStats reports={reports} />
 
-      <TabsContent value="stats" className="space-y-6 focus:outline-none">
-        <AdminStats />
-      </TabsContent>
-    </Tabs>
+        {/* 탭 컨텐츠 */}
+        <div className="mt-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="reports" className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                신고 관리
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                상세 통계
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="reports" className="mt-6">
+              <ReportListContainer
+                reports={reports}
+                isLoading={isReportsLoading}
+                refetch={refetch}
+                initialFilterType={initialFilterType}
+                initialSearchTerm={initialSearchTerm}
+              />
+            </TabsContent>
+
+            <TabsContent value="stats" className="mt-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+                <div className="text-center text-gray-500">
+                  <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>상세 통계 기능은 준비 중입니다</p>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </div>
   );
 }
