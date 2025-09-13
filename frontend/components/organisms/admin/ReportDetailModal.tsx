@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import {
   Dialog,
   DialogContent,
@@ -14,16 +15,17 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
+  Spinner
 } from "@/components";
-import { 
-  X, 
-  User, 
-  Calendar, 
-  FileText, 
-  AlertTriangle, 
-  Ban, 
-  UserX, 
+import {
+  X,
+  User,
+  Calendar,
+  FileText,
+  AlertTriangle,
+  Ban,
+  UserX,
   MessageSquare,
   Hash,
   Clock,
@@ -39,7 +41,22 @@ interface ReportDetailModalProps {
   onAction: () => void;
 }
 
-export function ReportDetailModal({
+// 로딩 컴포넌트
+const ReportDetailModalLoading = () => (
+  <Dialog open onOpenChange={() => {}}>
+    <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Spinner size="lg" />
+          <p className="text-sm text-gray-500">신고 상세 정보 로딩 중...</p>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
+// 실제 모달 컴포넌트
+function ReportDetailModalContent({
   report,
   isOpen,
   onClose,
@@ -310,3 +327,14 @@ export function ReportDetailModal({
     </Dialog>
   );
 }
+
+// Dynamic import로 컴포넌트 래핑
+const ReportDetailModal = dynamic(
+  () => Promise.resolve(ReportDetailModalContent),
+  {
+    ssr: false,
+    loading: () => <ReportDetailModalLoading />,
+  }
+);
+
+export { ReportDetailModal };

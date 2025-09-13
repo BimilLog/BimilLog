@@ -9,6 +9,7 @@ import {
   shareService,
   fallbackShare,
 } from "@/lib/auth/kakao";
+import { logger } from '@/lib/utils/logger';
 
 interface KakaoShareButtonProps {
   type: "service" | "rollingPaper" | "post";
@@ -62,7 +63,7 @@ export function KakaoShareButton({
 
         case "rollingPaper":
           if (!userName) {
-            console.error("롤링페이퍼 공유에는 userName이 필요합니다.");
+            logger.error("롤링페이퍼 공유에는 userName이 필요합니다.");
             return;
           }
           success = await shareRollingPaper(userName, messageCount);
@@ -75,7 +76,7 @@ export function KakaoShareButton({
 
         case "post":
           if (!postId || !title || !author || !content) {
-            console.error(
+            logger.error(
               "게시글 공유에는 postId, title, author, content가 필요합니다."
             );
             return;
@@ -87,7 +88,7 @@ export function KakaoShareButton({
           break;
 
         default:
-          console.error("지원하지 않는 공유 타입입니다.");
+          logger.error("지원하지 않는 공유 타입입니다.");
           return;
       }
 
@@ -96,7 +97,7 @@ export function KakaoShareButton({
         fallbackShare(fallbackUrl, fallbackTitle, fallbackText);
       }
     } catch (error) {
-      console.error("공유 중 오류 발생:", error);
+      logger.error("공유 중 오류 발생:", error);
     } finally {
       setIsSharing(false);
     }

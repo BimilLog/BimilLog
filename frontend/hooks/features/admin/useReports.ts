@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { adminQuery, type Report, type PageResponse } from "@/lib/api";
 import { useDebounce } from "@/hooks/common/useDebounce";
+import { logger } from '@/lib/utils/logger';
 
 interface UseReportsOptions {
   initialFilterType?: string;
@@ -39,7 +40,7 @@ export function useReports(options: UseReportsOptions = {}) {
         throw new Error(response.error || "Failed to fetch reports");
       }
     } catch (error) {
-      console.error("Failed to fetch reports:", error);
+      logger.error("Failed to fetch reports:", error);
       setError(error instanceof Error ? error.message : "Failed to fetch reports");
     } finally {
       setIsLoading(false);

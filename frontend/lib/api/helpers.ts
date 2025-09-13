@@ -1,4 +1,5 @@
 import type { ApiResponse } from '@/types';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * API 헬퍼 유틸리티
@@ -33,7 +34,7 @@ export const apiCall = async <T>(
     const response = await apiFunction();
     return handleApiResponse(response);
   } catch (error) {
-    console.error('API call failed:', error);
+    logger.error('API call failed:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -210,7 +211,7 @@ export class ErrorHandler {
 // handleApiError를 export (기존 코드 호환성)
 export const handleApiError = (error: unknown): void => {
   const appError = ErrorHandler.mapApiError(error);
-  console.error(appError.title, appError.message, appError.originalError);
+  logger.error(appError.title, appError.message, appError.originalError);
 
   // Toast 표시 로직 등 추가 가능
   const { showToast } = require('@/stores/toast.store').useToastStore.getState();

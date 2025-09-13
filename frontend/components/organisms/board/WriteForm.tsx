@@ -5,7 +5,7 @@ import { Input } from "@/components";
 import { Label } from "@/components";
 import { SafeHTML } from "@/components";
 import { Save, Lightbulb } from "lucide-react";
-import Editor from "@/components/molecules/forms/editor";
+import { LazyEditor } from "@/lib/utils/lazy-components";
 
 interface User {
   userName: string;
@@ -78,7 +78,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
               >
                 내용
               </Label>
-              <Editor value={content} onChange={setContent} />
+              <LazyEditor value={content} onChange={setContent} />
               <p className="text-xs text-gray-500 flex items-center space-x-1">
                 <Lightbulb className="w-3 h-3" />
                 <span>다양한 스타일로 내용을 꾸며보세요.</span>

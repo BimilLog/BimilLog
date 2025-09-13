@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { adminCommand, type Report } from "@/lib/api";
 import { useToast } from "@/hooks";
+import { logger } from '@/lib/utils/logger';
 
 export function useReportActions(onSuccess?: () => void) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -39,7 +40,7 @@ export function useReportActions(onSuccess?: () => void) {
         return false;
       }
     } catch (error) {
-      console.error("Ban user failed:", error);
+      logger.error("Ban user failed:", error);
       showError("제재 실패", "사용자 제재 중 오류가 발생했습니다.");
       return false;
     } finally {
@@ -76,7 +77,7 @@ export function useReportActions(onSuccess?: () => void) {
         return false;
       }
     } catch (error) {
-      console.error("Force withdraw user failed:", error);
+      logger.error("Force withdraw user failed:", error);
       showError("탈퇴 실패", "사용자 탈퇴 중 오류가 발생했습니다.");
       return false;
     } finally {

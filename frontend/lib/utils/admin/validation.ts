@@ -1,3 +1,5 @@
+import { logger } from '@/lib/utils/logger';
+
 export type ReportType = "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT";
 
 export interface ValidatedReport {
@@ -27,9 +29,13 @@ export interface ValidatedPageResponse {
 
 const VALID_REPORT_TYPES: readonly ReportType[] = ["POST", "COMMENT", "ERROR", "IMPROVEMENT"];
 
-export function validateReport(data: any): ValidatedReport | null {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function validateReport(data: unknown): ValidatedReport | null {
   try {
-    if (!data || typeof data !== "object") {
+    if (!isRecord(data)) {
       throw new Error("Invalid data type");
     }
 
@@ -41,7 +47,7 @@ export function validateReport(data: any): ValidatedReport | null {
       throw new Error("Invalid reporterName");
     }
 
-    if (!isValidReportType(data.reportType)) {
+    if (typeof data.reportType !== "string" || !isValidReportType(data.reportType)) {
       throw new Error("Invalid reportType");
     }
 
@@ -53,16 +59,16 @@ export function validateReport(data: any): ValidatedReport | null {
       throw new Error("Invalid createdAt");
     }
 
-    return data as ValidatedReport;
+    return data as unknown as ValidatedReport;
   } catch (error) {
-    console.error("Report validation failed:", error);
+    logger.error("Report validation failed:", error);
     return null;
   }
 }
 
-export function validatePageResponse(data: any): ValidatedPageResponse | null {
+export function validatePageResponse(data: unknown): ValidatedPageResponse | null {
   try {
-    if (!data || typeof data !== "object") {
+    if (!isRecord(data)) {
       throw new Error("Invalid data type");
     }
 
@@ -78,9 +84,9 @@ export function validatePageResponse(data: any): ValidatedPageResponse | null {
       throw new Error("Invalid totalPages");
     }
 
-    return data as ValidatedPageResponse;
+    return data as unknown as ValidatedPageResponse;
   } catch (error) {
-    console.error("PageResponse validation failed:", error);
+    logger.error("PageResponse validation failed:", error);
     return null;
   }
 }

@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { Edit, Trash2, Heart, MessageCircle, Eye } from "lucide-react";
 import { Button } from "@/components";
 import type { Post, Comment } from "@/lib/api";

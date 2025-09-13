@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { useToastStore } from "@/stores/toast.store";
 import { apiClient, Comment } from "@/lib/api";
+import { logger } from '@/lib/utils/logger';
 
 // ===== PASSWORD MODAL =====
 export type PasswordModalMode = "post" | "comment";
@@ -174,7 +175,7 @@ export const useKakaoCallback = () => {
           router.push(`/login?error=${response.error || "login_failed"}`);
         }
       } catch (error) {
-        console.error("Callback processing error:", error);
+        logger.error("Callback processing error:", error);
         router.push("/login?error=callback_failed");
       } finally {
         setIsProcessing(false);
@@ -240,7 +241,7 @@ export const useSignupUuid = () => {
           router.push("/login?error=invalid_signup_session");
         }
       } catch (error) {
-        console.error("UUID validation error:", error);
+        logger.error("UUID validation error:", error);
         setError("validation_failed");
         router.push("/login?error=signup_validation_failed");
       } finally {

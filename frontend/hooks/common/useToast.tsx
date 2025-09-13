@@ -1,6 +1,6 @@
 "use client";
 
-import React, { type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useToastStore } from "@/stores/toast.store";
 import { ToastContainer } from "@/components/molecules/feedback/toast";
 

@@ -1,24 +1,27 @@
 import React, { memo } from 'react';
 
 // Simple deep equality check
-function deepEqual(obj1: any, obj2: any): boolean {
+function deepEqual<T = unknown>(obj1: T, obj2: T): boolean {
   if (obj1 === obj2) return true;
-  
+
   if (obj1 == null || obj2 == null) return false;
   if (typeof obj1 !== typeof obj2) return false;
-  
+
   if (typeof obj1 !== 'object') return obj1 === obj2;
-  
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
-  
+
+  const keys1 = Object.keys(obj1 as Record<string, unknown>);
+  const keys2 = Object.keys(obj2 as Record<string, unknown>);
+
   if (keys1.length !== keys2.length) return false;
-  
+
   for (const key of keys1) {
     if (!keys2.includes(key)) return false;
-    if (!deepEqual(obj1[key], obj2[key])) return false;
+    if (!deepEqual(
+      (obj1 as Record<string, unknown>)[key],
+      (obj2 as Record<string, unknown>)[key]
+    )) return false;
   }
-  
+
   return true;
 }
 

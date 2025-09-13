@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks";
 import { userCommand } from "@/lib/api";
 import { useToast } from "@/hooks";
 import { ToastContainer } from "@/components/molecules/feedback/toast";
+import { logger } from '@/lib/utils/logger';
 
 type SuggestionType = "ERROR" | "IMPROVEMENT";
 
@@ -84,7 +85,7 @@ export default function SuggestClient() {
         );
       }
     } catch (error) {
-      console.error("Submit suggestion failed:", error);
+      logger.error("Submit suggestion failed:", error);
       showError(
         "건의사항 접수 실패",
         "건의사항 접수 중 오류가 발생했습니다. 다시 시도해주세요."

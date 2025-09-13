@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
 import { userQuery, userCommand, paperQuery, authCommand, User, Setting } from "@/lib/api";
+import { logger } from '@/lib/utils/logger';
 
 // ===== USER STATS =====
 interface UserStats {
@@ -107,7 +108,7 @@ export function useUserStats(user: User | null) {
         setStatsError("통계 정보를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요.");
       }
     } catch (error) {
-      console.error("Failed to fetch user stats:", error);
+      logger.error("Failed to fetch user stats:", error);
       setStatsError("통계 정보를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요.");
     } finally {
       setIsLoadingStats(false);
@@ -165,7 +166,7 @@ export function useActivityData({ fetchData }: UseActivityDataOptions) {
       setTotalPages(result.totalPages);
       setTotalElements(result.totalElements);
     } catch (err) {
-      console.error("Failed to fetch activity data:", err);
+      logger.error("Failed to fetch activity data:", err);
       setError("데이터를 불러오는 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
@@ -245,7 +246,7 @@ export function useSettings() {
       }
     } catch (error) {
       if (!isMounted.current) return;
-      console.error("설정 로드 실패:", error);
+      logger.error("설정 로드 실패:", error);
       const errorMessage = "설정을 불러오는 중 오류가 발생했습니다. 페이지를 새로고침해주세요.";
       setError(errorMessage);
       showError("설정 로드 실패", errorMessage);
@@ -281,7 +282,7 @@ export function useSettings() {
       }
     } catch (error) {
       if (!isMounted.current) return;
-      console.error("설정 저장 실패:", error);
+      logger.error("설정 저장 실패:", error);
       showError(
         "설정 저장 실패",
         "설정 저장 중 오류가 발생했습니다. 다시 시도해주세요."
@@ -342,7 +343,7 @@ export function useSettings() {
       }
     } catch (error) {
       if (!isMounted.current) return;
-      console.error("회원탈퇴 실패:", error);
+      logger.error("회원탈퇴 실패:", error);
       showError(
         "회원탈퇴 실패",
         error instanceof Error
@@ -413,7 +414,7 @@ export function useMyPage() {
           await logout();
         }, 3000);
       } catch (error) {
-        console.error("Failed to update nickname:", error);
+        logger.error("Failed to update nickname:", error);
       }
     },
     [updateUserName, refreshUser, fetchUserStats, showSuccess, logout]

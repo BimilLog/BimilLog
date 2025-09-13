@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { postQuery, SimplePost } from "@/lib/api";
+import { logger } from '@/lib/utils/logger';
 
 const URL = "https://grow-farm.com";
 
@@ -47,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     
 
   } catch (error) {
-    console.error("Failed to fetch posts for sitemap:", error);
+    logger.error("Failed to fetch posts for sitemap:", error);
 
     return staticRoutes;
   }

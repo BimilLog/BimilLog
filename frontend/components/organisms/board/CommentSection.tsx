@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import type { Comment } from "@/lib/api";
 import { CommentForm } from "./CommentForm";
 import { PopularComments } from "./PopularComments";

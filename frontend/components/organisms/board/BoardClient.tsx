@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { AuthHeader } from "@/components/organisms/common";
 import { BoardSearch } from "@/components/organisms/board";
 import {

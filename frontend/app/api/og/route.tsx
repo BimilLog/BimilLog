@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { logger } from '@/lib/utils/logger';
 
 export const runtime = "edge";
 
@@ -94,7 +95,7 @@ export async function GET(request: Request) {
     );
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : "Unknown error";
-    console.error(`OG Image generation failed: ${errorMessage}`);
+    logger.error(`OG Image generation failed: ${errorMessage}`);
     
     return new Response(
       JSON.stringify({ 

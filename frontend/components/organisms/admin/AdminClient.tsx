@@ -1,16 +1,55 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Spinner
 } from "@/components";
 import { AlertTriangle, TrendingUp } from "lucide-react";
-import { AdminStats, ReportListContainer } from "@/components/organisms/admin";
 import { useAdminAuth, useReports } from "@/hooks/features/admin";
+
+// Dynamic imports for heavy admin components
+const AdminStats = dynamic(
+  () => import("@/components/organisms/admin").then((mod) => ({ default: mod.AdminStats })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-center h-20">
+                <Spinner size="md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+);
+
+const ReportListContainer = dynamic(
+  () => import("@/components/organisms/admin").then((mod) => ({ default: mod.ReportListContainer })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size="lg" />
+            <p className="text-sm text-gray-500">신고 목록 로딩 중...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+);
 
 export function AdminClient() {
   const router = useRouter();

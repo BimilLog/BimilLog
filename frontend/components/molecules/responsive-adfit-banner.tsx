@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AdFitBanner, AD_SIZES, getAdUnit } from "./adfit-banner";
+import { logger } from '@/lib/utils/logger';
 
 interface ResponsiveAdFitBannerProps {
   /**
@@ -41,7 +42,7 @@ export function ResponsiveAdFitBanner({
 
   const handleAdFail = (type: "mobile" | "pc") => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`${position} ${type} 광고 로딩 실패`);
+      logger.log(`${position} ${type} 광고 로딩 실패`);
     }
     onAdFail?.(type);
   };

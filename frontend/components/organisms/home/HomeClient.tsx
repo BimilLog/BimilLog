@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthHeader } from "@/components/organisms/common";
 import { useAuth } from "@/hooks";
+import { logger } from '@/lib/utils/logger';
 import { KakaoFriendsModal } from "@/components";
 import {
   ResponsiveAdFitBanner,
@@ -32,7 +33,7 @@ export default function HomeClient() {
           router.replace(`/${path}`);
         }
       } catch (error) {
-        console.error("Failed to parse protocol URL:", error);
+        logger.error("Failed to parse protocol URL:", error);
       }
     }
   }, [searchParams, router]);
@@ -77,7 +78,7 @@ export default function HomeClient() {
                 height={AD_SIZES.BANNER_320x50.height}
                 onAdFail={() => {
                   if (process.env.NODE_ENV === 'development') {
-                    console.log("메인 페이지 광고 로딩 실패");
+                    logger.log("메인 페이지 광고 로딩 실패");
                   }
                 }}
               />

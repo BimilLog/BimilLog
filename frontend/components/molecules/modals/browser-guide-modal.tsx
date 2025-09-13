@@ -1,19 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components";
-import { Button } from "@/components";
+import dynamic from "next/dynamic";
+import { Dialog, DialogContent, Button, Spinner } from "@/components";
 import { useBrowserGuide } from "@/hooks";
-import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
 import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
+
+// Dynamic import for PWA install button
+const PWAInstallButton = dynamic(
+  () => import("@/components/molecules/pwa-install-button").then((mod) => ({ default: mod.PWAInstallButton })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-10 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+        <Spinner size="sm" />
+      </div>
+    )
+  }
+);
 
 interface BrowserGuideModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 }
 
-export function BrowserGuideModal({
+// 로딩 컴포넌트
+const BrowserGuideModalLoading = () => (
+  <Dialog open onOpenChange={() => {}}>
+    <DialogContent className="p-6 max-w-md mx-auto">
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center gap-3">
+          <Spinner size="lg" />
+          <p className="text-sm text-gray-500">브라우저 가이드 로딩 중...</p>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
+// 실제 모달 컴포넌트
+function BrowserGuideModalContent({
   isOpen,
   onOpenChange,
 }: BrowserGuideModalProps) {
@@ -142,3 +169,14 @@ export function BrowserGuideModal({
     </Dialog>
   );
 }
+
+// Dynamic import로 컴포넌트 래핑
+const BrowserGuideModal = dynamic(
+  () => Promise.resolve(BrowserGuideModalContent),
+  {
+    ssr: false,
+    loading: () => <BrowserGuideModalLoading />,
+  }
+);
+
+export { BrowserGuideModal };

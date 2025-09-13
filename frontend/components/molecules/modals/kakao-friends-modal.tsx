@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components";
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { Button, Avatar, AvatarFallback, AvatarImage } from "@/components";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Spinner,
+  EmptyState,
+  Alert
 } from "@/components";
-import { Spinner } from "@/components";
-import { EmptyState } from "@/components";
-import { Alert } from "@/components";
 import { userQuery, KakaoFriendList } from "@/lib/api";
+import { logger } from '@/lib/utils/logger';
 import { logoutAndRedirectToConsent } from "@/lib/auth/kakao";
 import { Users, MessageCircle, X, RefreshCw, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -22,7 +23,32 @@ interface KakaoFriendsModalProps {
   onClose: () => void;
 }
 
-export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
+// 로딩 컴포넌트
+const KakaoFriendsModalLoading = () => (
+  <Dialog open onOpenChange={() => {}}>
+    <DialogContent className="max-w-md max-h-[80vh] p-0 overflow-hidden bg-white">
+      <DialogHeader className="px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-yellow-300 rounded-lg flex items-center justify-center">
+            <Users className="w-5 h-5 text-yellow-800" />
+          </div>
+          <DialogTitle className="text-lg font-bold text-yellow-900">
+            카카오 친구
+          </DialogTitle>
+        </div>
+      </DialogHeader>
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center gap-3">
+          <Spinner size="lg" />
+          <p className="text-sm text-gray-500">카카오 친구 목록 로딩 중...</p>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
+// 실제 모달 컴포넌트
+function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
   const [friendsData, setFriendsData] = useState<KakaoFriendList | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +78,7 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
         }
       }
     } catch (err) {
-      console.error("카카오 친구 조회 예외:", err);
+      logger.error("카카오 친구 조회 예외:", err);
       setError("카카오 친구 조회 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
@@ -72,7 +98,7 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
         logoutAndRedirectToConsent();
       }
     } catch (err) {
-      console.error("카카오 동의 처리 실패:", err);
+      logger.error("카카오 동의 처리 실패:", err);
       setError(
         err instanceof Error
           ? err.message
@@ -278,3 +304,14 @@ export function KakaoFriendsModal({ isOpen, onClose }: KakaoFriendsModalProps) {
     </Dialog>
   );
 }
+
+// Dynamic import로 컴포넌트 래핑
+const KakaoFriendsModal = dynamic(
+  () => Promise.resolve(KakaoFriendsModalContent),
+  {
+    ssr: false,
+    loading: () => <KakaoFriendsModalLoading />,
+  }
+);
+
+export { KakaoFriendsModal };

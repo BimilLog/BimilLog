@@ -12,6 +12,7 @@ import {
 import { Send, Snowflake, Waves, IceCream2 } from "lucide-react";
 import { getDecoInfo, decoTypeMap, type DecoType } from "@/lib/api";
 import { DecoIcon } from "@/components";
+import { logger } from '@/lib/utils/logger';
 
 interface MessageFormData {
   content: string;
@@ -68,7 +69,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({
       reset();
       onSuccess?.("메시지가 성공적으로 추가되었습니다!");
     } catch (error) {
-      console.error("Failed to add message:", error);
+      logger.error("Failed to add message:", error);
       onError?.("메시지 추가에 실패했습니다. 다시 시도해주세요.");
     }
   };

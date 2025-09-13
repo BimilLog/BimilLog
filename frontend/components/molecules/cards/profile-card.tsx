@@ -27,6 +27,7 @@ import {
 import { User, userQuery, userCommand } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
 import { useToast } from "@/hooks";
+import { logger } from '@/lib/utils/logger';
 import { ToastContainer } from "@/components";
 
 interface ProfileCardProps {
@@ -88,7 +89,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
         setNicknameMessage(response.error || "닉네임 확인 중 오류가 발생했습니다.");
       }
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       setIsNicknameAvailable(false);
       setNicknameMessage("닉네임 확인 중 오류가 발생했습니다.");
     } finally {
@@ -127,7 +128,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
         setIsNicknameAvailable(false);
       }
     } catch (error) {
-      console.error("Failed to update nickname:", error);
+      logger.error("Failed to update nickname:", error);
       showError("닉네임 변경 실패", "닉네임 변경 중 오류가 발생했습니다.");
     } finally {
       setIsNicknameChangeSubmitting(false);

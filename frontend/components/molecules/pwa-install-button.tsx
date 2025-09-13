@@ -3,7 +3,7 @@
 import { Button } from "@/components";
 import { useBrowserGuide } from "@/hooks";
 import { useState } from "react";
-import { BrowserGuideModal } from "@/components";
+import { LazyBrowserGuideModal } from "@/lib/utils/lazy-components";
 
 interface PWAInstallButtonProps {
   className?: string;
@@ -46,7 +46,7 @@ export function PWAInstallButton({
           ? "홈 화면에 추가"
           : "앱 설치 안내"}
       </Button>
-      <BrowserGuideModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
+      <LazyBrowserGuideModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks";
 import { AuthLoadingScreen } from "@/components";
 import { fcmManager } from "@/lib/auth/fcm";
+import { logger } from '@/lib/utils/logger';
 
 export default function LogoutPage() {
   const { logout } = useAuth();
@@ -29,7 +30,7 @@ export default function LogoutPage() {
         await logout();
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
-          console.error("Logout failed:", error);
+          logger.error("Logout failed:", error);
         }
       } finally {
         // sessionManager.clear(); // 더 이상 필요 없음

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Button } from "@/components";
 import { AlertTriangle } from "lucide-react";
+import { logger } from '@/lib/utils/logger';
 
 export default function AdminError({
   error,
@@ -12,7 +13,7 @@ export default function AdminError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Admin page error:", error);
+    logger.error("Admin page error:", error);
   }, [error]);
 
   return (

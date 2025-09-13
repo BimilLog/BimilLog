@@ -5,6 +5,7 @@ import { getDecoInfo, paperCommand } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
 import { ErrorHandler } from "@/lib/api/helpers";
+import { logger } from '@/lib/utils/logger';
 
 interface MessageViewProps {
   message: RollingPaperMessage | VisitMessage;
@@ -46,7 +47,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
         onDeleteError?.("메시지 삭제에 실패했습니다.");
       }
     } catch (error) {
-      console.error("Failed to delete message:", error);
+      logger.error("Failed to delete message:", error);
       const appError = ErrorHandler.mapApiError(error);
       onDeleteError?.(appError.message);
     }

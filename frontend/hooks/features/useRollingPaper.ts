@@ -8,6 +8,7 @@ import { useApiMutation } from '@/hooks/api/useApiMutation';
 import { useAuth, useToast } from '@/hooks';
 import { ErrorHandler } from "@/lib/api/helpers";
 import { copyRollingPaperLink } from "@/lib/utils/clipboard";
+import { logger } from '@/lib/utils/logger';
 import type { RollingPaperMessage, VisitMessage, DecoType } from '@/types/domains/paper';
 
 // 롤링페이퍼 메시지 조회
@@ -226,7 +227,7 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
         );
       }
     } catch (error) {
-      console.error("Search error:", error);
+      logger.error("Search error:", error);
       const appError = ErrorHandler.mapApiError(error);
       setSearchError(appError.userMessage || "롤링페이퍼를 찾을 수 없어요.");
     } finally {
@@ -294,7 +295,7 @@ export function useRollingPaperShare({
         );
       }
     } catch (error) {
-      console.error("카카오 공유 중 오류 발생:", error);
+      logger.error("카카오 공유 중 오류 발생:", error);
       await copyRollingPaperLink(nickname, messageCount);
     }
   }, [nickname, messageCount, showSuccess]);
@@ -330,7 +331,7 @@ export function useRollingPaperShare({
       } catch (error) {
         // 사용자가 공유를 취소한 경우는 무시
         if ((error as Error).name !== "AbortError") {
-          console.error("공유 실패:", error);
+          logger.error("공유 실패:", error);
           fallbackShare();
         }
       }

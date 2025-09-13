@@ -5,6 +5,14 @@ interface SanitizeOptions {
   forbiddenTags?: string[];
 }
 
+interface DOMPurifyConfig {
+  USE_PROFILES?: { html: boolean };
+  FORBID_TAGS?: string[];
+  FORBID_ATTR?: string[];
+  ALLOWED_TAGS?: string[];
+  ALLOWED_ATTR?: string[];
+}
+
 /**
  * HTML 콘텐츠를 안전하게 정화합니다.
  * XSS 공격을 방지하기 위해 위험한 HTML, JavaScript 코드를 제거합니다.
@@ -15,7 +23,7 @@ export const sanitizeHtml = (content: string, options?: SanitizeOptions): string
   }
 
   // 기본 설정
-  let config: any = {
+  const config: DOMPurifyConfig = {
     USE_PROFILES: { html: true },
     FORBID_TAGS: ['script', 'style', 'iframe', 'frame', 'object', 'embed', 'form', 'input', 'meta', 'link'],
     FORBID_ATTR: [
@@ -37,7 +45,7 @@ export const sanitizeHtml = (content: string, options?: SanitizeOptions): string
     config.ALLOWED_TAGS = options.allowedTags;
   }
   if (options?.forbiddenTags) {
-    config.FORBID_TAGS = [...config.FORBID_TAGS, ...options.forbiddenTags];
+    config.FORBID_TAGS = [...(config.FORBID_TAGS || []), ...options.forbiddenTags];
   }
 
   return String(DOMPurify.sanitize(content, config));

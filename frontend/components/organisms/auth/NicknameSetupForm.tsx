@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { userQuery } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
 import { useToast } from "@/hooks";
+import { logger } from '@/lib/utils/logger';
 
 interface NicknameSetupFormProps {
   tempUuid: string;
@@ -68,7 +69,7 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
         setNicknameMessage(response.error || "닉네임 확인 중 오류가 발생했습니다.");
       }
     } catch (error) {
-      console.error("Nickname check failed:", error);
+      logger.error("Nickname check failed:", error);
       setIsNicknameAvailable(false);
       setNicknameMessage("닉네임 확인 중 오류가 발생했습니다.");
     } finally {
@@ -103,7 +104,7 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
         setIsNicknameAvailable(false);
       }
     } catch (error) {
-      console.error("SignUp failed:", error);
+      logger.error("SignUp failed:", error);
       onError("회원가입 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
