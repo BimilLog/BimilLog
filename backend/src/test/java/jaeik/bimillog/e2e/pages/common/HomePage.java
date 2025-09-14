@@ -15,31 +15,31 @@ import com.microsoft.playwright.options.WaitForSelectorState;
  */
 public class HomePage extends BasePage {
 
-    // Selectors
-    private static final String HERO_TITLE = "h1:has-text('익명으로 마음을 전해보세요')";
-    private static final String HERO_SUBTITLE = "p:has-text('비밀로그에서 소중한 사람에게')";
-    
-    // CTA 버튼들
-    private static final String START_BUTTON = "a:has-text('내 롤링페이퍼 만들기')";
-    private static final String VISIT_BUTTON = "a:has-text('다른 롤링페이퍼 방문하기')";
-    private static final String KAKAO_FRIENDS_BUTTON = "button:has-text('카카오 친구 확인하기')";
-    private static final String KAKAO_SHARE_BUTTON = "button:has-text('카카오톡으로 공유')";
-    
+    // Selectors - Playwright의 올바른 selector 문법 사용
+    private static final String HERO_TITLE = "h1:text('익명으로 마음을 전해보세요')";
+    private static final String HERO_SUBTITLE = "text=/비밀로그에서 소중한 사람에게/";
+
+    // CTA 버튼들 - 링크 선택자 수정
+    private static final String START_BUTTON = "text='내 롤링페이퍼 만들기'";
+    private static final String VISIT_BUTTON = "text='다른 롤링페이퍼 방문하기'";
+    private static final String KAKAO_FRIENDS_BUTTON = "button:text('카카오 친구 확인하기')";
+    private static final String KAKAO_SHARE_BUTTON = "button:text('카카오톡으로 공유')";
+
     // Features 섹션
-    private static final String FEATURES_SECTION = "section:has(h2:has-text('비밀로그의 특별한 기능들'))";
-    private static final String FEATURE_CARDS = ".grid .border-0.shadow-lg";
-    
+    private static final String FEATURES_SECTION = "h2:text('비밀로그의 특별한 기능들')";
+    private static final String FEATURE_CARDS = ".grid > div";  // 실제 구조에 맞게 수정
+
     // Footer
-    private static final String FOOTER = "footer.bg-gray-900";
-    private static final String FOOTER_LOGO = "footer h2:has-text('비밀로그')";
-    private static final String FOOTER_VERSION = "footer span:has-text('v2.0.0')";
-    
+    private static final String FOOTER = "footer";
+    private static final String FOOTER_LOGO = "footer h2:text('비밀로그')";
+    private static final String FOOTER_VERSION = "footer span:text('v2.0.0')";
+
     // 광고
-    private static final String TOP_AD_BANNER = ".container:has(ins.kakao_ad_area)";
-    private static final String MOBILE_AD_BANNER = "section:has(ins.kakao_ad_area)";
-    
+    private static final String TOP_AD_BANNER = "ins.kakao_ad_area";
+    private static final String MOBILE_AD_BANNER = "ins.kakao_ad_area";
+
     // 모달
-    private static final String KAKAO_FRIENDS_MODAL = "[role='dialog']:has-text('카카오 친구')";
+    private static final String KAKAO_FRIENDS_MODAL = "[role='dialog']";
     
     public HomePage(Page page, String baseUrl) {
         super(page, baseUrl);
@@ -116,7 +116,7 @@ public class HomePage extends BasePage {
     }
 
     public boolean hasFeatureWithTitle(String title) {
-        String selector = String.format("%s h3:has-text('%s')", FEATURE_CARDS, title);
+        String selector = String.format("h3:text('%s')", title);
         return isVisible(selector);
     }
 
@@ -141,12 +141,12 @@ public class HomePage extends BasePage {
     }
 
     public boolean hasFooterLink(String linkText) {
-        String selector = String.format("footer a:has-text('%s')", linkText);
+        String selector = String.format("footer a:text('%s')", linkText);
         return isVisible(selector);
     }
 
     public void clickFooterLink(String linkText) {
-        String selector = String.format("footer a:has-text('%s')", linkText);
+        String selector = String.format("footer a:text('%s')", linkText);
         click(selector);
     }
 

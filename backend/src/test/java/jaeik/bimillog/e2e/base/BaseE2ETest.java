@@ -227,6 +227,14 @@ public abstract class BaseE2ETest {
         element.click();
     }
 
+    protected void safeClick(Locator element) {
+        element.waitFor(new Locator.WaitForOptions()
+            .setState(WaitForSelectorState.VISIBLE)
+            .setTimeout(DEFAULT_TIMEOUT));
+        element.scrollIntoViewIfNeeded();
+        element.click();
+    }
+
     protected void safeFill(String selector, String text) {
         Locator element = page.locator(selector);
         element.waitFor(new Locator.WaitForOptions()

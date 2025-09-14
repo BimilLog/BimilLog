@@ -47,15 +47,37 @@ public class AuthHelper {
      */
     public void loginAsUser(String userName, String userId, String role) {
         // localStorage에 토큰과 사용자 정보 설정
-        page.evaluate("({token, user}) => {" +
-            "localStorage.setItem('" + ACCESS_TOKEN_KEY + "', token);" +
-            "localStorage.setItem('" + USER_KEY + "', JSON.stringify(user));" +
-            "localStorage.setItem('" + FCM_TOKEN_KEY + "', 'test_fcm_token');" +
-        "}", createLoginData(userName, userId, role));
-        
+        // 주의: localStorage 설정 후 페이지를 반드시 새로고침해야 React 컴포넌트가 인식함
+        String token = "USER".equals(role) ? TEST_JWT_TOKEN : TEST_ADMIN_TOKEN;
+
+        String script = String.format(
+            "localStorage.setItem('%s', '%s');" +
+            "localStorage.setItem('%s', JSON.stringify({" +
+            "  id: '%s'," +
+            "  userName: '%s'," +
+            "  email: 'test@example.com'," +
+            "  role: '%s'," +
+            "  thumbnailImage: '%s'," +
+            "  createdAt: new Date().toISOString()" +
+            "}));" +
+            "localStorage.setItem('%s', 'test_fcm_token');",
+            ACCESS_TOKEN_KEY, token,
+            USER_KEY,
+            userId,
+            userName,
+            role,
+            TEST_USER_THUMBNAIL,
+            FCM_TOKEN_KEY
+        );
+
+        page.evaluate(script);
+
         // 페이지 새로고침하여 로그인 상태 반영
         page.reload();
         page.waitForLoadState(LoadState.NETWORKIDLE);
+
+        // 로그인 상태가 반영될 때까지 잠시 대기
+        page.waitForTimeout(500);
     }
     
     /**

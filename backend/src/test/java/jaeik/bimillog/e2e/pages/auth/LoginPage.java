@@ -18,7 +18,7 @@ public class LoginPage {
     private static final int DEFAULT_TIMEOUT = 30000;
 
     // 페이지 요소 선택자
-    private static final String KAKAO_LOGIN_BUTTON = "button:has-text('카카오로 시작하기')";
+    private static final String KAKAO_LOGIN_BUTTON = "button:has-text('카카오로 시작하기'), button:has-text('카카오 로그인')";
     private static final String ERROR_MESSAGE = "div[class*='bg-red-50'] div[class*='text-red-800']";
     private static final String ERROR_TITLE = "p:has-text('로그인 오류')";
     private static final String INFO_MESSAGE = "div[class*='bg-blue-50']";
@@ -26,6 +26,7 @@ public class LoginPage {
     private static final String PAGE_TITLE = "text=로그인";
     private static final String PAGE_DESCRIPTION = "text=나만의 롤링페이퍼를 만들어 보세요";
     private static final String INFO_TEXT_NO_LOGIN = "text=로그인 없이도 이용 가능!";
+    private static final String NO_ACCOUNT_SIGNUP_LINK = "text=이미 계정이 있으신가요?";
 
     public LoginPage(Page page) {
         this.page = page;

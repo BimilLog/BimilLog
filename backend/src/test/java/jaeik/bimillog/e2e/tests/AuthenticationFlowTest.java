@@ -115,8 +115,8 @@ public class AuthenticationFlowTest extends BaseE2ETest {
         // Then: 에러 메시지 표시
         assertTrue(signupPage.hasNicknameError(), "특수문자는 허용되지 않아야 함");
 
-        // When: 유효한 닉네임 입력
-        String validNickname = "테스트유저" + System.currentTimeMillis();
+        // When: 유효한 닉네임 입력 (2~8자 제한으로 인해 짧게 생성)
+        String validNickname = "테스트" + (System.currentTimeMillis() % 10000);
         signupPage.enterNickname(validNickname);
         signupPage.waitForDuplicateCheck();
 
@@ -145,8 +145,8 @@ public class AuthenticationFlowTest extends BaseE2ETest {
                 "닉네임 중복 에러 메시지가 표시되어야 함");
         }
 
-        // When: 유니크한 닉네임 입력
-        String uniqueNickname = "유저" + System.currentTimeMillis();
+        // When: 유니크한 닉네임 입력 (2~8자 제한)
+        String uniqueNickname = "유저" + (System.currentTimeMillis() % 100000);
         signupPage.enterNickname(uniqueNickname);
         signupPage.waitForDuplicateCheck();
 
@@ -162,8 +162,8 @@ public class AuthenticationFlowTest extends BaseE2ETest {
         String testUuid = UUID.randomUUID().toString();
         signupPage.navigateToNicknameSetup(testUuid);
 
-        // When: 유효한 닉네임 입력
-        String nickname = "테스트" + System.currentTimeMillis();
+        // When: 유효한 닉네임 입력 (2~8자 제한)
+        String nickname = "테스트" + (System.currentTimeMillis() % 1000);
         signupPage.enterNickname(nickname);
         signupPage.waitForDuplicateCheck();
 
@@ -436,8 +436,8 @@ public class AuthenticationFlowTest extends BaseE2ETest {
         signupPage.navigateToNicknameSetup(testUuid);
         signupPage.takeScreenshot("flow_2_nickname_setup");
 
-        // Step 4: 닉네임 입력 및 검증
-        String nickname = "통합테스트" + System.currentTimeMillis();
+        // Step 4: 닉네임 입력 및 검증 (2~8자 제한)
+        String nickname = "통테" + (System.currentTimeMillis() % 10000);
         signupPage.enterNickname(nickname);
         signupPage.waitForDuplicateCheck();
         assertTrue(signupPage.hasNicknameSuccess(), "닉네임 사용 가능해야 함");

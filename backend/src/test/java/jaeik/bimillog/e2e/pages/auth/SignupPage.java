@@ -25,13 +25,13 @@ public class SignupPage {
     private static final String LOGIN_LINK = "a[href='/login']";
 
     // 닉네임 설정 폼 요소
-    private static final String NICKNAME_INPUT = "input[placeholder*='닉네임']";
-    private static final String NICKNAME_ERROR = "p.text-red-500";
-    private static final String NICKNAME_SUCCESS = "p.text-green-500";
+    private static final String NICKNAME_INPUT = "input[placeholder*='닉네임'], input#nickname";
+    private static final String NICKNAME_ERROR = "p.text-red-500, p.text-red-600";
+    private static final String NICKNAME_SUCCESS = "p.text-green-500, p.text-green-600";
     private static final String TERMS_CHECKBOX = "input[type='checkbox'][id*='terms']";
     private static final String PRIVACY_CHECKBOX = "input[type='checkbox'][id*='privacy']";
     private static final String ALL_AGREE_CHECKBOX = "input[type='checkbox']:has(~label:has-text('모두 동의'))";
-    private static final String SUBMIT_BUTTON = "button:has-text('가입하기')";
+    private static final String SUBMIT_BUTTON = "button:has-text('가입하기'), button:has-text('닉네임 설정 완료')";
     private static final String TERMS_LINK = "a:has-text('이용약관')";
     private static final String PRIVACY_LINK = "a:has-text('개인정보처리방침')";
 

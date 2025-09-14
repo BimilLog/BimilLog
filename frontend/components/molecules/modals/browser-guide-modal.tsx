@@ -28,7 +28,7 @@ interface BrowserGuideModalProps {
 // 로딩 컴포넌트
 const BrowserGuideModalLoading = () => (
   <Dialog open onOpenChange={() => {}}>
-    <DialogContent className="p-6 max-w-md mx-auto">
+    <DialogContent className="p-6 max-w-md mx-auto" aria-label="브라우저 가이드 로딩">
       <div className="flex items-center justify-center min-h-[300px]">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" />
@@ -87,7 +87,7 @@ function BrowserGuideModalContent({
 
   return (
     <Dialog open={effectiveShow} onOpenChange={handleClose}>
-      <DialogContent className="p-6 max-w-md mx-auto">
+      <DialogContent className="p-6 max-w-md mx-auto" aria-label="브라우저 가이드">
         <div className="text-center mb-6">
           <Smartphone className="w-10 h-10 mb-3 text-indigo-600 mx-auto" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">

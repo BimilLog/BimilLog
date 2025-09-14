@@ -14,11 +14,11 @@ public class RollingPaperPage {
 
     private final Page page;
 
-    // 셀렉터 정의
-    private static final String GRID_CONTAINER = "[class*='grid'], .rolling-paper-grid, .message-grid";
-    private static final String GRID_CELL = ".grid-cell, [class*='cell'], .message-cell";
-    private static final String EMPTY_CELL = ".grid-cell:not(.has-message), .empty-cell, [data-empty='true']";
-    private static final String MESSAGE_CELL = ".grid-cell.has-message, .message-cell, [data-has-message='true']";
+    // 셀렉터 정의 - 실제 프론트엔드 구조에 맞게 수정
+    private static final String GRID_CONTAINER = ".grid-container, [class*='grid'][class*='paper'], .rolling-paper-grid";
+    private static final String GRID_CELL = ".cell, button[class*='cell'], [role='gridcell']";
+    private static final String EMPTY_CELL = ".cell:not([data-has-message]), button[class*='empty'], .empty-cell";
+    private static final String MESSAGE_CELL = ".cell[data-has-message='true'], button[class*='message'], .message-cell";
     private static final String SHARE_BUTTON = "button:has-text('공유'), button[aria-label*='공유']";
     private static final String COPY_URL_BUTTON = "button:has-text('URL 복사'), button:has-text('링크 복사')";
     private static final String KAKAO_SHARE_BUTTON = "button:has-text('카카오톡'), button[aria-label*='카카오']";

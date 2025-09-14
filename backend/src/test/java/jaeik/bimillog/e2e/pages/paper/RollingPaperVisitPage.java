@@ -15,9 +15,9 @@ public class RollingPaperVisitPage {
 
     private final Page page;
 
-    // 셀렉터 정의
-    private static final String SEARCH_INPUT = "input[placeholder*='닉네임'], input[name='search'], #search-input";
-    private static final String SEARCH_BUTTON = "button:has-text('검색'), button[type='submit']";
+    // 셀렉터 정의 - 실제 프론트엔드에 맞게 수정
+    private static final String SEARCH_INPUT = "input[placeholder*='닉네임'], input[placeholder*='입력'], input[type='search']";
+    private static final String SEARCH_BUTTON = "button:has-text('롤링페이퍼 방문하기'), button:has-text('검색'), button[type='submit']";
     private static final String LOADING_SPINNER = ".spinner, .loading, [aria-label='로딩']";
     private static final String ERROR_MESSAGE = ".error, [role='alert'], .text-red-500, .error-message";
     private static final String RECENT_VISITS_SECTION = "[class*='recent'], .recent-visits";
