@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, memo } from "react";
-import { AuthHeader } from "@/components/organisms/common";
+import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { BoardSearch } from "@/components/organisms/board";
 import {
-  ResponsiveAdFitBanner,
   AdFitBanner,
   AD_SIZES,
   getAdUnit,
   Breadcrumb,
 } from "@/components";
-import { HomeFooter } from "@/components/organisms/home";
 
 // 분리된 훅들 import
 import { usePostList, usePopularPostsTabs } from "@/hooks/features";
@@ -73,23 +71,14 @@ function BoardClient() {
   }, [postsPerPage]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <AuthHeader />
-
-      {/* Top Banner Advertisement */}
-      <div className="container mx-auto px-4 py-2">
-        <div className="flex justify-center">
-          <ResponsiveAdFitBanner
-            position="게시판 최상단"
-            className="max-w-full"
-          />
-        </div>
-      </div>
-
+    <MainLayout
+      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50"
+      containerClassName="container mx-auto px-4"
+    >
       {/* 게시판 헤더 */}
       <BoardHeader />
 
-      <main className="container mx-auto px-4 pb-8">
+      <main className="pb-8">
         <Breadcrumb
           items={[
             { title: "홈", href: "/" },
@@ -98,8 +87,7 @@ function BoardClient() {
         />
         {/* 검색 섹션 */}
         <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg p-6">
-            <BoardSearch
+          <BoardSearch
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               searchType={searchType}
@@ -108,7 +96,6 @@ function BoardClient() {
               setPostsPerPage={setPostsPerPage}
               handleSearch={handleSearch}
             />
-          </div>
         </div>
 
         {/* 게시판 탭 */}
@@ -150,9 +137,7 @@ function BoardClient() {
           </div>
         </div>
       </main>
-
-      <HomeFooter />
-    </div>
+    </MainLayout>
   );
 }
 

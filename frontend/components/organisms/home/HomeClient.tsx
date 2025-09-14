@@ -2,21 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AuthHeader } from "@/components/organisms/common";
+import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useAuth } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
-import {
-  ResponsiveAdFitBanner,
-  AdFitBanner,
-  AD_SIZES,
-  getAdUnit,
-} from "@/components";
 
 // 분리된 컴포넌트들 import - 직접 파일에서 import하여 circular dependency 방지
 import { HomeHero } from "./HomeHero";
 import { HomeFeatures } from "./HomeFeatures";
-import { HomeFooter } from "./HomeFooter";
 
 export default function HomeClient() {
   const { isAuthenticated } = useAuth();
@@ -46,19 +39,7 @@ export default function HomeClient() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <AuthHeader />
-
-      {/* Top Banner Advertisement */}
-      <div className="container mx-auto px-4 py-1">
-        <div className="flex justify-center">
-          <ResponsiveAdFitBanner
-            position="메인페이지 상단"
-            className="max-w-full"
-          />
-        </div>
-      </div>
-
+    <MainLayout className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       {/* Hero Section */}
       <HomeHero
         isAuthenticated={isAuthenticated}
@@ -68,35 +49,11 @@ export default function HomeClient() {
       {/* Features Section */}
       <HomeFeatures />
 
-      {/* Mobile Advertisement */}
-      <section className="container mx-auto px-4 py-3">
-        <div className="flex justify-center px-2">
-          {(() => {
-            const adUnit = getAdUnit("MOBILE_BANNER");
-            return adUnit ? (
-              <AdFitBanner
-                adUnit={adUnit}
-                width={AD_SIZES.BANNER_320x50.width}
-                height={AD_SIZES.BANNER_320x50.height}
-                onAdFail={() => {
-                  if (process.env.NODE_ENV === 'development') {
-                    logger.log("메인 페이지 광고 로딩 실패");
-                  }
-                }}
-              />
-            ) : null;
-          })()}
-        </div>
-      </section>
-
-      {/* Footer */}
-      <HomeFooter />
-
       {/* 카카오 친구 모달 */}
       <LazyKakaoFriendsModal
         isOpen={isFriendsModalOpen}
         onClose={() => setIsFriendsModalOpen(false)}
       />
-    </div>
+    </MainLayout>
   );
 }

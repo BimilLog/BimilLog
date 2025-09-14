@@ -1,17 +1,24 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { AlertCircle, CheckCircle, Info, XCircle, AlertTriangle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-lg p-4 shadow-brand-sm [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 transition-all duration-200",
   {
     variants: {
       variant: {
         default:
-          "bg-blue-50 border-blue-200 text-blue-800 [&>svg]:text-blue-600",
+          "bg-blue-50 border border-blue-200 text-blue-800 [&>svg]:text-blue-600",
         destructive:
-          "bg-red-50 border-red-200 text-red-800 [&>svg]:text-red-600",
+          "bg-red-50 border border-red-200 text-red-800 [&>svg]:text-red-600",
+        success:
+          "bg-green-50 border border-green-200 text-green-800 [&>svg]:text-green-600",
+        warning:
+          "bg-yellow-50 border border-yellow-200 text-yellow-800 [&>svg]:text-yellow-600",
+        info:
+          "bg-brand-gradient border-0 text-brand-primary [&>svg]:text-purple-600",
       },
     },
     defaultVariants: {
@@ -20,17 +27,42 @@ const alertVariants = cva(
   }
 );
 
-const Alert = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
-  <div
-    ref={ref}
-    role="alert"
-    className={cn(alertVariants({ variant }), className)}
-    {...props}
-  />
-));
+interface AlertProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof alertVariants> {
+  icon?: boolean;
+}
+
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ className, variant, icon = true, children, ...props }, ref) => {
+    const getIcon = () => {
+      if (!icon) return null;
+
+      switch (variant) {
+        case "destructive":
+          return <XCircle className="h-4 w-4" />;
+        case "success":
+          return <CheckCircle className="h-4 w-4" />;
+        case "warning":
+          return <AlertTriangle className="h-4 w-4" />;
+        case "info":
+          return <Info className="h-4 w-4" />;
+        default:
+          return <AlertCircle className="h-4 w-4" />;
+      }
+    };
+
+    return (
+      <div
+        ref={ref}
+        role="alert"
+        className={cn(alertVariants({ variant }), className)}
+        {...props}
+      >
+        {getIcon()}
+        <div className={icon ? "pl-7" : ""}>{children}</div>
+      </div>
+    );
+  }
+);
 Alert.displayName = "Alert";
 
 const AlertTitle = React.forwardRef<
@@ -39,7 +71,7 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    className={cn("mb-1 font-semibold leading-none tracking-tight", className)}
     {...props}
   />
 ));
@@ -57,4 +89,21 @@ const AlertDescription = React.forwardRef<
 ));
 AlertDescription.displayName = "AlertDescription";
 
-export { Alert, AlertTitle, AlertDescription };
+// 사전 정의된 Alert 타입들
+export const SuccessAlert = React.memo(({ children, ...props }: Omit<AlertProps, 'variant'>) => (
+  <Alert variant="success" {...props}>{children}</Alert>
+));
+
+export const ErrorAlert = React.memo(({ children, ...props }: Omit<AlertProps, 'variant'>) => (
+  <Alert variant="destructive" {...props}>{children}</Alert>
+));
+
+export const WarningAlert = React.memo(({ children, ...props }: Omit<AlertProps, 'variant'>) => (
+  <Alert variant="warning" {...props}>{children}</Alert>
+));
+
+export const InfoAlert = React.memo(({ children, ...props }: Omit<AlertProps, 'variant'>) => (
+  <Alert variant="info" {...props}>{children}</Alert>
+));
+
+export { Alert, AlertTitle, AlertDescription, alertVariants, type AlertProps };

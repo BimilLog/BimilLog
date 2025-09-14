@@ -16,7 +16,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
   children,
   className,
 }) => (
-  <Card className={`border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm ${className || ""}`}>
+  <Card variant="elevated" className={`hover:shadow-xl transition-shadow ${className || ""}`}>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
         {icon}

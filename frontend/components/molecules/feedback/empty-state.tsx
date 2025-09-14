@@ -11,6 +11,9 @@ import {
   RefreshCw,
   MessageCircle,
   ThumbsUp,
+  Coffee,
+  Smile,
+  Moon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,9 +28,10 @@ interface EmptyStateProps {
   icon?: React.ReactNode;
   showRetry?: boolean;
   onRetry?: () => void;
+  variant?: "default" | "cute" | "playful";
 }
 
-// 아이콘 맵핑
+// 아이콘 맵핑 (더 다양한 귀여운 아이콘 추가)
 const iconMap = {
   posts: FileText,
   comments: MessageCircle,
@@ -100,6 +104,7 @@ export const EmptyState = React.memo<EmptyStateProps>(({
   icon: customIcon,
   showRetry,
   onRetry,
+  variant = "cute",
 }) => {
   const defaults =
     defaultMessages[type as keyof typeof defaultMessages] ||
@@ -114,20 +119,115 @@ export const EmptyState = React.memo<EmptyStateProps>(({
 
   const IconComponent = iconMap[type];
   const icon =
-    customIcon || (IconComponent && <IconComponent className="w-12 h-12" />);
+    customIcon || (IconComponent && <IconComponent className="w-6 h-6" />);
 
+  // 장식용 이모지들
+  const decorativeEmojis = {
+    posts: ["✨", "📝", "💭"],
+    comments: ["💬", "🎈", "✨"],
+    "liked-posts": ["💖", "✨", "🌟"],
+    "liked-comments": ["👍", "💫", "✨"],
+    messages: ["💌", "💖", "🌸"],
+    search: ["🔍", "🌟", "✨"],
+    error: ["😅", "🔧", "⚡"],
+    offline: ["📡", "🌐", "💫"],
+    custom: ["✨", "💫", "🌟"],
+  };
+
+  const emojis = decorativeEmojis[type] || decorativeEmojis.custom;
+
+  if (variant === "cute" || variant === "playful") {
+    return (
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center text-center p-8 md:p-12",
+          "min-h-[300px] relative",
+          className
+        )}
+      >
+        {/* 떠다니는 장식 요소들 */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-8 left-8 text-2xl opacity-30 animate-float">{emojis[0]}</div>
+          <div className="absolute top-16 right-12 text-xl opacity-25 animate-bounce-cute" style={{ animationDelay: "0.5s" }}>
+            {emojis[1]}
+          </div>
+          <div className="absolute bottom-16 left-12 text-lg opacity-20 animate-pulse-cute" style={{ animationDelay: "1s" }}>
+            {emojis[2]}
+          </div>
+        </div>
+
+        {/* 메인 일러스트레이션 */}
+        <div className="mb-8 relative">
+          <div className="w-24 h-24 mx-auto mb-6 bg-brand-button rounded-3xl flex items-center justify-center shadow-brand-lg animate-pulse-cute">
+            <div className="text-white text-2xl">{icon}</div>
+          </div>
+
+          {/* 귀여운 장식 도트들 */}
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-2 h-2 bg-pink-300 rounded-full animate-bounce-cute"></div>
+            <div className="w-3 h-3 bg-purple-300 rounded-full animate-bounce-cute" style={{ animationDelay: "0.2s" }}></div>
+            <div className="w-2 h-2 bg-indigo-300 rounded-full animate-bounce-cute" style={{ animationDelay: "0.4s" }}></div>
+          </div>
+        </div>
+
+        {/* 텍스트 영역 */}
+        <div className="max-w-md mx-auto mb-8">
+          <h3 className="text-xl md:text-2xl font-bold text-brand-primary mb-4">
+            {title}
+          </h3>
+          {description && (
+            <p className="text-brand-secondary leading-relaxed text-sm md:text-base">
+              {description}
+            </p>
+          )}
+        </div>
+
+        {/* 액션 버튼들 */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+          {shouldShowRetry && onRetry && (
+            <Button
+              variant="outline"
+              size="default"
+              onClick={onRetry}
+              className="flex items-center justify-center min-h-touch"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              다시 시도
+            </Button>
+          )}
+
+          {actionLabel && (actionHref || onAction) && (
+            <Button
+              asChild={!!actionHref}
+              size="default"
+              onClick={onAction}
+              className="flex items-center justify-center min-h-touch"
+            >
+              {actionHref ? (
+                <Link href={actionHref}>{actionLabel}</Link>
+              ) : (
+                actionLabel
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // 기본 variant (기존 디자인 유지하되 개선)
   return (
     <div
       className={cn(
         "flex flex-col items-center justify-center text-center p-8 md:p-12",
-        "min-h-[300px]", // 모바일 최적화된 최소 높이
+        "min-h-[300px]",
         className
       )}
     >
       {/* 일러스트레이션 영역 */}
       <div className="mb-6">
-        <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center">
-          <div className="text-gray-400">{icon}</div>
+        <div className="w-20 h-20 mx-auto mb-4 bg-brand-gradient rounded-full flex items-center justify-center shadow-brand-lg">
+          <div className="text-brand-primary">{icon}</div>
         </div>
         {/* 장식용 도트들 (모바일에서는 숨김) */}
         <div className="hidden md:flex items-center justify-center space-x-1">
@@ -139,11 +239,11 @@ export const EmptyState = React.memo<EmptyStateProps>(({
 
       {/* 텍스트 영역 */}
       <div className="max-w-md mx-auto mb-8">
-        <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-3">
+        <h3 className="text-xl md:text-2xl font-bold text-brand-primary mb-3">
           {title}
         </h3>
         {description && (
-          <p className="text-gray-600 leading-relaxed">{description}</p>
+          <p className="text-brand-secondary leading-relaxed">{description}</p>
         )}
       </div>
 
@@ -152,9 +252,9 @@ export const EmptyState = React.memo<EmptyStateProps>(({
         {shouldShowRetry && onRetry && (
           <Button
             variant="outline"
-            size="lg"
+            size="default"
             onClick={onRetry}
-            className="flex items-center justify-center"
+            className="flex items-center justify-center min-h-touch"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             다시 시도
@@ -164,9 +264,9 @@ export const EmptyState = React.memo<EmptyStateProps>(({
         {actionLabel && (actionHref || onAction) && (
           <Button
             asChild={!!actionHref}
-            size="lg"
+            size="default"
             onClick={onAction}
-            className="flex items-center justify-center"
+            className="flex items-center justify-center min-h-touch"
           >
             {actionHref ? (
               <Link href={actionHref}>{actionLabel}</Link>
@@ -181,3 +281,12 @@ export const EmptyState = React.memo<EmptyStateProps>(({
 });
 
 EmptyState.displayName = "EmptyState";
+
+// 사전 정의된 EmptyState 타입들
+export const CuteEmptyState = React.memo((props: Omit<EmptyStateProps, 'variant'>) => (
+  <EmptyState variant="cute" {...props} />
+));
+
+export const PlayfulEmptyState = React.memo((props: Omit<EmptyStateProps, 'variant'>) => (
+  <EmptyState variant="playful" {...props} />
+));

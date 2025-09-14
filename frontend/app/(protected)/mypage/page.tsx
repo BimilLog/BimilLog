@@ -3,7 +3,8 @@
 import { useMyPage } from "@/hooks";
 import { ProfileCard } from "@/components/molecules";
 import { UserStatsSection, UserActivitySection } from "@/components/organisms/user";
-import { LoadingSpinner } from "@/components/atoms";
+import { CuteLoadingSpinner } from "@/components";
+import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 
 export default function MyPage() {
   const {
@@ -20,25 +21,22 @@ export default function MyPage() {
 
   if (isLoading || !user) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <MainLayout containerClassName="container mx-auto px-4">
         <div className="flex items-center justify-center py-16">
-          <LoadingSpinner
-            variant="gradient"
-            message="사용자 정보를 불러오는 중..."
-          />
+          <CuteLoadingSpinner message="사용자 정보를 불러오는 중..." />
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <MainLayout containerClassName="container mx-auto px-4 py-8">
       <ProfileCard
         user={user}
         onNicknameChange={handleNicknameChange}
         onLogout={logout}
       />
-      
+
       <UserStatsSection
         stats={userStats}
         isLoading={isLoadingStats}
@@ -46,8 +44,8 @@ export default function MyPage() {
         partialErrors={partialErrors}
         onRetry={fetchUserStats}
       />
-      
+
       <UserActivitySection />
-    </div>
+    </MainLayout>
   );
 }

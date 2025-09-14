@@ -1,15 +1,80 @@
 import * as React from "react";
-
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const Card = React.memo(({ className, ...props }: React.ComponentProps<"div">) => {
+const cardVariants = cva(
+  "flex flex-col rounded-lg border-0 backdrop-blur-sm transition-all duration-300 text-brand-primary",
+  {
+    variants: {
+      variant: {
+        // 기본 브랜드 카드 (가장 자주 사용)
+        default:
+          "bg-white/80 shadow-brand-lg hover:shadow-brand-xl",
+
+        // 강조 카드 (중요한 정보)
+        elevated:
+          "bg-white/90 shadow-brand-xl hover:shadow-brand-2xl",
+
+        // 부드러운 카드 (배경에 잘 어우러짐)
+        soft:
+          "bg-white/60 shadow-brand-sm hover:shadow-brand-md",
+
+        // 그라디언트 배경 카드 (특별한 경우)
+        gradient:
+          "bg-brand-gradient shadow-brand-lg hover:shadow-brand-xl",
+
+        // 보더 카드 (구분이 필요한 경우)
+        outlined:
+          "bg-white/80 border border-gray-100 shadow-brand-sm hover:shadow-brand-md",
+
+        // 투명 카드 (오버레이)
+        ghost:
+          "bg-white/40 shadow-brand-sm hover:bg-white/60 hover:shadow-brand-md",
+      },
+      size: {
+        sm: "p-4 gap-3",
+        default: "p-6 gap-4",
+        lg: "p-8 gap-6",
+      },
+      interactive: {
+        true: "cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform",
+        false: "",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+      interactive: false,
+    },
+  }
+);
+
+interface CardProps extends React.ComponentProps<"div">, VariantProps<typeof cardVariants> {
+  asChild?: boolean;
+}
+
+const Card = React.memo<CardProps>(({ className, variant, size, interactive, asChild = false, ...props }) => {
+  if (asChild) {
+    return (
+      <>
+        {React.Children.map(props.children as React.ReactNode, (child) =>
+          React.isValidElement(child)
+            ? React.cloneElement(child as React.ReactElement<any>, {
+                className: cn(
+                  cardVariants({ variant, size, interactive, className }),
+                  (child.props as any).className
+                ),
+              })
+            : child
+        )}
+      </>
+    );
+  }
+
   return (
     <div
       data-slot="card"
-      className={cn(
-        "bg-white/80 backdrop-blur-sm text-gray-800 flex flex-col gap-6 rounded-lg border-0 shadow-lg hover:shadow-xl transition-all duration-300 p-6",
-        className
-      )}
+      className={cn(cardVariants({ variant, size, interactive, className }))}
       {...props}
     />
   );
@@ -37,7 +102,7 @@ const CardTitle = React.memo(({ className, ...props }: React.ComponentProps<"div
     <div
       data-slot="card-title"
       className={cn(
-        "leading-tight font-semibold text-lg text-gray-800",
+        "leading-tight font-semibold text-lg text-brand-primary",
         className
       )}
       {...props}
@@ -51,7 +116,7 @@ const CardDescription = React.memo(({ className, ...props }: React.ComponentProp
   return (
     <div
       data-slot="card-description"
-      className={cn("text-gray-600 text-sm leading-relaxed", className)}
+      className={cn("text-brand-secondary text-sm leading-relaxed", className)}
       {...props}
     />
   );
@@ -76,7 +141,7 @@ CardAction.displayName = "CardAction";
 
 const CardContent = React.memo(({ className, ...props }: React.ComponentProps<"div">) => {
   return (
-    <div data-slot="card-content" className={cn("", className)} {...props} />
+    <div data-slot="card-content" className={cn("flex-1", className)} {...props} />
   );
 });
 
@@ -97,6 +162,23 @@ const CardFooter = React.memo(({ className, ...props }: React.ComponentProps<"di
 
 CardFooter.displayName = "CardFooter";
 
+// 사전 정의된 카드 타입들 (자주 사용되는 패턴)
+export const DefaultCard = React.memo(({ children, ...props }: Omit<CardProps, 'variant'>) => (
+  <Card variant="default" {...props}>{children}</Card>
+));
+
+export const ElevatedCard = React.memo(({ children, ...props }: Omit<CardProps, 'variant'>) => (
+  <Card variant="elevated" {...props}>{children}</Card>
+));
+
+export const InteractiveCard = React.memo(({ children, ...props }: Omit<CardProps, 'interactive'>) => (
+  <Card interactive={true} {...props}>{children}</Card>
+));
+
+export const GradientCard = React.memo(({ children, ...props }: Omit<CardProps, 'variant'>) => (
+  <Card variant="gradient" {...props}>{children}</Card>
+));
+
 export {
   Card,
   CardHeader,
@@ -105,4 +187,6 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  cardVariants,
+  type CardProps,
 };

@@ -10,14 +10,14 @@ interface WebVitalsMetric {
   rating: "good" | "needs-improvement" | "poor";
   delta: number;
   entries: PerformanceEntry[];
-  navigationType: "navigate" | "reload" | "back_forward" | "back_forward_cache" | "prerender";
+  navigationType: "navigate" | "reload" | "back-forward" | "back-forward-cache" | "prerender" | "restore";
 }
 
 // Google Analytics로 Web Vitals 전송
 function sendToGoogleAnalytics(metric: WebVitalsMetric) {
   // gtag이 로드되었는지 확인
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', metric.name, {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', metric.name, {
       event_category: 'Web Vitals',
       event_label: metric.id,
       value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
@@ -54,10 +54,10 @@ export function WebVitalsReporter() {
     async function measureWebVitals() {
       try {
         // web-vitals 라이브러리를 동적으로 import (번들 크기 최적화)
-        const { onCLS, onFID, onFCP, onLCP, onTTFB, onINP } = await import('web-vitals');
+        const webVitals = await import('web-vitals');
 
         // 각 Web Vital 메트릭에 대해 콜백 등록
-        const reportWebVital = (metric: WebVitalsMetric) => {
+        const reportWebVital = (metric: any) => {
           // 개발 환경에서 콘솔 출력
           logWebVital(metric);
 
@@ -69,14 +69,13 @@ export function WebVitalsReporter() {
         };
 
         // Core Web Vitals 측정
-        onCLS(reportWebVital); // Cumulative Layout Shift
-        onFID(reportWebVital); // First Input Delay
-        onLCP(reportWebVital); // Largest Contentful Paint
+        webVitals.onCLS(reportWebVital); // Cumulative Layout Shift
+        webVitals.onLCP(reportWebVital); // Largest Contentful Paint
 
         // Other Web Vitals 측정
-        onFCP(reportWebVital); // First Contentful Paint
-        onTTFB(reportWebVital); // Time to First Byte
-        onINP(reportWebVital); // Interaction to Next Paint (FID의 후속 메트릭)
+        webVitals.onFCP(reportWebVital); // First Contentful Paint
+        webVitals.onTTFB(reportWebVital); // Time to First Byte
+        webVitals.onINP(reportWebVital); // Interaction to Next Paint (FID의 후속 메트릭)
 
       } catch (error) {
         console.warn('Web Vitals measurement failed:', error);
@@ -113,13 +112,3 @@ export function useWebVitals() {
   }, []);
 }
 
-// gtag 타입 확장
-declare global {
-  interface Window {
-    gtag: (
-      command: 'config' | 'event',
-      targetId: string,
-      config?: Record<string, any>
-    ) => void;
-  }
-}

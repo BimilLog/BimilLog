@@ -1,7 +1,6 @@
 "use client";
 
-import { Input } from "@/components";
-import { Button } from "@/components";
+import { Input, Button, Card } from "@/components";
 import {
   Select,
   SelectContent,
@@ -31,7 +30,7 @@ export const BoardSearch = ({
   handleSearch,
 }: BoardSearchProps) => {
   return (
-    <div className="mb-6 p-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm">
+    <Card variant="default" className="mb-6 p-4">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 flex items-center bg-white rounded-md border">
           <Select
@@ -75,6 +74,6 @@ export const BoardSearch = ({
           </Select>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };

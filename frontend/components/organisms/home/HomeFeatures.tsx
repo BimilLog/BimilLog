@@ -32,7 +32,7 @@ export const HomeFeatures: React.FC = () => {
 
   return (
     <section className="container mx-auto px-4 py-16">
-      <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-800">
+      <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-brand-primary">
         비밀로그의 특별한 기능들
       </h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -41,7 +41,8 @@ export const HomeFeatures: React.FC = () => {
           return (
             <Card
               key={index}
-              className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white/80 backdrop-blur-sm"
+              variant="elevated"
+              className="hover:shadow-xl transition-shadow"
             >
               <CardContent className="p-6 text-center">
                 <div
@@ -49,10 +50,10 @@ export const HomeFeatures: React.FC = () => {
                 >
                   <IconComponent className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                <h3 className="text-lg font-semibold mb-2 text-brand-primary">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 text-sm">{feature.description}</p>
+                <p className="text-brand-secondary text-sm">{feature.description}</p>
               </CardContent>
             </Card>
           );

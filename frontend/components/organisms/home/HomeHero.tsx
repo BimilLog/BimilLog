@@ -20,7 +20,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
         <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
           익명으로 마음을 전해보세요
         </h1>
-        <p className="text-lg md:text-xl text-gray-600 mb-6 leading-relaxed">
+        <p className="text-lg md:text-xl text-brand-secondary mb-6 leading-relaxed">
           비밀로그에서 소중한 사람에게 익명의 따뜻한 메시지를 남겨보세요
         </p>
 
@@ -28,9 +28,9 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           {/* 비로그인 상태 */}
           {!isAuthenticated && (
             <Button
+              variant="default"
               size="lg"
               asChild
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-8 py-3 text-lg"
             >
               <Link href="/login">내 롤링페이퍼 만들기</Link>
             </Button>
@@ -42,9 +42,9 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* 모바일: 카카오 친구 확인하기 */}
               <div className="sm:hidden">
                 <Button
+                  variant="kakao"
                   size="lg"
                   onClick={onOpenFriendsModal}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 px-8 py-3 text-lg text-yellow-900 font-bold shadow-lg"
                 >
                   <UserCheck className="w-5 h-5 mr-2" />
                   카카오 친구 확인하기
@@ -54,18 +54,17 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* PC: 카카오 친구 확인하기와 다른 롤링페이퍼 방문하기를 한 줄로 */}
               <div className="hidden sm:flex flex-row gap-4 justify-center items-center">
                 <Button
+                  variant="kakao"
                   size="lg"
                   onClick={onOpenFriendsModal}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 px-8 py-3 text-lg text-yellow-900 font-bold shadow-lg"
                 >
                   <UserCheck className="w-5 h-5 mr-2" />
                   카카오 친구 확인하기
                 </Button>
                 <Button
-                  size="lg"
                   variant="outline"
+                  size="lg"
                   asChild
-                  className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-3 text-lg"
                 >
                   <Link href="/visit">다른 롤링페이퍼 방문하기</Link>
                 </Button>
@@ -86,10 +85,9 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           {/* 모바일 또는 비로그인: 다른 롤링페이퍼 방문하기 */}
           <div className={isAuthenticated ? "sm:hidden" : ""}>
             <Button
-              size="lg"
               variant="outline"
+              size="lg"
               asChild
-              className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-3 text-lg"
             >
               <Link href="/visit">다른 롤링페이퍼 방문하기</Link>
             </Button>

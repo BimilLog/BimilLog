@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Settings as SettingsIcon, AlertTriangle, RefreshCw } from "lucide-react";
-import { LoadingSpinner, ToastContainer, Alert, AlertDescription, Button } from "@/components";
+import { Settings as SettingsIcon } from "lucide-react";
+import { CuteLoadingSpinner, ToastContainer, ErrorAlert, Button } from "@/components";
+import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useSettings, useToast } from "@/hooks";
 
 // Dynamic imports for heavy settings components
@@ -54,56 +55,46 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <MainLayout containerClassName="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <LoadingSpinner
-            variant="gradient"
-            message="설정을 불러오는 중..."
-            className="py-16"
-          />
+          <CuteLoadingSpinner message="설정을 불러오는 중..." />
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <MainLayout containerClassName="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <Alert className="border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              <div className="flex items-center justify-between">
-                <span>{error}</span>
-                <Button onClick={loadSettings} variant="outline" size="sm" className="ml-4">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  다시 시도
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
+          <ErrorAlert>
+            <div className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button onClick={loadSettings} variant="outline" size="sm" className="ml-4">
+                다시 시도
+              </Button>
+            </div>
+          </ErrorAlert>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   return (
-    <>
+    <MainLayout containerClassName="container mx-auto px-4">
       <header className="py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center">
-              <SettingsIcon className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">설정</h1>
-              <p className="text-gray-600">알림 설정과 계정을 관리하세요</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-brand-button rounded-full flex items-center justify-center shadow-brand-lg">
+            <SettingsIcon className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-brand-primary">설정</h1>
+            <p className="text-brand-secondary">알림 설정과 계정을 관리하세요</p>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 pb-8">
+      <div className="pb-8">
         <div className="max-w-2xl mx-auto space-y-6">
           <NotificationSettings
             settings={settings}
@@ -120,6 +111,6 @@ export default function SettingsPage() {
       </div>
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </>
+    </MainLayout>
   );
 }

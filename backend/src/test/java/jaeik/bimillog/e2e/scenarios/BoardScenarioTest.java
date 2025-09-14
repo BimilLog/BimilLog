@@ -374,15 +374,14 @@ public class BoardScenarioTest extends BaseE2ETest {
             }
         }
 
-            // 목록으로 돌아가기
-            Locator backButton = page.locator("button:has-text('목록'), a:has-text('목록'), a[href='/board']");
-            if (backButton.count() > 0) {
-                safeClick(backButton.first());
-            } else {
-                navigateToFrontend("/board");
-            }
-            sleep(2000);
+        // 목록으로 돌아가기
+        Locator backButton = page.locator("button:has-text('목록'), a:has-text('목록'), a[href='/board']");
+        if (backButton.count() > 0) {
+            safeClick(backButton.first());
+        } else {
+            navigateToFrontend("/board");
         }
+        sleep(2000);
     }
 
     @Test

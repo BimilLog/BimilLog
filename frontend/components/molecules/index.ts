@@ -16,7 +16,7 @@ export { default as Editor } from './forms/editor';
 export { SearchBox } from './forms/search-box';
 
 // Feedback components
-export { Alert, AlertDescription, AlertTitle } from './feedback/alert';
+export { Alert, AlertDescription, AlertTitle, SuccessAlert, ErrorAlert, WarningAlert, InfoAlert } from './feedback/alert';
 export { ToastContainer, ToastComponent, type Toast, type ToastType } from './feedback/toast';
 export { Loading } from './feedback/loading';
 export { EmptyState } from './feedback/empty-state';

@@ -35,7 +35,6 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
             ? `https://grow-farm.com/board?q=${encodeURIComponent(query)}`
             : `https://grow-farm.com/board?q=${encodeURIComponent(query)}&page=${searchPage - 1}`
         }),
-        next: `https://grow-farm.com/board?q=${encodeURIComponent(query)}&page=${searchPage + 1}`,
       },
       openGraph: {
         title: `${title} | 비밀로그`,
@@ -126,7 +125,6 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
           ? "https://grow-farm.com/board"
           : `https://grow-farm.com/board?page=${currentPage - 1}`
       }),
-      next: `https://grow-farm.com/board?page=${currentPage + 1}`,
     },
     openGraph: {
       title: `${baseTitle} | 비밀로그`,

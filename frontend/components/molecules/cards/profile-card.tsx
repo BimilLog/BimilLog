@@ -147,7 +147,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
 
   return (
     <>
-      <Card className={`bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-8 overflow-hidden ${className || ""}`}>
+      <Card variant="elevated" className={`mb-8 overflow-hidden ${className || ""}`}>
         <CardContent className="p-6 md:p-8 relative">
           <div className="absolute inset-0 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 opacity-30" />
 
@@ -188,7 +188,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="bg-white border-purple-200 hover:bg-purple-50"
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           닉네임 변경
@@ -229,9 +228,9 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                               </div>
                               <Button
                                 variant="outline"
+                                size="sm"
                                 onClick={handleCheckNickname}
                                 disabled={!isNicknameFormatValid || isChecking}
-                                className="px-4"
                               >
                                 {isChecking ? "확인중..." : "중복확인"}
                               </Button>
@@ -253,7 +252,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                             )}
                           </div>
                           <Button
-                            className="w-full"
+                            variant="default"
+                            size="full"
                             onClick={handleNicknameSubmit}
                             disabled={!isNicknameAvailable || isNicknameChangeSubmitting}
                           >

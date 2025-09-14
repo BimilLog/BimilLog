@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS `post` (
   KEY `idx_post_created` (`created_at`),
   KEY `idx_post_popular_flag` (`popular_flag`),
   KEY `FK7ky67sgi7k0ayf22652f7763r` (`user_id`),
-  FULLTEXT KEY `post_title_content_IDX` (`title`,`content`) WITH PARSER `ngram`,
-  FULLTEXT KEY `post_title_IDX` (`title`) WITH PARSER `ngram`,
+  FULLTEXT KEY `post_title_content_IDX` (`title`,`content`) /*!50100 WITH PARSER `ngram` */ ,
+  FULLTEXT KEY `post_title_IDX` (`title`) /*!50100 WITH PARSER `ngram` */ ,
   CONSTRAINT `FK7ky67sgi7k0ayf22652f7763r` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
