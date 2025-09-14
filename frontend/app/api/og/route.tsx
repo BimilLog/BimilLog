@@ -1,182 +1,179 @@
-import { ImageResponse } from "next/og";
-import { logger } from '@/lib/utils/logger';
+import { ImageResponse } from "@vercel/og";
+import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-// Type definitions
-interface OGParams {
-  title?: string;
-  author?: string;
-}
-
-interface ErrorResponse {
-  error: string;
-  details: string;
-  timestamp: string;
-}
-
-// Style constants
-const STYLES = {
-  container: {
-    height: "100%",
-    width: "100%",
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-    fontFamily: '"Pretendard"',
-    backgroundImage: "linear-gradient(to bottom right, #E0E7FF 25%, #F3E8FF 75%)",
-  },
-  card: {
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center" as const,
-    padding: "40px",
-    border: "2px solid #C4B5FD",
-    borderRadius: "16px",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-  },
-  title: {
-    fontSize: 60,
-    fontWeight: 700,
-    color: "#4C1D95",
-    marginBottom: "20px",
-    lineHeight: 1.3,
-    maxHeight: "2.6em",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  author: {
-    fontSize: 32,
-    color: "#6D28D9",
-  },
-  logo: {
-    position: "absolute" as const,
-    bottom: 30,
-    right: 40,
-    display: "flex",
-    alignItems: "center",
-    fontSize: 24,
-    color: "#5B21B6",
-  },
-  logoIcon: {
-    marginRight: "8px",
-    width: "24px",
-    height: "24px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-} as const;
-
-const COLORS = {
-  primary: "#7c3aed",
-  stroke: "#7c3aed",
-} as const;
-
-const OG_CONFIG = {
-  width: 1200,
-  height: 630,
-  defaultTitle: "비밀로그",
-  maxTitleLength: 100,
-  maxAuthorLength: 50,
-} as const;
-
-// Helper functions
-function validateAndSanitizeParams(searchParams: URLSearchParams): OGParams {
-  const title = searchParams.get("title")?.slice(0, OG_CONFIG.maxTitleLength) || undefined;
-  const author = searchParams.get("author")?.slice(0, OG_CONFIG.maxAuthorLength) || undefined;
-
-  return { title, author };
-}
-
-function createErrorResponse(errorMessage: string): Response {
-  const errorResponse: ErrorResponse = {
-    error: "Failed to generate OG image",
-    details: errorMessage,
-    timestamp: new Date().toISOString(),
-  };
-
-  return new Response(JSON.stringify(errorResponse), {
-    status: 500,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function BimilLogIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M9.88 9.88a3 3 0 1 0 4.24 4.24"
-        stroke={COLORS.stroke}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="m2 2 20 20"
-        stroke={COLORS.stroke}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10.5 16.5a5 5 0 0 0 7-7l-2-2a5 5 0 0 0-7 7l2 2Z"
-        stroke={COLORS.stroke}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="m17 17-2.5-2.5"
-        stroke={COLORS.stroke}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-export async function GET(request: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const { title, author } = validateAndSanitizeParams(searchParams);
+    const { searchParams } = new URL(req.url);
+    const title = searchParams.get("title") || "비밀로그";
+    const author = searchParams.get("author") || "";
+    const type = searchParams.get("type") || "default";
+
+    // 타입별 디자인 설정
+    const getDesignByType = () => {
+      switch (type) {
+        case "post":
+          return {
+            bgGradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            accentColor: "#fbbf24",
+            subtitle: "커뮤니티 게시글",
+          };
+        case "paper":
+          return {
+            bgGradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+            accentColor: "#10b981",
+            subtitle: "익명 롤링페이퍼",
+          };
+        default:
+          return {
+            bgGradient: "linear-gradient(135deg, #667eea 0%, #f093fb 100%)",
+            accentColor: "#fbbf24",
+            subtitle: "익명으로 소통하는 새로운 공간",
+          };
+      }
+    };
+
+    const design = getDesignByType();
 
     return new ImageResponse(
       (
-        <div style={STYLES.container}>
-          <div style={STYLES.card}>
-            <div style={STYLES.title}>
-              {title || OG_CONFIG.defaultTitle}
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: design.bgGradient,
+            position: "relative",
+            fontFamily: "system-ui, -apple-system, sans-serif",
+          }}
+        >
+          {/* 배경 패턴 */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+              backgroundSize: "40px 40px",
+            }}
+          />
+
+          {/* 메인 콘텐츠 컨테이너 */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              borderRadius: "24px",
+              padding: "60px",
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+              maxWidth: "1000px",
+              width: "90%",
+              position: "relative",
+            }}
+          >
+            {/* 로고/브랜드 */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: "30px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "32px",
+                  fontWeight: 700,
+                  background: design.bgGradient,
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                비밀로그
+              </div>
             </div>
+
+            {/* 서브타이틀 */}
+            <div
+              style={{
+                fontSize: "24px",
+                color: "#6b7280",
+                marginBottom: "30px",
+              }}
+            >
+              {design.subtitle}
+            </div>
+
+            {/* 타이틀 */}
+            <div
+              style={{
+                fontSize: title.length > 30 ? "48px" : "56px",
+                fontWeight: 700,
+                color: "#1f2937",
+                textAlign: "center",
+                lineHeight: 1.2,
+                maxWidth: "800px",
+                marginBottom: author ? "20px" : "0",
+              }}
+            >
+              {title}
+            </div>
+
+            {/* 작성자 */}
             {author && (
-              <div style={STYLES.author}>
-                - {author} -
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginTop: "20px",
+                  padding: "12px 24px",
+                  backgroundColor: "rgba(107, 114, 128, 0.1)",
+                  borderRadius: "100px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "20px",
+                    color: "#6b7280",
+                  }}
+                >
+                  {author}
+                </div>
               </div>
             )}
-            <div style={STYLES.logo}>
-              <div style={STYLES.logoIcon}>
-                <BimilLogIcon />
-              </div>
-              <span>비밀로그</span>
+
+            {/* 하단 URL */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: "30px",
+                fontSize: "18px",
+                color: "#9ca3af",
+                letterSpacing: "0.5px",
+              }}
+            >
+              grow-farm.com
             </div>
           </div>
         </div>
       ),
       {
-        width: OG_CONFIG.width,
-        height: OG_CONFIG.height,
+        width: 1200,
+        height: 630,
       }
     );
-  } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : "Unknown error occurred";
-    logger.error("OG Image generation failed:", { error: errorMessage, url: request.url });
-
-    return createErrorResponse(errorMessage);
+  } catch (e) {
+    console.error("OG Image generation failed:", e);
+    return new Response(`Failed to generate image`, {
+      status: 500,
+    });
   }
 }

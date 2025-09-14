@@ -72,8 +72,8 @@ ALTER TABLE `post`
 
 -- post_cache_flag를 사용한 새 인덱스 생성
 ALTER TABLE `post`
-  ADD INDEX `idx_post_created_at_cache` (`created_at`, `post_cache_flag`),
-  ADD INDEX `idx_post_cache_flag` (`post_cache_flag`);
+  ADD INDEX `idx_post_created_at_popular` (`created_at`, `post_cache_flag`),
+  ADD INDEX `idx_post_popular_flag` (`post_cache_flag`);
 
 -- ============================================
 -- 파트 3: 메시지 테이블 컬럼 수정
@@ -110,9 +110,8 @@ ALTER TABLE `notification`
 -- 파트 5: FCM 토큰 테이블 수정
 -- ============================================
 
--- 유니크 제약조건 추가 (컬럼명은 유지)
-ALTER TABLE `fcm_token`
-  ADD UNIQUE KEY `UK96hl8vgfpqh6wjyetct61jnrm` (`fcm_registration_token`);
+-- JPA 엔티티에 유니크 제약조건이 없으므로 추가하지 않음
+-- fcm_registration_token 컬럼은 이미 NOT NULL 상태
 
 -- ============================================
 -- 파트 6: 토큰 테이블 구조 수정
@@ -162,11 +161,12 @@ ALTER TABLE `users`
 ALTER TABLE `post`
   DROP COLUMN `popular_flag`;
 
--- black_list 테이블 기본 키 업데이트
+-- black_list 테이블 기본 키 업데이트 및 id 컬럼 추가
 ALTER TABLE `black_list`
   DROP PRIMARY KEY,
+  ADD COLUMN `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST,
   DROP COLUMN `kakao_id`,
-  ADD PRIMARY KEY (`provider`, `social_id`);
+  ADD UNIQUE KEY (`provider`, `social_id`);
 
 -- ============================================
 -- 파트 9: 테이블명 변경 (JPA 엔티티명과 일치)
@@ -198,8 +198,18 @@ ON comment_like (comment_id, user_id);
 -- 파트 11: Full-text 인덱스 확인 (ngram parser)
 -- ============================================
 
--- 기존 fulltext 인덱스 확인 및 필요시 재생성
--- (이미 V1에서 생성되어 있으므로 변경 불필요)
+-- 풀텍스트 인덱스 확인 (V1에서 이미 생성되어 있음을 확인)
+-- post 테이블의 fulltext 인덱스 상태 확인
+SELECT
+    CASE
+        WHEN COUNT(*) = 2 THEN 'Fulltext indexes verified successfully'
+        ELSE CONCAT('WARNING: Expected 2 fulltext indexes, found ', COUNT(*))
+    END AS fulltext_status,
+    GROUP_CONCAT(INDEX_NAME ORDER BY INDEX_NAME) AS index_names
+FROM information_schema.STATISTICS
+WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'post'
+    AND INDEX_TYPE = 'FULLTEXT';
 
 -- ============================================
 -- 마이그레이션 완료

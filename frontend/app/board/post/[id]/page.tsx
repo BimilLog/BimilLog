@@ -35,12 +35,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const ogImageUrl = new URL(`/api/og`, "https://grow-farm.com");
     ogImageUrl.searchParams.set("title", post.title);
     ogImageUrl.searchParams.set("author", post.userName);
+    ogImageUrl.searchParams.set("type", "post");
 
         return {
             title: `${post.title} | 비밀로그`,
             description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
             keywords: generateKeywords(["게시글", post.title, post.userName]),
             authors: [{ name: post.userName }],
+            alternates: {
+                canonical: `https://grow-farm.com/board/post/${postId}`,
+            },
             openGraph: {
                 title: `${post.title} | 비밀로그`,
                 description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
@@ -88,7 +92,7 @@ export default async function PostDetailPage({ params }: Props) {
 
     // SEO를 위한 구조화된 데이터(JSON-LD) 생성 - 검색엔진이 콘텐츠를 이해할 수 있도록 함
     const post = response.data;
-    const jsonLd = generateStructuredData.article(
+    const articleJsonLd = generateStructuredData.article(
       post.title,
       post.content,
       post.userName,
@@ -96,12 +100,23 @@ export default async function PostDetailPage({ params }: Props) {
       `https://grow-farm.com/board/post/${postId}`
     );
 
+    // Breadcrumb 구조화 데이터 추가
+    const breadcrumbJsonLd = generateStructuredData.breadcrumb([
+      { title: "홈", href: "/" },
+      { title: "커뮤니티", href: "/board" },
+      { title: post.title }
+    ]);
+
     return (
       <>
         {/* JSON-LD 스크립트를 head에 삽입하여 구조화된 데이터 제공 */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
         {/* 서버에서 가져온 초기 데이터를 클라이언트 컴포넌트에 전달 */}
         <PostDetailClient initialPost={post} postId={postId} />
