@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components";
 import { MessageSquare, Edit } from "lucide-react";
 import Link from "next/link";

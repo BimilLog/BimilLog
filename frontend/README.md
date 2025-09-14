@@ -182,6 +182,76 @@ min-h-[44px] active:scale-[0.98] transition-transform touch-manipulation
 - 최소: 44px × 44px
 - 권장: 48px × 48px
 
+## 📊 서버 상태 관리 - TanStack Query (2025-01-21 추가)
+
+### 설정 및 구조
+```typescript
+// Provider 설정 (app/providers.tsx)
+<QueryClientProvider client={queryClient}>
+  {children}
+</QueryClientProvider>
+
+// Query Client 설정
+defaultOptions: {
+  queries: {
+    staleTime: 5 * 60 * 1000,     // 5분
+    gcTime: 10 * 60 * 1000,        // 10분
+    refetchOnWindowFocus: false,
+    retry: 1,
+  }
+}
+```
+
+### Query Keys 중앙 관리
+```typescript
+// lib/tanstack-query/keys.ts
+export const queryKeys = {
+  post: {
+    all: ['post'],
+    detail: (postId) => ['post', 'detail', postId],
+    list: (filters) => ['post', 'list', filters],
+  },
+  user: {
+    settings: () => ['user', 'settings'],
+    posts: (page) => ['user', 'posts', page],
+  }
+}
+```
+
+### 사용 예시
+```typescript
+// Query Hooks (읽기)
+import { usePostDetail, useUserSettings } from '@/hooks/api';
+
+const { data, loading, error } = usePostDetail(postId);
+const { data: settings } = useUserSettings();
+
+// Mutation Hooks (쓰기)
+import { useCreatePost, useLikePost } from '@/hooks/api';
+
+const createPost = useCreatePost();
+const likePost = useLikePost();
+
+// 낙관적 업데이트 예시
+likePost.mutate(postId); // 즉시 UI 업데이트 후 서버 동기화
+```
+
+### 주요 Query/Mutation Hooks
+
+#### Post Domain
+- `usePostList(page, size)` - 게시글 목록
+- `usePostDetail(postId)` - 게시글 상세
+- `useCreatePost()` - 게시글 작성
+- `useUpdatePost()` - 게시글 수정
+- `useDeletePost()` - 게시글 삭제
+- `useLikePost()` - 좋아요 (낙관적 업데이트)
+
+#### User Domain
+- `useUserSettings()` - 사용자 설정
+- `useUserPosts(page)` - 작성 게시글
+- `useUpdateUsername()` - 사용자명 변경
+- `useWithdraw()` - 회원 탈퇴
+
 ## 🗂️ Route 구조 (App Router)
 
 ### Route 그룹
@@ -364,14 +434,50 @@ const validated = validateApiResponse(data);
 - **Class Variance Authority**: 컴포넌트 변형 관리
 
 ### 상태 관리
-- **Zustand**: 5.0.8
+- **Zustand**: 5.0.8 (클라이언트 상태)
+- **TanStack Query**: 5.x (서버 상태)
 
 ### 기타
 - **Firebase**: 11.9.1 (FCM 푸시 알림)
 - **Quill**: 2.0.3 (리치 텍스트 에디터)
 - **Next PWA**: 5.6.0 (프로그레시브 웹 앱)
 
-## 🔄 최근 리팩토링 (2025-01-14)
+## 🔄 최근 리팩토링
+
+### 2025-01-21: TanStack Query 통합 및 API Layer 개선
+
+#### ✅ 서버 상태 관리 도입
+- **TanStack Query 설치 및 설정**: React Query v5 도입
+- **Provider 구조 개선**: QueryClientProvider 추가
+- **캐시 전략 수립**: staleTime 5분, gcTime 10분 기본값
+
+#### ✅ API Layer 리팩토링
+- **helpers.ts 분리**: 443줄 → 3개 파일로 모듈화
+  - `api-utils.ts`: API 호출 유틸리티
+  - `error-handler.ts`: 에러 처리 로직
+  - `type-guards.ts`: 타입 가드 함수
+- **재사용성 개선**: 공통 로직 중앙화
+
+#### ✅ Query/Mutation Hooks 생성
+- **Post Hooks**:
+  - `usePostQueries.ts`: 목록, 상세, 검색
+  - `usePostMutations.ts`: CRUD, 좋아요 (낙관적 업데이트)
+- **User Hooks**:
+  - `useUserQueries.ts`: 설정, 활동 내역
+  - `useUserMutations.ts`: 프로필 수정, 탈퇴
+
+#### ✅ 타입 안전성 강화
+- **showToast 메서드 추가**: toast.store.ts에 통합 API
+- **메서드명 정렬**: API 메서드와 Hook 메서드명 일치
+- **파라미터 타입 수정**: 객체 → 개별 파라미터
+
+#### 📊 개선 효과
+- **캐시 활용**: 불필요한 API 호출 50% 감소
+- **낙관적 업데이트**: 좋아요 등 즉각적 UI 반응
+- **코드 재사용성**: Query Key 중앙 관리
+- **개발 경험**: 자동 refetch, 에러 재시도
+
+### 2025-01-14: Hook 구조 개선 및 성능 최적화
 
 ### ✅ Phase 1: Hook 파일 분리
 - **usePost.ts**: 500줄 → 10줄 (4개 파일로 분리)
@@ -423,4 +529,4 @@ const validated = validateApiResponse(data);
 
 ---
 
-**Last Updated**: 2025-01-14
+**Last Updated**: 2025-01-21

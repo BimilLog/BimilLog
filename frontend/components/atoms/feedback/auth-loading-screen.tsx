@@ -1,5 +1,3 @@
-"use client";
-
 import { AuthLayout } from "@/components/organisms/auth";
 
 interface AuthLoadingScreenProps {

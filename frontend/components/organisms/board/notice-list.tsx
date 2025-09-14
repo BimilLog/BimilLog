@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent } from "@/components";
 import { Pin, User } from "lucide-react";
 import Link from "next/link";

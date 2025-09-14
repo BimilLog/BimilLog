@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent } from "@/components";
 import { Heart, MessageCircle, Users, Sparkles } from "lucide-react";
 
