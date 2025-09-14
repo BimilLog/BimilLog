@@ -31,8 +31,6 @@ export const queryKeys = {
     detail: (postId: number) => [...queryKeys.post.details(), postId] as const,
     search: (query: string, page?: number) => [...queryKeys.post.all, 'search', query, page] as const,
     popular: () => [...queryKeys.post.all, 'popular'] as const,
-    legend: () => [...queryKeys.post.all, 'legend'] as const,
-    notice: () => [...queryKeys.post.all, 'notice'] as const,
   },
 
   // Comment
@@ -45,6 +43,7 @@ export const queryKeys = {
   // Paper (Rolling Paper)
   paper: {
     all: ['paper'] as const,
+    my: ['paper', 'my'] as const,
     detail: (userName: string) => [...queryKeys.paper.all, 'detail', userName] as const,
   },
 
@@ -86,7 +85,6 @@ export const mutationKeys = {
     update: ['post', 'update'] as const,
     delete: ['post', 'delete'] as const,
     like: ['post', 'like'] as const,
-    notice: ['post', 'notice'] as const,
   },
 
   // Comment

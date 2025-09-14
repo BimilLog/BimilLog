@@ -3,8 +3,7 @@
 import dynamic from "next/dynamic";
 import { Settings as SettingsIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { LoadingSpinner, ToastContainer, Alert, AlertDescription, Button } from "@/components";
-import { useSettings } from "@/hooks";
-import { useToast } from "@/hooks";
+import { useSettings, useToast } from "@/hooks";
 
 // Dynamic imports for heavy settings components
 const NotificationSettings = dynamic(

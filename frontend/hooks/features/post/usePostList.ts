@@ -69,26 +69,18 @@ export function usePopularPostsTabs() {
     gcTime: 10 * 60 * 1000,
   });
 
-  const { data: legendData, refetch: refetchLegend } = useQuery({
-    queryKey: queryKeys.post.legend(),
-    queryFn: () => postQuery.getLegend(0, 10),
-    enabled: activeTab === 'legend',
-    staleTime: 30 * 60 * 1000,
-    gcTime: 60 * 60 * 1000,
-  });
 
   // 현재 활성 탭에 따라 표시할 게시글 데이터 선택
   const posts = useMemo(() => {
     if (activeTab === 'realtime') return popularData?.data?.realtime || [];
     if (activeTab === 'weekly') return popularData?.data?.weekly || [];
-    if (activeTab === 'legend') return legendData?.data?.content || [];
     return [];
-  }, [activeTab, popularData, legendData]);
+  }, [activeTab, popularData]);
 
   return {
     posts,
     activeTab,
     setActiveTab,
-    refetch: activeTab === 'legend' ? refetchLegend : refetchPopular
+    refetch: refetchPopular
   };
 }

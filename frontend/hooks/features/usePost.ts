@@ -5,8 +5,6 @@ export {
   useBoardPosts,
   useBoardSearch,
   useBoardPopularPosts,
-  useBoardLegendPosts,
-  useBoardNoticePosts,
 } from '@/hooks/api/useBoardQueries';
 
 // ============ BOARD MUTATION HOOKS (TanStack Query) ============

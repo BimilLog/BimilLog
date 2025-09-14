@@ -2,7 +2,7 @@ import { Shield } from "lucide-react";
 
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center">
+    <div className="flex items-center justify-center py-16">
       <div className="text-center">
         <div className="flex justify-center mb-4">
           <Shield className="w-12 h-12 text-blue-600 animate-pulse" />

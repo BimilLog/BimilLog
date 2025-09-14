@@ -75,7 +75,8 @@ public class UserCommandController {
      * <ul>
      *   <li>POST: 게시글 신고 - targetId 필수</li>
      *   <li>COMMENT: 댓글 신고 - targetId 필수</li>
-     *   <li>SUGGESTION: 건의사항 - targetId 불필요</li>
+     *   <li>ERROR: 오류 신고 - targetId 불필요</li>
+     *   <li>IMPROVEMENT: 기능 개선 건의 - targetId 불필요</li>
      *   <li>익명 신고: 인증되지 않은 사용자도 신고 가능</li>
      * </ul>
      *

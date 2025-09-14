@@ -9,8 +9,6 @@ import lombok.Setter;
 @Getter
 public class UserNameDTO {
 
-    private Long userId;
-
     @NotBlank(message = "닉네임은 필수입니다")
     @Size(min = 1, max = 8, message = "닉네임은 1자 이상 8자 이하여야 합니다")
     private String userName;

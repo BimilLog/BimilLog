@@ -12,29 +12,28 @@ export const commentCommand = {
       postId: comment.postId,
       content: comment.content,
       parentId: comment.parentId,
-      password: comment.password
+      password: comment.password?.toString().padStart(4, '0')
     }
-    return apiClient.post("/api/comment/create", payload)
+    return apiClient.post("/api/comment/write", payload)
   },
-  
-  update: (commentId: number, data: { content: string; password?: number }): Promise<ApiResponse<void>> => {
+
+  update: (data: { commentId: number; content: string; password?: number }): Promise<ApiResponse<void>> => {
     const payload = {
+      id: data.commentId,  // Backend expects 'id', not 'commentId'
       content: data.content,
       password: data.password?.toString().padStart(4, '0')
     }
-    return apiClient.put(`/api/comment/update/${commentId}`, payload)
+    return apiClient.post("/api/comment/update", payload)
   },
-  
-  delete: (commentId: number, password?: number): Promise<ApiResponse<void>> => {
-    if (password !== undefined) {
-      return apiClient.delete(`/api/comment/delete/${commentId}?password=${password.toString().padStart(4, '0')}`)
+
+  delete: (data: { commentId: number; password?: number }): Promise<ApiResponse<void>> => {
+    const payload = {
+      id: data.commentId,  // Backend expects 'id', not 'commentId'
+      password: data.password?.toString().padStart(4, '0')
     }
-    return apiClient.delete(`/api/comment/delete/${commentId}`)
+    return apiClient.post("/api/comment/delete", payload)
   },
   
-  like: (commentId: number): Promise<ApiResponse<void>> => 
+  like: (commentId: number): Promise<ApiResponse<void>> =>
     apiClient.post("/api/comment/like", { commentId }),
-  
-  cancelLike: (commentId: number): Promise<ApiResponse<void>> =>
-    apiClient.delete("/api/comment/like", { commentId }),
 }

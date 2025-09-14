@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         totalPages = response.data.totalPages;
         currentPage++;
       } else {
-        console.warn(`Failed to fetch posts for page ${currentPage}`);
+        logger.warn(`Failed to fetch posts for page ${currentPage}`);
         break;
       }
     }

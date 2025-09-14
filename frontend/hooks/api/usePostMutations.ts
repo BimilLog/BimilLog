@@ -131,29 +131,3 @@ export const useLikePost = () => {
     },
   });
 };
-
-/**
- * 게시글 공지 설정/해제
- */
-export const useToggleNotice = () => {
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
-
-  return useMutation({
-    mutationKey: mutationKeys.post.notice,
-    mutationFn: postCommand.toggleNotice,
-    onSuccess: (response, postId) => {
-      if (response.success) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.notice() });
-        showToast({
-          type: 'success',
-          message: response.data ? '공지사항으로 설정되었습니다.' : '공지사항이 해제되었습니다.'
-        });
-      }
-    },
-    onError: (error) => {
-      showToast({ type: 'error', message: '공지 설정에 실패했습니다.' });
-    },
-  });
-};

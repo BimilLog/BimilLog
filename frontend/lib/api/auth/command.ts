@@ -20,6 +20,4 @@ export const authCommand = {
   },
   
   logout: () => apiClient.post("/api/auth/logout"),
-  
-  withdraw: () => apiClient.delete("/api/auth/withdraw"),
 }

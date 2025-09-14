@@ -38,7 +38,6 @@ export default function LogoutPage() {
           logger.error("Logout failed:", error);
         }
       } finally {
-        // sessionManager.clear(); // 더 이상 필요 없음
         // FCM 토큰 캐시 정리
         fcmManager.clearCache();
 

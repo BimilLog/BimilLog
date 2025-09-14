@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks";
-import { userQuery, userCommand, authCommand, Setting } from "@/lib/api";
+import { userQuery, userCommand, Setting } from "@/lib/api";
 import { logger } from '@/lib/utils/logger';
 
-export function useSettings() {
+export function useUserSettings() {
   const [settings, setSettings] = useState<Setting | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -121,7 +121,7 @@ export function useSettings() {
 
     try {
       setWithdrawing(true);
-      const response = await authCommand.withdraw();
+      const response = await userCommand.withdraw();
       if (!isMounted.current) return;
 
       if (response.success) {

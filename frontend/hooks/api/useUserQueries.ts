@@ -5,7 +5,7 @@ import { userQuery } from '@/lib/api';
 /**
  * 사용자 설정 조회
  */
-export const useUserSettings = () => {
+export const useUserSettingsQuery = () => {
   return useQuery({
     queryKey: queryKeys.user.settings(),
     queryFn: userQuery.getSettings,

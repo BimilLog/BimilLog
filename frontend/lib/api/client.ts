@@ -75,7 +75,7 @@ export class ApiClient {
         '/comment/like',
         '/notification',
         '/api/auth/logout',
-        '/api/auth/withdraw'
+        '/api/user/withdraw'
       ]
 
       const requiresAuth = requiredAuthEndpoints.some(requiredUrl => {

@@ -6,20 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/**
- * User-Agent 기반 모바일/태블릿 감지
- */
-export function isMobileOrTablet(): boolean {
-  if (typeof window === 'undefined') return false
-
-  const userAgent = navigator.userAgent.toLowerCase()
-  const mobileKeywords = [
-    'mobile', 'android', 'iphone', 'ipad', 'ipod',
-    'blackberry', 'windows phone', 'opera mini'
-  ]
-
-  return mobileKeywords.some(keyword => userAgent.includes(keyword))
-}
 
 // Date utilities
 export * from './date'
@@ -50,11 +36,12 @@ export * from './lazy-components'
 // API helpers
 export * from './api-helpers'
 
-// Validation helpers
-export * from './validation-helpers'
 
 // Style helpers
 export * from './style-helpers'
+
+// Device utilities
+export * from './device'
 
 /**
  * Type Guards - 타입 안정성을 위한 타입 가드 함수들

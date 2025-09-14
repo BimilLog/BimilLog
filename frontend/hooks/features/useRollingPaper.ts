@@ -3,11 +3,11 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from "next/navigation";
 import { paperQuery } from '@/lib/api';
-import { useAuth, useToast } from '@/hooks';
+import { useAuth } from '@/hooks';
 import { ErrorHandler } from "@/lib/api/helpers";
-import { copyRollingPaperLink } from "@/lib/utils/clipboard";
 import { logger } from '@/lib/utils/logger';
-import type { VisitMessage, DecoType } from '@/types/domains/paper';
+import { dbIndexToGridPosition } from '@/lib/utils/rolling-paper';
+import type { DecoType } from '@/types/domains/paper';
 
 // TanStack Query Hooks re-exports
 export { useRollingPaper } from '@/hooks/api/useRollingPaperQueries';
@@ -17,45 +17,16 @@ export {
 } from '@/hooks/api/useRollingPaperMutations';
 
 // Import for local usage
-import { useRollingPaper } from '@/hooks/api/useRollingPaperQueries';
 import {
   useCreateRollingPaperMessage,
   useDeleteRollingPaperMessage
 } from '@/hooks/api/useRollingPaperMutations';
 
-// 롤링페이퍼 통합 Hook
+// 롤링페이퍼 액션 Hook - 메시지 작성/삭제/선택 기능만 제공
 export function useRollingPaperActions(userName: string) {
-  const [selectedPosition, setSelectedPosition] = useState<{ row: number; col: number } | null>(null);
-  const [isMessageFormOpen, setIsMessageFormOpen] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
-
-  const { data, isLoading, refetch } = useRollingPaper(userName);
   const createMessageMutation = useCreateRollingPaperMessage();
   const deleteMessageMutation = useDeleteRollingPaperMessage();
-
-  // 그리드 데이터 구성: 10x6 그리드에 메시지를 배치
-  const gridData = useMemo(() => {
-    const messages = data?.data || [];
-    const grid: (VisitMessage | null)[][] = [];
-    const rows = 10;
-    const cols = 6;
-
-    // 빈 그리드 초기화: null로 채워진 2차원 배열 생성
-    for (let i = 0; i < rows; i++) {
-      grid[i] = new Array(cols).fill(null);
-    }
-
-    // 메시지를 그리드에 배치: API의 1-based 좌표를 0-based 배열 인덱스로 변환
-    messages.forEach(message => {
-      const rowIndex = message.y - 1; // y(1-based)를 0-based rowIndex로 변환
-      const colIndex = message.x - 1; // x(1-based)를 0-based colIndex로 변환
-      if (rowIndex >= 0 && rowIndex < rows && colIndex >= 0 && colIndex < cols) {
-        grid[rowIndex][colIndex] = message;
-      }
-    });
-
-    return grid;
-  }, [data]);
 
   // 메시지 작성
   const handleCreateMessage = useCallback((messageData: {
@@ -72,42 +43,22 @@ export function useRollingPaperActions(userName: string) {
         decoType: messageData.decoType,
         anonymity: messageData.anonymity,
         content: messageData.content,
-        x: messageData.colIndex + 1, // 좌표 변환: 0-based UI 인덱스를 1-based API 좌표로 변환
-        y: messageData.rowIndex + 1  // 좌표 변환: 0-based UI 인덱스를 1-based API 좌표로 변환
-      }
-    }, {
-      onSuccess: () => {
-        setIsMessageFormOpen(false);
-        setSelectedPosition(null);
+        ...dbIndexToGridPosition({
+          rowIndex: messageData.rowIndex,
+          colIndex: messageData.colIndex
+        })
       }
     });
   }, [createMessageMutation]);
 
-  // 메시지 삭제: 선택된 메시지들을 개별적으로 순차 삭제
-  const handleDeleteMessages = useCallback(async () => {
-    if (selectedMessages.length === 0) return;
-
-    // 각 메시지를 개별적으로 삭제 (배치 삭제 API가 없으므로 순차 처리)
-    for (const messageId of selectedMessages) {
-      deleteMessageMutation.mutate(messageId, {
-        onSuccess: () => {
-          setSelectedMessages(prev => prev.filter(id => id !== messageId));
-        }
-      });
-    }
-  }, [deleteMessageMutation, selectedMessages]);
-
-  // 위치 선택: 그리드에서 빈 공간 클릭 시 메시지 작성 폼 열기
-  const handleSelectPosition = useCallback((row: number, col: number) => {
-    // 이미 메시지가 있는 위치인지 확인 (중복 배치 방지)
-    if (gridData[row][col]) {
-      return false;
-    }
-
-    setSelectedPosition({ row, col });
-    setIsMessageFormOpen(true);
-    return true;
-  }, [gridData]);
+  // 메시지 삭제
+  const handleDeleteMessage = useCallback((messageId: number) => {
+    deleteMessageMutation.mutate(messageId, {
+      onSuccess: () => {
+        setSelectedMessages(prev => prev.filter(id => id !== messageId));
+      }
+    });
+  }, [deleteMessageMutation]);
 
   // 메시지 선택/해제
   const toggleMessageSelection = useCallback((messageId: number) => {
@@ -120,20 +71,12 @@ export function useRollingPaperActions(userName: string) {
   }, []);
 
   return {
-    messages: data?.data || [],
-    gridData,
-    isLoading,
-    isCreating: createMessageMutation.isPending,
-    isDeleting: deleteMessageMutation.isPending,
-    selectedPosition,
-    isMessageFormOpen,
-    selectedMessages,
-    setIsMessageFormOpen,
     handleCreateMessage,
-    handleDeleteMessages,
-    handleSelectPosition,
+    handleDeleteMessage,
     toggleMessageSelection,
-    refetch
+    selectedMessages,
+    isCreating: createMessageMutation.isPending,
+    isDeleting: deleteMessageMutation.isPending
   };
 }
 
@@ -232,99 +175,3 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
   return memoizedReturn;
 }
 
-// ===== ROLLING PAPER SHARE =====
-interface UseRollingPaperShareProps {
-  nickname: string;
-  messageCount: number;
-  isOwner?: boolean;
-}
-
-export function useRollingPaperShare({
-  nickname,
-  messageCount,
-  isOwner = false,
-}: UseRollingPaperShareProps) {
-  const { showSuccess } = useToast();
-
-  const handleKakaoShare = useCallback(async () => {
-    if (!nickname) return;
-
-    const { shareRollingPaper, fallbackShare } = await import(
-      "@/lib/auth/kakao"
-    );
-
-    try {
-      const success = await shareRollingPaper(nickname, messageCount);
-      // 카카오 공유 실패 시 브라우저 내장 공유 API로 폴백
-      if (!success) {
-        const url = `${
-          window.location.origin
-        }/rolling-paper/${encodeURIComponent(nickname)}`;
-        fallbackShare(
-          url,
-          `${nickname}님의 롤링페이퍼`,
-          `${nickname}님에게 따뜻한 메시지를 남겨보세요!`
-        );
-      }
-    } catch (error) {
-      logger.error("카카오 공유 중 오류 발생:", error);
-      // 최종 폴백: 클립보드 복사
-      await copyRollingPaperLink(nickname, messageCount);
-    }
-  }, [nickname, messageCount, showSuccess]);
-
-  const fallbackShare = useCallback(
-    () => {
-      copyRollingPaperLink(nickname, messageCount);
-    },
-    [nickname, messageCount]
-  );
-
-  const handleWebShare = useCallback(async () => {
-    const url = isOwner
-      ? `${window.location.origin}/rolling-paper/${encodeURIComponent(
-          nickname
-        )}`
-      : window.location.href;
-
-    const shareData = {
-      title: `${nickname}님의 롤링페이퍼`,
-      text: `${nickname}님에게 익명으로 따뜻한 메시지를 남겨보세요! 현재 ${messageCount}개의 메시지가 있어요`,
-      url: url,
-    };
-
-    // 네이티브 공유 API 지원 여부 확인 (모바일 브라우저 주로 지원)
-    if (
-      navigator.share &&
-      navigator.canShare &&
-      navigator.canShare(shareData)
-    ) {
-      try {
-        await navigator.share(shareData);
-      } catch (error) {
-        // 사용자가 공유를 취소한 경우는 무시 (AbortError)
-        if ((error as Error).name !== "AbortError") {
-          logger.error("공유 실패:", error);
-          fallbackShare();
-        }
-      }
-    } else {
-      // 네이티브 공유 미지원 시 폴백: 클립보드에 복사
-      fallbackShare();
-    }
-  }, [nickname, messageCount, isOwner, fallbackShare]);
-
-  const getShareUrl = useCallback(() => {
-    return isOwner
-      ? `${window.location.origin}/rolling-paper/${encodeURIComponent(
-          nickname
-        )}`
-      : window.location.href;
-  }, [nickname, isOwner]);
-
-  return {
-    handleKakaoShare,
-    handleWebShare,
-    getShareUrl,
-  };
-}

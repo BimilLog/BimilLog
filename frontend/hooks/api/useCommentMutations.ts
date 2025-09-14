@@ -47,8 +47,7 @@ export const useUpdateComment = () => {
 
   return useMutation({
     mutationKey: mutationKeys.comment.update,
-    mutationFn: ({ commentId, data }: { commentId: number; data: { content: string; password?: number } }) =>
-      commentCommand.update(commentId, data),
+    mutationFn: commentCommand.update,
     onSuccess: (response, variables) => {
       if (response.success) {
         // 모든 댓글 관련 캐시 무효화 (postId를 정확히 알 수 없으므로)
@@ -74,8 +73,7 @@ export const useDeleteComment = () => {
 
   return useMutation({
     mutationKey: mutationKeys.comment.delete,
-    mutationFn: ({ commentId, password }: { commentId: number; password?: number }) =>
-      commentCommand.delete(commentId, password),
+    mutationFn: commentCommand.delete,
     onMutate: async ({ commentId }) => {
       // 낙관적 업데이트를 위한 현재 댓글 데이터 확인
       // 실제 구현에서는 postId를 알아야 하므로 사용 시점에서 전달받아야 함
@@ -122,7 +120,7 @@ export const useLikeComment = () => {
     },
     onError: (error, commentId) => {
       // 좋아요는 일반적으로 조용히 실패 (토스트 없음)
-      console.error('Failed to like comment:', error);
+      // Silent fail for like operations
     },
     onSettled: (data, error, commentId) => {
       // 성공/실패 여부와 관계없이 해당 댓글의 캐시 갱신

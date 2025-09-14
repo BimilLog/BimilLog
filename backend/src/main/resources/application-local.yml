@@ -56,4 +56,4 @@ url: http://localhost:3000
 
 # 서버 설정
 server:
-  port: ${PROD_SERVER_PROT}
+  port: 8080

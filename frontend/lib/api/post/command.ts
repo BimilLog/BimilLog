@@ -18,7 +18,7 @@ export const postCommand = {
       payload.password = post.password.toString().padStart(4, '0')
     }
     
-    return apiClient.post<{ id: number }>("/api/post/create", payload).then(response => {
+    return apiClient.post<{ id: number }>("/api/post", payload).then(response => {
       if (response.success && response.data) {
         return { ...response, data: { ...post, id: response.data.id } as Post }
       }
@@ -26,23 +26,22 @@ export const postCommand = {
     })
   },
   
-  update: (post: Post): Promise<ApiResponse<void>> => {
-    const payload = {
+  update: (post: Post & { password?: number }): Promise<ApiResponse<void>> => {
+    const payload: { title: string; content: string; password?: string } = {
       title: post.title,
       content: post.content
     }
-    return apiClient.put(`/api/post/update/${post.id}`, payload)
+
+    if (post.password !== undefined) {
+      payload.password = post.password.toString().padStart(4, '0')
+    }
+
+    return apiClient.put(`/api/post/${post.id}`, payload)
   },
   
-  delete: (postId: number): Promise<ApiResponse<void>> => 
-    apiClient.delete(`/api/post/delete/${postId}`),
-  
-  like: (postId: number): Promise<ApiResponse<void>> => 
-    apiClient.post(`/api/post/like`, { postId }),
-  
-  cancelLike: (postId: number): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/api/post/unlike`, { postId }),
+  delete: (postId: number): Promise<ApiResponse<void>> =>
+    apiClient.delete(`/api/post/${postId}`),
 
-  toggleNotice: (postId: number): Promise<ApiResponse<boolean>> =>
-    apiClient.post(`/api/post/notice/${postId}`, {}),
+  like: (postId: number): Promise<ApiResponse<void>> =>
+    apiClient.post(`/api/post/${postId}/like`, {}),
 }

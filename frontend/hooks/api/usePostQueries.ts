@@ -67,26 +67,3 @@ export const usePopularPosts = () => {
   });
 };
 
-/**
- * 레전드 게시글 목록
- */
-export const useLegendPosts = () => {
-  return useQuery({
-    queryKey: queryKeys.post.legend(),
-    queryFn: () => postQuery.getLegend(),
-    staleTime: 30 * 60 * 1000, // 30분
-    gcTime: 60 * 60 * 1000, // 1시간
-  });
-};
-
-/**
- * 공지사항 목록
- */
-export const useNoticePosts = () => {
-  return useQuery({
-    queryKey: queryKeys.post.notice(),
-    queryFn: postQuery.getNotices,
-    staleTime: 60 * 60 * 1000, // 1시간
-    gcTime: 24 * 60 * 60 * 1000, // 24시간
-  });
-};

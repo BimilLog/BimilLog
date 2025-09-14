@@ -17,7 +17,7 @@ export default function AdminError({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center p-4">
+    <div className="flex items-center justify-center p-4 py-16">
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
         <div className="p-4 rounded-full bg-red-100 inline-block mb-6">
           <AlertTriangle className="w-12 h-12 text-red-600" />

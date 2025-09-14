@@ -72,7 +72,8 @@ export const useCommentActions = (
 
       setIsSubmitting(true);
       try {
-        const response = await commentCommand.update(commentId, {
+        const response = await commentCommand.update({
+          commentId,
           content,
           password: password ? Number(password) : undefined,
         });
@@ -101,10 +102,10 @@ export const useCommentActions = (
 
       setIsDeletingComment(true);
       try {
-        const response = await commentCommand.delete(
+        const response = await commentCommand.delete({
           commentId,
-          password ? Number(password) : undefined
-        );
+          password: password ? Number(password) : undefined
+        });
 
         if (response.success) {
           toast.success("댓글이 삭제되었습니다.");

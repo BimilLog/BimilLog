@@ -1,148 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { useAuth, useToast } from "@/hooks";
-import { postQuery, postCommand, type Post } from "@/lib/api";
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@/components";
+import { useEditForm } from "@/hooks/features";
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Editor } from "@/components";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
-import { Editor } from "@/components";
 import { ToastContainer } from "@/components/molecules/feedback/toast";
-import { stripHtml, validatePassword } from "@/lib/utils";
 import { AuthHeader } from "@/components/organisms/common";
+import { useToast } from "@/hooks";
 
 export default function EditPostPage() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const router = useRouter();
-  const params = useParams();
-  const [postId, setPostId] = useState<number | null>(null);
-  const { showSuccess, showError, showWarning, toasts, removeToast } =
-    useToast();
+  const { toasts, removeToast } = useToast();
 
-  // params에서 id 추출 - useParams는 동적 라우트 매개변수를 가져옴
-  useEffect(() => {
-    if (params.id) {
-      setPostId(Number.parseInt(params.id as string));
-    }
-  }, [params]);
+  // useEditForm 훅에서 모든 상태와 액션을 가져옴
+  const {
+    post,
+    postId,
+    isLoading,
+    isAuthorized,
+    title,
+    setTitle,
+    content,
+    setContent,
+    guestPassword,
+    setGuestPassword,
+    isGuest,
+    isPreview,
+    setIsPreview,
+    isSubmitting,
+    isFormValid,
+    handleSubmit,
+  } = useEditForm();
 
-  const [post, setPost] = useState<Post | null>(null);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isPreview, setIsPreview] = useState(false);
-
-  // 비회원 게시글 수정을 위한 상태
-  const [isGuest, setIsGuest] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [guestPassword, setGuestPassword] = useState("");
-
-  // 게시글 정보 조회
-  useEffect(() => {
-    const fetchPost = async () => {
-      if (!postId) return;
-
-      try {
-        const response = await postQuery.getById(postId);
-        if (response.success && response.data) {
-          const postData = response.data;
-          setPost(postData);
-          setTitle(postData.title);
-          setContent(postData.content);
-
-          // userId가 null 또는 0이면 비회원이 작성한 게시글
-          const isGuestPost = postData.userId === null || postData.userId === 0;
-          setIsGuest(isGuestPost);
-
-          // 회원 글일 경우 작성자만 권한 부여 - 본인 확인
-          if (!isGuestPost) {
-            if (isAuthenticated && user?.userId === postData.userId) {
-              setIsAuthorized(true);
-            } else {
-              // 회원 글인데 다른 사용자가 접근한 경우 - 즉시 차단
-              showError("권한 없음", "수정 권한이 없습니다.");
-              router.push(`/board/post/${postId}`);
-            }
-          } else {
-            // 비회원 글의 경우 바로 수정 화면으로 이동 (비밀번호는 수정 시 검증)
-            setIsAuthorized(true);
-          }
-        } else {
-          showError("게시글 없음", "게시글을 찾을 수 없습니다.");
-          router.push("/board");
-        }
-      } catch {
-        showError("오류", "게시글을 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [postId, router, isAuthenticated, user, showError]);
-
-  const handleSubmit = async () => {
-    const plainContent = stripHtml(content).trim();
-
-    if (!title.trim() || !plainContent) {
-      showWarning("입력 확인", "제목과 내용을 입력해주세요.");
-      return;
-    }
-    if (!post) return;
-
-    // 비회원 게시글의 경우 비밀번호 검증 - 4자리 숫자 형식 확인
-    let validatedPassword: number | undefined;
-    try {
-      validatedPassword = isGuest ? validatePassword(guestPassword, false) : undefined;
-    } catch (error) {
-      if (error instanceof Error) {
-        showWarning("비밀번호 확인", error.message);
-      }
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const updatedPost: Post = {
-        ...post,
-        title: title.trim(),
-        content: plainContent,
-        password: validatedPassword,
-      };
-
-      const response = await postCommand.update(updatedPost);
-      if (response.success) {
-        showSuccess("수정 완료", "게시글이 성공적으로 수정되었습니다!");
-        router.push(`/board/post/${postId}`);
-      } else {
-        // 서버 응답의 에러 메시지 확인 - 비밀번호 불일치 특별 처리
-        if (
-          response.error &&
-          response.error.includes("게시글 비밀번호가 일치하지 않습니다")
-        ) {
-          showError("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
-        } else {
-          showError(
-            "수정 실패",
-            response.error || "게시글 수정에 실패했습니다."
-          );
-        }
-      }
-    } catch (error) {
-      // HTTP 상태 코드 기반 에러 처리 - 403 Forbidden은 비밀번호 오류
-      if (error instanceof Error && error.message.includes("403")) {
-        showError("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
-      } else {
-        showError("수정 실패", "게시글 수정 중 오류가 발생했습니다.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoading || authLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
         <AuthHeader />
@@ -215,7 +104,7 @@ export default function EditPostPage() {
                   <Button
                     size="sm"
                     onClick={handleSubmit}
-                    disabled={isSubmitting || !title.trim() || !content.trim()}
+                    disabled={isSubmitting || !isFormValid}
                     className="bg-gradient-to-r from-pink-500 to-purple-600"
                   >
                     <Save className="w-4 h-4" />
@@ -236,7 +125,7 @@ export default function EditPostPage() {
                 </Button>
                 <Button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !title.trim() || !content.trim()}
+                  disabled={isSubmitting || !isFormValid}
                   className="bg-gradient-to-r from-pink-500 to-purple-600"
                 >
                   <Save className="w-4 h-4 mr-2" />

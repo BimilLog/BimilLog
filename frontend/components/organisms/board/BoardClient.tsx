@@ -45,7 +45,6 @@ function BoardClient() {
   // 탭별 데이터 분리 - 인기글 API는 하나의 상태로 관리되지만 탭에 따라 다른 데이터를 표시
   const realtimePosts = popularTab === 'realtime' ? popularPostsData : [];
   const weeklyPosts = popularTab === 'weekly' ? popularPostsData : [];
-  const legendPosts = popularTab === 'legend' ? popularPostsData : [];
 
   // 탭 변경 핸들러 메모이제이션
   // 메인 탭(all/realtime/popular/legend)과 인기글 탭(realtime/weekly/legend) 동기화
@@ -122,7 +121,7 @@ function BoardClient() {
           onPageChange={pagination.setCurrentPage}
           realtimePosts={realtimePosts}
           weeklyPosts={weeklyPosts}
-          legendPosts={legendPosts}
+          legendPosts={[]}
         />
 
         {/* Mobile Advertisement - 게시판 아래로 이동 */}

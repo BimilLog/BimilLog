@@ -8,8 +8,6 @@
 export {
   usePostList as useBoardPosts,
   usePopularPosts as useBoardPopularPosts,
-  useLegendPosts as useBoardLegendPosts,
-  useNoticePosts as useBoardNoticePosts
 } from './usePostQueries';
 
 // useBoardSearch는 더 유연한 검색 타입을 지원하는 버전

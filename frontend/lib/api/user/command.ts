@@ -14,22 +14,6 @@ export const userCommand = {
     content: string
   }) => apiClient.post("/api/user/report", report),
   
-  submitSuggestion: (report: {
-    reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT" | "SUGGESTION"
-    userId?: number
-    targetId?: number
-    content: string
-  }) => {
-    const mappedType = report.reportType === "SUGGESTION"
-      ? "IMPROVEMENT"
-      : report.reportType as "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
-
-    return apiClient.post("/api/user/report", {
-      reportType: mappedType,
-      targetId: report.targetId,
-      content: report.content
-    })
-  },
 
   withdraw: () =>
     apiClient.delete("/api/user/withdraw"),

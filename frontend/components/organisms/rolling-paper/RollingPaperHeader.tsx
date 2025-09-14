@@ -4,7 +4,7 @@ import React from "react";
 import { Button } from "@/components";
 import { MessageSquare, Share2, List } from "lucide-react";
 import { KakaoShareButton } from "@/components";
-import { useRollingPaperShare } from "@/hooks";
+import { useRollingPaperShare } from "@/hooks/features/useRollingPaperShare";
 
 interface RollingPaperHeaderProps {
   nickname: string;

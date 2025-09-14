@@ -8,7 +8,8 @@ export { useDataState, useArrayDataState, usePaginatedDataState } from './useDat
 export * from './useDomainErrorHandlers';
 
 // Core hooks
-export { useAuth, usePasswordModal, useKakaoCallback, useAuthError, useSignupUuid } from './useAuth';
-export type { PasswordModalMode, PasswordModalState, UsePasswordModalReturn } from './useAuth';
+export { useAuth, useKakaoCallback, useAuthError, useSignupUuid } from './useAuth';
+export { usePasswordModal } from './usePasswordModal';
+export type { PasswordModalMode, PasswordModalState, UsePasswordModalReturn } from './usePasswordModal';
 export { useToast, useToastContext, ToastProvider } from './useToast';
 export { useBrowserGuide } from './useBrowserGuide';

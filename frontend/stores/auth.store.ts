@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { authQuery, authCommand, userQuery, userCommand, sseManager, type User } from '@/lib/api';
+import { authQuery, authCommand, userCommand, sseManager, type User } from '@/lib/api';
 import { logger } from '@/lib/utils';
 
 interface AuthState {
@@ -18,7 +18,7 @@ interface AuthState {
   logout: () => Promise<void>;
   signUp: (userName: string, uuid: string) => Promise<{ success: boolean; error?: string }>;
   updateUserName: (userName: string) => Promise<boolean>;
-  deleteAccount: () => Promise<boolean>;
+
   
   // Event Handler
   handleNeedsRelogin: (title: string, message: string) => void;
@@ -149,25 +149,6 @@ export const useAuthStore = create<AuthState>()(
             return false;
           } catch (error) {
             logger.error("Update username failed:", error);
-            return false;
-          }
-        },
-        
-        deleteAccount: async () => {
-          try {
-            const response = await authCommand.withdraw();
-            if (response.success) {
-              sseManager.disconnect();
-              set({ 
-                user: null, 
-                isAuthenticated: false 
-              });
-              window.location.href = "/";
-              return true;
-            }
-            return false;
-          } catch (error) {
-            logger.error("Delete account failed:", error);
             return false;
           }
         },

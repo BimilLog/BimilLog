@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Label } from "@/components";
 import { Spinner } from "@/components";
 import { Lightbulb, Send, Bug, FileText } from "lucide-react";
-import { useAuth } from "@/hooks";
 import { userCommand } from "@/lib/api";
 import { useToast } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
@@ -53,7 +52,6 @@ const suggestionTypes = [
 ];
 
 export default function SuggestClient() {
-  const { user, isAuthenticated } = useAuth();
   const [suggestionType, setSuggestionType] = useState<SuggestionType | "">("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,17 +78,10 @@ export default function SuggestClient() {
     setIsSubmitting(true);
 
     try {
-      const suggestionData: {
-        reportType: SuggestionType;
-        content: string;
-        userId?: number;
-      } = {
+      const response = await userCommand.submitReport({
         reportType: suggestionType,
         content: content.trim(),
-        userId: isAuthenticated && user?.userId ? user.userId : undefined,
-      };
-
-      const response = await userCommand.submitSuggestion(suggestionData);
+      });
 
       if (response.success) {
         showSuccess(

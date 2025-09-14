@@ -21,13 +21,7 @@ export const postQuery = {
       `/api/post/search?type=${backendType}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`
     )
   },
-  
-  getPopular: (): Promise<ApiResponse<{ realtime: SimplePost[]; weekly: SimplePost[] }>> => 
+
+  getPopular: (): Promise<ApiResponse<{ realtime: SimplePost[]; weekly: SimplePost[] }>> =>
     apiClient.get("/api/post/popular"),
-  
-  getLegend: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => 
-    apiClient.get(`/api/post/legend?page=${page}&size=${size}`),
-  
-  getNotices: (): Promise<ApiResponse<SimplePost[]>> => 
-    apiClient.get("/api/post/notice"),
 }
