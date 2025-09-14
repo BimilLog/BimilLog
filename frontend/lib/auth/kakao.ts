@@ -122,10 +122,37 @@ export const logoutAndRedirectToConsent = (): void => {
  * 카카오 SDK 공유 기능
  */
 
+// 카카오 SDK 타입 정의
+interface KakaoSDK {
+  init: (appKey: string) => void;
+  isInitialized: () => boolean;
+  Share: {
+    sendDefault: (options: {
+      objectType: string;
+      content: {
+        title: string;
+        description: string;
+        imageUrl: string;
+        link: {
+          mobileWebUrl: string;
+          webUrl: string;
+        };
+      };
+      buttons: Array<{
+        title: string;
+        link: {
+          mobileWebUrl: string;
+          webUrl: string;
+        };
+      }>;
+    }) => void;
+  };
+}
+
 // 카카오 SDK 전역 타입 선언
 declare global {
   interface Window {
-    Kakao: any;
+    Kakao: KakaoSDK;
   }
 }
 

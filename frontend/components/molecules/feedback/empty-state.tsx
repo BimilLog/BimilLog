@@ -1,3 +1,4 @@
+import React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components";
 import {
@@ -88,7 +89,7 @@ const defaultMessages = {
   },
 } as const;
 
-export function EmptyState({
+export const EmptyState = React.memo<EmptyStateProps>(({
   className,
   type = "custom",
   title: customTitle,
@@ -99,7 +100,7 @@ export function EmptyState({
   icon: customIcon,
   showRetry,
   onRetry,
-}: EmptyStateProps) {
+}) => {
   const defaults =
     defaultMessages[type as keyof typeof defaultMessages] ||
     defaultMessages.custom;
@@ -177,4 +178,6 @@ export function EmptyState({
       </div>
     </div>
   );
-}
+});
+
+EmptyState.displayName = "EmptyState";

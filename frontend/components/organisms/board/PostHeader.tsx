@@ -1,3 +1,4 @@
+import React from "react";
 import { Badge, Button, CardHeader, CardTitle } from "@/components";
 import {
   Eye,
@@ -26,7 +27,7 @@ interface PostHeaderProps {
   onDeleteClick: () => void;
 }
 
-export const PostHeader: React.FC<PostHeaderProps> = ({
+export const PostHeader = React.memo<PostHeaderProps>(({
   post,
   commentCount,
   canModify,
@@ -163,4 +164,17 @@ export const PostHeader: React.FC<PostHeaderProps> = ({
       </div>
     </CardHeader>
   );
-};
+}, (prevProps, nextProps) => {
+  // Post 객체의 핵심 필드들과 commentCount 비교
+  return (
+    prevProps.post.id === nextProps.post.id &&
+    prevProps.post.title === nextProps.post.title &&
+    prevProps.post.viewCount === nextProps.post.viewCount &&
+    prevProps.post.likeCount === nextProps.post.likeCount &&
+    prevProps.post.isNotice === nextProps.post.isNotice &&
+    prevProps.post.postCacheFlag === nextProps.post.postCacheFlag &&
+    prevProps.commentCount === nextProps.commentCount
+  );
+});
+
+PostHeader.displayName = "PostHeader";

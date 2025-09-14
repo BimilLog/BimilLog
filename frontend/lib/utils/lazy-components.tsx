@@ -1,3 +1,5 @@
+"use client";
+
 import dynamic from 'next/dynamic';
 import { ComponentType } from 'react';
 
@@ -96,6 +98,72 @@ export const LazyReportListContainer = dynamic(
       <div className="h-20 bg-gray-200 rounded-lg" />
       <div className="h-20 bg-gray-200 rounded-lg" />
       <div className="h-20 bg-gray-200 rounded-lg" />
+    </div>
+  }
+);
+
+// 추가로 무거운 컴포넌트들을 위한 lazy loading 컴포넌트들
+export const LazyMessageListModal = dynamic(
+  () => import('@/components/organisms/rolling-paper/MessageListModal').then(mod => ({ default: mod.MessageListModal })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-600"></div>
+          <p className="text-sm text-gray-500">메시지 목록 로딩 중...</p>
+        </div>
+      </div>
+    ),
+  }
+);
+
+
+export const LazyCommentItem = dynamic(
+  () => import('@/components/organisms/board/CommentItem').then(mod => ({ default: mod.CommentItem })),
+  {
+    loading: () => <div className="p-4 border border-gray-200 rounded-lg animate-pulse">
+      <div className="flex items-center space-x-3 mb-2">
+        <div className="w-8 h-8 bg-gray-200 rounded-full" />
+        <div className="h-4 bg-gray-200 rounded w-20" />
+      </div>
+      <div className="h-4 bg-gray-200 rounded w-full mb-2" />
+      <div className="h-4 bg-gray-200 rounded w-3/4" />
+    </div>
+  }
+);
+
+export const LazyNotificationBell = dynamic(
+  () => import('@/components/organisms/common/notification-bell').then(mod => ({ default: mod.NotificationBell })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="relative">
+        <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
+      </div>
+    )
+  }
+);
+
+export const LazyRollingPaperGrid = dynamic(
+  () => import('@/components/organisms/rolling-paper/RollingPaperGrid').then(mod => ({ default: mod.RollingPaperGrid })),
+  {
+    loading: () => <div className="grid grid-cols-4 md:grid-cols-6 gap-2 animate-pulse">
+      {Array.from({ length: 24 }).map((_, i) => (
+        <div key={i} className="h-20 bg-gray-200 rounded-lg" />
+      ))}
+    </div>,
+    ssr: false
+  }
+);
+
+export const LazyUserActivitySection = dynamic(
+  () => import('@/components/organisms/user/UserActivitySection').then(mod => ({ default: mod.UserActivitySection })),
+  {
+    loading: () => <div className="space-y-4 animate-pulse">
+      <div className="h-40 bg-gray-200 rounded-lg" />
+      <div className="h-32 bg-gray-200 rounded-lg" />
+      <div className="h-32 bg-gray-200 rounded-lg" />
     </div>
   }
 );

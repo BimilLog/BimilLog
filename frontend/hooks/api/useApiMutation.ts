@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from 'react';
-import type { ApiResponse, ErrorResponse } from '@/types/common';
+import type { ApiResponse } from '@/types/common';
 import { ErrorHandler, AppError } from '@/lib/api/helpers';
 import { useToast } from '@/hooks';
 

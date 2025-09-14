@@ -1,8 +1,9 @@
+import React from "react";
 import { Button } from "@/components";
 import { MessageSquare, Edit } from "lucide-react";
 import Link from "next/link";
 
-export const BoardHeader: React.FC = () => {
+export const BoardHeader = React.memo(() => {
   return (
     <header className="py-8">
       <div className="container mx-auto px-4 text-center">
@@ -30,4 +31,6 @@ export const BoardHeader: React.FC = () => {
       </div>
     </header>
   );
-};
+});
+
+BoardHeader.displayName = "BoardHeader";

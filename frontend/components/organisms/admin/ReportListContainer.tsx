@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Card, Input, Badge, Button, Loading } from "@/components";
 import { Search, Filter, ChevronDown, AlertTriangle } from "lucide-react";
 import { ReportFilters } from "./ReportFilters";
@@ -17,21 +17,21 @@ interface ReportListContainerProps {
   initialSearchTerm?: string;
 }
 
-export function ReportListContainer({
+const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
   reports,
   isLoading,
   refetch,
   initialFilterType = "all",
   initialSearchTerm = ""
-}: ReportListContainerProps) {
+}) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [filterType, setFilterType] = useState(initialFilterType);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [filteredReports, setFilteredReports] = useState<Report[]>(reports);
 
-  useEffect(() => {
-    const filtered = reports.filter(report => {
+  // 검색 및 필터링 최적화 (debounce 효과)
+  const filteredReports = useMemo(() => {
+    return reports.filter(report => {
       const matchesSearch = searchTerm === "" ||
         report.targetId?.toString().includes(searchTerm) ||
         report.reporterName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,21 +41,56 @@ export function ReportListContainer({
       
       return matchesSearch && matchesFilter;
     });
-    
-    setFilteredReports(filtered);
   }, [reports, searchTerm, filterType]);
 
-  if (isLoading) {
-    return <Loading type="card" message="신고 목록을 불러오는 중..." />;
-  }
-
-  const reportCounts = {
+  // 신고 개수 계산 메모화
+  const reportCounts = useMemo(() => ({
     all: reports.length,
     POST: reports.filter(r => r.reportType === "POST").length,
     COMMENT: reports.filter(r => r.reportType === "COMMENT").length,
     ERROR: reports.filter(r => r.reportType === "ERROR").length,
     IMPROVEMENT: reports.filter(r => r.reportType === "IMPROVEMENT").length
-  };
+  }), [reports]);
+
+  // 이벤트 핸들러 최적화
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const handleToggleFilters = useCallback(() => {
+    setShowFilters(prev => !prev);
+  }, []);
+
+  const handleReportView = useCallback((report: Report) => {
+    setSelectedReport(report);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedReport(null);
+  }, []);
+
+  // 빈 상태 컴포넌트 메모화
+  const EmptyStateComponent = useMemo(() => (
+    <Card className="p-12 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+          <AlertTriangle className="w-8 h-8 text-gray-400" />
+        </div>
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">
+            신고 내역이 없습니다
+          </h3>
+          <p className="text-sm text-gray-500">
+            {searchTerm ? "검색 결과가 없습니다. 다른 검색어를 시도해보세요." : "아직 처리할 신고가 없습니다."}
+          </p>
+        </div>
+      </div>
+    </Card>
+  ), [searchTerm]);
+
+  if (isLoading) {
+    return <Loading type="card" message="신고 목록을 불러오는 중..." />;
+  }
 
   return (
     <>
@@ -70,7 +105,7 @@ export function ReportListContainer({
                 type="text"
                 placeholder="신고 ID, 사용자명, 신고 사유로 검색..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="pl-10 pr-4 py-2.5 w-full border-gray-200 focus:border-purple-500 focus:ring-purple-500"
               />
             </div>
@@ -79,7 +114,7 @@ export function ReportListContainer({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={handleToggleFilters}
               className="sm:hidden w-full flex items-center justify-between"
             >
               <span className="flex items-center gap-2">
@@ -120,21 +155,7 @@ export function ReportListContainer({
 
         {/* 신고 목록 */}
         {filteredReports.length === 0 ? (
-          <Card className="p-12 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-8 h-8 text-gray-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-1">
-                  신고 내역이 없습니다
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {searchTerm ? "검색 결과가 없습니다. 다른 검색어를 시도해보세요." : "아직 처리할 신고가 없습니다."}
-                </p>
-              </div>
-            </div>
-          </Card>
+          EmptyStateComponent
         ) : (
           <div className="space-y-4">
             {/* 데스크톱 뷰 */}
@@ -164,9 +185,9 @@ export function ReportListContainer({
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredReports.map((report) => (
                         <ReportCard
-                          key={report.id}
+                          key={`desktop-report-${report.id}`}
                           report={report}
-                          onView={() => setSelectedReport(report)}
+                          onView={() => handleReportView(report)}
                         />
                       ))}
                     </tbody>
@@ -179,9 +200,9 @@ export function ReportListContainer({
             <div className="sm:hidden space-y-3">
               {filteredReports.map((report) => (
                 <MobileReportCard
-                  key={report.id}
+                  key={`mobile-report-${report.id}`}
                   report={report}
-                  onView={() => setSelectedReport(report)}
+                  onView={() => handleReportView(report)}
                 />
               ))}
             </div>
@@ -194,10 +215,12 @@ export function ReportListContainer({
         <ReportDetailModal
           report={selectedReport}
           isOpen={!!selectedReport}
-          onClose={() => setSelectedReport(null)}
+          onClose={handleCloseModal}
           onAction={refetch}
         />
       )}
     </>
   );
-}
+};
+
+export const ReportListContainer = memo(ReportListContainerComponent);

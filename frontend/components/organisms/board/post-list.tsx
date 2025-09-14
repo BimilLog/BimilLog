@@ -9,7 +9,58 @@ interface PostListProps {
   posts: SimplePost[];
 }
 
-export const PostList = React.memo(({ posts }: PostListProps) => {
+interface PostListItemProps {
+  post: SimplePost;
+}
+
+const PostListItem = React.memo<PostListItemProps>(({ post }) => (
+  <tr
+    className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+  >
+    <td className="p-4 md:p-3 hidden sm:table-cell">
+      {post.postCacheFlag && (
+        <Badge className="bg-orange-400 hover:bg-orange-500 text-white">
+          {post.postCacheFlag === "REALTIME" && "실시간"}
+          {post.postCacheFlag === "WEEKLY" && "주간"}
+          {post.postCacheFlag === "LEGEND" && "레전드"}
+        </Badge>
+      )}
+    </td>
+    <td className="p-4 md:p-3">
+      <Link
+        href={`/board/post/${post.id}`}
+        className="font-semibold text-gray-800 hover:text-purple-600 transition-colors"
+      >
+        {post.title}
+        {post.commentCount > 0 && (
+          <span className="ml-2 text-purple-500 font-normal">
+            [{post.commentCount}]
+          </span>
+        )}
+      </Link>
+    </td>
+    <td className="p-4 md:p-3 text-gray-600 hidden md:table-cell">
+      <Link
+        href={`/rolling-paper/${encodeURIComponent(
+          post.userName
+        )}`}
+        className="hover:text-purple-600 hover:underline transition-colors"
+        title={`${post.userName}님의 롤링페이퍼 보기`}
+      >
+        <span>{post.userName}</span>
+      </Link>
+    </td>
+    <td className="p-4 md:p-3 text-gray-600 hidden md:table-cell">
+      {formatDate(post.createdAt)}
+    </td>
+    <td className="p-4 md:p-3 text-gray-600">{post.viewCount}</td>
+    <td className="p-4 md:p-3 text-gray-600">{post.likeCount}</td>
+  </tr>
+));
+
+PostListItem.displayName = "PostListItem";
+
+export const PostList = React.memo<PostListProps>(({ posts }) => {
   const regularPosts = posts.filter((post) => !post.isNotice);
 
   return (
@@ -36,49 +87,7 @@ export const PostList = React.memo(({ posts }: PostListProps) => {
             <tbody>
               {regularPosts.length > 0 ? (
                 regularPosts.map((post) => (
-                  <tr
-                    key={post.id}
-                    className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
-                  >
-                    <td className="p-4 md:p-3 hidden sm:table-cell">
-                      {post.postCacheFlag && (
-                        <Badge className="bg-orange-400 hover:bg-orange-500 text-white">
-                          {post.postCacheFlag === "REALTIME" && "실시간"}
-                          {post.postCacheFlag === "WEEKLY" && "주간"}
-                          {post.postCacheFlag === "LEGEND" && "레전드"}
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="p-4 md:p-3">
-                      <Link
-                        href={`/board/post/${post.id}`}
-                        className="font-semibold text-gray-800 hover:text-purple-600 transition-colors"
-                      >
-                        {post.title}
-                        {post.commentCount > 0 && (
-                          <span className="ml-2 text-purple-500 font-normal">
-                            [{post.commentCount}]
-                          </span>
-                        )}
-                      </Link>
-                    </td>
-                    <td className="p-4 md:p-3 text-gray-600 hidden md:table-cell">
-                      <Link
-                        href={`/rolling-paper/${encodeURIComponent(
-                          post.userName
-                        )}`}
-                        className="hover:text-purple-600 hover:underline transition-colors"
-                        title={`${post.userName}님의 롤링페이퍼 보기`}
-                      >
-                        <span>{post.userName}</span>
-                      </Link>
-                    </td>
-                    <td className="p-4 md:p-3 text-gray-600 hidden md:table-cell">
-                      {formatDate(post.createdAt)}
-                    </td>
-                    <td className="p-4 md:p-3 text-gray-600">{post.viewCount}</td>
-                    <td className="p-4 md:p-3 text-gray-600">{post.likeCount}</td>
-                  </tr>
+                  <PostListItem key={post.id} post={post} />
                 ))
               ) : (
                 <tr>

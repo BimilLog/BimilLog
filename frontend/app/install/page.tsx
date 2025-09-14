@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@/components";
-import { Card, CardContent } from "@/components";
+import { Button, Card, CardContent } from "@/components";
 import {
   Smartphone,
   Monitor,

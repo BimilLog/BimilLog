@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, memo } from "react";
+import React, { useMemo, memo, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -60,6 +60,15 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
   onRefresh,
   className = "",
 }) => {
+  // 페이지 네비게이션 핸들러 최적화
+  const handlePreviousPage = useCallback(() => {
+    setCurrentPage(Math.max(1, currentPage - 1));
+  }, [setCurrentPage, currentPage]);
+
+  const handleNextPage = useCallback(() => {
+    setCurrentPage(Math.min(totalPages, currentPage + 1));
+  }, [setCurrentPage, totalPages, currentPage]);
+
   // 그리드 설정 (메모화)
   const gridConfig = useMemo(() => {
     const pageWidth = isMobile ? 4 : 6;
@@ -68,7 +77,39 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     return { pageWidth, pageHeight, totalSlots };
   }, [isMobile]);
 
+  // 데코레이션 아이콘들 메모화
+  const decorationIcons = useMemo(() => ([
+    { Component: Snowflake, className: "w-4 h-4 md:w-6 md:h-6 text-cyan-500", position: "-top-1 md:-top-2 -left-2 md:-left-4 animate-bounce" },
+    { Component: Sparkles, className: "w-3 h-3 md:w-5 md:h-5 text-blue-500", position: "-top-1 -right-3 md:-right-6 animate-pulse" },
+    { Component: IceCream2, className: "w-3 h-3 md:w-4 md:h-4 text-cyan-400", position: "-bottom-1 md:-bottom-2 left-4 md:left-8 animate-bounce delay-300" },
+    { Component: Diamond, className: "w-3 h-3 md:w-5 md:h-5 text-indigo-500", position: "-bottom-1 right-6 md:right-12 animate-pulse delay-500" }
+  ]), []);
+
+  // 떠다니는 데코레이션 메모화
+  const floatingDecorations = useMemo(() => ([
+    { Component: Star, className: "w-5 h-5 md:w-7 md:h-7 text-yellow-400", position: "top-8 md:top-16 right-4 md:right-8 animate-spin-slow" },
+    { Component: Fish, className: "w-4 h-4 md:w-6 md:h-6 text-blue-500", position: "top-16 md:top-32 left-8 md:left-12 animate-bounce" },
+    { Component: Zap, className: "w-4 h-4 md:w-6 md:h-6 text-cyan-400", position: "bottom-12 md:bottom-20 right-8 md:right-16 animate-pulse" },
+    { Component: User, className: "w-3 h-3 md:w-5 md:h-5 text-indigo-500", position: "bottom-16 md:bottom-32 left-4 md:left-8 animate-bounce delay-700" }
+  ]), []);
+
+  // 바인더 구멍들 메모화 (Array.from 최적화)
+  const binderHoles = useMemo(() => Array.from({ length: 8 }, (_, i) => (
+    <div
+      key={`binder-hole-${i}`}
+      className="w-4 h-4 md:w-6 md:h-6 bg-white rounded-full shadow-inner border border-cyan-300 md:border-2"
+      style={{
+        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1)",
+      }}
+    />
+  )), []);
+
   const { pageWidth, totalSlots } = gridConfig;
+
+  // 메시지 제출 핸들러 최적화
+  const handleMessageSubmit = useCallback((actualX: number, actualY: number, data: unknown) => {
+    onMessageSubmit?.({ x: actualX, y: actualY }, data);
+  }, [onMessageSubmit]);
 
   return (
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
@@ -87,16 +128,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
       >
         {/* 바인더 구멍들 */}
         <div className="absolute left-3 md:left-6 top-0 bottom-0 flex flex-col justify-evenly">
-          {Array.from({ length: 8 }, (_, i) => (
-            <div
-              key={i}
-              className="w-4 h-4 md:w-6 md:h-6 bg-white rounded-full shadow-inner border border-cyan-300 md:border-2"
-              style={{
-                boxShadow:
-                  "inset 0 1px 2px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1)",
-              }}
-            />
-          ))}
+          {binderHoles}
         </div>
 
         {/* 제목 영역 */}
@@ -109,18 +141,11 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
             </h1>
 
             {/* 시원한 데코레이션 */}
-            <div className="absolute -top-1 md:-top-2 -left-2 md:-left-4 animate-bounce">
-              <Snowflake className="w-4 h-4 md:w-6 md:h-6 text-cyan-500" />
-            </div>
-            <div className="absolute -top-1 -right-3 md:-right-6 animate-pulse">
-              <Sparkles className="w-3 h-3 md:w-5 md:h-5 text-blue-500" />
-            </div>
-            <div className="absolute -bottom-1 md:-bottom-2 left-4 md:left-8 animate-bounce delay-300">
-              <IceCream2 className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
-            </div>
-            <div className="absolute -bottom-1 right-6 md:right-12 animate-pulse delay-500">
-              <Diamond className="w-3 h-3 md:w-5 md:h-5 text-indigo-500" />
-            </div>
+            {decorationIcons.map(({ Component, className, position }, index) => (
+              <div key={`decoration-${index}`} className={`absolute ${position}`}>
+                <Component className={className} />
+              </div>
+            ))}
 
             <p className="text-cyan-600 text-xs md:text-sm mt-2 transform rotate-1 font-medium flex items-center justify-center space-x-1">
               <span>총 {messages.length}개의 시원한 메시지</span>
@@ -137,7 +162,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 className="bg-white/80"
               >
@@ -151,9 +176,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
+                onClick={handleNextPage}
                 disabled={currentPage === totalPages}
                 className="bg-white/80"
               >
@@ -190,7 +213,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 highlightedPosition.y === actualY;
 
               return (
-                <Dialog key={`${actualX}-${actualY}`}>
+                <Dialog key={`grid-cell-${actualX}-${actualY}`}>
                   <DialogTrigger asChild>
                     <div
                       onClick={isHighlighted ? onHighlightClear : undefined}
@@ -269,9 +292,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                           <MessageForm
                             nickname={nickname}
                             position={{ x: actualX, y: actualY }}
-                            onSubmit={(data) => {
-                              onMessageSubmit({ x: actualX, y: actualY }, data);
-                            }}
+                            onSubmit={(data) => handleMessageSubmit(actualX, actualY, data)}
                             onSuccess={onSuccess}
                             onError={onError}
                           />
@@ -286,18 +307,11 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
         </div>
 
         {/* 떠다니는 데코레이션 */}
-        <div className="absolute top-8 md:top-16 right-4 md:right-8 animate-spin-slow">
-          <Star className="w-5 h-5 md:w-7 md:h-7 text-yellow-400" />
-        </div>
-        <div className="absolute top-16 md:top-32 left-8 md:left-12 animate-bounce">
-          <Fish className="w-4 h-4 md:w-6 md:h-6 text-blue-500" />
-        </div>
-        <div className="absolute bottom-12 md:bottom-20 right-8 md:right-16 animate-pulse">
-          <Zap className="w-4 h-4 md:w-6 md:h-6 text-cyan-400" />
-        </div>
-        <div className="absolute bottom-16 md:bottom-32 left-4 md:left-8 animate-bounce delay-700">
-          <User className="w-3 h-3 md:w-5 md:h-5 text-indigo-500" />
-        </div>
+        {floatingDecorations.map(({ Component, className, position }, index) => (
+          <div key={`floating-decoration-${index}`} className={`absolute ${position}`}>
+            <Component className={className} />
+          </div>
+        ))}
       </div>
     </div>
   );

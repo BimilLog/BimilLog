@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { MessageSquare } from "lucide-react";
 import { Comment } from "@/lib/api";
@@ -35,7 +36,7 @@ interface CommentListProps {
   canModifyComment: (comment: Comment) => boolean;
 }
 
-export const CommentList: React.FC<CommentListProps> = ({
+export const CommentList = React.memo<CommentListProps>(({
   comments,
   commentCount,
   postId,
@@ -112,4 +113,6 @@ export const CommentList: React.FC<CommentListProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+CommentList.displayName = "CommentList";

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthHeader } from "@/components/organisms/common";
 import { useAuth } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
-import { KakaoFriendsModal } from "@/components";
+import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
 import {
   ResponsiveAdFitBanner,
   AdFitBanner,
@@ -13,8 +13,10 @@ import {
   getAdUnit,
 } from "@/components";
 
-// 분리된 컴포넌트들 import
-import { HomeHero, HomeFeatures, HomeFooter } from "@/components/organisms/home";
+// 분리된 컴포넌트들 import - 직접 파일에서 import하여 circular dependency 방지
+import { HomeHero } from "./HomeHero";
+import { HomeFeatures } from "./HomeFeatures";
+import { HomeFooter } from "./HomeFooter";
 
 export default function HomeClient() {
   const { isAuthenticated } = useAuth();
@@ -91,7 +93,7 @@ export default function HomeClient() {
       <HomeFooter />
 
       {/* 카카오 친구 모달 */}
-      <KakaoFriendsModal
+      <LazyKakaoFriendsModal
         isOpen={isFriendsModalOpen}
         onClose={() => setIsFriendsModalOpen(false)}
       />

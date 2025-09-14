@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@/components";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, AuthLoadingScreen } from "@/components";
 import Link from "next/link";
-import { useAuth, useToast } from "@/hooks";
+import { useAuth, useToast, useSignupUuid } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSignupUuid } from "@/hooks";
-import { AuthLayout } from "@/components/organisms/auth";
-import { AuthLoadingScreen } from "@/components";
-import { NicknameSetupForm } from "@/components/organisms/auth";
+import { AuthLayout, NicknameSetupForm } from "@/components/organisms/auth";
 
 export default function SignUpPage() {
   const { login, isAuthenticated, isLoading } = useAuth();

@@ -272,7 +272,7 @@ export type BorderRadius = keyof typeof designTokens.borderRadius;
 export const getColor = (color: keyof typeof designTokens.colors, scale?: string) => {
   const colorObject = designTokens.colors[color];
   if (typeof colorObject === 'object' && scale && scale in colorObject) {
-    return (colorObject as any)[scale];
+    return (colorObject as Record<string, string>)[scale];
   }
   return colorObject;
 };

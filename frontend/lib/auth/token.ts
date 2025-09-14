@@ -43,7 +43,7 @@ export class TokenManager {
     }
   }
 
-  static isTokenExpired(tokenData: any): boolean {
+  static isTokenExpired(tokenData: AuthTokens & { savedAt?: number }): boolean {
     if (!tokenData.expiresIn || !tokenData.savedAt) return false;
     
     const now = Date.now();

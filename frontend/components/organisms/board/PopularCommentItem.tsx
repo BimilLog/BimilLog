@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/molecules/dropdown-menu";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useToast } from "@/hooks";
 
 interface PopularCommentItemProps {
@@ -20,7 +20,7 @@ interface PopularCommentItemProps {
   onCommentClick: (commentId: number) => void;
 }
 
-export const PopularCommentItem: React.FC<PopularCommentItemProps> = ({
+export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
   comment,
   onLikeComment,
   onReplyTo,
@@ -159,4 +159,15 @@ export const PopularCommentItem: React.FC<PopularCommentItemProps> = ({
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Comment 객체의 핵심 필드만 비교하여 불필요한 리렌더링 방지
+  return (
+    prevProps.comment.id === nextProps.comment.id &&
+    prevProps.comment.content === nextProps.comment.content &&
+    prevProps.comment.likeCount === nextProps.comment.likeCount &&
+    prevProps.comment.userLike === nextProps.comment.userLike &&
+    prevProps.comment.deleted === nextProps.comment.deleted
+  );
+});
+
+PopularCommentItem.displayName = "PopularCommentItem";

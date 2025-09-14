@@ -165,7 +165,7 @@ export const useKakaoCallback = () => {
         const response = await apiClient.post("/auth/callback", { code });
 
         if (response.success) {
-          const data = response.data as any;
+          const data = response.data as { needsSignup?: boolean; tempUuid?: string };
           if (data?.needsSignup) {
             router.push(`/signup?uuid=${data.tempUuid}`);
           } else {
@@ -232,7 +232,7 @@ export const useSignupUuid = () => {
       try {
         // UUID 유효성 검증 (실제 구현 시 백엔드 API 호출)
         const response = await apiClient.get(`/auth/validate-uuid?uuid=${uuid}`);
-        const data = response.data as any;
+        const data = response.data as { valid?: boolean };
 
         if (response.success && data?.valid) {
           setTempUuid(uuid);

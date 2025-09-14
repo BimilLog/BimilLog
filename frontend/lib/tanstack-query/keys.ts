@@ -26,7 +26,7 @@ export const queryKeys = {
   post: {
     all: ['post'] as const,
     lists: () => [...queryKeys.post.all, 'list'] as const,
-    list: (filters?: Record<string, any>) => [...queryKeys.post.lists(), filters] as const,
+    list: (filters?: Record<string, string | number | boolean | null | undefined>) => [...queryKeys.post.lists(), filters] as const,
     details: () => [...queryKeys.post.all, 'detail'] as const,
     detail: (postId: number) => [...queryKeys.post.details(), postId] as const,
     search: (query: string, page?: number) => [...queryKeys.post.all, 'search', query, page] as const,

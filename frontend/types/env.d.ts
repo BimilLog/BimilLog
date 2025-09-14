@@ -19,6 +19,5 @@ declare namespace NodeJS {
 }
 
 interface Window {
-  Kakao: any;
-  gtag?: (...args: any[]) => void;
+  gtag?: (...args: unknown[]) => void;
 }

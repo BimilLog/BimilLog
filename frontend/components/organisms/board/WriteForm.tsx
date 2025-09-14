@@ -1,9 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components";
-import { Input } from "@/components";
-import { Label } from "@/components";
-import { SafeHTML } from "@/components";
+import { Card, CardContent, CardHeader, CardTitle, Input, Label, SafeHTML } from "@/components";
 import { Save, Lightbulb } from "lucide-react";
 import { LazyEditor } from "@/lib/utils/lazy-components";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { BrowserGuideModal } from "@/components";
+import { LazyBrowserGuideModal } from "@/lib/utils/lazy-components";
 import { useBrowserGuide } from "@/hooks";
 
 interface BrowserGuideWrapperProps {
@@ -13,7 +13,7 @@ export function BrowserGuideWrapper({ children }: BrowserGuideWrapperProps) {
   return (
     <>
       {children}
-      <BrowserGuideModal isOpen={showGuide} onOpenChange={() => hideGuide()} />
+      <LazyBrowserGuideModal isOpen={showGuide} onOpenChange={() => hideGuide()} />
     </>
   );
 }

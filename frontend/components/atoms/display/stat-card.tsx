@@ -12,7 +12,7 @@ interface StatCardProps {
   className?: string;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({
+export const StatCard = React.memo<StatCardProps>(({
   icon,
   value,
   label,
@@ -48,4 +48,6 @@ export const StatCard: React.FC<StatCardProps> = ({
       </div>
     </CardContent>
   </Card>
-);
+));
+
+StatCard.displayName = "StatCard";

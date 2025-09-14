@@ -5,15 +5,29 @@ import dynamic from "next/dynamic";
 import { RollingPaperLayout } from "@/components/organisms/rolling-paper/RollingPaperLayout";
 import { NavigationBar } from "@/components/organisms/rolling-paper/NavigationBar";
 import { SummarySection } from "@/components/organisms/rolling-paper/SummarySection";
-import { MessageListModal } from "@/components/organisms/rolling-paper/MessageListModal";
 import { ResponsiveAdFitBanner } from "@/components";
-import { ToastContainer, Loading, type Toast } from "@/components";
+import { ToastContainer, Loading, Spinner, type Toast } from "@/components";
 
 const RollingPaperGrid = dynamic(
   () => import("@/components/organisms/rolling-paper/RollingPaperGrid").then(mod => ({ default: mod.RollingPaperGrid })),
   {
     loading: () => <Loading className="min-h-[400px]" />,
     ssr: false
+  }
+);
+
+const MessageListModal = dynamic(
+  () => import("@/components/organisms/rolling-paper/MessageListModal").then(mod => ({ default: mod.MessageListModal })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
+          <Spinner size="md" />
+          <p className="text-sm text-gray-500">메시지 목록 로딩 중...</p>
+        </div>
+      </div>
+    ),
   }
 );
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";

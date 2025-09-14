@@ -11,12 +11,12 @@ interface PaginatedData<T> {
   currentPage: number;
 }
 
-interface UseActivityDataOptions {
-  fetchData: (page?: number, size?: number) => Promise<PaginatedData<any>>;
+interface UseActivityDataOptions<T> {
+  fetchData: (page?: number, size?: number) => Promise<PaginatedData<T>>;
 }
 
-export function useActivityData({ fetchData }: UseActivityDataOptions) {
-  const [items, setItems] = useState<any[]>([]);
+export function useActivityData<T>({ fetchData }: UseActivityDataOptions<T>) {
+  const [items, setItems] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);

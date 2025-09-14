@@ -3,7 +3,7 @@ import { mutationKeys, queryKeys } from '@/lib/tanstack-query/keys';
 import { postCommand } from '@/lib/api';
 import { useToast } from '@/hooks';
 import { useRouter } from 'next/navigation';
-import type { Post } from '@/types';
+import type { Post, ApiResponse } from '@/types';
 
 /**
  * 게시글 작성
@@ -101,10 +101,10 @@ export const useLikePost = () => {
       const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId));
 
       // 낙관적 업데이트
-      queryClient.setQueryData(queryKeys.post.detail(postId), (old: any) => {
+      queryClient.setQueryData(queryKeys.post.detail(postId), (old: ApiResponse<Post>) => {
         if (!old?.success || !old?.data) return old;
 
-        const post = old.data as Post;
+        const post = old.data;
         return {
           ...old,
           data: {

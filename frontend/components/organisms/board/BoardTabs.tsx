@@ -1,5 +1,6 @@
 "use client";
 
+import React, { memo, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import { MessageSquare, TrendingUp, Crown, Zap } from "lucide-react";
 import { NoticeList } from "./notice-list";
@@ -24,7 +25,7 @@ interface BoardTabsProps {
   legendPosts: SimplePost[];
 }
 
-export const BoardTabs: React.FC<BoardTabsProps> = ({
+const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   activeTab,
   onTabChange,
   posts,
@@ -35,41 +36,66 @@ export const BoardTabs: React.FC<BoardTabsProps> = ({
   weeklyPosts,
   legendPosts,
 }) => {
+  // 탭 설정 메모화
+  const tabConfig = useMemo(() => ([
+    {
+      value: "all",
+      icon: <MessageSquare className="w-4 h-4" />,
+      label: { desktop: "전체글", mobile: "전체" }
+    },
+    {
+      value: "realtime",
+      icon: <Zap className="w-4 h-4" />,
+      label: { desktop: "실시간", mobile: "실시간" }
+    },
+    {
+      value: "popular",
+      icon: <TrendingUp className="w-4 h-4" />,
+      label: { desktop: "주간", mobile: "주간" }
+    },
+    {
+      value: "legend",
+      icon: <Crown className="w-4 h-4" />,
+      label: { desktop: "레전드", mobile: "레전드" }
+    }
+  ]), []);
+
+  // 인기글 설정 메모화
+  const popularPostsConfig = useMemo(() => ({
+    realtime: {
+      posts: realtimePosts,
+      title: "실시간 인기글",
+      icon: <Zap className="w-5 h-5 text-red-500" />
+    },
+    popular: {
+      posts: weeklyPosts,
+      title: "주간 인기글",
+      icon: <TrendingUp className="w-5 h-5 text-orange-500" />
+    },
+    legend: {
+      posts: legendPosts,
+      title: "레전드 글",
+      icon: <Crown className="w-5 h-5 text-purple-500" />
+    }
+  }), [realtimePosts, weeklyPosts, legendPosts]);
+
+  // 페이지네이션 표시 조건 메모화
+  const showPagination = useMemo(() => activeTab === "all" && totalPages > 0, [activeTab, totalPages]);
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
       <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm shadow-lg">
-        <TabsTrigger
-          value="all"
-          className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white"
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span className="hidden sm:inline">전체글</span>
-          <span className="sm:hidden">전체</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="realtime"
-          className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white"
-        >
-          <Zap className="w-4 h-4" />
-          <span className="hidden sm:inline">실시간</span>
-          <span className="sm:hidden">실시간</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="popular"
-          className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white"
-        >
-          <TrendingUp className="w-4 h-4" />
-          <span className="hidden sm:inline">주간</span>
-          <span className="sm:hidden">주간</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="legend"
-          className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white"
-        >
-          <Crown className="w-4 h-4" />
-          <span className="hidden sm:inline">레전드</span>
-          <span className="sm:hidden">레전드</span>
-        </TabsTrigger>
+        {tabConfig.map(({ value, icon, label }) => (
+          <TabsTrigger
+            key={value}
+            value={value}
+            className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white"
+          >
+            {icon}
+            <span className="hidden sm:inline">{label.desktop}</span>
+            <span className="sm:hidden">{label.mobile}</span>
+          </TabsTrigger>
+        ))}
       </TabsList>
 
       <TabsContent value="all" className="space-y-4">
@@ -77,31 +103,17 @@ export const BoardTabs: React.FC<BoardTabsProps> = ({
         <PostList posts={posts} />
       </TabsContent>
 
-      <TabsContent value="realtime">
-        <PopularPostList
-          posts={realtimePosts}
-          title="실시간 인기글"
-          icon={<Zap className="w-5 h-5 text-red-500" />}
-        />
-      </TabsContent>
+      {Object.entries(popularPostsConfig).map(([key, config]) => (
+        <TabsContent key={key} value={key}>
+          <PopularPostList
+            posts={config.posts}
+            title={config.title}
+            icon={config.icon}
+          />
+        </TabsContent>
+      ))}
 
-      <TabsContent value="popular">
-        <PopularPostList
-          posts={weeklyPosts}
-          title="주간 인기글"
-          icon={<TrendingUp className="w-5 h-5 text-orange-500" />}
-        />
-      </TabsContent>
-
-      <TabsContent value="legend">
-        <PopularPostList
-          posts={legendPosts}
-          title="레전드 글"
-          icon={<Crown className="w-5 h-5 text-purple-500" />}
-        />
-      </TabsContent>
-
-      {activeTab === "all" && (
+      {showPagination && (
         <BoardPagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -111,3 +123,5 @@ export const BoardTabs: React.FC<BoardTabsProps> = ({
     </Tabs>
   );
 };
+
+export const BoardTabs = memo(BoardTabsComponent);

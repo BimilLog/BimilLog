@@ -1,10 +1,26 @@
 "use client";
 
-import { Button, ReportModal } from "@/components";
+import dynamic from "next/dynamic";
+import { Button, Spinner } from "@/components";
 import { ThumbsUp, Flag } from "lucide-react";
 import { Post, userCommand } from "@/lib/api";
 import { useAuth, useToast } from "@/hooks";
 import { useState } from "react";
+
+const ReportModal = dynamic(
+  () => import("@/components/organisms/common/ReportModal").then(mod => ({ default: mod.ReportModal })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
+          <Spinner size="md" />
+          <p className="text-sm text-gray-500">신고 모달 로딩 중...</p>
+        </div>
+      </div>
+    ),
+  }
+);
 
 interface PostContentActionsProps {
   post: Post;

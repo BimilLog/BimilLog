@@ -12,6 +12,7 @@ export interface Post {
   commentCount: number // v2: 추가된 필드
   postCacheFlag?: "REALTIME" | "WEEKLY" | "LEGEND"
   createdAt: string  // v2: Instant → ISO string
+  updatedAt: string  // v2: Instant → ISO string
   isLiked: boolean   // v2: userLike → isLiked
   isNotice: boolean  // v2: notice → isNotice
   password?: number
