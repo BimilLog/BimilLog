@@ -24,7 +24,7 @@ export async function generateMetadata(
 
   return {
     title: `${decodedNickname}님의 롤링페이퍼`,
-    description: `${decodedNickname}님에게 익명으로 따뜻한 메시지를 남겨보세요. 로그인 없이도 다양한 디자인으로 메시지를 꾸며서 보낼 수 있습니다.`,
+    description: `${decodedNickname}님에게 익명으로 따뜻한 메시지를 남겨보세요. 로그인 없이도 다양한 디자인으로 메시지를 꾸며 보낼 수 있습니다.`,
     keywords: generateKeywords([
       `${decodedNickname}님의 롤링페이퍼`,
       `${decodedNickname} 롤링페이퍼`,

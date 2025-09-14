@@ -9,11 +9,15 @@ import { WebVitalsReporter } from "@/components/analytics/web-vitals";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: 'swap',
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: 'swap',
+  preload: true,
 });
 
 export const viewport: Viewport = {
@@ -113,6 +117,15 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* Preconnect & DNS Prefetch */}
+        <link rel="preconnect" href="https://grow-farm.com" />
+        <link rel="dns-prefetch" href="https://grow-farm.com" />
+        <link rel="preconnect" href="https://accounts.kakao.com" />
+        <link rel="dns-prefetch" href="https://accounts.kakao.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+        {/* Favicons */}
         <link rel="icon" href="/favicon48.png" sizes="48x48" type="image/png" />
         <link rel="icon" href="/favicon96.png" sizes="96x96" type="image/png" />
         <link

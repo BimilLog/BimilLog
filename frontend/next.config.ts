@@ -134,6 +134,13 @@ const nextConfig = withPWA(pwaConfig)({
     },
     images: {
         domains: ['k.kakaocdn.net', 'p.kakaocdn.net', 't1.kakaocdn.net'],
+        formats: ['image/avif', 'image/webp'],
+        deviceSizes: [640, 768, 1024, 1280, 1536],
+        imageSizes: [16, 32, 48, 64, 96, 128, 256],
+        minimumCacheTTL: 60 * 60 * 24 * 365, // 1년 캐싱
+        dangerouslyAllowSVG: false,
+        contentDispositionType: 'attachment',
+        contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     },
     eslint: {
         ignoreDuringBuilds: true,

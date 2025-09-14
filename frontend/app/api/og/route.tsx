@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
     const design = getDesignByType();
 
-    return new ImageResponse(
+    const response = new ImageResponse(
       (
         <div
           style={{
@@ -195,8 +195,19 @@ export async function GET(req: NextRequest) {
       {
         width: 1200,
         height: 630,
+        headers: {
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+          'CDN-Cache-Control': 'public, max-age=86400',
+          'Vercel-CDN-Cache-Control': 'public, max-age=86400',
+        },
       }
     );
+
+    // 추가 헤더 설정
+    response.headers.set('Content-Type', 'image/png');
+    response.headers.set('Vary', 'Accept-Encoding');
+
+    return response;
   } catch (e) {
     console.error("OG Image generation failed:", e);
     return new Response(`Failed to generate image`, {

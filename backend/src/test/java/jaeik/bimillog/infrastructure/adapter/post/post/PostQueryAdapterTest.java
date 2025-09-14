@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.post.out.post.PostQueryAdapter;
+import jaeik.bimillog.infrastructure.adapter.post.out.jpa.PostFulltextRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +47,8 @@ import static org.mockito.BDDMockito.given;
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
                 classes = {PostQueryAdapter.class}
-        )
+        ),
+        properties = "spring.profiles.active=test"  // test 프로파일 활성화
 )
 @Testcontainers
 @Import({PostQueryAdapter.class, TestContainersConfiguration.class})
@@ -238,20 +240,20 @@ class PostQueryAdapterTest {
 
 
     @Test
-    @DisplayName("정상 케이스 - 제목 검색")
+    @DisplayName("정상 케이스 - 제목 검색 (LIKE 검색 폴백)")
     void shouldFindPostsByTitleSearch_WhenValidSearchQueryProvided() {
-        // Given: 제목 검색어
+        // Given: 짧은 검색어로 LIKE 검색 유도 (3글자 미만)
         String searchType = "title";
-        String query = "첫 번째";
+        String query = "첫";  // 1글자로 LIKE 검색 강제
         Pageable pageable = PageRequest.of(0, 10);
 
-        // When: 제목 검색
+        // When: 제목 검색 (LIKE 검색으로 폴백)
         Page<PostSearchResult> result = postQueryAdapter.findBySearch(searchType, query, pageable);
 
         // Then: 해당 제목이 포함된 게시글 조회됨
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).contains("첫 번째");
+        assertThat(result.getContent().get(0).getTitle()).contains("첫");
     }
 
     @Test
