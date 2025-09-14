@@ -50,17 +50,17 @@ ALTER TABLE `black_list`
 -- 파트 2: 게시글 캐시 플래그 마이그레이션
 -- ============================================
 
--- 새로운 캐시 플래그 컬럼 추가
+-- 새로운 캐시 플래그 컬럼 추가 (ENUM 타입으로 정의)
 ALTER TABLE `post`
-  ADD COLUMN `post_cache_flag` VARCHAR(20) AFTER `popular_flag`;
+  ADD COLUMN `post_cache_flag` ENUM('REALTIME', 'WEEKLY', 'LEGEND', 'NOTICE') AFTER `popular_flag`;
 
 -- 기존 데이터 마이그레이션
 UPDATE `post`
 SET `post_cache_flag` =
   CASE `popular_flag`
     WHEN 'LEGEND' THEN 'LEGEND'
-    WHEN 'REALTIME' THEN 'POPULAR'
-    WHEN 'WEEKLY' THEN 'POPULAR'
+    WHEN 'REALTIME' THEN 'REALTIME'
+    WHEN 'WEEKLY' THEN 'WEEKLY'
     ELSE NULL
   END
 WHERE `popular_flag` IS NOT NULL;
@@ -138,9 +138,7 @@ ALTER TABLE `token`
 ALTER TABLE `comment_like`
   CHANGE COLUMN `comment_like_id` `CommentLike_id` BIGINT NOT NULL AUTO_INCREMENT;
 
--- 유니크 제약조건 추가
-ALTER TABLE `comment_like`
-  ADD UNIQUE KEY `uk_comment_like_user_comment` (`comment_id`, `user_id`);
+-- 유니크 제약조건은 이미 V1에 존재하므로 추가하지 않음
 
 -- post_like 테이블 PK 컬럼명 수정
 ALTER TABLE `post_like`
@@ -179,37 +177,150 @@ RENAME TABLE `users` TO `user`;
 RENAME TABLE `black_list` TO `blacklist`;
 
 -- ============================================
--- 파트 10: 추가 인덱스 확인 및 생성
+-- 파트 10: 인덱스 확인
 -- ============================================
 
--- comment_closure에 인덱스가 없다면 추가
-CREATE INDEX IF NOT EXISTS idx_comment_closure_ancestor_depth
-ON comment_closure (descendant_id, depth);
-
--- post_like에 인덱스가 없다면 추가
-CREATE INDEX IF NOT EXISTS idx_postlike_user_post
-ON post_like (user_id, post_id);
-
--- comment_like에 인덱스 추가
-CREATE INDEX IF NOT EXISTS idx_comment_like_user_comment
-ON comment_like (comment_id, user_id);
+-- 필요한 인덱스들은 이미 V1에서 생성되어 있음
+-- comment_closure: idx_comment_closure_ancestor_depth
+-- post_like: idx_postlike_user_post
+-- comment_like: uk_comment_like_user_comment (인덱스 역할도 수행)
 
 -- ============================================
--- 파트 11: Full-text 인덱스 확인 (ngram parser)
+-- 파트 11: Full-text 인덱스 재생성 (ngram parser)
 -- ============================================
 
--- 풀텍스트 인덱스 확인 (V1에서 이미 생성되어 있음을 확인)
--- post 테이블의 fulltext 인덱스 상태 확인
+-- 기존 풀텍스트 인덱스 삭제 (존재하는 경우)
+SET @drop_idx_title = IF(
+    EXISTS(
+        SELECT 1 FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'post'
+        AND INDEX_NAME = 'post_title_IDX'
+    ),
+    'ALTER TABLE `post` DROP INDEX `post_title_IDX`',
+    'SELECT "post_title_IDX not exists"'
+);
+PREPARE stmt FROM @drop_idx_title;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @drop_idx_title_content = IF(
+    EXISTS(
+        SELECT 1 FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'post'
+        AND INDEX_NAME = 'post_title_content_IDX'
+    ),
+    'ALTER TABLE `post` DROP INDEX `post_title_content_IDX`',
+    'SELECT "post_title_content_IDX not exists"'
+);
+PREPARE stmt FROM @drop_idx_title_content;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- 풀텍스트 인덱스 재생성 (ngram_token_size=2 사용)
+-- 제목 전용 인덱스
+ALTER TABLE `post` ADD FULLTEXT INDEX `post_title_IDX` (`title`) WITH PARSER ngram;
+
+-- 제목+내용 복합 인덱스
+ALTER TABLE `post` ADD FULLTEXT INDEX `post_title_content_IDX` (`title`, `content`) WITH PARSER ngram;
+
+-- 풀텍스트 인덱스 생성 확인
 SELECT
     CASE
-        WHEN COUNT(*) = 2 THEN 'Fulltext indexes verified successfully'
-        ELSE CONCAT('WARNING: Expected 2 fulltext indexes, found ', COUNT(*))
+        WHEN COUNT(*) = 2 THEN 'Fulltext indexes created successfully'
+        ELSE CONCAT('ERROR: Expected 2 fulltext indexes, found ', COUNT(*))
     END AS fulltext_status,
     GROUP_CONCAT(INDEX_NAME ORDER BY INDEX_NAME) AS index_names
 FROM information_schema.STATISTICS
 WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'post'
     AND INDEX_TYPE = 'FULLTEXT';
+
+-- ============================================
+-- 파트 12: 마이그레이션 검증
+-- ============================================
+
+-- 테이블 이름 변경 확인
+SELECT
+    CASE
+        WHEN COUNT(*) = 1 THEN 'SUCCESS: user table exists'
+        ELSE 'ERROR: user table not found'
+    END AS user_table_status
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user';
+
+SELECT
+    CASE
+        WHEN COUNT(*) = 1 THEN 'SUCCESS: blacklist table exists'
+        ELSE 'ERROR: blacklist table not found'
+    END AS blacklist_table_status
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'blacklist';
+
+-- 주요 컬럼 변경 확인
+SELECT
+    CASE
+        WHEN COUNT(*) = 2 THEN 'SUCCESS: social_id and provider columns exist in user table'
+        ELSE 'ERROR: social columns not found in user table'
+    END AS social_columns_status
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'user'
+    AND COLUMN_NAME IN ('social_id', 'provider');
+
+SELECT
+    CASE
+        WHEN COUNT(*) = 1 THEN 'SUCCESS: post_cache_flag column exists'
+        ELSE 'ERROR: post_cache_flag column not found'
+    END AS cache_flag_status
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'post'
+    AND COLUMN_NAME = 'post_cache_flag';
+
+-- 좋아요 테이블 PK 컬럼명 변경 확인
+SELECT
+    CASE
+        WHEN COUNT(*) = 1 THEN 'SUCCESS: CommentLike_id column exists'
+        ELSE 'ERROR: CommentLike_id column not found'
+    END AS comment_like_pk_status
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'comment_like'
+    AND COLUMN_NAME = 'CommentLike_id';
+
+SELECT
+    CASE
+        WHEN COUNT(*) = 1 THEN 'SUCCESS: postLike_id column exists'
+        ELSE 'ERROR: postLike_id column not found'
+    END AS post_like_pk_status
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'post_like'
+    AND COLUMN_NAME = 'postLike_id';
+
+-- 메시지 테이블 x, y 컬럼 확인
+SELECT
+    CASE
+        WHEN COUNT(*) = 2 THEN 'SUCCESS: x and y columns exist in message table'
+        ELSE 'ERROR: x/y columns not found in message table'
+    END AS message_coordinates_status
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'message'
+    AND COLUMN_NAME IN ('x', 'y');
+
+-- 알림 테이블 content 컬럼 확인
+SELECT
+    CASE
+        WHEN COUNT(*) = 1 THEN 'SUCCESS: content column exists in notification table'
+        ELSE 'ERROR: content column not found in notification table'
+    END AS notification_content_status
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'notification'
+    AND COLUMN_NAME = 'content';
 
 -- ============================================
 -- 마이그레이션 완료

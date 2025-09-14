@@ -9,6 +9,9 @@ export async function GET(req: NextRequest) {
     const title = searchParams.get("title") || "비밀로그";
     const author = searchParams.get("author") || "";
     const type = searchParams.get("type") || "default";
+    const description = searchParams.get("description") || "";
+    const date = searchParams.get("date") || "";
+    const tags = searchParams.get("tags") || "";
 
     // 타입별 디자인 설정
     const getDesignByType = () => {
@@ -18,18 +21,42 @@ export async function GET(req: NextRequest) {
             bgGradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
             accentColor: "#fbbf24",
             subtitle: "커뮤니티 게시글",
+            icon: "📝",
           };
         case "paper":
           return {
             bgGradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
             accentColor: "#10b981",
             subtitle: "익명 롤링페이퍼",
+            icon: "💌",
+          };
+        case "search":
+          return {
+            bgGradient: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
+            accentColor: "#fbbf24",
+            subtitle: "검색 결과",
+            icon: "🔍",
+          };
+        case "profile":
+          return {
+            bgGradient: "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)",
+            accentColor: "#f59e0b",
+            subtitle: "사용자 프로필",
+            icon: "👤",
+          };
+        case "error":
+          return {
+            bgGradient: "linear-gradient(135deg, #ef4444 0%, #f97316 100%)",
+            accentColor: "#fbbf24",
+            subtitle: "오류 페이지",
+            icon: "⚠️",
           };
         default:
           return {
             bgGradient: "linear-gradient(135deg, #667eea 0%, #f093fb 100%)",
             accentColor: "#fbbf24",
             subtitle: "익명으로 소통하는 새로운 공간",
+            icon: "🔒",
           };
       }
     };
