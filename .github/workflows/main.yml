@@ -60,17 +60,28 @@ jobs:
 
             # SSH to backend server and deploy
             ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
-              # Create .env file with secrets
-              cat > /home/ubuntu/.env << 'EOF'
-              REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-              EOF
+              # Export all required environment variables
+              export PROD_MYSQL_URL="${{ secrets.PROD_MYSQL_URL }}"
+              export PROD_MYSQL_USERNAME="${{ secrets.PROD_MYSQL_USERNAME }}"
+              export MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}"
+              export PROD_REDIS_HOST="${{ secrets.PROD_REDIS_HOST }}"
+              export PROD_REDIS_PORT="${{ secrets.PROD_REDIS_PORT }}"
+              export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+              export KAKAO_CLIENT_ID="${{ secrets.KAKAO_CLIENT_ID }}"
+              export KAKAO_CLIENT_SECRET="${{ secrets.KAKAO_CLIENT_SECRET }}"
+              export KAKAO_ADMIN_KEY="${{ secrets.KAKAO_ADMIN_KEY }}"
+              export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+              export MESSAGE_SECRET="${{ secrets.MESSAGE_SECRET }}"
+              export PROD_KAKAO_REDIRECT_URL="${{ secrets.PROD_KAKAO_REDIRECT_URL }}"
+              export PROD_SERVER_SSE_URL="${{ secrets.PROD_SERVER_SSE_URL }}"
+              export PROD_SERVER_PORT="${{ secrets.PROD_SERVER_PORT }}"
+              export PROD_FLYWAY_LOCATIONS="${{ secrets.PROD_FLYWAY_LOCATIONS }}"
 
               # Login to Docker Hub
               echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
               # Deploy using docker-compose with environment variables
               cd /home/ubuntu
-              export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
               docker-compose down || true
               docker-compose pull
               docker-compose up -d
