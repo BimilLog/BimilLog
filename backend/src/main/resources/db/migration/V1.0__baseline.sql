@@ -1,9 +1,9 @@
 -- BimilLog v1.0 운영 데이터베이스 Flyway Baseline 스크립트
 -- 현재 운영 데이터베이스 스키마 상태를 나타냄
--- 날짜: 2025-09-13
+-- 날짜: 2025-01-14
 -- 경고: 이 스크립트는 baseline 전용입니다. 기존 운영 데이터베이스에서 실행하지 마세요.
 
--- 설정 테이블 (외래 키 의존성 때문에 먼저 생성해야 함)
+-- 설정 테이블
 CREATE TABLE IF NOT EXISTS `setting` (
   `comment_notification` tinyint(1) NOT NULL DEFAULT '1',
   `message_notification` tinyint(1) NOT NULL DEFAULT '1',
@@ -73,15 +73,17 @@ CREATE TABLE IF NOT EXISTS `comment` (
   CONSTRAINT `FKs1slvnkuemjsq2kj4h3vhx7i1` FOREIGN KEY (`post_id`) REFERENCES `post` (`post_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 계층 구조를 위한 댓글 클로저 테이블
+-- 댓글 클로저 테이블 (운영 DB 구조와 일치)
 CREATE TABLE IF NOT EXISTS `comment_closure` (
-  `ancestor_id` bigint NOT NULL,
-  `descendant_id` bigint NOT NULL,
   `depth` int NOT NULL,
-  PRIMARY KEY (`ancestor_id`,`descendant_id`),
-  KEY `FKqvgqoqxs6cg00eiqxhu0h7yiq` (`descendant_id`),
-  CONSTRAINT `FK4x9hqm1klpp9lh4qxr7o8xnqh` FOREIGN KEY (`ancestor_id`) REFERENCES `comment` (`comment_id`) ON DELETE CASCADE,
-  CONSTRAINT `FKqvgqoqxs6cg00eiqxhu0h7yiq` FOREIGN KEY (`descendant_id`) REFERENCES `comment` (`comment_id`) ON DELETE CASCADE
+  `ancestor_id` bigint DEFAULT NULL,
+  `descendant_id` bigint DEFAULT NULL,
+  `id` bigint NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_comment_closure_ancestor_depth` (`descendant_id`,`depth`),
+  KEY `FKs0fq4gba8fnn9ig1lvwfedvuw` (`ancestor_id`),
+  CONSTRAINT `FKhgtsb6jr6v1e4wlndlrodjhd4` FOREIGN KEY (`descendant_id`) REFERENCES `comment` (`comment_id`),
+  CONSTRAINT `FKs0fq4gba8fnn9ig1lvwfedvuw` FOREIGN KEY (`ancestor_id`) REFERENCES `comment` (`comment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 댓글 클로저 시퀀스
@@ -89,89 +91,88 @@ CREATE TABLE IF NOT EXISTS `comment_closure_seq` (
   `next_val` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 댓글 좋아요 테이블
+-- 댓글 좋아요 테이블 (운영 DB 구조와 일치)
 CREATE TABLE IF NOT EXISTS `comment_like` (
-  `comment_id` bigint NOT NULL,
-  `user_id` bigint NOT NULL,
-  PRIMARY KEY (`comment_id`,`user_id`),
-  KEY `FKqlr0s8micj0avhupsfdjgrfqw` (`user_id`),
-  CONSTRAINT `FKqlr0s8micj0avhupsfdjgrfqw` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
-  CONSTRAINT `FKqlvjy0py8bqvgl6bc139hswse` FOREIGN KEY (`comment_id`) REFERENCES `comment` (`comment_id`) ON DELETE CASCADE
+  `comment_id` bigint DEFAULT NULL,
+  `comment_like_id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint DEFAULT NULL,
+  PRIMARY KEY (`comment_like_id`),
+  KEY `uk_comment_like_user_comment` (`comment_id`,`user_id`),
+  KEY `FKl5wrmp8eoy5uegdo3473jqqi` (`user_id`),
+  CONSTRAINT `FKl5wrmp8eoy5uegdo3473jqqi` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `FKqlv8phl1ibeh0efv4dbn3720p` FOREIGN KEY (`comment_id`) REFERENCES `comment` (`comment_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 게시글 좋아요 테이블
+-- 게시글 좋아요 테이블 (운영 DB 구조와 일치)
 CREATE TABLE IF NOT EXISTS `post_like` (
-  `created_at` timestamp NOT NULL,
-  `modified_at` timestamp NULL DEFAULT NULL,
-  `post_id` bigint NOT NULL,
-  `user_id` bigint NOT NULL,
-  PRIMARY KEY (`post_id`,`user_id`),
-  KEY `FK8xhrvvrnaj1iih86xw2gvjnld` (`user_id`),
-  CONSTRAINT `FK8xhrvvrnaj1iih86xw2gvjnld` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  `post_id` bigint DEFAULT NULL,
+  `post_like_id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint DEFAULT NULL,
+  PRIMARY KEY (`post_like_id`),
+  KEY `idx_postlike_user_post` (`user_id`,`post_id`),
+  KEY `FKj7iy0k7n3d0vkh8o7ibjna884` (`post_id`),
+  CONSTRAINT `FKijnjmw0imnatadr3agtk0udip` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `FKj7iy0k7n3d0vkh8o7ibjna884` FOREIGN KEY (`post_id`) REFERENCES `post` (`post_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 메시지 테이블 (롤링페이퍼 메시지)
+-- 메시지 테이블 (운영 DB 구조와 일치)
 CREATE TABLE IF NOT EXISTS `message` (
-  `deleted` bit(1) NOT NULL,
+  `height` int NOT NULL,
+  `width` int NOT NULL,
+  `anonymity` varchar(8) NOT NULL,
   `created_at` timestamp NOT NULL,
-  `modified_at` timestamp NULL DEFAULT NULL,
-  `deco_type` enum('BLUE','CREAM','CYAN','GREEN','MINT','PINK','PURPLE','RED','WHITE','YELLOW') NOT NULL,
-  `content` varchar(255) NOT NULL,
   `message_id` bigint NOT NULL AUTO_INCREMENT,
-  `receiver_id` bigint NOT NULL,
-  `grid_x` int NOT NULL,
-  `grid_y` int NOT NULL,
-  `sender_name` varchar(255) NOT NULL,
+  `modified_at` timestamp NULL DEFAULT NULL,
+  `user_id` bigint NOT NULL,
+  `content` text NOT NULL,
+  `deco_type` enum('POTATO','CARROT','CABBAGE','TOMATO','STRAWBERRY','BLUEBERRY','WATERMELON','PUMPKIN','APPLE','GRAPE','BANANA','GOBLIN','SLIME','ORC','DRAGON','PHOENIX','WEREWOLF','ZOMBIE','KRAKEN','CYCLOPS','DEVIL','ANGEL','COFFEE','MILK','WINE','SOJU','BEER','BUBBLETEA','SMOOTHIE','BORICHA','STRAWBERRYMILK','BANANAMILK','BREAD','BURGER','CAKE','SUSHI','PIZZA','CHICKEN','NOODLE','EGG','SKEWER','KIMBAP','SUNDAE','MANDU','SAMGYEOPSAL','FROZENFISH','HOTTEOK','COOKIE','PICKLE','CAT','DOG','RABBIT','FOX','TIGER','PANDA','LION','ELEPHANT','SQUIRREL','HEDGEHOG','CRANE','SPARROW','CHIPMUNK','GIRAFFE','HIPPO','POLARBEAR','BEAR','STAR','SUN','MOON','VOLCANO','CHERRY','MAPLE','BAMBOO','SUNFLOWER','STARLIGHT','CORAL','ROCK','WATERDROP','WAVE','RAINBOW','DOLL','BALLOON','SNOWMAN','FAIRY','BUBBLE') DEFAULT NULL,
   PRIMARY KEY (`message_id`),
-  KEY `idx_message_receiver_deleted` (`receiver_id`,`deleted`),
-  KEY `idx_message_receiver_created` (`receiver_id`,`created_at` DESC),
-  CONSTRAINT `FKhdqgcc1ivl46yj4qwb9o2iks2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`)
+  UNIQUE KEY `unique_user_x_y` (`user_id`,`width`,`height`),
+  CONSTRAINT `FKpdrb79dg3bgym7pydlf9k3p1n` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 알림 테이블
+-- 알림 테이블 (운영 DB 구조와 일치)
 CREATE TABLE IF NOT EXISTS `notification` (
-  `read_status` bit(1) NOT NULL,
+  `is_read` bit(1) NOT NULL,
   `created_at` timestamp NOT NULL,
   `modified_at` timestamp NULL DEFAULT NULL,
   `notification_id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
-  `content` varchar(255) NOT NULL,
+  `data` varchar(255) NOT NULL,
   `url` varchar(255) DEFAULT NULL,
-  `notification_type` enum('COMMENT','COMMENT_FEATURED','MESSAGE','POST_FEATURED') NOT NULL,
+  `notification_type` enum('ADMIN','COMMENT','COMMENT_FEATURED','FARM','INITIATE','POST_FEATURED') NOT NULL,
   PRIMARY KEY (`notification_id`),
-  KEY `idx_notification_user_read` (`user_id`,`read_status`),
   KEY `idx_notification_user_created` (`user_id`,`created_at` DESC),
-  CONSTRAINT `FKb0yvoep4h4k92ipon31wmdf7e` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+  CONSTRAINT `FKnk4ftb5am9ubmkv1661h15ds9` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- FCM 토큰 테이블
+-- FCM 토큰 테이블 (운영 DB 구조와 일치)
 CREATE TABLE IF NOT EXISTS `fcm_token` (
   `created_at` timestamp NOT NULL,
-  `fcm_id` bigint NOT NULL AUTO_INCREMENT,
+  `fcm_token_id` bigint NOT NULL AUTO_INCREMENT,
   `modified_at` timestamp NULL DEFAULT NULL,
   `user_id` bigint NOT NULL,
-  `token` varchar(255) NOT NULL,
-  PRIMARY KEY (`fcm_id`),
-  UNIQUE KEY `UK96hl8vgfpqh6wjyetct61jnrm` (`token`),
-  KEY `FKsf7yqsg6h0b8c3hxjr9wqjtvj` (`user_id`),
-  CONSTRAINT `FKsf7yqsg6h0b8c3hxjr9wqjtvj` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+  `fcm_registration_token` varchar(255) NOT NULL,
+  PRIMARY KEY (`fcm_token_id`),
+  KEY `FKtel499bxk6jvp3fg43e1l2ka8` (`user_id`),
+  CONSTRAINT `FKtel499bxk6jvp3fg43e1l2ka8` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 토큰 테이블 (JWT 리프레시 토큰)
+-- 토큰 테이블 (운영 DB 구조와 일치)
 CREATE TABLE IF NOT EXISTS `token` (
   `created_at` timestamp NOT NULL,
   `modified_at` timestamp NULL DEFAULT NULL,
   `token_id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
-  `refresh_token` varchar(255) NOT NULL,
+  `jwt_refresh_token` varchar(255) DEFAULT NULL,
+  `kakao_access_token` varchar(255) NOT NULL,
+  `kakao_refresh_token` varchar(255) NOT NULL,
   PRIMARY KEY (`token_id`),
-  KEY `idx_token_user` (`user_id`),
-  KEY `idx_token_refresh` (`refresh_token`),
-  CONSTRAINT `FKe32ek7ixanakfqsdaokm4q9y2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+  KEY `FKj8rfw4x0wjjyibfqq566j4qng` (`user_id`),
+  CONSTRAINT `FKj8rfw4x0wjjyibfqq566j4qng` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 신고 테이블 (v1에 이미 존재)
+-- 신고 테이블
 CREATE TABLE IF NOT EXISTS `report` (
   `created_at` timestamp NOT NULL,
   `modified_at` timestamp NULL DEFAULT NULL,
@@ -185,7 +186,7 @@ CREATE TABLE IF NOT EXISTS `report` (
   CONSTRAINT `FKq50wsn94sc3mi90gtidk0k34a` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 블랙리스트 테이블 (v1에 이미 존재)
+-- 블랙리스트 테이블
 CREATE TABLE IF NOT EXISTS `black_list` (
   `created_at` timestamp NOT NULL,
   `kakao_id` bigint NOT NULL,

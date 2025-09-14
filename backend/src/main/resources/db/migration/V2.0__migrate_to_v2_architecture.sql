@@ -1,5 +1,5 @@
 -- V1에서 V2 아키텍처로 전체 마이그레이션
--- 날짜: 2025-01-20
+-- 날짜: 2025-01-14
 -- 이 마이그레이션은 운영 데이터베이스를 V2 JPA 엔티티와 일치하도록 업데이트합니다
 
 -- ============================================
@@ -76,7 +76,79 @@ ALTER TABLE `post`
   ADD INDEX `idx_post_cache_flag` (`post_cache_flag`);
 
 -- ============================================
--- 파트 3: 구 컬럼 정리
+-- 파트 3: 메시지 테이블 컬럼 수정
+-- ============================================
+
+-- JPA 엔티티와 일치하도록 컬럼명 변경 (width/height → x/y)
+ALTER TABLE `message`
+  CHANGE COLUMN `width` `x` INT NOT NULL,
+  CHANGE COLUMN `height` `y` INT NOT NULL;
+
+-- 올바른 컬럼명으로 유니크 제약조건 업데이트
+ALTER TABLE `message`
+  DROP INDEX `unique_user_x_y`,
+  ADD UNIQUE INDEX `unique_user_x_y` (`user_id`, `x`, `y`);
+
+-- ============================================
+-- 파트 4: 알림 테이블 컬럼 수정
+-- ============================================
+
+-- JPA 엔티티와 일치하도록 컬럼명 변경 (data → content)
+ALTER TABLE `notification`
+  CHANGE COLUMN `data` `content` VARCHAR(255) NOT NULL;
+
+-- notification_type enum 값 변경 (FARM → MESSAGE)
+UPDATE `notification`
+SET `notification_type` = 'MESSAGE'
+WHERE `notification_type` = 'FARM';
+
+-- notification_type enum 재정의
+ALTER TABLE `notification`
+  MODIFY COLUMN `notification_type` ENUM('COMMENT','COMMENT_FEATURED','MESSAGE','POST_FEATURED','ADMIN','INITIATE') NOT NULL;
+
+-- ============================================
+-- 파트 5: FCM 토큰 테이블 수정
+-- ============================================
+
+-- 유니크 제약조건 추가 (컬럼명은 유지)
+ALTER TABLE `fcm_token`
+  ADD UNIQUE KEY `UK96hl8vgfpqh6wjyetct61jnrm` (`fcm_registration_token`);
+
+-- ============================================
+-- 파트 6: 토큰 테이블 구조 수정
+-- ============================================
+
+-- JPA 엔티티와 일치하도록 컬럼명 변경
+-- Token 엔티티는 실제로 accessToken, refreshToken 필드를 가지고 있음
+-- 이는 카카오 토큰을 저장하는 용도임 (JWT는 별도 관리)
+ALTER TABLE `token`
+  CHANGE COLUMN `kakao_access_token` `access_token` VARCHAR(255) NOT NULL,
+  CHANGE COLUMN `kakao_refresh_token` `refresh_token` VARCHAR(255) NOT NULL,
+  DROP COLUMN `jwt_refresh_token`;
+
+-- 인덱스 추가
+ALTER TABLE `token`
+  ADD INDEX `idx_token_user` (`user_id`),
+  ADD INDEX `idx_token_refresh` (`refresh_token`);
+
+-- ============================================
+-- 파트 7: 좋아요 테이블 PK 컬럼명 수정
+-- ============================================
+
+-- comment_like 테이블 PK 컬럼명 수정
+ALTER TABLE `comment_like`
+  CHANGE COLUMN `comment_like_id` `CommentLike_id` BIGINT NOT NULL AUTO_INCREMENT;
+
+-- 유니크 제약조건 추가
+ALTER TABLE `comment_like`
+  ADD UNIQUE KEY `uk_comment_like_user_comment` (`comment_id`, `user_id`);
+
+-- post_like 테이블 PK 컬럼명 수정
+ALTER TABLE `post_like`
+  CHANGE COLUMN `post_like_id` `postLike_id` BIGINT NOT NULL AUTO_INCREMENT;
+
+-- ============================================
+-- 파트 8: 구 컬럼 정리
 -- ============================================
 
 -- users 테이블에서 기존 카카오 전용 컬럼 제거
@@ -97,85 +169,37 @@ ALTER TABLE `black_list`
   ADD PRIMARY KEY (`provider`, `social_id`);
 
 -- ============================================
--- 파트 4: 메시지 테이블 컬럼 수정
+-- 파트 9: 테이블명 변경 (JPA 엔티티명과 일치)
 -- ============================================
 
--- JPA 엔티티와 일치하도록 컬럼명 변경
-ALTER TABLE `message`
-  CHANGE COLUMN `receiver_id` `user_id` BIGINT NOT NULL,
-  CHANGE COLUMN `sender_name` `anonymity` VARCHAR(255) NOT NULL,
-  CHANGE COLUMN `grid_x` `x` INT NOT NULL,
-  CHANGE COLUMN `grid_y` `y` INT NOT NULL;
-
--- 올바른 컬럼명으로 유니크 제약조건 업데이트
-ALTER TABLE `message`
-  DROP INDEX `unique_user_x_y`,
-  ADD UNIQUE INDEX `unique_user_x_y` (`user_id`, `x`, `y`);
-
--- ============================================
--- 파트 5: V2 아키텍처를 위한 테이블명 변경
--- ============================================
-
--- JPA 엔티티 명명 규칙에 맞게 테이블명 변경
+-- users → user 테이블명 변경
 RENAME TABLE `users` TO `user`;
+
+-- black_list → blacklist 테이블명 변경
 RENAME TABLE `black_list` TO `blacklist`;
 
 -- ============================================
--- 파트 6: 누락된 인덱스 추가
+-- 파트 10: 추가 인덱스 확인 및 생성
 -- ============================================
 
--- CommentClosure 계층 쿼리를 위한 인덱스 추가
-CREATE INDEX idx_comment_closure_ancestor_depth
+-- comment_closure에 인덱스가 없다면 추가
+CREATE INDEX IF NOT EXISTS idx_comment_closure_ancestor_depth
 ON comment_closure (descendant_id, depth);
 
--- PostLike 사용자-게시글 조회를 위한 인덱스 추가
-CREATE INDEX idx_postlike_user_post
+-- post_like에 인덱스가 없다면 추가
+CREATE INDEX IF NOT EXISTS idx_postlike_user_post
 ON post_like (user_id, post_id);
 
+-- comment_like에 인덱스 추가
+CREATE INDEX IF NOT EXISTS idx_comment_like_user_comment
+ON comment_like (comment_id, user_id);
+
 -- ============================================
--- 파트 7: 타임스탬프 정밀도 업데이트 (선택사항이지만 권장)
+-- 파트 11: Full-text 인덱스 확인 (ngram parser)
 -- ============================================
 
--- 모든 타임스탬프 컬럼을 마이크로초 정밀도를 위해 TIMESTAMP(6)로 업데이트
-ALTER TABLE `user`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `post`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `comment`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `message`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `notification`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `report`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `blacklist`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `token`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `fcm_token`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
-
-ALTER TABLE `post_like`
-  MODIFY COLUMN `created_at` TIMESTAMP(6) NOT NULL,
-  MODIFY COLUMN `modified_at` TIMESTAMP(6) NULL DEFAULT NULL;
+-- 기존 fulltext 인덱스 확인 및 필요시 재생성
+-- (이미 V1에서 생성되어 있으므로 변경 불필요)
 
 -- ============================================
 -- 마이그레이션 완료
