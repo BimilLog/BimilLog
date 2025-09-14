@@ -83,7 +83,7 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     public Page<PostSearchResult> findByPage(Pageable pageable) {
         BooleanExpression condition = post.isNotice.isFalse();
-        return findPostsWithCondition(condition, pageable);
+        return findPostsWithCondition(condition, pageable, null, null);
     }
 
     /**
@@ -102,7 +102,7 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     public Page<PostSearchResult> findBySearch(String type, String query, Pageable pageable) {
         BooleanExpression condition = createSearchCondition(type, query, pageable);
-        return findPostsWithCondition(condition, pageable);
+        return findPostsWithCondition(condition, pageable, type, query);
     }
 
     /**
@@ -119,7 +119,7 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     public Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable) {
         BooleanExpression condition = user.id.eq(userId);
-        return findPostsWithCondition(condition, pageable);
+        return findPostsWithCondition(condition, pageable, null, null);
     }
 
     /**
@@ -255,14 +255,17 @@ public class PostQueryAdapter implements PostQueryPort {
      * <h3>공통 게시글 조회 메서드</h3>
      * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
      * <p>배치 조회로 댓글 수와 추천 수 조회</p>
+     * <p>전문검색인 경우 정확한 카운트를 위해 전용 count 메서드 사용</p>
      *
      * @param condition WHERE 조건
      * @param pageable  페이지 정보
+     * @param searchType 검색 타입 (전문검색 판별용, null 가능)
+     * @param searchQuery 검색어 (전문검색 판별용, null 가능)
      * @return 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable) {
+    private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable, String searchType, String searchQuery) {
         // 1. 게시글 기본 정보 조회 (댓글, 추천 JOIN 제외)
         List<PostSearchResult> content = buildBasePostQueryWithoutJoins()
                 .where(condition)
@@ -286,15 +289,46 @@ public class PostQueryAdapter implements PostQueryPort {
             post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
         });
 
-        // 5. 총 개수 조회
-        Long total = jpaQueryFactory
-                .select(post.count())
-                .from(post)
-                .leftJoin(post.user, user)
-                .where(condition)
-                .fetchOne();
+        // 5. 총 개수 조회 - 전문검색과 일반 검색 분리
+        Long total = calculateTotalCount(condition, searchType, searchQuery);
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * <h3>총 개수 계산 메서드</h3>
+     * <p>전문검색과 일반 검색을 구분하여 정확한 총 개수를 계산합니다.</p>
+     * <p>전문검색 시 전용 count 메서드를 사용하여 정확한 페이지네이션을 지원합니다.</p>
+     *
+     * @param condition WHERE 조건
+     * @param searchType 검색 타입 (null 가능)
+     * @param searchQuery 검색어 (null 가능)
+     * @return 총 게시글 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Long calculateTotalCount(BooleanExpression condition, String searchType, String searchQuery) {
+        // 전문검색 여부 판별
+        boolean isFullTextSearch = searchType != null && searchQuery != null
+                && searchQuery.length() >= 3 && !"writer".equals(searchType);
+
+        if (isFullTextSearch) {
+            // 전문검색인 경우 전용 count 메서드 사용
+            String searchTerm = searchQuery + "*";
+            return switch(searchType) {
+                case "title" -> postFullTextRepository.countByTitleFullText(searchTerm);
+                case "title_content" -> postFullTextRepository.countByTitleContentFullText(searchTerm);
+                default -> 0L;
+            };
+        } else {
+            // 일반 검색인 경우 QueryDSL 사용
+            return jpaQueryFactory
+                    .select(post.count())
+                    .from(post)
+                    .leftJoin(post.user, user)
+                    .where(condition)
+                    .fetchOne();
+        }
     }
 
     /**

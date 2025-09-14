@@ -59,7 +59,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
 
   return (
     <div
-      className={`p-6 bg-gradient-to-br ${decoInfo.color} rounded-2xl border-2 border-white shadow-lg relative overflow-hidden`}
+      className={`p-4 sm:p-6 bg-gradient-to-br ${decoInfo.color} rounded-2xl border-2 border-white shadow-lg relative overflow-hidden`}
       style={{
         backgroundImage: `
           radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
@@ -68,12 +68,12 @@ export const MessageView: React.FC<MessageViewProps> = ({
         backgroundSize: "16px 16px, 48px 48px",
       }}
     >
-        <div className="flex items-center space-x-3 mb-4">
+        <div className="flex items-center gap-3 mb-4">
           <DecoIcon decoType={message.decoType} size="xl" showBackground={false} animate="bounce" />
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
             <Badge
               variant="secondary"
-              className="bg-white/80 text-pink-800 border-pink-300 font-semibold"
+              className="bg-white/80 text-pink-800 border-pink-300 font-semibold text-sm w-fit"
             >
               {decoInfo.name}
             </Badge>
@@ -81,7 +81,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
             {isRollingPaperMessage(message) && (
               <Badge
                 variant="outline"
-                className="bg-white/60 text-gray-700 border-gray-300 text-xs"
+                className="bg-white/60 text-gray-700 border-gray-300 text-xs w-fit"
               >
                 {message.anonymity && message.anonymity !== ""
                   ? message.anonymity
@@ -92,13 +92,13 @@ export const MessageView: React.FC<MessageViewProps> = ({
         </div>
         {/* 메시지 내용 표시: RollingPaperMessage는 내용 표시, VisitMessage는 잠금 메시지 */}
         {isRollingPaperMessage(message) ? (
-          <p className="text-gray-800 leading-relaxed font-medium">
+          <p className="text-gray-800 leading-relaxed font-medium text-sm sm:text-base break-words">
             {message.content}
           </p>
         ) : (
-          <p className="text-gray-600 leading-relaxed font-medium italic flex items-center space-x-2">
-            <Lock className="w-4 h-4" />
-            <span>메시지 내용은 작성자만 볼 수 있습니다</span>
+          <p className="text-gray-600 leading-relaxed font-medium italic flex items-center gap-2 text-sm sm:text-base">
+            <Lock className="w-4 h-4 flex-shrink-0" />
+            <span className="break-words">메시지 내용은 작성자만 볼 수 있습니다</span>
           </p>
         )}
 
@@ -113,7 +113,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
               variant="destructive"
               size="sm"
               onClick={handleDelete}
-              className="bg-red-500/80 hover:bg-red-600/80 text-white border-0"
+              className="bg-red-500/80 hover:bg-red-600/80 text-white border-0 min-h-[44px] touch-manipulation text-sm"
             >
               메시지 삭제
             </Button>

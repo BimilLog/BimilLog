@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components";
 import { Heart, Home, Search, ArrowLeft } from "lucide-react";
 import { AuthHeader } from "@/components/organisms/common";
@@ -34,10 +35,15 @@ export default function NotFoundPage() {
             <div className="relative">
               {/* 메인 아이콘 */}
               <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <img
+                <Image
                   src="/log.png"
                   alt="비밀로그"
-                  className="h-24 object-contain"
+                  width={96}
+                  height={96}
+                  className="h-24 w-auto object-contain"
+                  priority
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPgo="
                 />
               </div>
 

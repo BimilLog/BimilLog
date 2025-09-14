@@ -157,6 +157,127 @@ export const generateStructuredData = {
     },
   }),
 
+  // 댓글 구조화 데이터
+  comment: (text: string, author: string, datePublished: string, parentPostUrl: string, commentId?: string) => ({
+    "@context": "https://schema.org",
+    "@type": "Comment",
+    "@id": commentId ? `${parentPostUrl}#comment-${commentId}` : undefined,
+    text: cleanHtmlContent(text),
+    author: {
+      "@type": "Person",
+      name: author,
+    },
+    datePublished: datePublished,
+    parentItem: {
+      "@type": "Article",
+      url: parentPostUrl,
+    },
+    inLanguage: "ko-KR",
+  }),
+
+  // 댓글 목록 구조화 데이터
+  commentList: (comments: Array<{
+    text: string;
+    author: string;
+    datePublished: string;
+    id: string;
+  }>, parentPostUrl: string) => ({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "댓글",
+    description: "게시글에 달린 댓글들",
+    numberOfItems: comments.length,
+    itemListElement: comments.map((comment, index) => ({
+      "@type": "Comment",
+      position: index + 1,
+      "@id": `${parentPostUrl}#comment-${comment.id}`,
+      text: cleanHtmlContent(comment.text),
+      author: {
+        "@type": "Person",
+        name: comment.author,
+      },
+      datePublished: comment.datePublished,
+      parentItem: {
+        "@type": "Article",
+        url: parentPostUrl,
+      },
+      inLanguage: "ko-KR",
+    })),
+  }),
+
+  // 롤링페이퍼 메시지 구조화 데이터
+  rollingPaperMessage: (
+    content: string,
+    author: string,
+    dateCreated: string,
+    paperOwner: string,
+    paperUrl: string,
+    messageId?: string
+  ) => ({
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "@id": messageId ? `${paperUrl}#message-${messageId}` : undefined,
+    text: content,
+    author: {
+      "@type": "Person",
+      name: author,
+    },
+    dateCreated: dateCreated,
+    isPartOf: {
+      "@type": "CreativeWork",
+      name: `${paperOwner}님의 롤링페이퍼`,
+      url: paperUrl,
+      author: {
+        "@type": "Person",
+        name: paperOwner,
+      },
+    },
+    inLanguage: "ko-KR",
+  }),
+
+  // 사용자 통계 구조화 데이터
+  userStats: (
+    userName: string,
+    postCount: number,
+    commentCount: number,
+    likeCount: number,
+    joinDate: string
+  ) => ({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: userName,
+    memberOf: {
+      "@type": "Organization",
+      name: "비밀로그",
+      url: "https://grow-farm.com",
+    },
+    hasCredential: [
+      {
+        "@type": "QuantitativeValue",
+        name: "작성한 게시글",
+        value: postCount,
+        unitText: "개",
+      },
+      {
+        "@type": "QuantitativeValue",
+        name: "작성한 댓글",
+        value: commentCount,
+        unitText: "개",
+      },
+      {
+        "@type": "QuantitativeValue",
+        name: "받은 좋아요",
+        value: likeCount,
+        unitText: "개",
+      },
+    ],
+    alumniOf: {
+      "@type": "Organization",
+      name: "비밀로그",
+      foundingDate: joinDate,
+    },
+  }),
+
   // 이벤트 구조화 데이터 (롤링페이퍼용)
   event: (name: string, description: string, startDate: string, url: string) => ({
     "@context": "https://schema.org",

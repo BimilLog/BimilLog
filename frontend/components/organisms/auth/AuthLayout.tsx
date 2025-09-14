@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { AuthLayoutClient } from "./AuthLayoutClient";
@@ -20,10 +21,15 @@ export const AuthLayout = React.memo<AuthLayoutProps>(({ children }) => {
           {/* Logo */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
-              <img
+              <Image
                 src="/log.png"
                 alt="비밀로그"
-                className="h-16 object-contain mx-auto"
+                width={64}
+                height={64}
+                className="h-16 w-auto object-contain mx-auto"
+                priority
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPgo="
               />
             </Link>
           </div>

@@ -29,7 +29,7 @@
     "dompurify": "^3.2.6",
     "firebase": "^11.9.1",
     "lucide-react": "^0.522.0",
-    "next": "15.2.4",
+    "next": "^15.5.3",
     "next-pwa": "^5.6.0",
     "next-sitemap": "^4.2.3",
     "quill": "^2.0.3",
@@ -38,6 +38,7 @@
     "react-hook-form": "^7.62.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
+    "web-vitals": "^5.1.0",
     "workbox-webpack-plugin": "^7.3.0",
     "zustand": "^5.0.8"
   },

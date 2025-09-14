@@ -44,3 +44,11 @@ yarn-error.log*
 next-env.d.ts
 /public/firebase/
 node_modules
+
+# PWA files
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/worker-*.js
+public/worker-*.js.map

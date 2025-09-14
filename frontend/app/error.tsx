@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components";
 import { Home, RefreshCw, AlertTriangle, ArrowLeft } from "lucide-react";
 import { AuthHeader } from "@/components/organisms/common";
@@ -32,10 +33,15 @@ export default function ErrorPage({
               {/* 메인 아이콘 */}
               <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                 <div className="relative">
-                  <img
+                  <Image
                     src="/log.png"
                     alt="비밀로그"
-                    className="h-24 object-contain opacity-50"
+                    width={96}
+                    height={96}
+                    className="h-24 w-auto object-contain opacity-50"
+                    priority
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjRjNGNEY2IiBvcGFjaXR5PSIwLjUiLz4KPC9zdmc+Cg=="
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <AlertTriangle className="w-12 h-12 text-red-500" />

@@ -1,5 +1,5 @@
 import { Metadata, ResolvingMetadata } from "next";
-import { generateKeywords } from "@/lib/seo";
+import { generateKeywords, generateDynamicOgImage } from "@/lib/seo";
 import { RollingPaperClient } from "@/components/organisms/rolling-paper";
 
 type Props = {
@@ -14,6 +14,13 @@ export async function generateMetadata(
   const decodedNickname = decodeURIComponent(nickname);
 
   const previousImages = (await parent).openGraph?.images || [];
+
+  // 동적 OG 이미지 생성
+  const ogImageUrl = generateDynamicOgImage({
+    title: `${decodedNickname}님의 롤링페이퍼`,
+    author: decodedNickname,
+    type: 'paper'
+  });
 
   return {
     title: `${decodedNickname}님의 롤링페이퍼`,
@@ -44,9 +51,9 @@ export async function generateMetadata(
       siteName: "비밀로그",
       images: [
         {
-          url: "https://grow-farm.com/log.png",
-          width: 326,
-          height: 105,
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
           alt: `${decodedNickname}님의 롤링페이퍼`,
         },
         ...previousImages,
@@ -58,7 +65,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title: `${decodedNickname}님의 비밀로그 롤링페이퍼`,
       description: `친구 ${decodedNickname}님에게 익명으로 메시지를 남겨보세요!`,
-      images: ["https://grow-farm.com/log.png"],
+      images: [ogImageUrl],
     },
   };
 }

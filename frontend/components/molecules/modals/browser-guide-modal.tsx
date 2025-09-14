@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Dialog, DialogContent, Button, Spinner } from "@/components";
+import { Dialog, DialogContent, DialogTitle, DialogHeader, Button, Spinner } from "@/components";
 import { useBrowserGuide } from "@/hooks";
 import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
@@ -29,6 +29,7 @@ interface BrowserGuideModalProps {
 const BrowserGuideModalLoading = () => (
   <Dialog open onOpenChange={() => {}}>
     <DialogContent className="p-6 max-w-md mx-auto" aria-label="브라우저 가이드 로딩">
+      <DialogTitle className="sr-only">브라우저 가이드 로딩</DialogTitle>
       <div className="flex items-center justify-center min-h-[300px]">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" />
@@ -88,15 +89,15 @@ function BrowserGuideModalContent({
   return (
     <Dialog open={effectiveShow} onOpenChange={handleClose}>
       <DialogContent className="p-6 max-w-md mx-auto" aria-label="브라우저 가이드">
-        <div className="text-center mb-6">
+        <DialogHeader className="text-center mb-6">
           <Smartphone className="w-10 h-10 mb-3 text-indigo-600 mx-auto" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">
+          <DialogTitle className="text-xl font-bold text-gray-800 mb-2">
             더 나은 이용을 위해 앱으로 설치해보세요!
-          </h2>
+          </DialogTitle>
           <p className="text-sm text-gray-600 leading-relaxed">
             비밀로그를 앱으로 설치하면 더 빠르고 편리하게 이용할 수 있어요.
           </p>
-        </div>
+        </DialogHeader>
 
         <div className="space-y-4 mb-6">
           {/* 플랫폼별 설치 가이드 분기 처리 */}

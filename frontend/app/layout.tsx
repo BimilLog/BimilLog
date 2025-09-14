@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ClientProviders } from "@/providers/client-providers";
 import { QueryProvider } from "@/providers/query-provider";
+import { WebVitalsReporter } from "@/components/analytics/web-vitals";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -149,6 +150,9 @@ export default function RootLayout({
             gtag('config', 'G-G9C4KYCEEJ');
           `}
         </Script>
+
+        {/* Web Vitals 모니터링 */}
+        <WebVitalsReporter />
 
         <QueryProvider>
           <ClientProviders>{children}</ClientProviders>

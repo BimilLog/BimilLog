@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { BoardClient } from "@/components/organisms/board";
-import { generateStructuredData, generateKeywords, generateDynamicOgImage } from "@/lib/seo";
+import { generateStructuredData, generateKeywords, generateDynamicOgImage, generatePaginationMeta } from "@/lib/seo";
 
 type Props = {
   searchParams: Promise<{
@@ -20,18 +20,29 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   if (query) {
     const title = `"${query}" 검색 결과`;
     const description = `비밀로그 커뮤니티에서 "${query}"에 대한 검색 결과를 확인하세요.`;
+    const searchPage = page ? parseInt(page) : 1;
 
     return {
       title,
       description,
       keywords: generateKeywords([query, "검색", "검색 결과", "커뮤니티 검색"]),
       alternates: {
-        canonical: `https://grow-farm.com/board?q=${encodeURIComponent(query)}`,
+        canonical: searchPage > 1
+          ? `https://grow-farm.com/board?q=${encodeURIComponent(query)}&page=${searchPage}`
+          : `https://grow-farm.com/board?q=${encodeURIComponent(query)}`,
+        ...(searchPage > 1 && {
+          prev: searchPage === 2
+            ? `https://grow-farm.com/board?q=${encodeURIComponent(query)}`
+            : `https://grow-farm.com/board?q=${encodeURIComponent(query)}&page=${searchPage - 1}`
+        }),
+        next: `https://grow-farm.com/board?q=${encodeURIComponent(query)}&page=${searchPage + 1}`,
       },
       openGraph: {
         title: `${title} | 비밀로그`,
         description,
-        url: `https://grow-farm.com/board?q=${encodeURIComponent(query)}`,
+        url: searchPage > 1
+          ? `https://grow-farm.com/board?q=${encodeURIComponent(query)}&page=${searchPage}`
+          : `https://grow-farm.com/board?q=${encodeURIComponent(query)}`,
         siteName: "비밀로그",
         images: [
           {
@@ -67,6 +78,30 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const currentPage = page ? parseInt(page) : 1;
   const baseTitle = currentPage > 1 ? `커뮤니티 게시판 (${currentPage}페이지)` : "커뮤니티 게시판";
 
+  // 일반 게시판 페이지용 동적 OG 이미지
+  const boardOgImage = generateDynamicOgImage({
+    title: baseTitle,
+    type: 'default'
+  });
+
+  // 페이지네이션 링크 생성 (정확한 totalPages는 알 수 없으므로 기본 로직만 적용)
+  const paginationLinks: { rel: string; url: string }[] = [];
+
+  if (currentPage > 1) {
+    paginationLinks.push({
+      rel: 'prev',
+      url: currentPage === 2
+        ? 'https://grow-farm.com/board'
+        : `https://grow-farm.com/board?page=${currentPage - 1}`
+    });
+  }
+
+  // next 링크는 항상 추가 (실제 마지막 페이지는 클라이언트에서 확인)
+  paginationLinks.push({
+    rel: 'next',
+    url: `https://grow-farm.com/board?page=${currentPage + 1}`
+  });
+
   return {
     title: baseTitle,
     description:
@@ -86,6 +121,12 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       canonical: currentPage > 1
         ? `https://grow-farm.com/board?page=${currentPage}`
         : "https://grow-farm.com/board",
+      ...(currentPage > 1 && {
+        prev: currentPage === 2
+          ? "https://grow-farm.com/board"
+          : `https://grow-farm.com/board?page=${currentPage - 1}`
+      }),
+      next: `https://grow-farm.com/board?page=${currentPage + 1}`,
     },
     openGraph: {
       title: `${baseTitle} | 비밀로그`,
@@ -96,7 +137,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       siteName: "비밀로그",
       images: [
         {
-          url: "/bimillog_board_mobile.png",
+          url: boardOgImage,
+          width: 1200,
+          height: 630,
           alt: "비밀로그 게시판",
         },
       ],
@@ -107,7 +150,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       card: "summary_large_image",
       title: `${baseTitle} | 비밀로그`,
       description: "다른 사용자들과 소통하고 인기글을 확인해보세요.",
-      images: ["/bimillog_board_mobile.png"],
+      images: [boardOgImage],
     },
   };
 }

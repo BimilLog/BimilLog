@@ -8,6 +8,7 @@ const pwaConfig = {
     disable: process.env.NODE_ENV === "development",
     // @ts-ignore
     importScripts: ["/firebase-messaging-sw.js"],
+    buildExcludes: [/app-build-manifest\.json$/],
     runtimeCaching: [
         {
             urlPattern: /^https:\/\/grow-farm\.com\/api\//,
