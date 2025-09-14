@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from "next/navigation";
+import { useQuery } from '@tanstack/react-query';
 import { postQuery, commentQuery } from '@/lib/api';
-import { useApiQuery } from '@/hooks/api/useApiQuery';
+import { queryKeys } from '@/lib/tanstack-query/keys';
 import { useAuth } from '@/hooks';
 import type { Post } from '@/types/domains/post';
 import type { Comment } from '@/types/domains/comment';
@@ -12,10 +13,14 @@ export interface CommentWithReplies extends Comment {
   replies?: CommentWithReplies[];
 }
 
-// 게시글 상세 조회 (간단한 버전)
+// 게시글 상세 조회 (간단한 버전) - TanStack Query 통합
 export function usePostDetailQuery(postId: number) {
-  return useApiQuery(() => postQuery.getById(postId), {
-    enabled: postId > 0
+  return useQuery({
+    queryKey: queryKeys.post.detail(postId),
+    queryFn: () => postQuery.getById(postId),
+    enabled: postId > 0,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 

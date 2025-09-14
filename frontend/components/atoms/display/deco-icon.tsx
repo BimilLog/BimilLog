@@ -74,29 +74,5 @@ export const DecoIcon: React.FC<DecoIconProps> = ({
   );
 };
 
-// 기존 이모지 스타일을 유지하기 위한 래퍼 컴포넌트
-export const EmojiStyleDecoIcon: React.FC<{
-  decoType: DecoType;
-  className?: string;
-  size?: string; // '2xl', '4xl' 등 텍스트 크기 클래스
-}> = ({
-  decoType,
-  className = '',
-  size = '2xl'
-}) => {
-  const iconMapping = getIconMapping(decoType);
-  const IconComponent = iconMapping.icon;
-
-  return (
-    <span className={cn(`text-${size}`, 'inline-flex items-center justify-center', className)}>
-      <IconComponent
-        className={cn(
-          'w-8 h-8', // 기본 아이콘 크기
-          iconMapping.color || 'text-gray-600'
-        )}
-      />
-    </span>
-  );
-};
 
 export default DecoIcon;

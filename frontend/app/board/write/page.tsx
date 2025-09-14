@@ -2,12 +2,11 @@
 
 import { useAuth } from "@/hooks";
 import { Save } from "lucide-react";
-import { AuthHeader } from "@/components/organisms/common";
 import dynamic from "next/dynamic";
 
 // 분리된 훅과 컴포넌트들 import
 import { useWriteForm } from "@/hooks/features";
-import { WritePageHeader, Breadcrumb } from "@/components";
+import { AuthHeader, WritePageHeader, Breadcrumb } from "@/components";
 
 // WriteForm을 동적 import로 변경하여 Editor 컴포넌트 최적화
 const WriteForm = dynamic(() => import("@/components").then(mod => ({ default: mod.WriteForm })), {

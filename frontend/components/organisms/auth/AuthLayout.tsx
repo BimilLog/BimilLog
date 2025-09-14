@@ -1,3 +1,4 @@
+import React from "react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
@@ -9,7 +10,7 @@ interface AuthLayoutProps {
   description?: string;
 }
 
-export function AuthLayout({ children }: AuthLayoutProps) {
+export const AuthLayout = React.memo<AuthLayoutProps>(({ children }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       <AuthHeader />
@@ -44,4 +45,4 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       <AuthLayoutClient />
     </div>
   );
-}
+});

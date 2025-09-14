@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Card, Badge, Button } from "@/components";
 import { Calendar, User, FileText, Eye } from "lucide-react";
 import type { Report } from "@/types/domains/admin";
@@ -9,7 +10,7 @@ interface MobileReportCardProps {
   onView: () => void;
 }
 
-export function MobileReportCard({ report, onView }: MobileReportCardProps) {
+export const MobileReportCard = React.memo<MobileReportCardProps>(({ report, onView }) => {
   const getReportTypeLabel = (type: string) => {
     switch(type) {
       case "POST": return "게시글";
@@ -85,4 +86,4 @@ export function MobileReportCard({ report, onView }: MobileReportCardProps) {
       </div>
     </Card>
   );
-}
+});

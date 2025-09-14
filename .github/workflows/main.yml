@@ -44,6 +44,15 @@ jobs:
           docker tag bimillog-backend:latest $IMAGE_REPO:backend
           docker push $IMAGE_REPO:backend
 
+      - name: Copy docker-compose.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.BASTION_HOST }}
+          username: ${{ secrets.BASTION_USER }}
+          key: ${{ secrets.BASTION_SSH_KEY }}
+          source: "backend/docker-compose.yml"
+          target: "/tmp/"
+
       - name: Deploy Backend and Redis via Bastion Host
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -51,45 +60,22 @@ jobs:
           username: ${{ secrets.BASTION_USER }}
           key: ${{ secrets.BASTION_SSH_KEY }}
           script: |
+            # Copy docker-compose.yml to backend server via bastion
+            scp -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no /tmp/backend/docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }}:/home/ubuntu/
+
+            # SSH to backend server and deploy
             ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
-            cat > docker-compose.yml << 'EOF'
-            version: '3.8'
-            
-            services:
-              backend:
-                image: jaeikjeong/bimillog:backend
-                container_name: bimillog-backend
-                ports:
-                  - "8080:8080"
-                networks:
-                  - bimillog-network
-                volumes:
-                  - /home/ubuntu/logs:/app/logs
-                environment:
-                  - SPRING_PROFILES_ACTIVE=prod
-                depends_on:
-                  - redis
-                restart: unless-stopped
-            
-              redis:
-                image: redis:8.0.2-alpine3.21
-                container_name: bimillog-redis
-                ports:
-                  - "6379:6379"
-                networks:
-                  - bimillog-network
-                command: redis-server --requirepass ${REDIS_PASSWORD}
-                environment:
-                  - REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-                restart: unless-stopped
-            
-            networks:
-              bimillog-network:
-                driver: bridge
-            EOF
-              
-              # Login to Docker Hub and deploy using compose
+              # Create .env file with secrets
+              cat > /home/ubuntu/.env << 'EOF'
+              REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+              EOF
+
+              # Login to Docker Hub
               echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+              # Deploy using docker-compose with environment variables
+              cd /home/ubuntu
+              export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
               docker-compose down || true
               docker-compose pull
               docker-compose up -d

@@ -2,18 +2,16 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: .
-      dockerfile: backend.Dockerfile
+    image: jaeikjeong/bimillog:backend
     container_name: bimillog-backend
     ports:
       - "8080:8080"
     networks:
       - bimillog-network
     volumes:
-      - ./logs:/app/logs
+      - /home/ubuntu/logs:/app/logs
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
+      - SPRING_PROFILES_ACTIVE=prod
     depends_on:
       - redis
     restart: unless-stopped

@@ -188,7 +188,9 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     handleWebShare,
     handleMessageSubmit,
     handleMessageClick,
-    refetchMessages: refetch,
+    refetchMessages: async () => {
+      await refetch();
+    },
     toasts,
     removeToast,
     showSuccess,

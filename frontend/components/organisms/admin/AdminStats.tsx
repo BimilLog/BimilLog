@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { TrendingUp } from "lucide-react";
 import type { Report } from "@/types/domains/admin";
@@ -6,7 +7,7 @@ interface AdminStatsProps {
   reports: Report[];
 }
 
-export const AdminStats: React.FC<AdminStatsProps> = ({ reports }) => {
+export const AdminStats: React.FC<AdminStatsProps> = React.memo(({ reports }) => {
   // TODO: Implement actual statistics using reports data
   void reports; // Suppress unused variable warning
   return (
@@ -33,4 +34,4 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ reports }) => {
       </CardContent>
     </Card>
   );
-};
+});

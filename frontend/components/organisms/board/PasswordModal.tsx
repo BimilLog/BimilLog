@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,7 @@ interface PasswordModalProps {
   title: string;
 }
 
-export const PasswordModal: React.FC<PasswordModalProps> = ({
+export const PasswordModal = React.memo<PasswordModalProps>(({
   isOpen,
   password,
   onPasswordChange,
@@ -47,4 +48,4 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+});

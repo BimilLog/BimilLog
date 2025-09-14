@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Badge, Button } from "@/components";
 import { Calendar, User, FileText, Eye } from "lucide-react";
 import type { Report } from "@/types/domains/admin";
@@ -9,7 +10,7 @@ interface ReportCardProps {
   onView: () => void;
 }
 
-export function ReportCard({ report, onView }: ReportCardProps) {
+export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
   const getReportTypeLabel = (type: string) => {
     switch(type) {
       case "POST": return "게시글";
@@ -82,4 +83,4 @@ export function ReportCard({ report, onView }: ReportCardProps) {
       </td>
     </tr>
   );
-}
+});

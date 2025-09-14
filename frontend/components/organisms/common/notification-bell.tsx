@@ -22,7 +22,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components";
-import { useNotifications } from "@/hooks/features";
+import {
+  useNotifications,
+  useNotificationList,
+  useMarkNotificationAsRead,
+  useDeleteNotification,
+  useMarkAllNotificationsAsRead,
+  useDeleteAllNotifications
+} from "@/hooks/features";
 import { isMobileOrTablet } from "@/lib/utils";
 import { useAuth } from "@/hooks";
 import { formatKoreanDate } from "@/lib/utils/date";
@@ -31,24 +38,45 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
+  // TanStack Query Hooks
+  const { data: notificationResponse, isLoading, refetch } = useNotificationList();
+  const markAsReadMutation = useMarkNotificationAsRead();
+  const deleteNotificationMutation = useDeleteNotification();
+  const markAllAsReadMutation = useMarkAllNotificationsAsRead();
+  const deleteAllNotificationsMutation = useDeleteAllNotifications();
+
+  // SSE Hook
   const {
-    notifications,
-    unreadCount,
-    isLoading,
     isSSEConnected,
     connectionState,
     canConnectSSE,
-    fetchNotifications,
-    markAsRead,
-    deleteNotification,
-    markAllAsRead,
-    deleteAllNotifications,
     requestNotificationPermission,
-    // 디버깅용 배치 상태
-    pendingReadIds,
-    pendingDeleteIds,
-    processBatch,
   } = useNotifications();
+
+  // 알림 데이터 계산
+  const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  // Handler 함수들
+  const handleMarkAsRead = (notificationId: number) => {
+    markAsReadMutation.mutate(notificationId);
+  };
+
+  const handleDeleteNotification = (notificationId: number) => {
+    deleteNotificationMutation.mutate(notificationId);
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllAsReadMutation.mutate();
+  };
+
+  const handleDeleteAllNotifications = () => {
+    deleteAllNotificationsMutation.mutate();
+  };
+
+  const handleFetchNotifications = () => {
+    refetch();
+  };
 
   // 인증되지 않았거나 SSE 연결 조건을 만족하지 않으면 숨김
   if (!isAuthenticated || !canConnectSSE()) return null;
@@ -57,21 +85,21 @@ export function NotificationBell() {
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
     if (open && canConnectSSE()) {
-      fetchNotifications();
+      handleFetchNotifications();
     }
   };
 
   // 수동 새로고침
   const handleRefresh = () => {
     if (canConnectSSE()) {
-      fetchNotifications();
+      handleFetchNotifications();
     }
   };
 
   // 알림 읽음 처리
   const handleNotificationClick = async (notification: { id: number; isRead: boolean; url?: string }) => {
     if (!notification.isRead) {
-      await markAsRead(notification.id);
+      handleMarkAsRead(notification.id);
     }
 
     // URL이 있으면 이동
@@ -167,7 +195,7 @@ export function NotificationBell() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 className="flex-1 text-xs h-8"
                 title="모든 알림을 읽음으로 처리"
               >
@@ -178,7 +206,7 @@ export function NotificationBell() {
             <Button
               variant="outline"
               size="sm"
-              onClick={deleteAllNotifications}
+              onClick={handleDeleteAllNotifications}
               className="flex-1 text-xs h-8 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
               title="모든 알림 삭제"
             >
@@ -189,23 +217,7 @@ export function NotificationBell() {
         </div>
       )}
 
-      {/* 개발 모드에서 배치 상태 표시 */}
-      {process.env.NODE_ENV === "development" &&
-        (pendingReadIds.length > 0 || pendingDeleteIds.length > 0) && (
-          <div className="text-xs text-gray-500 p-3 bg-yellow-50 border-b">
-            배치 대기: 읽음 {pendingReadIds.length}개, 삭제{" "}
-            {pendingDeleteIds.length}개
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={processBatch}
-              className="ml-2 text-xs h-5"
-              title="배치 처리 수동 실행 (테스트용)"
-            >
-              수동 실행
-            </Button>
-          </div>
-        )}
+      {/* 배치 처리는 TanStack Query에서 자동 관리됨 */}
 
       {/* 알림 목록 */}
       <div
@@ -254,7 +266,7 @@ export function NotificationBell() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              markAsRead(notification.id);
+                              handleMarkAsRead(notification.id);
                             }}
                             className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700"
                             title="읽음 처리"
@@ -267,7 +279,7 @@ export function NotificationBell() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteNotification(notification.id);
+                            handleDeleteNotification(notification.id);
                           }}
                           className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
                           title="삭제"

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Badge } from "@/components";
 
 interface ReportFiltersProps {
@@ -14,7 +15,7 @@ interface ReportFiltersProps {
   };
 }
 
-export function ReportFilters({ filterType, setFilterType, reportCounts }: ReportFiltersProps) {
+export const ReportFilters = React.memo<ReportFiltersProps>(({ filterType, setFilterType, reportCounts }) => {
   const filters = [
     { id: "all", label: "전체", count: reportCounts.all },
     { id: "POST", label: "게시글", count: reportCounts.POST },
@@ -48,4 +49,4 @@ export function ReportFilters({ filterType, setFilterType, reportCounts }: Repor
       ))}
     </div>
   );
-}
+});

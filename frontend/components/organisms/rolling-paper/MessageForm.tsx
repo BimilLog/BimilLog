@@ -1,13 +1,14 @@
 "use client";
 
+import React from "react";
 import { useForm } from "react-hook-form";
 import { Button, Input, Textarea } from "@/components";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/molecules/select";
 import { Send, Snowflake, Waves, IceCream2 } from "lucide-react";
 import { getDecoInfo, decoTypeMap, type DecoType } from "@/lib/api";
@@ -28,7 +29,7 @@ interface MessageFormProps {
   onError?: (message: string) => void;
 }
 
-export const MessageForm: React.FC<MessageFormProps> = ({ 
+export const MessageForm = React.memo<MessageFormProps>(({ 
   onSubmit, 
   onSuccess, 
   onError 
@@ -237,4 +238,4 @@ export const MessageForm: React.FC<MessageFormProps> = ({
       </div>
     </form>
   );
-};
+});

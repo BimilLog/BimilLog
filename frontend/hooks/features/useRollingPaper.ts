@@ -2,29 +2,40 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from "next/navigation";
-import { paperQuery, paperCommand } from '@/lib/api';
-import { useApiQuery } from '@/hooks/api/useApiQuery';
-import { useApiMutation } from '@/hooks/api/useApiMutation';
+import { paperQuery } from '@/lib/api';
 import { useAuth, useToast } from '@/hooks';
 import { ErrorHandler } from "@/lib/api/helpers";
 import { copyRollingPaperLink } from "@/lib/utils/clipboard";
 import { logger } from '@/lib/utils/logger';
-import type { RollingPaperMessage, VisitMessage, DecoType } from '@/types/domains/paper';
+import type { VisitMessage, DecoType } from '@/types/domains/paper';
 
-// 롤링페이퍼 메시지 조회
-export function useRollingPaper(userName: string) {
-  const { data, isLoading, refetch } = useApiQuery(
-    () => paperQuery.getByUserName(userName),
-    {
-      enabled: !!userName,
-      cacheTime: 10 * 60 * 1000, // 10분 캐싱
-      staleTime: 5 * 60 * 1000 // 5분 후 stale
-    }
-  );
+// TanStack Query Hooks re-exports
+export { useRollingPaper } from '@/hooks/api/useRollingPaperQueries';
+export {
+  useCreateRollingPaperMessage,
+  useDeleteRollingPaperMessage
+} from '@/hooks/api/useRollingPaperMutations';
+
+// Import for local usage
+import { useRollingPaper } from '@/hooks/api/useRollingPaperQueries';
+import {
+  useCreateRollingPaperMessage,
+  useDeleteRollingPaperMessage
+} from '@/hooks/api/useRollingPaperMutations';
+
+// 롤링페이퍼 통합 Hook
+export function useRollingPaperActions(userName: string) {
+  const [selectedPosition, setSelectedPosition] = useState<{ row: number; col: number } | null>(null);
+  const [isMessageFormOpen, setIsMessageFormOpen] = useState(false);
+  const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
+
+  const { data, isLoading, refetch } = useRollingPaper(userName);
+  const createMessageMutation = useCreateRollingPaperMessage();
+  const deleteMessageMutation = useDeleteRollingPaperMessage();
 
   // 그리드 데이터 구성
   const gridData = useMemo(() => {
-    const messages = data || [];
+    const messages = data?.data || [];
     const grid: (VisitMessage | null)[][] = [];
     const rows = 10;
     const cols = 6;
@@ -46,57 +57,8 @@ export function useRollingPaper(userName: string) {
     return grid;
   }, [data]);
 
-  return {
-    messages: data || [],
-    gridData,
-    isLoading,
-    refetch
-  };
-}
-
-// 롤링페이퍼 메시지 작성
-export function useCreateRollingPaperMessage() {
-  return useApiMutation(
-    ({ userName, message }: {
-      userName: string;
-      message: {
-        decoType: DecoType;
-        anonymity: string;
-        content: string;
-        x: number;
-        y: number;
-      }
-    }) => paperCommand.createMessage(userName, message),
-    {
-      showSuccessToast: true,
-      successMessage: '메시지가 작성되었습니다.'
-    }
-  );
-}
-
-// 롤링페이퍼 메시지 삭제
-export function useDeleteRollingPaperMessage() {
-  return useApiMutation(
-    (messageId: number) => paperCommand.deleteMessage(messageId),
-    {
-      showSuccessToast: true,
-      successMessage: '메시지가 삭제되었습니다.'
-    }
-  );
-}
-
-// 롤링페이퍼 통합 Hook
-export function useRollingPaperActions(userName: string) {
-  const [selectedPosition, setSelectedPosition] = useState<{ row: number; col: number } | null>(null);
-  const [isMessageFormOpen, setIsMessageFormOpen] = useState(false);
-  const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
-  
-  const { messages, gridData, isLoading, refetch } = useRollingPaper(userName);
-  const { mutate: createMessage, isLoading: isCreating } = useCreateRollingPaperMessage();
-  const { mutate: deleteMessages, isLoading: isDeleting } = useDeleteRollingPaperMessage();
-
   // 메시지 작성
-  const handleCreateMessage = useCallback(async (data: {
+  const handleCreateMessage = useCallback((messageData: {
     userName: string;
     content: string;
     anonymity: string;
@@ -104,20 +66,22 @@ export function useRollingPaperActions(userName: string) {
     rowIndex: number;
     colIndex: number;
   }) => {
-    await createMessage({
-      userName: data.userName,
+    createMessageMutation.mutate({
+      userName: messageData.userName,
       message: {
-        decoType: data.decoType,
-        anonymity: data.anonymity,
-        content: data.content,
-        x: data.colIndex + 1, // 0-based to 1-based
-        y: data.rowIndex + 1  // 0-based to 1-based
+        decoType: messageData.decoType,
+        anonymity: messageData.anonymity,
+        content: messageData.content,
+        x: messageData.colIndex + 1, // 0-based to 1-based
+        y: messageData.rowIndex + 1  // 0-based to 1-based
+      }
+    }, {
+      onSuccess: () => {
+        setIsMessageFormOpen(false);
+        setSelectedPosition(null);
       }
     });
-    await refetch();
-    setIsMessageFormOpen(false);
-    setSelectedPosition(null);
-  }, [createMessage, refetch]);
+  }, [createMessageMutation]);
 
   // 메시지 삭제
   const handleDeleteMessages = useCallback(async () => {
@@ -125,11 +89,13 @@ export function useRollingPaperActions(userName: string) {
 
     // 각 메시지를 개별적으로 삭제
     for (const messageId of selectedMessages) {
-      await deleteMessages(messageId);
+      deleteMessageMutation.mutate(messageId, {
+        onSuccess: () => {
+          setSelectedMessages(prev => prev.filter(id => id !== messageId));
+        }
+      });
     }
-    await refetch();
-    setSelectedMessages([]);
-  }, [deleteMessages, selectedMessages, refetch]);
+  }, [deleteMessageMutation, selectedMessages]);
 
   // 위치 선택
   const handleSelectPosition = useCallback((row: number, col: number) => {
@@ -137,7 +103,7 @@ export function useRollingPaperActions(userName: string) {
     if (gridData[row][col]) {
       return false;
     }
-    
+
     setSelectedPosition({ row, col });
     setIsMessageFormOpen(true);
     return true;
@@ -154,11 +120,11 @@ export function useRollingPaperActions(userName: string) {
   }, []);
 
   return {
-    messages,
+    messages: data?.data || [],
     gridData,
     isLoading,
-    isCreating,
-    isDeleting,
+    isCreating: createMessageMutation.isPending,
+    isDeleting: deleteMessageMutation.isPending,
     selectedPosition,
     isMessageFormOpen,
     selectedMessages,

@@ -7,7 +7,7 @@ import { Label } from "@/components";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components";
 import { Check, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks";
-import { useNotifications } from "@/hooks/features";
+import { useNotificationList } from "@/hooks/features";
 import { useRouter } from "next/navigation";
 import { userQuery } from "@/lib/api";
 import { validateNickname } from "@/lib/utils/validation";
@@ -21,7 +21,7 @@ interface NicknameSetupFormProps {
 
 export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetupFormProps) {
   const { signUp } = useAuth();
-  const { fetchNotifications } = useNotifications();
+  const { refetch: refetchNotifications } = useNotificationList();
   const router = useRouter();
   
   const [nickname, setNickname] = useState("");
@@ -92,8 +92,8 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
         // 세션스토리지에서 임시 UUID 제거
         sessionStorage.removeItem("tempUserUuid");
 
-        // 알림 목록 조회
-        await fetchNotifications();
+        // 알림 목록 새로고침
+        await refetchNotifications();
 
         onSuccess();
         router.push("/");

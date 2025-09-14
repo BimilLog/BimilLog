@@ -1,3 +1,4 @@
+import React from "react";
 import { CardContent, SafeHTML } from "@/components";
 import { Post } from "@/lib/api";
 import { PostContentActions } from "./PostContentActions";
@@ -8,7 +9,7 @@ interface PostContentProps {
   onLike: () => void;
 }
 
-export const PostContent: React.FC<PostContentProps> = ({
+export const PostContent = React.memo<PostContentProps>(({
   post,
   isAuthenticated,
   onLike,
@@ -29,4 +30,4 @@ export const PostContent: React.FC<PostContentProps> = ({
       />
     </CardContent>
   );
-};
+});

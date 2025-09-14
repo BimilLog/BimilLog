@@ -1,78 +1,92 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
-import { postCommand } from "@/lib/api";
-import { stripHtml, validatePassword } from "@/lib/utils";
 
-// ============ BOARD WRITE HOOKS ============
+// ============ BOARD QUERY HOOKS ============
+export {
+  useBoardPosts,
+  useBoardSearch,
+  useBoardPopularPosts,
+  useBoardLegendPosts,
+  useBoardNoticePosts,
+} from '@/hooks/api/useBoardQueries';
 
-// 게시글 작성 폼 Hook
+// ============ BOARD MUTATION HOOKS ============
+export {
+  useCreateBoardPost,
+  useUpdateBoardPost,
+  useDeleteBoardPost,
+} from '@/hooks/api/useBoardMutations';
+
+// Import for local usage
+import { useCreateBoardPost } from '@/hooks/api/useBoardMutations';
+
+// ============ BOARD WRITE FORM HOOK ============
+
+/**
+ * 게시글 작성 폼을 위한 통합 훅
+ * TanStack Query mutation과 로컬 폼 상태를 결합
+ */
 export const useWriteForm = () => {
   const { user, isAuthenticated } = useAuth();
-  const router = useRouter();
-  const { showSuccess, showError, showWarning } = useToast();
-  
+  const { showWarning } = useToast();
+  const createPostMutation = useCreateBoardPost();
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [password, setPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
 
-  const handleSubmit = async () => {
-    const plainContent = stripHtml(content).trim();
-
-    if (!title.trim() || !plainContent) {
+  // 폼 유효성 검사
+  const validateForm = () => {
+    if (!title.trim() || !content.trim()) {
       showWarning("입력 확인", "제목과 내용을 모두 입력해주세요.");
-      return;
+      return false;
     }
+    return true;
+  };
 
-    let validatedPassword: number | undefined;
-    try {
-      validatedPassword = validatePassword(password, isAuthenticated);
-    } catch (error) {
-      if (error instanceof Error) {
-        showWarning("입력 확인", error.message);
-      }
-      return;
-    }
+  // 폼 제출 핸들러
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
 
-    setIsSubmitting(true);
-    try {
-      const postData = {
-        userName: isAuthenticated ? user!.userName : null,
-        title: title.trim(),
-        content: plainContent,
-        password: validatedPassword,
-      };
-
-      const response = await postCommand.create(postData);
-      if (response.success && response.data) {
-        showSuccess("작성 완료", "게시글이 성공적으로 작성되었습니다!");
-        router.push(`/board/post/${response.data.id}`);
-      }
-    } catch (error) {
-      showError("작성 실패", "게시글 작성 중 오류가 발생했습니다.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    createPostMutation.mutate({
+      title,
+      content,
+      password,
+    });
   };
 
   const isFormValid = Boolean(title.trim() && content.trim());
+  const isSubmitting = createPostMutation.isPending;
+
+  const resetForm = () => {
+    setTitle("");
+    setContent("");
+    setPassword("");
+    setIsPreview(false);
+  };
 
   return {
+    // Form fields
     title,
     setTitle,
     content,
     setContent,
     password,
     setPassword,
-    isSubmitting,
     isPreview,
     setIsPreview,
+
+    // Form actions
     handleSubmit,
+    isSubmitting,
+    validateForm,
     isFormValid,
+    resetForm,
+
+    // User info
     user,
     isAuthenticated,
   };

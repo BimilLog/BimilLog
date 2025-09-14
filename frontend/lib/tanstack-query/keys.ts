@@ -106,6 +106,9 @@ export const mutationKeys = {
   // Notification
   notification: {
     markAsRead: ['notification', 'markAsRead'] as const,
+    delete: ['notification', 'delete'] as const,
+    markAllAsRead: ['notification', 'markAllAsRead'] as const,
+    deleteAll: ['notification', 'deleteAll'] as const,
   },
 
   // Admin
