@@ -223,7 +223,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
         </div>
 
         {/* 게시글 카드 */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-8">
+        <Card variant="elevated" className="mb-8">
           <PostHeader
             post={post}
             commentCount={commentCount}

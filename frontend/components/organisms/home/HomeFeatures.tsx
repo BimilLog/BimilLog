@@ -42,7 +42,7 @@ export const HomeFeatures: React.FC = () => {
             <Card
               key={index}
               variant="elevated"
-              className="hover:shadow-xl transition-shadow"
+              className="hover:shadow-brand-xl transition-shadow"
             >
               <CardContent className="p-6 text-center">
                 <div

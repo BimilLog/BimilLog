@@ -31,7 +31,7 @@ function PopoverContent({
         sideOffset={sideOffset}
         className={cn(
           // 완전히 불투명한 배경 적용 (Popover도 다른 컴포넌트와 동일)
-          "bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100",
+          "bg-white text-brand-primary dark:bg-gray-800 dark:text-brand-secondary",
           // 확실한 테두리와 그림자
           "border border-gray-300 dark:border-gray-600",
           // 부드러운 애니메이션
@@ -39,7 +39,7 @@ function PopoverContent({
           // 레이아웃 및 스타일링
           "z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-lg p-4 outline-hidden",
           // 강력한 그림자로 배경과 확실히 구분
-          "shadow-xl drop-shadow-lg",
+          "shadow-brand-xl drop-shadow-brand-lg",
           className
         )}
         {...props}

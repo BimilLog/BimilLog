@@ -16,7 +16,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
   }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+    <Card variant="elevated">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-base md:text-sm">

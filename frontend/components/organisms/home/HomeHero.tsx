@@ -42,7 +42,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* 모바일: 카카오 친구 확인하기 */}
               <div className="sm:hidden">
                 <Button
-                  variant="kakao"
+                  variant="outline"
                   size="lg"
                   onClick={onOpenFriendsModal}
                 >
@@ -54,7 +54,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* PC: 카카오 친구 확인하기와 다른 롤링페이퍼 방문하기를 한 줄로 */}
               <div className="hidden sm:flex flex-row gap-4 justify-center items-center">
                 <Button
-                  variant="kakao"
+                  variant="outline"
                   size="lg"
                   onClick={onOpenFriendsModal}
                 >

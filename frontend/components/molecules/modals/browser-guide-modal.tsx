@@ -33,7 +33,7 @@ const BrowserGuideModalLoading = () => (
       <div className="flex items-center justify-center min-h-[300px]">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" />
-          <p className="text-sm text-gray-500">브라우저 가이드 로딩 중...</p>
+          <p className="text-sm text-brand-secondary">브라우저 가이드 로딩 중...</p>
         </div>
       </div>
     </DialogContent>
@@ -91,10 +91,10 @@ function BrowserGuideModalContent({
       <DialogContent className="p-6 max-w-md mx-auto" aria-label="브라우저 가이드">
         <DialogHeader className="text-center mb-6">
           <Smartphone className="w-10 h-10 mb-3 text-indigo-600 mx-auto" />
-          <DialogTitle className="text-xl font-bold text-gray-800 mb-2">
+          <DialogTitle className="text-xl font-bold text-brand-primary mb-2">
             더 나은 이용을 위해 앱으로 설치해보세요!
           </DialogTitle>
-          <p className="text-sm text-gray-600 leading-relaxed">
+          <p className="text-sm text-brand-muted leading-relaxed">
             비밀로그를 앱으로 설치하면 더 빠르고 편리하게 이용할 수 있어요.
           </p>
         </DialogHeader>

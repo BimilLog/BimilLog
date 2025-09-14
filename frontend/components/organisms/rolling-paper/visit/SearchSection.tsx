@@ -22,18 +22,18 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   onKeyPress,
 }) => {
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl mb-8">
+    <Card variant="elevated" className="mb-8">
       <div className="text-center pb-4 p-6">
         <h2 className="text-2xl bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent font-bold">
           누구의 롤링페이퍼를 방문할까요?
         </h2>
-        <p className="text-gray-600 text-sm mt-2">
+        <p className="text-brand-muted text-sm mt-2">
           닉네임을 입력하여 롤링페이퍼를 찾아보세요
         </p>
       </div>
       <div className="space-y-4 p-6 pt-0">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-secondary w-5 h-5" />
           <Input
             placeholder="닉네임을 입력하세요"
             value={searchNickname}

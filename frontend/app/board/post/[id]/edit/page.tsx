@@ -37,7 +37,7 @@ export default function EditPostPage() {
         <AuthHeader />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
-            <p className="text-gray-600">로딩 중...</p>
+            <p className="text-brand-muted">로딩 중...</p>
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function EditPostPage() {
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
         <AuthHeader />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <p className="text-gray-600">게시글 정보를 찾을 수 없습니다.</p>
+          <p className="text-brand-muted">게시글 정보를 찾을 수 없습니다.</p>
         </div>
       </div>
     );
@@ -60,7 +60,7 @@ export default function EditPostPage() {
       <>
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
           <div className="text-center">
-            <p className="text-gray-600">권한을 확인하는 중...</p>
+            <p className="text-brand-muted">권한을 확인하는 중...</p>
           </div>
         </div>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
@@ -86,7 +86,7 @@ export default function EditPostPage() {
                       <span className="hidden sm:inline">게시글</span>
                     </Button>
                   </Link>
-                  <h1 className="text-lg sm:text-xl font-bold text-gray-800 whitespace-nowrap">
+                  <h1 className="text-lg sm:text-xl font-bold text-brand-primary whitespace-nowrap">
                     게시글 수정
                   </h1>
                 </div>
@@ -137,7 +137,7 @@ export default function EditPostPage() {
         </header>
 
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+          <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Save className="w-5 h-5 text-purple-600" />
@@ -152,7 +152,7 @@ export default function EditPostPage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="title"
-                      className="text-sm font-medium text-gray-700"
+                      className="text-sm font-medium text-brand-primary"
                     >
                       제목
                     </Label>
@@ -169,7 +169,7 @@ export default function EditPostPage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="content"
-                      className="text-sm font-medium text-gray-700"
+                      className="text-sm font-medium text-brand-primary"
                     >
                       내용
                     </Label>
@@ -181,7 +181,7 @@ export default function EditPostPage() {
                     <div className="space-y-2">
                       <Label
                         htmlFor="edit-password"
-                        className="text-sm font-medium text-gray-700"
+                        className="text-sm font-medium text-brand-primary"
                       >
                         비밀번호 (4자리 숫자)
                       </Label>
@@ -193,7 +193,7 @@ export default function EditPostPage() {
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGuestPassword(e.target.value)}
                         className="border-2 border-gray-200 focus:border-purple-400"
                       />
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-brand-secondary">
                         게시글 작성 시 설정한 비밀번호를 입력해주세요.
                       </p>
                     </div>
@@ -208,10 +208,10 @@ export default function EditPostPage() {
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-800">
+                        <p className="text-sm font-medium text-brand-primary">
                           작성자: {post.userName}
                         </p>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-brand-muted">
                           원본 작성일: {post.createdAt}
                         </p>
                       </div>
@@ -222,10 +222,10 @@ export default function EditPostPage() {
                 /* 미리보기 */
                 <div className="space-y-6">
                   <div className="border-b pb-4">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                    <h1 className="text-2xl font-bold text-brand-primary mb-2">
                       {title || "제목을 입력하세요"}
                     </h1>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <div className="flex items-center space-x-4 text-sm text-brand-muted">
                       <span>작성자: {post.userName}</span>
                       <span>작성일: {post.createdAt}</span>
                       <span className="text-orange-600">수정됨</span>
@@ -233,7 +233,7 @@ export default function EditPostPage() {
                   </div>
 
                   <div className="prose max-w-none">
-                    <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                    <div className="text-brand-primary leading-relaxed whitespace-pre-wrap">
                       {content || "내용을 입력하세요"}
                     </div>
                   </div>

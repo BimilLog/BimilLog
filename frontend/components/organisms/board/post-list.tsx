@@ -28,7 +28,7 @@ const PostListTableItem = React.memo<PostListItemProps>(({ post }) => (
     <td className="p-3">
       <Link
         href={`/board/post/${post.id}`}
-        className="font-semibold text-gray-800 hover:text-purple-600 transition-colors line-clamp-2 block"
+        className="font-semibold text-brand-primary hover:text-purple-600 transition-colors line-clamp-2 block"
       >
         {post.title}
         {post.commentCount > 0 && (
@@ -38,7 +38,7 @@ const PostListTableItem = React.memo<PostListItemProps>(({ post }) => (
         )}
       </Link>
     </td>
-    <td className="p-3 text-gray-600">
+    <td className="p-3 text-brand-muted">
       <Link
         href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
         className="hover:text-purple-600 hover:underline transition-colors truncate block max-w-20"
@@ -47,17 +47,17 @@ const PostListTableItem = React.memo<PostListItemProps>(({ post }) => (
         {post.userName}
       </Link>
     </td>
-    <td className="p-3 text-gray-600 text-sm">
+    <td className="p-3 text-brand-muted text-sm">
       {formatDate(post.createdAt)}
     </td>
-    <td className="p-3 text-gray-600 text-center">{post.viewCount}</td>
-    <td className="p-3 text-gray-600 text-center">{post.likeCount}</td>
+    <td className="p-3 text-brand-muted text-center">{post.viewCount}</td>
+    <td className="p-3 text-brand-muted text-center">{post.likeCount}</td>
   </tr>
 ));
 
 // 모바일용 카드 컴포넌트
 const PostListMobileItem = React.memo<PostListItemProps>(({ post }) => (
-  <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm hover:shadow-md transition-all">
+  <Card variant="elevated" className="hover:shadow-brand-md transition-all">
     <div className="p-4">
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
@@ -70,7 +70,7 @@ const PostListMobileItem = React.memo<PostListItemProps>(({ post }) => (
           )}
           <Link
             href={`/board/post/${post.id}`}
-            className="font-semibold text-gray-800 hover:text-purple-600 transition-colors line-clamp-2 block text-base"
+            className="font-semibold text-brand-primary hover:text-purple-600 transition-colors line-clamp-2 block text-base"
           >
             {post.title}
             {post.commentCount > 0 && (
@@ -82,7 +82,7 @@ const PostListMobileItem = React.memo<PostListItemProps>(({ post }) => (
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-gray-500">
+      <div className="flex items-center justify-between text-sm text-brand-secondary">
         <div className="flex items-center gap-3">
           <Link
             href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
@@ -111,12 +111,12 @@ export const PostList = React.memo<PostListProps>(({ posts }) => {
   return (
     <>
       {/* 태블릿 이상에서 테이블 형태로 표시 */}
-      <Card className="hidden sm:block bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+      <Card variant="elevated" className="hidden sm:block">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
-                <tr className="text-gray-600">
+                <tr className="text-brand-muted">
                   <th className="p-3 text-left font-medium w-20">상태</th>
                   <th className="p-3 text-left font-medium">제목</th>
                   <th className="p-3 text-left font-medium w-24">작성자</th>
@@ -132,7 +132,7 @@ export const PostList = React.memo<PostListProps>(({ posts }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-gray-500">
+                    <td colSpan={6} className="text-center py-12 text-brand-secondary">
                       게시글이 없습니다.
                     </td>
                   </tr>
@@ -150,8 +150,8 @@ export const PostList = React.memo<PostListProps>(({ posts }) => {
             <PostListMobileItem key={post.id} post={post} />
           ))
         ) : (
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
-            <div className="p-8 text-center text-gray-500">
+          <Card variant="elevated">
+            <div className="p-8 text-center text-brand-secondary">
               게시글이 없습니다.
             </div>
           </Card>

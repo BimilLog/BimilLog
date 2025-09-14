@@ -62,7 +62,7 @@ function SelectContent({
         data-slot="select-content"
         className={cn(
           // 완전히 불투명한 배경 적용 (Select도 드롭다운과 동일)
-          "bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100",
+          "bg-white text-brand-primary dark:bg-gray-800 dark:text-brand-secondary",
           // 확실한 테두리와 그림자
           "border border-gray-300 dark:border-gray-600",
           // 부드러운 애니메이션
@@ -70,7 +70,7 @@ function SelectContent({
           // 레이아웃 및 스타일링
           "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg",
           // 강력한 그림자로 배경과 확실히 구분
-          "shadow-xl drop-shadow-lg",
+          "shadow-brand-xl drop-shadow-brand-lg",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className

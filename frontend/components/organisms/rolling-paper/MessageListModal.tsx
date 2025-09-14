@@ -9,6 +9,7 @@ import {
 } from "@/components";
 import { Button } from "@/components";
 import { Badge } from "@/components";
+import { Card, CardContent } from "@/components";
 import { Calendar, MessageSquare, Sparkles, Share2 } from "lucide-react";
 import type { RollingPaperMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
@@ -55,8 +56,8 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
             <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageSquare className="w-8 h-8 text-cyan-400" />
             </div>
-            <p className="text-gray-600 mb-2">아직 받은 메시지가 없어요</p>
-            <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
+            <p className="text-brand-muted mb-2">아직 받은 메시지가 없어요</p>
+            <p className="text-sm text-brand-secondary flex items-center justify-center gap-2">
               친구들에게 롤링페이퍼를 공유해보세요! <Share2 className="w-4 h-4 text-blue-500" />
             </p>
           </div>
@@ -68,14 +69,17 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
                   message.anonymity && message.anonymity !== "";
 
                 return (
-                  <div
+                  <Card
                     key={index}
+                    variant="elevated"
+                    interactive={true}
                     onClick={() => {
                       onMessageClick(message);
                       onClose();
                     }}
-                    className="group relative bg-white/80 backdrop-blur-sm border border-cyan-200 rounded-xl p-4 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+                    className="border border-cyan-200 rounded-xl hover:scale-[1.02]"
                   >
+                    <CardContent className="p-4">
                     {/* 메시지 헤더 */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -84,15 +88,15 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
                           decoType={message.decoType}
                           size="lg"
                           showBackground={true}
-                          className="shadow-md"
+                          className="shadow-brand-md"
                         />
 
                         {/* 작성자 정보 */}
                         <div>
-                          <p className="font-medium text-gray-800 text-sm md:text-base">
+                          <p className="font-medium text-brand-primary text-sm md:text-base">
                             {isAnonymous ? message.anonymity : "익명"}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <div className="flex items-center gap-2 text-xs text-brand-secondary">
                             <Calendar className="w-3 h-3" />
                             {message.createdAt && formatRelativeDate(message.createdAt)}
                           </div>
@@ -102,7 +106,7 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
 
                     {/* 메시지 내용 */}
                     <div className="relative">
-                      <p className="text-gray-700 text-sm md:text-base line-clamp-3 leading-relaxed">
+                      <p className="text-brand-primary text-sm md:text-base line-clamp-3 leading-relaxed">
                         {message.content}
                       </p>
 
@@ -117,7 +121,8 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
                         클릭하면 위치로 이동
                       </div>
                     </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>

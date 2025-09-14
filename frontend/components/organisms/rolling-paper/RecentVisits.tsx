@@ -42,7 +42,7 @@ export const RecentVisits: React.FC = () => {
   }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+    <Card variant="elevated">
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2 text-lg bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
@@ -53,12 +53,12 @@ export const RecentVisits: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={handleClearAll}
-            className="text-gray-400 hover:text-red-500 hover:bg-red-50"
+            className="text-brand-secondary hover:text-red-500 hover:bg-red-50"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
-        <p className="text-gray-600 text-xs mt-2">클릭하여 다시 방문하세요</p>
+        <p className="text-brand-muted text-xs mt-2">클릭하여 다시 방문하세요</p>
       </CardHeader>
       <CardContent className="p-4 space-y-4">
         <div className="space-y-3">
@@ -75,10 +75,10 @@ export const RecentVisits: React.FC = () => {
                   <Heart className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-800 text-sm truncate">
+                  <p className="font-semibold text-brand-primary text-sm truncate">
                     {visit.displayName}님의 롤링페이퍼
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-brand-secondary mt-0.5">
                     {formatRelativeDate(visit.visitedAt)}
                   </p>
                 </div>
@@ -90,7 +90,7 @@ export const RecentVisits: React.FC = () => {
                   e.preventDefault(); // Link 컴포넌트의 기본 네비게이션 방지
                   handleRemoveVisit(visit.nickname);
                 }}
-                className="text-gray-400 hover:text-red-500 hover:bg-red-50 h-8 w-8 p-0 flex-shrink-0"
+                className="text-brand-secondary hover:text-red-500 hover:bg-red-50 h-8 w-8 p-0 flex-shrink-0"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -100,7 +100,7 @@ export const RecentVisits: React.FC = () => {
 
         {/* 로컬스토리지 저장 정책 안내 메시지 */}
         <div className="mt-4 pt-3 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center flex items-center justify-center space-x-1">
+          <p className="text-xs text-brand-secondary text-center flex items-center justify-center space-x-1">
             <Lightbulb className="w-3 h-3" />
             <span>최근 {recentVisits.length}개의 방문 기록 (최대 5개까지 저장됩니다)</span>
           </p>

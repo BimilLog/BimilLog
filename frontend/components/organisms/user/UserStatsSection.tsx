@@ -71,7 +71,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
   if (isLoading) {
     return (
       <div className={`space-y-6 mb-8 ${className || ""}`}>
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        <Card variant="elevated">
           <CardContent className="p-6">
             <LoadingSpinner
               variant="default"
@@ -130,7 +130,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
         </Alert>
       )}
 
-      <Card className="bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 border-0 shadow-lg">
+      <Card className="bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 border-0 shadow-brand-lg">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -140,10 +140,10 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
                 {activityLevel.badge}
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-1">
+                <h3 className="text-xl font-bold text-brand-primary mb-1">
                   활동 레벨: {activityLevel.level}
                 </h3>
-                <p className="text-gray-600">총 {totalScore}점의 활동 점수가 있습니다</p>
+                <p className="text-brand-muted">총 {totalScore}점의 활동 점수가 있습니다</p>
               </div>
             </div>
             <div className="text-right">
@@ -157,7 +157,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
           </div>
 
           <div className="mt-4">
-            <div className="flex justify-between text-xs text-gray-600 mb-2">
+            <div className="flex justify-between text-xs text-brand-muted mb-2">
               <span>활동 진행도</span>
               <span>{Math.min(100, (totalScore / 500) * 100).toFixed(1)}%</span>
             </div>
@@ -169,7 +169,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
                 }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-brand-secondary mt-1">
               다음 레벨까지 {Math.max(0, getNextLevelThreshold(totalScore) - totalScore)}점 필요
             </p>
           </div>
@@ -215,21 +215,21 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        <Card variant="elevated">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center space-x-1 mb-2">
               <Target className="w-5 h-5 text-blue-500" />
-              <span className="font-medium text-gray-700">총 활동 점수</span>
+              <span className="font-medium text-brand-primary">총 활동 점수</span>
             </div>
             <p className="text-2xl font-bold text-blue-600">{totalScore}점</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        <Card variant="elevated">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center space-x-1 mb-2">
               <Heart className="w-5 h-5 text-red-500" />
-              <span className="font-medium text-gray-700">총 추천</span>
+              <span className="font-medium text-brand-primary">총 추천</span>
             </div>
             <p className="text-2xl font-bold text-red-600">{totalLikes}</p>
           </CardContent>

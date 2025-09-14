@@ -58,7 +58,7 @@ export default function WritePostPage() {
             <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Save className="w-7 h-7 text-white animate-pulse" />
             </div>
-            <p className="text-gray-600">로딩 중...</p>
+            <p className="text-brand-muted">로딩 중...</p>
           </div>
         </div>
       </div>

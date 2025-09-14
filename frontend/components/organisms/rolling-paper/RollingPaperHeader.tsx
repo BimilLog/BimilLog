@@ -38,7 +38,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="font-bold text-gray-800 text-base truncate">
+                <h1 className="font-bold text-brand-primary text-base truncate">
                   {nickname}님의 롤링페이퍼
                 </h1>
               </div>
@@ -83,7 +83,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
                 <MessageSquare className="w-3 h-3 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="font-bold text-gray-800 text-sm">
+                <h1 className="font-bold text-brand-primary text-sm">
                   {nickname}님의 롤링페이퍼
                 </h1>
               </div>

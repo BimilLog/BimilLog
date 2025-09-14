@@ -53,7 +53,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
   };
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+    <Card variant="elevated">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Save className="w-5 h-5 text-purple-600" />
@@ -68,7 +68,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
             <div className="space-y-2">
               <Label
                 htmlFor="title"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-brand-primary"
               >
                 제목
               </Label>
@@ -85,12 +85,12 @@ export const WriteForm: React.FC<WriteFormProps> = ({
             <div className="space-y-2">
               <Label
                 htmlFor="content"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-brand-primary"
               >
                 내용
               </Label>
               <LazyEditor value={content} onChange={setContent} />
-              <p className="text-xs text-gray-500 flex items-center space-x-1">
+              <p className="text-xs text-brand-secondary flex items-center space-x-1">
                 <Lightbulb className="w-3 h-3" />
                 <span>다양한 스타일로 내용을 꾸며보세요.</span>
               </p>
@@ -101,7 +101,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
               <div className="space-y-2 pt-4">
                 <Label
                   htmlFor="password"
-                  className="text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-brand-primary"
                 >
                   비밀번호 (4자리 숫자)
                 </Label>
@@ -126,10 +126,10 @@ export const WriteForm: React.FC<WriteFormProps> = ({
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">
+                    <p className="text-sm font-medium text-brand-primary">
                       작성자: {user?.userName}
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-brand-muted">
                       게시글은 수정 및 삭제가 가능합니다
                     </p>
                   </div>
@@ -141,7 +141,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
           /* 미리보기 모드: 실제 게시글 렌더링 형태로 표시 */
           <div className="prose max-w-none">
             <h1 className="text-3xl font-bold mb-4">{title}</h1>
-            <div className="text-sm text-gray-500 mb-6">
+            <div className="text-sm text-brand-secondary mb-6">
               {/* 작성자 표시: 인증된 사용자는 이름, 비인증 사용자는 '익명' */}
               작성자: {isAuthenticated ? user?.userName : "익명"}
             </div>

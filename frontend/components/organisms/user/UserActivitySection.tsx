@@ -118,13 +118,13 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
     <div className="space-y-6 mt-6">
       <div className="flex items-center justify-between pb-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
-          <span className="text-lg font-semibold text-gray-800">
+          <span className="text-lg font-semibold text-brand-primary">
             총 {totalElements.toLocaleString()}개
           </span>
           {contentConfig.badge}
         </div>
         {totalPages > 1 && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-brand-muted">
             페이지 {currentPage + 1} / {totalPages}
           </div>
         )}
@@ -330,7 +330,7 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
   }), [fetchMyPosts, fetchMyComments, fetchLikedPosts, fetchLikedComments]);
 
   return (
-    <Card className={`bg-white/80 backdrop-blur-sm border-0 shadow-lg ${className || ""}`}>
+    <Card variant="elevated" className={className || ""}>
       <CardContent className="p-6">
         <Tabs defaultValue="my-posts" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-gray-100 h-12 md:h-10 p-1">

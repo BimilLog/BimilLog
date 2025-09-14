@@ -70,10 +70,10 @@ export default function NotFoundPage() {
 
           {/* 텍스트 영역 */}
           <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-brand-primary mb-4">
               페이지를 찾을 수 없어요
             </h1>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-brand-muted leading-relaxed">
               요청하신 페이지가 삭제되었거나 주소가 변경되었을 수 있어요.
               <br />
               다른 페이지를 둘러보시거나 홈으로 돌아가보세요.
@@ -117,7 +117,7 @@ export default function NotFoundPage() {
 
           {/* 하단 링크들 */}
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-sm text-gray-500 mb-4">도움이 필요하신가요?</p>
+            <p className="text-sm text-brand-secondary mb-4">도움이 필요하신가요?</p>
             <div className="flex justify-center space-x-6 text-sm">
               <Link
                 href="/suggest"

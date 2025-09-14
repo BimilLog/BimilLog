@@ -43,7 +43,7 @@ const KakaoFriendsModalLoading = () => (
       <div className="flex items-center justify-center min-h-[300px]">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" />
-          <p className="text-sm text-gray-500">카카오 친구 목록 로딩 중...</p>
+          <p className="text-sm text-brand-secondary">카카오 친구 목록 로딩 중...</p>
         </div>
       </div>
     </DialogContent>
@@ -212,7 +212,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
             /* 로딩 상태 */
             <div className="flex flex-col items-center justify-center py-12 px-4">
               <Spinner className="w-8 h-8 text-yellow-500 mb-4" />
-              <p className="text-gray-600">친구 목록을 불러오는 중...</p>
+              <p className="text-brand-muted">친구 목록을 불러오는 중...</p>
             </div>
           ) : needsConsent ? (
             /* 카카오 친구 목록 접근 동의가 필요한 상태 */
@@ -294,7 +294,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                     {/* 친구 정보 (닉네임, 비밀로그 가입 여부) */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        <h3 className="text-sm font-semibold text-brand-primary truncate">
                           {friend.profile_nickname}
                         </h3>
                         {/* 비밀로그 가입 여부 표시 (userName이 있으면 가입자) */}
@@ -305,7 +305,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                         )}
                       </div>
                       {friend.userName && (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-brand-secondary mt-1">
                           비밀로그 사용자
                         </p>
                       )}
@@ -327,7 +327,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                         </Button>
                       ) : (
                         /* 비가입 회원 표시 (클릭 불가) */
-                        <div className="text-xs text-gray-400">미가입</div>
+                        <div className="text-xs text-brand-secondary">미가입</div>
                       )}
                     </div>
                   </div>
@@ -340,7 +340,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
         {/* 푸터 - 사용법 안내 */}
         {friendsData && friendsData.elements.length > 0 && (
           <div className="px-4 py-3 bg-gray-50 border-t">
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-brand-secondary text-center">
               비밀로그에 가입한 친구에게만 롤링페이퍼를 보낼 수 있습니다
             </p>
           </div>

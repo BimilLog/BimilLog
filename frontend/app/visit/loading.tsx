@@ -10,7 +10,7 @@ export default function Loading() {
         <h2 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
           롤링페이퍼 방문
         </h2>
-        <p className="text-gray-600 text-sm">
+        <p className="text-brand-muted text-sm">
           친구를 찾는 중입니다...
         </p>
       </div>

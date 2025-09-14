@@ -1,6 +1,7 @@
 import React from "react";
 import { Info, Waves, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components";
 
 interface InfoCardProps {
   isOwner: boolean;
@@ -14,13 +15,15 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   className = "",
 }) => {
   return (
-    <div
+    <Card
+      variant="elevated"
       className={cn(
-        "text-gray-800 transition-all duration-300 p-4 bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl border-2 border-cyan-200",
+        "text-brand-primary transition-all duration-300 rounded-2xl border-2 border-cyan-200",
         className
       )}
     >
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+      <CardContent className="p-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="text-center md:text-left">
           {isOwner ? (
             <div className="flex items-start space-x-3">
@@ -58,7 +61,8 @@ export const InfoCard: React.FC<InfoCardProps> = ({
             </div>
           )}
         </div>
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

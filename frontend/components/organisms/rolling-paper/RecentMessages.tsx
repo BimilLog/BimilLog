@@ -32,7 +32,8 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
   if (messages.length === 0) {
     return (
       <Card
-        className={`bg-white/80 backdrop-blur-sm border-0 shadow-lg md:shadow-xl rounded-2xl md:rounded-3xl border-2 md:border-4 border-cyan-200 ${className}`}
+        variant="elevated"
+        className={`rounded-2xl md:rounded-3xl border-2 md:border-4 border-cyan-200 ${className}`}
       >
         <CardHeader className="bg-gradient-to-r from-cyan-100 to-blue-100 rounded-t-2xl md:rounded-t-3xl p-4 md:p-6">
           <CardTitle className="flex items-center space-x-2 text-cyan-800 text-sm md:text-base">
@@ -44,12 +45,12 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
         <CardContent className="p-4 md:p-6">
           <div className="text-center py-8 md:py-12">
             <div className="mb-4">
-              <FileText className="w-10 h-10 md:w-16 md:h-16 mx-auto text-gray-400" />
+              <FileText className="w-10 h-10 md:w-16 md:h-16 mx-auto text-brand-secondary" />
             </div>
-            <p className="text-gray-500 text-base md:text-lg font-semibold">
+            <p className="text-brand-secondary text-base md:text-lg font-semibold">
               아직 메시지가 없어요
             </p>
-            <p className="text-gray-400 text-xs md:text-sm mt-2 font-medium px-4 flex items-center justify-center space-x-1">
+            <p className="text-brand-secondary text-xs md:text-sm mt-2 font-medium px-4 flex items-center justify-center space-x-1">
               <span>친구들에게 롤링페이퍼를 공유해보세요!</span>
               <Mail className="w-3 h-3 md:w-4 md:h-4" />
             </p>
@@ -72,7 +73,8 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
 
   return (
     <Card
-      className={`bg-white/80 backdrop-blur-sm border-0 shadow-lg md:shadow-xl rounded-2xl md:rounded-3xl border-2 md:border-4 border-cyan-200 ${className}`}
+      variant="elevated"
+      className={`rounded-2xl md:rounded-3xl border-2 md:border-4 border-cyan-200 ${className}`}
     >
       <CardHeader className="bg-gradient-to-r from-cyan-100 to-blue-100 rounded-t-2xl md:rounded-t-3xl p-4 pb-2">
         <CardTitle className="flex items-center space-x-2 text-cyan-800 text-sm md:text-base">
@@ -94,17 +96,17 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
                 }`}
               >
                 <div
-                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r ${decoInfo.color} flex items-center justify-center shadow-lg border-2 border-white flex-shrink-0`}
+                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r ${decoInfo.color} flex items-center justify-center shadow-brand-lg border-2 border-white flex-shrink-0`}
                 >
                   <DecoIcon decoType={message.decoType} size="md" showBackground={false} />
                 </div>
                 <div className="flex-1 min-w-0">
                   {isRollingPaperMessage(message) && isOwner ? (
-                    <p className="text-gray-800 text-sm md:text-base font-medium leading-relaxed">
+                    <p className="text-brand-primary text-sm md:text-base font-medium leading-relaxed">
                       {message.content}
                     </p>
                   ) : (
-                    <p className="text-gray-600 text-sm md:text-base font-medium leading-relaxed italic flex items-center space-x-2">
+                    <p className="text-brand-muted text-sm md:text-base font-medium leading-relaxed italic flex items-center space-x-2">
                       <Lock className="w-4 h-4" />
                       <span>메시지 내용은 작성자만 볼 수 있습니다</span>
                     </p>
@@ -118,7 +120,7 @@ export const RecentMessages: React.FC<RecentMessagesProps> = ({
                         {message.anonymity}
                       </Badge>
                     )}
-                    <span className="text-xs text-gray-500 font-medium">
+                    <span className="text-xs text-brand-secondary font-medium">
                       {decoInfo.name}
                     </span>
                   </div>

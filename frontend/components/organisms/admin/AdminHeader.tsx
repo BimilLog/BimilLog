@@ -13,14 +13,14 @@ export const AdminHeader: React.FC = () => {
               관리자 대시보드
             </h1>
           </div>
-          <p className="mt-2 text-gray-600 text-sm">
+          <p className="mt-2 text-brand-muted text-sm">
             신고 관리 및 서비스 통계를 확인할 수 있습니다.
           </p>
         </div>
         <Link href="/" className="flex-shrink-0">
           <Button 
             variant="outline" 
-            className="min-h-[48px] px-6 bg-white hover:bg-gray-50 border-gray-200 text-gray-700 font-medium"
+            className="min-h-[48px] px-6 bg-white hover:bg-gray-50 border-gray-200 text-brand-primary font-medium"
           >
             홈으로 돌아가기
           </Button>

@@ -68,19 +68,19 @@ export default function SignUpPage() {
   // 카카오 버튼 클릭 시 login("/signup?required=true")로 OAuth 시작
   return (
     <AuthLayout>
-      <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+      <Card variant="elevated">
         <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl font-bold text-gray-800">
+          <CardTitle className="text-2xl font-bold text-brand-primary">
             회원가입
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-brand-muted">
             나만의 롤링페이퍼를 만들어보세요
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
           {/* 카카오 OAuth 시작 버튼 - redirectTo에 required=true로 닉네임 설정 필요함을 표시 */}
           <Button
-            className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold text-base"
+            className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-brand-primary font-semibold text-base"
             onClick={() => login("/signup?required=true")}
           >
             <svg
@@ -94,7 +94,7 @@ export default function SignUpPage() {
           </Button>
 
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-brand-muted">
               이미 계정이 있으신가요?{" "}
               <Link
                 href="/login"

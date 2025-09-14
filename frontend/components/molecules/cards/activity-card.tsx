@@ -74,7 +74,7 @@ const PopularityBadge = ({ postCacheFlag }: { postCacheFlag?: string }) => {
 };
 
 const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({ post, isLiked }) => (
-  <Card className="group bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+  <Card variant="elevated" interactive={true} className="group hover:scale-[1.02]">
     <CardHeader className="pb-3">
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3 flex-1">
@@ -83,8 +83,8 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 mb-1">
-              <User className="w-4 h-4 text-gray-500" />
-              <span className="text-base md:text-sm font-medium text-gray-700">
+              <User className="w-4 h-4 text-brand-secondary" />
+              <span className="text-base md:text-sm font-medium text-brand-primary">
                 {post.userName}
               </span>
               {post.isNotice && (
@@ -95,7 +95,7 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
               )}
               <PopularityBadge postCacheFlag={post.postCacheFlag} />
             </div>
-            <div className="flex items-center space-x-2 text-sm md:text-xs text-gray-500">
+            <div className="flex items-center space-x-2 text-sm md:text-xs text-brand-secondary">
               <Clock className="w-4 h-4 md:w-3 md:h-3" />
               <span>{getRelativeTime(post.createdAt)}</span>
             </div>
@@ -108,7 +108,7 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
     <CardContent className="pt-0">
       <Link href={`/board/post/${post.id}`}>
         <div className="cursor-pointer group">
-          <h3 className="font-bold text-lg text-gray-800 group-hover:text-purple-600 transition-colors mb-3 line-clamp-2">
+          <h3 className="font-bold text-lg text-brand-primary group-hover:text-purple-600 transition-colors mb-3 line-clamp-2">
             {post.title}
           </h3>
 
@@ -116,8 +116,8 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
             <div className="flex items-center space-x-2">
               <Eye className="w-4 h-4 text-blue-500" />
               <div className="text-base md:text-sm">
-                <span className="text-gray-600">조회수</span>
-                <span className="font-semibold text-gray-800 ml-1">
+                <span className="text-brand-muted">조회수</span>
+                <span className="font-semibold text-brand-primary ml-1">
                   {post.viewCount.toLocaleString()}
                 </span>
               </div>
@@ -126,8 +126,8 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
             <div className="flex items-center space-x-2">
               <Heart className="w-4 h-4 text-red-500" />
               <div className="text-base md:text-sm">
-                <span className="text-gray-600">추천</span>
-                <span className="font-semibold text-gray-800 ml-1">
+                <span className="text-brand-muted">추천</span>
+                <span className="font-semibold text-brand-primary ml-1">
                   {post.likeCount.toLocaleString()}
                 </span>
               </div>
@@ -136,8 +136,8 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
             <div className="flex items-center space-x-2">
               <MessageCircle className="w-4 h-4 text-green-500" />
               <div className="text-base md:text-sm">
-                <span className="text-gray-600">댓글</span>
-                <span className="font-semibold text-gray-800 ml-1">
+                <span className="text-brand-muted">댓글</span>
+                <span className="font-semibold text-brand-primary ml-1">
                   {post.commentCount.toLocaleString()}
                 </span>
               </div>
@@ -146,8 +146,8 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
             <div className="flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-purple-500" />
               <div className="text-base md:text-sm">
-                <span className="text-gray-600">작성일</span>
-                <span className="font-semibold text-gray-800 ml-1">
+                <span className="text-brand-muted">작성일</span>
+                <span className="font-semibold text-brand-primary ml-1">
                   {formatKoreanDate(post.createdAt)}
                 </span>
               </div>
@@ -162,7 +162,7 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
 PostCard.displayName = "PostCard";
 
 const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = React.memo(({ comment, isLiked }) => (
-  <Card className="group bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+  <Card variant="elevated" interactive={true} className="group hover:scale-[1.02]">
     <CardHeader className="pb-3">
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3 flex-1">
@@ -171,12 +171,12 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 mb-1">
-              <User className="w-4 h-4 text-gray-500" />
-              <span className="text-base md:text-sm font-medium text-gray-700">
+              <User className="w-4 h-4 text-brand-secondary" />
+              <span className="text-base md:text-sm font-medium text-brand-primary">
                 {comment.userName}
               </span>
             </div>
-            <div className="flex items-center space-x-2 text-sm md:text-xs text-gray-500">
+            <div className="flex items-center space-x-2 text-sm md:text-xs text-brand-secondary">
               <Clock className="w-4 h-4 md:w-3 md:h-3" />
               <span>{getRelativeTime(comment.createdAt)}</span>
             </div>
@@ -190,7 +190,7 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
       <Link href={`/board/post/${comment.postId}#comment-${comment.id}`}>
         <div className="cursor-pointer group">
           <div className="p-3 bg-gray-50 rounded-lg mb-3">
-            <p className="text-gray-800 group-hover:text-purple-600 transition-colors line-clamp-3">
+            <p className="text-brand-primary group-hover:text-purple-600 transition-colors line-clamp-3">
               {comment.content}
             </p>
           </div>
@@ -199,10 +199,10 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <ThumbsUp className="w-4 h-4 text-blue-500" />
-                <span className="text-base md:text-sm font-semibold text-gray-800">
+                <span className="text-base md:text-sm font-semibold text-brand-primary">
                   {comment.likeCount.toLocaleString()}
                 </span>
-                <span className="text-sm md:text-xs text-gray-600">추천</span>
+                <span className="text-sm md:text-xs text-brand-muted">추천</span>
               </div>
 
               {comment.userLike && (
@@ -212,7 +212,7 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
               )}
             </div>
 
-            <div className="text-sm md:text-xs text-gray-500">
+            <div className="text-sm md:text-xs text-brand-secondary">
               게시글 #{comment.postId}
             </div>
           </div>

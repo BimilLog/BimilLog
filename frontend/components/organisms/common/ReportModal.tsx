@@ -85,7 +85,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
           </Alert>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-brand-primary">
               신고 사유 <span className="text-red-500">*</span>
             </label>
             <Textarea

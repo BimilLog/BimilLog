@@ -117,18 +117,18 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
   };
 
   return (
-    <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+    <Card variant="elevated">
       <CardHeader className="text-center pb-2">
-        <CardTitle className="text-2xl font-bold text-gray-800">
+        <CardTitle className="text-2xl font-bold text-brand-primary">
           닉네임 설정
         </CardTitle>
-        <CardDescription className="text-gray-600">
+        <CardDescription className="text-brand-muted">
           2~8자의 한글, 영문, 숫자만 사용 가능합니다.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
         <div className="space-y-2">
-          <Label htmlFor="nickname" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="nickname" className="text-sm font-medium text-brand-primary">
             닉네임
           </Label>
           <div className="flex space-x-2">

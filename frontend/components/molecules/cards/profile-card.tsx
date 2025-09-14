@@ -154,7 +154,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row items-center md:space-x-8">
               <div className="relative mb-4 md:mb-0">
-                <Avatar className="w-24 h-24 md:w-32 md:h-32 ring-4 ring-white shadow-lg">
+                <Avatar className="w-24 h-24 md:w-32 md:h-32 ring-4 ring-white shadow-brand-lg">
                   <AvatarImage src={user.thumbnailImage || undefined} alt={user.userName} />
                   <AvatarFallback className="text-4xl bg-gradient-to-r from-pink-500 to-purple-600 text-white">
                     {getInitials(user.userName)}
@@ -199,7 +199,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="nickname" className="text-sm font-medium text-gray-700">
+                            <Label htmlFor="nickname" className="text-sm font-medium text-brand-primary">
                               닉네임
                             </Label>
                             <div className="flex space-x-2">
@@ -266,20 +266,20 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
 
                   <div className="space-y-3">
                     {user.socialNickname && (
-                      <div className="flex items-center justify-center md:justify-start space-x-1 text-gray-600">
+                      <div className="flex items-center justify-center md:justify-start space-x-1 text-brand-muted">
                         <Star className="w-4 h-4" />
                         <span className="text-sm">소셜: {user.socialNickname}</span>
                       </div>
                     )}
 
                     {user.settingId && (
-                      <div className="flex items-center justify-center md:justify-start space-x-1 text-gray-600">
+                      <div className="flex items-center justify-center md:justify-start space-x-1 text-brand-muted">
                         <Settings className="w-4 h-4" />
                         <span className="text-sm">알림 설정 완료</span>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-center md:justify-start space-x-1 text-gray-600">
+                    <div className="flex items-center justify-center md:justify-start space-x-1 text-brand-muted">
                       <Clock className="w-4 h-4" />
                       <span className="text-sm">활성 사용자</span>
                     </div>

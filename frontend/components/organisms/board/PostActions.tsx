@@ -40,13 +40,13 @@ const PostActions = memo(({
         </Button>
 
         {/* 댓글 수 표시 */}
-        <div className="flex items-center space-x-1 text-gray-500">
+        <div className="flex items-center space-x-1 text-brand-secondary">
           <MessageCircle className="w-4 h-4" />
           <span className="text-sm">{commentCount}</span>
         </div>
 
         {/* 조회수 표시 - 게시글 들어갈 때마다 자동 증가 */}
-        <div className="flex items-center space-x-1 text-gray-500">
+        <div className="flex items-center space-x-1 text-brand-secondary">
           <Eye className="w-4 h-4" />
           <span className="text-sm">{post.viewCount || 0}</span>
         </div>

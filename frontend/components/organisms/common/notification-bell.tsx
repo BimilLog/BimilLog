@@ -133,9 +133,9 @@ export function NotificationBell() {
       case "ADMIN":
         return <Shield className="w-4 h-4 text-red-600" />; // 관리자 알림
       case "INITIATE":
-        return <Bell className="w-4 h-4 text-gray-600" />; // 일반 시스템 알림
+        return <Bell className="w-4 h-4 text-brand-muted" />; // 일반 시스템 알림
       default:
-        return <Bell className="w-4 h-4 text-gray-600" />; // 기본 알림
+        return <Bell className="w-4 h-4 text-brand-muted" />; // 기본 알림
     }
   };
 
@@ -183,8 +183,8 @@ export function NotificationBell() {
       {/* 알림 패널 헤더 (제목, 새로고침, 브라우저 알림 허용 버튼) */}
       <div className="flex items-center justify-between p-4 border-b bg-white/50">
         <div className="flex items-center gap-2">
-          <Bell className="w-5 h-5 text-gray-700" />
-          <h2 className="text-lg font-semibold text-gray-800">
+          <Bell className="w-5 h-5 text-brand-primary" />
+          <h2 className="text-lg font-semibold text-brand-primary">
             알림 {unreadCount > 0 && `(${unreadCount})`}
           </h2>
         </div>
@@ -252,8 +252,8 @@ export function NotificationBell() {
         {/* 로딩 상태 */}
         {isLoading ? (
           <div className="p-8 text-center">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gray-400" />
-            <p className="text-sm text-gray-500">알림을 불러오는 중...</p>
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-brand-secondary" />
+            <p className="text-sm text-brand-secondary">알림을 불러오는 중...</p>
           </div>
         ) : notifications.length > 0 ? (
           /* 알림 목록 렌더링 */
@@ -278,15 +278,15 @@ export function NotificationBell() {
                     <p
                       className={`text-sm ${
                         !notification.isRead
-                          ? "font-medium text-gray-900"
-                          : "text-gray-600"
+                          ? "font-medium text-brand-primary"
+                          : "text-brand-muted"
                       }`}
                     >
                       {notification.content}
                     </p>
                     <div className="flex items-center justify-between mt-1">
                       {/* 상대 시간 표시 */}
-                      <div className="flex items-center space-x-2 text-xs text-gray-500">
+                      <div className="flex items-center space-x-2 text-xs text-brand-secondary">
                         <Clock className="w-3 h-3" />
                         <span>{getRelativeTime(notification.createdAt)}</span>
                       </div>
@@ -330,9 +330,9 @@ export function NotificationBell() {
         ) : (
           /* 알림이 없을 때 표시되는 빈 상태 */
           <div className="p-8 text-center">
-            <BellOff className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-sm text-gray-500 mb-2">알림이 없습니다</p>
-            <p className="text-xs text-gray-400">
+            <BellOff className="w-12 h-12 mx-auto mb-3 text-brand-muted" />
+            <p className="text-sm text-brand-secondary mb-2">알림이 없습니다</p>
+            <p className="text-xs text-brand-secondary">
               새로운 알림이 오면 여기에 표시됩니다
             </p>
           </div>
@@ -343,14 +343,14 @@ export function NotificationBell() {
       {process.env.NODE_ENV === "development" && (
         <div className="p-3 bg-gray-100/80 border-t">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-600">알림 상태:</span>
+            <span className="text-brand-muted">알림 상태:</span>
             <span
               className={`font-medium ${
                 isSSEConnected
                   ? "text-green-600"
                   : canConnectSSE()
                   ? "text-yellow-600"
-                  : "text-gray-500"
+                  : "text-brand-secondary"
               }`}
             >
               {isSSEConnected
@@ -384,7 +384,7 @@ export function NotificationBell() {
               {isSSEConnected ? (
                 <Bell className="w-5 h-5" />
               ) : (
-                <BellOff className="w-5 h-5 text-gray-400" />
+                <BellOff className="w-5 h-5 text-brand-secondary" />
               )}
               {/* 읽지 않은 알림 개수 배지 (99개 이상은 99+로 표시) */}
               {unreadCount > 0 && (
@@ -414,7 +414,7 @@ export function NotificationBell() {
           {isSSEConnected ? (
             <Bell className="w-5 h-5" />
           ) : (
-            <BellOff className="w-5 h-5 text-gray-400" />
+            <BellOff className="w-5 h-5 text-brand-secondary" />
           )}
           {/* 읽지 않은 알림 개수 배지 */}
           {unreadCount > 0 && (
@@ -427,7 +427,7 @@ export function NotificationBell() {
         {/* 데스크톱 전용 팝오버 (우측 상단에서 아래로 펼쳐지는 드롭다운) */}
         {isOpen && (
           <div className="absolute right-0 top-full mt-2 z-50">
-            <Card className="w-80 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <Card className="w-80 shadow-brand-xl border-0 bg-white/90 backdrop-blur-sm">
               <NotificationContent />
             </Card>
           </div>

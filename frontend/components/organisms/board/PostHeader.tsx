@@ -53,7 +53,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
             </Badge>
           )}
         </div>
-        <CardTitle className="text-xl md:text-2xl font-bold text-gray-800 leading-tight">
+        <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight">
           {post.title}
         </CardTitle>
       </div>
@@ -62,7 +62,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col space-y-2">
           {/* 작성자와 시간 */}
-          <div className="flex items-center space-x-3 text-sm text-gray-600">
+          <div className="flex items-center space-x-3 text-sm text-brand-muted">
             <div className="flex items-center space-x-2 min-w-0">
               {post.userName && post.userName !== "익명" ? (
                 <Popover>
@@ -92,18 +92,18 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   </PopoverContent>
                 </Popover>
               ) : (
-                <span className="truncate max-w-[120px] md:max-w-none text-gray-500">
+                <span className="truncate max-w-[120px] md:max-w-none text-brand-secondary">
                   {post.userName || "익명"}
                 </span>
               )}
             </div>
-            <span className="text-xs text-gray-500 whitespace-nowrap">
+            <span className="text-xs text-brand-secondary whitespace-nowrap">
               {formatDateTime(post.createdAt)}
             </span>
           </div>
 
           {/* 통계 정보 */}
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
+          <div className="flex items-center space-x-4 text-sm text-brand-muted">
             <div className="flex items-center space-x-1">
               <Eye className="w-4 h-4" />
               <span>{post.viewCount}</span>

@@ -31,8 +31,8 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
         <div className="text-white">{icon}</div>
       </div>
       <div className="space-y-1">
-        <Label className="font-medium text-gray-800">{label}</Label>
-        <p className="text-sm text-gray-600">{description}</p>
+        <Label className="font-medium text-brand-primary">{label}</Label>
+        <p className="text-sm text-brand-muted">{description}</p>
       </div>
     </div>
     <Switch

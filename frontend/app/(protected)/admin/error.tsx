@@ -18,16 +18,16 @@ export default function AdminError({
 
   return (
     <div className="flex items-center justify-center p-4 py-16">
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-brand-xl p-8 max-w-md w-full text-center">
         <div className="p-4 rounded-full bg-red-100 inline-block mb-6">
           <AlertTriangle className="w-12 h-12 text-red-600" />
         </div>
         
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">
+        <h2 className="text-2xl font-bold text-brand-primary mb-3">
           오류가 발생했습니다
         </h2>
         
-        <p className="text-gray-600 mb-6">
+        <p className="text-brand-muted mb-6">
           관리자 페이지를 불러오는 중 문제가 발생했습니다.
           잠시 후 다시 시도해주세요.
         </p>

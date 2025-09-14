@@ -17,7 +17,7 @@ const RecentVisits = dynamic(
   {
     ssr: false, // 서버사이드 렌더링 비활성화 (로컬스토리지 사용으로 인해)
     loading: () => (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
+      <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-6 animate-pulse">
         <div className="h-6 bg-gray-200 rounded-lg mb-4 w-32"></div>
         <div className="space-y-3">
           <div className="h-16 bg-gray-200 rounded-lg"></div>
@@ -71,7 +71,7 @@ export function VisitClient() {
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <h1 className="text-base sm:text-xl font-bold text-gray-800 whitespace-nowrap">
+              <h1 className="text-base sm:text-xl font-bold text-brand-primary whitespace-nowrap">
                 롤링페이퍼 방문
               </h1>
             </div>

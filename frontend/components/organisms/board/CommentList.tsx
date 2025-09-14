@@ -64,7 +64,7 @@ export const CommentList = React.memo<CommentListProps>(({
   canModifyComment,
 }) => {
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+    <Card variant="elevated">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <MessageSquare className="w-5 h-5" />
@@ -106,7 +106,7 @@ export const CommentList = React.memo<CommentListProps>(({
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center">
+          <p className="text-brand-secondary text-center">
             첫 번째 댓글을 작성해보세요!
           </p>
         )}

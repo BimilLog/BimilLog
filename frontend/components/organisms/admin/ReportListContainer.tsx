@@ -74,13 +74,13 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
     <Card className="p-12 text-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-          <AlertTriangle className="w-8 h-8 text-gray-400" />
+          <AlertTriangle className="w-8 h-8 text-brand-secondary" />
         </div>
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">
+          <h3 className="text-lg font-medium text-brand-primary mb-1">
             신고 내역이 없습니다
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-brand-secondary">
             {searchTerm ? "검색 결과가 없습니다. 다른 검색어를 시도해보세요." : "아직 처리할 신고가 없습니다."}
           </p>
         </div>
@@ -96,11 +96,11 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
     <>
       <div className="space-y-6">
         {/* 검색 및 필터 영역 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+        <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-4 sm:p-6">
           <div className="space-y-4">
             {/* 검색바 */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-secondary" />
               <Input
                 type="text"
                 placeholder="신고 ID, 사용자명, 신고 사유로 검색..."
@@ -137,7 +137,7 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
 
         {/* 신고 목록 헤더 */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-brand-primary">
             신고 목록
             <Badge variant="secondary" className="ml-2">
               {filteredReports.length}건
@@ -147,7 +147,7 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
             variant="ghost"
             size="sm"
             onClick={refetch}
-            className="text-gray-600 hover:text-gray-900"
+            className="text-brand-muted hover:text-brand-primary"
           >
             새로고침
           </Button>
@@ -165,19 +165,19 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-brand-secondary uppercase tracking-wider">
                           신고 정보
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-brand-secondary uppercase tracking-wider">
                           신고 대상
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-brand-secondary uppercase tracking-wider">
                           신고 사유
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-brand-secondary uppercase tracking-wider">
                           신고일
                         </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-right text-xs font-medium text-brand-secondary uppercase tracking-wider">
                           작업
                         </th>
                       </tr>

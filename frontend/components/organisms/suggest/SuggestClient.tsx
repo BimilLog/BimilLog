@@ -113,7 +113,7 @@ export default function SuggestClient() {
         <div className="max-w-4xl mx-auto">
           {/* 건의 종류 선택 */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            <h2 className="text-2xl font-bold text-brand-primary mb-6 text-center">
               어떤 종류의 건의사항인가요?
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
@@ -124,9 +124,9 @@ export default function SuggestClient() {
                 return (
                   <Card
                     key={type.value}
-                    className={`cursor-pointer transition-all border-2 hover:shadow-lg ${
+                    className={`cursor-pointer transition-all border-2 hover:shadow-brand-lg ${
                       isSelected
-                        ? "border-purple-500 shadow-lg bg-purple-50"
+                        ? "border-purple-500 shadow-brand-lg bg-purple-50"
                         : "border-gray-200 hover:border-gray-300 bg-white/80"
                     } backdrop-blur-sm`}
                     onClick={() => setSuggestionType(type.value)}
@@ -137,10 +137,10 @@ export default function SuggestClient() {
                       >
                         <Icon className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                      <h3 className="text-lg font-semibold mb-2 text-brand-primary">
                         {type.label}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-brand-muted">
                         {type.description}
                       </p>
                     </CardContent>
@@ -152,7 +152,7 @@ export default function SuggestClient() {
 
           {/* 건의 폼 */}
           {suggestionType && (
-            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+            <Card className="border-0 shadow-brand-xl bg-white/90 backdrop-blur-sm">
               <CardHeader className="text-center">
                 <div className="flex items-center justify-center space-x-3 mb-2">
                   {selectedType && (
@@ -162,11 +162,11 @@ export default function SuggestClient() {
                       <selectedType.icon className="w-5 h-5 text-white" />
                     </div>
                   )}
-                  <CardTitle className="text-2xl text-gray-800">
+                  <CardTitle className="text-2xl text-brand-primary">
                     {selectedType?.label}
                   </CardTitle>
                 </div>
-                <p className="text-gray-600">{selectedType?.description}</p>
+                <p className="text-brand-muted">{selectedType?.description}</p>
               </CardHeader>
 
               <CardContent className="space-y-6">
@@ -175,7 +175,7 @@ export default function SuggestClient() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="content"
-                      className="text-sm font-medium text-gray-700"
+                      className="text-sm font-medium text-brand-primary"
                     >
                       건의 내용 <span className="text-red-500">*</span>
                     </Label>
@@ -190,10 +190,10 @@ export default function SuggestClient() {
                       maxLength={500}
                     />
                     <div className="flex justify-between items-center">
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-brand-secondary">
                         구체적이고 상세한 설명일수록 더 도움이 됩니다.
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-brand-secondary">
                         {content.length}/500
                       </p>
                     </div>
@@ -223,13 +223,13 @@ export default function SuggestClient() {
           )}
 
           {/* 안내 사항 */}
-          <Card className="mt-8 border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Card className="mt-8 border-0 shadow-brand-lg bg-gradient-to-r from-blue-50 to-indigo-50">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+              <h3 className="text-lg font-semibold text-brand-primary mb-3 flex items-center space-x-2">
                 <FileText className="w-5 h-5" />
                 <span>건의하기 안내</span>
               </h3>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-brand-muted">
                 <li>
                   • 바라는 기능이나 기능 개선에 대한 제안을 해주세요 어떠한
                   의견도 추천.

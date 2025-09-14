@@ -24,7 +24,7 @@ const ReportModal = dynamic(
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
           <Spinner size="md" />
-          <p className="text-sm text-gray-500">신고 모달 로딩 중...</p>
+          <p className="text-sm text-brand-secondary">신고 모달 로딩 중...</p>
         </div>
       </div>
     ),
@@ -191,7 +191,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                     인기
                   </span>
                 )}
-                <span className="text-xs text-gray-500 whitespace-nowrap">
+                <span className="text-xs text-brand-secondary whitespace-nowrap">
                   {new Date(comment.createdAt).toLocaleDateString()}
                 </span>
               </div>
@@ -236,7 +236,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-xs px-2 py-1 h-7 text-gray-500 hover:text-gray-700"
+                          className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
                         >
                           <MoreHorizontal className="w-3 h-3" />
                         </Button>

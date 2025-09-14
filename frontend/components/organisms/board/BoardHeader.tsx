@@ -15,7 +15,7 @@ export const BoardHeader = React.memo(() => {
             커뮤니티 게시판
           </h1>
         </div>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
+        <p className="text-lg text-brand-muted max-w-2xl mx-auto mb-6">
           다른 사용자들과 소통하고 생각을 나누어보세요
         </p>
         <Button

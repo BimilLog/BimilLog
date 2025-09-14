@@ -35,8 +35,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <Label className="font-medium text-gray-800">전체 알림 설정</Label>
-            <p className="text-sm text-gray-600">모든 알림을 한번에 켜거나 끌 수 있습니다.</p>
+            <Label className="font-medium text-brand-primary">전체 알림 설정</Label>
+            <p className="text-sm text-brand-muted">모든 알림을 한번에 켜거나 끌 수 있습니다.</p>
           </div>
           <Switch
             checked={allEnabled === true}
@@ -83,7 +83,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         <div className="flex items-center justify-center py-4">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-sm text-gray-600">설정을 저장하는 중...</span>
+            <span className="text-sm text-brand-muted">설정을 저장하는 중...</span>
           </div>
         </div>
       )}

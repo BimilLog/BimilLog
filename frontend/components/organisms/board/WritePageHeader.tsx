@@ -32,7 +32,7 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
                   <span className="hidden sm:inline">게시판</span>
                 </Button>
               </Link>
-              <h1 className="text-lg sm:text-xl font-bold text-gray-800 whitespace-nowrap">
+              <h1 className="text-lg sm:text-xl font-bold text-brand-primary whitespace-nowrap">
                 새 글 작성
               </h1>
             </div>

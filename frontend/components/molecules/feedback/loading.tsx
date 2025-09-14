@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components";
 
 interface LoadingProps {
   className?: string;
@@ -50,7 +51,7 @@ export function Loading({
       >
         <div className="text-center">
           <LoadingIcon size="lg" className="mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">{message || "로딩 중..."}</p>
+          <p className="text-brand-muted text-lg">{message || "로딩 중..."}</p>
         </div>
       </div>
     );
@@ -58,15 +59,12 @@ export function Loading({
 
   if (type === "card") {
     return (
-      <div
-        className={cn(
-          "bg-white/80 backdrop-blur-sm rounded-lg border-0 shadow-lg p-8 text-center",
-          className
-        )}
-      >
-        <LoadingIcon size="lg" className="mx-auto mb-4" />
-        <p className="text-gray-600">{message || "로딩 중..."}</p>
-      </div>
+      <Card variant="elevated" className={className}>
+        <CardContent className="p-8 text-center">
+          <LoadingIcon size="lg" className="mx-auto mb-4" />
+          <p className="text-brand-muted">{message || "로딩 중..."}</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -84,7 +82,7 @@ export function Loading({
     <div className={cn("flex items-center justify-center p-8", className)}>
       <div className="text-center">
         <LoadingIcon size={size} className="mx-auto mb-2" />
-        {message && <p className="text-sm text-gray-600">{message}</p>}
+        {message && <p className="text-sm text-brand-muted">{message}</p>}
       </div>
     </div>
   );

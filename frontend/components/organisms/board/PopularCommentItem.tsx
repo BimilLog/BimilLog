@@ -70,7 +70,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
 
   return (
     <div
-      className="p-3 sm:p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 shadow-sm cursor-pointer hover:bg-white/90 transition-all duration-200 hover:shadow-md"
+      className="p-3 sm:p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 shadow-brand-sm cursor-pointer hover:bg-white/90 transition-all duration-200 hover:shadow-brand-md"
       onClick={() => onCommentClick(comment.id)}
     >
       {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
@@ -82,7 +82,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
           <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">
             인기
           </span>
-          <span className="text-xs text-gray-500 whitespace-nowrap">
+          <span className="text-xs text-brand-secondary whitespace-nowrap">
             {new Date(comment.createdAt).toLocaleDateString()}
           </span>
         </div>
@@ -126,7 +126,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-xs px-2 py-1 h-7 text-gray-500 hover:text-gray-700"
+                  className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
                 >
                   <MoreHorizontal className="w-3 h-3" />
                 </Button>
@@ -148,7 +148,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
       {/* 댓글 내용 */}
       <SafeHTML
         html={comment.content}
-        className="prose max-w-none prose-sm text-sm sm:text-base leading-relaxed text-gray-700"
+        className="prose max-w-none prose-sm text-sm sm:text-base leading-relaxed text-brand-primary"
       />
 
       {/* 클릭 안내 */}

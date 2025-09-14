@@ -82,7 +82,7 @@ export function MobileNav({ className }: MobileNavProps) {
           />
 
           {/* 네비게이션 메뉴 */}
-          <div className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-white shadow-2xl md:hidden">
+          <div className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-white shadow-brand-2xl md:hidden">
             <div className="flex h-full flex-col">
               {/* 헤더 */}
               <div className="flex items-center justify-between p-6 bg-gradient-to-r from-pink-50 to-purple-50">
@@ -102,7 +102,7 @@ export function MobileNav({ className }: MobileNavProps) {
                           {user.userName?.charAt(0)?.toUpperCase() || "?"}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="text-lg font-semibold text-gray-700">
+                      <p className="text-lg font-semibold text-brand-primary">
                         {user.userName}님
                       </p>
                     </>
@@ -111,7 +111,7 @@ export function MobileNav({ className }: MobileNavProps) {
                       <div className="w-9 h-9 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
                         <Heart className="w-5 h-5 text-white" />
                       </div>
-                      <p className="text-lg font-semibold text-gray-700">
+                      <p className="text-lg font-semibold text-brand-primary">
                         비밀로그
                       </p>
                     </div>
@@ -121,7 +121,7 @@ export function MobileNav({ className }: MobileNavProps) {
                   variant="ghost"
                   size="icon"
                   onClick={closeNav}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-brand-secondary hover:text-brand-primary"
                   aria-label="메뉴 닫기"
                 >
                   <X className="h-6 w-6" />
@@ -145,11 +145,11 @@ export function MobileNav({ className }: MobileNavProps) {
                         "min-h-[48px] touch-manipulation", // 터치 타겟 최적화 - 더 큰 높이
                         isActive
                           ? isAdmin
-                            ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg"
-                            : "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg"
+                            ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-brand-lg"
+                            : "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-brand-lg"
                           : isAdmin
                           ? "text-red-600 hover:bg-red-50 hover:text-red-700 active:scale-[0.98] font-semibold"
-                          : "text-gray-700 hover:bg-purple-50 hover:text-purple-600 active:scale-[0.98]"
+                          : "text-brand-primary hover:bg-purple-50 hover:text-purple-600 active:scale-[0.98]"
                       )}
                     >
                       <Icon className="w-5 h-5" />

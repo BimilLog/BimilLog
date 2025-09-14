@@ -32,7 +32,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
         }}
       />
       <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex items-center space-x-2 text-sm text-gray-600">
+        <ol className="flex items-center space-x-2 text-sm text-brand-muted">
           {items.map((item, index) => (
             <li key={index} className="flex items-center">
               {index > 0 && <ChevronRight className="w-4 h-4 mx-2" />}
@@ -44,7 +44,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
                   {item.title}
                 </Link>
               ) : (
-                <span className="text-gray-900 font-medium">{item.title}</span>
+                <span className="text-brand-primary font-medium">{item.title}</span>
               )}
             </li>
           ))}

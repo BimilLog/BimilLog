@@ -244,7 +244,7 @@ const QuillEditor: React.FC<EditorProps> = ({
       <div className="w-full">
         <div className="min-h-[200px] border border-gray-200 rounded-lg bg-white">
           <div className="p-3 bg-gray-50 border-b rounded-t-lg">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-brand-muted">
               간단 편집기 (에디터 로드 실패)
             </p>
           </div>
@@ -278,7 +278,7 @@ const QuillEditor: React.FC<EditorProps> = ({
         <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-lg z-10">
           <div className="flex flex-col items-center gap-2">
             <Spinner size="md" />
-            <p className="text-sm text-gray-500">에디터 준비 중...</p>
+            <p className="text-sm text-brand-secondary">에디터 준비 중...</p>
           </div>
         </div>
       )}
@@ -294,7 +294,7 @@ const EditorLoading = () => (
   <div className="relative min-h-[200px] bg-white rounded-lg border border-gray-200 flex items-center justify-center">
     <div className="flex flex-col items-center gap-2">
       <Spinner size="md" />
-      <p className="text-sm text-gray-500">에디터 로딩 중...</p>
+      <p className="text-sm text-brand-secondary">에디터 로딩 중...</p>
     </div>
   </div>
 );

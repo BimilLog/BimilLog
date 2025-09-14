@@ -37,12 +37,14 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
   // 정적 정보 섹션 (서버 컴포넌트)
   const InfoSection = (
-    <div
+    <Card
+      variant="elevated"
       className={cn(
-        "text-gray-800 transition-all duration-300 p-4 bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl border-2 border-cyan-200 mb-6",
+        "text-brand-primary transition-all duration-300 rounded-2xl border-2 border-cyan-200 mb-6",
         className
       )}
     >
+      <CardContent className="p-4">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="text-center md:text-left">
           {isOwner ? (
@@ -82,12 +84,13 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           )}
         </div>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 
   // 메시지 목록 표시 부분 (서버 컴포넌트)
   const RecentMessagesDisplay = (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg md:shadow-xl rounded-2xl md:rounded-3xl border-2 md:border-4 border-cyan-200">
+    <Card variant="elevated" className="rounded-2xl md:rounded-3xl border-2 md:border-4 border-cyan-200">
       <CardHeader className="bg-gradient-to-r from-cyan-100 to-blue-100 rounded-t-2xl md:rounded-t-3xl p-4 pb-2">
         <CardTitle className="flex items-center space-x-2 text-cyan-800 text-sm md:text-base">
           <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
@@ -101,10 +104,10 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
             <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 bg-gradient-to-r from-cyan-100 to-blue-100 rounded-full flex items-center justify-center">
               <FileText className="w-8 h-8 md:w-10 md:h-10 text-cyan-600" />
             </div>
-            <p className="text-gray-500 text-base md:text-lg font-semibold">
+            <p className="text-brand-secondary text-base md:text-lg font-semibold">
               아직 메시지가 없어요
             </p>
-            <p className="text-gray-400 text-xs md:text-sm mt-2 font-medium px-4 flex items-center justify-center space-x-1">
+            <p className="text-brand-secondary text-xs md:text-sm mt-2 font-medium px-4 flex items-center justify-center space-x-1">
               <span>친구들에게 롤링페이퍼를 공유해보세요!</span>
               <Mail className="w-3 h-3 md:w-4 md:h-4" />
             </p>

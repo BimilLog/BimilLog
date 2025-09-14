@@ -96,7 +96,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
           <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="w-7 h-7 text-white animate-pulse" />
           </div>
-          <p className="text-gray-600 font-medium">
+          <p className="text-brand-muted font-medium">
             롤링페이퍼를 불러오는 중...
           </p>
         </div>
@@ -112,7 +112,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
           <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="w-7 h-7 text-white" />
           </div>
-          <p className="text-gray-600 font-medium">
+          <p className="text-brand-muted font-medium">
             이 롤링페이퍼는 비공개입니다.
           </p>
         </div>

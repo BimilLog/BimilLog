@@ -39,7 +39,7 @@ export const AuthLayout = React.memo<AuthLayoutProps>(({ children }) => {
           <div className="text-center mt-6">
             <Link
               href="/"
-              className="text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-brand-secondary hover:text-brand-primary transition-colors"
             >
               ← 홈으로 돌아가기
             </Link>

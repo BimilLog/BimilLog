@@ -27,7 +27,7 @@ export const PopularPostList = ({
   };
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+    <Card variant="elevated">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           {icon}
@@ -46,10 +46,10 @@ export const PopularPostList = ({
                         {index + 1}
                       </span>
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-800 hover:text-purple-600 transition-colors text-base">
+                        <p className="font-semibold text-brand-primary hover:text-purple-600 transition-colors text-base">
                           {post.title}
                         </p>
-                        <div className="flex items-center space-x-4 text-sm md:text-sm text-gray-500 mt-2 md:mt-1">
+                        <div className="flex items-center space-x-4 text-sm md:text-sm text-brand-secondary mt-2 md:mt-1">
                           <button
                             className="hover:text-purple-600 hover:underline transition-colors text-left"
                             title={`${post.userName}님의 롤링페이퍼 보기`}
@@ -77,7 +77,7 @@ export const PopularPostList = ({
             ))}
           </ul>
         ) : (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-brand-secondary">
             인기글이 없습니다.
           </div>
         )}

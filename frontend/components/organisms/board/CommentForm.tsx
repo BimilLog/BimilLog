@@ -43,7 +43,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({
   };
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-8">
+    <Card variant="elevated" className="mb-8">
       <CardHeader>
         <CardTitle className="text-lg">댓글 작성</CardTitle>
       </CardHeader>

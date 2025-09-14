@@ -47,7 +47,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="font-bold text-gray-800 text-base truncate">
+                <h1 className="font-bold text-brand-primary text-base truncate">
                   {nickname}님의 롤링페이퍼
                 </h1>
               </div>
@@ -91,7 +91,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                 <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
                   <MessageSquare className="w-4 h-4 text-white" />
                 </div>
-                <h1 className="font-bold text-gray-800 text-sm truncate">
+                <h1 className="font-bold text-brand-primary text-sm truncate">
                   {nickname}님의 롤링페이퍼
                 </h1>
               </div>
@@ -128,7 +128,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
             {/* 모바일 메시지 카운트 */}
             {messageCount > 0 && (
               <div className="mt-2 text-center">
-                <span className="text-xs text-gray-600">
+                <span className="text-xs text-brand-muted">
                   총 {messageCount}개의 메시지
                 </span>
               </div>
@@ -183,7 +183,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
             </div>
 
             {/* 페이지 정보 */}
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-brand-muted">
               {currentPage} / {totalPages} 페이지
             </p>
           </div>

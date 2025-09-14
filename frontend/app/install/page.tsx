@@ -90,7 +90,7 @@ function InstallGuideCard({
   children
 }: InstallGuideCardProps) {
   return (
-    <Card className={`${bgGradient} ${borderColor} max-w-2xl mx-auto shadow-xl`}>
+    <Card className={`${bgGradient} ${borderColor} max-w-2xl mx-auto shadow-brand-xl`}>
       <CardContent className="p-8">
         <h3 className={`font-bold ${textColor} mb-6 flex items-center justify-center gap-3 text-xl`}>
           <Icon className="w-6 h-6" />
@@ -113,13 +113,13 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon: Icon, title, description, gradient }: FeatureCardProps) {
   return (
-    <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm hover:scale-105 group">
+    <Card className="border-0 shadow-brand-xl hover:shadow-brand-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm hover:scale-105 group">
       <CardContent className="p-8 text-center">
         <div className={`w-16 h-16 bg-gradient-to-r ${gradient} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}>
           <Icon className="w-8 h-8 text-white" />
         </div>
-        <h3 className="text-xl font-bold mb-4 text-gray-800">{title}</h3>
-        <p className="text-gray-600 leading-relaxed">{description}</p>
+        <h3 className="text-xl font-bold mb-4 text-brand-primary">{title}</h3>
+        <p className="text-brand-muted leading-relaxed">{description}</p>
       </CardContent>
     </Card>
   );
@@ -154,7 +154,7 @@ export default function InstallPage() {
   return (
     <div className={`min-h-screen ${GRADIENTS.primary}`}>
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-lg border-b border-cyan-200 sticky top-0 z-50 shadow-sm">
+      <header className="bg-white/90 backdrop-blur-lg border-b border-cyan-200 sticky top-0 z-50 shadow-brand-sm">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild className="hover:bg-cyan-100 text-cyan-700 transition-colors">
             <Link href="/" className="flex items-center gap-2">
@@ -166,7 +166,7 @@ export default function InstallPage() {
             <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-lg flex items-center justify-center">
               <Smartphone className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg text-gray-800">비밀로그 설치</span>
+            <span className="font-bold text-lg text-brand-primary">비밀로그 설치</span>
           </div>
         </div>
       </header>
@@ -180,7 +180,7 @@ export default function InstallPage() {
             <br className="md:hidden" />
             <span className="block">앱으로 설치하세요</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-brand-muted mb-12 leading-relaxed max-w-2xl mx-auto">
             더 빠르고 편리한 앱 경험으로
             <br />
             언제 어디서나 마음을 전해보세요
@@ -190,9 +190,9 @@ export default function InstallPage() {
           <div className="flex flex-col gap-6 items-center mb-16">
             <PWAInstallButton
               size="lg"
-              className={`${GRADIENTS.button} px-16 py-5 text-xl font-bold shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl rounded-2xl`}
+              className={`${GRADIENTS.button} px-16 py-5 text-xl font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105 hover:shadow-brand-2xl rounded-2xl`}
             />
-            <div className="flex items-center gap-2 text-sm text-gray-500 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full">
+            <div className="flex items-center gap-2 text-sm text-brand-secondary bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               현재 브라우저: {browserInfo.name}
             </div>
@@ -250,10 +250,10 @@ export default function InstallPage() {
 
       {/* Benefits Section */}
       <section className="container mx-auto px-4 py-20 bg-white/30 backdrop-blur-sm">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 text-gray-800">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 text-brand-primary">
           앱으로 설치하면 더 좋은 점
         </h2>
-        <p className="text-center text-gray-600 mb-16 text-lg max-w-2xl mx-auto">
+        <p className="text-center text-brand-muted mb-16 text-lg max-w-2xl mx-auto">
           브라우저보다 훨씬 빠르고 편리한 앱 경험을 제공합니다
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -265,12 +265,12 @@ export default function InstallPage() {
 
       {/* Preview Section */}
       <section className="container mx-auto px-4 py-20">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 text-gray-800">앱 미리보기</h2>
-        <p className="text-center text-gray-600 mb-16 text-lg max-w-2xl mx-auto">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 text-brand-primary">앱 미리보기</h2>
+        <p className="text-center text-brand-muted mb-16 text-lg max-w-2xl mx-auto">
           실제 앱처럼 동작하는 비밀로그의 모습을 확인해보세요
         </p>
         <div className="max-w-4xl mx-auto">
-          <Card className="overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow duration-300">
+          <Card className="overflow-hidden shadow-brand-2xl hover:shadow-3xl transition-shadow duration-300">
             <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 p-12 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
               <div className="relative z-10">
@@ -290,15 +290,15 @@ export default function InstallPage() {
       {/* Call to Action */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-brand-primary">
             <span className="flex items-center gap-2 justify-center">
               지금 바로 설치해보세요! <Rocket className="w-5 h-5 text-pink-500" />
             </span>
           </h2>
-          <p className="text-xl text-gray-600 mb-8">더 나은 비밀로그 경험이 기다리고 있습니다</p>
+          <p className="text-xl text-brand-muted mb-8">더 나은 비밀로그 경험이 기다리고 있습니다</p>
           <PWAInstallButton
             size="lg"
-            className={`${GRADIENTS.button} px-12 py-4 text-lg font-bold shadow-xl transform transition-all duration-300 hover:scale-105`}
+            className={`${GRADIENTS.button} px-12 py-4 text-lg font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105`}
           />
         </div>
       </section>
@@ -309,17 +309,17 @@ export default function InstallPage() {
           <div className="flex items-center justify-center mb-6">
             <h2 className="text-3xl font-bold text-white">비밀로그</h2>
           </div>
-          <p className="text-gray-400 mb-8 text-lg">익명으로 마음을 전하는 특별한 공간</p>
+          <p className="text-brand-secondary mb-8 text-lg">익명으로 마음을 전하는 특별한 공간</p>
           <div className="flex justify-center gap-8 text-base mb-8">
-            <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors hover:underline">
+            <Link href="/privacy" className="text-brand-secondary hover:text-white transition-colors hover:underline">
               개인정보처리방침
             </Link>
-            <Link href="/terms" className="text-gray-400 hover:text-white transition-colors hover:underline">
+            <Link href="/terms" className="text-brand-secondary hover:text-white transition-colors hover:underline">
               이용약관
             </Link>
           </div>
           <div className="border-t border-gray-800 pt-8">
-            <p className="text-gray-500 text-sm">&copy; 2025 비밀로그. All rights reserved. v2.0.0</p>
+            <p className="text-brand-secondary text-sm">&copy; 2025 비밀로그. All rights reserved. v2.0.0</p>
           </div>
         </div>
       </footer>

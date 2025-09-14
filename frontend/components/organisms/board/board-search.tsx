@@ -57,11 +57,11 @@ export const BoardSearch = ({
             onKeyPress={(e) => e.key === "Enter" && handleSearch()}
           />
           <Button variant="ghost" size="icon" onClick={handleSearch}>
-            <Search className="w-5 h-5 text-gray-500" />
+            <Search className="w-5 h-5 text-brand-secondary" />
           </Button>
         </div>
         <div className="flex items-center gap-2">
-          <ListFilter className="w-5 h-5 text-gray-500" />
+          <ListFilter className="w-5 h-5 text-brand-secondary" />
           <Select value={postsPerPage} onValueChange={setPostsPerPage}>
             <SelectTrigger className="w-[120px] bg-white border">
               <SelectValue placeholder="개수" />

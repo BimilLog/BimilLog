@@ -34,7 +34,7 @@ export const ReportFilters = React.memo<ReportFiltersProps>(({ filterType, setFi
             px-4 py-2 rounded-lg font-medium text-sm transition-all
             ${filterType === filter.id
               ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-500 ring-opacity-50'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              : 'bg-gray-100 text-brand-muted hover:bg-gray-200'
             }
           `}
         >

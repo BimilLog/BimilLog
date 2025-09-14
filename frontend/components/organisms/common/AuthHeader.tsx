@@ -49,34 +49,34 @@ export const AuthHeader = React.memo(() => {
           <nav className="hidden lg:flex items-center gap-6">
             <Link
               href="/board"
-              className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
+              className="text-brand-muted hover:text-brand-primary transition-colors text-sm lg:text-base"
             >
               게시판
             </Link>
             <Link
               href="/visit"
-              className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
+              className="text-brand-muted hover:text-brand-primary transition-colors text-sm lg:text-base"
             >
               다른 롤링페이퍼 방문
             </Link>
             {isAuthenticated && (
               <Link
                 href="/rolling-paper"
-                className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
+                className="text-brand-muted hover:text-brand-primary transition-colors text-sm lg:text-base"
               >
                 내 롤링페이퍼
               </Link>
             )}
             <Link
               href="/suggest"
-              className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
+              className="text-brand-muted hover:text-brand-primary transition-colors text-sm lg:text-base"
             >
               건의하기
             </Link>
             {isAuthenticated && (
               <Link
                 href="/mypage"
-                className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
+                className="text-brand-muted hover:text-brand-primary transition-colors text-sm lg:text-base"
               >
                 마이페이지
               </Link>
@@ -92,7 +92,7 @@ export const AuthHeader = React.memo(() => {
             {!isAuthenticated && (
               <Link
                 href="/login"
-                className="text-gray-600 hover:text-gray-900 transition-colors text-sm lg:text-base"
+                className="text-brand-muted hover:text-brand-primary transition-colors text-sm lg:text-base"
               >
                 로그인
               </Link>
@@ -103,20 +103,20 @@ export const AuthHeader = React.memo(() => {
           <nav className="hidden sm:flex lg:hidden items-center gap-4">
             <Link
               href="/board"
-              className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+              className="text-brand-muted hover:text-brand-primary transition-colors text-sm"
             >
               게시판
             </Link>
             <Link
               href="/visit"
-              className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+              className="text-brand-muted hover:text-brand-primary transition-colors text-sm"
             >
               방문하기
             </Link>
             {isAuthenticated && (
               <Link
                 href="/rolling-paper"
-                className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                className="text-brand-muted hover:text-brand-primary transition-colors text-sm"
               >
                 롤링페이퍼
               </Link>
@@ -132,7 +132,7 @@ export const AuthHeader = React.memo(() => {
             {!isAuthenticated && (
               <Link
                 href="/login"
-                className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                className="text-brand-muted hover:text-brand-primary transition-colors text-sm"
               >
                 로그인
               </Link>
@@ -149,7 +149,7 @@ export const AuthHeader = React.memo(() => {
               <div className="flex items-center gap-2 sm:gap-3">
                 <Link
                   href="/settings"
-                  className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
+                  className="hidden lg:flex p-2 text-brand-muted hover:text-brand-primary hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
                   title="설정"
                 >
                   <Settings className="w-5 h-5" />
@@ -165,7 +165,7 @@ export const AuthHeader = React.memo(() => {
                     </AvatarFallback>
                   </Avatar>
                 </Link>
-                <span className="hidden sm:inline lg:hidden xl:inline font-semibold text-sm text-gray-700 max-w-24 lg:max-w-none truncate">
+                <span className="hidden sm:inline lg:hidden xl:inline font-semibold text-sm text-brand-primary max-w-24 lg:max-w-none truncate">
                   {user.userName}님
                 </span>
                 <Button

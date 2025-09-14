@@ -19,7 +19,7 @@ export function AuthLoadingScreen({
           {message}
         </h2>
         {subMessage && (
-          <p className="text-gray-600">{subMessage}</p>
+          <p className="text-brand-muted">{subMessage}</p>
         )}
       </div>
     </AuthLayout>

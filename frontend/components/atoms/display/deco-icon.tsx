@@ -55,7 +55,7 @@ export const DecoIcon: React.FC<DecoIconProps> = ({
         <IconComponent
           className={cn(
             sizeClasses[size],
-            iconMapping.color || 'text-gray-600'
+            iconMapping.color || 'text-brand-muted'
           )}
         />
       </div>
@@ -66,7 +66,7 @@ export const DecoIcon: React.FC<DecoIconProps> = ({
     <IconComponent
       className={cn(
         sizeClasses[size],
-        iconMapping.color || 'text-gray-600',
+        iconMapping.color || 'text-brand-muted',
         animationClasses[animate],
         className
       )}

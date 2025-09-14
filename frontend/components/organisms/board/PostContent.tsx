@@ -19,7 +19,7 @@ export const PostContent = React.memo<PostContentProps>(({
       <div className="prose max-w-none">
         <SafeHTML
           html={post.content}
-          className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+          className="text-brand-primary leading-relaxed whitespace-pre-wrap"
         />
       </div>
 

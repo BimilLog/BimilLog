@@ -3,6 +3,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, ChevronDown, ChevronUp, Bug } from 'lucide-react';
 import { Button } from '../actions/button';
+import { Card, CardContent } from '@/components';
 import { logger } from '@/lib/utils/logger';
 
 interface Props {
@@ -177,7 +178,8 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-4">
           <div className="max-w-lg w-full">
-            <div className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow rounded-lg p-6 text-center">
+            <Card variant="elevated" className="hover:shadow-brand-xl transition-shadow">
+              <CardContent className="p-6 text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
                 <AlertTriangle className="w-8 h-8 text-red-600" />
               </div>
@@ -186,7 +188,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 오류가 발생했습니다
               </h2>
 
-              <p className="text-gray-600 mb-6 leading-relaxed">
+              <p className="text-brand-muted mb-6 leading-relaxed">
                 예상치 못한 오류가 발생했습니다.<br />
                 페이지를 새로고침하거나 홈으로 이동해서 다시 시도해주세요.
               </p>
@@ -198,7 +200,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     onClick={this.toggleDetails}
                     variant="ghost"
                     size="sm"
-                    className="mb-3 text-gray-500 hover:text-gray-700"
+                    className="mb-3 text-brand-secondary hover:text-brand-primary"
                   >
                     {this.state.showDetails ? (
                       <>
@@ -215,7 +217,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
                   {this.state.showDetails && this.state.error && (
                     <div className="p-4 bg-gray-100 rounded-lg text-left border-2 border-gray-200">
-                      <h4 className="font-semibold text-gray-800 mb-2">오류 메시지:</h4>
+                      <h4 className="font-semibold text-brand-primary mb-2">오류 메시지:</h4>
                       <p className="text-sm font-mono text-red-600 mb-3 break-all">
                         {this.state.error.message}
                       </p>
@@ -223,8 +225,8 @@ export class ErrorBoundary extends Component<Props, State> {
                       {/* 스택 트레이스는 개발 환경에서만 표시 - 보안상 프로덕션에서 숨김 */}
                       {process.env.NODE_ENV === 'development' && this.state.error.stack && (
                         <>
-                          <h4 className="font-semibold text-gray-800 mb-2">스택 트레이스:</h4>
-                          <pre className="text-xs font-mono text-gray-600 whitespace-pre-wrap break-all overflow-x-auto max-h-32 overflow-y-auto">
+                          <h4 className="font-semibold text-brand-primary mb-2">스택 트레이스:</h4>
+                          <pre className="text-xs font-mono text-brand-muted whitespace-pre-wrap break-all overflow-x-auto max-h-32 overflow-y-auto">
                             {this.state.error.stack}
                           </pre>
                         </>
@@ -265,7 +267,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     variant="ghost"
                     size="sm"
                     disabled={this.state.isReporting}
-                    className="w-full text-gray-500 hover:text-gray-700"
+                    className="w-full text-brand-secondary hover:text-brand-primary"
                   >
                     <Bug className="w-4 h-4 mr-2" />
                     {this.state.isReporting ? '리포트 생성 중...' : '에러 리포트 복사'}
@@ -275,12 +277,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
               {/* 추가 도움말 - 사용자가 직접 해결할 수 있는 방법 안내 */}
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <p className="text-xs text-gray-500 leading-relaxed">
+                <p className="text-xs text-brand-secondary leading-relaxed">
                   문제가 계속 발생하면 브라우저 캐시를 삭제하거나<br />
                   다른 브라우저를 사용해보세요.
                 </p>
               </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       );

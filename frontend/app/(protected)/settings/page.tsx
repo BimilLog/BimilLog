@@ -12,7 +12,7 @@ const NotificationSettings = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
+      <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-6 animate-pulse">
         <div className="h-6 bg-gray-200 rounded-lg mb-4 w-32"></div>
         <div className="space-y-3">
           <div className="h-12 bg-gray-200 rounded-lg"></div>
@@ -29,7 +29,7 @@ const AccountSettings = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
+      <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-6 animate-pulse">
         <div className="h-6 bg-gray-200 rounded-lg mb-4 w-24"></div>
         <div className="h-10 bg-gray-200 rounded-lg w-32"></div>
       </div>

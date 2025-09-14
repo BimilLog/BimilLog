@@ -72,7 +72,7 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
   return (
     <div
       className={cn(
-        "relative flex w-full max-w-md items-start gap-3 rounded-lg border p-4 shadow-lg transition-all duration-300 ease-in-out",
+        "relative flex w-full max-w-md items-start gap-3 rounded-lg border p-4 shadow-brand-lg transition-all duration-300 ease-in-out",
         colorMap[toast.type],
         isVisible && !isLeaving
           ? "translate-x-0 opacity-100"

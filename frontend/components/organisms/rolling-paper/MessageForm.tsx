@@ -94,7 +94,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
       >
         {/* 미리보기 카드: 실시간으로 입력 중인 메시지 모습 미리보기 */}
         <div
-          className={`p-4 rounded-xl bg-gradient-to-br ${selectedDecoInfo.color} border-2 border-white shadow-lg relative overflow-hidden`}
+          className={`p-4 rounded-xl bg-gradient-to-br ${selectedDecoInfo.color} border-2 border-white shadow-brand-lg relative overflow-hidden`}
           style={{
             backgroundImage: `
               radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
@@ -105,11 +105,11 @@ export const MessageForm = React.memo<MessageFormProps>(({
         >
           <div className="flex items-center space-x-2 mb-2">
             <DecoIcon decoType={decoType as DecoType} size="lg" showBackground={false} />
-            <span className="text-sm font-semibold text-gray-800">
+            <span className="text-sm font-semibold text-brand-primary">
               {selectedDecoInfo.name}
             </span>
           </div>
-          <p className="text-gray-800 text-sm font-medium">
+          <p className="text-brand-primary text-sm font-medium">
             {/* 입력된 내용이 있으면 표시, 없으면 플레이스홀더 표시 */}
             {content || "여기에 메시지가 표시됩니다..."}
           </p>
@@ -227,7 +227,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
 
           <Button
             type="submit"
-            className="w-full h-12 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 hover:from-blue-600 hover:via-cyan-600 hover:to-teal-600 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 rounded-xl"
+            className="w-full h-12 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 hover:from-blue-600 hover:via-cyan-600 hover:to-teal-600 text-white font-bold text-lg shadow-brand-xl hover:shadow-brand-2xl transition-all duration-300 hover:scale-105 rounded-xl"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

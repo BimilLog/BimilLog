@@ -49,17 +49,17 @@ export const SummarySectionClient: React.FC<SummarySectionClientProps> = ({
         }`}
       >
         <div
-          className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} flex items-center justify-center shadow-lg border-2 border-white flex-shrink-0`}
+          className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} flex items-center justify-center shadow-brand-lg border-2 border-white flex-shrink-0`}
         >
           <DecoIcon decoType={message.decoType} size="md" showBackground={false} />
         </div>
         <div className="flex-1 min-w-0">
           {isRollingPaperMessage && isOwner ? (
-            <p className="text-gray-800 text-sm md:text-base font-medium leading-relaxed">
+            <p className="text-brand-primary text-sm md:text-base font-medium leading-relaxed">
               {(message as RollingPaperMessage).content}
             </p>
           ) : (
-            <p className="text-gray-600 text-sm md:text-base font-medium leading-relaxed italic flex items-center space-x-2">
+            <p className="text-brand-muted text-sm md:text-base font-medium leading-relaxed italic flex items-center space-x-2">
               <Lock className="w-4 h-4" />
               <span>메시지 내용은 작성자만 볼 수 있습니다</span>
             </p>
@@ -73,7 +73,7 @@ export const SummarySectionClient: React.FC<SummarySectionClientProps> = ({
                 {(message as RollingPaperMessage).anonymity}
               </Badge>
             )}
-            <span className="text-xs text-gray-500 font-medium">
+            <span className="text-xs text-brand-secondary font-medium">
               {typeof decoInfo?.name === 'string' ? decoInfo.name : '기본'}
             </span>
           </div>

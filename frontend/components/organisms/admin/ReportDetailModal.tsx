@@ -55,7 +55,7 @@ const ReportDetailModalLoading = () => (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" />
-          <p className="text-sm text-gray-500">신고 상세 정보 로딩 중...</p>
+          <p className="text-sm text-brand-secondary">신고 상세 정보 로딩 중...</p>
         </div>
       </div>
     </DialogContent>
@@ -86,7 +86,7 @@ function ReportDetailModalContent({
         return { label: "개선", color: "bg-blue-100 text-blue-700", icon: FileText };
       default:
         // 알 수 없는 타입의 경우 기본 스타일 적용
-        return { label: type, color: "bg-gray-100 text-gray-700", icon: FileText };
+        return { label: type, color: "bg-gray-100 text-brand-primary", icon: FileText };
     }
   };
 
@@ -117,11 +117,11 @@ function ReportDetailModalContent({
           <DialogHeader>
             <div className="flex items-start justify-between">
               <div>
-                <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <DialogTitle className="text-xl font-bold text-brand-primary flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5 text-red-500" />
                   신고 상세 정보
                 </DialogTitle>
-                <DialogDescription className="mt-1 text-sm text-gray-600">
+                <DialogDescription className="mt-1 text-sm text-brand-muted">
                   신고 ID: #{report.id}
                 </DialogDescription>
               </div>
@@ -160,10 +160,10 @@ function ReportDetailModalContent({
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <TypeIcon className="w-5 h-5 text-gray-600" />
+                      <TypeIcon className="w-5 h-5 text-brand-muted" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">신고 유형</p>
+                      <p className="text-xs text-brand-secondary mb-1">신고 유형</p>
                       <Badge className={typeInfo.color}>
                         {typeInfo.label}
                       </Badge>
@@ -175,11 +175,11 @@ function ReportDetailModalContent({
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <Hash className="w-5 h-5 text-gray-600" />
+                      <Hash className="w-5 h-5 text-brand-muted" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">대상 ID</p>
-                      <p className="font-semibold text-gray-900">{report.targetId}</p>
+                      <p className="text-xs text-brand-secondary mb-1">대상 ID</p>
+                      <p className="font-semibold text-brand-primary">{report.targetId}</p>
                     </div>
                   </div>
                 </Card>
@@ -188,11 +188,11 @@ function ReportDetailModalContent({
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <User className="w-5 h-5 text-gray-600" />
+                      <User className="w-5 h-5 text-brand-muted" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">신고 대상</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-xs text-brand-secondary mb-1">신고 대상</p>
+                      <p className="font-semibold text-brand-primary">
                         {report.reporterName || "익명"}
                       </p>
                     </div>
@@ -203,11 +203,11 @@ function ReportDetailModalContent({
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-gray-600" />
+                      <Calendar className="w-5 h-5 text-brand-muted" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">신고일</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-xs text-brand-secondary mb-1">신고일</p>
+                      <p className="font-semibold text-brand-primary">
                         {new Date(report.createdAt).toLocaleDateString('ko-KR')}
                       </p>
                     </div>
@@ -218,10 +218,10 @@ function ReportDetailModalContent({
               {/* 신고 시간 상세 정보 */}
               <Card className="p-4 bg-gray-50">
                 <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <Clock className="w-5 h-5 text-brand-secondary mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700 mb-1">신고 시간</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm font-medium text-brand-primary mb-1">신고 시간</p>
+                    <p className="text-sm text-brand-muted">
                       {new Date(report.createdAt).toLocaleString('ko-KR')}
                     </p>
                   </div>
@@ -235,12 +235,12 @@ function ReportDetailModalContent({
                 <div className="space-y-4">
                   {/* 신고자가 입력한 신고 사유 */}
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-brand-primary mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       신고 사유
                     </h3>
                     <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <p className="text-gray-800 whitespace-pre-wrap">
+                      <p className="text-brand-primary whitespace-pre-wrap">
                         {report.content || "신고 사유가 제공되지 않았습니다."}
                       </p>
                     </div>
@@ -249,13 +249,13 @@ function ReportDetailModalContent({
                   {/* 신고된 콘텐츠가 있는 경우에만 표시 (조건부 렌더링) */}
                   {report.targetTitle && (
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-brand-primary mb-2 flex items-center gap-2">
                         <MessageSquare className="w-4 h-4" />
                         신고된 콘텐츠
                       </h3>
                       {/* 신고 대상이 된 게시글/댓글의 실제 내용 */}
                       <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                        <p className="text-gray-700 whitespace-pre-wrap">
+                        <p className="text-brand-primary whitespace-pre-wrap">
                           {report.targetTitle}
                         </p>
                       </div>
@@ -283,15 +283,15 @@ function ReportDetailModalContent({
               {/* 관리자 액션 버튼들 */}
               <div className="space-y-3">
                 {/* 사용자 차단 액션 */}
-                <Card className="p-4 hover:shadow-md transition-shadow">
+                <Card className="p-4 hover:shadow-brand-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
                         <Ban className="w-5 h-5 text-orange-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">사용자 차단</p>
-                        <p className="text-sm text-gray-500">24시간 동안 서비스 이용 제한</p>
+                        <p className="font-medium text-brand-primary">사용자 차단</p>
+                        <p className="text-sm text-brand-secondary">24시간 동안 서비스 이용 제한</p>
                       </div>
                     </div>
                     <Button
@@ -308,15 +308,15 @@ function ReportDetailModalContent({
                 </Card>
 
                 {/* 사용자 강제탈퇴 액션 */}
-                <Card className="p-4 hover:shadow-md transition-shadow">
+                <Card className="p-4 hover:shadow-brand-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
                         <UserX className="w-5 h-5 text-red-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">강제 탈퇴</p>
-                        <p className="text-sm text-gray-500">사용자 계정 영구 삭제</p>
+                        <p className="font-medium text-brand-primary">강제 탈퇴</p>
+                        <p className="text-sm text-brand-secondary">사용자 계정 영구 삭제</p>
                       </div>
                     </div>
                     <Button
@@ -336,7 +336,7 @@ function ReportDetailModalContent({
               {/* 익명 사용자일 경우 액션 불가 알림 (조건부 렌더링) */}
               {!report.reporterName && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 text-center">
+                  <p className="text-sm text-brand-muted text-center">
                     익명 사용자는 차단 또는 강제 탈퇴할 수 없습니다.
                   </p>
                 </div>

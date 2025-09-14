@@ -84,7 +84,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm shadow-lg">
+      <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm shadow-brand-lg">
         {tabConfig.map(({ value, icon, label }) => (
           <TabsTrigger
             key={value}

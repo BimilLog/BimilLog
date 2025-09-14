@@ -72,16 +72,16 @@ export default function ErrorPage({
 
           {/* 텍스트 영역 */}
           <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-brand-primary mb-4">
               일시적인 오류가 발생했어요
             </h1>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-brand-muted leading-relaxed">
               예상치 못한 문제가 발생했어요.
               <br />
               잠시 후 다시 시도하거나 페이지를 새로고침 해주세요.
             </p>
             {error.digest && (
-              <p className="text-xs text-gray-400 mt-4">
+              <p className="text-xs text-brand-secondary mt-4">
                 오류 코드: {error.digest}
               </p>
             )}
@@ -117,7 +117,7 @@ export default function ErrorPage({
 
           {/* 하단 링크들 */}
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-brand-secondary mb-4">
               문제가 계속되나요?
             </p>
             <div className="flex justify-center space-x-6 text-sm">
