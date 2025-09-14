@@ -28,7 +28,7 @@ export * from './date'
 export * from './format'
 
 // Validation utilities
-export * from './validation'
+export * from './validation-helpers'
 
 // Clipboard utilities
 export * from './clipboard'

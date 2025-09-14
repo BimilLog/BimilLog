@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { postQuery } from '@/lib/api';
-import { useApiMutation } from '@/hooks/api/useApiMutation';
 import { useDebounce } from '@/hooks/common/useDebounce';
+import { useToast } from '@/hooks';
 import type { SimplePost } from '@/types/domains/post';
 
 // ============ POST SEARCH HOOKS ============
@@ -11,11 +12,11 @@ import type { SimplePost } from '@/types/domains/post';
 // 게시글 검색 훅
 export function usePostSearch() {
   const [searchResults, setSearchResults] = useState<SimplePost[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'AUTHOR'>('TITLE');
+  const { showToast } = useToast();
 
-  const searchMutation = useApiMutation(
-    async ({ searchType, term, page = 1, size = 10 }: {
+  const searchMutation = useMutation({
+    mutationFn: async ({ searchType, term, page = 1, size = 10 }: {
       searchType: 'TITLE' | 'TITLE_CONTENT' | 'AUTHOR';
       term: string;
       page?: number;
@@ -23,13 +24,15 @@ export function usePostSearch() {
     }) => {
       return await postQuery.search(searchType, term, page, size);
     },
-    {
-      showErrorToast: true,
-      onSuccess: (response) => {
-        setSearchResults(response?.content || []);
+    onSuccess: (response) => {
+      if (response.success && response.data) {
+        setSearchResults(response.data.content || []);
       }
+    },
+    onError: () => {
+      showToast({ type: 'error', message: '검색에 실패했습니다.' });
     }
-  );
+  });
 
   const search = useCallback(async (
     term: string,
@@ -42,12 +45,7 @@ export function usePostSearch() {
       return;
     }
 
-    setIsSearching(true);
-    try {
-      await searchMutation.mutate({ searchType: type, term: term.trim(), page, size });
-    } finally {
-      setIsSearching(false);
-    }
+    searchMutation.mutate({ searchType: type, term: term.trim(), page, size });
   }, [searchType, searchMutation]);
 
   const clearSearch = useCallback(() => {
@@ -56,7 +54,7 @@ export function usePostSearch() {
 
   return {
     searchResults,
-    isSearching: isSearching || searchMutation.isLoading,
+    isSearching: searchMutation.isPending,
     searchType,
     setSearchType,
     search,

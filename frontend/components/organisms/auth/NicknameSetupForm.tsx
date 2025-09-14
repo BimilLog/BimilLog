@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks";
 import { useNotificationList } from "@/hooks/features";
 import { useRouter } from "next/navigation";
 import { userQuery } from "@/lib/api";
-import { validateNickname } from "@/lib/utils/validation";
+import { validationRules } from "@/lib/utils/validation-helpers";
 import { logger } from '@/lib/utils/logger';
 
 interface NicknameSetupFormProps {
@@ -42,9 +42,9 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
     setNickname(newNickname);
     setIsNicknameAvailable(null);
 
-    const { valid, message } = validateNickname(newNickname);
+    const { isValid: valid, error: message } = validationRules.nickname(newNickname);
     setIsNicknameFormatValid(valid);
-    setNicknameMessage(message);
+    setNicknameMessage(message || "");
   };
 
   const handleCheckNickname = async () => {

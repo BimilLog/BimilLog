@@ -7,11 +7,42 @@ export interface ValidationResult {
   error?: string;
 }
 
+// XSS 보안 검증을 위한 패턴들
+const DANGEROUS_PATTERNS = [
+  /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, // 스크립트 태그
+  /on\w+\s*=\s*["']?[^"']*["']?/gi, // 이벤트 핸들러
+  /javascript\s*:/gi, // javascript: 프로토콜
+  /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, // iframe
+  /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, // object
+  /<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, // embed
+  /data\s*:\s*text\/html/gi, // data:text/html
+  /vbscript\s*:/gi, // vbscript
+];
+
+// 단순 텍스트 입력용 금지 문자
+const SIMPLE_FORBIDDEN_CHARS = /[<>'"&\\]/g;
+
+/**
+ * XSS 공격 패턴 검사
+ */
+export const isInputSafe = (value: string): boolean => {
+  if (!value) return true;
+  return !DANGEROUS_PATTERNS.some(pattern => pattern.test(value));
+};
+
+/**
+ * 단순 텍스트 안전성 검사 (HTML 태그 불허)
+ */
+export const isSimpleTextSafe = (value: string): boolean => {
+  if (!value) return true;
+  return !SIMPLE_FORBIDDEN_CHARS.test(value);
+};
+
 /**
  * 기본 검증 규칙들
  */
 export const validationRules = {
-  // 닉네임 검증
+  // 닉네임 검증 (통합된 버전)
   nickname: (value: string): ValidationResult => {
     if (!value || value.trim().length === 0) {
       return { isValid: false, error: '닉네임을 입력해주세요.' };
@@ -21,17 +52,22 @@ export const validationRules = {
       return { isValid: false, error: '닉네임은 2자 이상이어야 합니다.' };
     }
 
-    if (value.length > 20) {
-      return { isValid: false, error: '닉네임은 20자 이하여야 합니다.' };
+    if (value.length > 8) {
+      return { isValid: false, error: '닉네임은 8자 이하여야 합니다.' };
     }
 
-    // 특수문자 검증 (한글, 영문, 숫자, 일부 특수문자만 허용)
-    const nicknameRegex = /^[가-힣a-zA-Z0-9._-]+$/;
+    // 특수문자 검증 (한글, 영문, 숫자만 허용 - 기존 validation.ts 규칙 적용)
+    const nicknameRegex = /^[가-힣a-zA-Z0-9]+$/;
     if (!nicknameRegex.test(value)) {
       return {
         isValid: false,
-        error: '닉네임은 한글, 영문, 숫자, 점(.), 하이픈(-), 언더스코어(_)만 사용할 수 있습니다.'
+        error: '특수문자는 사용할 수 없습니다.'
       };
+    }
+
+    // XSS 보안 검증 추가
+    if (!isSimpleTextSafe(value)) {
+      return { isValid: false, error: '닉네임에 위험한 문자가 포함되어 있습니다.' };
     }
 
     // 금지어 검증
@@ -57,24 +93,21 @@ export const validationRules = {
     return { isValid: true };
   },
 
-  // 비밀번호 검증 (익명 게시글/댓글용)
+  // 비밀번호 검증 (익명 게시글/댓글용 - 4자리 숫자)
   anonymousPassword: (value: string): ValidationResult => {
     if (!value || value.trim().length === 0) {
       return { isValid: false, error: '비밀번호를 입력해주세요.' };
     }
 
-    if (value.length < 4) {
-      return { isValid: false, error: '비밀번호는 4자 이상이어야 합니다.' };
-    }
-
-    if (value.length > 20) {
-      return { isValid: false, error: '비밀번호는 20자 이하여야 합니다.' };
+    const numPassword = Number(value.trim());
+    if (isNaN(numPassword) || numPassword < 1000 || numPassword > 9999) {
+      return { isValid: false, error: '비밀번호는 4자리 숫자여야 합니다 (1000-9999).' };
     }
 
     return { isValid: true };
   },
 
-  // 게시글 제목 검증
+  // 게시글 제목 검증 (XSS 보안 포함)
   postTitle: (value: string): ValidationResult => {
     if (!value || value.trim().length === 0) {
       return { isValid: false, error: '제목을 입력해주세요.' };
@@ -88,10 +121,14 @@ export const validationRules = {
       return { isValid: false, error: '제목은 100자 이하여야 합니다.' };
     }
 
+    if (!isSimpleTextSafe(value)) {
+      return { isValid: false, error: '제목에 특수문자나 HTML 태그는 사용할 수 없습니다.' };
+    }
+
     return { isValid: true };
   },
 
-  // 게시글/댓글 내용 검증
+  // 게시글/댓글 내용 검증 (XSS 보안 포함)
   content: (value: string, minLength: number = 1, maxLength: number = 1000): ValidationResult => {
     if (!value || value.trim().length === 0) {
       return { isValid: false, error: '내용을 입력해주세요.' };
@@ -103,6 +140,10 @@ export const validationRules = {
 
     if (value.length > maxLength) {
       return { isValid: false, error: `내용은 ${maxLength}자 이하여야 합니다.` };
+    }
+
+    if (!isInputSafe(value)) {
+      return { isValid: false, error: '내용에 위험한 스크립트가 포함되어 있습니다.' };
     }
 
     return { isValid: true };
@@ -297,6 +338,28 @@ export class ValidationBuilder {
       return { isValid: true };
     };
   }
+}
+
+/**
+ * 비밀번호 validation (4자리 숫자) - 기존 validation.ts와 호환
+ * @param password 검증할 비밀번호
+ * @param isAuthenticated 인증 여부 (인증된 경우 비밀번호 불필요)
+ * @returns 유효한 비밀번호 숫자 또는 undefined
+ * @throws 비밀번호가 유효하지 않은 경우 Error
+ */
+export function validatePassword(password: string, isAuthenticated: boolean): number | undefined {
+  if (isAuthenticated) return undefined;
+
+  if (!password.trim()) {
+    throw new Error("비밀번호를 입력해주세요.");
+  }
+
+  const numPassword = Number(password.trim());
+  if (isNaN(numPassword) || numPassword < 1000 || numPassword > 9999) {
+    throw new Error("비밀번호는 4자리 숫자여야 합니다 (1000-9999).");
+  }
+
+  return numPassword;
 }
 
 /**

@@ -20,11 +20,6 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
-      - name: Restore application-prod.yml
-        run: |
-          mkdir -p backend/src/main/resources
-          echo "${{ secrets.SPRING_PROD_YML }}" | base64 -d > backend/src/main/resources/application-prod.yml
-
       - name: Restore firebase-adminsdk json
         run: |
           mkdir -p backend/src/main/resources/firebase

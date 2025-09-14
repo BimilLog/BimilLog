@@ -62,9 +62,9 @@ frontend/
 │   │   └── */command.ts    # Write operations (POST/PUT/DELETE)
 │   ├── errors/             # Error handling (domainErrors.ts)
 │   ├── validators/         # Type validators (apiValidators.ts)
-│   └── utils/              # Date, format, validation, sanitize, logger, lazy-components
+│   └── utils/              # Date, format, validation-helpers, sanitize, logger, lazy-components
 ├── hooks/                   # Custom React hooks
-│   ├── api/                # useApiQuery, useApiMutation (TypeScript strict typing)
+│   ├── api/                # TanStack Query hooks (usePostQueries, usePostMutations 등)
 │   ├── common/             # useAuth, useToast, useLoadingState, usePagination, useDebounce, useErrorHandler
 │   └── features/           # Domain-specific hooks (refactored 2025-01-14)
 │       ├── admin/          # useAdminAuth, useReports, useReportActions
@@ -280,9 +280,11 @@ app/
 - `useBrowserGuide` - PWA 설치 및 브라우저 가이드
 - `useErrorHandler` - 도메인별 에러 처리 (New)
 
-### API Hooks (`/hooks/api`)
-- `useApiQuery` - GET 요청을 위한 커스텀 훅 (TypeScript strict)
-- `useApiMutation` - POST/PUT/DELETE 요청을 위한 커스텀 훅
+### API Hooks (`/hooks/api`) - TanStack Query 기반
+- `usePostQueries/usePostMutations` - 게시글 CRUD
+- `useCommentQueries/useCommentMutations` - 댓글 CRUD
+- `useRollingPaperQueries/useRollingPaperMutations` - 롤링페이퍼 CRUD
+- `useUserQueries/useUserMutations` - 사용자 관련 작업
 
 ### Common Utilities (`/hooks/common`)
 - `useLoadingState` - 로딩 상태 관리
@@ -340,18 +342,13 @@ Component.displayName = "Component";
 
 ```typescript
 // 타입 안전 API 호출 with Error Handler
+// TanStack Query 사용 예시
 const useData = (id: string) => {
   const { handleError } = useErrorHandler();
 
-  const { data, loading, error } = useApiQuery(
-    () => postQuery.getPost(id),
-    [id],
-    {
-      onError: (error) => handleError(error, 'post-detail')
-    }
-  );
+  const { data, isLoading, error } = usePostDetail(Number(id));
 
-  return { data, loading, error };
+  return { data, isLoading, error };
 };
 ```
 
@@ -444,10 +441,16 @@ const validated = validateApiResponse(data);
 
 ## 🔄 최근 리팩토링
 
-### 2025-01-21: TanStack Query 통합 및 API Layer 개선
+### 2025-01-21: TanStack Query 통합 및 대규모 리팩토링
+
+#### ✅ Phase 1 완료 - Legacy 코드 제거
+- **Legacy Hook 완전 제거**: useApiQuery/useApiMutation 삭제 (300줄 감소)
+- **Validation 유틸리티 통합**: validation.ts → validation-helpers.ts (XSS 보안 포함)
+- **중복 Post 훅 통합**: useBoardQueries → usePostQueries로 통합
+- **TanStack Query 완전 마이그레이션**: 모든 API 호출 TanStack Query로 전환
 
 #### ✅ 서버 상태 관리 도입
-- **TanStack Query 설치 및 설정**: React Query v5 도입
+- **TanStack Query v5 도입**: React Query 기반 데이터 페칭
 - **Provider 구조 개선**: QueryClientProvider 추가
 - **캐시 전략 수립**: staleTime 5분, gcTime 10분 기본값
 

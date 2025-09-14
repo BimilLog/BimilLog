@@ -3,43 +3,22 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from "next/navigation";
 import { postCommand } from '@/lib/api';
-import { useApiMutation } from '@/hooks/api/useApiMutation';
+import {
+  useCreatePost as useCreatePostMutation,
+  useUpdatePost as useUpdatePostMutation,
+  useDeletePost as useDeletePostMutation,
+  useLikePost as useLikePostMutation
+} from '@/hooks/api/usePostMutations';
 import { toast } from "sonner";
 import type { Post } from '@/types/domains/post';
 
-// 게시글 작성
-export function useCreatePost() {
-  return useApiMutation(postCommand.create, {
-    showSuccessToast: true,
-    successMessage: '게시글이 작성되었습니다.'
-  });
-}
-
-// 게시글 수정
-export function useUpdatePost() {
-  return useApiMutation(
-    ({ id, data }: { id: number; data: Partial<Post> }) => postCommand.update({ ...data, id } as Post),
-    {
-      showSuccessToast: true,
-      successMessage: '게시글이 수정되었습니다.'
-    }
-  );
-}
-
-// 게시글 삭제
-export function useDeletePost() {
-  return useApiMutation(postCommand.delete, {
-    showSuccessToast: true,
-    successMessage: '게시글이 삭제되었습니다.'
-  });
-}
-
-// 게시글 좋아요
-export function useLikePost() {
-  return useApiMutation(postCommand.like, {
-    showErrorToast: false // 좋아요는 에러 토스트 표시 안 함
-  });
-}
+// 기존 API와의 호환성을 위해 re-export
+export {
+  useCreatePostMutation as useCreatePost,
+  useUpdatePostMutation as useUpdatePost,
+  useDeletePostMutation as useDeletePost,
+  useLikePostMutation as useLikePost
+};
 
 // 게시글 액션 통합 Hook (상세 페이지용)
 export function usePostActions(
@@ -136,20 +115,20 @@ export function usePostActions(
 
 // 간단한 게시글 액션 Hook
 export function usePostActionsSimple(postId: number) {
-  const { mutate: deletePost, isLoading: isDeleting } = useDeletePost();
-  const { mutate: likePost, isLoading: isLiking } = useLikePost();
-  const { mutate: updatePost, isLoading: isUpdating } = useUpdatePost();
+  const { mutate: deletePost, isPending: isDeleting } = useDeletePostMutation();
+  const { mutate: likePost, isPending: isLiking } = useLikePostMutation();
+  const { mutate: updatePost, isPending: isUpdating } = useUpdatePostMutation();
 
   const handleDelete = useCallback(async (password?: string) => {
-    await deletePost(postId);
+    deletePost(postId);
   }, [deletePost, postId]);
 
   const handleLike = useCallback(async () => {
-    await likePost(postId);
+    likePost(postId);
   }, [likePost, postId]);
 
   const handleUpdate = useCallback(async (data: Partial<Post>) => {
-    await updatePost({ id: postId, data });
+    updatePost({ postId, ...data } as { postId: number } & Post);
   }, [updatePost, postId]);
 
   return {

@@ -3,7 +3,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/bimillog?allowPublicKeyRetrieval=true&useSSL=false
     username: root
-    password: ${LOCAL_MYSQL_PASSWORD}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     
   jpa:
@@ -56,4 +56,4 @@ url: http://localhost:3000
 
 # 서버 설정
 server:
-  port: 8080
+  port: ${PROD_SERVER_PROT}

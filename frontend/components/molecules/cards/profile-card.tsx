@@ -25,7 +25,7 @@ import {
   Star,
 } from "lucide-react";
 import { User, userQuery, userCommand } from "@/lib/api";
-import { validateNickname } from "@/lib/utils/validation";
+import { validationRules } from "@/lib/utils/validation-helpers";
 import { useToast } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
 import { ToastContainer } from "@/components";
@@ -62,9 +62,9 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
     setNicknameInput(newNickname);
     setIsNicknameAvailable(null);
 
-    const { valid, message } = validateNickname(newNickname);
+    const { isValid: valid, error: message } = validationRules.nickname(newNickname);
     setIsNicknameFormatValid(valid);
-    setNicknameMessage(message);
+    setNicknameMessage(message || "");
   };
 
   const handleCheckNickname = async () => {

@@ -1,6 +1,4 @@
-// API Hooks (Legacy - useApiQuery, useApiMutation)
-export { useApiQuery } from './useApiQuery';
-export { useApiMutation } from './useApiMutation';
+// API Hooks (TanStack Query)
 
 // TanStack Query Hooks
 // User hooks
