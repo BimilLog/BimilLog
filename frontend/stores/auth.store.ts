@@ -44,22 +44,23 @@ export const useAuthStore = create<AuthState>()(
         refreshUser: async () => {
           try {
             const response = await authQuery.getCurrentUser();
-            
+
             if (response.success && response.data) {
-              set({ 
-                user: response.data, 
-                isAuthenticated: true 
+              set({
+                user: response.data,
+                isAuthenticated: true
               });
-              
+
               // 기존회원(로그인) 또는 신규회원(회원가입 완료) 시 SSE 연결
+              // userName이 있어야만 실시간 알림을 받을 수 있음 (회원가입 완료 상태)
               if (response.data.userName?.trim()) {
                 logger.log(`사용자 인증 완료 (${response.data.userName}) - SSE 연결 시작`);
                 sseManager.connect();
               }
             } else {
-              set({ 
-                user: null, 
-                isAuthenticated: false 
+              set({
+                user: null,
+                isAuthenticated: false
               });
               sseManager.disconnect();
             }
@@ -76,13 +77,16 @@ export const useAuthStore = create<AuthState>()(
         },
         
         login: (postAuthRedirectUrl?: string) => {
+          // 카카오 OAuth URL 생성을 위한 환경변수들
           const kakaoAuthUrl = process.env.NEXT_PUBLIC_KAKAO_AUTH_URL;
           const kakaoClientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
           const kakaoRedirectUri = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
           const responseType = "code";
-          
+
+          // 기본 카카오 OAuth URL 생성
           let url = `${kakaoAuthUrl}?response_type=${responseType}&client_id=${kakaoClientId}&redirect_uri=${kakaoRedirectUri}`;
-          
+
+          // 로그인 후 특정 페이지로 이동하고 싶은 경우 state 파라미터에 추가
           if (postAuthRedirectUrl) {
             url += `&state=${encodeURIComponent(postAuthRedirectUrl)}`;
           }
@@ -99,11 +103,12 @@ export const useAuthStore = create<AuthState>()(
           } catch (error) {
             logger.error("Logout failed:", error);
           } finally {
-            // 항상 SSE 연결 해제하고 상태 초기화
+            // API 호출 성공/실패 관계없이 항상 상태 초기화
+            // SSE 연결 해제하고 사용자 정보를 모두 제거
             sseManager.disconnect();
-            set({ 
-              user: null, 
-              isAuthenticated: false 
+            set({
+              user: null,
+              isAuthenticated: false
             });
           }
         },
@@ -181,8 +186,10 @@ export const useAuthStore = create<AuthState>()(
       }),
       {
         name: 'auth-storage',
-        partialize: (state) => ({ 
-          user: state.user 
+        // persist 설정: user 정보만 localStorage에 저장
+        // isLoading, isAuthenticated는 매번 새로 계산되므로 저장하지 않음
+        partialize: (state) => ({
+          user: state.user
         }),
       }
     )

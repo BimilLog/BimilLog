@@ -14,6 +14,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onGoToMyRollingPaper,
 }) => {
   return (
+    // 사용자가 자신의 닉네임을 검색했을 때 표시되는 확인 다이얼로그
     <Dialog open={isOpen} onOpenChange={onClose}>
       <div className="max-w-sm mx-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6">
         <div className="mb-4">
@@ -31,6 +32,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             </p>
 
             <div className="space-y-3">
+              {/* 내 롤링페이퍼로 이동하는 버튼 (주요 액션) */}
               <Button
                 onClick={onGoToMyRollingPaper}
                 className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-xl"
@@ -39,6 +41,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 내 롤링페이퍼 보기
               </Button>
 
+              {/* 다이얼로그 닫고 다른 닉네임 검색하기 (보조 액션) */}
               <Button
                 variant="outline"
                 onClick={onClose}

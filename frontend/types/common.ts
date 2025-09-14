@@ -4,10 +4,11 @@ export interface ApiResponse<T = unknown> {
   data?: T | null;
   error?: string;
   message?: string;
-  needsRelogin?: boolean;
+  needsRelogin?: boolean; // JWT 토큰 만료 시 true, 클라이언트에서 자동 로그아웃 처리
 }
 
 // Pagination Types
+// PageInfo: 프론트엔드 요청 시 사용하는 간단한 페이징 정보
 export interface PageInfo {
   page: number;
   size: number;
@@ -18,17 +19,18 @@ export interface PageInfo {
   number: number;
 }
 
+// PageResponse: Spring Data JPA가 반환하는 복잡한 페이징 응답 (백엔드 구조 그대로)
 export interface PageResponse<T> {
-  content: T[];
+  content: T[]; // 실제 데이터 배열
   totalElements: number;
   totalPages: number;
   first: boolean;
   last: boolean;
-  number: number;
+  number: number; // 현재 페이지 번호 (0부터 시작)
   size: number;
-  numberOfElements: number;
+  numberOfElements: number; // 현재 페이지의 실제 데이터 개수
   empty: boolean;
-  pageable?: {
+  pageable?: { // Spring Pageable 객체 정보 (정렬 등)
     pageNumber: number;
     pageSize: number;
     sort: {
@@ -63,6 +65,7 @@ export interface ErrorResponse {
 }
 
 // Loading States
+// 컴포넌트의 비동기 작업 상태를 관리 (TanStack Query와 별개로 사용)
 export type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 
 // Common Props

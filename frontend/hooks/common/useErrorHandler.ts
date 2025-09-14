@@ -48,9 +48,9 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
       appError.message = `[${context}] ${appError.message}`;
     }
 
-    // 자동 복구 시도 (향후 구현 예정)
+    // 에러 타입별 자동 복구: AUTH_ERROR 시 자동 로그아웃 처리
     if (enableAutoRecovery && appError.type === 'AUTH_ERROR') {
-      // 인증 에러시 자동 로그아웃 처리
+      // 세션 만료 또는 중복 로그인 감지 시 자동 로그아웃
       if (appError.message.includes('만료') || appError.message.includes('다른 기기')) {
         authStore.logout();
         router.push('/login');
@@ -61,7 +61,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     if (showToast) {
       const { title, message } = ErrorHandler.formatErrorForToast(appError);
 
-      // 에러 타입에 따라 다른 처리
+      // 에러 심각도별 토스트 타입 구분: 인증/권한은 경고, 나머지는 에러
       switch (appError.type) {
         case 'AUTH_ERROR':
         case 'PERMISSION_DENIED':

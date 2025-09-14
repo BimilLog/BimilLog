@@ -20,7 +20,7 @@ export default function EditPostPage() {
   const { showSuccess, showError, showWarning, toasts, removeToast } =
     useToast();
 
-  // params에서 id 추출
+  // params에서 id 추출 - useParams는 동적 라우트 매개변수를 가져옴
   useEffect(() => {
     if (params.id) {
       setPostId(Number.parseInt(params.id as string));
@@ -52,20 +52,21 @@ export default function EditPostPage() {
           setTitle(postData.title);
           setContent(postData.content);
 
+          // userId가 null 또는 0이면 비회원이 작성한 게시글
           const isGuestPost = postData.userId === null || postData.userId === 0;
           setIsGuest(isGuestPost);
 
-          // 회원 글일 경우 작성자만 권한 부여
+          // 회원 글일 경우 작성자만 권한 부여 - 본인 확인
           if (!isGuestPost) {
             if (isAuthenticated && user?.userId === postData.userId) {
               setIsAuthorized(true);
             } else {
-              // 회원 글인데 다른 사람이 접근
+              // 회원 글인데 다른 사용자가 접근한 경우 - 즉시 차단
               showError("권한 없음", "수정 권한이 없습니다.");
               router.push(`/board/post/${postId}`);
             }
           } else {
-            // 비회원 글의 경우 바로 수정 화면으로 (비밀번호는 수정 시 확인)
+            // 비회원 글의 경우 바로 수정 화면으로 이동 (비밀번호는 수정 시 검증)
             setIsAuthorized(true);
           }
         } else {
@@ -91,7 +92,7 @@ export default function EditPostPage() {
     }
     if (!post) return;
 
-    // 비밀번호 validation
+    // 비회원 게시글의 경우 비밀번호 검증 - 4자리 숫자 형식 확인
     let validatedPassword: number | undefined;
     try {
       validatedPassword = isGuest ? validatePassword(guestPassword, false) : undefined;
@@ -116,7 +117,7 @@ export default function EditPostPage() {
         showSuccess("수정 완료", "게시글이 성공적으로 수정되었습니다!");
         router.push(`/board/post/${postId}`);
       } else {
-        // 비밀번호 불일치 에러 처리
+        // 서버 응답의 에러 메시지 확인 - 비밀번호 불일치 특별 처리
         if (
           response.error &&
           response.error.includes("게시글 비밀번호가 일치하지 않습니다")
@@ -130,7 +131,7 @@ export default function EditPostPage() {
         }
       }
     } catch (error) {
-      // HTTP 에러 상태 처리
+      // HTTP 상태 코드 기반 에러 처리 - 403 Forbidden은 비밀번호 오류
       if (error instanceof Error && error.message.includes("403")) {
         showError("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
       } else {
@@ -202,6 +203,7 @@ export default function EditPostPage() {
                 </div>
                 {/* 모바일에서만 보이는 버튼 그룹 */}
                 <div className="sm:hidden flex items-center gap-2">
+                  {/* 미리보기 모드 토글 버튼 */}
                   <Button
                     variant="outline"
                     size="sm"
@@ -223,6 +225,7 @@ export default function EditPostPage() {
 
               {/* 우측: 버튼 그룹 (데스크톱) */}
               <div className="hidden sm:flex items-center gap-2">
+                {/* 편집/미리보기 모드 전환 버튼 */}
                 <Button
                   variant="outline"
                   onClick={() => setIsPreview(!isPreview)}
@@ -253,6 +256,7 @@ export default function EditPostPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* 편집/미리보기 모드에 따른 UI 전환 */}
               {!isPreview ? (
                 <>
                   {/* 제목 입력 */}

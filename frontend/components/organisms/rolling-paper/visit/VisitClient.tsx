@@ -11,10 +11,11 @@ import { HomeFooter } from "@/components/organisms/home";
 import { SearchSection } from "./SearchSection";
 
 // Dynamic imports for heavy components
+// 최근 방문 기록 컴포넌트를 동적 임포트로 로드하여 초기 페이지 로딩 속도 향상
 const RecentVisits = dynamic(
   () => import("@/components/organisms/rolling-paper/RecentVisits").then(mod => ({ default: mod.RecentVisits })),
   {
-    ssr: false,
+    ssr: false, // 서버사이드 렌더링 비활성화 (로컬스토리지 사용으로 인해)
     loading: () => (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
         <div className="h-6 bg-gray-200 rounded-lg mb-4 w-32"></div>
@@ -27,18 +28,21 @@ const RecentVisits = dynamic(
   }
 );
 
+// 확인 다이얼로그를 동적 임포트 (사용자가 자신의 롤링페이퍼를 검색했을 때만 표시)
 const ConfirmDialog = dynamic(
   () => import("./ConfirmDialog").then(mod => ({ default: mod.ConfirmDialog })),
   {
     ssr: false,
-    loading: () => null
+    loading: () => null // 다이얼로그는 로딩 상태 불필요
   }
 );
 
 export function VisitClient() {
+  // 사용자가 자신의 롤링페이퍼를 검색했을 때 표시할 확인 다이얼로그 상태
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const router = useRouter();
-  
+
+  // 롤링페이퍼 검색 관련 상태와 핸들러들
   const {
     searchNickname,
     setSearchNickname,
@@ -48,6 +52,7 @@ export function VisitClient() {
     handleKeyPress,
   } = useRollingPaperSearch();
 
+  // 확인 다이얼로그에서 "내 롤링페이퍼 보기" 클릭 시 처리
   const handleGoToMyRollingPaper = () => {
     setShowConfirmDialog(false);
     router.push("/rolling-paper");

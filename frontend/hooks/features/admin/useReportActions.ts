@@ -15,6 +15,7 @@ export function useReportActions(onSuccess?: () => void) {
       return false;
     }
 
+    // 제재 확인창: 되돌릴 수 없는 작업이므로 2중 확인
     const confirmBan = window.confirm(
       "정말로 이 사용자를 제재하시겠습니까? 이 작업은 되돌릴 수 없습니다."
     );
@@ -23,6 +24,7 @@ export function useReportActions(onSuccess?: () => void) {
 
     setIsProcessing(true);
     try {
+      // 신고 정보를 바탕으로 사용자 제재 처리
       const response = await adminCommand.banUser({
         reporterId: report.reporterId,
         reporterName: report.reporterName,
@@ -33,7 +35,7 @@ export function useReportActions(onSuccess?: () => void) {
 
       if (response.success) {
         showSuccess("사용자 제재 완료", "사용자가 성공적으로 제재되었습니다.");
-        onSuccess?.();
+        onSuccess?.(); // 콜백 실행하여 목록 새로고침 등 수행
         return true;
       } else {
         showError("제재 실패", response.error || "사용자 제재에 실패했습니다.");
@@ -54,6 +56,7 @@ export function useReportActions(onSuccess?: () => void) {
       return false;
     }
 
+    // 강제 탈퇴 확인창: 계정 완전 삭제 작업이므로 2중 확인
     const confirmWithdraw = window.confirm(
       "정말로 이 사용자를 강제 탈퇴시키시겠습니까? 이 작업은 되돌릴 수 없습니다."
     );
@@ -62,6 +65,7 @@ export function useReportActions(onSuccess?: () => void) {
 
     setIsProcessing(true);
     try {
+      // 강제 탈퇴 처리: 사용자 계정 및 관련 데이터 완전 삭제
       const response = await adminCommand.forceWithdrawUser({
         targetId: report.targetId,
         reportType: report.reportType,
@@ -70,7 +74,7 @@ export function useReportActions(onSuccess?: () => void) {
 
       if (response.success) {
         showSuccess("강제 탈퇴 완료", "사용자가 성공적으로 탈퇴 처리되었습니다.");
-        onSuccess?.();
+        onSuccess?.(); // 콜백 실행하여 목록 새로고침 등 수행
         return true;
       } else {
         showError("탈퇴 실패", response.error || "사용자 탈퇴에 실패했습니다.");

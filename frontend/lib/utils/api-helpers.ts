@@ -148,6 +148,8 @@ interface ParallelApiCall<T> {
 export const executeParallelApiCalls = async <T>(
   calls: ParallelApiCall<T>[]
 ): Promise<Record<string, T | null>> => {
+  // Promise.allSettled 사용으로 일부 호출 실패해도 나머지 계속 실행
+  // Promise.all과 달리 하나 실패해도 전체가 실패하지 않음
   const results = await Promise.allSettled(
     calls.map(async ({ name, call, options = {} }) => {
       const result = await executeApiCall(call, {
@@ -161,18 +163,21 @@ export const executeParallelApiCalls = async <T>(
   const finalResults: Record<string, T | null> = {};
   let hasError = false;
 
+  // allSettled 결과 처리: fulfilled/rejected 상태별로 분기
   results.forEach((result, index) => {
     const callName = calls[index].name;
 
     if (result.status === 'fulfilled') {
+      // 성공한 호출의 데이터 저장
       finalResults[callName] = result.value.result;
     } else {
+      // 실패한 호출은 null로 처리하여 부분 실패 허용
       finalResults[callName] = null;
       hasError = true;
     }
   });
 
-  // 전체 결과에 대한 토스트 (옵션)
+  // 전체 결과에 대한 토스트 (옵션) - 개별 에러가 아닌 전체 상황 알림
   if (hasError) {
     toast.error('일부 데이터를 불러오는데 실패했습니다.');
   }
@@ -204,6 +209,7 @@ export const executeApiWithRetry = async <T>(
 
   let lastError: unknown;
 
+  // 최대 재시도 횟수 + 1 (초기 시도 포함)만큼 반복
   for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
     try {
       return await executeApiCall(apiCall, {
@@ -213,16 +219,19 @@ export const executeApiWithRetry = async <T>(
     } catch (error) {
       lastError = error;
 
+      // 재시도 가능한 상황인지 확인 (최대 횟수 내, shouldRetry 조건 만족)
       if (attempt <= maxRetries && shouldRetry(error, attempt)) {
         if (onRetry) {
           onRetry(attempt, error);
         }
 
-        // 재시도 전 대기
+        // 지수 백오프 전략: 재시도 횟수에 비례해서 대기 시간 증가
+        // 1초 -> 2초 -> 3초... 서버 부하 분산 및 일시적 장애 복구 대기
         await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
         continue;
       }
 
+      // 재시도 불가능하거나 최대 횟수 초과 시 반복문 종료
       break;
     }
   }
@@ -233,6 +242,7 @@ export const executeApiWithRetry = async <T>(
 
 /**
  * API 응답 캐싱 헬퍼 (간단한 메모리 캐시)
+ * TTL(Time To Live) 기반 메모리 캐시로 불필요한 API 호출 감소
  */
 const apiCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
@@ -249,27 +259,28 @@ export const executeApiWithCache = async <T>(
 ): Promise<T | null> => {
   const { key, ttl = 5 * 60 * 1000, forceRefresh = false } = cacheOptions;
 
-  // 캐시 확인
+  // 캐시 확인 - forceRefresh가 false이고 해당 키의 캐시가 존재하는 경우
   if (!forceRefresh && apiCache.has(key)) {
     const cached = apiCache.get(key)!;
     const now = Date.now();
 
+    // TTL 검사: 현재 시간 - 캐시 생성 시간 < TTL이면 캐시 유효
     if (now - cached.timestamp < cached.ttl) {
-      return cached.data;
+      return cached.data; // 유효한 캐시 데이터 즉시 반환
     }
 
-    // 만료된 캐시 제거
+    // 만료된 캐시 제거하여 메모리 정리
     apiCache.delete(key);
   }
 
-  // API 호출
+  // 캐시 미스 또는 만료된 경우 실제 API 호출
   const result = await executeApiCall(apiCall, apiOptions);
 
-  // 성공 시 캐시 저장
+  // 성공 시에만 캐시 저장 - 실패한 응답은 캐싱하지 않음
   if (result !== null) {
     apiCache.set(key, {
       data: result,
-      timestamp: Date.now(),
+      timestamp: Date.now(), // 캐시 생성 시점 기록
       ttl
     });
   }

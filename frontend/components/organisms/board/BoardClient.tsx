@@ -42,14 +42,16 @@ function BoardClient() {
     setActiveTab: setPopularTab,
   } = usePopularPostsTabs();
 
-  // 탭별 데이터 분리
+  // 탭별 데이터 분리 - 인기글 API는 하나의 상태로 관리되지만 탭에 따라 다른 데이터를 표시
   const realtimePosts = popularTab === 'realtime' ? popularPostsData : [];
   const weeklyPosts = popularTab === 'weekly' ? popularPostsData : [];
   const legendPosts = popularTab === 'legend' ? popularPostsData : [];
 
   // 탭 변경 핸들러 메모이제이션
+  // 메인 탭(all/realtime/popular/legend)과 인기글 탭(realtime/weekly/legend) 동기화
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
+    // 메인 탭에 따라 인기글 데이터 API 호출 타입 변경
     if (tab === 'realtime' || tab === 'popular') {
       setPopularTab(tab === 'popular' ? 'weekly' : 'realtime');
     } else if (tab === 'legend') {
@@ -57,17 +59,18 @@ function BoardClient() {
     }
   }, [setPopularTab]);
 
-  // 탭 변경 시 메인 데이터 조회
+  // 탭 변경 시 메인 데이터 조회 - '전체' 탭일 때만 일반 게시글 API 호출
+  // 인기글 탭들은 usePopularPostsTabs 훅에서 별도로 관리됨
   useEffect(() => {
     if (activeTab === "all") {
       fetchPostsAndSearch();
     }
   }, [pagination.currentPage, activeTab, fetchPostsAndSearch]);
 
-  // postsPerPage 변경 시 처리
+  // 페이지당 게시글 수 변경 시 처리 - 첫 페이지로 리셋 후 새로운 페이지 크기 적용
   useEffect(() => {
     pagination.setPageSize(Number(postsPerPage));
-    pagination.setCurrentPage(0);
+    pagination.setCurrentPage(0); // 페이지 크기 변경 시 첫 페이지로 이동
   }, [postsPerPage]);
 
   return (

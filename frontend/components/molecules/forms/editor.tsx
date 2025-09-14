@@ -11,20 +11,38 @@ interface EditorProps {
   placeholder?: string;
 }
 
-// Quill 에디터 컴포넌트를 dynamic import로 로드
+/**
+ * Quill 에디터 컴포넌트 - 게시글 작성 시 사용되는 리치 텍스트 에디터
+ * SSR 이슈 방지를 위해 dynamic import 사용
+ * Quill 2.0 호환성 및 안정성을 위한 복합적 초기화 로직 포함
+ */
 const QuillEditor: React.FC<EditorProps> = ({
   value,
   onChange,
   placeholder = "내용을 입력하세요...",
 }) => {
+  // DOM 요소 및 Quill 인스턴스 참조
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<any>(null);
+
+  // 중복 초기화 방지를 위한 플래그
   const isInitializing = useRef(false);
+
+  // 에디터 상태 관리
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    /**
+     * Quill 에디터 초기화 함수
+     * 복잡한 초기화 과정이 필요한 이유:
+     * 1. SSR 환경에서 window 객체 접근 방지
+     * 2. 중복 초기화 방지
+     * 3. Quill 2.0 버전의 CSS 동적 로딩
+     * 4. 브라우저 호환성 문제 해결
+     */
     const initQuill = async () => {
+      // 초기화 조건 체크: 서버사이드/DOM 미준비/중복 초기화 방지
       if (
         typeof window === "undefined" ||
         !editorRef.current ||
@@ -38,10 +56,14 @@ const QuillEditor: React.FC<EditorProps> = ({
         isInitializing.current = true;
         logger.log("Quill 에디터 초기화를 시작합니다...");
 
-        // Quill을 동적으로 import
+        // Quill 라이브러리를 동적으로 import (번들 크기 최적화)
         const { default: Quill } = await import("quill");
 
-        // Quill 2.0에 맞는 CSS를 동적으로 로드
+        /**
+         * CSS 동적 로딩 함수
+         * Quill 2.0은 CSS가 별도 로딩되어야 하므로 수동 로딩
+         * 중복 로딩 방지 및 에러 핸들링 포함
+         */
         const loadCSS = (href: string, id: string) => {
           return new Promise<void>((resolve, reject) => {
             if (document.querySelector(`#${id}`)) {
@@ -60,7 +82,7 @@ const QuillEditor: React.FC<EditorProps> = ({
           });
         };
 
-        // CSS 로드 대기
+        // Quill CSS 파일들을 병렬로 로드
         await Promise.all([
           loadCSS(
             "https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.core.css",
@@ -72,10 +94,14 @@ const QuillEditor: React.FC<EditorProps> = ({
           ),
         ]);
 
-        // CSS가 완전히 적용될 때까지 추가 대기
+        // CSS 스타일 적용 대기 (렌더링 완료 보장)
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // Quill 인스턴스 생성 - Quill 2.0 호환성을 위한 안전한 설정
+        /**
+         * Quill 인스턴스 생성
+         * toolbar와 formats를 Quill 2.0에 맞게 안전하게 설정
+         * 커뮤니티 게시글 작성에 필요한 기본적인 서식만 포함
+         */
         quillRef.current = new Quill(editorRef.current, {
           theme: "snow",
           placeholder: placeholder,
@@ -91,7 +117,7 @@ const QuillEditor: React.FC<EditorProps> = ({
               ["clean"],
             ],
           },
-          // Quill 2.0에서 안전한 기본 포맷들만 사용
+          // XSS 방지를 위해 안전한 포맷들만 허용
           formats: [
             "header",
             "bold",
@@ -110,7 +136,11 @@ const QuillEditor: React.FC<EditorProps> = ({
 
         const quill = quillRef.current;
 
-        // 내용 변경 이벤트 리스너
+        /**
+         * 텍스트 변경 이벤트 리스너 설정
+         * getSemanticHTML() 메서드 사용을 우선하되,
+         * 없을 경우 innerHTML로 폴백 (Quill 버전 호환성)
+         */
         quill.on("text-change", () => {
           try {
             const content = quill.getSemanticHTML
@@ -123,7 +153,7 @@ const QuillEditor: React.FC<EditorProps> = ({
           }
         });
 
-        // 초기 값 설정
+        // 기존 내용이 있는 경우 에디터에 설정
         if (value) {
           try {
             const delta = quill.clipboard.convert({ html: value });
@@ -134,11 +164,14 @@ const QuillEditor: React.FC<EditorProps> = ({
           }
         }
 
-        // SVG 아이콘 문제 해결을 위한 추가 처리
+        /**
+         * SVG 아이콘 렌더링 문제 해결
+         * Quill이 SVG 아이콘을 텍스트로 잘못 렌더링하는 경우가 있어
+         * 툴바 버튼에서 잘못된 텍스트 노드를 제거
+         */
         setTimeout(() => {
           const toolbar = editorRef.current?.querySelector(".ql-toolbar");
           if (toolbar) {
-            // 잘못된 텍스트 노드 제거
             const buttons = toolbar.querySelectorAll("button");
             buttons.forEach((button) => {
               const textNodes = Array.from(button.childNodes).filter(
@@ -167,7 +200,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 
     initQuill();
 
-    // 컴포넌트 언마운트 시 정리
+    // 컴포넌트 언마운트 시 메모리 누수 방지를 위한 정리
     return () => {
       if (quillRef.current) {
         try {
@@ -180,7 +213,10 @@ const QuillEditor: React.FC<EditorProps> = ({
     };
   }, [onChange, placeholder]);
 
-  // value prop 변경 시 에디터 내용 업데이트
+  /**
+   * 외부에서 value prop이 변경되었을 때 에디터 내용 동기화
+   * 무한 루프 방지를 위해 실제 내용이 다를 때만 업데이트
+   */
   useEffect(() => {
     if (quillRef.current && isReady && !error) {
       try {
@@ -198,7 +234,11 @@ const QuillEditor: React.FC<EditorProps> = ({
     }
   }, [value, isReady, error]);
 
-  // 에러 발생 시 폴백 에디터 렌더링
+  /**
+   * 에러 발생 시 폴백 에디터 렌더링
+   * Quill 로드 실패 시에도 기본 텍스트 입력이 가능하도록 함
+   * HTML 태그는 제거하여 플레인 텍스트로 편집
+   */
   if (error) {
     return (
       <div className="w-full">
@@ -224,6 +264,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 
   return (
     <div className="w-full relative">
+      {/* Quill 에디터가 마운트될 DOM 요소 */}
       <div
         ref={editorRef}
         className="bg-white min-h-[200px] rounded-lg"
@@ -232,6 +273,7 @@ const QuillEditor: React.FC<EditorProps> = ({
           lineHeight: "1.5",
         }}
       />
+      {/* 에디터 초기화 중 로딩 오버레이 */}
       {!isReady && (
         <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-lg z-10">
           <div className="flex flex-col items-center gap-2">
@@ -244,7 +286,10 @@ const QuillEditor: React.FC<EditorProps> = ({
   );
 };
 
-// 로딩 컴포넌트
+/**
+ * 에디터 로딩 중 표시되는 컴포넌트
+ * dynamic import 대기 시간 동안 사용자에게 로딩 상태를 보여줌
+ */
 const EditorLoading = () => (
   <div className="relative min-h-[200px] bg-white rounded-lg border border-gray-200 flex items-center justify-center">
     <div className="flex flex-col items-center gap-2">
@@ -254,7 +299,11 @@ const EditorLoading = () => (
   </div>
 );
 
-// Dynamic import로 SSR 문제 해결
+/**
+ * 메인 에디터 컴포넌트 (Dynamic Import)
+ * SSR 환경에서 window 객체 접근 문제를 방지하기 위해
+ * 클라이언트 사이드에서만 로드되도록 설정
+ */
 const Editor = dynamic(() => Promise.resolve(QuillEditor), {
   ssr: false,
   loading: () => <EditorLoading />,

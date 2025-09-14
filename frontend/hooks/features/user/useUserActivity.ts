@@ -24,17 +24,19 @@ export function useActivityData<T>({ fetchData }: UseActivityDataOptions<T>) {
   const [totalElements, setTotalElements] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+  // 활동 데이터 로드: 일반 로드와 더보기(무한 스크롤) 로드를 구분하여 처리
   const loadData = async (page = 0, append = false) => {
     try {
       if (!append) {
-        setIsLoading(true);
+        setIsLoading(true);  // 첫 로드 시 전체 로딩 상태
       } else {
-        setIsLoadingMore(true);
+        setIsLoadingMore(true);  // 더보기 시 추가 로딩 상태
       }
       setError(null);
 
       const result = await fetchData(page, 10);
 
+      // append가 true면 기존 데이터에 추가, false면 새로 교체
       if (append) {
         setItems((prev) => [...prev, ...result.content]);
       } else {
@@ -57,12 +59,14 @@ export function useActivityData<T>({ fetchData }: UseActivityDataOptions<T>) {
     loadData(0);
   }, [fetchData]);
 
+  // 무한 스크롤을 위한 더보기 처리: 다음 페이지가 있을 때만 실행
   const handleLoadMore = () => {
     if (currentPage < totalPages - 1) {
       loadData(currentPage + 1, true);
     }
   };
 
+  // 페이지 직접 변경: 스크롤을 맨 위로 이동하여 UX 개선
   const handlePageChange = (page: number) => {
     if (page >= 0 && page < totalPages) {
       loadData(page);

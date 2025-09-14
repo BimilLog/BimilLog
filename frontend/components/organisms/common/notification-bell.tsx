@@ -34,18 +34,27 @@ import { isMobileOrTablet } from "@/lib/utils";
 import { useAuth } from "@/hooks";
 import { formatKoreanDate } from "@/lib/utils/date";
 
+/**
+ * 실시간 알림 벨 컴포넌트
+ * - SSE 연결을 통한 실시간 알림 수신
+ * - 모바일/데스크톱 환경별 UI 분기 (Sheet vs Popover)
+ * - TanStack Query 기반 알림 상태 관리
+ * - 알림 읽음/삭제 처리 및 일괄 처리 지원
+ */
+
 export function NotificationBell() {
+  // 알림 패널 열림/닫힘 상태 관리
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // TanStack Query Hooks
+  // TanStack Query 기반 알림 데이터 관리
   const { data: notificationResponse, isLoading, refetch } = useNotificationList();
   const markAsReadMutation = useMarkNotificationAsRead();
   const deleteNotificationMutation = useDeleteNotification();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteAllNotificationsMutation = useDeleteAllNotifications();
 
-  // SSE Hook
+  // SSE(Server-Sent Events) 실시간 연결 관리
   const {
     isSSEConnected,
     connectionState,
@@ -53,11 +62,11 @@ export function NotificationBell() {
     requestNotificationPermission,
   } = useNotifications();
 
-  // 알림 데이터 계산
+  // API 응답에서 알림 데이터 추출 및 읽지 않은 알림 개수 계산
   const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  // Handler 함수들
+  // 알림 처리 핸들러 함수들 (TanStack Query mutation 실행)
   const handleMarkAsRead = (notificationId: number) => {
     markAsReadMutation.mutate(notificationId);
   };
@@ -74,14 +83,16 @@ export function NotificationBell() {
     deleteAllNotificationsMutation.mutate();
   };
 
+  // 알림 목록 수동 새로고침
   const handleFetchNotifications = () => {
     refetch();
   };
 
-  // 인증되지 않았거나 SSE 연결 조건을 만족하지 않으면 숨김
+  // 인증되지 않은 사용자이거나 SSE 연결 조건을 만족하지 않으면 컴포넌트 숨김
+  // (브라우저 호환성, HTTPS 환경 등 SSE 연결 요구사항 체크)
   if (!isAuthenticated || !canConnectSSE()) return null;
 
-  // 알림 벨 클릭 시 자동 새로고침
+  // 알림 패널 열기/닫기 처리 (열릴 때 자동으로 새로고침 실행)
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
     if (open && canConnectSSE()) {
@@ -89,44 +100,47 @@ export function NotificationBell() {
     }
   };
 
-  // 수동 새로고침
+  // 새로고침 버튼 클릭 핸들러
   const handleRefresh = () => {
     if (canConnectSSE()) {
       handleFetchNotifications();
     }
   };
 
-  // 알림 읽음 처리
+  // 개별 알림 클릭 시 실행되는 핸들러 (읽음 처리 + 페이지 이동)
   const handleNotificationClick = async (notification: { id: number; isRead: boolean; url?: string }) => {
+    // 읽지 않은 알림인 경우 자동으로 읽음 처리
     if (!notification.isRead) {
       handleMarkAsRead(notification.id);
     }
 
-    // URL이 있으면 이동
+    // 알림에 연결된 URL이 있으면 해당 페이지로 이동
     if (notification.url) {
       window.location.href = notification.url;
     }
   };
 
-  // 알림 타입별 아이콘 매핑 - v2 NotificationType 호환
+  // 백엔드 v2.0 NotificationType enum과 매핑되는 아이콘 반환
+  // 각 알림 유형별로 시각적으로 구분되는 아이콘과 색상 적용
   const getNotificationIcon = (notificationType: string) => {
     switch (notificationType) {
       case "PAPER":
-        return <Leaf className="w-4 h-4 text-green-600" />;
+        return <Leaf className="w-4 h-4 text-green-600" />; // 롤링페이퍼 알림
       case "COMMENT":
-        return <MessageSquare className="w-4 h-4 text-blue-600" />;
+        return <MessageSquare className="w-4 h-4 text-blue-600" />; // 댓글 알림
       case "POST_FEATURED":
-        return <Star className="w-4 h-4 text-yellow-600" />;
+        return <Star className="w-4 h-4 text-yellow-600" />; // 게시글 추천 알림
       case "ADMIN":
-        return <Shield className="w-4 h-4 text-red-600" />;
+        return <Shield className="w-4 h-4 text-red-600" />; // 관리자 알림
       case "INITIATE":
-        return <Bell className="w-4 h-4 text-gray-600" />;
+        return <Bell className="w-4 h-4 text-gray-600" />; // 일반 시스템 알림
       default:
-        return <Bell className="w-4 h-4 text-gray-600" />;
+        return <Bell className="w-4 h-4 text-gray-600" />; // 기본 알림
     }
   };
 
-  // 상대 시간 표시
+  // 사용자 친화적인 상대 시간 표시 ("방금 전", "5분 전", "2시간 전" 등)
+  // 30일 이상 된 알림은 한국 날짜 형식으로 표시
   const getRelativeTime = (createdAt: string) => {
     const now = new Date();
     const notificationTime = new Date(createdAt);
@@ -146,15 +160,16 @@ export function NotificationBell() {
     return formatKoreanDate(notificationTime.toISOString());
   };
 
-  // 모바일 환경인지 확인
+  // 현재 디바이스가 모바일/태블릿인지 감지 (UI 분기를 위한 용도)
   const isMobile = typeof window !== "undefined" && isMobileOrTablet();
 
+  // 알림 패널 내용을 렌더링하는 공통 컴포넌트 (모바일/데스크톱에서 재사용)
   const NotificationContent = () => (
     <div className="w-full max-w-md mx-auto">
-      {/* 스크린 리더용 제목 (숨김) - 모바일(Sheet)에서만 */}
+      {/* 접근성: 스크린 리더용 제목 (모바일 Sheet에서만 필요) */}
       {isMobile && <SheetTitle className="sr-only">알림</SheetTitle>}
 
-      {/* 헤더 */}
+      {/* 알림 패널 헤더 (제목, 새로고침, 브라우저 알림 허용 버튼) */}
       <div className="flex items-center justify-between p-4 border-b bg-white/50">
         <div className="flex items-center space-x-2">
           <Bell className="w-5 h-5 text-gray-700" />
@@ -163,6 +178,7 @@ export function NotificationBell() {
           </h2>
         </div>
         <div className="flex items-center space-x-2">
+          {/* 수동 새로고침 버튼 (로딩 중에는 회전 애니메이션) */}
           <Button
             variant="ghost"
             size="sm"
@@ -175,6 +191,7 @@ export function NotificationBell() {
               className={`w-3 h-3 ${isLoading ? "animate-spin" : ""}`}
             />
           </Button>
+          {/* 브라우저 푸시 알림 권한 요청 버튼 */}
           <Button
             variant="ghost"
             size="sm"
@@ -187,10 +204,11 @@ export function NotificationBell() {
         </div>
       </div>
 
-      {/* 전체 액션 버튼 */}
+      {/* 일괄 처리 버튼 영역 (알림이 있을 때만 표시) */}
       {notifications.length > 0 && (
         <div className="p-4 bg-gray-50/80 border-b">
           <div className="flex space-x-2">
+            {/* 모든 알림 읽음 처리 버튼 (읽지 않은 알림이 있을 때만 표시) */}
             {unreadCount > 0 && (
               <Button
                 variant="outline"
@@ -203,6 +221,7 @@ export function NotificationBell() {
                 모두 읽음
               </Button>
             )}
+            {/* 모든 알림 삭제 버튼 */}
             <Button
               variant="outline"
               size="sm"
@@ -217,18 +236,18 @@ export function NotificationBell() {
         </div>
       )}
 
-      {/* 배치 처리는 TanStack Query에서 자동 관리됨 */}
-
-      {/* 알림 목록 */}
+      {/* 알림 목록 컨테이너 (디바이스별 최적화된 높이 설정) */}
       <div
         className={`${isMobile ? "max-h-[50vh]" : "max-h-96"} overflow-y-auto`}
       >
+        {/* 로딩 상태 */}
         {isLoading ? (
           <div className="p-8 text-center">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gray-400" />
             <p className="text-sm text-gray-500">알림을 불러오는 중...</p>
           </div>
         ) : notifications.length > 0 ? (
+          /* 알림 목록 렌더링 */
           <div className="divide-y divide-gray-100">
             {notifications.map((notification) => (
               <div
@@ -241,10 +260,12 @@ export function NotificationBell() {
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex items-start space-x-3">
+                  {/* 알림 유형별 아이콘 */}
                   <div className="flex-shrink-0 mt-0.5">
                     {getNotificationIcon(notification.notificationType)}
                   </div>
                   <div className="flex-1 min-w-0">
+                    {/* 알림 내용 (읽지 않은 알림은 굵게 표시) */}
                     <p
                       className={`text-sm ${
                         !notification.isRead
@@ -255,17 +276,20 @@ export function NotificationBell() {
                       {notification.content}
                     </p>
                     <div className="flex items-center justify-between mt-1">
+                      {/* 상대 시간 표시 */}
                       <div className="flex items-center space-x-2 text-xs text-gray-500">
                         <Clock className="w-3 h-3" />
                         <span>{getRelativeTime(notification.createdAt)}</span>
                       </div>
+                      {/* 개별 알림 액션 버튼들 */}
                       <div className="flex items-center space-x-1">
+                        {/* 읽음 처리 버튼 (읽지 않은 알림에만 표시) */}
                         {!notification.isRead && (
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={(e) => {
-                              e.stopPropagation();
+                              e.stopPropagation(); // 부모 onClick 이벤트 차단
                               handleMarkAsRead(notification.id);
                             }}
                             className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700"
@@ -274,11 +298,12 @@ export function NotificationBell() {
                             <Eye className="w-3 h-3" />
                           </Button>
                         )}
+                        {/* 알림 삭제 버튼 */}
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation();
+                            e.stopPropagation(); // 부모 onClick 이벤트 차단
                             handleDeleteNotification(notification.id);
                           }}
                           className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
@@ -294,6 +319,7 @@ export function NotificationBell() {
             ))}
           </div>
         ) : (
+          /* 알림이 없을 때 표시되는 빈 상태 */
           <div className="p-8 text-center">
             <BellOff className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p className="text-sm text-gray-500 mb-2">알림이 없습니다</p>
@@ -304,7 +330,7 @@ export function NotificationBell() {
         )}
       </div>
 
-      {/* 연결 상태 (개발 모드) */}
+      {/* SSE 연결 상태 표시 (개발 모드에서만 표시되는 디버깅 정보) */}
       {process.env.NODE_ENV === "development" && (
         <div className="p-3 bg-gray-100/80 border-t">
           <div className="flex items-center justify-between text-xs">
@@ -330,8 +356,9 @@ export function NotificationBell() {
     </div>
   );
 
-  // 모바일에서는 Sheet(바텀시트) 사용, 데스크톱에서는 기존 Popover 스타일 유지
+  // 디바이스별 UI 분기: 모바일은 바텀 시트, 데스크톱은 팝오버 카드 형태
   if (isMobile) {
+    // 모바일/태블릿: 바텀 시트(Sheet) UI 사용
     return (
       <Sheet open={isOpen} onOpenChange={handleOpen}>
         <SheetTrigger asChild>
@@ -343,11 +370,13 @@ export function NotificationBell() {
               unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""
             }`}
           >
+            {/* SSE 연결 상태에 따른 벨 아이콘 변화 */}
             {isSSEConnected ? (
               <Bell className="w-5 h-5" />
             ) : (
               <BellOff className="w-5 h-5 text-gray-400" />
             )}
+            {/* 읽지 않은 알림 개수 배지 (99개 이상은 99+로 표시) */}
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
                 {unreadCount > 99 ? "99+" : unreadCount}
@@ -355,6 +384,7 @@ export function NotificationBell() {
             )}
           </Button>
         </SheetTrigger>
+        {/* 화면 하단에서 올라오는 바텀 시트 (모바일 UX 최적화) */}
         <SheetContent side="bottom" className="h-[80vh] p-0">
           <NotificationContent />
         </SheetContent>
@@ -362,7 +392,7 @@ export function NotificationBell() {
     );
   }
 
-  // 데스크톱 버전 (기존 Card 스타일)
+  // 데스크톱: 팝오버 카드 형태의 전통적인 드롭다운 UI
   return (
     <div className="relative">
       <Button
@@ -372,11 +402,13 @@ export function NotificationBell() {
         className="relative"
         title={`알림 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`}
       >
+        {/* SSE 연결 상태에 따른 벨 아이콘 변화 */}
         {isSSEConnected ? (
           <Bell className="w-5 h-5" />
         ) : (
           <BellOff className="w-5 h-5 text-gray-400" />
         )}
+        {/* 읽지 않은 알림 개수 배지 */}
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -384,6 +416,7 @@ export function NotificationBell() {
         )}
       </Button>
 
+      {/* 데스크톱 전용 팝오버 (우측 상단에서 아래로 펼쳐지는 드롭다운) */}
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 z-50">
           <Card className="w-80 shadow-xl border-0 bg-white/90 backdrop-blur-sm">

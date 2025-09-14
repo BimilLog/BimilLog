@@ -38,12 +38,13 @@ export function isPageResponse<T>(data: unknown): data is PageResponse<T> {
     'number', 'size', 'numberOfElements', 'empty'
   ] as const;
 
-  // 필수 필드 검증
+  // 필수 필드 검증 - Spring Data의 Page 인터페이스 구조에 맞춰 모든 필드 존재 여부와 타입 검사
   for (const field of requiredFields) {
     if (!(field in data)) return false;
 
     const value = (data as Record<string, unknown>)[field];
 
+    // 필드별 타입 검증: content는 배열, boolean 플래그들은 boolean, 나머지는 숫자
     if (field === 'content') {
       if (!Array.isArray(value)) return false;
     } else if (field === 'first' || field === 'last' || field === 'empty') {
@@ -77,7 +78,8 @@ export function validateResponseData<T>(
     return null;
   }
 
-  // 커스텀 validator가 있으면 사용
+  // 동적 타입 검증 로직 - 런타임에서 타입 안전성 보장
+  // 커스텀 validator 함수가 제공된 경우 데이터 구조를 검증하여 타입 가드 역할 수행
   if (validator && !validator(response.data)) {
     logger.warn('Response data validation failed:', response.data);
     return null;

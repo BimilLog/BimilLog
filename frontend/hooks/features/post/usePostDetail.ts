@@ -62,14 +62,17 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     }
   }, [id, router]);
 
+  // 댓글 트리 구조 빌드: parentId를 기반으로 평면 배열을 계층 구조로 변환
   const buildCommentTree = useCallback((comments: Comment[]): CommentWithReplies[] => {
     const commentMap = new Map<number, CommentWithReplies>();
     const rootComments: CommentWithReplies[] = [];
 
+    // 모든 댓글을 Map에 저장하여 빠른 조회가 가능하도록 함
     comments.forEach((comment) => {
       commentMap.set(comment.id, { ...comment, replies: [] });
     });
 
+    // 부모-자식 관계 설정: parentId가 있으면 해당 부모의 replies에 추가
     comments.forEach((comment) => {
       if (comment.parentId && commentMap.has(comment.parentId)) {
         const parent = commentMap.get(comment.parentId)!;
@@ -123,19 +126,20 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     return count;
   };
 
-  // Permission checks
+  // 권한 체크: 익명 게시글은 비로그인 사용자만 수정 가능, 로그인 게시글은 작성자만 수정 가능
   const canModify = () => {
     if (!post || loading) return false;
     if (post.userName === "익명" || post.userName === null) {
-      return !isAuthenticated;
+      return !isAuthenticated;  // 익명 게시글은 로그인하지 않은 사용자만 수정 가능
     }
-    return isAuthenticated && user?.userName === post.userName;
+    return isAuthenticated && user?.userName === post.userName;  // 로그인 게시글은 작성자만 수정 가능
   };
 
   const isMyComment = (comment: Comment) => {
     return isAuthenticated && user?.userName === comment.userName;
   };
 
+  // 댓글 권한 체크: 익명 댓글은 비로그인 사용자만, 로그인 댓글은 작성자만 수정 가능
   const canModifyComment = (comment: Comment) => {
     if (comment.userName === "익명" || comment.userName === null) {
       return !isAuthenticated;

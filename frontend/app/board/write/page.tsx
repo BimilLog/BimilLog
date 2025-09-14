@@ -9,7 +9,9 @@ import { useWriteForm } from "@/hooks/features";
 import { AuthHeader, WritePageHeader, Breadcrumb } from "@/components";
 
 // WriteForm을 동적 import로 변경하여 Editor 컴포넌트 최적화
+// Quill Editor는 무거운 라이브러리이므로 필요할 때만 로드하여 초기 번들 크기 감소
 const WriteForm = dynamic(() => import("@/components").then(mod => ({ default: mod.WriteForm })), {
+  // 컴포넌트 로딩 중 표시할 스피너
   loading: () => (
     <div className="flex items-center justify-center p-8">
       <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -17,14 +19,17 @@ const WriteForm = dynamic(() => import("@/components").then(mod => ({ default: m
       </div>
     </div>
   ),
-  ssr: false, // Editor는 클라이언트에서만 렌더링
+  // Quill Editor는 window 객체를 사용하므로 서버사이드 렌더링 비활성화
+  ssr: false,
 });
 
 export default function WritePostPage() {
   const { isLoading } = useAuth();
 
+  // useWriteForm 훅에서 폼 상태와 액션들을 한 번에 가져옴
+  // TanStack Query mutation과 로컬 상태가 결합된 통합 훅
   const {
-    // Form states
+    // 폼 입력 상태들
     title,
     setTitle,
     content,
@@ -35,11 +40,11 @@ export default function WritePostPage() {
     isPreview,
     setIsPreview,
 
-    // Form actions
+    // 폼 액션들
     handleSubmit,
     isFormValid,
 
-    // User info
+    // 사용자 정보 (회원/비회원 구분용)
     user,
     isAuthenticated,
   } = useWriteForm();
@@ -83,6 +88,8 @@ export default function WritePostPage() {
             ]}
           />
         </div>
+        {/* WriteForm에 필요한 모든 상태와 핸들러를 props로 전달 */}
+        {/* 회원/비회원에 따라 다른 폼 필드가 렌더링됨 */}
         <WriteForm
           title={title}
           setTitle={setTitle}
@@ -90,8 +97,8 @@ export default function WritePostPage() {
           setContent={setContent}
           password={password}
           setPassword={setPassword}
-          user={user}
-          isAuthenticated={isAuthenticated}
+          user={user} // 사용자 정보 (회원일 때만 존재)
+          isAuthenticated={isAuthenticated} // 로그인 여부로 폼 UI 조건부 렌더링
           isPreview={isPreview}
         />
       </div>

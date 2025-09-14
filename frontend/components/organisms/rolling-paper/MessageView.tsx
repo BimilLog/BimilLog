@@ -26,13 +26,15 @@ export const MessageView: React.FC<MessageViewProps> = ({
 }) => {
   const decoInfo = getDecoInfo(message.decoType);
 
-  // RollingPaperMessage 타입 가드
+  // RollingPaperMessage 타입 가드: content와 anonymity 필드 존재로 구분
+  // VisitMessage는 작성자만 볼 수 있는 메시지이므로 구조가 다름
   const isRollingPaperMessage = (
     msg: RollingPaperMessage | VisitMessage
   ): msg is RollingPaperMessage => {
     return "content" in msg && "anonymity" in msg;
   };
 
+  // 메시지 삭제 처리: RollingPaperMessage만 삭제 가능, 확인창 후 API 호출
   const handleDelete = async () => {
     if (!isRollingPaperMessage(message)) return;
 
@@ -43,7 +45,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
     try {
       const response = await paperCommand.deleteMessage(message.id);
       if (response.success) {
-        onDelete?.();
+        onDelete?.(); // 상위 컴포넌트에 삭제 완료 알림 (목록 새로고침 등)
         onDeleteSuccess?.("메시지가 성공적으로 삭제되었습니다.");
       } else {
         onDeleteError?.("메시지 삭제에 실패했습니다.");
@@ -75,6 +77,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
             >
               {decoInfo.name}
             </Badge>
+            {/* 익명 닉네임 배지: RollingPaperMessage만 표시, 비어있으면 '익명' 기본값 */}
             {isRollingPaperMessage(message) && (
               <Badge
                 variant="outline"
@@ -87,6 +90,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
             )}
           </div>
         </div>
+        {/* 메시지 내용 표시: RollingPaperMessage는 내용 표시, VisitMessage는 잠금 메시지 */}
         {isRollingPaperMessage(message) ? (
           <p className="text-gray-800 leading-relaxed font-medium">
             {message.content}
@@ -102,6 +106,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
         <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
         <div className="absolute bottom-3 left-3 w-2 h-2 bg-pink-300 rounded-full animate-pulse delay-500"></div>
 
+        {/* 삭제 버튼: 롤링페이퍼 소유자에게만 표시 */}
         {isOwner && (
           <div className="flex justify-end pt-4 border-t border-white/30">
             <Button

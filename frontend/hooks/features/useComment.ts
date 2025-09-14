@@ -20,7 +20,7 @@ export {
 } from '@/hooks/api/useCommentMutations';
 
 // ============ LEGACY COMMENT ACTION HOOKS ============
-// 기존 PostDetailClient에서 사용하는 훅들을 유지 (점진적 마이그레이션을 위함)
+// Legacy 호환: 기존 PostDetailClient 컴포넌트와의 호환성 유지 (점진적 마이그레이션을 위함)
 
 /**
  * 댓글 액션 통합 Hook (기존 PostDetailClient용 - Legacy)
@@ -40,6 +40,7 @@ export const useCommentActions = (
 
       setIsSubmitting(true);
       try {
+        // 댓글 작성 API 호출: password는 숫자로 변환하여 전달 (익명 댓글 비밀번호)
         const response = await commentCommand.create({
           postId: Number(postId),
           content,

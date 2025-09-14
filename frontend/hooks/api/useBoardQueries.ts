@@ -26,6 +26,7 @@ export const useBoardSearch = (
   return useQuery({
     queryKey: queryKeys.post.search(query, page),
     queryFn: () => postQuery.search(searchType, query, page, size),
+    // 검색어가 있을 때만 쿼리 실행 - 불필요한 API 호출 방지
     enabled: !!query && query.trim().length > 0,
     staleTime: 5 * 60 * 1000,
   });

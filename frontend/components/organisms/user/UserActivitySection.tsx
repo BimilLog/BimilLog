@@ -44,7 +44,7 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
     retry,
   } = useActivityData({ fetchData });
 
-  // 페이지네이션 핸들러 최적화
+  // 페이지네이션 핸들러: 이전/다음 페이지 이동 시 불필요한 리렌더링 방지를 위해 useCallback 사용
   const handlePreviousPage = useCallback(() => {
     handlePageChange(currentPage - 1);
   }, [handlePageChange, currentPage]);
@@ -53,27 +53,31 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
     handlePageChange(currentPage + 1);
   }, [handlePageChange, currentPage]);
 
-  // 페이지 번호 생성 메모화
+  // 페이지 번호 배열 생성: 현재 페이지 중심으로 최대 5개 페이지 표시
+  // 예: 현재 페이지 5일 때 [3, 4, 5, 6, 7] 형태로 생성
   const pageNumbers = useMemo(() => {
     const pages = [];
-    const maxPages = Math.min(5, totalPages);
+    const maxPages = Math.min(5, totalPages); // 최대 5개 페이지만 표시
     for (let i = 0; i < maxPages; i++) {
+      // 현재 페이지를 중심으로 앞뒤 2페이지씩 계산
       const pageNum = Math.max(0, Math.min(currentPage - 2 + i, totalPages - 1));
       if (pageNum >= 0 && pageNum < totalPages) {
         pages.push(pageNum);
       }
     }
+    // 중복 제거 후 정렬하여 반환 (Set으로 중복 제거, sort로 오름차순 정렬)
     return [...new Set(pages)].sort((a, b) => a - b);
   }, [currentPage, totalPages]);
 
-  // 컨텐츠 타입별 설정 메모화
+  // 컨텐츠 타입별 UI 설정: "posts"/"comments", "liked" 여부에 따라 배지와 플래그 설정
+  // 문자열 분석을 통해 게시글/댓글, 좋아요 여부 판단하여 적절한 배지 색상 적용
   const contentConfig = useMemo(() => {
     const isPost = contentType.includes("posts");
     const isLiked = contentType.includes("liked");
     return {
       isPost,
       isLiked,
-      badge: isPost 
+      badge: isPost
         ? <Badge className="bg-blue-100 text-blue-700 border-blue-200">게시글</Badge>
         : <Badge className="bg-green-100 text-green-700 border-green-200">댓글</Badge>
     };
@@ -205,7 +209,8 @@ interface UserActivitySectionProps {
 }
 
 const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ className }) => {
-  // 탭 설정 메모화
+  // 탭 설정 메모화: 4개 탭의 설정을 한 번만 계산하여 리렌더링 최적화
+  // desktop/mobile 라벨을 분리하여 반응형 UI 지원
   const tabConfig = useMemo(() => ([
     {
       value: "my-posts",
@@ -229,7 +234,8 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
     }
   ]), []);
 
-  // API 호출 함수들 메모화
+  // API 호출 함수들: 각 탭에서 사용할 데이터 fetch 함수를 메모화
+  // 공통 응답 형태로 정규화하여 ActivityTabContent에서 일관되게 처리
   const fetchMyPosts = useCallback(
     async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
       try {
@@ -314,7 +320,8 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
     []
   );
 
-  // fetch 함수 매핑 메모화
+  // 탭별 fetch 함수 매핑: 각 탭의 value와 해당하는 API 함수를 연결
+  // ActivityTabContent에서 동적으로 적절한 fetch 함수를 선택하여 사용
   const fetchFunctions = useMemo(() => ({
     "my-posts": fetchMyPosts,
     "my-comments": fetchMyComments,

@@ -24,7 +24,7 @@ export const useCreateRollingPaperMessage = () => {
       }
     }) => paperCommand.createMessage(userName, message),
     onSuccess: (data, variables) => {
-      // 해당 사용자의 롤링페이퍼 캐시 무효화
+      // 해당 사용자의 롤링페이퍼 캐시 무효화 - 새 메시지 반영
       queryClient.invalidateQueries({
         queryKey: queryKeys.paper.detail(variables.userName)
       });
@@ -54,7 +54,7 @@ export const useDeleteRollingPaperMessage = () => {
     mutationKey: mutationKeys.paper.delete,
     mutationFn: (messageId: number) => paperCommand.deleteMessage(messageId),
     onSuccess: () => {
-      // 모든 롤링페이퍼 관련 캐시 무효화 (메시지가 어느 사용자 것인지 모르므로)
+      // 모든 롤링페이퍼 관련 캐시 무효화 - 메시지가 어느 사용자 것인지 모르므로 전체 갱신
       queryClient.invalidateQueries({
         queryKey: queryKeys.paper.all
       });

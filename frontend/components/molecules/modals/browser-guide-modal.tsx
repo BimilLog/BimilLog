@@ -7,11 +7,11 @@ import { useBrowserGuide } from "@/hooks";
 import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
 
-// Dynamic import for PWA install button
+// PWA 설치 버튼을 Dynamic import로 로딩 (번들 크기 최적화)
 const PWAInstallButton = dynamic(
   () => import("@/components/molecules/pwa-install-button").then((mod) => ({ default: mod.PWAInstallButton })),
   {
-    ssr: false,
+    ssr: false, // 클라이언트에서만 렌더링 (브라우저 API 사용)
     loading: () => (
       <div className="w-full h-10 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
         <Spinner size="sm" />
@@ -47,29 +47,36 @@ function BrowserGuideModalContent({
   const { showGuide, hideGuide, getBrowserInfo } = useBrowserGuide();
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
 
+  // 브라우저 정보 가져오기
   const browserInfo = getBrowserInfo();
+
+  // iOS 기기 감지: iPad, iPhone, iPod 확인 (MSStream은 IE 구분용)
   const isIOS =
     typeof navigator !== "undefined" &&
     /iPad|iPhone|iPod/.test(navigator.userAgent) &&
     !(window as unknown as { MSStream?: unknown }).MSStream;
 
+  // 설치 링크 클립보드 복사 처리
   const handleCopyToClipboard = async () => {
     const success = await copyToClipboard("https://grow-farm.com/install", {
       showToast: false,
       toastTitle: "설치 링크 복사 완료",
       toastDescription: "설치 링크가 클립보드에 복사되었습니다!"
     });
-    
+
     if (success) {
       setCopiedToClipboard(true);
+      // 2초 후 복사 상태 초기화
       setTimeout(() => setCopiedToClipboard(false), 2000);
     }
   };
 
+  // 모달 표시 조건: props로 받은 isOpen 또는 hook의 showGuide
   const effectiveShow = isOpen || showGuide;
 
   if (!effectiveShow) return null;
 
+  // 모달 닫기: 외부에서 제어하는 경우와 hook으로 제어하는 경우 분기 처리
   const handleClose = () => {
     if (isOpen) {
       onOpenChange(false);
@@ -92,7 +99,9 @@ function BrowserGuideModalContent({
         </div>
 
         <div className="space-y-4 mb-6">
+          {/* 플랫폼별 설치 가이드 분기 처리 */}
           {isIOS ? (
+            // iOS: Safari 브라우저에서 "홈 화면에 추가" 방법 안내
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="font-semibold text-blue-800 mb-2 flex items-center">
                 iPhone/iPad에서 홈 화면에 추가하기
@@ -110,6 +119,7 @@ function BrowserGuideModalContent({
               </ol>
             </div>
           ) : (
+            // 안드로이드/데스크톱: PWA 설치 버튼 또는 링크 복사 방법 제공
             <>
               {/* PWA 설치 버튼 (지원 브라우저에서만 표시) */}
               <div className="text-center">
@@ -128,7 +138,7 @@ function BrowserGuideModalContent({
                 </ol>
               </div>
 
-              {/* 링크 복사 버튼 */}
+              {/* 링크 복사 버튼: 복사 상태에 따라 UI 변경 */}
               <Button
                 onClick={handleCopyToClipboard}
                 variant="outline"
@@ -170,12 +180,12 @@ function BrowserGuideModalContent({
   );
 }
 
-// Dynamic import로 컴포넌트 래핑
+// 전체 모달을 Dynamic import로 래핑 (클라이언트 전용, 초기 번들 크기 감소)
 const BrowserGuideModal = dynamic(
   () => Promise.resolve(BrowserGuideModalContent),
   {
-    ssr: false,
-    loading: () => <BrowserGuideModalLoading />,
+    ssr: false, // 브라우저 감지 로직으로 인해 서버 렌더링 비활성화
+    loading: () => <BrowserGuideModalLoading />, // 로딩 중 스켈레톤 UI 표시
   }
 );
 

@@ -65,6 +65,8 @@ export class ErrorHandler {
     if (isApiErrorResponse(error)) {
       const errorMessage = error.error.toLowerCase();
 
+      // 에러 메시지 패턴 매칭을 통한 에러 타입 분류
+      // includes() 검사로 한국어 에러 메시지에서 핵심 키워드를 추출하여 적절한 에러 타입 결정
       if (errorMessage.includes('인증') || errorMessage.includes('로그인')) {
         return {
           type: 'AUTH_ERROR',
@@ -171,6 +173,7 @@ export class ErrorHandler {
     const baseError = this.mapApiError(error);
 
     // 롤링페이퍼 특화 에러 처리
+    // 그리드 위치 중복 에러를 특별히 처리하여 사용자에게 명확한 안내 메시지 제공
     if (isErrorWithMessage(error) && error.message.includes('위치')) {
       return {
         type: 'DUPLICATE_POSITION',
@@ -197,7 +200,7 @@ export const handleApiError = (error: unknown): void => {
   const appError = ErrorHandler.mapApiError(error);
   logger.error(appError.title, appError.message, appError.originalError);
 
-  // Toast 표시 로직
+  // Toast 표시 로직 - 동적 import를 사용하여 토스트 스토어 순환 의존성 방지
   const { showToast } = require('@/stores/toast.store').useToastStore.getState();
   showToast({
     type: 'error',

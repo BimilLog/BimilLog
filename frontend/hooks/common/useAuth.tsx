@@ -151,24 +151,29 @@ export const useKakaoCallback = () => {
       const code = searchParams.get("code");
       const error = searchParams.get("error");
 
+      // 카카오에서 에러가 발생한 경우 (사용자 취소 등)
       if (error) {
         router.push(`/login?error=${encodeURIComponent(error)}`);
         return;
       }
 
+      // Authorization Code가 없는 경우
       if (!code) {
         router.push("/login?error=no_code");
         return;
       }
 
       try {
+        // Authorization Code를 백엔드로 전송하여 JWT 토큰 받기
         const response = await apiClient.post("/auth/callback", { code });
 
         if (response.success) {
           const data = response.data as { needsSignup?: boolean; tempUuid?: string };
+          // 신규 사용자인 경우 회원가입 페이지로 이동 (임시 UUID 포함)
           if (data?.needsSignup) {
             router.push(`/signup?uuid=${data.tempUuid}`);
           } else {
+            // 기존 사용자인 경우 메인 페이지로 이동
             router.push("/");
           }
         } else {
@@ -223,6 +228,7 @@ export const useSignupUuid = () => {
     const validateUuid = async () => {
       const uuid = searchParams.get("uuid");
 
+      // 회원가입 페이지인데 UUID가 없는 경우 (직접 접근 방지)
       if (!uuid) {
         setError("no_uuid");
         router.push("/login");
@@ -230,13 +236,16 @@ export const useSignupUuid = () => {
       }
 
       try {
-        // UUID 유효성 검증 (실제 구현 시 백엔드 API 호출)
+        // 카카오 로그인 후 발급받은 임시 UUID의 유효성 검증
+        // 만료되었거나 이미 사용된 UUID인지 백엔드에서 확인
         const response = await apiClient.get(`/auth/validate-uuid?uuid=${uuid}`);
         const data = response.data as { valid?: boolean };
 
         if (response.success && data?.valid) {
+          // UUID가 유효하면 회원가입 진행 가능
           setTempUuid(uuid);
         } else {
+          // UUID가 유효하지 않으면 로그인으로 리다이렉트
           setError("invalid_uuid");
           router.push("/login?error=invalid_signup_session");
         }
@@ -265,19 +274,20 @@ export function useAuth() {
     authStore.refreshUser();
   }, []);
 
-  // needsRelogin 이벤트 리스너
+  // needsRelogin 이벤트 리스너 - 토큰 만료나 인증 에러 시 전역에서 발생하는 커스텀 이벤트 처리
   useEffect(() => {
     const handleNeedsRelogin = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { title, message } = customEvent.detail;
 
-      // 토스트 알림 표시
+      // 사용자에게 재로그인이 필요함을 알림
       showInfo(title, message, 5000);
 
-      // 로그인 필요 처리
+      // 인증 상태를 초기화하고 로그인 페이지로 리다이렉트
       authStore.handleNeedsRelogin(title, message);
     };
 
+    // API 에러 핸들러에서 발생시키는 커스텀 이벤트를 전역으로 수신
     window.addEventListener("needsRelogin", handleNeedsRelogin);
 
     return () => {

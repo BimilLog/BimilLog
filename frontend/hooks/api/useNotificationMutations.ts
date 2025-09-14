@@ -14,13 +14,13 @@ export const useMarkNotificationAsRead = () => {
     mutationKey: mutationKeys.notification.markAsRead,
     mutationFn: (notificationId: number) => notificationCommand.markAsRead(notificationId),
     onMutate: async (notificationId) => {
-      // 쿼리 취소
+      // 쿼리 취소 - 경합 상태 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.notification.list() });
 
-      // 이전 데이터 백업
+      // 이전 데이터 백업 - 에러 시 롤백용
       const previousNotifications = queryClient.getQueryData(queryKeys.notification.list());
 
-      // 낙관적 업데이트: UI에서 즉시 읽음 처리
+      // 낙관적 업데이트: 서버 응답 전에 UI에서 즉시 읽음 처리하여 반응성 향상
       queryClient.setQueryData(queryKeys.notification.list(), (old: any) => {
         if (!old?.success || !old?.data) return old;
 
@@ -39,12 +39,12 @@ export const useMarkNotificationAsRead = () => {
       return { previousNotifications };
     },
     onError: (err, notificationId, context) => {
-      // 오류 시 롤백
+      // 오류 시 롤백 - 낙관적 업데이트 취소하여 이전 상태로 복원
       queryClient.setQueryData(queryKeys.notification.list(), context?.previousNotifications);
       logger.error(`알림 ${notificationId} 읽음 처리 실패:`, err);
     },
     onSettled: () => {
-      // 서버와 동기화
+      // 서버와 동기화 - 성공/실패 여부와 관계없이 최신 데이터로 갱신
       queryClient.invalidateQueries({ queryKey: queryKeys.notification.list() });
     },
   });
@@ -60,13 +60,13 @@ export const useDeleteNotification = () => {
     mutationKey: ['notification', 'delete'],
     mutationFn: (notificationId: number) => notificationCommand.delete(notificationId),
     onMutate: async (notificationId) => {
-      // 쿼리 취소
+      // 쿼리 취소 - 경합 상태 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.notification.list() });
 
-      // 이전 데이터 백업
+      // 이전 데이터 백업 - 에러 시 롤백용
       const previousNotifications = queryClient.getQueryData(queryKeys.notification.list());
 
-      // 낙관적 업데이트: UI에서 즉시 삭제
+      // 낙관적 업데이트: 서버 응답 전에 UI에서 즉시 삭제하여 반응성 향상
       queryClient.setQueryData(queryKeys.notification.list(), (old: any) => {
         if (!old?.success || !old?.data) return old;
 
@@ -163,7 +163,7 @@ export const useDeleteAllNotifications = () => {
       const currentData = queryClient.getQueryData(queryKeys.notification.list()) as any;
       const notifications = currentData?.data || [];
 
-      // 각 알림을 개별적으로 삭제
+      // 각 알림을 개별적으로 삭제 - API에 일괄 삭제가 없어서 루프 처리
       for (const notification of notifications) {
         await notificationCommand.delete(notification.id);
       }

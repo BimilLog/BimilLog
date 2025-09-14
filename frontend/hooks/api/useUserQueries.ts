@@ -76,6 +76,7 @@ export const useCheckUsername = (username: string) => {
   return useQuery({
     queryKey: ['user', 'checkUsername', username],
     queryFn: () => userQuery.checkUserName(username),
+    // 사용자명이 입력되었을 때만 중복 확인 - 빈 값에 대한 불필요한 API 호출 방지
     enabled: !!username && username.trim().length > 0,
     staleTime: 60 * 1000, // 1분
   });

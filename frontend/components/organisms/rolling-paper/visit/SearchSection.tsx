@@ -37,13 +37,15 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
           <Input
             placeholder="닉네임을 입력하세요"
             value={searchNickname}
+            // 입력값 변경 시 기존 에러 메시지 자동 제거 (useRollingPaperSearch 훅에서 처리)
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchNickname(e.target.value)}
-            onKeyPress={onKeyPress}
+            onKeyPress={onKeyPress} // Enter 키 누를 시 검색 실행
             className="pl-10 h-12 text-lg bg-white border-2 border-gray-200 focus:border-purple-400"
             disabled={isSearching}
           />
         </div>
 
+        {/* 검색 에러 메시지 표시 (닉네임을 찾을 수 없거나 네트워크 오류 시) */}
         {searchError && (
           <div className="flex items-start space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
@@ -56,8 +58,10 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         <Button
           onClick={onSearch}
           className="w-full h-12 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-lg font-semibold disabled:opacity-50"
+          // 닉네임이 비어있거나 검색 중일 때 버튼 비활성화
           disabled={!searchNickname.trim() || isSearching}
         >
+          {/* 검색 중일 때 로딩 스피너와 텍스트 표시 */}
           {isSearching ? (
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

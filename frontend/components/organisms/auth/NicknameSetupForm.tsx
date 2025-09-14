@@ -31,29 +31,34 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
   const [isChecking, setIsChecking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // UUID 유효성 검증
+  // UUID 유효성 검증: 카카오 OAuth 로그인 후 임시 저장된 UUID 형식 검증
+  // 사용자가 직접 URL을 조작하여 가짜 회원가입을 시도하는 것을 방지
   const validateUuid = useCallback((uuid: string): boolean => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     return uuidRegex.test(uuid);
   }, []);
 
+  // 닉네임 입력 처리: 실시간 형식 검증 및 중복확인 상태 초기화
+  // 사용자가 닉네임을 변경할 때마다 중복확인을 다시 하도록 유도
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newNickname = e.target.value.trim();
     setNickname(newNickname);
-    setIsNicknameAvailable(null);
+    setIsNicknameAvailable(null); // 중복확인 상태 초기화
 
     const { isValid: valid, error: message } = validationRules.nickname(newNickname);
     setIsNicknameFormatValid(valid);
     setNicknameMessage(message || "");
   };
 
+  // 닉네임 중복확인: 서버에서 기존 사용자와 중복되지 않는지 확인
+  // 성공/실패 메시지를 명확히 전달하여 사용자 경험 개선
   const handleCheckNickname = async () => {
     if (!isNicknameFormatValid) return;
-    
+
     setIsChecking(true);
     try {
       const response = await userQuery.checkUserName(nickname);
-      
+
       if (response.success) {
         const isAvailable = response.data ?? false;
         setIsNicknameAvailable(isAvailable);
@@ -75,31 +80,33 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
     }
   };
 
+  // 회원가입 완료 처리: 닉네임과 임시 UUID를 사용하여 최종 계정 생성
+  // 성공 시 세션 정리 및 알림 설정, 메인 페이지로 리다이렉트
   const handleSubmit = async () => {
     if (!isNicknameFormatValid || !isNicknameAvailable) return;
-    
-    // UUID 유효성 재확인
+
+    // UUID 유효성 재확인: 보안 강화를 위해 최종 제출 전 다시 한 번 검증
     if (!validateUuid(tempUuid)) {
       onError("잘못된 회원가입 정보입니다.");
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const result = await signUp(nickname, tempUuid);
-      
+
       if (result.success) {
-        // 세션스토리지에서 임시 UUID 제거
+        // 세션스토리지에서 임시 UUID 제거: 보안상 중요한 정리 작업
         sessionStorage.removeItem("tempUserUuid");
 
-        // 알림 목록 새로고침
+        // 알림 목록 새로고침: 새 계정에 대한 알림 설정 업데이트
         await refetchNotifications();
 
         onSuccess();
         router.push("/");
       } else {
         onError(result.error || "회원가입에 실패했습니다.");
-        setIsNicknameAvailable(false);
+        setIsNicknameAvailable(false); // 실패 시 중복확인 상태 초기화
       }
     } catch (error) {
       logger.error("SignUp failed:", error);

@@ -70,8 +70,9 @@ export const useDeletePost = () => {
     mutationFn: postCommand.delete,
     onSuccess: (response, postId) => {
       if (response.success) {
-        // 캐시에서 게시글 제거
+        // 캐시에서 게시글 제거 - 삭제된 게시글은 더 이상 필요 없음
         queryClient.removeQueries({ queryKey: queryKeys.post.detail(postId) });
+        // 게시글 목록 캐시 무효화 - 목록에서도 제거 반영
         queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
         showToast({ type: 'success', message: '게시글이 삭제되었습니다.' });
         router.push('/board');
@@ -94,13 +95,13 @@ export const useLikePost = () => {
     mutationKey: mutationKeys.post.like,
     mutationFn: postCommand.like,
     onMutate: async (postId: number) => {
-      // 진행 중인 refetch 취소
+      // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.post.detail(postId) });
 
-      // 이전 값 스냅샷
+      // 이전 값 스냅샷 - 에러 시 롤백용
       const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId));
 
-      // 낙관적 업데이트
+      // 낙관적 업데이트: 서버 응답 전에 UI를 먼저 업데이트하여 반응성 향상
       queryClient.setQueryData(queryKeys.post.detail(postId), (old: ApiResponse<Post>) => {
         if (!old?.success || !old?.data) return old;
 
@@ -118,14 +119,14 @@ export const useLikePost = () => {
       return { previousPost };
     },
     onError: (err, postId, context) => {
-      // 에러 시 이전 값으로 롤백
+      // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
       if (context?.previousPost) {
         queryClient.setQueryData(queryKeys.post.detail(postId), context.previousPost);
       }
       showToast({ type: 'error', message: '좋아요 처리에 실패했습니다.' });
     },
     onSettled: (data, error, postId) => {
-      // 성공/실패 여부와 관계없이 서버 데이터로 동기화
+      // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
       queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
     },
   });

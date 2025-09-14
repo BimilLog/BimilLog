@@ -70,19 +70,23 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   const [replyPassword, setReplyPassword] = useState("");
 
   // CommentSection이 기대하는 시그니처로 래핑 및 핸들러 함수들
+  // 새 댓글 작성 시 parentId가 undefined인 공통 핸들러
   const handleCommentSubmitForSection = (comment: string, password: string) => {
     commentActions.handleCommentSubmit(comment, undefined, password);
   };
 
+  // 댓글 수정 상태 관리 - 수정 모드 진입 시 기존 내용을 대입
   const handleEditComment = (comment: Comment) => {
     setEditingComment(comment);
-    setEditContent(comment.content);
-    setEditPassword("");
+    setEditContent(comment.content); // 기존 내용을 편집 필드에 설정
+    setEditPassword(""); // 비밀번호는 매번 새로 입력
   };
 
+  // 댓글 수정 완료 후 상태 초기화
   const handleUpdateComment = async () => {
     if (editingComment) {
       await commentActions.handleCommentEdit(editingComment.id, editContent, editPassword);
+      // 수정 완료 후 모든 수정 상태 초기화
       setEditingComment(null);
       setEditContent("");
       setEditPassword("");
@@ -95,10 +99,11 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setEditPassword("");
   };
 
+  // 댓글 답글 상태 관리 - 특정 댓글에 답글 작성 모드
   const handleReplyTo = (comment: Comment) => {
-    setReplyingTo(comment);
-    setReplyContent("");
-    setReplyPassword("");
+    setReplyingTo(comment); // 답글 대상 설정
+    setReplyContent("");   // 답글 내용 초기화
+    setReplyPassword(""); // 답글 비밀번호 초기화
   };
 
   const handleCancelReply = () => {
@@ -107,9 +112,11 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setReplyPassword("");
   };
 
+  // 답글 작성 완료 - parentId로 replyingTo.id 전달
   const handleSubmitReply = async () => {
     if (replyingTo) {
       await commentActions.handleCommentSubmit(replyContent, replyingTo.id, replyPassword);
+      // 답글 작성 완료 후 답글 상태 초기화
       setReplyingTo(null);
       setReplyContent("");
       setReplyPassword("");
@@ -144,15 +151,16 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     fetchPost
   );
 
-  // 비밀번호 모달 제출
+  // 비밀번호 모달 제출 - 게시글/댓글 삭제 모드에 따라 분기 처리
   const handlePasswordSubmit = async () => {
     if (deleteMode === "post") {
       await postActions.handleDelete(modalPassword);
     } else if (deleteMode === "comment" && targetComment) {
+      // 댓글 삭제 시 targetComment로 대상 확인
       await commentActions.handleCommentDelete(targetComment.id, modalPassword);
     }
 
-    // Reset state after action
+    // 삭제 작업 완료 후 모든 모달 상태 초기화
     setShowPasswordModal(false);
     setModalPassword("");
     setDeleteMode(null);
@@ -273,6 +281,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           isMyComment={isMyComment}
           canModifyComment={canModifyComment}
           onCommentClick={(commentId) => {
+            // 인기 댓글에서 원본 댓글로 이동 - 댓글 ID로 DOM 요소를 찾아 스크롤 이동
             const element = document.getElementById(`comment-${commentId}`);
             if (element) {
               element.scrollIntoView({ behavior: 'smooth', block: 'center' });

@@ -54,12 +54,14 @@ export const MessageForm = React.memo<MessageFormProps>(({
   const anonymousNickname = watch("anonymousNickname");
   const decoType = watch("decoType");
 
+  // 데코 타입 옵션 생성: decoTypeMap 객체를 Select 옵션으로 변환
   const decoOptions = Object.entries(decoTypeMap).map(([key, info]) => ({
     value: key,
     label: info.name,
     info,
   }));
 
+  // 폼 제출 처리: 입력값 트림 후 상위 컴포넌트로 전달, 성공 시 폼 리셋
   const onSubmitForm = async (data: MessageFormData) => {
     try {
       onSubmit({
@@ -75,6 +77,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
     }
   };
 
+  // 선택된 데코 타입의 정보 가져오기 (색상, 이름 등)
   const selectedDecoInfo = getDecoInfo(decoType);
 
   return (
@@ -89,7 +92,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
           backgroundSize: "30px 30px, 90px 90px",
         }}
       >
-        {/* 미리보기 카드 */}
+        {/* 미리보기 카드: 실시간으로 입력 중인 메시지 모습 미리보기 */}
         <div
           className={`p-4 rounded-xl bg-gradient-to-br ${selectedDecoInfo.color} border-2 border-white shadow-lg relative overflow-hidden`}
           style={{
@@ -107,6 +110,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
             </span>
           </div>
           <p className="text-gray-800 text-sm font-medium">
+            {/* 입력된 내용이 있으면 표시, 없으면 플레이스홀더 표시 */}
             {content || "여기에 메시지가 표시됩니다..."}
           </p>
           {/* 반짝이는 효과 */}
@@ -119,6 +123,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
               <Snowflake className="w-4 h-4" />
               <span>익명 닉네임</span>
             </label>
+            {/* 익명 닉네임 입력: 1-8자 제한, 메시지 작성자 표시용 */}
             <Input
               placeholder="시원한 마음의 친구"
               {...register("anonymousNickname", {
@@ -136,6 +141,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
               className="bg-white/80 border-cyan-200 focus:border-cyan-400 font-medium"
             />
             <div className="flex justify-between items-center mt-1">
+              {/* 에러 메시지가 있으면 표시, 없으면 글자수 카운터만 오른쪽 정렬 */}
               {errors.anonymousNickname && (
                 <p className="text-xs text-red-500">
                   {errors.anonymousNickname.message}
@@ -186,8 +192,9 @@ export const MessageForm = React.memo<MessageFormProps>(({
               <IceCream2 className="w-4 h-4" />
               <span>장식 선택</span>
             </label>
-            <Select 
-              value={decoType} 
+            {/* 장식 선택: setValue로 폼 상태 업데이트 (react-hook-form 방식) */}
+            <Select
+              value={decoType}
               onValueChange={(value) => setValue("decoType", value)}
             >
               <SelectTrigger className="bg-white/80 border-cyan-200 font-medium">
@@ -201,6 +208,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-white border-cyan-200">
+                {/* 모든 데코 타입 옵션을 아이콘과 함께 표시 */}
                 {decoOptions.map((d) => (
                   <SelectItem
                     key={d.value}

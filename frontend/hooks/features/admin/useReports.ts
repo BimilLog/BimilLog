@@ -27,13 +27,15 @@ export function useReports(options: UseReportsOptions = {}) {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
+  // 신고 목록 조회: 필터 타입, 페이지, 페이지 크기에 따른 신고 데이터 가져오기
   const fetchReports = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
+      // "all" 필터인 경우 undefined로 전송하여 모든 타입 조회
       const reportType = filterType === "all" ? undefined : filterType;
       const response = await adminQuery.getReports(page, pageSize, reportType);
-      
+
       if (response.success && response.data) {
         setReports(response.data as PageResponse<Report>);
       } else {
@@ -51,6 +53,7 @@ export function useReports(options: UseReportsOptions = {}) {
     fetchReports();
   }, [fetchReports]);
 
+  // 검색어 기반 신고 목록 필터링: 신고 내용, 대상 제목, 신고자명, 대상 ID 검색
   const filteredReports = useMemo(() => {
     if (!reports?.content) return [];
     if (!debouncedSearchTerm) return reports.content;

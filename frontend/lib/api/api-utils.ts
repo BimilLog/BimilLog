@@ -58,7 +58,7 @@ export const safeApiCall = async <T>(
   try {
     const response = await apiFunction();
 
-    // API 응답 구조 검증
+    // API 응답 구조 검증 - 기본 ApiResponse 형태인지 확인
     if (!isValidApiResponse<T>(response)) {
       logger.warn('Invalid API response structure:', response);
       return {
@@ -67,7 +67,8 @@ export const safeApiCall = async <T>(
       };
     }
 
-    // 성공 응답의 데이터 유효성 검증
+    // 성공 응답의 데이터 유효성 검증 및 fallback 처리
+    // validator 실패 시 fallback 데이터를 사용하여 앱 crash 방지
     if (response.success && response.data && options?.validator) {
       const validatedData = validateResponseData(response, options.validator);
       if (validatedData === null && response.data !== null) {
@@ -117,10 +118,12 @@ export const safePagedApiCall = async <T>(
       };
     }
 
-    // content 배열의 각 아이템 검증
+    // content 배열의 각 아이템 검증 및 필터링
+    // 잘못된 데이터가 포함된 아이템들을 제거하여 UI 렌더링 오류 방지
     if (options?.itemValidator && Array.isArray(response.data.content)) {
       const validatedContent = response.data.content.filter(options.itemValidator);
 
+      // 필터링된 아이템이 있는 경우 페이지네이션 정보 업데이트
       if (validatedContent.length !== response.data.content.length) {
         logger.warn(
           `Filtered ${response.data.content.length - validatedContent.length} invalid items from page response`

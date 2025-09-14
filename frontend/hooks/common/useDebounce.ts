@@ -26,13 +26,14 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const callbackRef = useRef(callback);
 
-  // 콜백 업데이트
+  // 최신 콜백 참조 유지: 클로저 문제 방지
   useEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
 
   const debouncedCallback = useCallback(
     (...args: Parameters<T>) => {
+      // 이전 타이머 취소: 연속 호출 시 마지막 호출만 실행
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
@@ -44,7 +45,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
     [delay, ...deps]
   ) as T;
 
-  // 클린업
+  // 컴포넌트 언마운트 시 타이머 정리: 메모리 누수 방지
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {

@@ -32,6 +32,7 @@ export class KakaoAuthManager {
       redirect_uri: this.config.redirectUri
     });
 
+    // state 매개변수에 인증 후 리다이렉트할 URL 인코딩하여 저장
     if (postAuthRedirectUrl) {
       params.append("state", encodeURIComponent(postAuthRedirectUrl));
     }
@@ -49,6 +50,7 @@ export class KakaoAuthManager {
 
   extractStateFromUrl(searchParams: URLSearchParams): string | null {
     const state = searchParams.get("state");
+    // state 매개변수 디코딩: 인코딩된 리다이렉트 URL 복원
     return state ? decodeURIComponent(state) : null;
   }
 
@@ -89,8 +91,8 @@ export const generateKakaoConsentUrl = (): string => {
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: 'code',
-    scope: 'friends', // 친구 목록 동의 스코프
-    prompt: 'consent', // 강제 동의 화면 표시
+    scope: 'friends', // 카카오 친구 목록 권한 요청
+    prompt: 'consent', // 이미 동의한 권한도 다시 동의 화면 표시 (권한 재설정용)
   });
 
   return `https://kauth.kakao.com/oauth/authorize?${params.toString()}`;
@@ -99,17 +101,19 @@ export const generateKakaoConsentUrl = (): string => {
 /**
  * 카카오 친구 동의를 위한 로그아웃 후 리다이렉트
  */
+// 친구 동의 처리의 복잡한 플로우: 로그아웃 → 카카오 동의 → 로그인 → 원래 페이지 복귀
 export const logoutAndRedirectToConsent = (): void => {
   try {
     const consentUrl = generateKakaoConsentUrl();
 
-    // 동의 URL을 세션 스토리지에 저장 (로그아웃 후 사용)
+    // 1단계: 동의 URL을 세션에 저장 (로그아웃 후에도 유지되어야 함)
     sessionStorage.setItem('kakaoConsentUrl', consentUrl);
 
-    // 현재 페이지 URL을 저장 (동의 완료 후 돌아올 페이지)
+    // 2단계: 현재 페이지를 저장 (전체 플로우 완료 후 돌아올 위치)
     sessionStorage.setItem('returnUrl', window.location.pathname);
 
-    // 로그아웃 페이지로 이동 (동의 처리를 위한 특별한 플래그 포함)
+    // 3단계: 특별한 로그아웃 처리 (consent=true 플래그로 일반 로그아웃과 구분)
+    // 이 플래그로 로그아웃 페이지에서 일반적인 홈 리다이렉트가 아닌 동의 플로우를 진행
     window.location.href = '/logout?consent=true';
 
   } catch (error) {
@@ -156,22 +160,23 @@ declare global {
   }
 }
 
-// 카카오 SDK 로드 및 초기화
+// 카카오 SDK 로드 및 초기화 - 비동기로 SDK를 로드하고 초기화하는 복잡한 처리 과정
+// 카카오 SDK 초기화 상태 관리: 3단계 초기화 체크 (SSR 방지 → 이미 초기화됨 → 로드됨 → 로드 필요)
 export const initializeKakao = (): Promise<boolean> => {
   return new Promise((resolve) => {
-    // 서버사이드에서는 실행하지 않음
+    // 1단계: SSR 환경 체크 - 서버사이드에서는 window 객체가 없음
     if (typeof window === 'undefined') {
       resolve(false);
       return;
     }
 
-    // 이미 초기화되어 있으면 성공 반환
+    // 2단계: 이미 초기화 완료된 상태 체크 - 재초기화 방지
     if (window.Kakao?.isInitialized?.()) {
       resolve(true);
       return;
     }
 
-    // 카카오 SDK가 이미 로드되어 있으면 초기화만 진행
+    // 3단계: SDK는 로드되었지만 초기화되지 않은 상태 - 초기화만 진행
     if (window.Kakao) {
       const appKey = process.env.NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY;
       if (appKey) {
@@ -184,12 +189,13 @@ export const initializeKakao = (): Promise<boolean> => {
       return;
     }
 
-    // 카카오 SDK 스크립트 로드
+    // 4단계: SDK가 없는 상태 - 동적 스크립트 로드 후 초기화
     const script = document.createElement('script');
     script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js';
     script.integrity = 'sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4';
     script.crossOrigin = 'anonymous';
 
+    // 로드 성공 시: SDK 로드 → 초기화 → 완료 신호 전송
     script.onload = () => {
       const appKey = process.env.NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY;
       if (appKey && window.Kakao) {
@@ -201,6 +207,7 @@ export const initializeKakao = (): Promise<boolean> => {
       }
     };
 
+    // 로드 실패 시: 네트워크 오류나 CDN 문제로 스크립트를 불러올 수 없음
     script.onerror = () => {
       logger.error('카카오 SDK 스크립트 로드 실패');
       resolve(false);
@@ -340,50 +347,57 @@ export const shareService = async (): Promise<boolean> => {
   }
 };
 
-// 대체 공유 기능 (카카오톡 공유 실패 시)
+// fallback 공유 메커니즘: 카카오 공유 실패 시 대체 수단 제공 (2단계 폴백 체인)
 export const fallbackShare = (url: string, title: string, text: string) => {
   if (navigator.share) {
-    // Web Share API 사용
+    // 1순위 폴백: 모바일 브라우저의 네이티브 공유 기능 사용
     navigator.share({
       title,
       text,
       url,
     }).catch(() => {
-      // Web Share API 실패 시 클립보드 복사
+      // 2순위 폴백: Web Share API 실패 시 클립보드 복사로 최종 대응
       copyToClipboard(url);
     });
   } else {
-    // Web Share API 미지원 시 클립보드 복사
+    // 데스크톱이나 구형 브라우저: Web Share API 미지원 시 바로 클립보드 복사
     copyToClipboard(url);
   }
 };
 
-// 클립보드에 복사
+// 클립보드 복사: 모던 API → 레거시 API 폴백 체인
 const copyToClipboard = (text: string) => {
   if (navigator.clipboard) {
+    // 모던 브라우저: Clipboard API 사용
     navigator.clipboard.writeText(text).then(() => {
       alert('링크가 클립보드에 복사되었습니다!');
     }).catch(() => {
+      // Clipboard API 실패 시 레거시 방식으로 폴백
       promptCopy(text);
     });
   } else {
+    // 구형 브라우저: 바로 레거시 방식 사용
     promptCopy(text);
   }
 };
 
-// 복사 프롬프트
+// 레거시 복사 방식: 임시 textarea 생성 → 선택 → 복사 명령 실행
 const promptCopy = (text: string) => {
+  // DOM에 임시 textarea 엘리먼트 생성
   const textArea = document.createElement('textarea');
   textArea.value = text;
   document.body.appendChild(textArea);
-  textArea.select();
+  textArea.select(); // 텍스트 선택
 
   try {
+    // 구형 브라우저용 복사 명령 실행
     document.execCommand('copy');
     alert('링크가 클립보드에 복사되었습니다!');
   } catch {
+    // execCommand도 실패 시 사용자에게 직접 복사 요청
     prompt('아래 링크를 복사해주세요:', text);
   }
 
+  // 임시 엘리먼트 정리
   document.body.removeChild(textArea);
 };

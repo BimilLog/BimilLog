@@ -16,15 +16,18 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { clearAuthError } = useAuthError();
-  
+
+  // URL 파라미터에서 에러 메시지를 추출 (카카오 OAuth 콜백에서 전달됨)
   const error = searchParams.get("error");
 
+  // 이미 로그인된 사용자는 홈페이지로 자동 리다이렉션
   useEffect(() => {
     if (isAuthenticated) {
       router.push("/");
     }
   }, [isAuthenticated, router]);
 
+  // 에러가 있을 경우 5초 후 자동으로 에러 상태 초기화 (사용자 경험 개선)
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
@@ -38,6 +41,7 @@ export default function LoginPage() {
     kakaoAuthManager.redirectToKakaoAuth();
   };
 
+  // 로그인 상태 확인 중일 때 로딩 스크린 표시
   if (isLoading) {
     return <AuthLoadingScreen message="로딩 중..." />;
   }
@@ -54,12 +58,14 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
+          {/* URL 파라미터로 전달된 에러가 있을 경우에만 에러 메시지 표시 */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               <div className="flex items-start space-x-2">
                 <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-red-800">
                   <p className="font-medium">로그인 오류</p>
+                  {/* URL 인코딩된 에러 메시지를 디코딩하여 표시 */}
                   <p>{decodeURIComponent(error)}</p>
                 </div>
               </div>

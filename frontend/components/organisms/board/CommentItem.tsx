@@ -88,11 +88,15 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
 }) => {
   const { } = useAuth();
   const { showSuccess, showError } = useToast();
+
+  // 댓글 계층구조 처리: 최대 3단계까지만 지원하여 모바일에서도 읽기 편하도록 제한
   const maxDepth = 3; // 최대 들여쓰기 레벨
-  const actualDepth = Math.min(depth, maxDepth);
+  const actualDepth = Math.min(depth, maxDepth); // depth가 3을 초과하면 3으로 제한
   const marginLeft = actualDepth * 16; // 16px씩 들여쓰기 (모바일 최적화)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
+  // 댓글 신고 처리 함수: 비로그인 사용자도 신고 가능
+  // v2 API를 사용하여 신고 타입과 대상 ID, 사유를 전송
   const handleReport = async (reason: string) => {
     try {
       // v2 신고 API 사용 - 익명 사용자도 신고 가능
@@ -131,6 +135,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
       style={{ marginLeft: `${marginLeft}px` }}
     >
       <div className="p-3 sm:p-4 bg-gray-50 rounded-lg mb-3 comment-content">
+        {/* 댓글 수정 모드: 현재 수정 중인 댓글과 일치할 때 수정 폼 표시 */}
         {editingComment?.id === comment.id ? (
           <div className="p-3 sm:p-4 bg-gray-100 rounded-lg">
             <Textarea
@@ -138,6 +143,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditContent(e.target.value)}
               className="min-h-[80px]"
             />
+            {/* 익명 댓글 수정 시에만 비밀번호 입력 필요 */}
             {!isMyComment(comment) && (
               <Input
                 type="password"
@@ -190,9 +196,9 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                 </span>
               </div>
 
-              {/* 모바일: 드롭다운 메뉴, 데스크톱: 버튼들 */}
+              {/* 액션 버튼들: 모바일에서는 핵심 기능만 노출, 나머지는 드롭다운으로 처리 */}
               <div className="flex items-center gap-1">
-                {/* 추천 버튼은 항상 표시 */}
+                {/* 추천 버튼: 로그인/비로그인 상관없이 항상 표시 */}
                 <Button
                   size="sm"
                   variant={comment.userLike ? "default" : "outline"}
@@ -211,7 +217,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                   {comment.likeCount}
                 </Button>
 
-                {/* 답글 버튼 (모바일에서도 항상 표시) */}
+                {/* 답글 버튼: 모바일에서도 항상 표시하여 접근성 향상 */}
                 <Button
                   size="sm"
                   variant="outline"
@@ -222,7 +228,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                   <span className="hidden sm:inline">답글</span>
                 </Button>
 
-                {/* 추가 액션들 (드롭다운) */}
+                {/* 추가 액션들: 신고, 수정, 삭제를 드롭다운으로 정리 */}
                 {(!isMyComment(comment) || canModifyComment(comment)) &&
                   !comment.deleted && (
                     <DropdownMenu>
@@ -236,6 +242,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-24">
+                        {/* 다른 사람의 댓글인 경우 신고 버튼 표시 */}
                         {!isMyComment(comment) && !comment.deleted && (
                           <DropdownMenuItem
                             onClick={() => setIsReportModalOpen(true)}
@@ -245,6 +252,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                             신고
                           </DropdownMenuItem>
                         )}
+                        {/* 본인 댓글이거나 관리자인 경우 수정/삭제 버튼 표시 */}
                         {canModifyComment(comment) && !comment.deleted && (
                           <>
                             <DropdownMenuItem
@@ -273,12 +281,13 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               className="prose max-w-none prose-sm text-sm sm:text-base leading-relaxed"
             />
 
-            {/* 답글 작성 폼 */}
+            {/* 답글 작성 폼: 해당 댓글에 답글을 작성 중일 때만 표시 */}
             {replyingTo?.id === comment.id && (
               <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <h4 className="text-sm font-semibold mb-3 text-blue-700">
                   {comment.userName}님에게 답글 작성
                 </h4>
+                {/* 비로그인 사용자는 비밀번호 입력 필요 */}
                 {!isAuthenticated && (
                   <div className="mb-3">
                     <Input
@@ -321,7 +330,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
         )}
       </div>
 
-      {/* 대댓글들을 재귀적으로 렌더링 */}
+      {/* 대댓글 재귀 렌더링: 답글이 있으면 동일한 CommentItem으로 중첩 표시 */}
       {comment.replies && comment.replies.length > 0 && (
         <div className="space-y-2">
           {comment.replies.map((reply) => (
@@ -367,6 +376,9 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
+  // React.memo 최적화: 댓글 컴포넌트의 불필요한 리렌더링 방지
+  // 주요 상태 변화만 감지하여 성능 최적화
+
   // Comment 객체의 핵심 필드들만 비교
   if (prevProps.comment.id !== nextProps.comment.id) return false;
   if (prevProps.comment.content !== nextProps.comment.content) return false;

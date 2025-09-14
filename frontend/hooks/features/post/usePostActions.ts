@@ -49,6 +49,7 @@ export function usePostActions(
       return;
     }
 
+    // 익명 게시글의 경우 비밀번호 입력 모달을 표시, 로그인 사용자 게시글은 바로 삭제
     if (post?.userName === "익명" || post?.userName === null) {
       setPasswordModalTitle("게시글 삭제");
       setDeleteMode("post");

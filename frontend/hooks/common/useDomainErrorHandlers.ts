@@ -167,7 +167,7 @@ export function useNotificationErrorHandler() {
   const errorHandler = useErrorHandler({
     domain: 'notification',
     enableAutoRecovery: true,
-    showToast: false // 알림 에러는 조용히 처리
+    showToast: false // 알림 에러는 조용히 처리: UX 방해 방지
   });
 
   const handleLoadError = useCallback(async (error: unknown) => {
@@ -225,7 +225,7 @@ export function useAdminErrorHandler() {
 }
 
 /**
- * 도메인 에러 핸들러 팩토리
+ * 도메인 에러 핸들러 팩토리: 도메인별 특화 에러 핸들러 생성
  */
 export function useDomainErrorHandler(domain: string) {
   switch (domain) {
@@ -244,6 +244,7 @@ export function useDomainErrorHandler(domain: string) {
     case 'admin':
       return useAdminErrorHandler();
     default:
+      // 정의되지 않은 도메인은 기본 에러 핸들러 반환
       return useErrorHandler({ domain });
   }
 }

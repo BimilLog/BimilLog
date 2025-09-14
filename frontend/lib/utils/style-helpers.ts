@@ -216,78 +216,86 @@ export const styleUtils = {
     return styles[state] || styles.default || '';
   },
 
-  // 반응형 클래스 생성
+  // 반응형 클래스 동적 생성 - 기본/중간/큰 화면별로 다른 스타일 적용
   responsive: (base: string, md?: string, lg?: string) => {
+    // md, lg가 있을 때만 접두어 추가하여 불필요한 클래스 생성 방지
     return cn(base, md && `md:${md}`, lg && `lg:${lg}`);
   },
 
-  // 그라데이션 텍스트 생성
+  // 동적 그라데이션 텍스트 생성 - from/to 색상을 매개변수로 받아 Tailwind 클래스 조합
   gradientText: (from: string, to: string) => {
     return `bg-gradient-to-r from-${from} to-${to} bg-clip-text text-transparent`;
   }
 } as const;
 
 /**
- * 프리셋 컴포넌트 스타일
+ * 프리셋 컴포넌트 스타일 - 자주 사용되는 컴포넌트 스타일 조합을 미리 정의
+ * cn() 함수로 여러 스타일 카테고리를 조합하여 일관성 있는 디자인 제공
  */
 export const componentPresets = {
-  // 페이지 레이아웃
+  // 페이지 레이아웃 - 전체 페이지 배경과 최소 높이 설정
   page: cn(gradients.pageBackground, 'min-h-screen'),
   pageContent: cn(containers.page),
 
-  // 섹션
+  // 섹션 - 페이지 내 주요 섹션들의 기본 스타일
   section: cn(containers.section, 'py-12'),
   sectionTitle: cn(textStyles.h2, gradients.primaryText, 'text-center mb-8'),
 
-  // 카드 컨테이너
+  // 카드 컨테이너 - 글래스 효과와 패딩을 조합한 카드 스타일
   cardContainer: cn(cardStyles.glass, 'p-6'),
   cardHeader: 'border-b border-gray-100 pb-4 mb-4',
   cardBody: 'space-y-4',
   cardFooter: 'border-t border-gray-100 pt-4 mt-4',
 
-  // 폼
+  // 폼 - 입력 폼의 모든 요소를 일관된 스타일로 조합
   formContainer: cn(cardStyles.glass, 'p-6 max-w-md mx-auto'),
   formGroup: 'space-y-2',
   formLabel: 'block text-sm font-medium text-gray-700',
   formInput: inputStyles.base,
+  // 버튼 스타일 조합: 기본 + 주요 변형 + 큰 크기 + 전체 너비
   formButton: cn(buttonStyles.base, buttonStyles.variants.primary, buttonStyles.sizes.lg, 'w-full'),
   formError: cn(textStyles.error, 'text-xs mt-1'),
 
-  // 리스트 아이템
+  // 리스트 아이템 - 기본 카드에 패딩과 호버 효과 추가
   listItem: cn(cardStyles.default, 'p-4 hover:shadow-md transition-shadow'),
   listItemActive: 'ring-2 ring-purple-500/20 border-purple-300',
 
-  // 버튼들
+  // 버튼들 - 자주 사용되는 버튼 조합들을 미리 정의
   primaryAction: cn(buttonStyles.base, buttonStyles.variants.primary, buttonStyles.sizes.lg),
   secondaryAction: cn(buttonStyles.base, buttonStyles.variants.secondary, buttonStyles.sizes.md),
   dangerAction: cn(buttonStyles.base, buttonStyles.variants.danger, buttonStyles.sizes.md),
 } as const;
 
 /**
- * 테마 관련 유틸리티 (다크 모드 대비)
+ * 테마 관련 유틸리티 (다크 모드 대비) - 라이트/다크 모드 클래스 패턴 관리
  */
 export const themeUtils = {
-  // 라이트/다크 조건부 적용
+  // 라이트 모드 전용 클래스 (접두어 없음)
   light: (lightClass: string) => lightClass,
+
+  // 다크 모드 전용 클래스 (dark: 접두어 추가)
   dark: (darkClass: string) => `dark:${darkClass}`,
+
+  // 라이트/다크 모드 동시 적용 - 두 클래스를 공백으로 연결
   theme: (lightClass: string, darkClass: string) => `${lightClass} dark:${darkClass}`,
 
-  // 테마별 색상
+  // 자주 사용되는 테마별 색상 패턴들을 미리 정의
+  // 라이트 모드 기본 + 다크 모드 대체 색상 조합
   colors: {
     background: {
       light: 'bg-white',
       dark: 'dark:bg-gray-900',
-      both: 'bg-white dark:bg-gray-900'
+      both: 'bg-white dark:bg-gray-900' // 가장 많이 사용되는 배경색 조합
     },
     text: {
       light: 'text-gray-900',
       dark: 'dark:text-gray-100',
-      both: 'text-gray-900 dark:text-gray-100'
+      both: 'text-gray-900 dark:text-gray-100' // 기본 텍스트 색상 조합
     },
     border: {
       light: 'border-gray-200',
       dark: 'dark:border-gray-700',
-      both: 'border-gray-200 dark:border-gray-700'
+      both: 'border-gray-200 dark:border-gray-700' // 테두리 색상 조합
     }
   }
 } as const;

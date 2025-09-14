@@ -47,6 +47,7 @@ interface CommentSectionProps {
 /**
  * 댓글 섹션 통합 컴포넌트
  * PostDetailClient에서 분리된 댓글 관련 모든 기능을 통합
+ * 댓글 작성 폼 + 인기 댓글 + 전체 댓글 목록을 순차적으로 표시
  */
 const CommentSection = memo(({
   postId,
@@ -96,19 +97,19 @@ const CommentSection = memo(({
         onSubmit={onSubmitComment}
       />
 
-      {/* 인기 댓글 */}
+      {/* 인기 댓글 - 좋아요 3개 이상인 댓글들만 별도 표시 */}
       {popularComments.length > 0 && (
         <PopularComments
           comments={popularComments}
           onLikeComment={onLikeComment}
           onReplyTo={onReplyTo}
-          onCommentClick={onCommentClick}
+          onCommentClick={onCommentClick} // 인기 댓글 클릭 시 원본 댓글로 스크롤 이동
         />
       )}
 
-      {/* 댓글 목록 */}
+      {/* 댓글 목록 - 계층 구조로 표시되는 전체 댓글 */}
       <CommentList
-        comments={comments}
+        comments={comments} // replies 필드를 포함한 계층 구조 데이터
         commentCount={commentCount}
         postId={postId}
         editingComment={editingComment}

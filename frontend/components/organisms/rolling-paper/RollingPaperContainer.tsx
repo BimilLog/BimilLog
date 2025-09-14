@@ -49,7 +49,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   // 공개 여부 (현재는 모든 롤링페이퍼가 공개)
   const isPublic = true;
 
-  // 페이지 계산
+  // 페이지 계산 - 모바일: 4x10=40개, PC: 6x10=60개 메시지 per 페이지
   const totalPages = useMemo(() => {
     const messagesPerPage = isMobile ? 40 : 60; // 모바일 4x10, PC 6x10
     return Math.ceil(messages.length / messagesPerPage) || 1;
@@ -58,15 +58,15 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   // 최근 메시지 (최신 5개) - RollingPaperMessage만 정렬 가능 (createdAt 필드 존재)
   const recentMessages = useMemo(() => {
     return [...messages]
-      .filter((msg): msg is RollingPaperMessage => 'createdAt' in msg)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
+      .filter((msg): msg is RollingPaperMessage => 'createdAt' in msg) // VisitMessage는 createdAt 없어서 제외
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // 최신순 정렬
+      .slice(0, 5); // 상위 5개만 선택
   }, [messages]);
 
-  // 특정 위치의 메시지 가져오기
+  // 특정 위치의 메시지 가져오기 - 1-based 좌표를 0-based 배열 인덱스로 변환
   const getMessageAt = useCallback((x: number, y: number): RollingPaperMessage | VisitMessage | null => {
-    const rowIndex = y - 1;
-    const colIndex = x - 1;
+    const rowIndex = y - 1; // y 좌표를 행 인덱스로 변환 (1,1 -> 0,0)
+    const colIndex = x - 1; // x 좌표를 열 인덱스로 변환
     if (gridData[rowIndex] && gridData[rowIndex][colIndex]) {
       return gridData[rowIndex][colIndex];
     }
@@ -74,12 +74,13 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   }, [gridData]);
 
   // 페이지와 그리드 위치에서 실제 좌표 계산
+  // 예: 2페이지의 (2,3) -> PC에서 실제 좌표 (8,3), 모바일에서 (6,3)
   const getCoordsFromPageAndGrid = useCallback((page: number, gridX: number, gridY: number) => {
-    const cols = isMobile ? 4 : 6;
-    const baseX = (page - 1) * cols;
+    const cols = isMobile ? 4 : 6; // 페이지당 열 개수
+    const baseX = (page - 1) * cols; // 이전 페이지들의 총 열 수
     return {
-      x: baseX + gridX,
-      y: gridY
+      x: baseX + gridX, // 베이스 위치 + 현재 페이지 내 위치
+      y: gridY // y축은 페이지별로 동일 (1~10)
     };
   }, [isMobile]);
 
@@ -88,9 +89,9 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     setHighlightedPosition(null);
   }, []);
 
-  // 웹 공유
+  // 웹 공유 API 사용, 지원하지 않으면 클립보드 복사로 폴백
   const handleWebShare = useCallback(async () => {
-    if (navigator.share) {
+    if (navigator.share) { // 모바일 브라우저의 네이티브 공유 API 지원 여부 확인
       try {
         await navigator.share({
           title: `${targetNickname}님의 롤링페이퍼`,
@@ -99,12 +100,12 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
         });
         showSuccess('공유 완료', '롤링페이퍼 링크가 공유되었습니다.');
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
+        if ((error as Error).name !== 'AbortError') { // 사용자가 공유를 취소한 경우는 에러가 아님
           showError('공유 실패', '공유하기에 실패했습니다.');
         }
       }
     } else {
-      // 클립보드 복사 폴백
+      // 클립보드 복사 폴백 (데스크톱 브라우저 등)
       try {
         await navigator.clipboard.writeText(window.location.href);
         showSuccess('복사 완료', '링크가 클립보드에 복사되었습니다.');
@@ -122,15 +123,16 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     }
   }, [toggleMessageSelection]);
 
-  // 메시지 제출 핸들러
+  // 메시지 제출 핸들러 - UI 좌표를 DB 인덱스로 변환하여 저장
   const handleMessageSubmit = useCallback(async (position: { x: number; y: number }, data: unknown) => {
+    // 타입 검증을 통해 필요한 필드들이 있는지 확인
     if (data && typeof data === 'object' && 'content' in data && 'anonymity' in data && 'decoType' in data) {
       await handleCreateMessage({
         userName: targetNickname,
         content: data.content as string,
         anonymity: data.anonymity as string,
         decoType: data.decoType as DecoType,
-        rowIndex: position.y - 1,
+        rowIndex: position.y - 1, // UI 좌표(1-based)를 DB 인덱스(0-based)로 변환
         colIndex: position.x - 1
       });
     }

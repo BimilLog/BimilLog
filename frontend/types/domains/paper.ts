@@ -1,33 +1,34 @@
 // Rolling paper-related type definitions
 
 // DecoType enum - 백엔드 DecoType과 완전 일치
-export type DecoType = 
-  // 과일
+// 롤링페이퍼 메시지 작성 시 선택할 수 있는 장식 타입들 (총 6개 카테고리)
+export type DecoType =
+  // 과일 카테고리
   | "POTATO" | "CARROT" | "CABBAGE" | "TOMATO" | "STRAWBERRY" | "BLUEBERRY"
   | "WATERMELON" | "PUMPKIN" | "APPLE" | "GRAPE" | "BANANA"
-  
-  // 이상한 장식  
+
+  // 몬스터/판타지 카테고리 (이상한 장식)
   | "GOBLIN" | "SLIME" | "ORC" | "DRAGON" | "PHOENIX"
   | "WEREWOLF" | "ZOMBIE" | "KRAKEN" | "CYCLOPS" | "DEVIL" | "ANGEL"
-  
-  // 음료
+
+  // 음료 카테고리
   | "COFFEE" | "MILK" | "WINE" | "SOJU" | "BEER" | "BUBBLETEA" | "SMOOTHIE"
   | "BORICHA" | "STRAWBERRYMILK" | "BANANAMILK"
-  
-  // 음식
+
+  // 음식 카테고리
   | "BREAD" | "BURGER" | "CAKE" | "SUSHI" | "PIZZA" | "CHICKEN" | "NOODLE" | "EGG"
   | "SKEWER" | "KIMBAP" | "SUNDAE" | "MANDU" | "SAMGYEOPSAL" | "FROZENFISH" | "HOTTEOK"
   | "COOKIE" | "PICKLE"
-  
-  // 동물
+
+  // 동물 카테고리
   | "CAT" | "DOG" | "RABBIT" | "FOX" | "TIGER" | "PANDA" | "LION" | "ELEPHANT"
   | "SQUIRREL" | "HEDGEHOG" | "CRANE" | "SPARROW" | "CHIPMUNK" | "GIRAFFE" | "HIPPO" | "POLARBEAR" | "BEAR"
-  
-  // 자연
+
+  // 자연 카테고리
   | "STAR" | "SUN" | "MOON" | "VOLCANO" | "CHERRY" | "MAPLE" | "BAMBOO" | "SUNFLOWER"
   | "STARLIGHT" | "CORAL" | "ROCK" | "WATERDROP" | "WAVE" | "RAINBOW"
-  
-  // 기타
+
+  // 기타 카테고리
   | "DOLL" | "BALLOON" | "SNOWMAN" | "FAIRY" | "BUBBLE"
 
 // 롤링페이퍼 메시지 타입 - v2 백엔드 MessageDTO 완전 호환
@@ -37,23 +38,24 @@ export interface RollingPaperMessage {
   decoType: DecoType
   anonymity: string
   content: string
-  x: number  // 그리드 X 좌표 (1-based)
-  y: number  // 그리드 Y 좌표 (1-based)
+  x: number  // 그리드 X 좌표 (1-based, 1부터 시작)
+  y: number  // 그리드 Y 좌표 (1-based, 1부터 시작)
   createdAt: string // ISO 8601 string format - 백엔드 Instant는 ISO string으로 변환됨
 }
 
 // 방문용 메시지 타입 - v2 백엔드 VisitMessageDTO 완전 호환
+// RollingPaperMessage와 차이: content, anonymity, createdAt 필드가 없음 (방문자에게 표시되지 않는 정보)
 export interface VisitMessage {
   id: number
   userId: number
   decoType: DecoType
-  x: number  // 그리드 X 좌표 (1-based)
-  y: number  // 그리드 Y 좌표 (1-based)
+  x: number  // 그리드 X 좌표 (1-based, 1부터 시작)
+  y: number  // 그리드 Y 좌표 (1-based, 1부터 시작)
 }
 
-// 데코레이션 타입 매핑
+// 데코레이션 타입 매핑 - UI에 표시할 한글 이름과 Tailwind 그라데이션 색상
 export const decoTypeMap = {
-  // 과일
+  // 과일 카테고리 - 따뜻하고 밝은 색상
   POTATO: { name: "감자", color: "from-yellow-100 to-amber-100" },
   CARROT: { name: "당근", color: "from-orange-100 to-red-100" },
   CABBAGE: { name: "양배추", color: "from-green-100 to-emerald-100" },
@@ -66,7 +68,7 @@ export const decoTypeMap = {
   BANANA: { name: "바나나", color: "from-yellow-100 to-amber-100" },
   BLUEBERRY: { name: "블루베리", color: "from-blue-100 to-indigo-100" },
 
-  // 몬스터
+  // 몬스터/판타지 카테고리 - 다크하고 신비한 색상
   GOBLIN: { name: "고블린", color: "from-green-100 to-emerald-100" },
   SLIME: { name: "슬라임", color: "from-blue-100 to-indigo-100" },
   ORC: { name: "오크", color: "from-gray-100 to-slate-100" },
@@ -79,7 +81,7 @@ export const decoTypeMap = {
   DEVIL: { name: "악마", color: "from-red-100 to-orange-100" },
   ANGEL: { name: "천사", color: "from-white to-yellow-100" },
 
-  // 음료
+  // 음료 카테고리 - 시원하고 상쾌한 색상
   COFFEE: { name: "커피", color: "from-amber-100 to-brown-100" },
   MILK: { name: "우유", color: "from-white to-gray-100" },
   WINE: { name: "와인", color: "from-purple-100 to-red-100" },
@@ -91,7 +93,7 @@ export const decoTypeMap = {
   STRAWBERRYMILK: { name: "딸기우유", color: "from-pink-100 to-red-100" },
   BANANAMILK: { name: "바나나우유", color: "from-yellow-100 to-amber-100" },
 
-  // 음식
+  // 음식 카테고리 - 따뜻하고 맛있는 색상
   BREAD: { name: "빵", color: "from-amber-100 to-yellow-100" },
   BURGER: { name: "햄버거", color: "from-yellow-100 to-red-100" },
   CAKE: { name: "케이크", color: "from-pink-100 to-yellow-100" },
@@ -110,7 +112,7 @@ export const decoTypeMap = {
   COOKIE: { name: "쿠키", color: "from-brown-100 to-yellow-100" },
   PICKLE: { name: "피클", color: "from-green-100 to-yellow-100" },
 
-  // 동물
+  // 동물 카테고리 - 귀엽고 자연스러운 색상
   CAT: { name: "고양이", color: "from-gray-100 to-orange-100" },
   DOG: { name: "강아지", color: "from-yellow-100 to-brown-100" },
   RABBIT: { name: "토끼", color: "from-pink-100 to-white" },
@@ -129,7 +131,7 @@ export const decoTypeMap = {
   POLARBEAR: { name: "북극곰", color: "from-white to-blue-100" },
   BEAR: { name: "곰", color: "from-red-100 to-rainbow-100" },
 
-  // 자연
+  // 자연 카테고리 - 신선하고 평화로운 색상
   STAR: { name: "별", color: "from-yellow-100 to-amber-100" },
   SUN: { name: "태양", color: "from-yellow-100 to-orange-100" },
   MOON: { name: "달", color: "from-blue-100 to-indigo-100" },
@@ -145,7 +147,7 @@ export const decoTypeMap = {
   WAVE: { name: "파도", color: "from-blue-100 to-cyan-100" },
   RAINBOW: { name: "무지개", color: "from-pink-100 to-purple-100" },
 
-  // 기타
+  // 기타 카테고리 - 다양하고 재미있는 색상
   DOLL: { name: "인형", color: "from-pink-100 to-purple-100" },
   BALLOON: { name: "풍선", color: "from-red-100 to-rainbow-100" },
   SNOWMAN: { name: "눈사람", color: "from-white to-blue-100" },

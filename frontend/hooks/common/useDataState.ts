@@ -45,8 +45,9 @@ export function useDataState<T>(options: UseDataStateOptions<T> = {}) {
     onError: onError ? (appError) => onError(new Error(appError.message)) : undefined
   });
 
-  // 상태 계산 (메모화)
+  // 메모화된 상태 계산: 불필요한 리렌더링 방지
   const state: DataState<T> = useMemo(() => {
+    // emptyChecker가 있으면 사용자 정의 검사, 없으면 기본 null 검사
     const isEmpty = data ? (emptyChecker ? emptyChecker(data) : false) : true;
     const hasData = data !== null && !isEmpty;
 
@@ -68,7 +69,7 @@ export function useDataState<T>(options: UseDataStateOptions<T> = {}) {
     setError(null);
   }, []);
 
-  // 에러 상태 설정
+  // 에러 상태 설정: ErrorHandler를 통한 통합 에러 처리
   const setErrorState = useCallback(async (err: unknown) => {
     const appError = await errorHandler.handleError(err);
     setError(new Error(appError.message));
@@ -93,10 +94,10 @@ export function useDataState<T>(options: UseDataStateOptions<T> = {}) {
     setError(null);
   }, [initialData]);
 
-  // API 호출 래퍼
+  // API 호출 래퍼: 로딩-성공-에러 상태를 자동 관리
   const executeApi = useCallback(async <R>(
     apiCall: () => Promise<ApiResponse<R>>,
-    onSuccess?: (data: R) => T
+    onSuccess?: (data: R) => T // API 응답 데이터 변환 함수
   ): Promise<void> => {
     setLoadingState(true);
 
@@ -104,6 +105,7 @@ export function useDataState<T>(options: UseDataStateOptions<T> = {}) {
       const response = await apiCall();
 
       if (response.success && response.data !== undefined && response.data !== null) {
+        // onSuccess가 있으면 데이터 변환, 없으면 그대로 사용
         const transformedData = onSuccess ? onSuccess(response.data as R) : response.data as unknown as T;
         setSuccess(transformedData);
       } else {
@@ -148,11 +150,12 @@ export function usePaginatedDataState<T>(
   const [totalPages, setTotalPages] = useState(0);
   const [hasMore, setHasMore] = useState(false);
 
+  // 페이지네이션 데이터 일괄 업데이트
   const setPaginatedData = useCallback((data: T[], page: number, total: number) => {
     dataState.setSuccess(data);
     setCurrentPage(page);
     setTotalPages(total);
-    setHasMore(page < total);
+    setHasMore(page < total); // 다음 페이지 존재 여부 계산
   }, [dataState]);
 
   const resetPagination = useCallback(() => {

@@ -33,6 +33,7 @@ export function useUserStats(user: User | null) {
     setPartialErrors([]);
 
     try {
+      // 사용자 통계를 위한 병렬 API 호출: Promise.allSettled로 일부 실패해도 다른 데이터는 가져올 수 있음
       const [postsRes, commentsRes, likedPostsRes, likedCommentsRes, messagesRes] =
         await Promise.allSettled([
           userQuery.getUserPosts(0, 1),
@@ -44,6 +45,7 @@ export function useUserStats(user: User | null) {
 
       const errors: string[] = [];
 
+      // 각 API 결과에서 totalElements 추출, 실패 시 0으로 처리하고 오류 메시지 수집
       const totalPosts =
         postsRes.status === "fulfilled" && postsRes.value.success
           ? postsRes.value.data?.totalElements || 0
@@ -94,10 +96,12 @@ export function useUserStats(user: User | null) {
 
       setUserStats(newStats);
 
+      // 부분적 오류 처리: 일부 API만 실패한 경우 경고 메시지 표시
       if (errors.length > 0) {
         setPartialErrors(errors);
       }
 
+      // 모든 API가 실패한 경우에만 전체 오류로 처리
       const allFailed = [postsRes, commentsRes, likedPostsRes, likedCommentsRes, messagesRes].every(
         (res) => res.status === "rejected"
       );

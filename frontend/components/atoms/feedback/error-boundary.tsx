@@ -30,32 +30,52 @@ export class ErrorBoundary extends Component<Props, State> {
     };
   }
 
+  /**
+   * React 18+ 에러 핸들링: 에러 발생 시 컴포넌트 상태를 업데이트
+   * - 이 메서드는 렌더링 도중 하위 컴포넌트에서 에러가 발생했을 때 호출됨
+   * - 에러 발생 시 hasError를 true로 설정하여 fallback UI를 렌더링하도록 함
+   */
   static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
+  /**
+   * 에러 캐치 및 로깅 처리 - React 클래스 컴포넌트의 라이프사이클 메서드
+   *
+   * 에러 처리 단계:
+   * 1. 에러 정보를 컴포넌트 상태에 저장 (errorInfo)
+   * 2. 개발자를 위한 콘솔 로깅 (개발 환경)
+   * 3. 운영 환경을 위한 중요 에러 로깅 (사용자 환경 정보 포함)
+   * 4. 부모 컴포넌트의 커스텀 에러 핸들러 호출 (선택적)
+   */
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo });
 
-    // 로깅
+    // 로깅 - 개발 환경에서 디버깅용
     logger.error('ErrorBoundary caught an error:', error, errorInfo);
 
-    // 중요한 에러는 운영환경에서도 로깅
+    // 중요한 에러는 운영환경에서도 로깅 - 사용자 환경 정보까지 수집
+    // 추후 에러 모니터링 서비스(Sentry, LogRocket 등)와 연동 가능
     logger.critical('Application Error:', {
       message: error.message,
       stack: error.stack,
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack,  // React 컴포넌트 스택
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href
+      userAgent: navigator.userAgent,            // 브라우저/OS 정보
+      url: window.location.href                  // 에러 발생 페이지 URL
     });
 
-    // 커스텀 에러 핸들러 호출
+    // 커스텀 에러 핸들러 호출 - 특별한 에러 처리가 필요한 경우
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
   }
 
+  /**
+   * 에러 상태 초기화 및 페이지 새로고침
+   * - 모든 에러 상태를 초기 상태로 되돌림
+   * - 페이지 강제 새로고침으로 메모리 상태까지 완전 리셋
+   */
   handleReset = () => {
     this.setState({
       hasError: false,
@@ -67,6 +87,11 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
+  /**
+   * 홈페이지로 이동 (에러 상황에서 안전한 페이지로 탈출)
+   * - 에러 상태 초기화 후 메인 페이지로 이동
+   * - SPA 라우팅이 아닌 브라우저 네비게이션 사용으로 확실한 페이지 이동
+   */
   handleGoHome = () => {
     this.setState({
       hasError: false,
@@ -78,50 +103,73 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.href = '/';
   };
 
+  /**
+   * 에러 세부 정보 표시/숨김 토글
+   * - 개발 환경에서 스택 트레이스 등 디버깅 정보 확인용
+   * - 일반 사용자에게는 기본적으로 숨겨져 있음
+   */
   toggleDetails = () => {
     this.setState(prevState => ({ showDetails: !prevState.showDetails }));
   };
 
+  /**
+   * 에러 리포팅 시스템 - 개발자/운영팀에게 에러 정보 전달
+   *
+   * 에러 리포트 처리 과정:
+   * 1. 중복 리포트 방지 (isReporting 상태 체크)
+   * 2. 에러 정보 수집 (메시지, 스택, 환경 정보)
+   * 3. 서버 전송 또는 클립보드 복사 (fallback)
+   * 4. 사용자에게 완료 알림
+   *
+   * 추후 에러 모니터링 서비스 연동 시 주석 해제하여 사용
+   */
   handleReport = async () => {
+    // 에러가 없거나 이미 리포팅 중이면 중단
     if (!this.state.error || this.state.isReporting) return;
 
     this.setState({ isReporting: true });
 
     try {
-      // 에러 리포트 로직 (필요시 서버로 전송)
+      // 에러 리포트 데이터 구성 - 디버깅에 필요한 모든 정보 포함
       const errorReport = {
         message: this.state.error.message,
         stack: this.state.error.stack,
-        componentStack: this.state.errorInfo?.componentStack,
+        componentStack: this.state.errorInfo?.componentStack, // React 컴포넌트 호출 스택
         timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        url: window.location.href,
-        userId: null, // 인증된 사용자의 경우 ID 추가
+        userAgent: navigator.userAgent,     // 브라우저/디바이스 정보
+        url: window.location.href,          // 에러 발생 URL
+        userId: null, // TODO: 인증된 사용자의 경우 ID 추가
       };
 
       logger.info('Error report generated:', errorReport);
 
-      // 실제 구현시 서버로 전송
+      // 실제 구현시 서버로 전송 (에러 모니터링 API)
+      // Sentry, LogRocket, Bugsnag 등과 연동 가능
       // await fetch('/api/error-report', {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(errorReport)
       // });
 
-      // 임시로 클립보드에 복사
+      // 현재는 임시로 클립보드에 복사 (개발 단계)
+      // 브라우저 호환성: 최신 브라우저에서 HTTPS에서만 동작
       await navigator.clipboard.writeText(JSON.stringify(errorReport, null, 2));
       alert('에러 정보가 클립보드에 복사되었습니다.');
 
     } catch (err) {
+      // 클립보드 접근 실패 또는 네트워크 오류 처리
       logger.error('Error reporting failed:', err);
       alert('에러 리포트 생성에 실패했습니다.');
     } finally {
+      // 성공/실패와 관계없이 로딩 상태 해제
       this.setState({ isReporting: false });
     }
   };
 
   render() {
+    // 에러 상태일 때 처리
     if (this.state.hasError) {
+      // 커스텀 fallback UI가 제공되면 해당 UI를 렌더링
       if (this.props.fallback) {
         return <>{this.props.fallback}</>;
       }
@@ -143,7 +191,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 페이지를 새로고침하거나 홈으로 이동해서 다시 시도해주세요.
               </p>
 
-              {/* 에러 상세 정보 토글 */}
+              {/* 에러 상세 정보 토글 - 개발 환경 또는 에러 발생 시에만 표시 */}
               {(process.env.NODE_ENV === 'development' || this.state.error) && (
                 <div className="mb-6">
                   <Button
@@ -172,6 +220,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         {this.state.error.message}
                       </p>
 
+                      {/* 스택 트레이스는 개발 환경에서만 표시 - 보안상 프로덕션에서 숨김 */}
                       {process.env.NODE_ENV === 'development' && this.state.error.stack && (
                         <>
                           <h4 className="font-semibold text-gray-800 mb-2">스택 트레이스:</h4>
@@ -209,7 +258,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   </Button>
                 </div>
 
-                {/* 에러 리포트 버튼 */}
+                  {/* 에러 리포트 버튼 - 개발자에게 에러 정보 전달 */}
                 {this.props.showReportButton !== false && (
                   <Button
                     onClick={this.handleReport}
@@ -224,7 +273,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 )}
               </div>
 
-              {/* 추가 도움말 */}
+              {/* 추가 도움말 - 사용자가 직접 해결할 수 있는 방법 안내 */}
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <p className="text-xs text-gray-500 leading-relaxed">
                   문제가 계속 발생하면 브라우저 캐시를 삭제하거나<br />
@@ -237,6 +286,7 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
+    // 에러가 없는 경우 정상적으로 자식 컴포넌트들을 렌더링
     return this.props.children;
   }
 }

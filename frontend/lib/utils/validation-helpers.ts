@@ -9,14 +9,27 @@ export interface ValidationResult {
 
 // XSS 보안 검증을 위한 패턴들
 const DANGEROUS_PATTERNS = [
-  /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, // 스크립트 태그
-  /on\w+\s*=\s*["']?[^"']*["']?/gi, // 이벤트 핸들러
-  /javascript\s*:/gi, // javascript: 프로토콜
-  /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, // iframe
-  /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, // object
-  /<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, // embed
-  /data\s*:\s*text\/html/gi, // data:text/html
-  /vbscript\s*:/gi, // vbscript
+  // 스크립트 태그: <script>로 시작해서 </script>로 끝나는 모든 패턴 감지
+  // \b는 단어 경계, [^<]*는 <가 아닌 문자들, (?:(?!<\/script>)<[^<]*)*는 </script>가 나오기 전까지의 모든 내용
+  /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+
+  // 이벤트 핸들러: onclick, onload 등 on으로 시작하는 모든 이벤트 속성 감지
+  // on\w+는 on + 하나 이상의 단어 문자, \s*=\s*는 등호 앞뒤 공백, ["']?는 따옴표 선택적
+  /on\w+\s*=\s*["']?[^"']*["']?/gi,
+
+  // JavaScript 프로토콜: href="javascript:..." 같은 위험한 URL 감지
+  /javascript\s*:/gi,
+
+  // 위험한 HTML 태그들: iframe, object, embed는 외부 콘텐츠 삽입 가능
+  /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
+  /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi,
+  /<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi,
+
+  // Data URI의 HTML: data:text/html,<script>... 같은 인라인 HTML 실행 방지
+  /data\s*:\s*text\/html/gi,
+
+  // VBScript 프로토콜: Internet Explorer에서 사용되던 위험한 스크립팅
+  /vbscript\s*:/gi,
 ];
 
 // 단순 텍스트 입력용 금지 문자
@@ -207,9 +220,12 @@ export const validateFields = (fields: ValidationFields): {
   let isValid = true;
 
   Object.entries(fields).forEach(([fieldName, { value, rules, args = [] }]) => {
+    // 각 필드에 대해 여러 검증 규칙을 순차적으로 실행
     for (const rule of rules) {
       const result = rule(value, ...args);
       if (!result.isValid && result.error) {
+        // 첫 번째 에러 발생 시 해당 필드의 나머지 규칙은 검사하지 않음 (fail-fast)
+        // 사용자에게는 가장 우선순위가 높은 에러 메시지만 표시하여 혼란 방지
         errors[fieldName] = result.error;
         isValid = false;
         break; // 첫 번째 에러에서 중단
@@ -240,14 +256,18 @@ export const createDebouncedValidator = (
   validationFn: (value: string) => ValidationResult,
   delay: number = 300
 ) => {
+  // 클로저를 이용한 타이머 ID 보관 - 각 validator 인스턴스마다 독립적인 타이머 관리
   let timeoutId: NodeJS.Timeout;
 
   return (
     value: string,
     callback: (result: ValidationResult) => void
   ) => {
+    // 이전 타이머가 있다면 취소 (사용자가 연속으로 입력하는 경우)
     clearTimeout(timeoutId);
 
+    // 새로운 타이머 설정 - delay 후에 실제 검증 실행
+    // 사용자가 타이핑을 멈춘 후에만 검증이 실행되어 불필요한 API 호출이나 연산 방지
     timeoutId = setTimeout(() => {
       const result = validationFn(value);
       callback(result);
@@ -271,11 +291,13 @@ export const conditionalValidation = (
 };
 
 /**
- * 커스텀 검증 규칙 빌더
+ * 커스텀 검증 규칙 빌더 - 빌더 패턴으로 복잡한 검증 규칙을 체이닝 방식으로 구성
  */
 export class ValidationBuilder {
+  // 검증 함수들을 배열로 저장 - 빌더 패턴의 핵심
   private rules: ((value: string) => ValidationResult)[] = [];
 
+  // 필수 입력 검증 추가 - 메서드 체이닝을 위해 this 반환
   required(message: string = '필수 입력 항목입니다.') {
     this.rules.push((value: string) => {
       if (!value || value.trim().length === 0) {
@@ -283,9 +305,10 @@ export class ValidationBuilder {
       }
       return { isValid: true };
     });
-    return this;
+    return this; // 메서드 체이닝 지원
   }
 
+  // 최소 길이 검증 추가 - 동적으로 메시지 생성하거나 커스텀 메시지 사용
   minLength(min: number, message?: string) {
     this.rules.push((value: string) => {
       if (value && value.length < min) {
@@ -296,9 +319,10 @@ export class ValidationBuilder {
       }
       return { isValid: true };
     });
-    return this;
+    return this; // 메서드 체이닝 지원
   }
 
+  // 최대 길이 검증 추가
   maxLength(max: number, message?: string) {
     this.rules.push((value: string) => {
       if (value && value.length > max) {
@@ -309,9 +333,10 @@ export class ValidationBuilder {
       }
       return { isValid: true };
     });
-    return this;
+    return this; // 메서드 체이닝 지원
   }
 
+  // 정규표현식 패턴 검증 추가
   pattern(regex: RegExp, message: string) {
     this.rules.push((value: string) => {
       if (value && !regex.test(value)) {
@@ -319,16 +344,19 @@ export class ValidationBuilder {
       }
       return { isValid: true };
     });
-    return this;
+    return this; // 메서드 체이닝 지원
   }
 
+  // 커스텀 검증 함수 추가 - 복잡한 비즈니스 로직도 통합 가능
   custom(validationFn: (value: string) => ValidationResult) {
     this.rules.push(validationFn);
-    return this;
+    return this; // 메서드 체이닝 지원
   }
 
+  // 빌더 패턴의 최종 단계 - 모든 규칙을 하나의 검증 함수로 결합
   build() {
     return (value: string): ValidationResult => {
+      // 등록된 모든 규칙을 순차 실행, 첫 번째 실패에서 중단 (fail-fast)
       for (const rule of this.rules) {
         const result = rule(value);
         if (!result.isValid) {

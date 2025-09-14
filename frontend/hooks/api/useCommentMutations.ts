@@ -141,13 +141,13 @@ export const useLikeCommentOptimized = (postId: number) => {
     mutationKey: [...mutationKeys.comment.like, postId],
     mutationFn: commentCommand.like,
     onMutate: async (commentId: number) => {
-      // 진행 중인 refetch 취소
+      // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.comment.list(postId) });
 
-      // 이전 값 스냅샷
+      // 이전 값 스냅샷 - 에러 시 롤백용
       const previousComments = queryClient.getQueryData(queryKeys.comment.list(postId));
 
-      // 낙관적 업데이트 (댓글 목록에서 해당 댓글의 좋아요 상태 변경)
+      // 낙관적 업데이트: 서버 응답 전에 UI를 먼저 업데이트하여 반응성 향상
       queryClient.setQueryData(queryKeys.comment.list(postId), (old: ApiResponse<Comment[]>) => {
         if (!old?.success || !old?.data) return old;
 
@@ -171,13 +171,13 @@ export const useLikeCommentOptimized = (postId: number) => {
       return { previousComments };
     },
     onError: (err, commentId, context) => {
-      // 에러 시 이전 값으로 롤백
+      // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
       if (context?.previousComments) {
         queryClient.setQueryData(queryKeys.comment.list(postId), context.previousComments);
       }
     },
     onSettled: (data, error, commentId) => {
-      // 성공/실패 여부와 관계없이 서버 데이터로 동기화
+      // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(postId) });
     },

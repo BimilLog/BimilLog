@@ -23,7 +23,10 @@ interface KakaoFriendsModalProps {
   onClose: () => void;
 }
 
-// 로딩 컴포넌트
+/**
+ * 카카오 친구 모달 로딩 컴포넌트
+ * Dynamic import 중 카카오톡 스타일의 로딩 UI를 표시
+ */
 const KakaoFriendsModalLoading = () => (
   <Dialog open onOpenChange={() => {}}>
     <DialogContent className="max-w-md max-h-[80vh] p-0 overflow-hidden bg-white">
@@ -47,29 +50,46 @@ const KakaoFriendsModalLoading = () => (
   </Dialog>
 );
 
-// 실제 모달 컴포넌트
+/**
+ * 카카오 친구 모달 메인 컴포넌트
+ * 카카오톡 친구 목록을 조회하고 비밀로그 회원인 친구들의 롤링페이퍼로 이동 가능
+ * 카카오 API 에러 처리 및 동의 플로우 관리 포함
+ */
 function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
+  // 카카오 친구 목록 데이터 (API 응답 전체 객체)
   const [friendsData, setFriendsData] = useState<KakaoFriendList | null>(null);
+
+  // UI 상태 관리 (로딩, 에러, 동의 필요 여부)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 카카오 친구 목록 접근 동의가 필요한 상태 (scope 추가 필요)
   const [needsConsent, setNeedsConsent] = useState(false);
+
+  // Next.js 라우터 (친구 롤링페이퍼 페이지 이동용)
   const router = useRouter();
 
+  /**
+   * 카카오 친구 목록 조회 함수
+   * 카카오 API 호출하여 친구 목록을 가져오고 에러 상황별로 적절한 상태 설정
+   * 동의 필요 에러의 경우 별도 플래그로 관리하여 동의 UI 표시
+   */
   const fetchFriends = async () => {
     setIsLoading(true);
     setError(null);
     setNeedsConsent(false);
     try {
+      // 카카오 친구 API 호출 (offset: 0부터 시작)
       const response = await userQuery.getFriendList(0);
 
       if (response.success && response.data) {
         setFriendsData(response.data);
       } else {
-        // 실패했지만 에러 메시지 체크
+        // API 실패 시 에러 메시지 분석
         const errorMessage =
           response?.error || "친구 목록을 가져올 수 없습니다.";
 
-        // 카카오 친구 동의 실패 에러 체크
+        // 카카오 친구 목록 접근 동의가 필요한 경우 감지
         if (errorMessage.includes("카카오 친구 추가 동의을 해야 합니다")) {
           setNeedsConsent(true);
           setError("카카오 친구 목록 접근을 위해 추가 동의가 필요합니다.");
@@ -85,9 +105,14 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
     }
   };
 
+  /**
+   * 카카오 친구 목록 동의 처리 함수
+   * 사용자 확인 후 로그아웃 → 카카오 동의 페이지로 리다이렉트
+   * 동의 완료 후 자동으로 다시 로그인되는 플로우
+   */
   const handleConsentClick = () => {
     try {
-      // 확인 대화상자 표시
+      // 사용자에게 동의 프로세스 안내
       const confirmed = window.confirm(
         "카카오 친구 목록 접근 권한을 받기 위해 잠시 로그아웃됩니다.\n" +
           "로그아웃 후 카카오 동의 페이지로 이동하시겠습니까?\n\n" +
@@ -107,19 +132,29 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
     }
   };
 
+  // 모달이 열릴 때 친구 목록 자동 조회 (의존성: isOpen)
   useEffect(() => {
     if (isOpen) {
       fetchFriends();
     }
   }, [isOpen]);
 
+  /**
+   * 친구의 롤링페이퍼 페이지로 이동하는 핸들러
+   * userName을 URL 인코딩하여 안전한 라우팅 보장
+   */
   const handleVisitRollingPaper = (userName: string) => {
     if (userName) {
+      // 친구 롤링페이퍼 페이지로 라우팅 후 모달 닫기
       router.push(`/rolling-paper/${encodeURIComponent(userName)}`);
       onClose();
     }
   };
 
+  /**
+   * 친구 닉네임의 첫 글자를 아바타 이니셜로 사용
+   * 프로필 이미지가 없을 때의 폴백 처리
+   */
   const getInitials = (nickname: string) => {
     return nickname ? nickname.substring(0, 1) : "?";
   };
@@ -127,7 +162,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[80vh] p-0 overflow-hidden bg-white">
-        {/* 카카오톡 스타일 헤더 */}
+        {/* 카카오톡 브랜드 색상과 스타일로 디자인된 헤더 */}
         <DialogHeader className="px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -138,6 +173,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                 <DialogTitle className="text-lg font-bold text-yellow-900">
                   카카오 친구
                 </DialogTitle>
+                {/* 친구 총 개수 표시 */}
                 {friendsData && (
                   <p className="text-sm text-yellow-800 opacity-90">
                     총 {friendsData.total_count}명
@@ -145,6 +181,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                 )}
               </div>
             </div>
+            {/* 새로고침 및 닫기 버튼 */}
             <div className="flex items-center space-x-2">
               <Button
                 variant="ghost"
@@ -169,14 +206,16 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
           </div>
         </DialogHeader>
 
-        {/* 컨텐츠 영역 */}
+        {/* 메인 컨텐츠 영역 - 상태별 조건부 렌더링 */}
         <div className="overflow-y-auto max-h-96">
           {isLoading ? (
+            /* 로딩 상태 */
             <div className="flex flex-col items-center justify-center py-12 px-4">
               <Spinner className="w-8 h-8 text-yellow-500 mb-4" />
               <p className="text-gray-600">친구 목록을 불러오는 중...</p>
             </div>
           ) : needsConsent ? (
+            /* 카카오 친구 목록 접근 동의가 필요한 상태 */
             <div className="p-4">
               <Alert className="mb-4 border-yellow-200 bg-yellow-50">
                 <AlertCircle className="h-4 w-4 text-yellow-600" />
@@ -207,6 +246,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
               </Alert>
             </div>
           ) : error ? (
+            /* 에러 상태 - 일반적인 API 에러 */
             <div className="p-4">
               <EmptyState
                 icon={<Users className="w-12 h-12" />}
@@ -217,6 +257,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
               />
             </div>
           ) : !friendsData || friendsData.elements.length === 0 ? (
+            /* 빈 상태 - 친구가 없는 경우 */
             <div className="p-4">
               <EmptyState
                 icon={<Users className="w-12 h-12" />}
@@ -227,6 +268,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
               />
             </div>
           ) : (
+            /* 친구 목록 표시 - 각 친구별 카드 형태로 렌더링 */
             <div className="divide-y divide-gray-100">
               {friendsData.elements.map((friend) => (
                 <div
@@ -245,16 +287,17 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                           {getInitials(friend.profile_nickname)}
                         </AvatarFallback>
                       </Avatar>
-                      {/* 온라인 상태 표시 (카카오톡 스타일) */}
+                      {/* 온라인 상태 표시 (카카오톡 스타일 녹색 점) */}
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
                     </div>
 
-                    {/* 친구 정보 */}
+                    {/* 친구 정보 (닉네임, 비밀로그 가입 여부) */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <h3 className="text-sm font-semibold text-gray-900 truncate">
                           {friend.profile_nickname}
                         </h3>
+                        {/* 비밀로그 가입 여부 표시 (userName이 있으면 가입자) */}
                         {friend.userName && (
                           <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
                             @{friend.userName}
@@ -268,9 +311,10 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                       )}
                     </div>
 
-                    {/* 액션 버튼 */}
+                    {/* 액션 버튼 영역 (가입자/비가입자 구분) */}
                     <div className="flex items-center space-x-2">
                       {friend.userName ? (
+                        /* 비밀로그 회원인 경우 롤링페이퍼 바로가기 버튼 */
                         <Button
                           size="sm"
                           onClick={() =>
@@ -282,6 +326,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                           롤링페이퍼
                         </Button>
                       ) : (
+                        /* 비가입 회원 표시 (클릭 불가) */
                         <div className="text-xs text-gray-400">미가입</div>
                       )}
                     </div>
@@ -292,7 +337,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
           )}
         </div>
 
-        {/* 푸터 */}
+        {/* 푸터 - 사용법 안내 */}
         {friendsData && friendsData.elements.length > 0 && (
           <div className="px-4 py-3 bg-gray-50 border-t">
             <p className="text-xs text-gray-500 text-center">
@@ -305,7 +350,11 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
   );
 }
 
-// Dynamic import로 컴포넌트 래핑
+/**
+ * 카카오 친구 모달 컴포넌트 (Dynamic Import)
+ * SSR 환경에서 카카오 API 호출 문제를 방지하기 위해
+ * 클라이언트 사이드에서만 렌더링되도록 설정
+ */
 const KakaoFriendsModal = dynamic(
   () => Promise.resolve(KakaoFriendsModalContent),
   {

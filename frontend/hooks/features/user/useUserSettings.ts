@@ -109,6 +109,7 @@ export function useSettings() {
     });
   };
 
+  // 회원탈퇴 처리: 사용자 확인 후 탈퇴 진행, 성공 시 홈으로 이동
   const handleWithdraw = async () => {
     if (
       !window.confirm(
@@ -125,6 +126,7 @@ export function useSettings() {
 
       if (response.success) {
         showSuccess("회원탈퇴 완료", "회원탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사했습니다.");
+        // 2초 후 홈으로 이동하여 사용자가 메시지를 읽을 시간을 제공
         setTimeout(() => {
           if (isMounted.current) {
             router.push("/");

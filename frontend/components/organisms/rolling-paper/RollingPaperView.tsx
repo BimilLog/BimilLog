@@ -8,6 +8,8 @@ import { SummarySection } from "@/components/organisms/rolling-paper/SummarySect
 import { ResponsiveAdFitBanner } from "@/components";
 import { ToastContainer, Loading, Spinner, type Toast } from "@/components";
 
+// 롤링페이퍼 그리드 컴포넌트를 동적 로딩으로 최적화
+// SSR 비활성화로 클라이언트 사이드에서만 렌더링하여 상호작용 요소 최적화
 const RollingPaperGrid = dynamic(
   () => import("@/components/organisms/rolling-paper/RollingPaperGrid").then(mod => ({ default: mod.RollingPaperGrid })),
   {
@@ -16,6 +18,8 @@ const RollingPaperGrid = dynamic(
   }
 );
 
+// 메시지 목록 모달을 동적 로딩으로 최적화
+// 모달은 필요할 때만 로드하여 초기 번들 크기 감소
 const MessageListModal = dynamic(
   () => import("@/components/organisms/rolling-paper/MessageListModal").then(mod => ({ default: mod.MessageListModal })),
   {
@@ -91,6 +95,7 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
 }) => {
   return (
     <RollingPaperLayout>
+      {/* 네비게이션 바: 소유자만 메시지 목록 버튼 활성화, 모바일에서는 페이지네이션 숨김 */}
       <NavigationBar
         nickname={targetNickname}
         messageCount={messageCount}
@@ -106,6 +111,7 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
       <div className="container mx-auto px-2 md:px-4">
         <div className="py-6">
           <div className="flex justify-center">
+            {/* 광고 배너: 공개/비공개 여부에 따라 다른 위치 구분 */}
             <ResponsiveAdFitBanner
               position={
                 isPublic ? "타인 롤링페이퍼 상단" : "내 롤링페이퍼 상단"
@@ -126,6 +132,7 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
         </div>
 
         <div className="mb-8">
+          {/* 롤링페이퍼 그리드: 소유자가 아닐 때만 메시지 작성 가능 */}
           <RollingPaperGrid
             messages={messages}
             nickname={targetNickname}
@@ -146,6 +153,8 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
         </div>
       </div>
 
+      {/* 메시지 목록 모달: RollingPaperMessage만 필터링 (VisitMessage 제외) */}
+      {/* 타입 가드를 사용하여 실제 메시지만 표시하고 방문 기록은 제외 */}
       <MessageListModal
         isOpen={isMessageListOpen}
         onClose={() => setIsMessageListOpen(false)}

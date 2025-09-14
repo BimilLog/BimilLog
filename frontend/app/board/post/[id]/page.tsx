@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id: postId } = await params;
 
   try {
+    // 서버사이드에서 게시글 데이터 조회하여 SEO 메타데이터 동적 생성
     const response = await apiClient.get<Post>(`/api/post/${postId}`);
 
     if (!response.success || !response.data) {
@@ -25,13 +26,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     const post = response.data;
+    // HTML 태그 제거 후 160자로 잘라서 meta description 생성
     const truncatedContent = post.content
       .replace(/<[^>]*>/g, "")
       .substring(0, 160);
 
-        const ogImageUrl = new URL(`/api/og`, "https://grow-farm.com");
-        ogImageUrl.searchParams.set("title", post.title);
-        ogImageUrl.searchParams.set("author", post.userName);
+    // 동적 OG 이미지 생성을 위한 API 엔드포인트 URL 구성
+    const ogImageUrl = new URL(`/api/og`, "https://grow-farm.com");
+    ogImageUrl.searchParams.set("title", post.title);
+    ogImageUrl.searchParams.set("author", post.userName);
 
         return {
             title: `${post.title} | 비밀로그`,
@@ -75,7 +78,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostDetailPage({ params }: Props) {
   const { id: postId } = await params;
 
-  // 서버에서 초기 데이터 가져오기
+  // 서버 컴포넌트에서 초기 데이터 페칭 - 클라이언트 하이드레이션 전에 데이터 확보
   try {
     const response = await apiClient.get<Post>(`/api/post/${postId}`);
 
@@ -83,7 +86,7 @@ export default async function PostDetailPage({ params }: Props) {
       notFound();
     }
 
-    // 구조화된 데이터 생성
+    // SEO를 위한 구조화된 데이터(JSON-LD) 생성 - 검색엔진이 콘텐츠를 이해할 수 있도록 함
     const post = response.data;
     const jsonLd = generateStructuredData.article(
       post.title,
@@ -95,10 +98,12 @@ export default async function PostDetailPage({ params }: Props) {
 
     return (
       <>
+        {/* JSON-LD 스크립트를 head에 삽입하여 구조화된 데이터 제공 */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* 서버에서 가져온 초기 데이터를 클라이언트 컴포넌트에 전달 */}
         <PostDetailClient initialPost={post} postId={postId} />
       </>
     );

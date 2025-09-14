@@ -68,7 +68,7 @@ export function usePostSearchWithDebounce(debounceMs = 500) {
   const debouncedSearchTerm = useDebounce(searchTerm, debounceMs);
   const postSearch = usePostSearch();
 
-  // 디바운스된 검색어가 변경될 때마다 자동 검색
+  // 디바운스된 검색어가 변경될 때마다 자동 검색: 500ms 지연 후 실행하여 과도한 API 호출 방지
   useEffect(() => {
     if (debouncedSearchTerm.trim()) {
       postSearch.search(debouncedSearchTerm);

@@ -179,15 +179,15 @@ export class DraftManager {
       const drafts = this.getDraftsByType(type, storage);
 
       if (drafts.length > this.MAX_DRAFTS) {
-        // 오래된 순으로 정렬
+        // 오래된 draft 정리 로직: savedAt 기준으로 오래된 순 정렬하여 최대 개수 초과분 삭제
         const sortedDrafts = drafts
           .sort((a, b) => {
             const timeA = new Date((a.data as { savedAt: string }).savedAt).getTime();
             const timeB = new Date((b.data as { savedAt: string }).savedAt).getTime();
-            return timeA - timeB;
+            return timeA - timeB; // 오래된 것이 앞에 오도록 정렬
           });
 
-        // 초과분 삭제
+        // 초과분만 삭제하여 최대 개수 유지 (가장 오래된 것부터 제거)
         const toRemove = sortedDrafts.slice(0, drafts.length - this.MAX_DRAFTS);
         toRemove.forEach(({ key }) => storage.removeItem(key));
 
@@ -231,10 +231,11 @@ export class ReconnectionManager {
       return;
     }
 
-    // 지수 백오프 계산
+    // 지수 백오프 알고리즘: 시도 횟수에 따라 대기 시간을 지수적으로 증가
+    // 2^currentCount를 곱하여 1초 -> 2초 -> 4초 -> 8초... 순으로 증가, maxDelay로 상한 설정
     const delay = Math.min(baseDelay * Math.pow(2, currentCount), maxDelay);
 
-    // 기존 타이머 정리
+    // 기존 타이머 정리하여 중복 실행 방지
     const existingTimer = this.retryTimers.get(key);
     if (existingTimer) {
       clearTimeout(existingTimer);
@@ -249,7 +250,7 @@ export class ReconnectionManager {
         this.retryTimers.delete(key);
         logger.info(`Reconnection successful for ${key}`);
       } catch (error) {
-        // 실패시 카운터 증가하고 재시도
+        // 실패시 카운터 증가하고 재귀적으로 재시도 스케줄링
         this.reconnectCounts.set(key, currentCount + 1);
         this.scheduleReconnection(key, reconnectFn, options);
         logger.warn(`Reconnection failed for ${key}:`, error);
@@ -331,7 +332,7 @@ export class CacheRecoveryManager {
 
       const parsed = JSON.parse(cachedItem);
 
-      // 만료 검사
+      // 캐시 만료 검사: 현재 시간과 expires 비교하여 만료된 캐시 자동 삭제
       if (Date.now() > parsed.expires) {
         sessionStorage.removeItem(`${this.CACHE_PREFIX}${key}`);
         return null;

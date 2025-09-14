@@ -178,6 +178,8 @@ export const errorMessages: Record<ErrorCode, { message: string; userMessage: st
 
 // 에러 코드로부터 도메인 추출
 export function getDomainFromCode(code: ErrorCode): ErrorDomain {
+  // 에러 코드 prefix 기반 도메인 분류 로직
+  // 에러 코드의 접두사를 분석하여 해당하는 도메인을 자동으로 결정
   if (code.startsWith('AUTH_')) return ErrorDomain.AUTH;
   if (code.startsWith('USER_')) return ErrorDomain.USER;
   if (code.startsWith('POST_')) return ErrorDomain.POST;
@@ -196,6 +198,7 @@ export function createDomainError(
   retryable = false
 ): DomainError {
   const domain = getDomainFromCode(code);
+  // 폴백 에러 메시지 처리: 정의되지 않은 에러 코드의 경우 UNKNOWN_ERROR 메시지 사용
   const messages = errorMessages[code] || errorMessages[ErrorCode.UNKNOWN_ERROR];
 
   return {

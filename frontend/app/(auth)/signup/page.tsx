@@ -7,32 +7,47 @@ import { useAuth, useToast, useSignupUuid } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout, NicknameSetupForm } from "@/components/organisms/auth";
 
+/**
+ * 회원가입 페이지
+ *
+ * 두 가지 상태를 처리합니다:
+ * 1. 초기 회원가입 페이지 (/signup) - 카카오 로그인 버튼만 표시
+ * 2. 닉네임 설정 페이지 (/signup?required=true) - 카카오 OAuth 완료 후 닉네임 입력 폼 표시
+ *
+ * URL 파라미터:
+ * - required=true: 닉네임 설정이 필요한 단계임을 표시
+ * - uuid: 임시 UUID (useSignupUuid 훅에서 자동으로 URL에서 추출)
+ */
 export default function SignUpPage() {
   const { login, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  // URL 쿼리에서 required=true인 경우 닉네임 설정이 필요한 회원가입 단계
   const needsNickname = searchParams.get("required") === "true";
   const { showSuccess, showError } = useToast();
+  // 카카오 OAuth 후 임시 발급받은 UUID를 검증 (닉네임 설정 전까지 유효)
   const { tempUuid, isValidating, error } = useSignupUuid();
 
-  // 로그인된 상태에서 닉네임 설정이 필요하지 않은 경우 홈으로 리다이렉트
+  // 이미 로그인된 사용자가 일반 회원가입 페이지에 접근한 경우 홈으로 리다이렉트
+  // needsNickname이 false인 경우는 일반적인 /signup 접근을 의미
   useEffect(() => {
     if (!isLoading && isAuthenticated && !needsNickname) {
       router.push("/");
     }
   }, [isLoading, isAuthenticated, router, needsNickname]);
 
-  // 로딩 중
+  // 1. 일반 로딩 상태 또는 2. 닉네임 설정 단계에서 UUID 검증 중인 상태
   if (isLoading || (needsNickname && isValidating)) {
     return <AuthLoadingScreen message="로딩 중..." />;
   }
 
-  // UUID 검증 오류
+  // 닉네임 설정 단계에서 UUID 검증 실패 (만료, 유효하지 않은 UUID 등)
   if (needsNickname && error) {
     return <AuthLoadingScreen message="회원가입 오류" subMessage={error} />;
   }
 
-  // 닉네임 설정이 필요한 경우
+  // 카카오 로그인 후 닉네임 설정 단계 (required=true & 유효한 tempUuid 존재)
+  // 회원가입 플로우: 카카오 로그인 → OAuth 콜백 → 임시 UUID 발급 → 닉네임 설정 → 회원가입 완료
   if (needsNickname && tempUuid) {
     return (
       <AuthLayout>
@@ -49,7 +64,8 @@ export default function SignUpPage() {
     );
   }
 
-  // 일반 회원가입 페이지
+  // 최초 회원가입 페이지 (아직 카카오 로그인을 하지 않은 상태)
+  // 카카오 버튼 클릭 시 login("/signup?required=true")로 OAuth 시작
   return (
     <AuthLayout>
       <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
@@ -62,6 +78,7 @@ export default function SignUpPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
+          {/* 카카오 OAuth 시작 버튼 - redirectTo에 required=true로 닉네임 설정 필요함을 표시 */}
           <Button
             className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold text-base"
             onClick={() => login("/signup?required=true")}

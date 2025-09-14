@@ -87,7 +87,7 @@ export const RecentVisits: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={(e) => {
-                  e.preventDefault();
+                  e.preventDefault(); // Link 컴포넌트의 기본 네비게이션 방지
                   handleRemoveVisit(visit.nickname);
                 }}
                 className="text-gray-400 hover:text-red-500 hover:bg-red-50 h-8 w-8 p-0 flex-shrink-0"
@@ -98,6 +98,7 @@ export const RecentVisits: React.FC = () => {
           ))}
         </div>
 
+        {/* 로컬스토리지 저장 정책 안내 메시지 */}
         <div className="mt-4 pt-3 border-t border-gray-200">
           <p className="text-xs text-gray-500 text-center flex items-center justify-center space-x-1">
             <Lightbulb className="w-3 h-3" />

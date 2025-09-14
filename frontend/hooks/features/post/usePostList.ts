@@ -17,7 +17,7 @@ export function usePostList(pageSize = 30) {
 
   const pagination = usePagination({ pageSize });
 
-  // TanStack Query 사용
+  // TanStack Query로 게시글 목록/검색 통합 처리: 검색어가 있으면 검색, 없으면 일반 목록 조회
   const { data, isLoading, refetch } = useQuery({
     queryKey: debouncedSearchTerm.trim()
       ? queryKeys.post.search(debouncedSearchTerm, pagination.currentPage)
@@ -77,6 +77,7 @@ export function usePopularPostsTabs() {
     gcTime: 60 * 60 * 1000,
   });
 
+  // 현재 활성 탭에 따라 표시할 게시글 데이터 선택
   const posts = useMemo(() => {
     if (activeTab === 'realtime') return popularData?.data?.realtime || [];
     if (activeTab === 'weekly') return popularData?.data?.weekly || [];

@@ -17,17 +17,27 @@ import { useBrowserGuide } from "@/hooks";
 import { useState, useEffect } from "react";
 
 export default function InstallPage() {
+  // SSR 방지를 위한 클라이언트 렌더링 상태 관리
   const [isClient, setIsClient] = useState(false);
+
+  // 브라우저 정보 저장 상태 (PWA 설치 가능 여부 확인용)
   const [browserInfo, setBrowserInfo] = useState({
     name: "브라우저",
     isInApp: false,
   });
+
+  // iOS 디바이스 감지 상태 (설치 방법 안내가 다름)
   const [isIOS, setIsIOS] = useState(false);
   const { getBrowserInfo } = useBrowserGuide();
 
   useEffect(() => {
+    // 클라이언트 렌더링 허용
     setIsClient(true);
+
+    // 브라우저 정보 가져오기 (Safari, Chrome 등 감지)
     setBrowserInfo(getBrowserInfo());
+
+    // iOS 디바이스 감지 (iPad, iPhone, iPod)
     if (typeof navigator !== "undefined") {
       setIsIOS(
         /iPad|iPhone|iPod/.test(navigator.userAgent) &&
@@ -36,7 +46,7 @@ export default function InstallPage() {
     }
   }, [getBrowserInfo]);
 
-  // 클라이언트에서만 렌더링되도록 보장
+  // SSR 방지: PWA 기능은 브라우저 환경에서만 동작하므로 클라이언트에서만 렌더링
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50">
@@ -93,19 +103,20 @@ export default function InstallPage() {
             언제 어디서나 마음을 전해보세요
           </p>
 
-          {/* 메인 설치 버튼 */}
+          {/* PWA 앱 설치 버튼 */}
           <div className="flex flex-col gap-6 items-center mb-16">
             <PWAInstallButton
               size="lg"
               className="bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 px-16 py-5 text-xl font-bold shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl rounded-2xl"
             />
+            {/* 현재 브라우저 정보 표시 */}
             <div className="flex items-center gap-2 text-sm text-gray-500 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               현재 브라우저: {browserInfo.name}
             </div>
           </div>
 
-          {/* 설치 방법 안내 */}
+          {/* 디바이스별 PWA 설치 방법 안내 */}
           {isIOS ? (
             <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 max-w-2xl mx-auto shadow-xl">
               <CardContent className="p-8">
@@ -149,6 +160,7 @@ export default function InstallPage() {
               </CardContent>
             </Card>
           ) : (
+            /* Android/PC인 경우: Chrome PWA 설치 버튼 방식 안내 */
             <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 max-w-2xl mx-auto shadow-xl">
               <CardContent className="p-8">
                 <h3 className="font-bold text-green-800 mb-6 flex items-center justify-center gap-3 text-xl">
@@ -299,6 +311,7 @@ export default function InstallPage() {
           <p className="text-xl text-gray-600 mb-8">
             더 나은 비밀로그 경험이 기다리고 있습니다
           </p>
+          {/* 하단 PWA 설치 버튼 */}
           <PWAInstallButton
             size="lg"
             className="bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 px-12 py-4 text-lg font-bold shadow-xl transform transition-all duration-300 hover:scale-105"
