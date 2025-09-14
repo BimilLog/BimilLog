@@ -1,8 +1,10 @@
 package jaeik.bimillog.e2e.base;
 
 import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.ViewportSize;
 import com.microsoft.playwright.options.WaitForSelectorState;
+import com.microsoft.playwright.options.LoadState;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -94,7 +96,6 @@ public abstract class BaseE2ETest {
         // 비디오 녹화 설정 (디버깅용)
         if (Boolean.parseBoolean(System.getProperty("playwright.video", "false"))) {
             contextOptions.setRecordVideoDir(Paths.get("target/videos"));
-            contextOptions.setRecordVideoSize(new ViewportSize(1280, 720));
         }
 
         context = browser.newContext(contextOptions);
@@ -267,15 +268,15 @@ public abstract class BaseE2ETest {
     }
 
     protected void setMobileViewport() {
-        page.setViewportSize(MOBILE);
+        page.setViewportSize(MOBILE.width, MOBILE.height);
     }
 
     protected void setTabletViewport() {
-        page.setViewportSize(TABLET);
+        page.setViewportSize(TABLET.width, TABLET.height);
     }
 
     protected void setDesktopViewport() {
-        page.setViewportSize(DESKTOP);
+        page.setViewportSize(DESKTOP.width, DESKTOP.height);
     }
 
     protected String generateTimestamp() {

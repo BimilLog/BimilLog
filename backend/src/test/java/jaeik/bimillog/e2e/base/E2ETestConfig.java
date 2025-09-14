@@ -183,7 +183,7 @@ public class E2ETestConfig {
 
     // 네트워크 조건 시뮬레이션
     public static class NetworkCondition {
-        public static final NetworkProfile FAST_3G = new NetworkProfile("Fast 3G", 1.6 * 1024 * 1024 / 8, 750 * 1024 / 8, 40);
+        public static final NetworkProfile FAST_3G = new NetworkProfile("Fast 3G", (int)(1.6 * 1024 * 1024 / 8), 750 * 1024 / 8, 40);
         public static final NetworkProfile SLOW_3G = new NetworkProfile("Slow 3G", 500 * 1024 / 8, 500 * 1024 / 8, 100);
         public static final NetworkProfile OFFLINE = new NetworkProfile("Offline", 0, 0, 0);
 

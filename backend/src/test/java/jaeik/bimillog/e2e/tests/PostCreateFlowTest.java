@@ -50,8 +50,7 @@ public class PostCreateFlowTest extends BaseE2ETest {
             .setViewportSize(DESKTOP)
             .setIgnoreHTTPSErrors(true)
             .setLocale("ko-KR")
-            .setRecordVideoDir(Paths.get("target/e2e-videos"))
-            .setRecordVideoSize(new ViewportSize(1280, 720));
+            .setRecordVideoDir(Paths.get("target/e2e-videos"));
 
         context = browser.newContext(contextOptions);
 
