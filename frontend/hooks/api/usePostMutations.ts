@@ -1,5 +1,3 @@
-'use client';
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { mutationKeys, queryKeys } from '@/lib/tanstack-query/keys';
 import { postCommand } from '@/lib/api';

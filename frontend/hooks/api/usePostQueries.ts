@@ -1,5 +1,3 @@
-'use client';
-
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/tanstack-query/keys';
 import { postQuery } from '@/lib/api';

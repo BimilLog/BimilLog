@@ -2,8 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { BrowserGuideWrapper } from "@/components/organisms/common/browser-guide-wrapper";
-import { ToastProvider } from "@/hooks";
+import { ClientProviders } from "@/providers/client-providers";
 import { QueryProvider } from "@/providers/query-provider";
 
 const geistSans = Geist({
@@ -152,9 +151,7 @@ export default function RootLayout({
         </Script>
 
         <QueryProvider>
-          <ToastProvider>
-            <BrowserGuideWrapper>{children}</BrowserGuideWrapper>
-          </ToastProvider>
+          <ClientProviders>{children}</ClientProviders>
         </QueryProvider>
       </body>
     </html>

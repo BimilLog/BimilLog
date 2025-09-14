@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components";
 import { Badge } from "@/components";
 import { Lock } from "lucide-react";

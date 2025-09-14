@@ -15,6 +15,7 @@ export { CommentList } from './CommentList';
 export { CommentSection } from './CommentSection';
 export { PasswordModal } from './PasswordModal';
 export { PopularComments } from './PopularComments';
+export { PopularCommentItem } from './PopularCommentItem';
 export { PostActions } from './PostActions';
 export { PostContent } from './PostContent';
 export { default as PostDetailClient } from './PostDetailClient';

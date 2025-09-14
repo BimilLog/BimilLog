@@ -2,8 +2,6 @@
  * 도메인별 특화 에러 핸들러 hooks
  */
 
-"use client";
-
 import { useCallback } from 'react';
 import { useErrorHandler } from './useErrorHandler';
 

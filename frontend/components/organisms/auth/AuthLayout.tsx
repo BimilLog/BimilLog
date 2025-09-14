@@ -1,10 +1,7 @@
-"use client";
-
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
-import { ToastContainer } from "@/components";
-import { useToast } from "@/hooks";
+import { AuthLayoutClient } from "./AuthLayoutClient";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -13,8 +10,6 @@ interface AuthLayoutProps {
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
-  const { toasts, removeToast } = useToast();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       <AuthHeader />
@@ -46,7 +41,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       </div>
 
       <HomeFooter />
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <AuthLayoutClient />
     </div>
   );
 }

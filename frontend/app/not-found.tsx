@@ -1,10 +1,9 @@
-"use client";
-
 import Link from "next/link";
 import { Button } from "@/components";
 import { Heart, Home, Search, ArrowLeft } from "lucide-react";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
+import { BackButton } from "@/components/atoms/actions/back-button";
 
 export default function NotFoundPage() {
   return (
@@ -83,15 +82,14 @@ export default function NotFoundPage() {
               </Button>
             </div>
 
-            <Button
+            <BackButton
               variant="ghost"
               size="lg"
-              onClick={() => window.history.back()}
               className="w-full"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               이전 페이지로
-            </Button>
+            </BackButton>
           </div>
 
           {/* 하단 링크들 */}

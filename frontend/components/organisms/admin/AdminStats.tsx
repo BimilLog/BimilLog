@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { TrendingUp } from "lucide-react";
 import type { Report } from "@/types/domains/admin";

@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Button, Dialog } from "@/components";
 import { CheckCircle, PartyPopper, Sparkles } from "lucide-react";

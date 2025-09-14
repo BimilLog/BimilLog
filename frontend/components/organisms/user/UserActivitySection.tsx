@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useCallback } from "react";
 import { Card, CardContent } from "@/components";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";

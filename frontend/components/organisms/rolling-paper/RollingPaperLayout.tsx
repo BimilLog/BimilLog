@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
