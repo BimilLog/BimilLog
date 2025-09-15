@@ -55,7 +55,7 @@ export default function SuggestClient() {
   const [suggestionType, setSuggestionType] = useState<SuggestionType | "">("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { showSuccess, showError, showWarning, toasts, removeToast } =
+  const { showSuccess, showError, showWarning, showFeedback, toasts, removeToast } =
     useToast();
 
   const selectedType = suggestionTypes.find(
@@ -84,9 +84,16 @@ export default function SuggestClient() {
       });
 
       if (response.success) {
-        showSuccess(
+        showFeedback(
           "건의사항 접수 완료",
-          "건의사항이 성공적으로 접수되었습니다. 소중한 의견 감사합니다!"
+          "소중한 의견 감사합니다! 빠른 시일 내에 검토하여 반영하겠습니다.",
+          {
+            label: "추가 건의하기",
+            onClick: () => {
+              setSuggestionType("");
+              setContent("");
+            }
+          }
         );
         setSuggestionType("");
         setContent("");

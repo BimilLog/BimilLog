@@ -17,6 +17,10 @@ export function useToast() {
     showError: store.showError,
     showWarning: store.showWarning,
     showInfo: store.showInfo,
+    showFeedback: store.showFeedback,
+    showNeutral: store.showNeutral,
+    showWithUndo: store.showWithUndo,
+    showAdvancedToast: store.showAdvancedToast,
     // showToast 메서드 추가 (하위 호환성)
     showToast: store.showToast,
   };

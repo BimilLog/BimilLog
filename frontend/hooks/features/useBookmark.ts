@@ -31,7 +31,7 @@ interface UseBookmarkOptions {
 
 export function useBookmark(options: UseBookmarkOptions = {}) {
   const { type, category, sortBy = 'createdAt', sortOrder = 'desc' } = options;
-  const { showSuccess, showError, showInfo } = useToast();
+  const { showSuccess, showError, showInfo, showWithUndo } = useToast();
 
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [stats, setStats] = useState<BookmarkStats>({
@@ -107,33 +107,63 @@ export function useBookmark(options: UseBookmarkOptions = {}) {
 
   // 게시글 북마크 토글
   const togglePost = useCallback((postId: number, title: string, category?: BookmarkCategory) => {
+    const wasBookmarked = isPostBookmarked(postId);
     const success = togglePostBookmark(postId, title, category);
     if (success) {
       const isBookmarked = isPostBookmarked(postId);
       if (isBookmarked) {
-        showSuccess('북마크 추가', '게시글이 북마크되었습니다.');
+        showWithUndo(
+          '북마크 추가',
+          '게시글이 북마크되었습니다.',
+          () => {
+            togglePostBookmark(postId, title, category);
+            loadBookmarks();
+          }
+        );
       } else {
-        showInfo('북마크 제거', '게시글 북마크가 제거되었습니다.');
+        showWithUndo(
+          '북마크 제거',
+          '게시글 북마크가 제거되었습니다.',
+          () => {
+            togglePostBookmark(postId, title, category);
+            loadBookmarks();
+          }
+        );
       }
       loadBookmarks();
     }
     return success;
-  }, [showSuccess, showInfo, loadBookmarks]);
+  }, [showWithUndo, loadBookmarks]);
 
   // 롤링페이퍼 북마크 토글
   const toggleRollingPaper = useCallback((nickname: string, category?: BookmarkCategory) => {
+    const wasBookmarked = isRollingPaperBookmarked(nickname);
     const success = toggleRollingPaperBookmark(nickname, category);
     if (success) {
       const isBookmarked = isRollingPaperBookmarked(nickname);
       if (isBookmarked) {
-        showSuccess('북마크 추가', '롤링페이퍼가 북마크되었습니다.');
+        showWithUndo(
+          '북마크 추가',
+          '롤링페이퍼가 북마크되었습니다.',
+          () => {
+            toggleRollingPaperBookmark(nickname, category);
+            loadBookmarks();
+          }
+        );
       } else {
-        showInfo('북마크 제거', '롤링페이퍼 북마크가 제거되었습니다.');
+        showWithUndo(
+          '북마크 제거',
+          '롤링페이퍼 북마크가 제거되었습니다.',
+          () => {
+            toggleRollingPaperBookmark(nickname, category);
+            loadBookmarks();
+          }
+        );
       }
       loadBookmarks();
     }
     return success;
-  }, [showSuccess, showInfo, loadBookmarks]);
+  }, [showWithUndo, loadBookmarks]);
 
   // 북마크 업데이트
   const updateBookmarkItem = useCallback((id: string, updates: Partial<Bookmark>) => {

@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react";
+import { Toast as FlowbiteToast } from "flowbite-react";
+import {
+  X,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  AlertTriangle,
+  MessageSquare,
+  Undo,
+  Send
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type ToastType = "success" | "error" | "warning" | "info";
+export type ToastType = "success" | "error" | "warning" | "info" | "feedback" | "neutral";
 
 export interface Toast {
   id: string;
@@ -12,6 +22,11 @@ export interface Toast {
   title: string;
   description?: string;
   duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+  undoAction?: () => void;
 }
 
 interface ToastProps {
@@ -24,27 +39,26 @@ const iconMap = {
   error: AlertCircle,
   warning: AlertTriangle,
   info: Info,
+  feedback: MessageSquare,
+  neutral: Send,
 };
 
-const colorMap = {
-  success: "bg-green-50 border-green-200 text-green-800",
-  error: "bg-purple-50 border-purple-200 text-purple-800",
-  warning: "bg-orange-50 border-orange-200 text-orange-800",
-  info: "bg-indigo-50 border-indigo-200 text-indigo-800",
-};
-
-const iconColorMap = {
-  success: "text-green-600",
-  error: "text-purple-600",
-  warning: "text-orange-600",
-  info: "text-indigo-600",
-};
+// Flowbite Toast 색상 테마
+const colorTheme = {
+  success: "green",
+  error: "red",
+  warning: "orange",
+  info: "blue",
+  feedback: "purple",
+  neutral: "gray",
+} as const;
 
 export function ToastComponent({ toast, onRemove }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
   const IconComponent = iconMap[toast.type];
+  const theme = colorTheme[toast.type];
 
   const handleRemove = () => {
     setIsLeaving(true);
@@ -60,43 +74,111 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
   }, []);
 
   useEffect(() => {
-    // 자동 제거
+    // 자동 제거 (타입별 차등 시간 적용)
     if (toast.duration && toast.duration > 0) {
       const timer = setTimeout(() => {
         handleRemove();
       }, toast.duration);
       return () => clearTimeout(timer);
     }
-  }, [toast.duration, handleRemove]);
+  }, [toast.duration, toast.id]);
 
+  // Feedback 타입 토스트 (Interactive)
+  if (toast.type === 'feedback' && (toast.action || toast.undoAction)) {
+    return (
+      <div
+        className={cn(
+          "transition-all duration-300 ease-in-out",
+          isVisible && !isLeaving
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0"
+        )}
+      >
+        <FlowbiteToast className="shadow-lg">
+          <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-purple-500">
+            <MessageSquare className="h-5 w-5" />
+          </div>
+          <div className="ml-3 text-sm font-normal">
+            <div className="mb-2 text-sm font-semibold text-gray-900">{toast.title}</div>
+            {toast.description && (
+              <div className="mb-3 text-sm font-normal text-gray-500">{toast.description}</div>
+            )}
+            <div className="flex gap-2">
+              {toast.action && (
+                <button
+                  onClick={() => {
+                    toast.action?.onClick();
+                    handleRemove();
+                  }}
+                  className="inline-flex h-8 items-center justify-center rounded-lg bg-purple-600 px-3 text-center text-xs font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                >
+                  {toast.action.label}
+                </button>
+              )}
+              {toast.undoAction && (
+                <button
+                  onClick={() => {
+                    toast.undoAction?.();
+                    handleRemove();
+                  }}
+                  className="inline-flex h-8 items-center gap-1 justify-center rounded-lg border border-gray-300 bg-white px-3 text-center text-xs font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200"
+                >
+                  <Undo className="h-3 w-3" />
+                  실행 취소
+                </button>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8"
+            onClick={handleRemove}
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </FlowbiteToast>
+      </div>
+    );
+  }
+
+  // 기본 토스트 (Flowbite Toast 사용)
   return (
     <div
       className={cn(
-        "relative flex w-full max-w-md items-start gap-3 rounded-lg border p-4 shadow-brand-lg transition-all duration-300 ease-in-out",
-        colorMap[toast.type],
+        "transition-all duration-300 ease-in-out",
         isVisible && !isLeaving
           ? "translate-x-0 opacity-100"
           : "translate-x-full opacity-0"
       )}
     >
-      <IconComponent
-        className={cn("h-5 w-5 flex-shrink-0 mt-0.5", iconColorMap[toast.type])}
-      />
-
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm">{toast.title}</p>
-        {toast.description && (
-          <p className="mt-1 text-sm opacity-90">{toast.description}</p>
-        )}
-      </div>
-
-      <button
-        onClick={handleRemove}
-        className="flex-shrink-0 rounded-md p-1 hover:bg-white/20 transition-colors"
-        aria-label="닫기"
-      >
-        <X className="h-4 w-4" />
-      </button>
+      <FlowbiteToast className="shadow-lg">
+        <div className={cn(
+          "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+          theme === "green" && "bg-green-100 text-green-500",
+          theme === "red" && "bg-red-100 text-red-500",
+          theme === "orange" && "bg-orange-100 text-orange-500",
+          theme === "blue" && "bg-blue-100 text-blue-500",
+          theme === "purple" && "bg-purple-100 text-purple-500",
+          theme === "gray" && "bg-gray-100 text-gray-500"
+        )}>
+          <IconComponent className="h-5 w-5" />
+        </div>
+        <div className="ml-3 text-sm font-normal">
+          <span className="mb-1 text-sm font-semibold text-gray-900">{toast.title}</span>
+          {toast.description && (
+            <div className="mt-1 text-sm font-normal text-gray-500">{toast.description}</div>
+          )}
+        </div>
+        <button
+          type="button"
+          className="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8"
+          onClick={handleRemove}
+          aria-label="Close"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </FlowbiteToast>
     </div>
   );
 }
@@ -110,12 +192,12 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none">
-      <div className="pointer-events-auto">
-        {toasts.map((toast) => (
-          <ToastComponent key={toast.id} toast={toast} onRemove={onRemove} />
-        ))}
-      </div>
+    <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none max-w-md">
+      {toasts.map((toast) => (
+        <div key={toast.id} className="pointer-events-auto">
+          <ToastComponent toast={toast} onRemove={onRemove} />
+        </div>
+      ))}
     </div>
   );
 }

@@ -36,7 +36,7 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
   const { user } = useAuth();
   const isOwnPost = user?.userId === post.userId;
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const { showSuccess, showError } = useToast();
+  const { showFeedback, showError } = useToast();
 
   const handleReport = async (reason: string) => {
     try {
@@ -48,9 +48,13 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
       });
 
       if (response.success) {
-        showSuccess(
-          "신고 접수",
-          "신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다."
+        showFeedback(
+          "신고가 접수되었습니다",
+          "검토 후 적절한 조치를 취하겠습니다. 신고해 주셔서 감사합니다.",
+          {
+            label: "확인",
+            onClick: () => setIsReportModalOpen(false)
+          }
         );
         setIsReportModalOpen(false);
       } else {

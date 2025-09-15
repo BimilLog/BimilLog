@@ -30,7 +30,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
   const [reportingCommentId, setReportingCommentId] = useState<number | null>(
     null
   );
-  const { showSuccess, showError } = useToast();
+  const { showSuccess, showError, showFeedback, showWarning } = useToast();
 
   const isMyComment = (comment: Comment) => {
     return user?.userId === comment.userId;
@@ -38,7 +38,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
 
   const handleReport = async (comment: Comment) => {
     if (!isAuthenticated || !user) {
-      showError("로그인 필요", "로그인이 필요한 기능입니다.");
+      showWarning("로그인 필요", "로그인이 필요한 기능입니다.");
       return;
     }
 
@@ -50,9 +50,13 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
       });
 
       if (response.success) {
-        showSuccess(
-          "신고 접수",
-          "신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다."
+        showFeedback(
+          "신고가 접수되었습니다",
+          "검토 후 적절한 조치를 취하겠습니다. 신고해 주셔서 감사합니다.",
+          {
+            label: "확인",
+            onClick: () => {}
+          }
         );
       } else {
         showError(
