@@ -47,6 +47,12 @@ export default function WritePostPage() {
     // 사용자 정보 (회원/비회원 구분용)
     user,
     isAuthenticated,
+
+    // 임시저장 기능
+    isAutoSaving,
+    formatLastSaved,
+    saveDraftManual,
+    removeDraft,
   } = useWriteForm();
 
   if (isLoading) {
@@ -79,7 +85,7 @@ export default function WritePostPage() {
       />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <Breadcrumb
             items={[
               { title: "홈", href: "/" },
@@ -87,6 +93,22 @@ export default function WritePostPage() {
               { title: "글쓰기" },
             ]}
           />
+          {/* 임시저장 상태 표시 */}
+          {formatLastSaved && (
+            <div className="flex items-center gap-2 text-sm text-brand-muted">
+              {isAutoSaving ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                  자동 저장 중...
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <Save className="w-3.5 h-3.5" />
+                  {formatLastSaved}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         {/* WriteForm에 필요한 모든 상태와 핸들러를 props로 전달 */}
         {/* 회원/비회원에 따라 다른 폼 필드가 렌더링됨 */}
@@ -101,6 +123,27 @@ export default function WritePostPage() {
           isAuthenticated={isAuthenticated} // 로그인 여부로 폼 UI 조건부 렌더링
           isPreview={isPreview}
         />
+
+        {/* 임시저장 관리 버튼 */}
+        {(title || content) && (
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() => saveDraftManual(title, content)}
+              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <Save className="w-4 h-4 inline mr-1" />
+              수동 저장
+            </button>
+            {formatLastSaved && (
+              <button
+                onClick={removeDraft}
+                className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                임시저장 삭제
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

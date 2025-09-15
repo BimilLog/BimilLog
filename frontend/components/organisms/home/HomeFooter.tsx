@@ -45,16 +45,16 @@ export const HomeFooter: React.FC = () => {
   ];
 
   return (
-    <footer className="bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-900 text-white py-8 sm:py-12">
+    <footer className="bg-gray-800 text-white py-8 sm:py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
           {/* 로고 및 소개 */}
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             <div className="flex items-center mb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-white">비밀로그</h2>
-              <span className="ml-2 text-xs text-purple-200">v2.0.0</span>
+              <span className="ml-2 text-xs text-gray-400">v2.0.0</span>
             </div>
-            <p className="text-purple-100 text-sm sm:text-base leading-relaxed">익명으로 마음을 전하는 특별한 공간</p>
+            <p className="text-gray-300 text-sm sm:text-base leading-relaxed">익명으로 마음을 전하는 특별한 공간</p>
           </div>
 
           {/* 링크 섹션들 */}
@@ -69,14 +69,14 @@ export const HomeFooter: React.FC = () => {
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block py-2 -mx-2 px-2 text-purple-100 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm sm:text-base min-h-[44px] flex items-center touch-manipulation"
+                        className="block py-2 -mx-2 px-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm sm:text-base min-h-[44px] flex items-center touch-manipulation"
                       >
                         {link.label}
                       </a>
                     ) : (
                       <Link
                         href={link.href}
-                        className="block py-2 -mx-2 px-2 text-purple-100 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm sm:text-base min-h-[44px] flex items-center touch-manipulation"
+                        className="block py-2 -mx-2 px-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm sm:text-base min-h-[44px] flex items-center touch-manipulation"
                       >
                         {link.label}
                       </Link>
@@ -89,9 +89,9 @@ export const HomeFooter: React.FC = () => {
         </div>
 
         {/* 저작권 정보 */}
-        <div className="border-t border-purple-700/30 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center">
+        <div className="border-t border-gray-600 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center">
           <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
-            <p className="text-purple-100 text-sm">&copy; 2025 비밀로그. All rights reserved.</p>
+            <p className="text-gray-300 text-sm">&copy; 2025 비밀로그. All rights reserved.</p>
           </div>
         </div>
       </div>
