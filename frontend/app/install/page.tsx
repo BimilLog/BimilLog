@@ -86,7 +86,6 @@ function InstallGuideCard({
   bgGradient,
   borderColor,
   textColor,
-  stepBgColor,
   children
 }: InstallGuideCardProps) {
   return (
@@ -277,7 +276,7 @@ export default function InstallPage() {
                 <div className="w-32 h-32 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                   <Smartphone className="w-16 h-16 text-white" />
                 </div>
-                <h3 className="text-3xl font-bold text-white mb-2">비밀로그</h3>
+                <h3 className="text-3xl font-bold text-white mb-2 whitespace-nowrap">비밀로그</h3>
                 <p className="text-cyan-100 text-lg">익명으로 마음을 전하는 특별한 공간</p>
               </div>
               <div className="absolute top-4 right-4 w-6 h-6 bg-white/30 rounded-full"></div>
@@ -307,7 +306,7 @@ export default function InstallPage() {
       <footer className="bg-gray-900 text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center mb-6">
-            <h2 className="text-3xl font-bold text-white">비밀로그</h2>
+            <h2 className="text-3xl font-bold text-white whitespace-nowrap">비밀로그</h2>
           </div>
           <p className="text-brand-secondary mb-8 text-lg">익명으로 마음을 전하는 특별한 공간</p>
           <div className="flex justify-center gap-8 text-base mb-8">

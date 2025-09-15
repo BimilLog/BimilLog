@@ -32,7 +32,7 @@ export function useReadingProgress(options: UseReadingProgressOptions = {}) {
   const [inProgress, setInProgress] = useState<ReadingProgress[]>([]);
   const [recentlyCompleted, setRecentlyCompleted] = useState<ReadingProgress[]>([]);
 
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastScrollPosition = useRef<number>(0);
 
   // 스크롤 핸들러

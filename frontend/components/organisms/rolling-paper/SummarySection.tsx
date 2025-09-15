@@ -1,10 +1,8 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
-import { Badge } from "@/components";
-import { MessageSquare, Waves, FileText, Mail, Lock, Info } from "lucide-react";
+import { MessageSquare, Waves, FileText, Mail, Info } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
-import { DecoIcon } from "@/components";
 import { cn } from "@/lib/utils";
 import { SummarySectionClient } from "./SummarySectionClient";
 

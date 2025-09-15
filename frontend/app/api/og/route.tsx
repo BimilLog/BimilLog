@@ -9,9 +9,6 @@ export async function GET(req: NextRequest) {
     const title = searchParams.get("title") || "비밀로그";
     const author = searchParams.get("author") || "";
     const type = searchParams.get("type") || "default";
-    const description = searchParams.get("description") || "";
-    const date = searchParams.get("date") || "";
-    const tags = searchParams.get("tags") || "";
 
     // 타입별 디자인 설정
     const getDesignByType = () => {

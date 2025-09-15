@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { BoardClient } from "@/components/organisms/board";
-import { generateStructuredData, generateKeywords, generateDynamicOgImage, generatePaginationMeta } from "@/lib/seo";
+import { generateStructuredData, generateKeywords, generateDynamicOgImage } from "@/lib/seo";
 
 type Props = {
   searchParams: Promise<{

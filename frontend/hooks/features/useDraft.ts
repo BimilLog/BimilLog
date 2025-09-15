@@ -31,7 +31,7 @@ export function useDraft(options: UseDraftOptions = {}) {
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [hasSavedDraft, setHasSavedDraft] = useState(false);
-  const autoSaveTimerRef = useRef<NodeJS.Timeout>();
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const contentRef = useRef<{ title?: string; content: string }>({ content: '' });
 
   // 임시저장 존재 여부 확인

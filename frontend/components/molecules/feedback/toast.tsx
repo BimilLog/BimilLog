@@ -60,7 +60,7 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
       }, toast.duration);
       return () => clearTimeout(timer);
     }
-  }, [toast.duration]);
+  }, [toast.duration, handleRemove]);
 
   const handleRemove = () => {
     setIsLeaving(true);

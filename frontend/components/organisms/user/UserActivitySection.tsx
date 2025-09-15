@@ -19,7 +19,7 @@ const DEFAULT_PAGE_SIZE = 10;
 
 interface ActivityTabContentProps {
   fetchData: (page?: number, size?: number) => Promise<{
-    content: any[];
+    content: unknown[];
     totalElements: number;
     totalPages: number;
     currentPage: number;

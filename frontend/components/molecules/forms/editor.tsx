@@ -211,7 +211,7 @@ const QuillEditor: React.FC<EditorProps> = ({
         }
       }
     };
-  }, [onChange, placeholder]);
+  }, [onChange, placeholder, value]);
 
   /**
    * 외부에서 value prop이 변경되었을 때 에디터 내용 동기화

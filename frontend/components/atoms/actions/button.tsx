@@ -94,25 +94,31 @@ Button.displayName = "Button";
 export const PrimaryButton = React.memo((props: Omit<React.ComponentProps<typeof Button>, 'variant'>) => (
   <Button variant="default" {...props} />
 ));
+PrimaryButton.displayName = "PrimaryButton";
 
 export const SecondaryButton = React.memo((props: Omit<React.ComponentProps<typeof Button>, 'variant'>) => (
   <Button variant="secondary" {...props} />
 ));
+SecondaryButton.displayName = "SecondaryButton";
 
 export const DangerButton = React.memo((props: Omit<React.ComponentProps<typeof Button>, 'variant'>) => (
   <Button variant="destructive" {...props} />
 ));
+DangerButton.displayName = "DangerButton";
 
 export const TouchButton = React.memo((props: Omit<React.ComponentProps<typeof Button>, 'size'>) => (
   <Button size="default" {...props} />
 ));
+TouchButton.displayName = "TouchButton";
 
 export const IconButton = React.memo((props: Omit<React.ComponentProps<typeof Button>, 'size'>) => (
   <Button size="icon" {...props} />
 ));
+IconButton.displayName = "IconButton";
 
 export const KakaoButton = React.memo((props: Omit<React.ComponentProps<typeof Button>, 'variant'>) => (
   <Button variant="kakao" {...props} />
 ));
+KakaoButton.displayName = "KakaoButton";
 
 export { Button, buttonVariants }

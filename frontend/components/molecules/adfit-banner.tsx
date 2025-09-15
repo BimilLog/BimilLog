@@ -115,7 +115,7 @@ export function AdFitBanner({
     if (typeof window !== "undefined") {
       (window as unknown as Record<string, (element: HTMLElement) => void>)[`adfit_fail_${adUnit}`] = handleAdFail;
     }
-  }, [adUnit, onAdFail]);
+  }, [adUnit, onAdFail, handleAdFail]);
 
   if (isAdFailed) {
     return null;

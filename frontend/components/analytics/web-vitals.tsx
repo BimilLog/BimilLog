@@ -16,8 +16,8 @@ interface WebVitalsMetric {
 // Google Analytics로 Web Vitals 전송
 function sendToGoogleAnalytics(metric: WebVitalsMetric) {
   // gtag이 로드되었는지 확인
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', metric.name, {
+  if (typeof window !== 'undefined' && (window as Window & { gtag?: Function }).gtag) {
+    (window as Window & { gtag?: Function }).gtag?.('event', metric.name, {
       event_category: 'Web Vitals',
       event_label: metric.id,
       value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
@@ -57,7 +57,7 @@ export function WebVitalsReporter() {
         const webVitals = await import('web-vitals');
 
         // 각 Web Vital 메트릭에 대해 콜백 등록
-        const reportWebVital = (metric: any) => {
+        const reportWebVital = (metric: WebVitalsMetric) => {
           // 개발 환경에서 콘솔 출력
           logWebVital(metric);
 

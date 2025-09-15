@@ -11,10 +11,8 @@ import {
   Star,
   Zap,
   Lock,
-  ChevronRight,
   Sparkles,
   Target,
-  Info,
   Shield,
   Flame,
   Heart,
@@ -32,7 +30,7 @@ import {
 } from 'lucide-react';
 
 // 아이콘 매핑
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Award,
   Trophy,
   Medal,
@@ -137,7 +135,6 @@ export const ProfileBadges = React.memo(() => {
     allBadges,
     unlockedBadges,
     nextBadges,
-    stats,
     tierCounts,
     recentBadges,
     completionRate,

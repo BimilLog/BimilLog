@@ -11,9 +11,6 @@ import {
   RefreshCw,
   MessageCircle,
   ThumbsUp,
-  Coffee,
-  Smile,
-  Moon,
 } from "lucide-react";
 import Link from "next/link";
 

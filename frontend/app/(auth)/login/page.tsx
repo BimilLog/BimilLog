@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { KakaoButton, Card, CardContent, CardDescription, CardHeader, CardTitle, ErrorAlert, InfoAlert } from "@/components";
-import { MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout } from "@/components/organisms/auth";
@@ -49,7 +48,7 @@ export default function LoginPage() {
     <AuthLayout>
       <Card variant="elevated">
         <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-2xl font-bold whitespace-nowrap">
             로그인
           </CardTitle>
           <CardDescription>

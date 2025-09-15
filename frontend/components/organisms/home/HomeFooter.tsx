@@ -50,7 +50,7 @@ export const HomeFooter: React.FC = () => {
         {/* 로고 및 소개 */}
         <div className="mb-8">
           <div className="flex items-end mb-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-white leading-none">비밀로그</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white leading-none whitespace-nowrap">비밀로그</h2>
             <span className="ml-3 text-xs text-gray-400 leading-none">v2.0.0</span>
           </div>
           <p className="text-gray-300 text-sm sm:text-base leading-relaxed">익명으로 마음을 전하는 특별한 공간</p>

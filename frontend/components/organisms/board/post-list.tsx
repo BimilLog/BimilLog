@@ -46,7 +46,9 @@ const PostListTableItem = React.memo<PostListItemProps & { isRead: boolean; prog
             )}
           </Link>
           {isRead && (
-            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" title="읽음" />
+            <span title="읽음">
+              <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+            </span>
           )}
           {!isRead && progress > 0 && progress < 90 && (
             <div className="w-12 h-1.5 bg-gray-200 rounded-full flex-shrink-0">
@@ -105,7 +107,9 @@ const PostListMobileItem = React.memo<PostListItemProps & { isRead: boolean; pro
                 )}
               </Link>
               {isRead && (
-                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-1" title="읽음" />
+                <span title="읽음">
+                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-1" />
+                </span>
               )}
             </div>
             {!isRead && progress > 0 && progress < 90 && (

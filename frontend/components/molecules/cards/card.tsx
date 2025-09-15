@@ -59,10 +59,10 @@ const Card = React.memo<CardProps>(({ className, variant, size, interactive, asC
       <>
         {React.Children.map(props.children as React.ReactNode, (child) =>
           React.isValidElement(child)
-            ? React.cloneElement(child as React.ReactElement<any>, {
+            ? React.cloneElement(child as React.ReactElement<{className?: string}>, {
                 className: cn(
                   cardVariants({ variant, size, interactive, className }),
-                  (child.props as any).className
+                  (child.props as {className?: string}).className
                 ),
               })
             : child
@@ -166,18 +166,22 @@ CardFooter.displayName = "CardFooter";
 export const DefaultCard = React.memo(({ children, ...props }: Omit<CardProps, 'variant'>) => (
   <Card variant="default" {...props}>{children}</Card>
 ));
+DefaultCard.displayName = "DefaultCard";
 
 export const ElevatedCard = React.memo(({ children, ...props }: Omit<CardProps, 'variant'>) => (
   <Card variant="elevated" {...props}>{children}</Card>
 ));
+ElevatedCard.displayName = "ElevatedCard";
 
 export const InteractiveCard = React.memo(({ children, ...props }: Omit<CardProps, 'interactive'>) => (
   <Card interactive={true} {...props}>{children}</Card>
 ));
+InteractiveCard.displayName = "InteractiveCard";
 
 export const GradientCard = React.memo(({ children, ...props }: Omit<CardProps, 'variant'>) => (
   <Card variant="gradient" {...props}>{children}</Card>
 ));
+GradientCard.displayName = "GradientCard";
 
 export {
   Card,
