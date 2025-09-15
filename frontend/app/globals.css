@@ -48,8 +48,8 @@
   /* Gray 색상 시스템 */
   --color-gray-300: #d1d5db;
   --color-gray-400: #9ca3af;
-  --color-gray-600: #4b5563;
-  --color-gray-800: #1f2937;
+  --color-gray-600: #6b7280;
+  --color-gray-800: #374151;
 
   /* 배경 그라디언트 */
   --gradient-brand: linear-gradient(135deg, var(--color-brand-pink-50), var(--color-brand-purple-50), var(--color-brand-indigo-50));
@@ -167,6 +167,23 @@
 
 /* 비밀로그 브랜드 유틸리티 클래스 */
 @layer utilities {
+  /* Gray 색상 유틸리티 클래스 */
+  .bg-gray-800 {
+    background-color: var(--color-gray-800);
+  }
+
+  .text-gray-300 {
+    color: var(--color-gray-300);
+  }
+
+  .text-gray-400 {
+    color: var(--color-gray-400);
+  }
+
+  .border-gray-600 {
+    border-color: var(--color-gray-600);
+  }
+
   .bg-brand-gradient {
     background: var(--gradient-brand);
   }
@@ -222,6 +239,26 @@
   .min-w-touch {
     min-width: var(--touch-target-min);
   }
+}
+
+/* 다크모드 스타일 */
+[data-theme="dark"] {
+  /* 텍스트 컬러 시스템 (다크모드) */
+  --color-text-primary: oklch(0.95 0 0);
+  --color-text-secondary: oklch(0.75 0 0);
+  --color-text-muted: oklch(0.55 0 0);
+  --color-text-inverse: oklch(0.15 0 0);
+
+  /* Gray 색상 시스템 (다크모드) */
+  --color-gray-300: #4b5563;
+  --color-gray-400: #6b7280;
+  --color-gray-600: #9ca3af;
+  --color-gray-800: #e5e7eb;
+
+  /* 배경 그라디언트 (다크모드) */
+  --gradient-brand: linear-gradient(135deg, oklch(0.25 0.08 336), oklch(0.25 0.08 280), oklch(0.25 0.08 250));
+  --gradient-brand-button: linear-gradient(135deg, oklch(0.55 0.15 336), oklch(0.48 0.17 280));
+  --gradient-brand-hover: linear-gradient(135deg, oklch(0.50 0.17 336), oklch(0.43 0.19 280));
 }
 
 /* 귀여운 로딩 스피너 애니메이션 */

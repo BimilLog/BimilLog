@@ -5,9 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/hooks";
+import { useTheme } from "@/hooks/features/useTheme";
 import { Button } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
-import { Settings } from "lucide-react";
+import { Settings, Moon, Sun, Monitor } from "lucide-react";
 import { MobileNav } from "@/components/organisms/common/MobileNav";
 
 const NotificationBell = dynamic(
@@ -20,10 +21,17 @@ const NotificationBell = dynamic(
 
 export const AuthHeader = React.memo(() => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { theme, isDark, toggleTheme } = useTheme();
 
   const getInitials = (name?: string) => {
     if (!name) return "U";
     return name.substring(0, 1).toUpperCase();
+  };
+
+  const getThemeIcon = () => {
+    if (theme === 'dark') return <Moon className="w-5 h-5" />;
+    if (theme === 'light') return <Sun className="w-5 h-5" />;
+    return <Monitor className="w-5 h-5" />;
   };
 
   return (
@@ -141,6 +149,15 @@ export const AuthHeader = React.memo(() => {
         </div>
 
         <div className="flex items-center justify-end gap-2 sm:gap-3">
+          {/* 테마 토글 버튼 - 모든 사용자에게 표시 */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-brand-muted hover:text-brand-primary hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
+            title={`테마 변경 (현재: ${theme === 'dark' ? '다크' : theme === 'light' ? '라이트' : '시스템'})`}
+          >
+            {getThemeIcon()}
+          </button>
+
           {isLoading ? (
             <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
           ) : isAuthenticated && user ? (

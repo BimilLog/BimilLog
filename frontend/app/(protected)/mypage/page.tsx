@@ -2,7 +2,7 @@
 
 import { useMyPage } from "@/hooks";
 import { ProfileCard } from "@/components/molecules";
-import { UserStatsSection, UserActivitySection, BookmarkSection } from "@/components/organisms/user";
+import { UserStatsSection, UserActivitySection, BookmarkSection, ActivityInsights } from "@/components/organisms/user";
 import { CuteLoadingSpinner } from "@/components";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 
@@ -46,6 +46,8 @@ export default function MyPage() {
       />
 
       <BookmarkSection />
+
+      <ActivityInsights />
 
       <UserActivitySection />
     </MainLayout>
