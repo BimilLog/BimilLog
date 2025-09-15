@@ -46,6 +46,13 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
 
   const IconComponent = iconMap[toast.type];
 
+  const handleRemove = () => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onRemove(toast.id);
+    }, 300);
+  };
+
   useEffect(() => {
     // 마운트 시 애니메이션
     const timer = setTimeout(() => setIsVisible(true), 10);
@@ -61,13 +68,6 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
       return () => clearTimeout(timer);
     }
   }, [toast.duration, handleRemove]);
-
-  const handleRemove = () => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onRemove(toast.id);
-    }, 300);
-  };
 
   return (
     <div

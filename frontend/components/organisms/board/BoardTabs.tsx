@@ -84,12 +84,12 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm shadow-brand-lg">
+      <TabsList className="grid w-full grid-cols-4 bg-gray-50 rounded-lg p-1 border border-gray-200">
         {tabConfig.map(({ value, icon, label }) => (
           <TabsTrigger
             key={value}
             value={value}
-            className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-purple-600 data-[state=active]:text-white"
+            className="flex items-center justify-center space-x-2 text-gray-500 hover:text-gray-700 data-[state=active]:bg-white data-[state=active]:text-brand-primary data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-200 rounded-md transition-all duration-200 font-medium"
           >
             {icon}
             <span className="hidden sm:inline">{label.desktop}</span>

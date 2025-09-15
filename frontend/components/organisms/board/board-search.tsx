@@ -75,18 +75,18 @@ export const BoardSearch = ({
   }, [setShowSuggestions]);
 
   return (
-    <Card variant="default" className="mb-6 p-4">
+    <Card variant="default" className="mb-6 p-4 bg-white backdrop-blur-none">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
-          <div className="flex items-center bg-white rounded-md border">
+          <div className="flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden hover:border-brand-secondary/50 focus-within:border-brand-secondary focus-within:ring-2 focus-within:ring-brand-secondary/20 transition-all">
             <Select
               value={searchType}
               onValueChange={(value: "TITLE" | "TITLE_CONTENT" | "AUTHOR") =>
                 setSearchType(value)
               }
             >
-              <SelectTrigger className="w-[120px] border-0 rounded-r-none focus:ring-0">
-                <SelectValue placeholder="검색 유형" />
+              <SelectTrigger className="w-[120px] border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-gray-50 hover:bg-gray-100 border-r border-gray-200">
+                <SelectValue placeholder="제목" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="TITLE">제목</SelectItem>
@@ -98,13 +98,18 @@ export const BoardSearch = ({
               ref={searchInputRef}
               type="text"
               placeholder="검색어를 입력하세요..."
-              className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="flex-1 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && executeSearch()}
               onFocus={() => setShowSuggestions(true)}
             />
-            <Button variant="ghost" size="icon" onClick={executeSearch}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={executeSearch}
+              className="border-0 rounded-none hover:bg-brand-secondary/10 border-l border-gray-200"
+            >
               <Search className="w-5 h-5 text-brand-secondary" />
             </Button>
           </div>
@@ -230,7 +235,7 @@ export const BoardSearch = ({
           <ListFilter className="w-5 h-5 text-brand-secondary" />
           <Select value={postsPerPage} onValueChange={setPostsPerPage}>
             <SelectTrigger className="w-[120px] bg-white border">
-              <SelectValue placeholder="개수" />
+              <SelectValue placeholder="30개씩" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="15">15개씩</SelectItem>

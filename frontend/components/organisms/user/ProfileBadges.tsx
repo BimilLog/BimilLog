@@ -88,7 +88,9 @@ const BadgeCard = React.memo(({ badge, isUnlocked, progress = 0, onClick }: Badg
           }`}
           style={{ backgroundColor: `${color}20` }}
         >
-          <Icon className="w-6 h-6" style={{ color }} />
+          <div style={{ color }}>
+            <Icon className="w-6 h-6" />
+          </div>
           {!isUnlocked && (
             <div className="absolute inset-0 rounded-full bg-gray-900/20 flex items-center justify-center">
               <Lock className="w-4 h-4 text-white" />
@@ -236,7 +238,9 @@ export const ProfileBadges = React.memo(() => {
                     className="w-10 h-10 rounded-full flex items-center justify-center"
                     style={{ backgroundColor: `${getBadgeColor(badge.tier)}20` }}
                   >
-                    <Icon className="w-5 h-5" style={{ color: getBadgeColor(badge.tier) }} />
+                    <div style={{ color: getBadgeColor(badge.tier) }}>
+                      <Icon className="w-5 h-5" />
+                    </div>
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">{badge.name}</p>
@@ -361,10 +365,11 @@ export const ProfileBadges = React.memo(() => {
                     backgroundColor: `${getBadgeColor(selectedBadge.tier)}20`,
                   }}
                 >
-                  {React.createElement(ICON_MAP[selectedBadge.icon] || Award, {
-                    className: "w-7 h-7",
-                    style: { color: getBadgeColor(selectedBadge.tier) },
-                  })}
+                  <div style={{ color: getBadgeColor(selectedBadge.tier) }}>
+                    {React.createElement(ICON_MAP[selectedBadge.icon] || Award, {
+                      className: "w-7 h-7",
+                    })}
+                  </div>
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">{selectedBadge.name}</h3>

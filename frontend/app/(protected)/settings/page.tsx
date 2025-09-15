@@ -88,7 +88,7 @@ export default function SettingsPage() {
             <SettingsIcon className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-brand-primary whitespace-nowrap">설정</h1>
+            <h1 className="text-2xl font-bold text-brand-primary inline-block">설정</h1>
             <p className="text-brand-secondary">알림 설정과 계정을 관리하세요</p>
           </div>
         </div>

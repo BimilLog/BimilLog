@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import { ThemeModeScript } from "flowbite-react";
 import "./globals.css";
 import { ClientProviders } from "@/providers/client-providers";
 import { QueryProvider } from "@/providers/query-provider";
@@ -115,8 +116,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
+        <ThemeModeScript />
         {/* Preconnect & DNS Prefetch */}
         <link rel="preconnect" href="https://grow-farm.com" />
         <link rel="dns-prefetch" href="https://grow-farm.com" />

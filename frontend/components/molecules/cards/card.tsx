@@ -87,7 +87,7 @@ const CardHeader = React.memo(({ className, ...props }: React.ComponentProps<"di
     <div
       data-slot="card-header"
       className={cn(
-        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-3 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-4 [.border-b]:border-gray-200",
+        "@container/card-header items-start gap-3 [.border-b]:pb-4 [.border-b]:border-gray-200",
         className
       )}
       {...props}
@@ -97,9 +97,9 @@ const CardHeader = React.memo(({ className, ...props }: React.ComponentProps<"di
 
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = React.memo(({ className, ...props }: React.ComponentProps<"div">) => {
+const CardTitle = React.memo(({ className, ...props }: React.ComponentProps<"h3">) => {
   return (
-    <div
+    <h3
       data-slot="card-title"
       className={cn(
         "leading-tight font-semibold text-lg text-brand-primary",

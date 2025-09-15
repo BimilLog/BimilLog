@@ -48,7 +48,7 @@ export default function LoginPage() {
     <AuthLayout>
       <Card variant="elevated">
         <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl font-bold whitespace-nowrap">
+          <CardTitle className="text-2xl font-bold">
             로그인
           </CardTitle>
           <CardDescription>

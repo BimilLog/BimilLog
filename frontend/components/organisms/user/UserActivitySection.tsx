@@ -11,7 +11,8 @@ import { EmptyState } from "@/components/molecules";
 import { ActivityCard } from "@/components/molecules";
 import { useActivityData } from "@/hooks";
 import { userQuery } from "@/lib/api";
-import { AlertTriangle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Pagination } from "flowbite-react";
 import { logger } from "@/lib/utils";
 
 const DEFAULT_PAGE = 0;
@@ -44,30 +45,10 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
     retry,
   } = useActivityData({ fetchData });
 
-  // 페이지네이션 핸들러: 이전/다음 페이지 이동 시 불필요한 리렌더링 방지를 위해 useCallback 사용
-  const handlePreviousPage = useCallback(() => {
-    handlePageChange(currentPage - 1);
-  }, [handlePageChange, currentPage]);
-
-  const handleNextPage = useCallback(() => {
-    handlePageChange(currentPage + 1);
-  }, [handlePageChange, currentPage]);
-
-  // 페이지 번호 배열 생성: 현재 페이지 중심으로 최대 5개 페이지 표시
-  // 예: 현재 페이지 5일 때 [3, 4, 5, 6, 7] 형태로 생성
-  const pageNumbers = useMemo(() => {
-    const pages = [];
-    const maxPages = Math.min(5, totalPages); // 최대 5개 페이지만 표시
-    for (let i = 0; i < maxPages; i++) {
-      // 현재 페이지를 중심으로 앞뒤 2페이지씩 계산
-      const pageNum = Math.max(0, Math.min(currentPage - 2 + i, totalPages - 1));
-      if (pageNum >= 0 && pageNum < totalPages) {
-        pages.push(pageNum);
-      }
-    }
-    // 중복 제거 후 정렬하여 반환 (Set으로 중복 제거, sort로 오름차순 정렬)
-    return [...new Set(pages)].sort((a, b) => a - b);
-  }, [currentPage, totalPages]);
+  // Flowbite React Pagination 핸들러: 0-based에서 1-based로 변환
+  const handleFlowbitePagination = useCallback((page: number) => {
+    handlePageChange(page - 1); // Convert 1-based to 0-based
+  }, [handlePageChange]);
 
   // 컨텐츠 타입별 UI 설정: "posts"/"comments", "liked" 여부에 따라 배지와 플래그 설정
   // 문자열 분석을 통해 게시글/댓글, 좋아요 여부 판단하여 적절한 배지 색상 적용
@@ -131,10 +112,10 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
       </div>
 
       <div className="grid gap-6">
-        {items.map((item) => (
+        {items.map((item: any) => (
           <ActivityCard
-            key={`${contentType}-${item.id}`}
-            item={item}
+            key={`${contentType}-${(item as any).id}`}
+            item={item as any}
             type={contentConfig.isPost ? "post" : "comment"}
             isLiked={contentConfig.isLiked}
           />
@@ -142,40 +123,33 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center space-x-2 pt-6 border-t border-gray-200">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePreviousPage}
-            disabled={currentPage === 0}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            이전
-          </Button>
-
-          <div className="flex items-center space-x-1">
-            {pageNumbers.map((pageNum) => (
-              <Button
-                key={`page-${pageNum}`}
-                variant={pageNum === currentPage ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePageChange(pageNum)}
-                className="w-10"
-              >
-                {pageNum + 1}
-              </Button>
-            ))}
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages - 1}
-          >
-            다음
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+        <div className="flex items-center justify-center pt-6 border-t border-gray-200">
+          <Pagination
+            currentPage={currentPage + 1} // Convert 0-based to 1-based
+            totalPages={totalPages}
+            onPageChange={handleFlowbitePagination}
+            showIcons
+            className="text-sm"
+            theme={{
+              pages: {
+                base: "xs:mt-0 mt-2 inline-flex items-center -space-x-px",
+                showIcon: "inline-flex",
+                previous: {
+                  base: "ml-0 rounded-l-lg border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700",
+                  icon: "h-4 w-4"
+                },
+                next: {
+                  base: "rounded-r-lg border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700",
+                  icon: "h-4 w-4"
+                },
+                selector: {
+                  base: "w-12 border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700",
+                  active: "bg-brand-primary border-brand-primary text-white hover:bg-brand-primary hover:text-white",
+                  disabled: "cursor-not-allowed opacity-50"
+                }
+              }
+            }}
+          />
         </div>
       )}
 
