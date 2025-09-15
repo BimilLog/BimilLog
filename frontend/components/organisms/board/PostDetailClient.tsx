@@ -23,6 +23,7 @@ import { PasswordModal } from "./PasswordModal";
 
 // 분리된 훅들 import
 import { usePostDetail, usePostActions, useCommentActions } from "@/hooks/features";
+import { useReadingProgress } from "@/hooks/features/useReadingProgress";
 import { useAuth } from "@/hooks";
 
 interface Props {
@@ -33,7 +34,13 @@ interface Props {
 export default function PostDetailClient({ initialPost, postId }: Props) {
   // 인증 상태 가져오기
   const { isAuthenticated } = useAuth();
-  
+
+  // 읽기 진행률 트래킹
+  const { progress, isRead, readingTime } = useReadingProgress({
+    postId: parseInt(postId),
+    autoTrack: true,
+  });
+
   // 게시글 상세 데이터 관리
   const {
     post,
@@ -189,6 +196,16 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100">
+      {/* 읽기 진행률 바 */}
+      {progress > 0 && (
+        <div className="fixed top-0 left-0 right-0 z-[60] h-1 bg-gray-200">
+          <div
+            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+
       <AuthHeader />
 
       {/* Top Banner Advertisement */}
