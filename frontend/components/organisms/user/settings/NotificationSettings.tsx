@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch } from "@/components";
+import { ToggleSwitch } from "flowbite-react";
 import { Label } from "@/components";
 import { SettingsSection, SettingToggle } from "@/components/molecules";
 import { Bell, Heart, MessageCircle, TrendingUp } from "lucide-react";
@@ -38,11 +38,10 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
             <Label className="font-medium text-brand-primary">전체 알림 설정</Label>
             <p className="text-sm text-brand-muted">모든 알림을 한번에 켜거나 끌 수 있습니다.</p>
           </div>
-          <Switch
+          <ToggleSwitch
             checked={allEnabled === true}
-            onCheckedChange={onAllToggle}
+            onChange={onAllToggle}
             disabled={saving}
-            className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-500 data-[state=checked]:to-indigo-500"
           />
         </div>
       </div>
@@ -53,7 +52,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           label="메시지 알림"
           description="롤링페이퍼에 새로운 메시지가 도착했을 때"
           checked={settings?.messageNotification === true}
-          onCheckedChange={(value) => onSingleToggle("messageNotification", value)}
+          onChange={(value) => onSingleToggle("messageNotification", value)}
           disabled={saving}
           gradient="from-pink-500 to-red-500"
         />
@@ -63,7 +62,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           label="댓글 알림"
           description="내 게시글에 새로운 댓글이 달렸을 때"
           checked={settings?.commentNotification === true}
-          onCheckedChange={(value) => onSingleToggle("commentNotification", value)}
+          onChange={(value) => onSingleToggle("commentNotification", value)}
           disabled={saving}
           gradient="from-green-500 to-teal-500"
         />
@@ -73,7 +72,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           label="인기글 알림"
           description="내 게시글이 인기글로 선정되었을 때"
           checked={settings?.postFeaturedNotification === true}
-          onCheckedChange={(value) => onSingleToggle("postFeaturedNotification", value)}
+          onChange={(value) => onSingleToggle("postFeaturedNotification", value)}
           disabled={saving}
           gradient="from-orange-500 to-yellow-500"
         />

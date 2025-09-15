@@ -20,5 +20,4 @@ export { AuthLoadingScreen } from './feedback/auth-loading-screen';
 // Action components
 export { Button, buttonVariants, KakaoButton, PrimaryButton, SecondaryButton, DangerButton, TouchButton, IconButton } from './actions/button';
 export { BackButton } from './actions/back-button';
-export { Switch } from './actions/switch';
 export { KakaoShareButton } from './actions/kakao-share-button';

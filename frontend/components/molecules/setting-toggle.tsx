@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch } from "@/components";
+import { ToggleSwitch } from "flowbite-react";
 import { Label } from "@/components";
 
 interface SettingToggleProps {
@@ -7,7 +7,7 @@ interface SettingToggleProps {
   label: string;
   description: string;
   checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
+  onChange: (checked: boolean) => void;
   disabled?: boolean;
   gradient?: string;
   className?: string;
@@ -18,7 +18,7 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
   label,
   description,
   checked,
-  onCheckedChange,
+  onChange,
   disabled = false,
   gradient = "from-gray-500 to-gray-600",
   className,
@@ -35,9 +35,9 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
         <p className="text-sm text-brand-muted">{description}</p>
       </div>
     </div>
-    <Switch
+    <ToggleSwitch
       checked={checked}
-      onCheckedChange={onCheckedChange}
+      onChange={onChange}
       disabled={disabled}
     />
   </div>
