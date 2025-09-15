@@ -45,6 +45,12 @@
   --color-text-muted: oklch(0.60 0 0);
   --color-text-inverse: oklch(0.98 0 0);
 
+  /* Gray 색상 시스템 */
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-600: #4b5563;
+  --color-gray-800: #1f2937;
+
   /* 배경 그라디언트 */
   --gradient-brand: linear-gradient(135deg, var(--color-brand-pink-50), var(--color-brand-purple-50), var(--color-brand-indigo-50));
   --gradient-brand-button: linear-gradient(135deg, var(--color-brand-pink-500), var(--color-brand-purple-600));
