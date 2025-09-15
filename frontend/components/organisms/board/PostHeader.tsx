@@ -9,6 +9,10 @@ import {
   Trash2,
   User,
   ExternalLink,
+  Megaphone,
+  TrendingUp,
+  Calendar,
+  Crown,
 } from "lucide-react";
 import { Post } from "@/lib/api";
 import Link from "next/link";
@@ -41,16 +45,16 @@ export const PostHeader = React.memo<PostHeaderProps>(({
         <div className="flex items-center flex-wrap gap-2 mb-3">
           {post.password && <Lock className="w-4 h-4 text-red-500" />}
           {post.isNotice && (
-            <Badge className="bg-red-500 text-white text-xs">공지</Badge>
+            <Badge variant="info" icon={Megaphone}>공지</Badge>
           )}
-          {post.postCacheFlag && (
-            <Badge className="bg-orange-500 text-white text-xs">
-              {post.postCacheFlag === "REALTIME"
-                ? "실시간"
-                : post.postCacheFlag === "WEEKLY"
-                ? "주간"
-                : "레전드"}
-            </Badge>
+          {post.postCacheFlag === "REALTIME" && (
+            <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
+          )}
+          {post.postCacheFlag === "WEEKLY" && (
+            <Badge variant="warning" icon={Calendar}>주간</Badge>
+          )}
+          {post.postCacheFlag === "LEGEND" && (
+            <Badge variant="purple" icon={Crown}>레전드</Badge>
           )}
         </div>
         <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight">

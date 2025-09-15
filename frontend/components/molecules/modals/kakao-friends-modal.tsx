@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Button, Avatar, AvatarFallback, AvatarImage } from "@/components";
+import { getInitials } from "@/lib/utils/format";
 import {
   Dialog,
   DialogContent,
@@ -151,13 +152,6 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
     }
   };
 
-  /**
-   * 친구 닉네임의 첫 글자를 아바타 이니셜로 사용
-   * 프로필 이미지가 없을 때의 폴백 처리
-   */
-  const getInitials = (nickname: string) => {
-    return nickname ? nickname.substring(0, 1) : "?";
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -278,7 +272,13 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                   <div className="flex items-center space-x-3">
                     {/* 카카오톡 스타일 아바타 */}
                     <div className="relative">
-                      <Avatar className="h-12 w-12 ring-2 ring-yellow-200">
+                      <Avatar
+                        className="h-12 w-12 ring-2 ring-yellow-200"
+                        size="md"
+                        rounded
+                        status="online"
+                        statusPosition="bottom-right"
+                      >
                         <AvatarImage
                           src={friend.profile_thumbnail_image}
                           alt={friend.profile_nickname}
@@ -287,8 +287,6 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                           {getInitials(friend.profile_nickname)}
                         </AvatarFallback>
                       </Avatar>
-                      {/* 온라인 상태 표시 (카카오톡 스타일 녹색 점) */}
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
                     </div>
 
                     {/* 친구 정보 (닉네임, 비밀로그 가입 여부) */}

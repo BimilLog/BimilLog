@@ -1,5 +1,8 @@
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+"use client";
+
+import { Breadcrumb as FlowbiteBreadcrumb, BreadcrumbItem as FlowbiteBreadcrumbItem } from "flowbite-react";
+import { HiHome } from "react-icons/hi";
+import type { ComponentProps } from "react";
 
 interface BreadcrumbItem {
   title: string;
@@ -10,8 +13,9 @@ interface BreadcrumbProps {
   items: BreadcrumbItem[];
 }
 
+
 export function Breadcrumb({ items }: BreadcrumbProps) {
-  // 구조화된 데이터 생성
+  // 구조화된 데이터 생성 (SEO)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -31,25 +35,20 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
           __html: JSON.stringify(jsonLd),
         }}
       />
-      <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex items-center space-x-2 text-sm text-brand-muted">
-          {items.map((item, index) => (
-            <li key={index} className="flex items-center">
-              {index > 0 && <ChevronRight className="w-4 h-4 mx-2" />}
-              {item.href ? (
-                <Link
-                  href={item.href}
-                  className="hover:text-purple-600 transition-colors"
-                >
-                  {item.title}
-                </Link>
-              ) : (
-                <span className="text-brand-primary font-medium">{item.title}</span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
+      <FlowbiteBreadcrumb
+        aria-label="Breadcrumb navigation"
+        className="mb-4 bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 px-4 py-3 rounded-xl shadow-sm backdrop-blur-sm border border-purple-100 dark:border-gray-700"
+      >
+        {items.map((item, index) => (
+          <FlowbiteBreadcrumbItem
+            key={index}
+            href={item.href}
+            icon={index === 0 ? HiHome : undefined}
+          >
+            {item.title}
+          </FlowbiteBreadcrumbItem>
+        ))}
+      </FlowbiteBreadcrumb>
     </>
   );
 }

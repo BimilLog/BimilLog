@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Button } from "@/components";
+import { TimeBadge } from "@/components";
 import { Clock, Heart, X, Trash2, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import {
@@ -10,7 +11,6 @@ import {
   removeRecentVisit,
   clearRecentVisits,
 } from "@/lib/utils/storage";
-import { formatRelativeDate } from "@/lib/utils/date";
 
 interface RecentVisit {
   nickname: string;
@@ -78,9 +78,9 @@ export const RecentVisits: React.FC = () => {
                   <p className="font-semibold text-brand-primary text-sm truncate">
                     {visit.displayName}님의 롤링페이퍼
                   </p>
-                  <p className="text-xs text-brand-secondary mt-0.5">
-                    {formatRelativeDate(visit.visitedAt)}
-                  </p>
+                  <div className="mt-1">
+                    <TimeBadge dateString={visit.visitedAt} size="xs" />
+                  </div>
                 </div>
               </Link>
               <Button

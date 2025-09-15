@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components";
-import { Pin, User } from "lucide-react";
+import { Card, CardContent, Badge } from "@/components";
+import { Megaphone, User } from "lucide-react";
 import Link from "next/link";
 import type { SimplePost } from "@/lib/api";
 import { formatKoreanDate } from "@/lib/utils/date";
@@ -27,10 +27,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                   className="border-b border-gray-100 bg-purple-50/50 hover:bg-purple-100/50 transition-colors"
                 >
                   <td className="p-4 md:p-3 text-left font-medium hidden sm:table-cell w-20">
-                    <div className="flex items-center text-purple-600">
-                      <Pin className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                      <span>공지</span>
-                    </div>
+                    <Badge variant="info" icon={Megaphone}>공지</Badge>
                   </td>
                   <td className="p-4 md:p-3 text-left font-semibold text-purple-800">
                     <Link

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { usePostReadStatus } from "@/hooks/features/useReadingProgress";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Megaphone, TrendingUp, Calendar, Crown } from "lucide-react";
 
 interface PostListProps {
   posts: SimplePost[];
@@ -22,12 +22,17 @@ const PostListTableItem = React.memo<PostListItemProps & { isRead: boolean; prog
   ({ post, isRead, progress }) => (
     <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
       <td className="p-3">
-        {post.postCacheFlag && (
-          <Badge className="bg-orange-400 hover:bg-orange-500 text-white text-xs">
-            {post.postCacheFlag === "REALTIME" && "실시간"}
-            {post.postCacheFlag === "WEEKLY" && "주간"}
-            {post.postCacheFlag === "LEGEND" && "레전드"}
-          </Badge>
+        {post.postCacheFlag === "NOTICE" && (
+          <Badge variant="info" icon={Megaphone}>공지</Badge>
+        )}
+        {post.postCacheFlag === "REALTIME" && (
+          <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
+        )}
+        {post.postCacheFlag === "WEEKLY" && (
+          <Badge variant="warning" icon={Calendar}>주간</Badge>
+        )}
+        {post.postCacheFlag === "LEGEND" && (
+          <Badge variant="purple" icon={Crown}>레전드</Badge>
         )}
       </td>
       <td className="p-3">
@@ -85,12 +90,17 @@ const PostListMobileItem = React.memo<PostListItemProps & { isRead: boolean; pro
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            {post.postCacheFlag && (
-              <Badge className="bg-orange-400 text-white text-xs mb-2">
-                {post.postCacheFlag === "REALTIME" && "실시간"}
-                {post.postCacheFlag === "WEEKLY" && "주간"}
-                {post.postCacheFlag === "LEGEND" && "레전드"}
-              </Badge>
+            {post.postCacheFlag === "NOTICE" && (
+              <Badge variant="info" icon={Megaphone} className="mb-2">공지</Badge>
+            )}
+            {post.postCacheFlag === "REALTIME" && (
+              <Badge variant="destructive" icon={TrendingUp} className="mb-2">실시간</Badge>
+            )}
+            {post.postCacheFlag === "WEEKLY" && (
+              <Badge variant="warning" icon={Calendar} className="mb-2">주간</Badge>
+            )}
+            {post.postCacheFlag === "LEGEND" && (
+              <Badge variant="purple" icon={Crown} className="mb-2">레전드</Badge>
             )}
             <div className="flex items-start gap-2">
               <Link

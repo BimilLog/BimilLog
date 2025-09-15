@@ -1,20 +1,19 @@
 import React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components";
-import { Badge } from "@/components";
-import { 
-  Heart, 
-  MessageCircle, 
-  Eye, 
-  Clock, 
-  ThumbsUp, 
-  FileText, 
-  User, 
-  Pin, 
-  Flame, 
-  TrendingUp, 
-  Award, 
-  Calendar 
+import { Badge, TimeBadge } from "@/components";
+import {
+  Heart,
+  MessageCircle,
+  Eye,
+  ThumbsUp,
+  FileText,
+  User,
+  Pin,
+  Flame,
+  TrendingUp,
+  Award,
+  Calendar
 } from "lucide-react";
 import { SimplePost, SimpleComment } from "@/lib/api";
 import { formatKoreanDate } from "@/lib/utils/date";
@@ -25,21 +24,6 @@ interface ActivityCardProps {
   isLiked?: boolean;
   className?: string;
 }
-
-const getRelativeTime = (dateString: string): string => {
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffInMs = now.getTime() - date.getTime();
-  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
-
-  if (diffInMinutes < 1) return "방금 전";
-  if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
-  if (diffInHours < 24) return `${diffInHours}시간 전`;
-  if (diffInDays < 7) return `${diffInDays}일 전`;
-  return formatKoreanDate(dateString);
-};
 
 const PopularityBadge = ({ postCacheFlag }: { postCacheFlag?: string }) => {
   if (!postCacheFlag) return null;
@@ -95,10 +79,7 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
               )}
               <PopularityBadge postCacheFlag={post.postCacheFlag} />
             </div>
-            <div className="flex items-center space-x-2 text-sm md:text-xs text-brand-secondary">
-              <Clock className="w-4 h-4 md:w-3 md:h-3" />
-              <span>{getRelativeTime(post.createdAt)}</span>
-            </div>
+            <TimeBadge dateString={post.createdAt} size="xs" />
           </div>
         </div>
         {isLiked && <Heart className="w-5 h-5 text-red-500 fill-current" />}
@@ -176,10 +157,7 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
                 {comment.userName}
               </span>
             </div>
-            <div className="flex items-center space-x-2 text-sm md:text-xs text-brand-secondary">
-              <Clock className="w-4 h-4 md:w-3 md:h-3" />
-              <span>{getRelativeTime(comment.createdAt)}</span>
-            </div>
+            <TimeBadge dateString={comment.createdAt} size="xs" />
           </div>
         </div>
         {isLiked && <ThumbsUp className="w-5 h-5 text-blue-500 fill-current" />}

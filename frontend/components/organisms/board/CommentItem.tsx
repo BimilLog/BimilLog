@@ -2,7 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { Button, Input, Textarea, SafeHTML, Spinner } from "@/components";
+import { Button, Input, Textarea, SafeHTML, Spinner, TimeBadge } from "@/components";
 import { ThumbsUp, Reply, Flag, MoreHorizontal, User } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks";
@@ -191,9 +191,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                     인기
                   </span>
                 )}
-                <span className="text-xs text-brand-secondary whitespace-nowrap">
-                  {new Date(comment.createdAt).toLocaleDateString()}
-                </span>
+                <TimeBadge dateString={comment.createdAt} size="xs" />
               </div>
 
               {/* 액션 버튼들: 모바일에서는 핵심 기능만 노출, 나머지는 드롭다운으로 처리 */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, SafeHTML } from "@/components";
+import { Button, SafeHTML, TimeBadge } from "@/components";
 import { ThumbsUp, MessageSquare, Flag, MoreHorizontal } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks";
@@ -82,9 +82,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
           <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">
             인기
           </span>
-          <span className="text-xs text-brand-secondary whitespace-nowrap">
-            {new Date(comment.createdAt).toLocaleDateString()}
-          </span>
+          <TimeBadge dateString={comment.createdAt} size="xs" />
         </div>
 
         {/* 액션 버튼들 */}

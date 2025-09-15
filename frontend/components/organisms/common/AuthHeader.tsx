@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks";
 import { useTheme } from "@/hooks/features/useTheme";
 import { Button } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
+import { getInitials } from "@/lib/utils/format";
 import { Settings, Moon, Sun, Monitor } from "lucide-react";
 import { Navbar, NavbarBrand, NavbarCollapse, NavbarLink, NavbarToggle } from "flowbite-react";
 
@@ -28,10 +29,6 @@ export const AuthHeader = React.memo(() => {
     setMounted(true);
   }, []);
 
-  const getInitials = (name?: string) => {
-    if (!name) return "U";
-    return name.substring(0, 1).toUpperCase();
-  };
 
   const getThemeIcon = () => {
     if (!mounted) return <Monitor className="w-5 h-5" />;
@@ -127,8 +124,12 @@ export const AuthHeader = React.memo(() => {
               >
                 <Settings className="w-5 h-5" />
               </Link>
-              <Link href="/rolling-paper" title="내 롤링페이퍼로 이동" className="min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation">
-                <Avatar className="h-8 w-8 sm:h-9 sm:w-9 hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer">
+              <Link href="/rolling-paper" title="내 롤링페이퍼로 이동" className="min-h-[44px] min-w-[44px] flex items-center gap-2 touch-manipulation">
+                <Avatar
+                  className="h-8 w-8 sm:h-9 sm:w-9 hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer"
+                  size="sm"
+                  rounded
+                >
                   <AvatarImage
                     src={user.thumbnailImage}
                     alt={user.userName}
@@ -136,11 +137,16 @@ export const AuthHeader = React.memo(() => {
                   <AvatarFallback className="text-sm">
                     {getInitials(user.userName)}
                   </AvatarFallback>
+                  <div className="hidden sm:flex lg:hidden xl:flex flex-col items-start">
+                    <span className="font-semibold text-sm text-brand-primary max-w-24 lg:max-w-none truncate">
+                      {user.userName}님
+                    </span>
+                    {user.role === "ADMIN" && (
+                      <span className="text-xs text-red-600">관리자</span>
+                    )}
+                  </div>
                 </Avatar>
               </Link>
-              <span className="hidden sm:inline lg:hidden xl:inline font-semibold text-sm text-brand-primary max-w-24 lg:max-w-none truncate">
-                {user.userName}님
-              </span>
               <Button
                 variant="outline"
                 size="sm"

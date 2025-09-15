@@ -1,6 +1,7 @@
 // Display components
 export { Avatar, AvatarImage, AvatarFallback } from './display/avatar';
 export { Badge } from './display/badge';
+export { TimeBadge } from './display/time-badge';
 export { Icon } from './display/icon';
 export { DecoIcon } from './display/deco-icon';
 export { StatCard } from './display/stat-card';

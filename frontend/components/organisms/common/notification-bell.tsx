@@ -8,7 +8,6 @@ import {
   Trash2,
   CheckCircle2,
   Eye,
-  Clock,
   Leaf,
   MessageSquare,
   Star,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components";
 import { Card } from "@/components";
+import { TimeBadge } from "@/components";
 import {
   Sheet,
   SheetContent,
@@ -31,7 +31,6 @@ import {
   useDeleteAllNotifications
 } from "@/hooks/features";
 import { useAuth } from "@/hooks";
-import { formatKoreanDate } from "@/lib/utils/date";
 
 /**
  * 실시간 알림 벨 컴포넌트
@@ -137,27 +136,6 @@ export function NotificationBell() {
       default:
         return <Bell className="w-4 h-4 text-brand-muted" />; // 기본 알림
     }
-  };
-
-  // 사용자 친화적인 상대 시간 표시 ("방금 전", "5분 전", "2시간 전" 등)
-  // 30일 이상 된 알림은 한국 날짜 형식으로 표시
-  const getRelativeTime = (createdAt: string) => {
-    const now = new Date();
-    const notificationTime = new Date(createdAt);
-    const diffInMinutes = Math.floor(
-      (now.getTime() - notificationTime.getTime()) / (1000 * 60)
-    );
-
-    if (diffInMinutes < 1) return "방금 전";
-    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}시간 전`;
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 30) return `${diffInDays}일 전`;
-
-    return formatKoreanDate(notificationTime.toISOString());
   };
 
   // 외부 클릭 감지로 데스크톱 팝오버 닫기
@@ -286,10 +264,7 @@ export function NotificationBell() {
                     </p>
                     <div className="flex items-center justify-between mt-1">
                       {/* 상대 시간 표시 */}
-                      <div className="flex items-center space-x-2 text-xs text-brand-secondary">
-                        <Clock className="w-3 h-3" />
-                        <span>{getRelativeTime(notification.createdAt)}</span>
-                      </div>
+                      <TimeBadge dateString={notification.createdAt} size="xs" />
                       {/* 개별 알림 액션 버튼들 */}
                       <div className="flex items-center space-x-1">
                         {/* 읽음 처리 버튼 (읽지 않은 알림에만 표시) */}

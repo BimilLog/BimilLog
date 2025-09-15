@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
+import { getInitials } from "@/lib/utils/format";
 import {
   AlertCircle,
   Check,
@@ -52,10 +53,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
   const [isNicknameDialogOpen, setIsNicknameDialogOpen] = useState(false);
   const { toasts, showSuccess, showError, removeToast } = useToast();
 
-  const getInitials = (name?: string) => {
-    if (!name) return "U";
-    return name.charAt(0).toUpperCase();
-  };
 
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newNickname = e.target.value;
@@ -154,9 +151,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row items-center md:space-x-8">
               <div className="relative mb-4 md:mb-0">
-                <Avatar className="w-24 h-24 md:w-32 md:h-32 ring-4 ring-white shadow-brand-lg">
+                <Avatar
+                  size="xl"
+                  className="w-24 h-24 md:w-32 md:h-32 ring-4 ring-white shadow-brand-lg"
+                  rounded
+                >
                   <AvatarImage src={user.thumbnailImage || undefined} alt={user.userName} />
-                  <AvatarFallback className="text-4xl bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+                  <AvatarFallback className="text-4xl">
                     {getInitials(user.userName)}
                   </AvatarFallback>
                 </Avatar>
@@ -170,16 +171,38 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
 
               <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
-                  <div className="flex items-center justify-center md:justify-start space-x-2 mb-2 md:mb-0">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                      {user.userName}
-                    </h2>
-                    {user.role === "ADMIN" && (
-                      <Badge className="bg-gradient-to-r from-red-500 to-pink-600 text-white border-0">
-                        <Shield className="w-3 h-3 mr-1" />
-                        관리자
-                      </Badge>
-                    )}
+                  <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-3 mb-2 md:mb-0">
+                    <div className="flex items-center justify-center md:justify-start space-x-2">
+                      <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                        {user.userName}
+                      </h2>
+                      {user.role === "ADMIN" && (
+                        <Badge className="bg-gradient-to-r from-red-500 to-pink-600 text-white border-0">
+                          <Shield className="w-3 h-3 mr-1" />
+                          관리자
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* 사용자 정보 요약 */}
+                    <div className="flex items-center space-x-4 text-sm text-brand-muted">
+                      {user.socialNickname && (
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4" />
+                          <span>{user.socialNickname}</span>
+                        </div>
+                      )}
+                      {user.settingId && (
+                        <div className="flex items-center space-x-1">
+                          <Settings className="w-4 h-4" />
+                          <span>알림 ON</span>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-4 h-4" />
+                        <span>활성</span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
@@ -264,26 +287,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                     </Dialog>
                   </div>
 
-                  <div className="space-y-3">
-                    {user.socialNickname && (
-                      <div className="flex items-center justify-center md:justify-start space-x-1 text-brand-muted">
-                        <Star className="w-4 h-4" />
-                        <span className="text-sm">소셜: {user.socialNickname}</span>
-                      </div>
-                    )}
-
-                    {user.settingId && (
-                      <div className="flex items-center justify-center md:justify-start space-x-1 text-brand-muted">
-                        <Settings className="w-4 h-4" />
-                        <span className="text-sm">알림 설정 완료</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-center md:justify-start space-x-1 text-brand-muted">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm">활성 사용자</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
