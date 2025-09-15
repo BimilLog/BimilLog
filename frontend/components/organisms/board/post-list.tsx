@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent } from "@/components";
+import { Card } from "@/components";
 import { Badge } from "@/components";
 import Link from "next/link";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { usePostReadStatus } from "@/hooks/features/useReadingProgress";
 import { CheckCircle, Megaphone, TrendingUp, Calendar, Crown } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 
 interface PostListProps {
   posts: SimplePost[];
@@ -20,8 +21,8 @@ interface PostListItemProps {
 // 데스크톱용 테이블 행 컴포넌트
 const PostListTableItem = React.memo<PostListItemProps & { isRead: boolean; progress: number }>(
   ({ post, isRead, progress }) => (
-    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-      <td className="p-3">
+    <TableRow className="bg-white hover:bg-gray-50">
+      <TableCell>
         {post.postCacheFlag === "NOTICE" && (
           <Badge variant="info" icon={Megaphone}>공지</Badge>
         )}
@@ -34,13 +35,13 @@ const PostListTableItem = React.memo<PostListItemProps & { isRead: boolean; prog
         {post.postCacheFlag === "LEGEND" && (
           <Badge variant="purple" icon={Crown}>레전드</Badge>
         )}
-      </td>
-      <td className="p-3">
+      </TableCell>
+      <TableCell>
         <div className="flex items-center gap-2">
           <Link
             href={`/board/post/${post.id}`}
             className={`font-semibold transition-colors line-clamp-2 block flex-1 ${
-              isRead ? 'text-gray-500' : 'text-brand-primary hover:text-purple-600'
+              isRead ? 'text-gray-500' : 'text-gray-900 hover:text-purple-600'
             }`}
           >
             {post.title}
@@ -65,22 +66,22 @@ const PostListTableItem = React.memo<PostListItemProps & { isRead: boolean; prog
             </div>
           )}
         </div>
-      </td>
-    <td className="p-3 text-brand-muted">
-      <Link
-        href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
-        className="hover:text-purple-600 hover:underline transition-colors truncate block max-w-20"
-        title={`${post.userName}님의 롤링페이퍼 보기`}
-      >
-        {post.userName}
-      </Link>
-    </td>
-    <td className="p-3 text-brand-muted text-sm">
-      {formatDate(post.createdAt)}
-    </td>
-    <td className="p-3 text-brand-muted text-center">{post.viewCount}</td>
-    <td className="p-3 text-brand-muted text-center">{post.likeCount}</td>
-  </tr>
+      </TableCell>
+      <TableCell>
+        <Link
+          href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
+          className="hover:text-purple-600 hover:underline transition-colors truncate block max-w-20"
+          title={`${post.userName}님의 롤링페이퍼 보기`}
+        >
+          {post.userName}
+        </Link>
+      </TableCell>
+      <TableCell className="text-sm">
+        {formatDate(post.createdAt)}
+      </TableCell>
+      <TableCell className="text-center">{post.viewCount}</TableCell>
+      <TableCell className="text-center">{post.likeCount}</TableCell>
+    </TableRow>
 ));
 
 // 모바일용 카드 컴포넌트
@@ -166,42 +167,38 @@ export const PostList = React.memo<PostListProps>(({ posts }) => {
   return (
     <>
       {/* 태블릿 이상에서 테이블 형태로 표시 */}
-      <Card variant="elevated" className="hidden sm:block">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="text-brand-muted">
-                  <th className="p-3 text-left font-medium w-20">상태</th>
-                  <th className="p-3 text-left font-medium">제목</th>
-                  <th className="p-3 text-left font-medium w-24">작성자</th>
-                  <th className="p-3 text-left font-medium w-28">작성일</th>
-                  <th className="p-3 text-center font-medium w-16">조회</th>
-                  <th className="p-3 text-center font-medium w-16">추천</th>
-                </tr>
-              </thead>
-              <tbody>
-                {regularPosts.length > 0 ? (
-                  regularPosts.map((post) => (
-                    <PostListTableItem
-                      key={post.id}
-                      post={post}
-                      isRead={readStatus[post.id] || false}
-                      progress={progressStatus[post.id] || 0}
-                    />
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="text-center py-12 text-brand-secondary">
-                      게시글이 없습니다.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="hidden sm:block overflow-x-auto">
+        <Table hoverable>
+          <TableHead>
+            <TableRow>
+              <TableHeadCell className="w-20">상태</TableHeadCell>
+              <TableHeadCell>제목</TableHeadCell>
+              <TableHeadCell className="w-24">작성자</TableHeadCell>
+              <TableHeadCell className="w-28">작성일</TableHeadCell>
+              <TableHeadCell className="text-center w-16">조회</TableHeadCell>
+              <TableHeadCell className="text-center w-16">추천</TableHeadCell>
+            </TableRow>
+          </TableHead>
+          <TableBody className="divide-y">
+            {regularPosts.length > 0 ? (
+              regularPosts.map((post) => (
+                <PostListTableItem
+                  key={post.id}
+                  post={post}
+                  isRead={readStatus[post.id] || false}
+                  progress={progressStatus[post.id] || 0}
+                />
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-12 text-gray-500">
+                  게시글이 없습니다.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* 모바일에서 카드 형태로 표시 */}
       <div className="sm:hidden space-y-3">

@@ -6,11 +6,28 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/hooks";
 import { useTheme } from "@/hooks/features/useTheme";
-import { Button } from "@/components";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components";
-import { getInitials } from "@/lib/utils/format";
-import { Settings, Moon, Sun, Monitor } from "lucide-react";
-import { Navbar, NavbarBrand, NavbarCollapse, NavbarLink, NavbarToggle } from "flowbite-react";
+import {
+  Settings,
+  Moon,
+  Sun,
+  Monitor,
+  LogOut,
+  Shield,
+  ScrollText,
+  UserCircle
+} from "lucide-react";
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarCollapse,
+  NavbarLink,
+  NavbarToggle,
+  Dropdown,
+  DropdownDivider,
+  DropdownHeader,
+  DropdownItem,
+  Avatar
+} from "flowbite-react";
 
 const NotificationBell = dynamic(
   () => import("@/components/organisms/common/notification-bell").then(mod => ({ default: mod.NotificationBell })),
@@ -22,7 +39,7 @@ const NotificationBell = dynamic(
 
 export const AuthHeader = React.memo(() => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -116,46 +133,89 @@ export const AuthHeader = React.memo(() => {
         ) : isAuthenticated && user ? (
           <>
             <NotificationBell />
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Link
-                href="/settings"
-                className="hidden lg:flex p-2 text-brand-muted hover:text-brand-primary hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
-                title="설정"
-              >
-                <Settings className="w-5 h-5" />
-              </Link>
-              <Link href="/rolling-paper" title="내 롤링페이퍼로 이동" className="min-h-[44px] min-w-[44px] flex items-center gap-2 touch-manipulation">
+            <Dropdown
+              arrowIcon={false}
+              inline
+              label={
                 <Avatar
-                  className="h-8 w-8 sm:h-9 sm:w-9 hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer"
-                  size="sm"
+                  alt={user.userName}
+                  img={user.thumbnailImage}
                   rounded
-                >
-                  <AvatarImage
-                    src={user.thumbnailImage}
-                    alt={user.userName}
-                  />
-                  <AvatarFallback className="text-sm">
-                    {getInitials(user.userName)}
-                  </AvatarFallback>
-                  <div className="hidden sm:flex lg:hidden xl:flex flex-col items-start">
-                    <span className="font-semibold text-sm text-brand-primary max-w-24 lg:max-w-none truncate">
-                      {user.userName}님
-                    </span>
-                    {user.role === "ADMIN" && (
-                      <span className="text-xs text-red-600">관리자</span>
-                    )}
-                  </div>
-                </Avatar>
-              </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="hidden lg:flex bg-white text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 text-sm px-3 min-h-[44px] touch-manipulation"
-              >
+                  className="hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer"
+                />
+              }
+              theme={{
+                arrowIcon: "ml-2 h-4 w-4",
+                content: "py-1 focus:outline-none",
+                floating: {
+                  animation: "transition-opacity",
+                  arrow: {
+                    base: "absolute z-10 h-2 w-2 rotate-45",
+                    style: {
+                      dark: "bg-gray-900 dark:bg-gray-700",
+                      light: "bg-white",
+                      auto: "bg-white dark:bg-gray-700"
+                    },
+                    placement: "-4px"
+                  },
+                  base: "z-50 w-fit rounded-lg divide-y divide-gray-100 shadow-lg focus:outline-none",
+                  content: "py-1 text-sm text-gray-700 dark:text-gray-200",
+                  divider: "my-1 h-px bg-gray-100 dark:bg-gray-600",
+                  header: "block py-2 px-4 text-sm text-gray-700 dark:text-gray-200",
+                  hidden: "invisible opacity-0",
+                  item: {
+                    container: "",
+                    base: "flex items-center justify-start py-2 px-4 text-sm text-gray-700 cursor-pointer w-full hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 focus:outline-none dark:hover:text-white dark:focus:bg-gray-600 dark:focus:text-white",
+                    icon: "mr-2 h-4 w-4"
+                  },
+                  style: {
+                    dark: "bg-gray-900 text-white dark:bg-gray-700",
+                    light: "border border-gray-200 bg-white text-gray-900",
+                    auto: "border border-gray-200 bg-white text-gray-900 dark:border-none dark:bg-gray-700 dark:text-white"
+                  },
+                  target: "w-fit"
+                },
+                inlineWrapper: "flex items-center"
+              }}
+            >
+              <DropdownHeader>
+                <span className="block text-sm font-semibold">{user.userName}</span>
+                <span className="block truncate text-sm text-gray-500">
+                  @{user.socialNickname}
+                </span>
+                {user.role === "ADMIN" && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 mt-1">
+                    관리자
+                  </span>
+                )}
+              </DropdownHeader>
+              <DropdownItem as={Link} href="/rolling-paper">
+                <ScrollText className="mr-2 h-4 w-4" />
+                내 롤링페이퍼
+              </DropdownItem>
+              <DropdownItem as={Link} href="/mypage">
+                <UserCircle className="mr-2 h-4 w-4" />
+                마이페이지
+              </DropdownItem>
+              <DropdownItem as={Link} href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                설정
+              </DropdownItem>
+              {user.role === "ADMIN" && (
+                <>
+                  <DropdownDivider />
+                  <DropdownItem as={Link} href="/admin" className="text-red-600">
+                    <Shield className="mr-2 h-4 w-4" />
+                    관리자 페이지
+                  </DropdownItem>
+                </>
+              )}
+              <DropdownDivider />
+              <DropdownItem onClick={logout} className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
                 로그아웃
-              </Button>
-            </div>
+              </DropdownItem>
+            </Dropdown>
           </>
         ) : null}
 
@@ -169,28 +229,43 @@ export const AuthHeader = React.memo(() => {
         <NavbarLink as={Link} href="/visit" className="text-sm lg:text-base">
           다른 롤링페이퍼 방문
         </NavbarLink>
-        {isAuthenticated && (
-          <NavbarLink as={Link} href="/rolling-paper" className="text-sm lg:text-base">
-            내 롤링페이퍼
-          </NavbarLink>
-        )}
         <NavbarLink as={Link} href="/suggest" className="text-sm lg:text-base">
           건의하기
         </NavbarLink>
-        {isAuthenticated && (
-          <NavbarLink as={Link} href="/mypage" className="text-sm lg:text-base">
-            마이페이지
-          </NavbarLink>
-        )}
-        {isAuthenticated && user?.role === "ADMIN" && (
-          <NavbarLink as={Link} href="/admin" className="text-red-600 hover:text-red-700 transition-colors font-semibold text-sm lg:text-base">
-            관리자
-          </NavbarLink>
-        )}
         {!isAuthenticated && (
           <NavbarLink as={Link} href="/login" className="text-sm lg:text-base">
             로그인
           </NavbarLink>
+        )}
+        {/* 모바일에서만 표시되는 로그인 전용 메뉴 */}
+        {isAuthenticated && (
+          <div className="md:hidden border-t mt-4 pt-4 space-y-2">
+            <NavbarLink as={Link} href="/rolling-paper" className="text-sm flex items-center">
+              <ScrollText className="mr-2 h-4 w-4" />
+              내 롤링페이퍼
+            </NavbarLink>
+            <NavbarLink as={Link} href="/mypage" className="text-sm flex items-center">
+              <UserCircle className="mr-2 h-4 w-4" />
+              마이페이지
+            </NavbarLink>
+            <NavbarLink as={Link} href="/settings" className="text-sm flex items-center">
+              <Settings className="mr-2 h-4 w-4" />
+              설정
+            </NavbarLink>
+            {user?.role === "ADMIN" && (
+              <NavbarLink as={Link} href="/admin" className="text-red-600 text-sm flex items-center">
+                <Shield className="mr-2 h-4 w-4" />
+                관리자
+              </NavbarLink>
+            )}
+            <button
+              onClick={logout}
+              className="w-full text-left text-red-600 text-sm py-2 pr-4 pl-3 flex items-center hover:bg-gray-50 rounded"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              로그아웃
+            </button>
+          </div>
         )}
       </NavbarCollapse>
     </Navbar>
