@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components";
 import { Button } from "@/components";
 import { Badge, TimeBadge } from "@/components";
@@ -39,8 +40,8 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md md:max-w-2xl mx-auto max-h-[80vh] bg-gradient-to-br from-cyan-50 to-blue-50 border-2 md:border-4 border-cyan-200 rounded-2xl md:rounded-3xl">
-        <DialogHeader className="pb-4">
+      <DialogContent size="xl">
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-cyan-800 font-bold text-lg md:text-xl">
             <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
             받은 메시지 목록
@@ -127,16 +128,15 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
           </div>
         )}
 
-        {/* 하단 버튼 */}
-        <div className="pt-4 border-t border-cyan-200">
+        <DialogFooter>
           <Button
             onClick={onClose}
             variant="outline"
-            className="w-full bg-white hover:bg-cyan-50 border-cyan-300"
+            className="w-full"
           >
             닫기
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

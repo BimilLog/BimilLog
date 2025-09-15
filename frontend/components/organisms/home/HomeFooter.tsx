@@ -1,149 +1,131 @@
+"use client"
+
 import React from "react";
 import Link from "next/link";
-
-interface FooterLink {
-  href: string;
-  label: string;
-  external?: boolean;
-}
-
-interface FooterSection {
-  title: string;
-  links: FooterLink[];
-}
+import {
+  Footer,
+  FooterCopyright,
+  FooterDivider,
+  FooterIcon,
+  FooterLink,
+  FooterLinkGroup,
+  FooterTitle,
+} from "flowbite-react";
+import { Github, Twitter, Instagram, Mail } from "lucide-react";
 
 export const HomeFooter: React.FC = () => {
-  const footerSections: FooterSection[] = [
-    {
-      title: "서비스",
-      links: [
-        { href: "/board", label: "게시판" },
-        { href: "/visit", label: "롤링페이퍼 방문" },
-      ],
-    },
-    {
-      title: "고객지원",
-      links: [{ href: "/suggest", label: "건의하기" }],
-    },
-    {
-      title: "정책",
-      links: [
-        { href: "/privacy", label: "개인정보처리방침" },
-        { href: "/terms", label: "이용약관" },
-      ],
-    },
-    {
-      title: "운영",
-      links: [
-        {
-          href: "https://jaeiktech.tistory.com",
-          label: "개발자 블로그",
-          external: true,
-        },
-      ],
-    },
-  ];
-
   return (
-    <footer className="bg-gray-800 text-white py-8 sm:py-12">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 로고 및 소개 */}
-        <div className="mb-8">
-          <div className="flex items-end mb-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-white leading-none inline-block">비밀로그</h2>
-            <span className="ml-3 text-xs text-gray-400 leading-none">v2.0.0</span>
-          </div>
-          <p className="text-gray-300 text-sm sm:text-base leading-relaxed">익명으로 마음을 전하는 특별한 공간</p>
-        </div>
-
-        {/* 링크 섹션들 - 가로 4개 컬럼 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* 고객지원 */}
+    <Footer container className="bg-white rounded-none shadow-sm">
+      <div className="w-full">
+        <div className="grid w-full justify-between sm:flex sm:justify-between md:flex md:grid-cols-1">
+          {/* Brand Section */}
           <div>
-            <h3 className="font-semibold text-sm sm:text-base text-white mb-3">고객지원</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/suggest"
-                  className="text-gray-300 hover:text-white transition-all text-sm sm:text-base"
-                >
+            <Link href="/" className="flex items-center mb-4">
+              <span className="text-2xl font-bold text-gray-900">비밀로그</span>
+            </Link>
+            <p className="text-sm text-gray-600 max-w-xs">
+              익명으로 마음을 전하는 특별한 공간
+            </p>
+          </div>
+
+          {/* Links Grid - All sections in one row */}
+          <div className="grid grid-cols-2 gap-8 sm:mt-4 sm:grid-cols-4 sm:gap-6">
+            {/* 서비스 */}
+            <div>
+              <FooterTitle title="서비스" className="text-gray-900 font-semibold mb-4" />
+              <FooterLinkGroup col>
+                <FooterLink as={Link} href="/board" className="text-gray-600 hover:text-gray-900">
+                  게시판
+                </FooterLink>
+                <FooterLink as={Link} href="/visit" className="text-gray-600 hover:text-gray-900">
+                  롤링페이퍼 방문
+                </FooterLink>
+              </FooterLinkGroup>
+            </div>
+
+            {/* 고객지원 */}
+            <div>
+              <FooterTitle title="고객지원" className="text-gray-900 font-semibold mb-4" />
+              <FooterLinkGroup col>
+                <FooterLink as={Link} href="/suggest" className="text-gray-600 hover:text-gray-900">
                   건의하기
-                </Link>
-              </li>
-            </ul>
-          </div>
+                </FooterLink>
+              </FooterLinkGroup>
+            </div>
 
-          {/* 운영 */}
-          <div>
-            <h3 className="font-semibold text-sm sm:text-base text-white mb-3">운영</h3>
-            <ul className="space-y-2">
-              <li>
-                <a
+            {/* 정책 */}
+            <div>
+              <FooterTitle title="정책" className="text-gray-900 font-semibold mb-4" />
+              <FooterLinkGroup col>
+                <FooterLink as={Link} href="/privacy" className="text-gray-600 hover:text-gray-900">
+                  개인정보처리방침
+                </FooterLink>
+                <FooterLink as={Link} href="/terms" className="text-gray-600 hover:text-gray-900">
+                  이용약관
+                </FooterLink>
+              </FooterLinkGroup>
+            </div>
+
+            {/* 운영 */}
+            <div>
+              <FooterTitle title="운영" className="text-gray-900 font-semibold mb-4" />
+              <FooterLinkGroup col>
+                <FooterLink
                   href="https://jaeiktech.tistory.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-white transition-all text-sm sm:text-base"
+                  className="text-gray-600 hover:text-gray-900"
                 >
                   개발자 블로그
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* 서비스 */}
-          <div>
-            <h3 className="font-semibold text-sm sm:text-base text-white mb-3">서비스</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/board"
-                  className="text-gray-300 hover:text-white transition-all text-sm sm:text-base"
-                >
-                  게시판
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/visit"
-                  className="text-gray-300 hover:text-white transition-all text-sm sm:text-base"
-                >
-                  롤링페이퍼 방문
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* 정책 */}
-          <div>
-            <h3 className="font-semibold text-sm sm:text-base text-white mb-3">정책</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/privacy"
-                  className="text-gray-300 hover:text-white transition-all text-sm sm:text-base"
-                >
-                  개인정보처리방침
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="text-gray-300 hover:text-white transition-all text-sm sm:text-base"
-                >
-                  이용약관
-                </Link>
-              </li>
-            </ul>
+                </FooterLink>
+              </FooterLinkGroup>
+            </div>
           </div>
         </div>
 
-        {/* 저작권 정보 */}
-        <div className="border-t border-gray-600 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center">
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
-            <p className="text-gray-300 text-sm">&copy; 2025 비밀로그. All rights reserved.</p>
+        <FooterDivider className="border-gray-200 my-8" />
+
+        {/* Bottom Section with Copyright and Social Icons */}
+        <div className="w-full sm:flex sm:items-center sm:justify-between">
+          <FooterCopyright
+            by="비밀로그"
+            year={2025}
+            className="text-gray-500 text-sm"
+          />
+
+          {/* Social Media Icons */}
+          <div className="mt-4 flex space-x-6 sm:mt-0 sm:justify-center">
+            <FooterIcon
+              href="https://github.com"
+              icon={() => (
+                <Github className="w-5 h-5 text-gray-500 hover:text-gray-900 transition-colors" />
+              )}
+              className="hover:bg-gray-100 rounded-lg"
+            />
+            <FooterIcon
+              href="https://twitter.com"
+              icon={() => (
+                <Twitter className="w-5 h-5 text-gray-500 hover:text-gray-900 transition-colors" />
+              )}
+              className="hover:bg-gray-100 rounded-lg"
+            />
+            <FooterIcon
+              href="https://instagram.com"
+              icon={() => (
+                <Instagram className="w-5 h-5 text-gray-500 hover:text-gray-900 transition-colors" />
+              )}
+              className="hover:bg-gray-100 rounded-lg"
+            />
+            <FooterIcon
+              href="mailto:contact@grow-farm.com"
+              icon={() => (
+                <Mail className="w-5 h-5 text-gray-500 hover:text-gray-900 transition-colors" />
+              )}
+              className="hover:bg-gray-100 rounded-lg"
+            />
           </div>
         </div>
       </div>
-    </footer>
+    </Footer>
   );
 };

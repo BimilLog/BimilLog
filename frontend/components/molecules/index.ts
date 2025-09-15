@@ -9,6 +9,7 @@ export { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 export { Popover, PopoverContent, PopoverTrigger } from './modals/popover';
 export { KakaoFriendsModal } from './modals/kakao-friends-modal';
 export { BrowserGuideModal } from './modals/browser-guide-modal';
+export { ConfirmModal, useConfirmModal } from './modals/confirm-modal';
 
 // Form components
 export { FormField } from './forms/form-field';

@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components";
 import { getInitials } from "@/lib/utils/format";
@@ -216,7 +217,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                           닉네임 변경
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent popup size="md">
                         <DialogHeader>
                           <DialogTitle>닉네임 변경</DialogTitle>
                         </DialogHeader>
@@ -274,15 +275,22 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                               </p>
                             )}
                           </div>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleDialogOpenChange(false)}
+                          >
+                            취소
+                          </Button>
                           <Button
                             variant="default"
-                            size="full"
                             onClick={handleNicknameSubmit}
                             disabled={!isNicknameAvailable || isNicknameChangeSubmitting}
                           >
                             {isNicknameChangeSubmitting ? "변경 중..." : "닉네임 변경"}
                           </Button>
-                        </div>
+                        </DialogFooter>
                       </DialogContent>
                     </Dialog>
                   </div>

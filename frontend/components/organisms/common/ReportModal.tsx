@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components";
 import { Textarea } from "@/components";
 import { Alert, AlertDescription } from "@/components";
@@ -67,7 +68,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-red-600">
             <Flag className="w-5 h-5" />
@@ -131,24 +132,24 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
-              취소
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!isValid || isSubmitting}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isSubmitting ? "신고 중..." : "신고하기"}
-            </Button>
-          </div>
         </div>
+
+        <DialogFooter className="pt-4">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
+            취소
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!isValid || isSubmitting}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            {isSubmitting ? "신고 중..." : "신고하기"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

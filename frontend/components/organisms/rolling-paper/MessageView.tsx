@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components";
 import { Badge } from "@/components";
-import { Lock } from "lucide-react";
+import { ConfirmModal } from "@/components";
+import { Lock, Trash2 } from "lucide-react";
 import { getDecoInfo, paperCommand } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
@@ -24,6 +26,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
   onDeleteSuccess,
   onDeleteError,
 }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const decoInfo = getDecoInfo(message.decoType);
 
   // RollingPaperMessage 타입 가드: content와 anonymity 필드 존재로 구분
@@ -35,12 +38,13 @@ export const MessageView: React.FC<MessageViewProps> = ({
   };
 
   // 메시지 삭제 처리: RollingPaperMessage만 삭제 가능, 확인창 후 API 호출
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!isRollingPaperMessage(message)) return;
+    setShowDeleteConfirm(true);
+  };
 
-    if (!window.confirm("정말로 이 메시지를 삭제하시겠습니까?")) {
-      return;
-    }
+  const handleDeleteConfirm = async () => {
+    if (!isRollingPaperMessage(message)) return;
 
     try {
       const response = await paperCommand.deleteMessage(message.id);
@@ -58,16 +62,17 @@ export const MessageView: React.FC<MessageViewProps> = ({
   };
 
   return (
-    <div
-      className={`p-4 sm:p-6 bg-gradient-to-br ${decoInfo.color} rounded-2xl border-2 border-white shadow-brand-lg relative overflow-hidden`}
-      style={{
-        backgroundImage: `
-          radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
-          radial-gradient(circle at 24px 24px, rgba(255,255,255,0.2) 1px, transparent 1px)
-        `,
-        backgroundSize: "16px 16px, 48px 48px",
-      }}
-    >
+    <>
+      <div
+        className={`p-4 sm:p-6 bg-gradient-to-br ${decoInfo.color} rounded-2xl border-2 border-white shadow-brand-lg relative overflow-hidden`}
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
+            radial-gradient(circle at 24px 24px, rgba(255,255,255,0.2) 1px, transparent 1px)
+          `,
+          backgroundSize: "16px 16px, 48px 48px",
+        }}
+      >
         <div className="flex items-center gap-3 mb-4">
           <DecoIcon decoType={message.decoType} size="xl" showBackground={false} animate="bounce" />
           <div className="flex flex-col gap-1 flex-1 min-w-0">
@@ -112,13 +117,27 @@ export const MessageView: React.FC<MessageViewProps> = ({
             <Button
               variant="destructive"
               size="sm"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="bg-red-500/80 hover:bg-red-600/80 text-white border-0 min-h-[44px] touch-manipulation text-sm"
             >
               메시지 삭제
             </Button>
           </div>
         )}
-    </div>
+      </div>
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteConfirm}
+        title="메시지 삭제"
+        message="정말로 이 메시지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        confirmText="삭제"
+        cancelText="취소"
+        confirmButtonVariant="destructive"
+        icon={<Trash2 className="h-8 w-8 text-red-500" />}
+      />
+    </>
   );
 };

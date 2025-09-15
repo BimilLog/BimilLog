@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
   Button,
   Input
 } from "@/components";
@@ -27,7 +28,7 @@ export const PasswordModal = React.memo<PasswordModalProps>(({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onCancel()}>
-      <DialogContent>
+      <DialogContent popup size="sm">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -37,14 +38,15 @@ export const PasswordModal = React.memo<PasswordModalProps>(({
             placeholder="비밀번호를 입력하세요"
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => onPasswordChange(e.target.value)}
+            autoFocus
           />
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onCancel}>
-              취소
-            </Button>
-            <Button onClick={onConfirm}>확인</Button>
-          </div>
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
+            취소
+          </Button>
+          <Button onClick={onConfirm}>확인</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
