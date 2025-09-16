@@ -14,7 +14,6 @@ import {
   Calendar,
   Crown,
   ThumbsUp,
-  MessageCircle,
   Eye
 } from "lucide-react";
 import {
@@ -65,32 +64,31 @@ const BoardTableRow = memo<TableRowProps>(({
 
   return (
     <TableRow className="bg-white hover:bg-gray-50">
-      {/* 순위 또는 상태 */}
-      <TableCell className={showRanking ? "text-center" : ""}>
+      {/* 상태 */}
+      <TableCell className="text-center">
+        {post.postCacheFlag === "NOTICE" && (
+          <Badge variant="info" icon={Megaphone}>공지</Badge>
+        )}
+        {post.postCacheFlag === "REALTIME" && (
+          <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
+        )}
+        {post.postCacheFlag === "WEEKLY" && (
+          <Badge variant="warning" icon={Calendar}>주간</Badge>
+        )}
+        {post.postCacheFlag === "LEGEND" && (
+          <Badge variant="purple" icon={Crown}>레전드</Badge>
+        )}
+      </TableCell>
+
+      {/* 순위 또는 번호 */}
+      <TableCell className="text-center font-medium">
         {showRanking ? (
           <span className="text-lg font-bold text-purple-600">
             {index + 1}
           </span>
         ) : (
-          <>
-            {post.postCacheFlag === "NOTICE" && (
-              <Badge variant="info" icon={Megaphone}>공지</Badge>
-            )}
-            {post.postCacheFlag === "REALTIME" && (
-              <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
-            )}
-            {post.postCacheFlag === "WEEKLY" && (
-              <Badge variant="warning" icon={Calendar}>주간</Badge>
-            )}
-            {post.postCacheFlag === "LEGEND" && (
-              <Badge variant="purple" icon={Crown}>레전드</Badge>
-            )}
-          </>
+          <span>{post.id}</span>
         )}
-      </TableCell>
-      {/* 번호 */}
-      <TableCell className="text-center font-medium">
-        {post.id}
       </TableCell>
 
       {/* 제목 */}
@@ -142,11 +140,6 @@ const BoardTableRow = memo<TableRowProps>(({
         {formatDate(post.createdAt)}
       </TableCell>
 
-      {/* 조회수 - 모든 variant에서 표시 */}
-      <TableCell className="text-center">
-        {post.viewCount}
-      </TableCell>
-
       {/* 추천 */}
       <TableCell className="text-center">
         {enablePopover ? (
@@ -184,44 +177,10 @@ const BoardTableRow = memo<TableRowProps>(({
         )}
       </TableCell>
 
-      {/* 댓글 - 인기글 전용 */}
-      {isPopularVariant && (
-        <TableCell className="text-center">
-          {enablePopover ? (
-            <Popover
-              trigger="hover"
-              placement="top"
-              content={
-                <div className="p-3 min-w-[180px]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageCircle className="w-4 h-4 text-blue-600" />
-                    <span className="font-semibold text-sm">댓글 통계</span>
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">총 댓글:</span>
-                      <span className="font-medium">{post.commentCount}개</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">활발도:</span>
-                      <span className="font-medium">
-                        {post.commentCount > 10 ? '활발' : post.commentCount > 5 ? '보통' : '조용'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              }
-            >
-              <span className="flex items-center justify-center cursor-help">
-                <MessageCircle className="w-3 h-3 mr-1" />
-                {post.commentCount}
-              </span>
-            </Popover>
-          ) : (
-            <span>{post.commentCount}</span>
-          )}
-        </TableCell>
-      )}
+      {/* 조회수 */}
+      <TableCell className="text-center">
+        {post.viewCount}
+      </TableCell>
     </TableRow>
   );
 });
@@ -242,53 +201,33 @@ const BoardMobileCard = memo<TableRowProps>(({
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            {/* 순위 또는 뱃지 */}
-            {showRanking ? (
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary" className="text-xs">
-                  번호: {post.id}
-                </Badge>
+            {/* 상태, 번호/순위 표시 */}
+            <div className="flex items-center gap-2 mb-2">
+              {/* 상태 뱃지 */}
+              {post.postCacheFlag === "NOTICE" && (
+                <Badge variant="info" icon={Megaphone}>공지</Badge>
+              )}
+              {post.postCacheFlag === "REALTIME" && (
+                <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
+              )}
+              {post.postCacheFlag === "WEEKLY" && (
+                <Badge variant="warning" icon={Calendar}>주간</Badge>
+              )}
+              {post.postCacheFlag === "LEGEND" && (
+                <Badge variant="purple" icon={Crown}>레전드</Badge>
+              )}
+
+              {/* 순위 또는 번호 */}
+              {showRanking ? (
                 <span className="text-xl font-bold text-purple-600">
                   #{index + 1}
                 </span>
-                {post.postCacheFlag && (
-                  <>
-                    {post.postCacheFlag === "NOTICE" && (
-                      <Badge variant="info" icon={Megaphone}>공지</Badge>
-                    )}
-                    {post.postCacheFlag === "REALTIME" && (
-                      <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
-                    )}
-                    {post.postCacheFlag === "WEEKLY" && (
-                      <Badge variant="warning" icon={Calendar}>주간</Badge>
-                    )}
-                    {post.postCacheFlag === "LEGEND" && (
-                      <Badge variant="purple" icon={Crown}>레전드</Badge>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="secondary" className="text-xs">
-                    ID: {post.id}
-                  </Badge>
-                  {post.postCacheFlag === "NOTICE" && (
-                    <Badge variant="info" icon={Megaphone}>공지</Badge>
-                  )}
-                </div>
-                {post.postCacheFlag === "REALTIME" && (
-                  <Badge variant="destructive" icon={TrendingUp} className="mb-2">실시간</Badge>
-                )}
-                {post.postCacheFlag === "WEEKLY" && (
-                  <Badge variant="warning" icon={Calendar} className="mb-2">주간</Badge>
-                )}
-                {post.postCacheFlag === "LEGEND" && (
-                  <Badge variant="purple" icon={Crown} className="mb-2">레전드</Badge>
-                )}
-              </>
-            )}
+              ) : (
+                <Badge variant="secondary" className="text-xs">
+                  번호: {post.id}
+                </Badge>
+              )}
+            </div>
 
             {/* 제목 */}
             <div className="flex items-start gap-2">
@@ -338,19 +277,13 @@ const BoardMobileCard = memo<TableRowProps>(({
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              {post.viewCount}
-            </span>
-            <span className="flex items-center gap-1">
               <ThumbsUp className="w-3 h-3" />
               {post.likeCount}
             </span>
-            {isPopularVariant && (
-              <span className="flex items-center gap-1">
-                <MessageCircle className="w-3 h-3" />
-                {post.commentCount}
-              </span>
-            )}
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {post.viewCount}
+            </span>
           </div>
         </div>
       </div>
@@ -380,18 +313,15 @@ export const BoardTable = memo<BoardTableProps>(({
         <Table hoverable>
           <TableHead>
             <TableRow>
-              <TableHeadCell className={showRanking ? "w-12 text-center" : "w-20"}>
-                {showRanking ? "순위" : ""}
+              <TableHeadCell className="w-20"></TableHeadCell>
+              <TableHeadCell className="w-20 text-center">
+                {showRanking ? "순위" : "번호"}
               </TableHeadCell>
-              <TableHeadCell className="w-16 text-center">번호</TableHeadCell>
               <TableHeadCell>제목</TableHeadCell>
               <TableHeadCell className="w-24">작성자</TableHeadCell>
               <TableHeadCell className="w-28 hidden sm:table-cell">작성일</TableHeadCell>
-              <TableHeadCell className="text-center w-16">조회</TableHeadCell>
-              <TableHeadCell className="text-center w-16">추천</TableHeadCell>
-              {isPopularVariant && (
-                <TableHeadCell className="text-center w-16">댓글</TableHeadCell>
-              )}
+              <TableHeadCell className="w-20 text-center">추천</TableHeadCell>
+              <TableHeadCell className="w-20 text-center">조회</TableHeadCell>
             </TableRow>
           </TableHead>
           <TableBody className="divide-y">
@@ -411,7 +341,7 @@ export const BoardTable = memo<BoardTableProps>(({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={isPopularVariant ? 8 : 7}
+                  colSpan={7}
                   className="text-center py-12 text-gray-500"
                 >
                   {variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다."}

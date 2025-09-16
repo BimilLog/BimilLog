@@ -2,14 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { Input, Button, Card } from "@/components";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/molecules/select";
-import { Search, ListFilter, Clock, TrendingUp, X } from "lucide-react";
+import { Dropdown, DropdownItem } from "flowbite-react";
+import { Search, ListFilter, Clock, TrendingUp, X, ChevronDown } from "lucide-react";
 import { useSearchHistory } from "@/hooks/features/useSearchHistory";
 import { addSearchHistory } from "@/lib/utils/search-history";
 
@@ -79,21 +73,30 @@ export const BoardSearch = ({
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <div className="flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden hover:border-brand-secondary/50 focus-within:border-brand-secondary focus-within:ring-2 focus-within:ring-brand-secondary/20 transition-all">
-            <Select
-              value={searchType}
-              onValueChange={(value: "TITLE" | "TITLE_CONTENT" | "AUTHOR") =>
-                setSearchType(value)
-              }
+            <Dropdown
+              label=""
+              dismissOnClick={true}
+              renderTrigger={() => (
+                <button className="w-[120px] px-3 py-2 border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-gray-50 hover:bg-gray-100 border-r border-gray-200 flex items-center justify-between text-sm">
+                  <span>
+                    {searchType === "TITLE" ? "제목" : 
+                     searchType === "TITLE_CONTENT" ? "제목+내용" : 
+                     searchType === "AUTHOR" ? "작성자" : "제목"}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                </button>
+              )}
             >
-              <SelectTrigger className="w-[120px] border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-gray-50 hover:bg-gray-100 border-r border-gray-200">
-                <SelectValue placeholder="제목" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="TITLE">제목</SelectItem>
-                <SelectItem value="TITLE_CONTENT">제목+내용</SelectItem>
-                <SelectItem value="AUTHOR">작성자</SelectItem>
-              </SelectContent>
-            </Select>
+              <DropdownItem onClick={() => setSearchType("TITLE")}>
+                제목
+              </DropdownItem>
+              <DropdownItem onClick={() => setSearchType("TITLE_CONTENT")}>
+                제목+내용
+              </DropdownItem>
+              <DropdownItem onClick={() => setSearchType("AUTHOR")}>
+                작성자
+              </DropdownItem>
+            </Dropdown>
             <Input
               ref={searchInputRef}
               type="text"
@@ -233,16 +236,26 @@ export const BoardSearch = ({
 
         <div className="flex items-center gap-2">
           <ListFilter className="w-5 h-5 text-brand-secondary" />
-          <Select value={postsPerPage} onValueChange={setPostsPerPage}>
-            <SelectTrigger className="w-[120px] bg-white border">
-              <SelectValue placeholder="30개씩" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="15">15개씩</SelectItem>
-              <SelectItem value="30">30개씩</SelectItem>
-              <SelectItem value="50">50개씩</SelectItem>
-            </SelectContent>
-          </Select>
+          <Dropdown
+            label=""
+            dismissOnClick={true}
+            renderTrigger={() => (
+              <button className="w-[120px] px-3 py-2 bg-white border border-gray-300 rounded-lg hover:border-brand-secondary/50 focus:ring-2 focus:ring-brand-secondary/20 flex items-center justify-between text-sm">
+                <span>{postsPerPage}개씩</span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </button>
+            )}
+          >
+            <DropdownItem onClick={() => setPostsPerPage("15")}>
+              15개씩
+            </DropdownItem>
+            <DropdownItem onClick={() => setPostsPerPage("30")}>
+              30개씩
+            </DropdownItem>
+            <DropdownItem onClick={() => setPostsPerPage("50")}>
+              50개씩
+            </DropdownItem>
+          </Dropdown>
         </div>
       </div>
     </Card>

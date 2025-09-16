@@ -123,21 +123,29 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
       >
         <TabItem
           active={activeTab === "all"}
-          title="전체글"
-          icon={HiClipboardList}
+          title="전체 게시판"
         >
-          <div className="space-y-4">
-            <NoticeList posts={posts} />
-            <BoardTable
-              posts={posts.filter(post => !post.isNotice)}
-              variant="all"
-            />
-          </div>
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <HiClipboardList className="w-5 h-5 text-blue-500" />
+                <span>전체 게시판</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-4">
+                <NoticeList posts={posts} />
+                <BoardTable
+                  posts={posts.filter(post => !post.isNotice)}
+                  variant="all"
+                />
+              </div>
+            </CardContent>
+          </Card>
         </TabItem>
         <TabItem
           active={activeTab === "realtime"}
-          title="실시간"
-          icon={HiFire}
+          title="실시간 인기글"
         >
           <Card variant="elevated">
             <CardHeader>
@@ -156,8 +164,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         </TabItem>
         <TabItem
           active={activeTab === "popular"}
-          title="주간"
-          icon={HiTrendingUp}
+          title="주간 인기글"
         >
           <Card variant="elevated">
             <CardHeader>
@@ -176,8 +183,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         </TabItem>
         <TabItem
           active={activeTab === "legend"}
-          title="레전드"
-          icon={HiSparkles}
+          title="명예의 전당"
         >
           <Card variant="elevated">
             <CardHeader>
