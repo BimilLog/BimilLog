@@ -37,6 +37,23 @@ const pwaConfig = {
 
 const nextConfig = withPWA(pwaConfig)({
     output: 'standalone',
+    webpack: (config, { dev, isServer }) => {
+        if (dev && !isServer) {
+            // HMR 관련 파일 시스템 감시 설정 개선
+            config.watchOptions = {
+                poll: 1000,
+                aggregateTimeout: 300,
+                ignored: /node_modules/,
+            };
+
+            // 파일 시스템 접근 오류 방지를 위한 설정
+            config.optimization = {
+                ...config.optimization,
+                runtimeChunk: 'single',
+            };
+        }
+        return config;
+    },
     async redirects() {
         return [
             {

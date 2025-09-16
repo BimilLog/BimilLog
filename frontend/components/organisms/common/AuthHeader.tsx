@@ -110,12 +110,10 @@ export const AuthHeader = React.memo(() => {
         <Image
           src="/log.png"
           alt="비밀로그"
-          width={48}
+          width={150}
           height={48}
           className="h-10 sm:h-12 w-auto object-contain mr-3"
           priority
-          placeholder="blur"
-          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPgo="
         />
       </NavbarBrand>
 

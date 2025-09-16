@@ -8,25 +8,25 @@ export const HomeFeatures: React.FC = () => {
       title: "익명 메시지",
       description:
         "로그인 없이도 누구나 익명으로 따뜻한 메시지를 남길 수 있어요",
-      gradient: "from-pink-500 to-red-500",
+      gradient: "bg-pink-500",
     },
     {
       icon: Users,
       title: "카카오 연동",
       description: "카카오톡으로 간편하게 로그인하고 친구들에게 공유해보세요",
-      gradient: "from-orange-500 to-yellow-500",
+      gradient: "bg-orange-500",
     },
     {
       icon: Sparkles,
       title: "다양한 디자인",
       description: "예쁜 디자인으로 메시지를 꾸며서 더욱 특별하게 만들어보세요",
-      gradient: "from-purple-500 to-indigo-500",
+      gradient: "bg-purple-500",
     },
     {
       icon: MessageCircle,
       title: "커뮤니티",
       description: "다른 사용자들과 소통하고 인기글을 확인해보세요",
-      gradient: "from-green-500 to-teal-500",
+      gradient: "bg-green-500",
     },
   ];
 
@@ -46,7 +46,7 @@ export const HomeFeatures: React.FC = () => {
             >
               <CardContent className="p-6 text-center">
                 <div
-                  className={`w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-full flex items-center justify-center mx-auto mb-4`}
+                  className={`w-12 h-12 ${feature.gradient} rounded-full flex items-center justify-center mx-auto mb-4`}
                 >
                   <IconComponent className="w-6 h-6 text-white" />
                 </div>

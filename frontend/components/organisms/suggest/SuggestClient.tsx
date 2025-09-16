@@ -40,14 +40,14 @@ const suggestionTypes = [
     label: "기능 개선 제안",
     description: "새로운 기능이나 기존 기능 개선 아이디어",
     icon: Lightbulb,
-    color: "from-blue-500 to-cyan-500",
+    color: "bg-blue-500",
   },
   {
     value: "ERROR" as const,
     label: "오류 신고",
     description: "버그, 오작동, 기술적 문제 신고",
     icon: Bug,
-    color: "from-red-500 to-orange-500",
+    color: "bg-red-500",
   },
 ];
 
@@ -140,7 +140,7 @@ export default function SuggestClient() {
                   >
                     <CardContent className="p-6 text-center">
                       <div
-                        className={`w-12 h-12 bg-gradient-to-r ${type.color} rounded-full flex items-center justify-center mx-auto mb-4`}
+                        className={`w-12 h-12 ${type.color} rounded-full flex items-center justify-center mx-auto mb-4`}
                       >
                         <Icon className="w-6 h-6 text-white" />
                       </div>
@@ -230,16 +230,15 @@ export default function SuggestClient() {
           )}
 
           {/* 안내 사항 */}
-          <Card className="mt-8 border-0 shadow-brand-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Card variant="soft" className="mt-8 border-0 shadow-brand-lg">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-brand-primary mb-3 flex items-center space-x-2">
-                <FileText className="w-5 h-5" />
+                <FileText className="w-5 h-5 text-blue-600" />
                 <span>건의하기 안내</span>
               </h3>
               <ul className="space-y-2 text-sm text-brand-muted">
                 <li>
-                  • 바라는 기능이나 기능 개선에 대한 제안을 해주세요 어떠한
-                  의견도 추천.
+                  • 바라는 기능이나 기능 개선에 대한 제안을 해주세요.
                 </li>
                 <li>• 버그, 오류를 발견할 시에는 제보할 수 있습니다.</li>
                 <li>• 욕설, 비방, 스팸성 내용은 삭제될 수 있습니다.</li>

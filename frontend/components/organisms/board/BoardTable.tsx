@@ -2,7 +2,7 @@
 
 import React, { memo } from "react";
 import { Card } from "@/components";
-import { Badge } from "@/components";
+import { Badge, Button } from "@/components";
 import Link from "next/link";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
@@ -13,7 +13,9 @@ import {
   Calendar,
   Crown,
   ThumbsUp,
-  Eye
+  Eye,
+  User,
+  ExternalLink
 } from "lucide-react";
 import {
   Table,
@@ -105,13 +107,39 @@ const BoardTableRow = memo<TableRowProps>(({
 
       {/* 작성자 */}
       <TableCell>
-        <Link
-          href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
-          className="hover:text-purple-600 hover:underline transition-colors truncate block max-w-20"
-          title={`${post.userName}님의 롤링페이퍼 보기`}
-        >
-          {post.userName}
-        </Link>
+        {post.userName && post.userName !== "익명" ? (
+          <Popover
+            trigger="click"
+            placement="bottom"
+            content={
+              <div className="p-3 w-56">
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4" />
+                    <span className="font-medium">{post.userName}</span>
+                  </div>
+                  <Link
+                    href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
+                  >
+                    <Button size="sm" className="w-full justify-start">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      롤링페이퍼 보기
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            }
+          >
+            <button className="truncate max-w-20 hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
+              <User className="w-3 h-3" />
+              <span>{post.userName}</span>
+            </button>
+          </Popover>
+        ) : (
+          <span className="truncate max-w-20 text-gray-500">
+            {post.userName || "익명"}
+          </span>
+        )}
       </TableCell>
 
       {/* 작성일 */}
@@ -226,13 +254,39 @@ const BoardMobileCard = memo<TableRowProps>(({
         {/* 하단 정보 */}
         <div className="flex items-center justify-between text-sm text-brand-secondary">
           <div className="flex items-center gap-3">
-            <Link
-              href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
-              className="hover:text-purple-600 transition-colors truncate max-w-20"
-              title={`${post.userName}님의 롤링페이퍼 보기`}
-            >
-              {post.userName}
-            </Link>
+            {post.userName && post.userName !== "익명" ? (
+              <Popover
+                trigger="click"
+                placement="bottom"
+                content={
+                  <div className="p-3 w-56">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span className="font-medium">{post.userName}</span>
+                      </div>
+                      <Link
+                        href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
+                      >
+                        <Button size="sm" className="w-full justify-start">
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          롤링페이퍼 보기
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                }
+              >
+                <button className="hover:text-purple-600 transition-colors truncate max-w-20 cursor-pointer inline-flex items-center space-x-1">
+                  <User className="w-3 h-3" />
+                  <span>{post.userName}</span>
+                </button>
+              </Popover>
+            ) : (
+              <span className="truncate max-w-20 text-gray-500">
+                {post.userName || "익명"}
+              </span>
+            )}
             <span>{formatDate(post.createdAt)}</span>
           </div>
           <div className="flex items-center gap-3">
