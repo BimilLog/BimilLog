@@ -53,14 +53,6 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
               </div>
             </div>
             <div className="flex items-center space-x-2 flex-shrink-0">
-              <KakaoShareButton
-                type="rollingPaper"
-                userName={nickname}
-                messageCount={messageCount}
-                color="yellow"
-                size="sm"
-                className="text-xs !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
-              />
               {onShowMessages && (
                 <Button
                   onClick={onShowMessages}
@@ -72,6 +64,14 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                   메시지 목록 보기
                 </Button>
               )}
+              <KakaoShareButton
+                type="rollingPaper"
+                userName={nickname}
+                messageCount={messageCount}
+                color="yellow"
+                size="sm"
+                className="text-xs !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
+              />
               <Button
                 onClick={handleWebShare}
                 color="gray"
@@ -79,7 +79,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                 className="text-xs"
               >
                 <Share2 className="w-4 h-4 mr-1" />
-                공유
+                링크 공유
               </Button>
             </div>
           </div>
@@ -96,14 +96,6 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                 </h1>
               </div>
               <div className="flex items-center space-x-1 flex-shrink-0">
-                <KakaoShareButton
-                  type="rollingPaper"
-                  userName={nickname}
-                  messageCount={messageCount}
-                  color="yellow"
-                  size="sm"
-                  className="px-2 py-1 text-xs h-7 !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
-                />
                 {onShowMessages && (
                   <Button
                     onClick={onShowMessages}
@@ -115,13 +107,22 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                     목록
                   </Button>
                 )}
+                <KakaoShareButton
+                  type="rollingPaper"
+                  userName={nickname}
+                  messageCount={messageCount}
+                  color="yellow"
+                  size="sm"
+                  className="px-2 py-1 text-xs h-7 !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
+                />
                 <Button
                   onClick={handleWebShare}
                   color="gray"
                   size="sm"
                   className="px-2 py-1 text-xs h-7"
                 >
-                  <Share2 className="w-3 h-3" />
+                  <Share2 className="w-3 h-3 mr-1" />
+                  링크
                 </Button>
               </div>
             </div>

@@ -127,7 +127,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
         }}
       >
         {/* 바인더 구멍들 */}
-        <div className="absolute left-3 md:left-6 top-0 bottom-0 flex flex-col justify-evenly">
+        <div className="absolute left-3 md:left-6 top-12 md:top-16 flex flex-col gap-12 md:gap-16">
           {binderHoles}
         </div>
 

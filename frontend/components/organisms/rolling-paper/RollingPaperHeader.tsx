@@ -44,6 +44,17 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
               </div>
             </div>
             <div className="flex items-center space-x-2 flex-shrink-0">
+              {isOwner && onShowMessages && (
+                <Button
+                  onClick={onShowMessages}
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/80 h-10 px-3 text-cyan-700 hover:bg-cyan-50 border-cyan-300"
+                >
+                  <List className="w-4 h-4 mr-1" />
+                  받은 메시지
+                </Button>
+              )}
               <KakaoShareButton
                 type="rollingPaper"
                 userName={nickname}
@@ -59,19 +70,8 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
                 onClick={handleWebShare}
               >
                 <Share2 className="w-4 h-4 mr-1" />
-                공유
+                링크 공유
               </Button>
-              {isOwner && onShowMessages && (
-                <Button
-                  onClick={onShowMessages}
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/80 h-10 px-3 text-cyan-700 hover:bg-cyan-50 border-cyan-300"
-                >
-                  <List className="w-4 h-4 mr-1" />
-                  받은 메시지
-                </Button>
-              )}
             </div>
           </div>
 
@@ -91,6 +91,17 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
 
             {/* 하단: 버튼 영역 */}
             <div className="flex items-center justify-center space-x-2">
+              {isOwner && onShowMessages && (
+                <Button
+                  onClick={onShowMessages}
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/80 h-8 px-2 text-cyan-700 hover:bg-cyan-50 border-cyan-300 flex-1"
+                >
+                  <List className="w-4 h-4 mr-1" />
+                  목록
+                </Button>
+              )}
               <KakaoShareButton
                 type="rollingPaper"
                 userName={nickname}
@@ -106,18 +117,8 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
                 onClick={handleWebShare}
               >
                 <Share2 className="w-4 h-4 mr-1" />
-                공유
+                링크 공유
               </Button>
-              {isOwner && onShowMessages && (
-                <Button
-                  onClick={onShowMessages}
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/80 h-8 px-2 text-cyan-700 hover:bg-cyan-50 border-cyan-300 flex-1"
-                >
-                  <List className="w-4 h-4" />
-                </Button>
-              )}
             </div>
           </div>
         </div>
