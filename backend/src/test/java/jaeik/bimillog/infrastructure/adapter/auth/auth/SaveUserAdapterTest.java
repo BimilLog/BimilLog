@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -79,7 +80,7 @@ class SaveUserAdapterTest {
         );
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
-                .willReturn(existingUser);
+                .willReturn(Optional.of(existingUser));
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(existingToken);
         given(notificationFcmUseCase.registerFcmToken(1L, fcmToken)).willReturn(fcmTokenId);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
@@ -121,7 +122,7 @@ class SaveUserAdapterTest {
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "nonexistent"))
-                .willThrow(new jaeik.bimillog.domain.user.exception.UserCustomException(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND));
+                .willReturn(Optional.empty());
 
         // When & Then: 예외 발생 검증
         assertThatThrownBy(() -> saveDataAdapter.handleExistingUserLogin(userProfile, tokenDTO, null))
@@ -153,7 +154,7 @@ class SaveUserAdapterTest {
                 
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "123456789"))
-                .willReturn(existingUser);
+                .willReturn(Optional.of(existingUser));
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(savedToken);
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
 

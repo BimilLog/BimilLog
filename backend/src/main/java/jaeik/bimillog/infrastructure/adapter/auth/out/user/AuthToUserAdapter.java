@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.exception.UserCustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,13 +39,7 @@ public class AuthToUserAdapter implements AuthToUserPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<User> findExistingUser(SocialProvider provider, String socialId) {
-        try {
-            User user = userQueryUseCase.findByProviderAndSocialId(provider, socialId);
-            return Optional.of(user);
-        } catch (UserCustomException e) {
-            // 사용자가 존재하지 않는 경우
-            return Optional.empty();
-        }
+        return userQueryUseCase.findByProviderAndSocialId(provider, socialId);
     }
 
 }

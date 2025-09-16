@@ -71,16 +71,14 @@ public class UserQueryAdapter implements UserQueryPort {
      *
      * @param provider 소셜 제공자
      * @param socialId 소셜 ID
-     * @return User 조회된 사용자 객체
-     * @throws UserCustomException 사용자가 존재하지 않는 경우
+     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public User findByProviderAndSocialId(SocialProvider provider, String socialId) {
-        return userRepository.findByProviderAndSocialId(provider, socialId)
-                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+        return userRepository.findByProviderAndSocialId(provider, socialId);
     }
 
     /**

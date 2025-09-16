@@ -108,8 +108,6 @@ class SocialServiceTest {
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
             
             User mockUser = mock(User.class);
-            given(mockUser.getSocialNickname()).willReturn("different");
-            given(mockUser.getThumbnailImage()).willReturn("different.jpg");
             given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.of(mockUser));
             given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
             given(saveUserPort.handleExistingUserLogin(any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
@@ -125,7 +123,7 @@ class SocialServiceTest {
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
-            verify(mockUser).updateUserInfo(eq(TEST_USERNAME), eq(TEST_PROFILE_IMAGE));
+            // updateUserInfo는 SaveUserAdapter에서 처리하므로 제거
             verify(saveUserPort).handleExistingUserLogin(any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
         }
     }

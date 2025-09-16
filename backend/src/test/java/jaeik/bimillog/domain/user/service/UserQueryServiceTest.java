@@ -47,7 +47,7 @@ class UserQueryServiceTest {
         // Given
         SocialProvider provider = SocialProvider.KAKAO;
         String socialId = "123456789";
-        
+
         User expectedUser = User.builder()
                 .id(1L)
                 .userName("testUser")
@@ -57,16 +57,17 @@ class UserQueryServiceTest {
                 .build();
 
         given(userQueryPort.findByProviderAndSocialId(provider, socialId))
-                .willReturn(expectedUser);
+                .willReturn(Optional.of(expectedUser));
 
         // When
-        User result = userQueryService.findByProviderAndSocialId(provider, socialId);
+        Optional<User> result = userQueryService.findByProviderAndSocialId(provider, socialId);
 
         // Then
         verify(userQueryPort).findByProviderAndSocialId(provider, socialId);
-        assertThat(result).isEqualTo(expectedUser);
-        assertThat(result.getProvider()).isEqualTo(provider);
-        assertThat(result.getSocialId()).isEqualTo(socialId);
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(expectedUser);
+        assertThat(result.get().getProvider()).isEqualTo(provider);
+        assertThat(result.get().getSocialId()).isEqualTo(socialId);
     }
 
     @Test
@@ -77,14 +78,14 @@ class UserQueryServiceTest {
         String socialId = "nonexistent";
 
         given(userQueryPort.findByProviderAndSocialId(provider, socialId))
-                .willThrow(new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+                .willReturn(Optional.empty());
 
-        // When & Then
-        assertThatThrownBy(() -> userQueryService.findByProviderAndSocialId(provider, socialId))
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
-        
+        // When
+        Optional<User> result = userQueryService.findByProviderAndSocialId(provider, socialId);
+
+        // Then
         verify(userQueryPort).findByProviderAndSocialId(provider, socialId);
+        assertThat(result).isEmpty();
     }
 
     @Test

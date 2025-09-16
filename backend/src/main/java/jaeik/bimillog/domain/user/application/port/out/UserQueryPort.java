@@ -49,11 +49,11 @@ public interface UserQueryPort {
      *
      * @param provider 소셜 제공자
      * @param socialId 소셜 ID
-     * @return User 조회된 사용자 객체
+     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author Jaeik
      * @since 2.0.0
      */
-    User findByProviderAndSocialId(SocialProvider provider, String socialId);
+    Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId);
 
     /**
      * <h3>닉네임 존재 여부 확인</h3>

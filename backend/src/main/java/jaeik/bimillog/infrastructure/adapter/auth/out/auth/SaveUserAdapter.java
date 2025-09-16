@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.exception.UserCustomException;
+import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
 import jaeik.bimillog.global.entity.UserDetail;
 import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
@@ -53,7 +55,8 @@ public class SaveUserAdapter implements SaveUserPort {
     @Override
     @Transactional
     public List<ResponseCookie> handleExistingUserLogin(SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
-        User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId());
+        User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId())
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
