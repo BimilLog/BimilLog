@@ -21,7 +21,6 @@ import java.time.Instant;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class CommentInfo {
     
     private Long id;
@@ -90,5 +89,72 @@ public class CommentInfo {
      */
     public static CommentInfo of(Comment comment) {
         return of(comment, null, 0, false);
+    }
+
+    /**
+     * <h3>Builder용 모든 필드 생성자</h3>
+     * <p>Lombok @Builder에서 사용하는 생성자입니다.</p>
+     * <p>필드 선언 순서대로 매개변수를 배치했습니다.</p>
+     *
+     * @param id 댓글 ID
+     * @param parentId 부모 댓글 ID
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID
+     * @param userName 사용자명
+     * @param content 댓글 내용
+     * @param popular 인기 댓글 여부
+     * @param deleted 삭제 여부
+     * @param likeCount 좋아요 수
+     * @param createdAt 생성 시간
+     * @param userLike 사용자 좋아요 여부
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public CommentInfo(Long id, Long parentId, Long postId, Long userId, String userName, String content,
+                      boolean popular, boolean deleted, Integer likeCount, Instant createdAt, boolean userLike) {
+        this.id = id;
+        this.parentId = parentId;
+        this.postId = postId;
+        this.userId = userId;
+        this.userName = userName;
+        this.content = content;
+        this.popular = popular;
+        this.deleted = deleted;
+        this.likeCount = likeCount;
+        this.createdAt = createdAt;
+        this.userLike = userLike;
+    }
+
+    /**
+     * <h3>QueryDSL Projection용 생성자</h3>
+     * <p>QueryDSL Projection에서 사용하는 파라미터 순서에 맞는 생성자입니다.</p>
+     * <p>CommentProjection.getCommentInfoProjectionWithUserLike에서 호출됩니다.</p>
+     *
+     * @param id 댓글 ID
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID
+     * @param userName 사용자명
+     * @param content 댓글 내용
+     * @param deleted 삭제 여부
+     * @param createdAt 생성 시간
+     * @param parentId 부모 댓글 ID (closure.ancestor.id)
+     * @param likeCount 좋아요 수
+     * @param userLike 사용자 좋아요 여부
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public CommentInfo(Long id, Long postId, Long userId, String userName, String content,
+                      Boolean deleted, Instant createdAt, Long parentId, Integer likeCount, Boolean userLike) {
+        this.id = id;
+        this.parentId = parentId;
+        this.postId = postId;
+        this.userId = userId;
+        this.userName = userName;
+        this.content = content;
+        this.popular = false; // 기본값
+        this.deleted = deleted != null ? deleted : false;
+        this.likeCount = likeCount != null ? likeCount : 0;
+        this.createdAt = createdAt;
+        this.userLike = userLike != null ? userLike : false;
     }
 }

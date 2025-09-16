@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import React, { useCallback } from "react";
+import { useToast } from "@/hooks";
 import { Badge, Button, CardHeader, CardTitle } from "@/components";
 import {
   Eye,
@@ -14,11 +17,12 @@ import {
   Calendar,
   Crown,
   Award,
+  Share2,
 } from "lucide-react";
 import { Post } from "@/lib/api";
 import Link from "next/link";
 import { KakaoShareButton } from "@/components";
-import { Popover } from "flowbite-react";
+import { Popover, Button as FlowbiteButton } from "flowbite-react";
 import { formatDateTime } from "@/lib/utils/date";
 
 interface PostHeaderProps {
@@ -34,6 +38,37 @@ export const PostHeader = React.memo<PostHeaderProps>(({
   canModify,
   onDeleteClick,
 }) => {
+  const { showSuccess, showError } = useToast();
+
+  // 링크 공유 기능 (롤링페이퍼와 동일한 로직)
+  const handleWebShare = useCallback(async () => {
+    const shareData = {
+      title: `${post.title} | 비밀로그`,
+      text: `${post.userName || "익명"}님이 작성한 글`,
+      url: `${window.location.origin}/board/post/${post.id}`,
+    };
+
+    // 네이티브 공유 API 지원 여부 확인
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        showSuccess('공유 완료', '게시글 링크가 공유되었습니다.');
+      } catch (error) {
+        // 사용자가 공유를 취소한 경우는 무시
+        if ((error as Error).name !== 'AbortError') {
+          showError('공유 실패', '공유하기에 실패했습니다.');
+        }
+      }
+    } else {
+      // 클립보드 복사 폴백
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        showSuccess('복사 완료', '링크가 클립보드에 복사되었습니다.');
+      } catch {
+        showError('복사 실패', '링크 복사에 실패했습니다.');
+      }
+    }
+  }, [post.id, post.title, post.userName, showSuccess, showError]);
 
   return (
     <CardHeader className="border-b p-4 md:p-6">
@@ -221,6 +256,16 @@ export const PostHeader = React.memo<PostHeaderProps>(({
             size="sm"
             className="w-full sm:w-auto"
           />
+          {/* 링크 공유 버튼 (롤링페이퍼와 동일한 디자인) */}
+          <FlowbiteButton
+            onClick={handleWebShare}
+            color="gray"
+            size="sm"
+            className="text-xs"
+          >
+            <Share2 className="w-4 h-4 mr-1" />
+            링크 공유
+          </FlowbiteButton>
 
           {canModify() && (
             <div className="flex gap-2">

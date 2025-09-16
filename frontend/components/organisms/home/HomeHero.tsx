@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components";
+import { Button } from "flowbite-react";
 import { UserCheck } from "lucide-react";
 import Link from "next/link";
 import { KakaoShareButton } from "@/components";
@@ -28,11 +28,11 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           {/* 비로그인 상태 */}
           {!isAuthenticated && (
             <Button
-              variant="default"
+              color="purple"
               size="lg"
-              asChild
+              onClick={() => window.location.href = '/login'}
             >
-              <Link href="/login">내 롤링페이퍼 만들기</Link>
+              내 롤링페이퍼 만들기
             </Button>
           )}
 
@@ -42,7 +42,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* 모바일: 카카오 친구 확인하기 */}
               <div className="sm:hidden">
                 <Button
-                  variant="outline"
+                  color="yellow"
                   size="lg"
                   onClick={onOpenFriendsModal}
                 >
@@ -54,7 +54,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* PC: 카카오 친구 확인하기와 다른 롤링페이퍼 방문하기를 한 줄로 */}
               <div className="hidden sm:flex flex-row gap-4 justify-center items-center">
                 <Button
-                  variant="outline"
+                  color="yellow"
                   size="lg"
                   onClick={onOpenFriendsModal}
                 >
@@ -62,11 +62,12 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                   카카오 친구 확인하기
                 </Button>
                 <Button
-                  variant="outline"
+                  color="cyan"
                   size="lg"
-                  asChild
+                  onClick={() => window.location.href = '/visit'}
+                  className="!bg-cyan-400 !hover:bg-cyan-500 !text-white"
                 >
-                  <Link href="/visit">다른 롤링페이퍼 방문하기</Link>
+                  다른 롤링페이퍼 방문하기
                 </Button>
               </div>
 
@@ -84,11 +85,12 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           {/* 모바일 또는 비로그인: 다른 롤링페이퍼 방문하기 */}
           <div className={isAuthenticated ? "sm:hidden" : ""}>
             <Button
-              variant="outline"
+              color="cyan"
               size="lg"
-              asChild
+              onClick={() => window.location.href = '/visit'}
+              className="!bg-cyan-400 !hover:bg-cyan-500 !text-white"
             >
-              <Link href="/visit">다른 롤링페이퍼 방문하기</Link>
+              다른 롤링페이퍼 방문하기
             </Button>
           </div>
 
