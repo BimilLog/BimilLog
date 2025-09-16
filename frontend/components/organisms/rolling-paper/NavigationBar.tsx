@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "flowbite-react";
-import { MessageSquare, Share2, List, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageSquare, Share2, List } from "lucide-react";
 import { KakaoShareButton } from "@/components";
 import { useRollingPaperShare } from "@/hooks/features/useRollingPaperShare";
 
@@ -138,58 +138,6 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
         </div>
       </div>
 
-      {/* 페이지네이션 섹션 */}
-      {showPagination && totalPages > 1 && onPageChange && (
-        <div className="border-t bg-white/60 px-4 py-3">
-          <div className="flex flex-col items-center space-y-4">
-            {/* 페이지 인디케이터 */}
-            <div className="flex justify-center items-center space-x-2">
-              <Button
-                color="gray"
-                size="sm"
-                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0 bg-white/80"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-
-              <div className="flex space-x-1">
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <Button
-                    key={i + 1}
-                    color={currentPage === i + 1 ? "blue" : "gray"}
-                    size="sm"
-                    onClick={() => onPageChange(i + 1)}
-                    className={`h-8 w-8 p-0 ${
-                      currentPage === i + 1
-                        ? "bg-gradient-to-r from-blue-500 to-cyan-600 text-white"
-                        : "bg-white/80"
-                    }`}
-                  >
-                    {i + 1}
-                  </Button>
-                ))}
-              </div>
-
-              <Button
-                color="gray"
-                size="sm"
-                onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0 bg-white/80"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* 페이지 정보 */}
-            <p className="text-xs text-brand-muted">
-              {currentPage} / {totalPages} 페이지
-            </p>
-          </div>
-        </div>
-      )}
     </header>
   );
 });

@@ -115,7 +115,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
       {/* 종이 배경 */}
       <div
-        className="relative bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 rounded-2xl md:rounded-3xl shadow-brand-xl md:shadow-brand-2xl border-2 md:border-4 border-cyan-200"
+        className="relative min-h-[600px] md:min-h-[700px] bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 rounded-2xl md:rounded-3xl shadow-xl md:shadow-2xl border-2 md:border-4 border-cyan-200"
         style={{
           backgroundImage: `
             radial-gradient(circle at 15px 15px, rgba(91,192,222,0.3) 1px, transparent 1px),
@@ -134,10 +134,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
         {/* 제목 영역 */}
         <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-12 md:px-20 text-center">
           <div className="relative">
-            <h1 className="text-lg md:text-3xl font-bold text-cyan-800 mb-2 transform -rotate-1 flex items-center justify-center space-x-2">
-              <Waves className="w-5 h-5 md:w-7 md:h-7" />
-              <span>{nickname}님의 롤링페이퍼</span>
-              <Waves className="w-5 h-5 md:w-7 md:h-7" />
+            <h1 className="text-lg md:text-3xl font-bold text-cyan-800 mb-2 transform -rotate-1">
+              <Waves className="inline w-5 h-5 md:w-7 md:h-7" />
+              {' '}{nickname}님의 롤링페이퍼{' '}
+              <Waves className="inline w-5 h-5 md:w-7 md:h-7" />
             </h1>
 
             {/* 시원한 데코레이션 */}
@@ -147,9 +147,9 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
               </div>
             ))}
 
-            <p className="text-cyan-600 text-xs md:text-sm mt-2 transform rotate-1 font-medium flex items-center justify-center space-x-1">
-              <span>총 {messages.length}개의 시원한 메시지</span>
-              <Mail className="w-3 h-3 md:w-4 md:h-4" />
+            <p className="text-cyan-600 text-xs md:text-sm mt-2 transform rotate-1 font-medium">
+              총 {messages.length}개의 시원한 메시지{' '}
+              <Mail className="inline w-3 h-3 md:w-4 md:h-4" />
             </p>
           </div>
         </div>
@@ -224,9 +224,9 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                         aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative
                         ${
                           isHighlighted // 하이라이트된 셀 (최근 작성 메시지 등)
-                            ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-brand-xl shadow-green-200 cursor-pointer"
+                            ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-xl shadow-green-200 cursor-pointer"
                             : messageAtPosition // 메시지가 있는 셀
-                            ? `bg-gradient-to-br ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} border-white shadow-brand-md md:shadow-brand-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
+                            ? `bg-gradient-to-br ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} border-white shadow-md md:shadow-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
                             : isOwner // 롤링페이퍼 소유자인 경우 메시지 작성 불가
                             ? "border-dashed border-gray-300 cursor-not-allowed opacity-50"
                             : "border-dashed border-cyan-300 hover:border-cyan-500 hover:bg-cyan-50 cursor-pointer hover:scale-105 hover:rotate-1" // 빈 셀, 메시지 작성 가능
@@ -254,7 +254,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                           )}
                         </div>
                       ) : isOwner ? ( // 소유자인 경우: 빈 공간 (메시지 작성 불가)
-                        <div className="text-brand-secondary text-xs md:text-sm text-center leading-tight opacity-0"></div>
+                        <div className="text-gray-400 text-xs md:text-sm text-center leading-tight opacity-0"></div>
                       ) : ( // 방문자인 경우: + 아이콘으로 메시지 작성 유도
                         <div className="relative group">
                           <Plus

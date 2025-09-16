@@ -240,6 +240,11 @@
   .min-w-touch {
     min-width: var(--touch-target-min);
   }
+
+  /* Aspect Ratio 유틸리티 */
+  .aspect-square {
+    aspect-ratio: 1 / 1;
+  }
 }
 
 /* 다크모드 스타일 */

@@ -37,10 +37,10 @@ export function useRollingPaperGrid({
     return createMessageGrid(messages);
   }, [messages]);
 
-  // 전체 페이지 수 계산
+  // 전체 페이지 수 계산 (고정값)
   const totalPages = useMemo(() => {
-    return calculateTotalPages(messages.length);
-  }, [messages.length]);
+    return calculateTotalPages();
+  }, []);
 
   // 특정 위치의 메시지 가져오기 (1-based 좌표)
   const getMessageAt = useCallback(

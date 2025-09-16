@@ -112,15 +112,16 @@ export function createMessageGrid<T extends { x: number; y: number }>(
 
 /**
  * 전체 페이지 수 계산
+ * PC: 2페이지, 모바일: 3페이지로 고정
  */
-export function calculateTotalPages(messageCount: number): number {
-  const messagesPerPage = getMessagesPerPage();
-  return Math.ceil(messageCount / messagesPerPage) || 1;
+export function calculateTotalPages(): number {
+  return isMobileDevice() ? 3 : 2;
 }
 
 /**
  * 페이지와 그리드 내 위치에서 실제 전체 좌표 계산
- * 예: 2페이지의 (2,3) -> PC에서 실제 좌표 (8,3)
+ * 예: 2페이지의 (1,2) -> PC에서 실제 좌표 (7,2)
+ * 입력: 0-based gridX/gridY, 출력: 1-based x/y
  */
 export function getAbsoluteCoords(
   page: number,
@@ -130,8 +131,8 @@ export function getAbsoluteCoords(
   const cols = getGridColumns();
   const baseX = (page - 1) * cols;
   return {
-    x: baseX + gridX,
-    y: gridY,
+    x: baseX + gridX + 1, // 1-based로 변환
+    y: gridY + 1, // 1-based로 변환
   };
 }
 
